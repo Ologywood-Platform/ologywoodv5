@@ -403,3 +403,37 @@ export async function updateSubscription(userId: number, updates: Partial<Subscr
   
   await db.update(subscriptions).set(updates).where(eq(subscriptions.userId, userId));
 }
+
+export async function upsertSubscription(data: {
+  userId: number;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  planType: string;
+  status: 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due';
+  currentPeriodEnd?: Date;
+}) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.insert(subscriptions).values(data).onDuplicateKeyUpdate({
+    set: {
+      stripeCustomerId: data.stripeCustomerId,
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      status: data.status,
+      currentPeriodEnd: data.currentPeriodEnd,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function updateSubscriptionStatus(
+  userId: number,
+  status: 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due'
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(subscriptions)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(subscriptions.userId, userId));
+}

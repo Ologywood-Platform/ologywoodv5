@@ -107,31 +107,21 @@ export const appRouter = router({
         return profile;
       }),
     
-    // Update artist profile
-    updateProfile: artistProcedure
+    // Create artist profile
+    create: protectedProcedure
       .input(z.object({
-        artistName: z.string().optional(),
-        genre: z.array(z.string()).optional(),
+        artistName: z.string().min(1),
         bio: z.string().optional(),
+        genre: z.array(z.string()).optional(),
         location: z.string().optional(),
         feeRangeMin: z.number().optional(),
         feeRangeMax: z.number().optional(),
-        touringPartySize: z.number().optional(),
+        socialLinks: z.any().optional(),
         profilePhotoUrl: z.string().optional(),
-        mediaGallery: z.object({
-          photos: z.array(z.string()),
-          videos: z.array(z.string()),
-        }).optional(),
-        websiteUrl: z.string().optional(),
-        socialLinks: z.object({
-          instagram: z.string().optional(),
-          facebook: z.string().optional(),
-          youtube: z.string().optional(),
-          spotify: z.string().optional(),
-          twitter: z.string().optional(),
-        }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Note: Profile creation is allowed without subscription for onboarding
+        // Subscription will be required for receiving bookings
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
@@ -506,20 +496,67 @@ export const appRouter = router({
     getMy: protectedProcedure.query(async ({ ctx }) => {
       return await db.getSubscriptionByUserId(ctx.user.id);
     }),
-    
-    // Create subscription (placeholder - will integrate Stripe later)
-    create: protectedProcedure
+
+    // Create checkout session for subscription
+    createCheckoutSession: protectedProcedure
       .input(z.object({
-        planType: z.string(),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await db.createSubscription({
-          userId: ctx.user.id,
-          planType: input.planType,
-          status: 'active',
+        const { getOrCreateStripeCustomer, createSubscriptionCheckoutSession } = await import('./stripe');
+        
+        // Get or create Stripe customer
+        const customerId = await getOrCreateStripeCustomer({
+          email: ctx.user.email || '',
+          name: ctx.user.name || undefined,
+          userId: ctx.user.id.toString(),
         });
-        return { success: true };
+
+        // Create checkout session
+        const checkoutUrl = await createSubscriptionCheckoutSession({
+          customerId,
+          userEmail: ctx.user.email || '',
+          userName: ctx.user.name || undefined,
+          userId: ctx.user.id.toString(),
+          successUrl: input.successUrl,
+          cancelUrl: input.cancelUrl,
+        });
+
+        return { checkoutUrl };
       }),
+
+    // Get subscription status from Stripe
+    getStatus: protectedProcedure.query(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription?.stripeSubscriptionId) {
+        return null;
+      }
+      const { getSubscriptionStatus } = await import('./stripe');
+      return await getSubscriptionStatus(subscription.stripeSubscriptionId);
+    }),
+
+    // Cancel subscription
+    cancel: protectedProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription?.stripeSubscriptionId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
+      }
+      const { cancelSubscription } = await import('./stripe');
+      await cancelSubscription(subscription.stripeSubscriptionId);
+      return { success: true };
+    }),
+
+    // Reactivate subscription
+    reactivate: protectedProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription?.stripeSubscriptionId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
+      }
+      const { reactivateSubscription } = await import('./stripe');
+      await reactivateSubscription(subscription.stripeSubscriptionId);
+      return { success: true };
+    }),
   }),
 });
 

@@ -132,7 +132,7 @@ export default function Dashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 lg:w-auto">
             <TabsTrigger value="bookings">
               <Calendar className="h-4 w-4 mr-2" />
               Bookings
@@ -151,6 +151,12 @@ export default function Dashboard() {
               <TabsTrigger value="riders">
                 <FileText className="h-4 w-4 mr-2" />
                 Riders
+              </TabsTrigger>
+            )}
+            {isArtist && (
+              <TabsTrigger value="subscription">
+                <Settings className="h-4 w-4 mr-2" />
+                Subscription
               </TabsTrigger>
             )}
           </TabsList>
@@ -329,6 +335,33 @@ export default function Dashboard() {
                     <p className="text-muted-foreground text-center">
                       Create reusable rider templates to streamline your booking process.
                       Click "Manage Templates" to get started.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Subscription Tab (Artists only) */}
+          {isArtist && (
+            <TabsContent value="subscription">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Subscription</h2>
+                    <p className="text-muted-foreground">Manage your Ologywood subscription</p>
+                  </div>
+                  <Link href="/subscription">
+                    <Button>
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground text-center">
+                      Subscribe to Ologywood to access all features and start receiving bookings.
+                      Click "View Details" to manage your subscription.
                     </p>
                   </CardContent>
                 </Card>

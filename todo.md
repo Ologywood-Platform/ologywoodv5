@@ -90,3 +90,15 @@
 - [x] Implement create, edit, delete operations for rider templates
 - [x] Integrate rider templates into booking workflow
 - [x] Display rider details in booking requests
+
+## Stripe Subscription System
+- [x] Add Stripe feature to project
+- [x] Configure Stripe subscription products and pricing
+- [x] Build subscription management UI
+- [x] Implement payment flow with Stripe Checkout
+- [x] Add subscription status tracking
+- [x] Implement trial period logic
+- [x] Configure Stripe webhook handler
+- [x] Add subscription tab to artist dashboard
+- [x] Add access control based on subscription status
+- [x] Create subscription management page for artists
