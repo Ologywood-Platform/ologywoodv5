@@ -1117,6 +1117,52 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+  
+  // Analytics router
+  analytics: router({
+    trackView: publicProcedure
+      .input(z.object({
+        artistId: z.number(),
+        ipAddress: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.trackProfileView(
+          input.artistId,
+          ctx.user?.id,
+          input.ipAddress
+        );
+        return { success: true };
+      }),
+    
+    getProfileViews: artistProcedure
+      .input(z.object({ days: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        return await db.getProfileViewCount(profile.id, input.days);
+      }),
+    
+    getBookingStats: artistProcedure
+      .query(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        return await db.getBookingStats(profile.id);
+      }),
+    
+    getRevenueByMonth: artistProcedure
+      .input(z.object({ months: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        return await db.getRevenueByMonth(profile.id, input.months);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

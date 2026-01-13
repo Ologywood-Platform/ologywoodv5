@@ -12,7 +12,7 @@ import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, 
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function ArtistProfile() {
@@ -26,6 +26,15 @@ export default function ArtistProfile() {
   const { data: riderTemplates } = trpc.rider.getForArtist.useQuery({ artistId });
   const { data: reviews } = trpc.review.getByArtist.useQuery({ artistId });
   const { data: avgRating } = trpc.review.getAverageRating.useQuery({ artistId });
+  
+  // Track profile view
+  const trackView = trpc.analytics.trackView.useMutation();
+  
+  useEffect(() => {
+    if (artistId && !isLoading) {
+      trackView.mutate({ artistId });
+    }
+  }, [artistId, isLoading]);
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);

@@ -216,3 +216,13 @@
 - [x] Add template selector to booking request form
 - [x] Auto-fill booking form fields from selected template
 - [x] Allow editing template values before submitting booking
+
+## Artist Analytics Dashboard
+- [x] Create profileViews table to track artist profile visits
+- [x] Add view tracking to artist profile page
+- [x] Create API endpoints for analytics data (views, bookings, revenue)
+- [x] Build analytics dashboard component with charts
+- [x] Display profile view count and trends
+- [x] Show booking request metrics (total, pending, confirmed, conversion rate)
+- [x] Display revenue trends over time
+- [x] Add Analytics tab to artist dashboard

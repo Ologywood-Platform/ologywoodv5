@@ -247,3 +247,18 @@ export const bookingTemplates = mysqlTable("booking_templates", {
 
 export type BookingTemplate = typeof bookingTemplates.$inferSelect;
 export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
+
+
+/**
+ * Profile views table - tracks artist profile page visits for analytics
+ */
+export const profileViews = mysqlTable("profile_views", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  viewerUserId: int("viewerUserId"), // null for anonymous views
+  viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }), // For deduplication
+});
+
+export type ProfileView = typeof profileViews.$inferSelect;
+export type InsertProfileView = typeof profileViews.$inferInsert;

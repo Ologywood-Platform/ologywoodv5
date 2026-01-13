@@ -12,7 +12,8 @@ import {
   reviews, InsertReview, Review,
   venueReviews, InsertVenueReview, VenueReview,
   favorites, InsertFavorite, Favorite,
-  bookingTemplates, InsertBookingTemplate, BookingTemplate
+  bookingTemplates, InsertBookingTemplate, BookingTemplate,
+  profileViews, InsertProfileView, ProfileView
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -776,4 +777,98 @@ export async function deleteBookingTemplate(id: number) {
   
   await db.delete(bookingTemplates)
     .where(eq(bookingTemplates.id, id));
+}
+
+
+// ============= ANALYTICS FUNCTIONS =============
+
+export async function trackProfileView(artistId: number, viewerUserId?: number, ipAddress?: string) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.insert(profileViews).values({
+    artistId,
+    viewerUserId,
+    ipAddress,
+  });
+}
+
+export async function getProfileViewCount(artistId: number, days?: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  let conditions = [eq(profileViews.artistId, artistId)];
+  
+  if (days) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    conditions.push(gte(profileViews.viewedAt, startDate));
+  }
+  
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(profileViews)
+    .where(and(...conditions));
+  
+  return Number(result[0]?.count) || 0;
+}
+
+export async function getBookingStats(artistId: number) {
+  const db = await getDb();
+  if (!db) return {
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    cancelled: 0,
+    totalRevenue: 0,
+  };
+  
+  const allBookings = await db.select().from(bookings)
+    .where(eq(bookings.artistId, artistId));
+  
+  const stats = {
+    total: allBookings.length,
+    pending: allBookings.filter(b => b.status === 'pending').length,
+    confirmed: allBookings.filter(b => b.status === 'confirmed').length,
+    completed: allBookings.filter(b => b.status === 'completed').length,
+    cancelled: allBookings.filter(b => b.status === 'cancelled').length,
+    totalRevenue: allBookings
+      .filter(b => b.status === 'completed' && b.totalFee)
+      .reduce((sum, b) => sum + (typeof b.totalFee === 'number' ? b.totalFee : 0), 0),
+  };
+  
+  return stats;
+}
+
+export async function getRevenueByMonth(artistId: number, months: number = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  
+  const completedBookings = await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.artistId, artistId),
+        eq(bookings.status, 'completed'),
+        gte(bookings.eventDate, startDate)
+      )
+    )
+    .orderBy(bookings.eventDate);
+  
+  // Group by month
+  const revenueByMonth: { [key: string]: number } = {};
+  completedBookings.forEach(booking => {
+    if (booking.eventDate && booking.totalFee) {
+      const monthKey = booking.eventDate.toISOString().substring(0, 7); // YYYY-MM
+      const fee = typeof booking.totalFee === 'number' ? booking.totalFee : 0;
+      revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + fee;
+    }
+  });
+  
+  return Object.entries(revenueByMonth).map(([month, revenue]) => ({
+    month,
+    revenue,
+  }));
 }

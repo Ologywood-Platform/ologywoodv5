@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart, TrendingUp } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
 import { PhotoGalleryManager } from "@/components/PhotoGalleryManager";
 import SavedArtistsTab from "@/components/SavedArtistsTab";
 import BookingTemplatesTab from "@/components/BookingTemplatesTab";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -182,6 +183,10 @@ export default function Dashboard() {
             )}
             {isArtist && (
               <>
+                <TabsTrigger value="analytics">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Analytics
+                </TabsTrigger>
                 <TabsTrigger value="reviews">
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Reviews
@@ -425,9 +430,12 @@ export default function Dashboard() {
             </TabsContent>
           )}
 
-          {/* Reviews Tab (Artists only) */}
+          {/* Analytics Tab (Artists only) */}
           {isArtist && (
             <>
+              <TabsContent value="analytics">
+                <AnalyticsDashboard />
+              </TabsContent>
               <TabsContent value="reviews">
                 <ReviewsTabContent artistId={artistProfile?.id} />
               </TabsContent>
