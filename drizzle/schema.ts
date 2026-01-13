@@ -224,3 +224,26 @@ export const favorites = mysqlTable("favorites", {
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
+
+
+/**
+ * Booking templates table - stores reusable booking request templates for venues
+ */
+export const bookingTemplates = mysqlTable("booking_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // The venue user who owns this template
+  templateName: varchar("templateName", { length: 255 }).notNull(),
+  venueName: varchar("venueName", { length: 255 }),
+  venueAddress: text("venueAddress"),
+  venueCapacity: int("venueCapacity"),
+  eventType: varchar("eventType", { length: 255 }),
+  budgetMin: int("budgetMin"),
+  budgetMax: int("budgetMax"),
+  standardRequirements: text("standardRequirements"),
+  additionalNotes: text("additionalNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BookingTemplate = typeof bookingTemplates.$inferSelect;
+export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;

@@ -1058,6 +1058,65 @@ export const appRouter = router({
         return await db.getFavoriteCount(input.artistId);
       }),
   }),
+  
+  // Booking template router
+  bookingTemplate: router({
+    create: venueProcedure
+      .input(z.object({
+        templateName: z.string(),
+        venueName: z.string().optional(),
+        venueAddress: z.string().optional(),
+        venueCapacity: z.number().optional(),
+        eventType: z.string().optional(),
+        budgetMin: z.number().optional(),
+        budgetMax: z.number().optional(),
+        standardRequirements: z.string().optional(),
+        additionalNotes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createBookingTemplate({
+          userId: ctx.user.id,
+          ...input,
+        });
+      }),
+    
+    getMyTemplates: venueProcedure
+      .query(async ({ ctx }) => {
+        return await db.getBookingTemplatesByUserId(ctx.user.id);
+      }),
+    
+    getById: venueProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getBookingTemplateById(input.id);
+      }),
+    
+    update: venueProcedure
+      .input(z.object({
+        id: z.number(),
+        templateName: z.string().optional(),
+        venueName: z.string().optional(),
+        venueAddress: z.string().optional(),
+        venueCapacity: z.number().optional(),
+        eventType: z.string().optional(),
+        budgetMin: z.number().optional(),
+        budgetMax: z.number().optional(),
+        standardRequirements: z.string().optional(),
+        additionalNotes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...updates } = input;
+        await db.updateBookingTemplate(id, updates);
+        return { success: true };
+      }),
+    
+    delete: venueProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteBookingTemplate(input.id);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

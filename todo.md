@@ -207,3 +207,12 @@
 - [x] Add function to get venues who favorited an artist
 - [x] Send email notifications when artist adds availability
 - [x] Integrate notification into availability creation API
+
+## Booking Request Templates
+- [x] Create bookingTemplates table in database schema
+- [x] Add API endpoints for creating/updating/deleting templates
+- [x] Add API endpoint to get user's templates
+- [x] Create template management UI in venue dashboard
+- [x] Add template selector to booking request form
+- [x] Auto-fill booking form fields from selected template
+- [x] Allow editing template values before submitting booking

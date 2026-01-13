@@ -11,6 +11,7 @@ import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
 import { PhotoGalleryManager } from "@/components/PhotoGalleryManager";
 import SavedArtistsTab from "@/components/SavedArtistsTab";
+import BookingTemplatesTab from "@/components/BookingTemplatesTab";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -196,6 +197,10 @@ export default function Dashboard() {
                 <TabsTrigger value="saved">
                   <Heart className="h-4 w-4 mr-2" />
                   Saved Artists
+                </TabsTrigger>
+                <TabsTrigger value="templates">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Templates
                 </TabsTrigger>
                 <TabsTrigger value="photos">
                   <Music className="h-4 w-4 mr-2" />
@@ -436,6 +441,13 @@ export default function Dashboard() {
           {isVenue && (
             <TabsContent value="saved">
               <SavedArtistsTab />
+            </TabsContent>
+          )}
+          
+          {/* Templates Tab (Venues) */}
+          {isVenue && (
+            <TabsContent value="templates">
+              <BookingTemplatesTab />
             </TabsContent>
           )}
           

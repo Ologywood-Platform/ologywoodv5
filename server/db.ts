@@ -11,7 +11,8 @@ import {
   subscriptions, InsertSubscription, Subscription,
   reviews, InsertReview, Review,
   venueReviews, InsertVenueReview, VenueReview,
-  favorites, InsertFavorite, Favorite
+  favorites, InsertFavorite, Favorite,
+  bookingTemplates, InsertBookingTemplate, BookingTemplate
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -728,4 +729,51 @@ export async function getVenuesWhoFavoritedArtist(artistId: number) {
       organizationName: profile?.organizationName,
     };
   }).filter(v => v.email); // Only return venues with email addresses
+}
+
+
+// ============= BOOKING TEMPLATE FUNCTIONS =============
+
+export async function createBookingTemplate(template: InsertBookingTemplate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(bookingTemplates).values(template);
+  return template;
+}
+
+export async function getBookingTemplatesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(bookingTemplates)
+    .where(eq(bookingTemplates.userId, userId))
+    .orderBy(desc(bookingTemplates.updatedAt));
+}
+
+export async function getBookingTemplateById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(bookingTemplates)
+    .where(eq(bookingTemplates.id, id));
+  
+  return result[0] || null;
+}
+
+export async function updateBookingTemplate(id: number, updates: Partial<InsertBookingTemplate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(bookingTemplates)
+    .set(updates)
+    .where(eq(bookingTemplates.id, id));
+}
+
+export async function deleteBookingTemplate(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(bookingTemplates)
+    .where(eq(bookingTemplates.id, id));
 }

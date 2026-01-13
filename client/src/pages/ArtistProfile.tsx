@@ -28,12 +28,47 @@ export default function ArtistProfile() {
   const { data: avgRating } = trpc.review.getAverageRating.useQuery({ artistId });
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [venueName, setVenueName] = useState("");
   const [venueAddress, setVenueAddress] = useState("");
   const [eventDetails, setEventDetails] = useState("");
   const [totalFee, setTotalFee] = useState("");
+  
+  // Load templates for venues
+  const { data: templates } = trpc.bookingTemplate.getMyTemplates.useQuery(
+    undefined,
+    { enabled: user?.role === 'venue' }
+  );
+  
+  // Auto-fill form when template is selected
+  const handleTemplateSelect = (templateId: string) => {
+    if (!templateId || !templates) {
+      setSelectedTemplate(null);
+      return;
+    }
+    
+    const template = templates.find(t => t.id === parseInt(templateId));
+    if (template) {
+      setSelectedTemplate(template.id);
+      setVenueName(template.venueName || "");
+      setVenueAddress(template.venueAddress || "");
+      
+      // Build event details from template
+      let details = "";
+      if (template.eventType) details += `Event Type: ${template.eventType}\n`;
+      if (template.venueCapacity) details += `Capacity: ${template.venueCapacity} guests\n`;
+      if (template.standardRequirements) details += `\nRequirements:\n${template.standardRequirements}\n`;
+      if (template.additionalNotes) details += `\nAdditional Notes:\n${template.additionalNotes}`;
+      setEventDetails(details);
+      
+      // Set budget if available
+      if (template.budgetMax) {
+        setTotalFee(template.budgetMax.toString());
+      }
+    }
+  };
   
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: () => {
@@ -180,6 +215,25 @@ export default function ArtistProfile() {
                 </DialogHeader>
                 
                 <form onSubmit={handleBookingSubmit} className="space-y-4">
+                  {user?.role === 'venue' && templates && templates.length > 0 && (
+                    <div>
+                      <Label htmlFor="template">Use Template (Optional)</Label>
+                      <select
+                        id="template"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={selectedTemplate || ""}
+                        onChange={(e) => handleTemplateSelect(e.target.value)}
+                      >
+                        <option value="">-- Select a template --</option>
+                        {templates.map((template) => (
+                          <option key={template.id} value={template.id}>
+                            {template.templateName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="eventDate">Event Date *</Label>
