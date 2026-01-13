@@ -296,3 +296,53 @@ export async function sendSubscriptionCanceledEmail(params: {
     html,
   });
 }
+
+/**
+ * Send notification to venue when artist responds to their review
+ */
+export async function sendReviewResponseEmail(params: {
+  venueEmail: string;
+  venueName: string;
+  artistName: string;
+  originalReview: string;
+  artistResponse: string;
+  rating: number;
+}) {
+  const { venueEmail, venueName, artistName, originalReview, artistResponse, rating } = params;
+
+  const stars = '⭐'.repeat(rating);
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">Artist Responded to Your Review</h2>
+      <p>Hi ${venueName},</p>
+      <p><strong>${artistName}</strong> has responded to the review you left on their profile.</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0;"><strong>Your Review (${stars}):</strong></p>
+        <p style="margin: 0 0 20px 0; font-style: italic; color: #6b7280;">"${originalReview}"</p>
+        
+        <div style="border-left: 4px solid #8b5cf6; padding-left: 16px; margin-top: 16px;">
+          <p style="margin: 0 0 10px 0; color: #8b5cf6; font-weight: bold;">Artist Response:</p>
+          <p style="margin: 0; color: #374151;">"${artistResponse}"</p>
+        </div>
+      </div>
+      
+      <p>Thank you for being part of the Ologywood community and helping artists improve their services!</p>
+      
+      <a href="https://ologywood.com/artist/${artistName}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        View Artist Profile
+      </a>
+      
+      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+        This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: venueEmail,
+    subject: `${artistName} Responded to Your Review`,
+    html,
+  });
+}

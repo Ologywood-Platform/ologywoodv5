@@ -652,6 +652,19 @@ export const appRouter = router({
           respondedAt: new Date(),
         });
 
+        // Send email notification to venue
+        const venueUser = await db.getUserById(review.venueId);
+        if (venueUser?.email && artistProfile) {
+          await email.sendReviewResponseEmail({
+            venueEmail: venueUser.email,
+            venueName: venueUser.name || 'Venue',
+            artistName: artistProfile.artistName,
+            originalReview: review.reviewText || '',
+            artistResponse: input.response,
+            rating: review.rating,
+          });
+        }
+
         return { success: true };
       }),
   }),
