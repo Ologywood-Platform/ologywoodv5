@@ -8,6 +8,13 @@
       "when": 1768335058868,
       "tag": "0000_tan_trauma",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1768340158540,
+      "tag": "0001_slimy_swordsman",
+      "breakpoints": true
     }
   ]
 }

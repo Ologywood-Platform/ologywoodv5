@@ -8,7 +8,8 @@ import {
   availability, InsertAvailability, Availability,
   bookings, InsertBooking, Booking,
   messages, InsertMessage, Message,
-  subscriptions, InsertSubscription, Subscription
+  subscriptions, InsertSubscription, Subscription,
+  reviews, InsertReview, Review
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -442,4 +443,47 @@ export async function updateSubscriptionStatus(
   await db.update(subscriptions)
     .set({ status, updatedAt: new Date() })
     .where(eq(subscriptions.userId, userId));
+}
+
+// ============= REVIEW FUNCTIONS =============
+
+export async function createReview(review: InsertReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(reviews).values(review);
+  return result;
+}
+
+export async function getReviewsByArtistId(artistId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(reviews)
+    .where(eq(reviews.artistId, artistId))
+    .orderBy(desc(reviews.createdAt));
+}
+
+export async function getReviewByBookingId(bookingId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(reviews).where(eq(reviews.bookingId, bookingId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAverageRatingForArtist(artistId: number): Promise<{ average: number; count: number }> {
+  const db = await getDb();
+  if (!db) return { average: 0, count: 0 };
+  
+  const artistReviews = await getReviewsByArtistId(artistId);
+  if (!artistReviews || artistReviews.length === 0) {
+    return { average: 0, count: 0 };
+  }
+  
+  const sum = artistReviews.reduce((acc, review) => acc + review.rating, 0);
+  return {
+    average: sum / artistReviews.length,
+    count: artistReviews.length,
+  };
 }

@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, MapPin, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingMessages from '@/components/BookingMessages';
+import { ReviewForm } from '@/components/ReviewForm';
+import { Star } from 'lucide-react';
+import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function BookingDetail() {
   const params = useParams();
@@ -15,6 +18,7 @@ export default function BookingDetail() {
   const bookingId = parseInt(params.id || '0');
 
   const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId });
+  const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId });
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       toast.success('Booking status updated');
@@ -188,6 +192,46 @@ export default function BookingDetail() {
               </div>
             )}
           </Card>
+
+          {/* Review Section - Only show for venues on completed bookings */}
+          {user.role === 'venue' && booking.status === 'completed' && (
+            <div>
+              {existingReview ? (
+                <Card className="p-6">
+                  <CardHeader>
+                    <CardTitle>Your Review</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-5 h-5 ${
+                            star <= existingReview.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {existingReview.reviewText && (
+                      <p className="text-muted-foreground">{existingReview.reviewText}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Submitted on {new Date(existingReview.createdAt).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ReviewForm
+                  bookingId={bookingId}
+                  artistId={booking.artistId}
+                  artistName="this artist"
+                  onReviewSubmitted={() => refetch()}
+                />
+              )}
+            </div>
+          )}
 
           {/* Messages */}
           <BookingMessages bookingId={bookingId} currentUserId={user.id} />

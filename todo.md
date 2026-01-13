@@ -120,3 +120,11 @@
 - [x] Integrate messaging into dashboard
 - [ ] Add real-time message notifications
 - [ ] Display unread message count
+
+## Review and Rating System
+- [x] Add reviews table to database schema
+- [x] Create review API endpoints (create, get by artist, get by booking)
+- [x] Build review submission form for completed bookings
+- [x] Display reviews on artist profile pages
+- [x] Show average rating and review count
+- [ ] Add review moderation (optional)

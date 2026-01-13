@@ -563,6 +563,71 @@ export const appRouter = router({
       }),
   }),
 
+  // Review Management
+  review: router({
+    // Create review (venue only, for completed bookings)
+    create: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        artistId: z.number(),
+        rating: z.number().min(1).max(5),
+        reviewText: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Check if booking exists and is completed
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        if (booking.status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only review completed bookings' });
+        }
+        
+        // Check if review already exists
+        const existingReview = await db.getReviewByBookingId(input.bookingId);
+        if (existingReview) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Review already exists for this booking' });
+        }
+        
+        // Get venue profile to get venueId
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave reviews' });
+        }
+        
+        await db.createReview({
+          bookingId: input.bookingId,
+          artistId: input.artistId,
+          venueId: venueProfile.id,
+          rating: input.rating,
+          reviewText: input.reviewText || null,
+        });
+        
+        return { success: true };
+      }),
+    
+    // Get reviews for an artist (public)
+    getByArtist: publicProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getReviewsByArtistId(input.artistId);
+      }),
+    
+    // Get review for a specific booking
+    getByBooking: publicProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getReviewByBookingId(input.bookingId);
+      }),
+    
+    // Get average rating for an artist
+    getAverageRating: publicProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getAverageRatingForArtist(input.artistId);
+      }),
+  }),
+
   // Subscription Management
   subscription: router({
     // Get current user's subscription

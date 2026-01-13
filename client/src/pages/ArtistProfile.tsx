@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { useState } from "react";
@@ -23,6 +23,8 @@ export default function ArtistProfile() {
   const { data: artist, isLoading } = trpc.artist.getProfile.useQuery({ id: artistId });
   const { data: availability } = trpc.availability.getForArtist.useQuery({ artistId });
   const { data: riderTemplates } = trpc.rider.getForArtist.useQuery({ artistId });
+  const { data: reviews } = trpc.review.getByArtist.useQuery({ artistId });
+  const { data: avgRating } = trpc.review.getAverageRating.useQuery({ artistId });
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [eventDate, setEventDate] = useState("");
@@ -374,6 +376,47 @@ export default function ArtistProfile() {
                         )}
                       </CollapsibleContent>
                     </Collapsible>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Reviews Section */}
+            {reviews && reviews.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    Reviews ({reviews.length})
+                    {avgRating && (
+                      <span className="text-lg font-normal text-muted-foreground">
+                        {avgRating.average.toFixed(1)} average
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-b pb-4 last:border-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 ${
+                              star <= review.rating
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-sm text-muted-foreground ml-2">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {review.reviewText && (
+                        <p className="text-sm text-muted-foreground">{review.reviewText}</p>
+                      )}
+                    </div>
                   ))}
                 </CardContent>
               </Card>
