@@ -55,3 +55,6 @@
 - [x] Artist-only features protection
 - [x] Venue-only features protection
 - [ ] Profile completion checks
+
+## Bug Fixes
+- [x] Fix nested anchor tag error on homepage (Link wrapping <a> elements)

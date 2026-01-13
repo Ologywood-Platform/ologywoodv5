@@ -30,17 +30,13 @@ export default function Browse() {
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-8 w-8" />
-              Ologywood
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+            <Music className="h-8 w-8" />
+            Ologywood
           </Link>
           
           <Link href="/">
-            <a>
-              <Button variant="ghost">Back to Home</Button>
-            </a>
+            <Button variant="ghost">Back to Home</Button>
           </Link>
         </div>
       </header>
@@ -87,8 +83,7 @@ export default function Browse() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredArtists.map((artist) => (
                 <Link key={artist.id} href={`/artist/${artist.id}`}>
-                  <a>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader>
                         {artist.profilePhotoUrl ? (
                           <img 
@@ -132,8 +127,7 @@ export default function Browse() {
                           View Profile
                         </Button>
                       </CardContent>
-                    </Card>
-                  </a>
+                  </Card>
                 </Link>
               ))}
             </div>

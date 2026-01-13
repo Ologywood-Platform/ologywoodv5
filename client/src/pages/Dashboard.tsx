@@ -84,11 +84,9 @@ export default function Dashboard() {
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-8 w-8" />
-              Ologywood
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+            <Music className="h-8 w-8" />
+            Ologywood
           </Link>
           
           <div className="flex items-center gap-4">
@@ -105,12 +103,10 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-6">
           <Link href="/">
-            <a>
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </a>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
           </Link>
           <h1 className="text-3xl font-bold">Dashboard</h1>
         </div>
@@ -229,9 +225,7 @@ export default function Dashboard() {
                     <p className="mb-4">No bookings yet</p>
                     {isVenue && (
                       <Link href="/browse">
-                        <a>
-                          <Button>Browse Artists</Button>
-                        </a>
+                        <Button>Browse Artists</Button>
                       </Link>
                     )}
                   </div>

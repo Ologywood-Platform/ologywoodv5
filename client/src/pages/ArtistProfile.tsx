@@ -77,9 +77,7 @@ export default function ArtistProfile() {
       <div className="min-h-screen flex flex-col items-center justify-center">
         <p className="text-muted-foreground mb-4">Artist not found</p>
         <Link href="/browse">
-          <a>
-            <Button>Browse Artists</Button>
-          </a>
+          <Button>Browse Artists</Button>
         </Link>
       </div>
     );
@@ -93,24 +91,18 @@ export default function ArtistProfile() {
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-8 w-8" />
-              Ologywood
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+            <Music className="h-8 w-8" />
+            Ologywood
           </Link>
           
           <div className="flex items-center gap-4">
             <Link href="/browse">
-              <a>
-                <Button variant="ghost">Browse Artists</Button>
-              </a>
+              <Button variant="ghost">Browse Artists</Button>
             </Link>
             {isAuthenticated && (
               <Link href="/dashboard">
-                <a>
-                  <Button variant="ghost">Dashboard</Button>
-                </a>
+                <Button variant="ghost">Dashboard</Button>
               </Link>
             )}
           </div>

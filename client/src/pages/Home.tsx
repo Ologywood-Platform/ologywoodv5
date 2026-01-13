@@ -24,20 +24,16 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Music className="h-8 w-8" />
-              Ologywood
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+            <Music className="h-8 w-8" />
+            Ologywood
           </Link>
           
           <nav className="flex items-center gap-4">
             {isAuthenticated ? (
               <>
                 <Link href="/dashboard">
-                  <a>
-                    <Button variant="ghost">Dashboard</Button>
-                  </a>
+                  <Button variant="ghost">Dashboard</Button>
                 </Link>
                 <span className="text-sm text-muted-foreground">
                   {user?.name || user?.email}
@@ -46,9 +42,7 @@ export default function Home() {
             ) : (
               <>
                 <Link href="/browse">
-                  <a>
-                    <Button variant="ghost">Browse Artists</Button>
-                  </a>
+                  <Button variant="ghost">Browse Artists</Button>
                 </Link>
                 <a href={getLoginUrl()}>
                   <Button>Sign In</Button>
@@ -77,11 +71,9 @@ export default function Home() {
                 </Button>
               </a>
               <Link href="/browse">
-                <a>
-                  <Button size="lg" variant="outline" className="text-lg px-8">
-                    Browse Artists
-                  </Button>
-                </a>
+                <Button size="lg" variant="outline" className="text-lg px-8">
+                  Browse Artists
+                </Button>
               </Link>
             </div>
           )}
@@ -118,8 +110,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredArtists.slice(0, 6).map((artist) => (
                 <Link key={artist.id} href={`/artist/${artist.id}`}>
-                  <a>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader>
                         {artist.profilePhotoUrl && (
                           <img 
@@ -145,8 +136,7 @@ export default function Home() {
                           )}
                         </div>
                       </CardContent>
-                    </Card>
-                  </a>
+                  </Card>
                 </Link>
               ))}
             </div>
@@ -157,9 +147,7 @@ export default function Home() {
               </p>
               {isAuthenticated && user?.role === 'artist' && (
                 <Link href="/dashboard">
-                  <a>
-                    <Button>Create Your Artist Profile</Button>
-                  </a>
+                  <Button>Create Your Artist Profile</Button>
                 </Link>
               )}
             </div>
@@ -168,11 +156,9 @@ export default function Home() {
           {filteredArtists && filteredArtists.length > 6 && (
             <div className="text-center mt-8">
               <Link href="/browse">
-                <a>
-                  <Button variant="outline" size="lg">
-                    View All Artists
-                  </Button>
-                </a>
+                <Button variant="outline" size="lg">
+                  View All Artists
+                </Button>
               </Link>
             </div>
           )}
