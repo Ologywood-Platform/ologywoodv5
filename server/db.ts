@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, inArray, like, or, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, inArray, like, or, desc, sql, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -499,4 +499,52 @@ export async function getAverageRatingForArtist(artistId: number): Promise<{ ave
     average: sum / artistReviews.length,
     count: artistReviews.length,
   };
+}
+
+export async function getUnreadMessageCountByBooking(bookingId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.bookingId, bookingId),
+        eq(messages.receiverId, userId),
+        isNull(messages.readAt)
+      )
+    );
+  
+  return result[0]?.count || 0;
+}
+
+export async function getTotalUnreadMessageCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.receiverId, userId),
+        isNull(messages.readAt)
+      )
+    );
+  
+  return result[0]?.count || 0;
+}
+
+export async function markMessagesAsRead(bookingId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(messages)
+    .set({ readAt: new Date() })
+    .where(
+      and(
+        eq(messages.bookingId, bookingId),
+        eq(messages.receiverId, userId),
+        isNull(messages.readAt)
+      )
+    );
 }

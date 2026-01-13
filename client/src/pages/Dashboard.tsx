@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
+import UnreadBadge from "@/components/UnreadBadge";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -31,6 +32,11 @@ export default function Dashboard() {
   
   const { data: venueBookings, refetch: refetchVenueBookings } = trpc.booking.getMyVenueBookings.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'venue',
+  });
+  
+  const { data: unreadCount } = trpc.message.getTotalUnreadCount.useQuery(undefined, {
+    enabled: isAuthenticated,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const updateBookingStatus = trpc.booking.updateStatus.useMutation({
@@ -92,6 +98,17 @@ export default function Dashboard() {
           </Link>
           
           <div className="flex items-center gap-4">
+            {unreadCount && unreadCount.count > 0 && (
+              <div className="relative">
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCount.count}
+                </Badge>
+              </div>
+            )}
             <span className="text-sm text-muted-foreground">
               {user.name || user.email}
             </span>
@@ -199,9 +216,12 @@ export default function Dashboard() {
                                 {booking.eventTime && ` at ${booking.eventTime}`}
                               </CardDescription>
                             </div>
-                            <Badge className={getStatusColor(booking.status)}>
-                              {booking.status}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getStatusColor(booking.status)}>
+                                {booking.status}
+                              </Badge>
+                              <UnreadBadge bookingId={booking.id} />
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>

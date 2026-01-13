@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Send, MessageCircle } from 'lucide-react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface BookingMessagesProps {
@@ -16,6 +17,14 @@ export default function BookingMessages({ bookingId, currentUserId }: BookingMes
   
   const { data: booking } = trpc.booking.getById.useQuery({ id: bookingId });
   const { data: messages, isLoading, refetch } = trpc.message.getForBooking.useQuery({ bookingId });
+  const markAsReadMutation = trpc.message.markBookingAsRead.useMutation();
+  
+  // Mark messages as read when component mounts or messages change
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      markAsReadMutation.mutate({ bookingId });
+    }
+  }, [messages?.length, bookingId]);
   const sendMutation = trpc.message.send.useMutation({
     onSuccess: () => {
       setMessageText('');

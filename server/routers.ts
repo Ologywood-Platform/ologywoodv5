@@ -561,6 +561,29 @@ export const appRouter = router({
         await db.markMessageAsRead(input.id);
         return { success: true };
       }),
+    
+    // Mark all messages in a booking as read
+    markBookingAsRead: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.markMessagesAsRead(input.bookingId, ctx.user.id);
+        return { success: true };
+      }),
+    
+    // Get unread message count for a specific booking
+    getUnreadCount: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const count = await db.getUnreadMessageCountByBooking(input.bookingId, ctx.user.id);
+        return { count };
+      }),
+    
+    // Get total unread message count for current user
+    getTotalUnreadCount: protectedProcedure
+      .query(async ({ ctx }) => {
+        const count = await db.getTotalUnreadMessageCount(ctx.user.id);
+        return { count };
+      }),
   }),
 
   // Review Management

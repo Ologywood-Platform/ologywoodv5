@@ -142,3 +142,10 @@
 - [x] Add email notification function for venue when artist responds
 - [x] Integrate notification into review response API endpoint
 - [x] Test email delivery for review responses
+
+## Unread Message Indicators
+- [x] Add lastReadAt field to track when users last viewed messages
+- [x] Create API endpoint to get unread message counts per booking
+- [x] Add badge indicator to dashboard navigation showing total unread count
+- [x] Add visual indicators to booking cards showing unread messages
+- [x] Update message view to mark messages as read
