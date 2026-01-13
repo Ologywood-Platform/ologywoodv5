@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -132,7 +132,7 @@ export default function Dashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-4 lg:w-auto">
             <TabsTrigger value="bookings">
               <Calendar className="h-4 w-4 mr-2" />
               Bookings
@@ -145,6 +145,12 @@ export default function Dashboard() {
               <TabsTrigger value="availability">
                 <Calendar className="h-4 w-4 mr-2" />
                 Availability
+              </TabsTrigger>
+            )}
+            {isArtist && (
+              <TabsTrigger value="riders">
+                <FileText className="h-4 w-4 mr-2" />
+                Riders
               </TabsTrigger>
             )}
           </TabsList>
@@ -298,6 +304,34 @@ export default function Dashboard() {
                   })) || []}
                   readOnly
                 />
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Riders Tab (Artists only) */}
+          {isArtist && (
+            <TabsContent value="riders">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Rider Templates</h2>
+                    <p className="text-muted-foreground">Manage your technical and hospitality requirements</p>
+                  </div>
+                  <Link href="/rider-templates">
+                    <Button>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Manage Templates
+                    </Button>
+                  </Link>
+                </div>
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground text-center">
+                      Create reusable rider templates to streamline your booking process.
+                      Click "Manage Templates" to get started.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           )}

@@ -82,3 +82,11 @@
 - [x] Display read-only calendar on artist profile pages
 - [x] Visual indicators for available, booked, and unavailable dates
 - [x] Prevent double-booking when confirming bookings
+
+## Rider Template Manager
+- [x] Create rider template management page with list view
+- [x] Build rider template form with technical requirements section
+- [x] Add hospitality requirements section to rider form
+- [x] Implement create, edit, delete operations for rider templates
+- [x] Integrate rider templates into booking workflow
+- [x] Display rider details in booking requests

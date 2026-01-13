@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2 } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export default function ArtistProfile() {
   
   const { data: artist, isLoading } = trpc.artist.getProfile.useQuery({ id: artistId });
   const { data: availability } = trpc.availability.getForArtist.useQuery({ artistId });
+  const { data: riderTemplates } = trpc.rider.getForArtist.useQuery({ artistId });
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [eventDate, setEventDate] = useState("");
@@ -332,6 +334,51 @@ export default function ArtistProfile() {
               </Card>
             )}
             
+            {/* Rider Templates */}
+            {riderTemplates && riderTemplates.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Technical Riders
+                  </CardTitle>
+                  <CardDescription>
+                    View {artist.artistName}'s technical requirements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {riderTemplates.map((template) => (
+                    <Collapsible key={template.id}>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-md hover:bg-accent text-left">
+                        <span className="font-medium">{template.templateName}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-3 pt-2 space-y-3 text-sm">
+                        {(template.technicalRequirements as any)?.sound && (
+                          <div>
+                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Sound</p>
+                            <p className="text-muted-foreground">{(template.technicalRequirements as any).sound}</p>
+                          </div>
+                        )}
+                        {(template.technicalRequirements as any)?.lighting && (
+                          <div>
+                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Lighting</p>
+                            <p className="text-muted-foreground">{(template.technicalRequirements as any).lighting}</p>
+                          </div>
+                        )}
+                        {(template.hospitalityRequirements as any)?.catering && (
+                          <div>
+                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Catering</p>
+                            <p className="text-muted-foreground">{(template.hospitalityRequirements as any).catering}</p>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Availability Calendar */}
             <div>
               <AvailabilityCalendar

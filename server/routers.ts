@@ -231,6 +231,13 @@ export const appRouter = router({
         return await db.getRiderTemplateById(input.id);
       }),
     
+    // Get templates for a specific artist (public)
+    getForArtist: publicProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getRiderTemplatesByArtistId(input.artistId);
+      }),
+    
     // Create template
     create: artistProcedure
       .input(z.object({
