@@ -346,3 +346,48 @@ export async function sendReviewResponseEmail(params: {
     html,
   });
 }
+
+/**
+ * Send notification to venue when artist submits a review
+ */
+export async function sendVenueReviewNotificationEmail(params: {
+  venueEmail: string;
+  venueName: string;
+  artistName: string;
+  reviewText: string;
+  rating: number;
+  venueProfileUrl: string;
+}) {
+  const { venueEmail, venueName, artistName, reviewText, rating, venueProfileUrl } = params;
+
+  const stars = '⭐'.repeat(rating);
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">New Review from an Artist</h2>
+      <p>Hi ${venueName},</p>
+      <p><strong>${artistName}</strong> has left a review for your venue on Ologywood.</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0;"><strong>Rating: ${stars}</strong></p>
+        ${reviewText ? `<p style="margin: 0; font-style: italic; color: #6b7280;">"${reviewText}"</p>` : '<p style="margin: 0; color: #9ca3af;">No written review provided.</p>'}
+      </div>
+      
+      <p>You can respond to this review to show your appreciation or address any concerns. Public responses help build trust with artists!</p>
+      
+      <a href="${venueProfileUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        View Review & Respond
+      </a>
+      
+      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+        This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: venueEmail,
+    subject: `New Review from ${artistName}`,
+    html,
+  });
+}

@@ -739,6 +739,22 @@ export const appRouter = router({
           reviewText: input.reviewText,
         });
         
+        // Send email notification to venue
+        const venueProfile = await db.getVenueProfileById(input.venueId);
+        if (venueProfile) {
+          const venueUser = await db.getUserById(venueProfile.userId);
+          if (venueUser?.email) {
+            await email.sendVenueReviewNotificationEmail({
+              venueEmail: venueUser.email,
+              venueName: venueProfile.organizationName,
+              artistName: artistProfile.artistName,
+              reviewText: input.reviewText || '',
+              rating: input.rating,
+              venueProfileUrl: `https://ologywood.com/venue/${input.venueId}`,
+            });
+          }
+        }
+        
         return { success: true };
       }),
     

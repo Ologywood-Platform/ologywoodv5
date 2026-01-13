@@ -167,3 +167,9 @@
 - [x] Show venue responses to reviews
 - [x] Add link to venue profiles from booking pages
 - [x] Allow venue owners to respond to reviews directly on profile page
+
+## Venue Review Email Notifications
+- [x] Create email template for venue review notifications
+- [x] Add email notification function for venue when artist submits review
+- [x] Integrate notification into venue review creation API endpoint
+- [x] Test email delivery for venue reviews
