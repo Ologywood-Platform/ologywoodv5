@@ -14,6 +14,7 @@ import VenueOnboarding from "./pages/VenueOnboarding";
 import Availability from "./pages/Availability";
 import RiderTemplates from "./pages/RiderTemplates";
 import Subscription from "./pages/Subscription";
+import BookingDetail from "./pages/BookingDetail";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/availability" component={Availability} />
       <Route path="/rider-templates" component={RiderTemplates} />
       <Route path="/subscription" component={Subscription} />
+      <Route path="/booking/:id" component={BookingDetail} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

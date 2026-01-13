@@ -113,3 +113,10 @@
 - [ ] Add subscription trial ending notification (requires scheduled job)
 - [ ] Add subscription renewal notification (handled by Stripe)
 - [x] Add subscription canceled notification
+
+## In-Platform Messaging
+- [x] Create messaging UI component for booking conversations
+- [x] Add message thread view to booking details
+- [x] Integrate messaging into dashboard
+- [ ] Add real-time message notifications
+- [ ] Display unread message count

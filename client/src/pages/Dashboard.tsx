@@ -178,7 +178,11 @@ export default function Dashboard() {
                 {bookings && bookings.length > 0 ? (
                   <div className="space-y-4">
                     {bookings.map((booking) => (
-                      <Card key={booking.id}>
+                      <Card 
+                        key={booking.id} 
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/booking/${booking.id}`)}
+                      >
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div>
