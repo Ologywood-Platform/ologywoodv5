@@ -1008,6 +1008,39 @@ export const appRouter = router({
       return { success: true };
     }),
   }),
+  
+  // Favorites router
+  favorite: router({
+    add: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.addFavorite(ctx.user.id, input.artistId);
+      }),
+    
+    remove: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.removeFavorite(ctx.user.id, input.artistId);
+        return { success: true };
+      }),
+    
+    getMyFavorites: venueProcedure
+      .query(async ({ ctx }) => {
+        return await db.getFavoritesByUser(ctx.user.id);
+      }),
+    
+    isFavorited: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return await db.isFavorited(ctx.user.id, input.artistId);
+      }),
+    
+    getCount: publicProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getFavoriteCount(input.artistId);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

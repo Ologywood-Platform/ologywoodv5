@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Search, MapPin, DollarSign } from "lucide-react";
 import { SearchFilters } from "@/components/SearchFilters";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function Browse() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -122,9 +123,12 @@ export default function Browse() {
                             </p>
                           )}
                         </div>
-                        <Button className="w-full mt-4" variant="outline">
-                          View Profile
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <FavoriteButton artistId={artist.id} size="sm" showText={false} />
+                          <Button className="flex-1" variant="outline">
+                            View Profile
+                          </Button>
+                        </div>
                       </CardContent>
                   </Card>
                 </Link>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star } from "lucide-react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { useState } from "react";
@@ -162,13 +163,15 @@ export default function ArtistProfile() {
               </div>
             </div>
             
-            <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="md:min-w-[200px]">
-                  Request Booking
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex gap-2">
+              <FavoriteButton artistId={artistId} size="lg" />
+              <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="md:min-w-[200px]">
+                    Request Booking
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Request Booking with {artist.artistName}</DialogTitle>
                   <DialogDescription>
@@ -253,6 +256,7 @@ export default function ArtistProfile() {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
 

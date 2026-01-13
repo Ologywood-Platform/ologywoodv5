@@ -192,3 +192,12 @@
 - [x] Add location search filter
 - [x] Integrate filters with browse page
 - [x] Add filter reset functionality
+
+## Favorites/Wishlist System
+- [x] Create favorites table in database schema
+- [x] Add API endpoints for adding/removing favorites
+- [x] Add API endpoint to get user's favorited artists
+- [x] Add favorite/unfavorite button to artist profile pages
+- [x] Add favorite button to artist cards on browse page
+- [x] Create Saved Artists tab in venue dashboard
+- [x] Display favorited artists with unfavorite option

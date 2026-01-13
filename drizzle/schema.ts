@@ -211,3 +211,16 @@ export const venueReviews = mysqlTable("venueReviews", {
 
 export type VenueReview = typeof venueReviews.$inferSelect;
 export type InsertVenueReview = typeof venueReviews.$inferInsert;
+
+/**
+ * Favorites table - stores venue bookmarks of artists
+ */
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // The venue user who favorited
+  artistId: int("artistId").notNull(), // The artist profile being favorited
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;

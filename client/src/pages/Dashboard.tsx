@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
 import { PhotoGalleryManager } from "@/components/PhotoGalleryManager";
+import SavedArtistsTab from "@/components/SavedArtistsTab";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -191,10 +192,16 @@ export default function Dashboard() {
               </>
             )}
             {isVenue && (
-              <TabsTrigger value="photos">
-                <Music className="h-4 w-4 mr-2" />
-                Photos
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="saved">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Saved Artists
+                </TabsTrigger>
+                <TabsTrigger value="photos">
+                  <Music className="h-4 w-4 mr-2" />
+                  Photos
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -423,6 +430,13 @@ export default function Dashboard() {
                 <PhotoGalleryManager role="artist" />
               </TabsContent>
             </>
+          )}
+          
+          {/* Saved Artists Tab (Venues) */}
+          {isVenue && (
+            <TabsContent value="saved">
+              <SavedArtistsTab />
+            </TabsContent>
           )}
           
           {/* Photos Tab (Venues) */}
