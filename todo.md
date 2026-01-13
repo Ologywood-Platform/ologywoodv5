@@ -149,3 +149,12 @@
 - [x] Add badge indicator to dashboard navigation showing total unread count
 - [x] Add visual indicators to booking cards showing unread messages
 - [x] Update message view to mark messages as read
+
+## Venue Review System
+- [x] Add venueReviews table to database schema
+- [x] Create API endpoints for creating venue reviews (artist only)
+- [x] Create API endpoints for fetching venue reviews
+- [x] Add venue review form for artists on completed bookings
+- [x] Display submitted venue reviews on booking detail page
+- [x] Add API endpoint for average venue rating and review count
+- [x] Add venue response capability to venue reviews

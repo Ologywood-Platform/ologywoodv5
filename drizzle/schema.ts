@@ -191,3 +191,22 @@ export const reviews = mysqlTable("reviews", {
 
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = typeof reviews.$inferInsert;
+
+/**
+ * Venue Reviews table - stores artist reviews of venues after completed bookings
+ */
+export const venueReviews = mysqlTable("venueReviews", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  reviewText: text("reviewText"),
+  venueResponse: text("venueResponse"),
+  respondedAt: timestamp("respondedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type VenueReview = typeof venueReviews.$inferSelect;
+export type InsertVenueReview = typeof venueReviews.$inferInsert;

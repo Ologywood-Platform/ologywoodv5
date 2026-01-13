@@ -9,7 +9,8 @@ import {
   bookings, InsertBooking, Booking,
   messages, InsertMessage, Message,
   subscriptions, InsertSubscription, Subscription,
-  reviews, InsertReview, Review
+  reviews, InsertReview, Review,
+  venueReviews, InsertVenueReview, VenueReview
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -547,4 +548,60 @@ export async function markMessagesAsRead(bookingId: number, userId: number) {
         isNull(messages.readAt)
       )
     );
+}
+
+// ============= VENUE REVIEW FUNCTIONS =============
+
+export async function createVenueReview(review: InsertVenueReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(venueReviews).values(review);
+  return result;
+}
+
+export async function getVenueReviewsByVenueId(venueId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(venueReviews)
+    .where(eq(venueReviews.venueId, venueId))
+    .orderBy(desc(venueReviews.createdAt));
+}
+
+export async function getVenueReviewByBookingId(bookingId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.bookingId, bookingId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getVenueReviewById(reviewId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.id, reviewId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateVenueReview(reviewId: number, updates: { venueResponse?: string, respondedAt?: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(venueReviews).set(updates).where(eq(venueReviews.id, reviewId));
+}
+
+export async function getAverageRatingForVenue(venueId: number): Promise<{ average: number; count: number }> {
+  const db = await getDb();
+  if (!db) return { average: 0, count: 0 };
+  
+  const reviews = await getVenueReviewsByVenueId(venueId);
+  if (!reviews || reviews.length === 0) {
+    return { average: 0, count: 0 };
+  }
+  
+  const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+  return {
+    average: sum / reviews.length,
+    count: reviews.length,
+  };
 }

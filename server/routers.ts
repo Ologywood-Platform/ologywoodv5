@@ -692,6 +692,99 @@ export const appRouter = router({
       }),
   }),
 
+  // Venue Review Management
+  venueReview: router({
+    // Create venue review (artist only, for completed bookings)
+    create: artistProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        venueId: z.number(),
+        rating: z.number().min(1).max(5),
+        reviewText: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Check if booking exists and is completed
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        if (booking.status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only review completed bookings' });
+        }
+        
+        // Check if review already exists
+        const existingReview = await db.getVenueReviewByBookingId(input.bookingId);
+        if (existingReview) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Review already exists for this booking' });
+        }
+        
+        // Get artist profile to get artistId
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only artists can leave venue reviews' });
+        }
+        
+        await db.createVenueReview({
+          bookingId: input.bookingId,
+          venueId: input.venueId,
+          artistId: artistProfile.id,
+          rating: input.rating,
+          reviewText: input.reviewText,
+        });
+        
+        return { success: true };
+      }),
+    
+    // Get venue reviews by venue ID
+    getByVenue: protectedProcedure
+      .input(z.object({ venueId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getVenueReviewsByVenueId(input.venueId);
+      }),
+    
+    // Get venue review by booking ID
+    getByBooking: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getVenueReviewByBookingId(input.bookingId);
+      }),
+    
+    // Get average rating for venue
+    getAverageRating: protectedProcedure
+      .input(z.object({ venueId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getAverageRatingForVenue(input.venueId);
+      }),
+    
+    // Venue responds to review
+    respondToReview: venueProcedure
+      .input(z.object({
+        reviewId: z.number(),
+        response: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Get the review
+        const review = await db.getVenueReviewById(input.reviewId);
+        if (!review) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' });
+        }
+
+        // Verify the user is the venue who received this review
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile || venueProfile.id !== review.venueId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only respond to reviews for your own venue profile' });
+        }
+
+        // Update the review with the venue's response
+        await db.updateVenueReview(input.reviewId, {
+          venueResponse: input.response,
+          respondedAt: new Date(),
+        });
+
+        return { success: true };
+      }),
+  }),
+
   // Subscription Management
   subscription: router({
     // Get current user's subscription

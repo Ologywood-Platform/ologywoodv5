@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, MapPin, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
+import { VenueReviewForm } from '@/components/VenueReviewForm';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -19,6 +20,7 @@ export default function BookingDetail() {
 
   const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId });
   const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId });
+  const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId });
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       toast.success('Booking status updated');
@@ -193,7 +195,47 @@ export default function BookingDetail() {
             )}
           </Card>
 
-          {/* Review Section - Only show for venues on completed bookings */}
+          {/* Artist Review of Venue - Only show for artists on completed bookings */}
+          {user.role === 'artist' && booking.status === 'completed' && (
+            <div>
+              {existingVenueReview ? (
+                <Card className="p-6">
+                  <CardHeader>
+                    <CardTitle>Your Review of the Venue</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-5 h-5 ${
+                            star <= existingVenueReview.rating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {existingVenueReview.reviewText && (
+                      <p className="text-muted-foreground">{existingVenueReview.reviewText}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Submitted on {new Date(existingVenueReview.createdAt).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <VenueReviewForm
+                  bookingId={bookingId}
+                  venueId={booking.venueId}
+                  venueName={booking.venueName}
+                  onReviewSubmitted={() => refetch()}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Venue Review of Artist - Only show for venues on completed bookings */}
           {user.role === 'venue' && booking.status === 'completed' && (
             <div>
               {existingReview ? (
