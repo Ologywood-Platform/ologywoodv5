@@ -1292,6 +1292,135 @@ export const appRouter = router({
         return await db.getFavoritedArtistsAvailability(ctx.user.id, startDate, endDate);
       }),
   }),
+  
+  // Payment Management
+  payment: router({
+    // Create checkout session for deposit
+    createDepositCheckout: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        if (!booking.depositAmount) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No deposit amount set' });
+        }
+        
+        // Create Stripe checkout session
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `Booking Deposit - ${booking.venueName}`,
+                description: booking.eventDetails || 'Event booking deposit',
+              },
+              unit_amount: Math.round(Number(booking.depositAmount) * 100),
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=success`,
+          cancel_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=cancelled`,
+          metadata: {
+            bookingId: input.bookingId,
+            type: 'deposit',
+          },
+        });
+        
+        return { sessionId: session.id, url: session.url };
+      }),
+    
+    // Create checkout session for full payment
+    createFullPaymentCheckout: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        if (!booking.totalFee) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No total fee set' });
+        }
+        
+        // Calculate remaining amount if deposit already paid
+        const remainingAmount = booking.paymentStatus === 'deposit_paid' 
+          ? Number(booking.totalFee) - Number(booking.depositAmount || 0)
+          : Number(booking.totalFee);
+        
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `Booking Payment - ${booking.venueName}`,
+                description: booking.eventDetails || 'Event booking payment',
+              },
+              unit_amount: Math.round(remainingAmount * 100),
+            },
+            quantity: 1,
+          }],
+          mode: 'payment',
+          success_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=success`,
+          cancel_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=cancelled`,
+          metadata: {
+            bookingId: input.bookingId,
+            type: 'full_payment',
+          },
+        });
+        
+        return { sessionId: session.id, url: session.url };
+      }),
+    
+    // Get payment history
+    getHistory: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getPaymentHistory(input.bookingId);
+      }),
+    
+    // Request refund
+    requestRefund: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        if (!booking.stripePaymentIntentId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No payment to refund' });
+        }
+        
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        const refund = await stripe.refunds.create({
+          payment_intent: booking.stripePaymentIntentId,
+          reason: 'requested_by_customer',
+          metadata: {
+            bookingId: input.bookingId,
+            reason: input.reason,
+          },
+        });
+        
+        await db.recordRefund(input.bookingId, refund.id);
+        
+        return { refundId: refund.id, success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

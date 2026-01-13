@@ -133,6 +133,12 @@ export const bookings = mysqlTable("bookings", {
   totalFee: decimal("totalFee", { precision: 10, scale: 2 }),
   depositAmount: decimal("depositAmount", { precision: 10, scale: 2 }),
   eventDetails: text("eventDetails"),
+  // Payment tracking fields
+  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "deposit_paid", "full_paid", "refunded"]).default("unpaid"),
+  depositPaidAt: timestamp("depositPaidAt"),
+  fullPaymentPaidAt: timestamp("fullPaymentPaidAt"),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  stripeRefundId: varchar("stripeRefundId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

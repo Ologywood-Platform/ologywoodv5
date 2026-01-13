@@ -252,3 +252,14 @@
 - [x] Allow venues to send messages directly from calendar
 - [x] Create new booking conversation when messaging from calendar
 - [x] Add visual feedback for sent messages
+
+## Stripe Payment Integration
+- [x] Add payment tracking fields to bookings table (paymentStatus, depositAmount, depositPaidAt, fullPaymentAt, stripePaymentIntentId, stripeRefundId)
+- [x] Create Stripe checkout session API endpoint for deposits
+- [x] Create Stripe checkout session API endpoint for full payments
+- [x] Add payment webhook handler for Stripe events
+- [x] Build payment button UI on booking detail page
+- [x] Add payment status badges and indicators
+- [x] Implement refund API endpoint
+- [x] Generate and email payment receipts automatically
+- [x] Add payment history view in dashboard

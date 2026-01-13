@@ -517,3 +517,96 @@ export async function sendBookingReminder(
   
   await sendEmail({ to: recipientEmail, subject, html });
 }
+
+
+// ============= PAYMENT RECEIPT EMAILS =============
+
+export async function sendPaymentReceipt(
+  to: string,
+  venueName: string,
+  artistName: string,
+  amount: number,
+  paymentType: 'deposit' | 'full_payment',
+  bookingDate?: string,
+  transactionId?: string
+) {
+  const subject = `Payment Receipt - ${venueName} Booking`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">Payment Receipt</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Thank you for your payment!</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+          <h3 style="margin-top: 0;">Booking Details</h3>
+          <p><strong>Venue:</strong> ${venueName}</p>
+          <p><strong>Artist:</strong> ${artistName}</p>
+          ${bookingDate ? `<p><strong>Event Date:</strong> ${bookingDate}</p>` : ''}
+          <p><strong>Payment Type:</strong> ${paymentType === 'deposit' ? 'Deposit' : 'Full Payment'}</p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+          <h3 style="margin-top: 0;">Payment Information</h3>
+          <p style="font-size: 24px; font-weight: bold; color: #667eea; margin: 10px 0;">$${amount.toFixed(2)}</p>
+          ${transactionId ? `<p><strong>Transaction ID:</strong> ${transactionId}</p>` : ''}
+          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          This is an automated receipt. Please keep this email for your records. If you have any questions about this payment, please contact us.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to,
+    subject,
+    html,
+  });
+}
+
+export async function sendRefundNotification(
+  to: string,
+  venueName: string,
+  artistName: string,
+  refundAmount: number,
+  reason?: string
+) {
+  const subject = `Refund Processed - ${venueName} Booking`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">Refund Processed</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Your refund has been successfully processed.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f5576c;">
+          <h3 style="margin-top: 0;">Refund Details</h3>
+          <p><strong>Venue:</strong> ${venueName}</p>
+          <p><strong>Artist:</strong> ${artistName}</p>
+          <p><strong>Refund Amount:</strong> <span style="font-size: 18px; font-weight: bold; color: #f5576c;">$${refundAmount.toFixed(2)}</span></p>
+          ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+          <p><strong>Date Processed:</strong> ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          The refund will appear in your account within 3-5 business days, depending on your bank.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to,
+    subject,
+    html,
+  });
+}

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
 import { VenueReviewForm } from '@/components/VenueReviewForm';
+import PaymentSection from '@/components/PaymentSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -196,6 +197,15 @@ export default function BookingDetail() {
               </div>
             )}
           </Card>
+          
+          {/* Payment Section */}
+          <PaymentSection
+            bookingId={bookingId}
+            totalFee={booking.totalFee ? Number(booking.totalFee) : undefined}
+            depositAmount={booking.depositAmount ? Number(booking.depositAmount) : undefined}
+            paymentStatus={booking.paymentStatus || undefined}
+            isVenue={user.role === "venue"}
+          />
 
           {/* Artist Review of Venue - Only show for artists on completed bookings */}
           {user.role === 'artist' && booking.status === 'completed' && (

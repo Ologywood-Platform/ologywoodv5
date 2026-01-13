@@ -1015,3 +1015,49 @@ export async function getFavoritedArtistsAvailability(userId: number, startDate:
   
   return enrichedAvailability;
 }
+
+// ============= PAYMENT FUNCTIONS =============
+
+export async function updateBookingPaymentStatus(bookingId: number, paymentStatus: string, stripePaymentIntentId?: string, depositPaidAt?: Date, fullPaymentPaidAt?: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { paymentStatus };
+  if (stripePaymentIntentId) updates.stripePaymentIntentId = stripePaymentIntentId;
+  if (depositPaidAt) updates.depositPaidAt = depositPaidAt;
+  if (fullPaymentPaidAt) updates.fullPaymentPaidAt = fullPaymentPaidAt;
+  
+  await db.update(bookings)
+    .set(updates)
+    .where(eq(bookings.id, bookingId));
+}
+
+export async function recordRefund(bookingId: number, stripeRefundId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(bookings)
+    .set({ paymentStatus: "refunded", stripeRefundId })
+    .where(eq(bookings.id, bookingId));
+}
+
+export async function getPaymentHistory(bookingId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const booking = await db.select({
+    id: bookings.id,
+    paymentStatus: bookings.paymentStatus,
+    totalFee: bookings.totalFee,
+    depositAmount: bookings.depositAmount,
+    depositPaidAt: bookings.depositPaidAt,
+    fullPaymentPaidAt: bookings.fullPaymentPaidAt,
+    stripePaymentIntentId: bookings.stripePaymentIntentId,
+    stripeRefundId: bookings.stripeRefundId,
+  })
+  .from(bookings)
+  .where(eq(bookings.id, bookingId))
+  .limit(1);
+  
+  return booking[0] || null;
+}
