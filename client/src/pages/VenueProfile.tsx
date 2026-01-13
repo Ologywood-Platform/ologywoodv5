@@ -127,6 +127,27 @@ export default function VenueProfile() {
           </CardContent>
         </Card>
 
+        {/* Photo Gallery */}
+        {venueProfile.mediaGallery && venueProfile.mediaGallery.photos && venueProfile.mediaGallery.photos.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Photo Gallery</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {venueProfile.mediaGallery.photos.map((photo: string, idx: number) => (
+                  <img
+                    key={idx}
+                    src={photo}
+                    alt={`${venueProfile.organizationName} photo ${idx + 1}`}
+                    className="w-full h-40 object-cover rounded-lg"
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Reviews Section */}
         <Card>
           <CardHeader>

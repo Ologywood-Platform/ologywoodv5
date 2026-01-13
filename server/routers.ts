@@ -163,6 +163,71 @@ export const appRouter = router({
     getAll: publicProcedure.query(async () => {
       return await db.getAllArtists();
     }),
+    
+    // Add photo to gallery
+    addGalleryPhoto: artistProcedure
+      .input(z.object({
+        fileData: z.string(), // base64 encoded image
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Convert base64 to buffer
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Generate unique file key
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileExtension = input.fileName.split('.').pop() || 'jpg';
+        const fileKey = `artist-gallery/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        
+        // Upload to S3
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        // Get current profile
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        
+        // Add photo to gallery
+        const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
+        const updatedPhotos = [...(currentGallery.photos || []), url];
+        
+        await db.updateArtistProfile(ctx.user.id, {
+          mediaGallery: {
+            photos: updatedPhotos,
+            videos: currentGallery.videos || [],
+          },
+        });
+        
+        return { url };
+      }),
+    
+    // Remove photo from gallery
+    removeGalleryPhoto: artistProcedure
+      .input(z.object({
+        photoUrl: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        
+        const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
+        const updatedPhotos = (currentGallery.photos || []).filter(url => url !== input.photoUrl);
+        
+        await db.updateArtistProfile(ctx.user.id, {
+          mediaGallery: {
+            photos: updatedPhotos,
+            videos: currentGallery.videos || [],
+          },
+        });
+        
+        return { success: true };
+      }),
   }),
 
   // Venue Profile Management
@@ -209,6 +274,71 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
         }
         await db.updateVenueProfile(profile.id, input);
+        return { success: true };
+      }),
+    
+    // Add photo to gallery
+    addGalleryPhoto: venueProcedure
+      .input(z.object({
+        fileData: z.string(), // base64 encoded image
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Convert base64 to buffer
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Generate unique file key
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileExtension = input.fileName.split('.').pop() || 'jpg';
+        const fileKey = `venue-gallery/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        
+        // Upload to S3
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        // Get current profile
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        // Add photo to gallery
+        const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
+        const updatedPhotos = [...(currentGallery.photos || []), url];
+        
+        await db.updateVenueProfile(profile.id, {
+          mediaGallery: {
+            photos: updatedPhotos,
+            videos: currentGallery.videos || [],
+          },
+        });
+        
+        return { url };
+      }),
+    
+    // Remove photo from gallery
+    removeGalleryPhoto: venueProcedure
+      .input(z.object({
+        photoUrl: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
+        const updatedPhotos = (currentGallery.photos || []).filter(url => url !== input.photoUrl);
+        
+        await db.updateVenueProfile(profile.id, {
+          mediaGallery: {
+            photos: updatedPhotos,
+            videos: currentGallery.videos || [],
+          },
+        });
+        
         return { success: true };
       }),
   }),

@@ -9,6 +9,7 @@ import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star } f
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
+import { PhotoGalleryManager } from "@/components/PhotoGalleryManager";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -178,9 +179,21 @@ export default function Dashboard() {
               </TabsTrigger>
             )}
             {isArtist && (
-              <TabsTrigger value="reviews">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Reviews
+              <>
+                <TabsTrigger value="reviews">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Reviews
+                </TabsTrigger>
+                <TabsTrigger value="photos">
+                  <Music className="h-4 w-4 mr-2" />
+                  Photos
+                </TabsTrigger>
+              </>
+            )}
+            {isVenue && (
+              <TabsTrigger value="photos">
+                <Music className="h-4 w-4 mr-2" />
+                Photos
               </TabsTrigger>
             )}
           </TabsList>
@@ -402,8 +415,20 @@ export default function Dashboard() {
 
           {/* Reviews Tab (Artists only) */}
           {isArtist && (
-            <TabsContent value="reviews">
-              <ReviewsTabContent artistId={artistProfile?.id} />
+            <>
+              <TabsContent value="reviews">
+                <ReviewsTabContent artistId={artistProfile?.id} />
+              </TabsContent>
+              <TabsContent value="photos">
+                <PhotoGalleryManager role="artist" />
+              </TabsContent>
+            </>
+          )}
+          
+          {/* Photos Tab (Venues) */}
+          {isVenue && (
+            <TabsContent value="photos">
+              <PhotoGalleryManager role="venue" />
             </TabsContent>
           )}
         </Tabs>

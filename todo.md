@@ -173,3 +173,13 @@
 - [x] Add email notification function for venue when artist submits review
 - [x] Integrate notification into venue review creation API endpoint
 - [x] Test email delivery for venue reviews
+
+## Photo and Media Upload Feature
+- [x] Add photos array field to artist profiles schema
+- [x] Add photos array field to venue profiles schema
+- [x] Create API endpoints for uploading photos to S3
+- [x] Create API endpoints for deleting photos
+- [x] Build photo upload component with drag-and-drop
+- [x] Add photo gallery display to artist profile pages
+- [x] Add photo gallery display to venue profile pages
+- [x] Add photo management UI in dashboard
