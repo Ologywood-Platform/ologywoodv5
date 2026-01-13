@@ -112,12 +112,16 @@ export default function Home() {
                 <Link key={artist.id} href={`/artist/${artist.id}`}>
                   <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader>
-                        {artist.profilePhotoUrl && (
+                        {artist.profilePhotoUrl ? (
                           <img 
                             src={artist.profilePhotoUrl} 
                             alt={artist.artistName}
                             className="w-full h-48 object-cover rounded-md mb-4"
                           />
+                        ) : (
+                          <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-accent/10 rounded-md mb-4 flex items-center justify-center">
+                            <Music className="h-16 w-16 text-primary" />
+                          </div>
                         )}
                         <CardTitle>{artist.artistName}</CardTitle>
                         <CardDescription>

@@ -69,3 +69,9 @@
 - [x] Add photo upload API endpoint using S3 storage
 - [x] Integrate photo upload into artist onboarding wizard
 - [x] Display uploaded photo preview in onboarding
+
+## Profile Photo Display
+- [x] Display artist photos on browse page
+- [x] Show photos in search results
+- [x] Add photos to artist cards in dashboard
+- [x] Add fallback avatar for artists without photos

@@ -238,12 +238,27 @@ export default function Dashboard() {
           <TabsContent value="profile">
             <Card>
               <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>
-                  {hasProfile 
-                    ? "Update your profile information"
-                    : "Create your profile to get started"}
-                </CardDescription>
+                <div className="flex items-start gap-4">
+                  {isArtist && artistProfile?.profilePhotoUrl ? (
+                    <img 
+                      src={artistProfile.profilePhotoUrl} 
+                      alt={artistProfile.artistName}
+                      className="h-20 w-20 rounded-full object-cover border-2 border-primary"
+                    />
+                  ) : isArtist ? (
+                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Music className="h-10 w-10 text-primary" />
+                    </div>
+                  ) : null}
+                  <div className="flex-1">
+                    <CardTitle>Profile Settings</CardTitle>
+                    <CardDescription>
+                      {hasProfile 
+                        ? "Update your profile information"
+                        : "Create your profile to get started"}
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
