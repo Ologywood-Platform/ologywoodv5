@@ -245,3 +245,10 @@
 - [x] Add color coding for different event types
 - [x] Add Calendar tab to venue dashboard
 - [x] Add click-through to booking details from calendar events
+
+## Calendar Direct Messaging
+- [x] Add message dialog to artist availability slots in calendar
+- [x] Create quick message form with pre-filled context
+- [x] Allow venues to send messages directly from calendar
+- [x] Create new booking conversation when messaging from calendar
+- [x] Add visual feedback for sent messages

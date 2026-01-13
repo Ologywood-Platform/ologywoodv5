@@ -740,6 +740,49 @@ export const appRouter = router({
         const count = await db.getTotalUnreadMessageCount(ctx.user.id);
         return { count };
       }),
+    
+    // Send quick message from calendar (creates booking if needed)
+    sendQuickMessage: venueProcedure
+      .input(z.object({
+        artistId: z.number(),
+        message: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get venue profile
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        // Get artist profile to find user ID
+        const artistProfile = await db.getArtistProfileById(input.artistId);
+        if (!artistProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist not found' });
+        }
+        
+        // Create a pending booking for this conversation
+        const bookingId = await db.createBooking({
+          artistId: input.artistId,
+          venueId: venueProfile.id,
+          status: 'pending',
+          eventDate: new Date(), // Placeholder date
+          eventTime: null,
+          venueName: venueProfile.organizationName,
+          venueAddress: null,
+          totalFee: null,
+          eventDetails: 'Quick inquiry from calendar',
+        });
+        
+        // Send the message
+        await db.createMessage({
+          bookingId,
+          senderId: ctx.user.id,
+          receiverId: artistProfile.userId,
+          messageText: input.message,
+        });
+        
+        return { bookingId, success: true };
+      }),
   }),
 
   // Review Management

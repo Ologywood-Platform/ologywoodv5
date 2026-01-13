@@ -3,12 +3,18 @@ import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MessageSquare } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { toast } from 'sonner';
 
 export default function VenueCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [, navigate] = useLocation();
+  const [messageDialog, setMessageDialog] = useState<{ open: boolean; artistId?: number; artistName?: string; date?: string }>({ open: false });
+  const [messageText, setMessageText] = useState('');
   
   // Calculate month range
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -94,6 +100,7 @@ export default function VenueCalendar() {
   };
   
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -182,10 +189,28 @@ export default function VenueCalendar() {
                   {dayAvailability.map((avail, idx) => (
                     <div
                       key={`avail-${idx}`}
-                      className="text-xs p-1 rounded bg-purple-100 text-purple-800 border border-purple-300"
+                      className="text-xs p-1 rounded bg-purple-100 text-purple-800 border border-purple-300 group relative"
                     >
                       <div className="font-medium truncate">{avail.artistName}</div>
-                      <div className="text-[10px]">Available</div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px]">Available</div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toLocaleDateString();
+                            setMessageDialog({ 
+                              open: true, 
+                              artistId: avail.artistId, 
+                              artistName: avail.artistName,
+                              date: dateStr
+                            });
+                            setMessageText(`Hi! I saw you're available on ${dateStr}. I'd like to discuss a potential booking.`);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -195,5 +220,104 @@ export default function VenueCalendar() {
         </div>
       </CardContent>
     </Card>
+    
+    {/* Message Dialog */}
+    <MessageDialog
+      open={messageDialog.open}
+      artistId={messageDialog.artistId}
+      artistName={messageDialog.artistName}
+      date={messageDialog.date}
+      messageText={messageText}
+      setMessageText={setMessageText}
+      onClose={() => {
+        setMessageDialog({ open: false });
+        setMessageText('');
+      }}
+    />
+  </>);
+}
+
+// Separate component for message dialog
+function MessageDialog({ 
+  open, 
+  artistId, 
+  artistName, 
+  date, 
+  messageText, 
+  setMessageText, 
+  onClose 
+}: { 
+  open: boolean; 
+  artistId?: number; 
+  artistName?: string; 
+  date?: string; 
+  messageText: string; 
+  setMessageText: (text: string) => void; 
+  onClose: () => void; 
+}) {
+  const utils = trpc.useUtils();
+  const [, navigate] = useLocation();
+  
+  const sendMessage = trpc.message.sendQuickMessage.useMutation({
+    onSuccess: (data) => {
+      toast.success('Message sent successfully!');
+      utils.message.invalidate();
+      onClose();
+      // Navigate to the booking conversation
+      if (data.bookingId) {
+        navigate(`/booking/${data.bookingId}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send message');
+    },
+  });
+  
+  const handleSend = () => {
+    if (!artistId || !messageText.trim()) return;
+    
+    sendMessage.mutate({
+      artistId,
+      message: messageText,
+    });
+  };
+  
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Message {artistName}</DialogTitle>
+          <DialogDescription>
+            Send a quick message about their availability on {date}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder="Type your message..."
+              rows={5}
+              className="mt-2"
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSend} 
+              disabled={!messageText.trim() || sendMessage.isPending}
+            >
+              {sendMessage.isPending ? 'Sending...' : 'Send Message'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
