@@ -416,6 +416,18 @@ export default function ArtistProfile() {
                       {review.reviewText && (
                         <p className="text-sm text-muted-foreground">{review.reviewText}</p>
                       )}
+                      
+                      {review.artistResponse && (
+                        <div className="mt-3 pl-4 border-l-2 border-primary/30">
+                          <p className="text-xs font-medium text-primary mb-1">Artist Response:</p>
+                          <p className="text-sm text-muted-foreground">{review.artistResponse}</p>
+                          {review.respondedAt && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(review.respondedAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </CardContent>

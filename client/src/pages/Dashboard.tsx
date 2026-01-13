@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import ReviewsTabContent from "@/components/ReviewsTabContent";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -132,7 +133,7 @@ export default function Dashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 lg:w-auto">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 lg:w-auto">
             <TabsTrigger value="bookings">
               <Calendar className="h-4 w-4 mr-2" />
               Bookings
@@ -157,6 +158,12 @@ export default function Dashboard() {
               <TabsTrigger value="subscription">
                 <Settings className="h-4 w-4 mr-2" />
                 Subscription
+              </TabsTrigger>
+            )}
+            {isArtist && (
+              <TabsTrigger value="reviews">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Reviews
               </TabsTrigger>
             )}
           </TabsList>
@@ -370,6 +377,13 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+          )}
+
+          {/* Reviews Tab (Artists only) */}
+          {isArtist && (
+            <TabsContent value="reviews">
+              <ReviewsTabContent artistId={artistProfile?.id} />
             </TabsContent>
           )}
         </Tabs>

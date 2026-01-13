@@ -128,3 +128,11 @@
 - [x] Display reviews on artist profile pages
 - [x] Show average rating and review count
 - [ ] Add review moderation (optional)
+
+## Review Response Feature
+- [x] Add artistResponse field to reviews table
+- [x] Add respondedAt timestamp field to reviews table
+- [x] Create API endpoint for artists to respond to reviews
+- [x] Build response form UI in artist dashboard
+- [x] Display artist responses on profile pages below reviews
+- [x] Add Reviews tab to artist dashboard with response functionality

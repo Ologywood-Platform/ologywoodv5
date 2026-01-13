@@ -626,6 +626,34 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getAverageRatingForArtist(input.artistId);
       }),
+
+    // Respond to a review (artist only)
+    respondToReview: artistProcedure
+      .input(z.object({
+        reviewId: z.number(),
+        response: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Get the review
+        const review = await db.getReviewById(input.reviewId);
+        if (!review) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' });
+        }
+
+        // Verify the user is the artist who received this review
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || artistProfile.id !== review.artistId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only respond to reviews for your own artist profile' });
+        }
+
+        // Update the review with the artist's response
+        await db.updateReview(input.reviewId, {
+          artistResponse: input.response,
+          respondedAt: new Date(),
+        });
+
+        return { success: true };
+      }),
   }),
 
   // Subscription Management

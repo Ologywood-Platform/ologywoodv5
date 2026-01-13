@@ -472,6 +472,19 @@ export async function getReviewByBookingId(bookingId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getReviewById(reviewId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateReview(reviewId: number, updates: { artistResponse?: string, respondedAt?: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reviews).set(updates).where(eq(reviews.id, reviewId));
+}
+
 export async function getAverageRatingForArtist(artistId: number): Promise<{ average: number; count: number }> {
   const db = await getDb();
   if (!db) return { average: 0, count: 0 };
