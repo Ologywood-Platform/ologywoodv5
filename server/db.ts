@@ -697,3 +697,35 @@ export async function getFavoriteCount(artistId: number) {
   
   return result.length;
 }
+
+
+export async function getVenuesWhoFavoritedArtist(artistId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all users who favorited this artist
+  const userFavorites = await db.select().from(favorites)
+    .where(eq(favorites.artistId, artistId));
+  
+  if (userFavorites.length === 0) return [];
+  
+  const userIds = userFavorites.map(f => f.userId);
+  
+  // Get user details and venue profiles
+  const venueUsers = await db.select().from(users)
+    .where(sql`${users.id} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`);
+  
+  const venueProfilesList = await db.select().from(venueProfiles)
+    .where(sql`${venueProfiles.userId} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`);
+  
+  // Combine user and venue profile data
+  return venueUsers.map(user => {
+    const profile = venueProfilesList.find((p: VenueProfile) => p.userId === user.id);
+    return {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      organizationName: profile?.organizationName,
+    };
+  }).filter(v => v.email); // Only return venues with email addresses
+}

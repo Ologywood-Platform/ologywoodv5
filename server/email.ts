@@ -391,3 +391,52 @@ export async function sendVenueReviewNotificationEmail(params: {
     html,
   });
 }
+
+
+/**
+ * Send availability update notification to venues who favorited the artist
+ */
+export async function sendAvailabilityUpdateNotification(
+  venueEmail: string,
+  venueName: string,
+  artistName: string,
+  artistId: number,
+  newDates: string[]
+) {
+  const datesFormatted = newDates.map(date => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }).join('<br>');
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">New Availability from ${artistName}</h2>
+      
+      <p>Hi ${venueName},</p>
+      
+      <p>Good news! <strong>${artistName}</strong>, an artist you've saved, has added new availability dates:</p>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        ${datesFormatted}
+      </div>
+      
+      <p>Don't miss this opportunity to book them for your venue!</p>
+      
+      <a href="https://${ENV.appId}.manus.space/artist/${artistId}" 
+         style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        View ${artistName}'s Profile
+      </a>
+      
+      <p style="color: #666; font-size: 14px; margin-top: 30px;">
+        You're receiving this because you saved ${artistName} to your favorites. 
+        You can manage your saved artists in your dashboard.
+      </p>
+    </div>
+  `;
+  
+  return await sendEmail({
+    to: venueEmail,
+    subject: `${artistName} has new availability dates`,
+    html,
+  });
+}

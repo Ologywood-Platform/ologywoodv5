@@ -201,3 +201,9 @@
 - [x] Add favorite button to artist cards on browse page
 - [x] Create Saved Artists tab in venue dashboard
 - [x] Display favorited artists with unfavorite option
+
+## Availability Update Notifications
+- [x] Create email template for availability update notifications
+- [x] Add function to get venues who favorited an artist
+- [x] Send email notifications when artist adds availability
+- [x] Integrate notification into availability creation API

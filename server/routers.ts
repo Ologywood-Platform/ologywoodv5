@@ -479,6 +479,23 @@ export const appRouter = router({
           status: input.status,
           notes: input.notes,
         });
+        
+        // Send notifications to venues who favorited this artist (only for new availability)
+        if (input.status === 'available') {
+          const venues = await db.getVenuesWhoFavoritedArtist(profile.id);
+          for (const venue of venues) {
+            if (venue.email) {
+              await email.sendAvailabilityUpdateNotification(
+                venue.email,
+                venue.organizationName || venue.name || 'Venue',
+                profile.artistName,
+                profile.id,
+                [input.date]
+              );
+            }
+          }
+        }
+        
         return { success: true };
       }),
     
