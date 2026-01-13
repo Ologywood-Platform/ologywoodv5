@@ -56,31 +56,55 @@ export const appRouter = router({
         return await db.getArtistProfileById(input.id);
       }),
     
+       // Upload profile photo
+    uploadPhoto: artistProcedure
+      .input(z.object({
+        fileData: z.string(), // base64 encoded image
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Convert base64 to buffer
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Generate unique file key
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileExtension = input.fileName.split('.').pop() || 'jpg';
+        const fileKey = `artist-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        
+        // Upload to S3
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        return { url };
+      }),
+
     // Create artist profile
     createProfile: artistProcedure
       .input(z.object({
-        artistName: z.string().min(1),
-        genre: z.array(z.string()).optional(),
-        bio: z.string().optional(),
+        artistName: z.string(),
         location: z.string().optional(),
+        bio: z.string().optional(),
+        genre: z.array(z.string()).optional(),
         feeRangeMin: z.number().optional(),
         feeRangeMax: z.number().optional(),
-        touringPartySize: z.number().optional(),
+        touringPartySize: z.number(),
         websiteUrl: z.string().optional(),
+        profilePhotoUrl: z.string().optional(),
         socialLinks: z.object({
           instagram: z.string().optional(),
           facebook: z.string().optional(),
           youtube: z.string().optional(),
           spotify: z.string().optional(),
-          twitter: z.string().optional(),
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await db.createArtistProfile({
+        const profile = await db.createArtistProfile({
           userId: ctx.user.id,
           ...input,
         });
-        return { success: true };
+        return profile;
       }),
     
     // Update artist profile

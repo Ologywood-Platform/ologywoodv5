@@ -64,3 +64,8 @@
 - [x] Venue onboarding wizard with multi-step form
 - [x] Role selection page for new users
 - [x] Redirect logic to onboarding when profile is incomplete
+
+## Photo Upload
+- [x] Add photo upload API endpoint using S3 storage
+- [x] Integrate photo upload into artist onboarding wizard
+- [x] Display uploaded photo preview in onboarding

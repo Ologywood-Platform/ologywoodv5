@@ -22,6 +22,9 @@ export default function ArtistOnboarding() {
   const [artistName, setArtistName] = useState("");
   const [location, setLocation] = useState("");
   const [bio, setBio] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
 
   // Step 2: Genre & Performance Details
   const [genreInput, setGenreInput] = useState("");
@@ -36,6 +39,16 @@ export default function ArtistOnboarding() {
   const [facebook, setFacebook] = useState("");
   const [youtube, setYoutube] = useState("");
   const [spotify, setSpotify] = useState("");
+
+  const uploadPhoto = trpc.artist.uploadPhoto.useMutation({
+    onSuccess: (data) => {
+      setProfilePhotoUrl(data.url);
+      toast.success("Photo uploaded successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to upload photo");
+    },
+  });
 
   const createProfile = trpc.artist.createProfile.useMutation({
     onSuccess: () => {
@@ -58,6 +71,44 @@ export default function ArtistOnboarding() {
     setGenres(genres.filter(g => g !== genre));
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please select an image file");
+        return;
+      }
+      
+      setProfilePhoto(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!profilePhoto) return;
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      uploadPhoto.mutate({
+        fileData: reader.result as string,
+        fileName: profilePhoto.name,
+        mimeType: profilePhoto.type,
+      });
+    };
+    reader.readAsDataURL(profilePhoto);
+  };
+
   const handleNext = () => {
     if (currentStep === 1) {
       if (!artistName.trim()) {
@@ -77,10 +128,17 @@ export default function ArtistOnboarding() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!artistName.trim()) {
       toast.error("Artist name is required");
       return;
+    }
+
+    // Upload photo first if one is selected
+    if (profilePhoto && !profilePhotoUrl) {
+      await handleUploadPhoto();
+      // Wait a moment for the upload to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     createProfile.mutate({
@@ -92,6 +150,7 @@ export default function ArtistOnboarding() {
       feeRangeMax: feeRangeMax ? parseInt(feeRangeMax) : undefined,
       touringPartySize: parseInt(touringPartySize),
       websiteUrl: websiteUrl || undefined,
+      profilePhotoUrl: profilePhotoUrl || undefined,
       socialLinks: {
         instagram: instagram || undefined,
         facebook: facebook || undefined,
@@ -166,6 +225,53 @@ export default function ArtistOnboarding() {
                 <p className="text-xs text-muted-foreground mt-1">
                   This will be displayed on your public profile
                 </p>
+              </div>
+
+              <div>
+                <Label htmlFor="photo">Profile Photo</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  {profilePhotoPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={profilePhotoPreview} 
+                        alt="Profile preview" 
+                        className="h-24 w-24 rounded-full object-cover border-2 border-primary"
+                      />
+                      {profilePhotoUrl && (
+                        <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+                      <Music className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      id="photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Max 5MB. JPG, PNG, or GIF.
+                    </p>
+                    {profilePhoto && !profilePhotoUrl && (
+                      <Button 
+                        type="button"
+                        size="sm" 
+                        onClick={handleUploadPhoto}
+                        disabled={uploadPhoto.isPending}
+                        className="mt-2"
+                      >
+                        {uploadPhoto.isPending ? "Uploading..." : "Upload Photo"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
