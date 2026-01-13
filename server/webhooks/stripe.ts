@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import Stripe from 'stripe';
 import * as db from '../db';
+import * as email from '../email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -126,6 +127,22 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     status,
     currentPeriodEnd,
   });
+  
+  // Send email for new subscriptions
+  if (subscription.status === 'trialing' || subscription.status === 'active') {
+    const user = await db.getUserById(parseInt(userId));
+    if (user?.email) {
+      const subData = subscription as any;
+      const trialEndDate = subData.trial_end 
+        ? new Date(subData.trial_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : undefined;
+      await email.sendSubscriptionCreatedEmail({
+        artistEmail: user.email,
+        artistName: user.name || 'Artist',
+        trialEndDate,
+      });
+    }
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -139,6 +156,20 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   console.log(`[Stripe Webhook] Subscription deleted for user ${userId}`);
 
   await db.updateSubscriptionStatus(parseInt(userId), 'canceled');
+  
+  // Send cancellation email
+  const user = await db.getUserById(parseInt(userId));
+  if (user?.email) {
+    const subData = subscription as any;
+    const endDate = subData.current_period_end 
+      ? new Date(subData.current_period_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    await email.sendSubscriptionCanceledEmail({
+      artistEmail: user.email,
+      artistName: user.name || 'Artist',
+      endDate,
+    });
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {

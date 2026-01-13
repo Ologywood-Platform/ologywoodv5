@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
+import * as email from "./email";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -390,6 +391,21 @@ export const appRouter = router({
           status: 'pending',
         });
         
+        // Send email notification to artist
+        const artistProfile = await db.getArtistProfileById(input.artistId);
+        if (artistProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          if (artistUser?.email) {
+            await email.sendBookingRequestEmail({
+              artistEmail: artistUser.email,
+              artistName: artistProfile.artistName,
+              venueName: input.venueName,
+              eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              eventDetails: input.eventDetails,
+            });
+          }
+        }
+        
         return { success: true };
       }),
     
@@ -451,6 +467,63 @@ export const appRouter = router({
         }
         
         await db.updateBooking(input.id, { status: input.status });
+        
+        // Send email notifications based on status change
+        const artistProfile = await db.getArtistProfileById(booking.artistId);
+        const venueProfile = await db.getVenueProfileById(booking.venueId);
+        
+        if (artistProfile && venueProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          const venueUser = await db.getUserById(venueProfile.userId);
+          const eventDateStr = booking.eventDate instanceof Date 
+            ? booking.eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          
+          if (input.status === 'confirmed') {
+            // Send confirmation emails to both parties
+            if (artistUser?.email) {
+              await email.sendBookingConfirmationEmail({
+                recipientEmail: artistUser.email,
+                recipientName: artistProfile.artistName,
+                otherPartyName: venueProfile.organizationName,
+                eventDate: eventDateStr,
+                venueName: booking.venueName,
+                venueAddress: booking.venueAddress || undefined,
+              });
+            }
+            if (venueUser?.email) {
+              await email.sendBookingConfirmationEmail({
+                recipientEmail: venueUser.email,
+                recipientName: venueProfile.organizationName,
+                otherPartyName: artistProfile.artistName,
+                eventDate: eventDateStr,
+                venueName: booking.venueName,
+                venueAddress: booking.venueAddress || undefined,
+              });
+            }
+          } else if (input.status === 'cancelled') {
+            // Send cancellation emails to both parties
+            if (artistUser?.email) {
+              await email.sendBookingCancellationEmail({
+                recipientEmail: artistUser.email,
+                recipientName: artistProfile.artistName,
+                otherPartyName: venueProfile.organizationName,
+                eventDate: eventDateStr,
+                venueName: booking.venueName,
+              });
+            }
+            if (venueUser?.email) {
+              await email.sendBookingCancellationEmail({
+                recipientEmail: venueUser.email,
+                recipientName: venueProfile.organizationName,
+                otherPartyName: artistProfile.artistName,
+                eventDate: eventDateStr,
+                venueName: booking.venueName,
+              });
+            }
+          }
+        }
+        
         return { success: true };
       }),
   }),

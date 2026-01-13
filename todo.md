@@ -102,3 +102,14 @@
 - [x] Add subscription tab to artist dashboard
 - [x] Add access control based on subscription status
 - [x] Create subscription management page for artists
+
+## Email Notifications
+- [x] Set up email service configuration
+- [x] Create email notification helper functions
+- [x] Add booking request notification (to artist)
+- [x] Add booking confirmation notification (to both parties)
+- [x] Add booking cancellation notification (to both parties)
+- [x] Add subscription created notification
+- [ ] Add subscription trial ending notification (requires scheduled job)
+- [ ] Add subscription renewal notification (handled by Stripe)
+- [x] Add subscription canceled notification
