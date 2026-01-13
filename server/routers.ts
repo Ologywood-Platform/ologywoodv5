@@ -1,28 +1,488 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { z } from "zod";
+import * as db from "./db";
+import { storagePut } from "./storage";
+import { TRPCError } from "@trpc/server";
+
+// Helper to check if user is an artist
+const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Artist access required' });
+  }
+  return next({ ctx });
+});
+
+// Helper to check if user is a venue
+const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'venue' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Venue access required' });
+  }
+  return next({ ctx });
+});
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+  
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // Artist Profile Management
+  artist: router({
+    // Get current artist's profile
+    getMyProfile: artistProcedure.query(async ({ ctx }) => {
+      return await db.getArtistProfileByUserId(ctx.user.id);
+    }),
+    
+    // Get any artist profile by ID (public)
+    getProfile: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getArtistProfileById(input.id);
+      }),
+    
+    // Create artist profile
+    createProfile: artistProcedure
+      .input(z.object({
+        artistName: z.string().min(1),
+        genre: z.array(z.string()).optional(),
+        bio: z.string().optional(),
+        location: z.string().optional(),
+        feeRangeMin: z.number().optional(),
+        feeRangeMax: z.number().optional(),
+        touringPartySize: z.number().optional(),
+        websiteUrl: z.string().optional(),
+        socialLinks: z.object({
+          instagram: z.string().optional(),
+          facebook: z.string().optional(),
+          youtube: z.string().optional(),
+          spotify: z.string().optional(),
+          twitter: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.createArtistProfile({
+          userId: ctx.user.id,
+          ...input,
+        });
+        return { success: true };
+      }),
+    
+    // Update artist profile
+    updateProfile: artistProcedure
+      .input(z.object({
+        artistName: z.string().optional(),
+        genre: z.array(z.string()).optional(),
+        bio: z.string().optional(),
+        location: z.string().optional(),
+        feeRangeMin: z.number().optional(),
+        feeRangeMax: z.number().optional(),
+        touringPartySize: z.number().optional(),
+        profilePhotoUrl: z.string().optional(),
+        mediaGallery: z.object({
+          photos: z.array(z.string()),
+          videos: z.array(z.string()),
+        }).optional(),
+        websiteUrl: z.string().optional(),
+        socialLinks: z.object({
+          instagram: z.string().optional(),
+          facebook: z.string().optional(),
+          youtube: z.string().optional(),
+          spotify: z.string().optional(),
+          twitter: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+        }
+        await db.updateArtistProfile(profile.id, input);
+        return { success: true };
+      }),
+    
+    // Upload media (profile photo or gallery)
+    uploadMedia: artistProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileData: z.string(), // base64
+        fileType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const buffer = Buffer.from(input.fileData, 'base64');
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileKey = `artists/${ctx.user.id}/${input.fileName}-${randomSuffix}`;
+        
+        const { url } = await storagePut(fileKey, buffer, input.fileType);
+        return { url };
+      }),
+    
+    // Search artists
+    search: publicProcedure
+      .input(z.object({
+        genre: z.array(z.string()).optional(),
+        location: z.string().optional(),
+        minFee: z.number().optional(),
+        maxFee: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await db.searchArtists(input);
+      }),
+    
+    // Get all artists
+    getAll: publicProcedure.query(async () => {
+      return await db.getAllArtists();
+    }),
+  }),
+
+  // Venue Profile Management
+  venue: router({
+    // Get current venue's profile
+    getMyProfile: venueProcedure.query(async ({ ctx }) => {
+      return await db.getVenueProfileByUserId(ctx.user.id);
+    }),
+    
+    // Create venue profile
+    createProfile: venueProcedure
+      .input(z.object({
+        organizationName: z.string().min(1),
+        contactName: z.string().min(1),
+        contactPhone: z.string().optional(),
+        websiteUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.createVenueProfile({
+          userId: ctx.user.id,
+          ...input,
+        });
+        return { success: true };
+      }),
+    
+    // Update venue profile
+    updateProfile: venueProcedure
+      .input(z.object({
+        organizationName: z.string().optional(),
+        contactName: z.string().optional(),
+        contactPhone: z.string().optional(),
+        websiteUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+        }
+        await db.updateVenueProfile(profile.id, input);
+        return { success: true };
+      }),
+  }),
+
+  // Rider Template Management
+  rider: router({
+    // Get all templates for current artist
+    getMyTemplates: artistProcedure.query(async ({ ctx }) => {
+      const profile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!profile) return [];
+      return await db.getRiderTemplatesByArtistId(profile.id);
+    }),
+    
+    // Get single template
+    getTemplate: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getRiderTemplateById(input.id);
+      }),
+    
+    // Create template
+    create: artistProcedure
+      .input(z.object({
+        templateName: z.string().min(1),
+        technicalRequirements: z.object({
+          stageWidth: z.string().optional(),
+          stageDepth: z.string().optional(),
+          soundSystem: z.string().optional(),
+          lighting: z.string().optional(),
+          backline: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        hospitalityRequirements: z.object({
+          dressingRooms: z.string().optional(),
+          catering: z.string().optional(),
+          beverages: z.string().optional(),
+          accommodation: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        financialTerms: z.object({
+          depositAmount: z.string().optional(),
+          paymentMethod: z.string().optional(),
+          cancellationPolicy: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        await db.createRiderTemplate({
+          artistId: profile.id,
+          ...input,
+        });
+        return { success: true };
+      }),
+    
+    // Update template
+    update: artistProcedure
+      .input(z.object({
+        id: z.number(),
+        templateName: z.string().optional(),
+        technicalRequirements: z.object({
+          stageWidth: z.string().optional(),
+          stageDepth: z.string().optional(),
+          soundSystem: z.string().optional(),
+          lighting: z.string().optional(),
+          backline: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        hospitalityRequirements: z.object({
+          dressingRooms: z.string().optional(),
+          catering: z.string().optional(),
+          beverages: z.string().optional(),
+          accommodation: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        financialTerms: z.object({
+          depositAmount: z.string().optional(),
+          paymentMethod: z.string().optional(),
+          cancellationPolicy: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        await db.updateRiderTemplate(id, updates);
+        return { success: true };
+      }),
+    
+    // Delete template
+    delete: artistProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteRiderTemplate(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Availability Management
+  availability: router({
+    // Get availability for an artist
+    getForArtist: publicProcedure
+      .input(z.object({
+        artistId: z.number(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAvailabilityByArtistId(input.artistId, input.startDate, input.endDate);
+      }),
+    
+    // Set availability (artist only)
+    set: artistProcedure
+      .input(z.object({
+        date: z.string(),
+        status: z.enum(['available', 'booked', 'unavailable']),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        await db.setAvailability({
+          artistId: profile.id,
+          date: new Date(input.date),
+          status: input.status,
+          notes: input.notes,
+        });
+        return { success: true };
+      }),
+    
+    // Delete availability
+    delete: artistProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteAvailability(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Booking Management
+  booking: router({
+    // Create booking request (venue)
+    create: venueProcedure
+      .input(z.object({
+        artistId: z.number(),
+        eventDate: z.string(),
+        eventTime: z.string().optional(),
+        venueName: z.string().min(1),
+        venueAddress: z.string().optional(),
+        eventDetails: z.string().optional(),
+        totalFee: z.number().optional(),
+        depositAmount: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        // Check if artist is available on this date
+        const avail = await db.getAvailabilityForDate(input.artistId, input.eventDate);
+        if (avail && avail.status !== 'available') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
+        }
+        
+        await db.createBooking({
+          artistId: input.artistId,
+          venueId: venueProfile.id,
+          eventDate: new Date(input.eventDate),
+          eventTime: input.eventTime,
+          venueName: input.venueName,
+          venueAddress: input.venueAddress,
+          eventDetails: input.eventDetails,
+          totalFee: input.totalFee?.toString(),
+          depositAmount: input.depositAmount?.toString(),
+          status: 'pending',
+        });
+        
+        return { success: true };
+      }),
+    
+    // Get booking by ID
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getBookingById(input.id);
+      }),
+    
+    // Get bookings for current artist
+    getMyArtistBookings: artistProcedure.query(async ({ ctx }) => {
+      const profile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!profile) return [];
+      return await db.getBookingsByArtistId(profile.id);
+    }),
+    
+    // Get bookings for current venue
+    getMyVenueBookings: venueProcedure.query(async ({ ctx }) => {
+      const profile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!profile) return [];
+      return await db.getBookingsByVenueId(profile.id);
+    }),
+    
+    // Update booking status (artist)
+    updateStatus: artistProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']),
+      }))
+      .mutation(async ({ input }) => {
+        const booking = await db.getBookingById(input.id);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // If confirming, mark date as booked
+        if (input.status === 'confirmed') {
+          const dateStr = booking.eventDate instanceof Date 
+            ? booking.eventDate.toISOString().split('T')[0] 
+            : booking.eventDate;
+          await db.setAvailability({
+            artistId: booking.artistId,
+            date: new Date(dateStr),
+            status: 'booked',
+          });
+        }
+        
+        // If cancelling from confirmed, mark as available again
+        if (input.status === 'cancelled' && booking.status === 'confirmed') {
+          const dateStr = booking.eventDate instanceof Date 
+            ? booking.eventDate.toISOString().split('T')[0] 
+            : booking.eventDate;
+          await db.setAvailability({
+            artistId: booking.artistId,
+            date: new Date(dateStr),
+            status: 'available',
+          });
+        }
+        
+        await db.updateBooking(input.id, { status: input.status });
+        return { success: true };
+      }),
+  }),
+
+  // Messaging
+  message: router({
+    // Get messages for a booking
+    getForBooking: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getMessagesByBookingId(input.bookingId);
+      }),
+    
+    // Send message
+    send: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        receiverId: z.number(),
+        messageText: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.createMessage({
+          bookingId: input.bookingId,
+          senderId: ctx.user.id,
+          receiverId: input.receiverId,
+          messageText: input.messageText,
+        });
+        return { success: true };
+      }),
+    
+    // Mark message as read
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.markMessageAsRead(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // Subscription Management
+  subscription: router({
+    // Get current user's subscription
+    getMy: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getSubscriptionByUserId(ctx.user.id);
+    }),
+    
+    // Create subscription (placeholder - will integrate Stripe later)
+    create: protectedProcedure
+      .input(z.object({
+        planType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.createSubscription({
+          userId: ctx.user.id,
+          planType: input.planType,
+          status: 'active',
+        });
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
