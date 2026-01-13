@@ -1217,6 +1217,38 @@ export const appRouter = router({
         return { sent: bookingsNeedingReminders.length };
       }),
   }),
+  
+  // Calendar router
+  calendar: router({
+    getVenueBookings: venueProcedure
+      .input(z.object({
+        startDate: z.string(),
+        endDate: z.string(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        const startDate = new Date(input.startDate);
+        const endDate = new Date(input.endDate);
+        
+        return await db.getVenueBookingsByDateRange(profile.id, startDate, endDate);
+      }),
+    
+    getFavoritedArtistsAvailability: venueProcedure
+      .input(z.object({
+        startDate: z.string(),
+        endDate: z.string(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const startDate = new Date(input.startDate);
+        const endDate = new Date(input.endDate);
+        
+        return await db.getFavoritedArtistsAvailability(ctx.user.id, startDate, endDate);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

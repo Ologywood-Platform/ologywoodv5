@@ -955,3 +955,59 @@ export async function markReminderSent(bookingId: number, reminderType: string) 
     reminderType,
   });
 }
+
+
+// ============= CALENDAR FUNCTIONS =============
+
+export async function getVenueBookingsByDateRange(venueId: number, startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.venueId, venueId),
+        gte(bookings.eventDate, startDate),
+        lte(bookings.eventDate, endDate)
+      )
+    )
+    .orderBy(bookings.eventDate);
+}
+
+export async function getFavoritedArtistsAvailability(userId: number, startDate: Date, endDate: Date) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get user's favorited artists
+  const userFavorites = await db.select().from(favorites)
+    .where(eq(favorites.userId, userId));
+  
+  if (userFavorites.length === 0) return [];
+  
+  const artistIds = userFavorites.map(f => f.artistId);
+  
+  // Get availability for those artists in the date range
+  const availabilityRecords = await db.select().from(availability)
+    .where(
+      and(
+        inArray(availability.artistId, artistIds),
+        gte(availability.date, startDate),
+        lte(availability.date, endDate),
+        eq(availability.status, 'available')
+      )
+    );
+  
+  // Enrich with artist details
+  const enrichedAvailability = [];
+  for (const avail of availabilityRecords) {
+    const artist = await getArtistProfileById(avail.artistId);
+    if (artist) {
+      enrichedAvailability.push({
+        ...avail,
+        artistName: artist.artistName,
+      });
+    }
+  }
+  
+  return enrichedAvailability;
+}

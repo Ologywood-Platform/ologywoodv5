@@ -13,6 +13,7 @@ import { PhotoGalleryManager } from "@/components/PhotoGalleryManager";
 import SavedArtistsTab from "@/components/SavedArtistsTab";
 import BookingTemplatesTab from "@/components/BookingTemplatesTab";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import VenueCalendar from "@/components/VenueCalendar";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -199,6 +200,10 @@ export default function Dashboard() {
             )}
             {isVenue && (
               <>
+                <TabsTrigger value="calendar">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Calendar
+                </TabsTrigger>
                 <TabsTrigger value="saved">
                   <Heart className="h-4 w-4 mr-2" />
                   Saved Artists
@@ -443,6 +448,13 @@ export default function Dashboard() {
                 <PhotoGalleryManager role="artist" />
               </TabsContent>
             </>
+          )}
+          
+          {/* Calendar Tab (Venues) */}
+          {isVenue && (
+            <TabsContent value="calendar">
+              <VenueCalendar />
+            </TabsContent>
           )}
           
           {/* Saved Artists Tab (Venues) */}

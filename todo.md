@@ -234,3 +234,14 @@
 - [x] Add cron job or scheduled task to run reminder checks daily
 - [x] Send reminders to both artist and venue with event details
 - [x] Track sent reminders to avoid duplicates
+
+## Calendar View for Venues
+- [x] Create API endpoint to get venue's bookings by date range
+- [x] Create API endpoint to get favorited artists' availability
+- [x] Build calendar component with monthly view
+- [x] Display confirmed bookings on calendar
+- [x] Display pending requests on calendar
+- [x] Show favorited artists' availability dates
+- [x] Add color coding for different event types
+- [x] Add Calendar tab to venue dashboard
+- [x] Add click-through to booking details from calendar events
