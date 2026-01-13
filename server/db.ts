@@ -95,9 +95,18 @@ export async function getUserByOpenId(openId: string) {
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function updateUserRole(userId: number, role: 'artist' | 'venue') {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+}
 export async function getUserById(id: number) {
   const db = await getDb();
   if (!db) return undefined;

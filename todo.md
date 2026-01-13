@@ -58,3 +58,9 @@
 
 ## Bug Fixes
 - [x] Fix nested anchor tag error on homepage (Link wrapping <a> elements)
+
+## Onboarding
+- [x] Artist onboarding wizard with multi-step form
+- [x] Venue onboarding wizard with multi-step form
+- [x] Role selection page for new users
+- [x] Redirect logic to onboarding when profile is incomplete

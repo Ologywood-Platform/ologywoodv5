@@ -65,11 +65,11 @@ export default function Home() {
           
           {!isAuthenticated && (
             <div className="flex gap-4 justify-center">
-              <a href={getLoginUrl()}>
+              <Link href={isAuthenticated ? "/get-started" : getLoginUrl()}>
                 <Button size="lg" className="text-lg px-8">
                   Get Started
                 </Button>
-              </a>
+              </Link>
               <Link href="/browse">
                 <Button size="lg" variant="outline" className="text-lg px-8">
                   Browse Artists

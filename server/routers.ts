@@ -25,14 +25,21 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 
 export const appRouter = router({
   system: systemRouter,
-  
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return { success: true } as const;
+      return {
+        success: true,
+      } as const;
     }),
+    updateRole: protectedProcedure
+      .input(z.object({ role: z.enum(['artist', 'venue']) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateUserRole(ctx.user.id, input.role);
+        return { role: input.role };
+      }),
   }),
 
   // Artist Profile Management
