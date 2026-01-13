@@ -154,6 +154,8 @@ export const appRouter = router({
         location: z.string().optional(),
         minFee: z.number().optional(),
         maxFee: z.number().optional(),
+        availableFrom: z.string().optional(), // ISO date string
+        availableTo: z.string().optional(), // ISO date string
       }))
       .query(async ({ input }) => {
         return await db.searchArtists(input);

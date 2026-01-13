@@ -155,6 +155,8 @@ export async function searchArtists(filters: {
   location?: string;
   minFee?: number;
   maxFee?: number;
+  availableFrom?: string;
+  availableTo?: string;
 }) {
   const db = await getDb();
   if (!db) return [];
@@ -185,6 +187,31 @@ export async function searchArtists(filters: {
     filtered = filtered.filter(a => 
       a.feeRangeMax !== null && a.feeRangeMax <= filters.maxFee!
     );
+  }
+  
+  // Filter by availability dates if provided
+  if (filters.availableFrom || filters.availableTo) {
+    // Get availability for all artists
+    const artistIds = filtered.map(a => a.id);
+    const availabilities = await db.select().from(availability).where(
+      sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
+    );
+    
+    // Filter artists who have availability in the requested date range
+    filtered = filtered.filter(artist => {
+      const artistAvailability = availabilities.filter(av => av.artistId === artist.id);
+      if (artistAvailability.length === 0) return false;
+      
+      return artistAvailability.some(av => {
+        const avDate = new Date(av.date);
+        const fromDate = filters.availableFrom ? new Date(filters.availableFrom) : null;
+        const toDate = filters.availableTo ? new Date(filters.availableTo) : null;
+        
+        if (fromDate && avDate < fromDate) return false;
+        if (toDate && avDate > toDate) return false;
+        return true;
+      });
+    });
   }
   
   return filtered;

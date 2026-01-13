@@ -5,12 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Search, MapPin, DollarSign } from "lucide-react";
+import { SearchFilters } from "@/components/SearchFilters";
 
 export default function Browse() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
+  const [filters, setFilters] = useState<{
+    location?: string;
+    minFee?: number;
+    maxFee?: number;
+    availableFrom?: string;
+    availableTo?: string;
+  }>({});
   
-  const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
+  const { data: artists, isLoading } = trpc.artist.search.useQuery(filters);
 
   const filteredArtists = artists?.filter(artist => {
     const matchesSearch = searchQuery === "" || 
@@ -19,10 +26,7 @@ export default function Browse() {
         g.toLowerCase().includes(searchQuery.toLowerCase())
       ));
     
-    const matchesLocation = locationFilter === "" || 
-      artist.location?.toLowerCase().includes(locationFilter.toLowerCase());
-    
-    return matchesSearch && matchesLocation;
+    return matchesSearch;
   });
 
   return (
@@ -44,28 +48,23 @@ export default function Browse() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-8">Browse Artists</h1>
         
-        {/* Filters */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search by name or genre..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        {/* Search and Filters */}
+        <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+              <Input
+                type="text"
+                placeholder="Search by artist name or genre..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
           
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Filter by location..."
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-              className="pl-10"
-            />
+          <div>
+            <SearchFilters onFilterChange={setFilters} />
           </div>
         </div>
 
