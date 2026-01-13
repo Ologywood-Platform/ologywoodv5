@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Music, Calendar, MessageSquare, Settings, ArrowLeft } from "lucide-react";
+import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -280,19 +281,24 @@ export default function Dashboard() {
           {/* Availability Tab (Artists only) */}
           {isArtist && (
             <TabsContent value="availability">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Availability</CardTitle>
-                  <CardDescription>
-                    Set your available dates for bookings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Calendar integration coming soon. Bookings will automatically update your availability.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Manage Availability</h2>
+                    <p className="text-muted-foreground">Click dates to mark your availability</p>
+                  </div>
+                  <Link href="/availability">
+                    <Button>Full Calendar View</Button>
+                  </Link>
+                </div>
+                <AvailabilityCalendar
+                  availability={artistBookings?.map(b => ({
+                    date: typeof b.eventDate === 'string' ? b.eventDate : new Date(b.eventDate).toISOString().split('T')[0],
+                    status: 'booked' as const
+                  })) || []}
+                  readOnly
+                />
+              </div>
             </TabsContent>
           )}
         </Tabs>

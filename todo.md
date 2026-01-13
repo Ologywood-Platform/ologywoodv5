@@ -75,3 +75,10 @@
 - [x] Show photos in search results
 - [x] Add photos to artist cards in dashboard
 - [x] Add fallback avatar for artists without photos
+
+## Availability Calendar
+- [x] Create interactive calendar component with date selection
+- [x] Add availability management page to artist dashboard
+- [x] Display read-only calendar on artist profile pages
+- [x] Visual indicators for available, booked, and unavailable dates
+- [x] Prevent double-booking when confirming bookings

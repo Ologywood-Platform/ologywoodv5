@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2 } from "lucide-react";
+import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -331,26 +332,16 @@ export default function ArtistProfile() {
               </Card>
             )}
             
-            {/* Availability Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Availability</CardTitle>
-                <CardDescription>
-                  Check the artist's calendar for available dates
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {availability && availability.length > 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {availability.filter(a => a.status === 'available').length} available dates
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Contact artist for availability
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            {/* Availability Calendar */}
+            <div>
+              <AvailabilityCalendar
+                availability={availability?.map(a => ({
+                  date: typeof a.date === 'string' ? a.date : new Date(a.date).toISOString().split('T')[0],
+                  status: a.status as 'available' | 'booked' | 'unavailable'
+                })) || []}
+                readOnly
+              />
+            </div>
           </div>
         </div>
       </div>

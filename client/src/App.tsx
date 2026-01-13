@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import RoleSelection from "./pages/RoleSelection";
 import ArtistOnboarding from "./pages/ArtistOnboarding";
 import VenueOnboarding from "./pages/VenueOnboarding";
+import Availability from "./pages/Availability";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/get-started" component={RoleSelection} />
       <Route path="/onboarding/artist" component={ArtistOnboarding} />
       <Route path="/onboarding/venue" component={VenueOnboarding} />
+      <Route path="/availability" component={Availability} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
