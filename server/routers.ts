@@ -1163,6 +1163,60 @@ export const appRouter = router({
         return await db.getRevenueByMonth(profile.id, input.months);
       }),
   }),
+  
+  // Reminders router (for testing/manual trigger)
+  reminders: router({
+    checkAndSend: publicProcedure
+      .mutation(async () => {
+        // This endpoint can be called manually or by a cron job
+        const bookingsNeedingReminders = await db.getBookingsNeedingReminders();
+        
+        for (const { booking, reminderType } of bookingsNeedingReminders) {
+          const daysUntil = reminderType === '7_days' ? 7 : reminderType === '3_days' ? 3 : 1;
+          
+          const artist = await db.getArtistProfileById(booking.artistId);
+          const venue = await db.getVenueProfileById(booking.venueId);
+          
+          if (!artist || !venue) continue;
+          
+          const artistUser = await db.getUserById(artist.userId);
+          const venueUser = await db.getUserById(venue.userId);
+          
+          if (!artistUser || !venueUser || !artistUser.email || !venueUser.email || !artistUser.name || !venueUser.name) continue;
+          
+          const bookingDetails = {
+            artistName: artist.artistName || artistUser.name,
+            venueName: venue.organizationName,
+            eventDate: booking.eventDate!,
+            eventTime: booking.eventTime || undefined,
+            venueAddress: booking.venueAddress || undefined,
+            totalFee: typeof booking.totalFee === 'number' ? booking.totalFee : undefined,
+            eventDetails: booking.eventDetails || undefined,
+          };
+          
+          // Send to both artist and venue
+          await email.sendBookingReminder(
+            artistUser.email,
+            artistUser.name,
+            bookingDetails,
+            daysUntil,
+            true
+          );
+          
+          await email.sendBookingReminder(
+            venueUser.email,
+            venueUser.name,
+            bookingDetails,
+            daysUntil,
+            false
+          );
+          
+          await db.markReminderSent(booking.id, reminderType);
+        }
+        
+        return { sent: bookingsNeedingReminders.length };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

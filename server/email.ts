@@ -440,3 +440,80 @@ export async function sendAvailabilityUpdateNotification(
     html,
   });
 }
+
+
+export async function sendBookingReminder(
+  recipientEmail: string,
+  recipientName: string,
+  bookingDetails: {
+    artistName: string;
+    venueName: string;
+    eventDate: Date;
+    eventTime?: string;
+    venueAddress?: string;
+    totalFee?: number;
+    eventDetails?: string;
+  },
+  daysUntilEvent: number,
+  isArtist: boolean
+) {
+  const eventDateStr = bookingDetails.eventDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  const roleSpecificMessage = isArtist
+    ? `This is a reminder that you have an upcoming performance at ${bookingDetails.venueName}.`
+    : `This is a reminder that ${bookingDetails.artistName} will be performing at your venue.`;
+  
+  const preparationTips = isArtist
+    ? `<ul>
+        <li>Confirm your travel arrangements</li>
+        <li>Review your rider requirements</li>
+        <li>Prepare your equipment and setlist</li>
+        <li>Contact the venue if you have any questions</li>
+      </ul>`
+    : `<ul>
+        <li>Confirm venue setup and technical requirements</li>
+        <li>Review the artist's rider</li>
+        <li>Prepare payment arrangements</li>
+        <li>Contact the artist if you have any questions</li>
+      </ul>`;
+  
+  const subject = `Reminder: Event in ${daysUntilEvent} day${daysUntilEvent > 1 ? 's' : ''} - ${bookingDetails.artistName} at ${bookingDetails.venueName}`;
+  
+  const html = `
+    <h2>Upcoming Event Reminder</h2>
+    
+    <p>Hello ${recipientName},</p>
+    
+    <p>${roleSpecificMessage}</p>
+    
+    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">Event Details</h3>
+      <p><strong>Artist:</strong> ${bookingDetails.artistName}</p>
+      <p><strong>Venue:</strong> ${bookingDetails.venueName}</p>
+      <p><strong>Date:</strong> ${eventDateStr}</p>
+      ${bookingDetails.eventTime ? `<p><strong>Time:</strong> ${bookingDetails.eventTime}</p>` : ''}
+      ${bookingDetails.venueAddress ? `<p><strong>Location:</strong> ${bookingDetails.venueAddress}</p>` : ''}
+      ${bookingDetails.totalFee ? `<p><strong>Fee:</strong> $${bookingDetails.totalFee.toLocaleString()}</p>` : ''}
+      ${bookingDetails.eventDetails ? `<p><strong>Details:</strong> ${bookingDetails.eventDetails}</p>` : ''}
+    </div>
+    
+    <h3>Preparation Checklist (${daysUntilEvent} days before event):</h3>
+    ${preparationTips}
+    
+    <p>If you need to make any changes or have questions, please log in to your dashboard to contact the ${isArtist ? 'venue' : 'artist'}.</p>
+    
+    <a href="https://${ENV.appId}.manus.space/dashboard" 
+       style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+      View Dashboard
+    </a>
+    
+    <p>Best regards,<br>The Ologywood Team</p>
+  `;
+  
+  await sendEmail({ to: recipientEmail, subject, html });
+}

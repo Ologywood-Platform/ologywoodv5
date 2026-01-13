@@ -226,3 +226,11 @@
 - [x] Show booking request metrics (total, pending, confirmed, conversion rate)
 - [x] Display revenue trends over time
 - [x] Add Analytics tab to artist dashboard
+
+## Automated Booking Reminders
+- [x] Create bookingReminders table to track sent reminders
+- [x] Create email templates for 7-day, 3-day, and 1-day reminders
+- [x] Build API endpoint to check and send due reminders
+- [x] Add cron job or scheduled task to run reminder checks daily
+- [x] Send reminders to both artist and venue with event details
+- [x] Track sent reminders to avoid duplicates

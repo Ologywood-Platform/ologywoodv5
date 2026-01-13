@@ -262,3 +262,17 @@ export const profileViews = mysqlTable("profile_views", {
 
 export type ProfileView = typeof profileViews.$inferSelect;
 export type InsertProfileView = typeof profileViews.$inferInsert;
+
+
+/**
+ * Booking reminders table - tracks sent reminder emails for bookings
+ */
+export const bookingReminders = mysqlTable("booking_reminders", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  reminderType: varchar("reminderType", { length: 50 }).notNull(), // '7_days', '3_days', '1_day'
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+});
+
+export type BookingReminder = typeof bookingReminders.$inferSelect;
+export type InsertBookingReminder = typeof bookingReminders.$inferInsert;

@@ -57,6 +57,13 @@
       "when": 1768345593059,
       "tag": "0007_wandering_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1768345980987,
+      "tag": "0008_oval_shooting_star",
+      "breakpoints": true
     }
   ]
 }

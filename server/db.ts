@@ -13,7 +13,8 @@ import {
   venueReviews, InsertVenueReview, VenueReview,
   favorites, InsertFavorite, Favorite,
   bookingTemplates, InsertBookingTemplate, BookingTemplate,
-  profileViews, InsertProfileView, ProfileView
+  profileViews, InsertProfileView, ProfileView,
+  bookingReminders, InsertBookingReminder, BookingReminder
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -871,4 +872,86 @@ export async function getRevenueByMonth(artistId: number, months: number = 12) {
     month,
     revenue,
   }));
+}
+
+
+// ============= BOOKING REMINDER FUNCTIONS =============
+
+export async function getBookingsNeedingReminders() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now);
+  sevenDaysFromNow.setDate(now.getDate() + 7);
+  const threeDaysFromNow = new Date(now);
+  threeDaysFromNow.setDate(now.getDate() + 3);
+  const oneDayFromNow = new Date(now);
+  oneDayFromNow.setDate(now.getDate() + 1);
+  
+  // Get all confirmed bookings with upcoming event dates
+  const upcomingBookings = await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.status, 'confirmed'),
+        gte(bookings.eventDate, now)
+      )
+    );
+  
+  // Get all sent reminders
+  const sentReminders = await db.select().from(bookingReminders);
+  
+  const bookingsNeedingReminders: Array<{
+    booking: Booking;
+    reminderType: '7_days' | '3_days' | '1_day';
+  }> = [];
+  
+  for (const booking of upcomingBookings) {
+    if (!booking.eventDate) continue;
+    
+    const eventDate = new Date(booking.eventDate);
+    const daysUntil = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if we need to send 7-day reminder
+    if (daysUntil <= 7 && daysUntil > 6) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && r.reminderType === '7_days'
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking, reminderType: '7_days' });
+      }
+    }
+    
+    // Check if we need to send 3-day reminder
+    if (daysUntil <= 3 && daysUntil > 2) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && r.reminderType === '3_days'
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking, reminderType: '3_days' });
+      }
+    }
+    
+    // Check if we need to send 1-day reminder
+    if (daysUntil <= 1 && daysUntil > 0) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && r.reminderType === '1_day'
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking, reminderType: '1_day' });
+      }
+    }
+  }
+  
+  return bookingsNeedingReminders;
+}
+
+export async function markReminderSent(bookingId: number, reminderType: string) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.insert(bookingReminders).values({
+    bookingId,
+    reminderType,
+  });
 }
