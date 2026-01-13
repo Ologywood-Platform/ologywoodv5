@@ -158,3 +158,12 @@
 - [x] Display submitted venue reviews on booking detail page
 - [x] Add API endpoint for average venue rating and review count
 - [x] Add venue response capability to venue reviews
+
+## Venue Profile Pages
+- [x] Create VenueProfile page component with route
+- [x] Display venue information (name, contact, phone, website)
+- [x] Display aggregate venue rating and review count
+- [x] List all venue reviews from artists with ratings
+- [x] Show venue responses to reviews
+- [x] Add link to venue profiles from booking pages
+- [x] Allow venue owners to respond to reviews directly on profile page

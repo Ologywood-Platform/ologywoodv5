@@ -1,4 +1,4 @@
-import { useParams, useLocation } from 'wouter';
+import { useParams, useLocation, Link } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -101,7 +101,9 @@ export default function BookingDetail() {
           <Card className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{booking.venueName}</h1>
+                <Link href={`/venue/${booking.venueId}`} className="hover:underline">
+                  <h1 className="text-3xl font-bold mb-2">{booking.venueName}</h1>
+                </Link>
                 <Badge className={getStatusColor(booking.status)}>
                   {booking.status.toUpperCase()}
                 </Badge>

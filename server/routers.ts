@@ -172,6 +172,13 @@ export const appRouter = router({
       return await db.getVenueProfileByUserId(ctx.user.id);
     }),
     
+    // Get venue profile by ID (public)
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getVenueProfileById(input.id);
+      }),
+    
     // Create venue profile
     createProfile: venueProcedure
       .input(z.object({
