@@ -610,3 +610,115 @@ export async function sendRefundNotification(
     html,
   });
 }
+
+
+/**
+ * Send contract signed notification
+ */
+export async function sendContractSigned(params: {
+  to: string;
+  artistName: string;
+  venueName: string;
+  contractTitle: string;
+}): Promise<boolean> {
+  const { to, artistName, venueName, contractTitle } = params;
+  
+  const subject = `Contract Signed: ${contractTitle}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">✓ Contract Signed</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Great news! Your contract has been successfully signed by both parties.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+          <h3 style="margin-top: 0;">Contract Details</h3>
+          <p><strong>Contract:</strong> ${contractTitle}</p>
+          <p><strong>Artist:</strong> ${artistName}</p>
+          <p><strong>Venue:</strong> ${venueName}</p>
+          <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Fully Executed</span></p>
+          <p><strong>Date Signed:</strong> ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <p style="color: #333; margin: 20px 0;">
+          Both parties have agreed to the terms outlined in the contract. You can now proceed with event planning and coordination.
+        </p>
+        
+        <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0099cc;">
+          <p style="margin: 0; color: #0066aa;"><strong>Next Steps:</strong></p>
+          <ul style="margin: 10px 0 0 20px; color: #0066aa;">
+            <li>Review final event details and logistics</li>
+            <li>Confirm payment schedule and terms</li>
+            <li>Coordinate technical and hospitality requirements</li>
+            <li>Set up communication channels for event coordination</li>
+          </ul>
+        </div>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          A copy of the signed contract has been stored securely in your account for future reference.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to,
+    subject,
+    html,
+  });
+}
+
+/**
+ * Send contract for signature notification
+ */
+export async function sendContractForSignature(params: {
+  to: string;
+  recipientName: string;
+  senderName: string;
+  contractTitle: string;
+  contractUrl: string;
+}): Promise<boolean> {
+  const { to, recipientName, senderName, contractTitle, contractUrl } = params;
+  
+  const subject = `Action Required: Sign Contract - ${contractTitle}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">Contract Awaiting Your Signature</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Hi ${recipientName},</p>
+        
+        <p>${senderName} has sent you a contract for review and signature.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+          <h3 style="margin-top: 0;">Contract Details</h3>
+          <p><strong>Contract Title:</strong> ${contractTitle}</p>
+          <p><strong>From:</strong> ${senderName}</p>
+          <p><strong>Status:</strong> <span style="color: #ff9800; font-weight: bold;">Awaiting Your Signature</span></p>
+        </div>
+        
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${contractUrl}" style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Review & Sign Contract
+          </a>
+        </p>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          Please review the contract carefully before signing. Once both parties have signed, the contract becomes legally binding.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to,
+    subject,
+    html,
+  });
+}

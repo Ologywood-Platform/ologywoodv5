@@ -14,11 +14,90 @@ import {
   favorites, InsertFavorite, Favorite,
   bookingTemplates, InsertBookingTemplate, BookingTemplate,
   profileViews, InsertProfileView, ProfileView,
-  bookingReminders, InsertBookingReminder, BookingReminder
+  bookingReminders, InsertBookingReminder, BookingReminder,
+  contracts, InsertContract, Contract,
+  signatures, InsertSignature, Signature
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+
+// ============= CONTRACT FUNCTIONS =============
+
+export async function createContract(data: InsertContract): Promise<Contract> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(contracts).values(data);
+  const contractId = (result as any).insertId;
+  const contract = await db.select().from(contracts).where(eq(contracts.id, contractId)).limit(1);
+  return contract[0] as Contract;
+}
+
+export async function getContractById(id: number): Promise<Contract | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getContractByBookingId(bookingId: number): Promise<Contract | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(contracts).where(eq(contracts.bookingId, bookingId)).limit(1);
+  return result[0];
+}
+
+export async function getContractsByArtistId(artistId: number): Promise<Contract[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(contracts).where(eq(contracts.artistId, artistId));
+}
+
+export async function getContractsByVenueId(venueId: number): Promise<Contract[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(contracts).where(eq(contracts.venueId, venueId));
+}
+
+export async function updateContract(id: number, data: Partial<InsertContract>): Promise<Contract | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  await db.update(contracts).set(data).where(eq(contracts.id, id));
+  return await getContractById(id);
+}
+
+// ============= SIGNATURE FUNCTIONS =============
+
+export async function createSignature(data: InsertSignature): Promise<Signature> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(signatures).values(data);
+  const signatureId = (result as any).insertId;
+  const signature = await db.select().from(signatures).where(eq(signatures.id, signatureId)).limit(1);
+  return signature[0] as Signature;
+}
+
+export async function getSignaturesByContractId(contractId: number): Promise<Signature[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(signatures).where(eq(signatures.contractId, contractId));
+}
+
+export async function getSignatureByContractAndSigner(contractId: number, signerId: number): Promise<Signature | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(signatures).where(
+    and(eq(signatures.contractId, contractId), eq(signatures.signerId, signerId))
+  ).limit(1);
+  return result[0];
+}
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {

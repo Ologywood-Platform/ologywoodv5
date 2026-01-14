@@ -270,3 +270,16 @@
 - [ ] Add skeleton screens to VenueProfile page
 - [ ] Add skeleton screens to BookingDetail page
 - [ ] Add skeleton screens to booking list items
+
+
+## Digital Signature & Contract System
+- [x] Design Ryder contract data model and signature schema
+- [x] Create contracts and signatures tables in database schema
+- [x] Build Ryder contract template component with signature fields
+- [x] Implement digital signature capture with canvas/drawing library
+- [x] Create contract API endpoints (create, get, update, sign, verify)
+- [x] Build contract signing workflow and signature verification
+- [x] Implement contract storage and PDF generation
+- [x] Add contract management UI to artist and venue dashboards
+- [x] Write tests for contract and signature functionality
+- [x] Test end-to-end contract signing workflow

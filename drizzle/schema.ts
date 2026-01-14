@@ -282,3 +282,46 @@ export const bookingReminders = mysqlTable("booking_reminders", {
 
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
+
+
+/**
+ * Contracts table - stores Ryder contracts and agreements between artists and venues
+ */
+export const contracts = mysqlTable("contracts", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull().unique(),
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId").notNull(),
+  contractType: varchar("contractType", { length: 50 }).default("ryder").notNull(),
+  contractTitle: varchar("contractTitle", { length: 255 }).notNull(),
+  contractContent: text("contractContent").notNull(),
+  contractPdfUrl: text("contractPdfUrl"),
+  status: mysqlEnum("status", ["draft", "pending_signatures", "signed", "executed", "cancelled"]).default("draft").notNull(),
+  artistSignedAt: timestamp("artistSignedAt"),
+  venueSignedAt: timestamp("venueSignedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Contract = typeof contracts.$inferSelect;
+export type InsertContract = typeof contracts.$inferInsert;
+
+/**
+ * Signatures table - stores digital signatures for contracts
+ */
+export const signatures = mysqlTable("signatures", {
+  id: int("id").autoincrement().primaryKey(),
+  contractId: int("contractId").notNull(),
+  signerId: int("signerId").notNull(),
+  signerRole: varchar("signerRole", { length: 50 }).notNull(),
+  signatureData: text("signatureData").notNull(),
+  signatureType: varchar("signatureType", { length: 50 }).default("canvas").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: text("userAgent"),
+  signedAt: timestamp("signedAt").defaultNow().notNull(),
+  verificationToken: varchar("verificationToken", { length: 255 }),
+  verifiedAt: timestamp("verifiedAt"),
+});
+
+export type Signature = typeof signatures.$inferSelect;
+export type InsertSignature = typeof signatures.$inferInsert;
