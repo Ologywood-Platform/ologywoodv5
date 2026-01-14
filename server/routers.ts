@@ -11,6 +11,8 @@ import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } fro
 import { updateSubscriptionStatus } from "./db";
 import { contractsRouter } from "./routers/contracts";
 import { referralRouter } from "./routers/referrals";
+import { verificationRouter } from "./routers/verification";
+import { templatesRouter } from "./routers/templates";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -32,6 +34,8 @@ export const appRouter = router({
   system: systemRouter,
   contracts: contractsRouter,
   referrals: referralRouter,
+  verification: verificationRouter,
+  templates: templatesRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
