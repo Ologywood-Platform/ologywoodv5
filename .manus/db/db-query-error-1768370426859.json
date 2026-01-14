@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO venue_profiles (userId, organizationName, contactName, contactPhone) VALUES (1, 'OlogyCrew LLC', 'Gary Chisolm', '16785250891');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute INSERT INTO venue_profiles (userId, organizationName, contactName, contactPhone) VALUES (1, 'OlogyCrew LLC', 'Gary Chisolm', '16785250891');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1062 (23000) at line 1: Duplicate entry '?' for key 'venue_profiles.venue_profiles_userId_unique'"
+  ]
+}
