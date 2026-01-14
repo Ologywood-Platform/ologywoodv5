@@ -19,9 +19,9 @@ export default function BookingDetail() {
   const { user } = useAuth();
   const bookingId = id ? parseInt(id, 10) : 0;
 
-  const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId });
-  const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId });
-  const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId });
+  const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId }, { enabled: bookingId > 0 });
+  const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
+  const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       toast.success('Booking status updated');
