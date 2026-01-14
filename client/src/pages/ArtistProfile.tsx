@@ -22,20 +22,55 @@ export default function ArtistProfile() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
   
-  const { data: artist, isLoading } = trpc.artist.getProfile.useQuery({ id: artistId });
-  const { data: availability } = trpc.availability.getForArtist.useQuery({ artistId });
-  const { data: riderTemplates } = trpc.rider.getForArtist.useQuery({ artistId });
-  const { data: reviews } = trpc.review.getByArtist.useQuery({ artistId });
-  const { data: avgRating } = trpc.review.getAverageRating.useQuery({ artistId });
+  // Only query if we have a valid numeric artist ID
+  const isValidId = !isNaN(artistId) && artistId > 0;
+  
+  const { data: artist, isLoading } = trpc.artist.getProfile.useQuery(
+    { id: artistId },
+    { enabled: isValidId }
+  );
+  const { data: availability } = trpc.availability.getForArtist.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+  const { data: riderTemplates } = trpc.rider.getForArtist.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+  const { data: reviews } = trpc.review.getByArtist.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+  const { data: avgRating } = trpc.review.getAverageRating.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
   
   // Track profile view
   const trackView = trpc.analytics.trackView.useMutation();
   
   useEffect(() => {
-    if (artistId && !isLoading) {
+    if (isValidId && !isLoading) {
       trackView.mutate({ artistId });
     }
-  }, [artistId, isLoading]);
+  }, [artistId, isLoading, isValidId]);
+  
+  // Show error if no valid ID
+  if (!isValidId) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Artist Not Found</CardTitle>
+            <CardDescription>The artist ID is invalid or missing.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate("/browse")}>Browse Artists</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
@@ -49,7 +84,7 @@ export default function ArtistProfile() {
   // Load templates for venues
   const { data: templates } = trpc.bookingTemplate.getMyTemplates.useQuery(
     undefined,
-    { enabled: user?.role === 'venue' }
+    { enabled: user?.role === 'venue' && isValidId }
   );
   
   // Auto-fill form when template is selected
