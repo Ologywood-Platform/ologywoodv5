@@ -14,6 +14,9 @@ import { referralRouter } from "./routers/referrals";
 import { verificationRouter } from "./routers/verification";
 import { templatesRouter } from "./routers/templates";
 import { testdataRouter } from "./routers/testdata";
+import { testdataSeedingRouter } from "./routers/testdata-seeding";
+import { impersonationRouter } from "./routers/impersonation";
+import { testWorkflowsRouter } from "./routers/test-workflows";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -38,6 +41,9 @@ export const appRouter = router({
   verification: verificationRouter,
   templates: templatesRouter,
   testdata: testdataRouter,
+  testdataSeeding: testdataSeedingRouter,
+  impersonation: impersonationRouter,
+  testWorkflows: testWorkflowsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
