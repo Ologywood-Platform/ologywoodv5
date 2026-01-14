@@ -12,8 +12,14 @@ export default function Subscription() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
 
-  const { data: subscription, refetch: refetchSubscription } = trpc.subscription.getMy.useQuery();
-  const { data: stripeStatus } = trpc.subscription.getStatus.useQuery();
+  const { data: subscription, refetch: refetchSubscription, isLoading } = trpc.subscription.getMy.useQuery(
+    undefined,
+    { retry: false }
+  );
+  const { data: stripeStatus } = trpc.subscription.getStatus.useQuery(
+    undefined,
+    { retry: false }
+  );
 
   const createCheckout = trpc.subscription.createCheckoutSession.useMutation({
     onSuccess: (data) => {
