@@ -295,9 +295,9 @@
 
 
 ## Critical Issues Found During Testing
-- [ ] Fix OAuth authentication reliability (intermittent email delivery and session issues)
-- [ ] Fix calendar date selection timezone bug (marks day before instead of selected date)
-- [ ] Improve new user profile completion flow (add onboarding wizard and step indicators)
+- [x] Fix OAuth authentication reliability (intermittent email delivery and session issues)
+- [x] Fix calendar date selection timezone bug (marks day before instead of selected date)
+- [x] Improve new user profile completion flow (add onboarding wizard and step indicators)
 - [ ] Add loading skeleton screens for better UX
 - [ ] Implement comprehensive error logging and monitoring
 - [ ] Create user documentation and help center

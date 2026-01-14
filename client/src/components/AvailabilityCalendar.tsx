@@ -61,8 +61,12 @@ export default function AvailabilityCalendar({
   };
 
   const formatDate = (day: number) => {
+    // Format date as YYYY-MM-DD in local timezone (not UTC)
     const d = new Date(year, month, day);
-    return d.toISOString().split('T')[0];
+    const year_str = d.getFullYear();
+    const month_str = String(d.getMonth() + 1).padStart(2, '0');
+    const day_str = String(d.getDate()).padStart(2, '0');
+    return `${year_str}-${month_str}-${day_str}`;
   };
 
   const getDateStatus = (day: number): AvailabilityStatus | undefined => {
