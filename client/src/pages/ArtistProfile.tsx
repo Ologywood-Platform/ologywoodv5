@@ -16,10 +16,11 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function ArtistProfile() {
-  const [, params] = useRoute("/artist/:id");
-  const artistId = params?.id ? parseInt(params.id) : 0;
-  const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+  // Extract artist ID from URL
+  const pathMatch = typeof window !== 'undefined' ? window.location.pathname.match(/\/artist\/(\d+)/) : null;
+  const artistId = pathMatch ? parseInt(pathMatch[1]) : 0;
+  const { user, isAuthenticated } = useAuth();
   
   const { data: artist, isLoading } = trpc.artist.getProfile.useQuery({ id: artistId });
   const { data: availability } = trpc.availability.getForArtist.useQuery({ artistId });
