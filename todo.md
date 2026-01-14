@@ -263,3 +263,10 @@
 - [x] Implement refund API endpoint
 - [x] Generate and email payment receipts automatically
 - [x] Add payment history view in dashboard
+
+## Loading Skeleton Screens
+- [ ] Create skeleton loader components for profile pages
+- [ ] Add skeleton screens to ArtistProfile page
+- [ ] Add skeleton screens to VenueProfile page
+- [ ] Add skeleton screens to BookingDetail page
+- [ ] Add skeleton screens to booking list items

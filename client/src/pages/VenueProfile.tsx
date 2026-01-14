@@ -1,4 +1,3 @@
-import { useParams, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { useParams, useLocation } from 'wouter';
+import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +22,16 @@ export default function VenueProfile() {
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <ProfileHeaderSkeleton />
+        <ProfileSectionSkeleton />
+        <ProfileSectionSkeleton />
+      </div>
+    );
+  }
 
   const respondMutation = trpc.venueReview.respondToReview.useMutation({
     onSuccess: () => {

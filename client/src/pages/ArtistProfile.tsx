@@ -15,6 +15,7 @@ import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams } from "wouter";
+import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -152,8 +153,14 @@ export default function ArtistProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading artist profile...</p>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <ProfileHeaderSkeleton />
+        <ProfileSectionSkeleton />
+        <ProfileSectionSkeleton />
+        <div className="space-y-3">
+          <div className="h-6 w-32 bg-muted rounded" />
+          <PhotoGridSkeleton />
+        </div>
       </div>
     );
   }

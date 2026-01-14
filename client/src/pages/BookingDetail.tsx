@@ -1,4 +1,3 @@
-import { useParams, useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,8 @@ import { VenueReviewForm } from '@/components/VenueReviewForm';
 import PaymentSection from '@/components/PaymentSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
+import { useParams, useLocation } from 'wouter';
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -45,14 +46,13 @@ export default function BookingDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading booking details...</p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <BookingDetailSkeleton />
       </div>
     );
   }
+
+
 
   if (!booking || !user) {
     return (
