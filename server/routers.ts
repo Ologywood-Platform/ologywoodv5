@@ -13,6 +13,7 @@ import { contractsRouter } from "./routers/contracts";
 import { referralRouter } from "./routers/referrals";
 import { verificationRouter } from "./routers/verification";
 import { templatesRouter } from "./routers/templates";
+import { testdataRouter } from "./routers/testdata";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -36,6 +37,7 @@ export const appRouter = router({
   referrals: referralRouter,
   verification: verificationRouter,
   templates: templatesRouter,
+  testdata: testdataRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
