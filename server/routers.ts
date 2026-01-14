@@ -10,6 +10,7 @@ import * as email from "./email";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 import { contractsRouter } from "./routers/contracts";
+import { referralRouter } from "./routers/referrals";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -30,6 +31,7 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 export const appRouter = router({
   system: systemRouter,
   contracts: contractsRouter,
+  referrals: referralRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
