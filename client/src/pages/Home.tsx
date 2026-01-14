@@ -3,10 +3,32 @@ import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, MessageSquare, Shield, Search } from "lucide-react";
+import { Music, Calendar, MessageSquare, Shield, Search, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
+
+function LogoutButton() {
+  const logoutMutation = trpc.auth.logout.useMutation();
+
+  const handleLogout = async () => {
+    await logoutMutation.mutateAsync();
+    window.location.href = '/';
+  };
+
+  return (
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      className="text-red-600 hover:text-red-700"
+      onClick={handleLogout}
+      disabled={logoutMutation.isPending}
+    >
+      <LogOut className="h-4 w-4 mr-2" />
+      {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+    </Button>
+  );
+}
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -38,6 +60,7 @@ export default function Home() {
                 <span className="text-sm text-muted-foreground">
                   {user?.name || user?.email}
                 </span>
+                <LogoutButton />
               </>
             ) : (
               <>
@@ -65,11 +88,11 @@ export default function Home() {
           
           {!isAuthenticated && (
             <div className="flex gap-4 justify-center">
-              <Link href={isAuthenticated ? "/get-started" : getLoginUrl()}>
+              <a href={getLoginUrl()}>
                 <Button size="lg" className="text-lg px-8">
                   Get Started
                 </Button>
-              </Link>
+              </a>
               <Link href="/browse">
                 <Button size="lg" variant="outline" className="text-lg px-8">
                   Browse Artists
@@ -226,7 +249,7 @@ export default function Home() {
             Join Ologywood today and discover the easiest way to book talented artists for your events.
           </p>
           {!isAuthenticated && (
-            <a href={getLoginUrl()}>
+            <a href={getLoginUrl()} style={{ textDecoration: 'none' }}>
               <Button size="lg" variant="secondary" className="text-lg px-8">
                 Sign Up Now
               </Button>

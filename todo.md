@@ -283,3 +283,12 @@
 - [x] Add contract management UI to artist and venue dashboards
 - [x] Write tests for contract and signature functionality
 - [x] Test end-to-end contract signing workflow
+
+
+## Pre-Launch Fixes & Enhancements
+- [x] Add logout button to homepage header
+- [x] Fix OAuth sign-in button navigation (use anchor tags)
+- [x] Allow users to change roles on RoleSelection page
+- [x] Implement TRPC logout endpoint
+- [x] Create pre-launch assessment report
+- [x] Verify all core MVP features are complete
