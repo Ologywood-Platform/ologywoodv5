@@ -292,3 +292,13 @@
 - [x] Implement TRPC logout endpoint
 - [x] Create pre-launch assessment report
 - [x] Verify all core MVP features are complete
+
+
+## Critical Issues Found During Testing
+- [ ] Fix OAuth authentication reliability (intermittent email delivery and session issues)
+- [ ] Fix calendar date selection timezone bug (marks day before instead of selected date)
+- [ ] Improve new user profile completion flow (add onboarding wizard and step indicators)
+- [ ] Add loading skeleton screens for better UX
+- [ ] Implement comprehensive error logging and monitoring
+- [ ] Create user documentation and help center
+- [ ] Test end-to-end booking flow with multiple real users

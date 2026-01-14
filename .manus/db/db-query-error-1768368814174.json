@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO users (name, email, openId, loginMethod, role) VALUES ('Test Venue', 'testvenue@example.com', 'test-venue-openid-12345', 'email', 'venue'); INSERT INTO venue_profiles (userId, venueName, location, capacity, venueType) VALUES (LAST_INSERT_ID(), 'Test Venue NYC', 'New York, NY', 200, 'Bar/Club');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute INSERT INTO users (name, email, openId, loginMethod, role) VALUES ('Test Venue', 'testvenue@example.com', 'test-venue-openid-12345', 'email', 'venue'); INSERT INTO venue_profiles (userId, venueName, location, capacity, venueType) VALUES (LAST_INSERT_ID(), 'Test Venue NYC', 'New York, NY', 200, 'Bar/Club');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'venueName' in 'field list'"
+  ]
+}

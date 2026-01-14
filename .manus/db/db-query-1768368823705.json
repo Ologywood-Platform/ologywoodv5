@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO users (name, email, openId, loginMethod, role) VALUES ('Test Venue', 'testvenue@example.com', 'test-venue-openid-99999', 'email', 'venue'); INSERT INTO venue_profiles (userId, organizationName, contactName) VALUES (LAST_INSERT_ID(), 'Test Venue NYC', 'Test Contact');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute INSERT INTO users (name, email, openId, loginMethod, role) VALUES ('Test Venue', 'testvenue@example.com', 'test-venue-openid-99999', 'email', 'venue'); INSERT INTO venue_profiles (userId, organizationName, contactName) VALUES (LAST_INSERT_ID(), 'Test Venue NYC', 'Test Contact');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 72
+}
