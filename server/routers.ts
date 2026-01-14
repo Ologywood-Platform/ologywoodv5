@@ -7,6 +7,8 @@ import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import * as email from "./email";
+import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
+import { updateSubscriptionStatus } from "./db";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -1004,7 +1006,8 @@ export const appRouter = router({
   subscription: router({
     // Get current user's subscription
     getMy: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getSubscriptionByUserId(ctx.user.id);
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      return subscription || null;
     }),
 
     // Create checkout session for subscription
@@ -1042,8 +1045,12 @@ export const appRouter = router({
       if (!subscription?.stripeSubscriptionId) {
         return null;
       }
-      const { getSubscriptionStatus } = await import('./stripe');
-      return await getSubscriptionStatus(subscription.stripeSubscriptionId);
+
+      try {
+        return await getSubscriptionStatus(subscription.stripeSubscriptionId);
+      } catch (err) {
+        return null;
+      }
     }),
 
     // Cancel subscription
