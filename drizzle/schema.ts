@@ -325,3 +325,104 @@ export const signatures = mysqlTable("signatures", {
 
 export type Signature = typeof signatures.$inferSelect;
 export type InsertSignature = typeof signatures.$inferInsert;
+
+
+/**
+ * Referral program - tracks referrals and credits earned
+ */
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  referrerId: int("referrerId").notNull(),
+  referredUserId: int("referredUserId").notNull(),
+  referralCode: varchar("referralCode", { length: 32 }).notNull().unique(),
+  status: mysqlEnum("status", ["pending", "completed", "cancelled"]).default("pending").notNull(),
+  creditsAwarded: decimal("creditsAwarded", { precision: 10, scale: 2 }).default("0"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;
+
+/**
+ * User credits - tracks credits balance for each user
+ */
+export const userCredits = mysqlTable("user_credits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  balance: decimal("balance", { precision: 10, scale: 2 }).default("0"),
+  totalEarned: decimal("totalEarned", { precision: 10, scale: 2 }).default("0"),
+  totalSpent: decimal("totalSpent", { precision: 10, scale: 2 }).default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserCredit = typeof userCredits.$inferSelect;
+export type InsertUserCredit = typeof userCredits.$inferInsert;
+
+/**
+ * Artist verification - tracks artist verification status and badges
+ */
+export const artistVerification = mysqlTable("artist_verification", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull().unique(),
+  isVerified: boolean("isVerified").default(false),
+  verificationBadge: varchar("verificationBadge", { length: 50 }), // "verified", "top_rated", "pro"
+  completedBookings: int("completedBookings").default(0),
+  backgroundCheckPassed: boolean("backgroundCheckPassed").default(false),
+  backgroundCheckDate: timestamp("backgroundCheckDate"),
+  averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default("0"),
+  verifiedAt: timestamp("verifiedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ArtistVerification = typeof artistVerification.$inferSelect;
+export type InsertArtistVerification = typeof artistVerification.$inferInsert;
+
+/**
+ * System booking templates - pre-configured templates for common event types
+ */
+export const systemBookingTemplates = mysqlTable("system_booking_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  templateName: varchar("templateName", { length: 255 }).notNull(),
+  eventType: varchar("eventType", { length: 100 }).notNull(),
+  description: text("description"),
+  suggestedFeeMin: int("suggestedFeeMin"),
+  suggestedFeeMax: int("suggestedFeeMax"),
+  typicalDuration: varchar("typicalDuration", { length: 50 }),
+  riderTemplate: json("riderTemplate").$type<{
+    technical?: object,
+    hospitality?: object,
+    financial?: object
+  }>(),
+  commonRequirements: json("commonRequirements").$type<string[]>(),
+  setupTime: varchar("setupTime", { length: 50 }),
+  soundCheckTime: varchar("soundCheckTime", { length: 50 }),
+  notes: text("notes"),
+  isActive: boolean("isActive").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SystemBookingTemplate = typeof systemBookingTemplates.$inferSelect;
+export type InsertSystemBookingTemplate = typeof systemBookingTemplates.$inferInsert;
+
+/**
+ * User booking template preferences - tracks which templates users prefer
+ */
+export const userTemplatePreferences = mysqlTable("user_template_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  templateId: int("templateId").notNull(),
+  isDefault: boolean("isDefault").default(false),
+  customizations: json("customizations").$type<object>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  uniqueUserTemplate: unique().on(table.userId, table.templateId),
+}));
+
+export type UserTemplatePreference = typeof userTemplatePreferences.$inferSelect;
+export type InsertUserTemplatePreference = typeof userTemplatePreferences.$inferInsert;

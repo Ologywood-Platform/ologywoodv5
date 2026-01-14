@@ -78,6 +78,20 @@
       "when": 1768351733999,
       "tag": "0010_brainy_fantastic_four",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1768371542869,
+      "tag": "0011_spooky_supreme_intelligence",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1768371599340,
+      "tag": "0012_bored_supreme_intelligence",
+      "breakpoints": true
     }
   ]
 }
