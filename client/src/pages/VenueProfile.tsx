@@ -1,4 +1,4 @@
-import { useParams, useLocation, Link } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,14 +10,14 @@ import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 export default function VenueProfile() {
-  const params = useParams();
+  const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const venueId = parseInt(params.id || '0');
+  const venueId = id ? parseInt(id, 10) : 0;
 
-  const { data: venueProfile, isLoading } = trpc.venue.getById.useQuery({ id: venueId });
-  const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId });
-  const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId });
+  const { data: venueProfile, isLoading } = trpc.venue.getById.useQuery({ id: venueId }, { enabled: venueId > 0 });
+  const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
+  const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');
@@ -45,6 +45,17 @@ export default function VenueProfile() {
       response: responseText.trim(),
     });
   };
+
+  if (!venueId || venueId === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground mb-4">Invalid venue ID</p>
+          <Button onClick={() => navigate('/browse')}>Back to Browse</Button>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
