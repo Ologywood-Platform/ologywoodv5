@@ -1,4 +1,4 @@
-import { useParams, useLocation, Link } from 'wouter';
+import { useParams, useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,10 @@ import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function BookingDetail() {
-  const params = useParams();
+  const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const bookingId = parseInt(params.id || '0');
+  const bookingId = id ? parseInt(id, 10) : 0;
 
   const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId });
   const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId });
@@ -31,6 +31,17 @@ export default function BookingDetail() {
       toast.error(error.message || 'Failed to update booking');
     },
   });
+
+  if (!bookingId || bookingId === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground mb-4">Invalid booking ID</p>
+          <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -102,9 +113,9 @@ export default function BookingDetail() {
           <Card className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <Link href={`/venue/${booking.venueId}`} className="hover:underline">
+                <a href={`/venue/${booking.venueId}`} className="hover:underline cursor-pointer">
                   <h1 className="text-3xl font-bold mb-2">{booking.venueName}</h1>
-                </Link>
+                </a>
                 <Badge className={getStatusColor(booking.status)}>
                   {booking.status.toUpperCase()}
                 </Badge>
