@@ -588,3 +588,8 @@
   - Replaced window.location.href with wouter Link component for proper routing
   - Fixed hard page reload issue that was causing 404 errors
   - Maintained event propagation handling for notification card interactions
+
+- [x] Fix nested anchor tag error on dashboard page
+  - Replaced Link > Button structure with proper Link > a wrapper
+  - Used asChild prop on Button to prevent nested anchor tags
+  - Resolved React DOM nesting validation error
