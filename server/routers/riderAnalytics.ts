@@ -125,8 +125,8 @@ export const riderAnalyticsRouter = router({
         }
 
         // Calculate time to resolve
-        if (ack.finalizedAt && ack.createdAt) {
-          const time = new Date(ack.finalizedAt).getTime() - new Date(ack.createdAt).getTime();
+        if (ack.acknowledgedAt && ack.createdAt) {
+          const time = new Date(ack.acknowledgedAt).getTime() - new Date(ack.createdAt).getTime();
           totalResolveTime += time;
           resolveCount++;
         }
@@ -135,7 +135,7 @@ export const riderAnalyticsRouter = router({
         const mods = await db
           .select()
           .from(riderModificationHistory)
-          .where(eq(riderModificationHistory.riderAcknowledgmentId, ack.id));
+          .where(eq(riderModificationHistory.acknowledgmentId, ack.id));
 
         totalModifications += mods.length;
       }

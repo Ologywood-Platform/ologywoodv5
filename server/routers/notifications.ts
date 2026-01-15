@@ -101,7 +101,7 @@ export const notificationRouter = router({
         userId: z.number(),
         type: z.enum(['booking', 'message', 'payment', 'contract', 'review']),
         title: z.string(),
-        description: z.string().optional(),
+        message: z.string().optional(),
         actionUrl: z.string().optional(),
       })
     )
@@ -114,7 +114,7 @@ export const notificationRouter = router({
           userId: input.userId,
           type: input.type,
           title: input.title,
-          description: input.description,
+          message: input.description,
           actionUrl: input.actionUrl,
           isRead: false,
         });
@@ -145,21 +145,11 @@ export const notificationPreferenceRouter = router({
       // Create default preferences if they don't exist
       await db.insert(notificationPreferences).values({
         userId: ctx.user.id,
-        bookingInApp: true,
-        bookingEmail: true,
-        bookingPush: true,
-        messageInApp: true,
-        messageEmail: true,
-        messagePush: true,
-        contractInApp: true,
-        contractEmail: true,
-        contractPush: false,
-        paymentInApp: true,
-        paymentEmail: true,
-        paymentPush: true,
-        reviewInApp: true,
-        reviewEmail: false,
-        reviewPush: false,
+        emailNotifications: true,
+        pushNotifications: true,
+        bookingNotifications: true,
+        messageNotifications: true,
+        reviewNotifications: true,
       });
 
       const newPrefs = await db
@@ -178,21 +168,13 @@ export const notificationPreferenceRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        bookingInApp: z.boolean().optional(),
-        bookingEmail: z.boolean().optional(),
-        bookingPush: z.boolean().optional(),
-        messageInApp: z.boolean().optional(),
-        messageEmail: z.boolean().optional(),
-        messagePush: z.boolean().optional(),
-        contractInApp: z.boolean().optional(),
-        contractEmail: z.boolean().optional(),
-        contractPush: z.boolean().optional(),
-        paymentInApp: z.boolean().optional(),
-        paymentEmail: z.boolean().optional(),
-        paymentPush: z.boolean().optional(),
-        reviewInApp: z.boolean().optional(),
-        reviewEmail: z.boolean().optional(),
-        reviewPush: z.boolean().optional(),
+        bookingNotifications: z.boolean().optional(),
+        messageNotifications: z.boolean().optional(),
+        reviewNotifications: z.boolean().optional(),
+        riderNotifications: z.boolean().optional(),
+        emailNotifications: z.boolean().optional(),
+        pushNotifications: z.boolean().optional(),
+        reminderNotifications: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }: any) => {

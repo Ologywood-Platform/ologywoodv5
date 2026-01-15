@@ -98,7 +98,7 @@ export const riderAcknowledgmentRouter = router({
         for (let i = 0; i < input.modifications.length; i++) {
           const mod = input.modifications[i];
           await db.insert(riderModificationHistory).values({
-            riderAcknowledgmentId: acknowledgment.id,
+            acknowledgmentId: acknowledgment.id,
             modificationNumber: i + 1,
             fieldName: mod.field,
             originalValue: JSON.stringify(mod.originalValue),
@@ -127,11 +127,8 @@ export const riderAcknowledgmentRouter = router({
       const result = await db
         .update(riderAcknowledgments)
         .set({
-          status: 'accepted',
-          artistResponse: 'approved',
-          artistResponseAt: new Date(),
-          finalizedAt: new Date(),
-          finalizedByUserId: input.userId,
+          status: 'approved',
+          acknowledgedAt: new Date(),
         })
         .where(eq(riderAcknowledgments.bookingId, input.bookingId));
 
@@ -144,10 +141,9 @@ export const riderAcknowledgmentRouter = router({
           .update(riderModificationHistory)
           .set({
             status: 'approved',
-            statusChangedAt: new Date(),
             statusChangedByUserId: input.userId,
           })
-          .where(eq(riderModificationHistory.riderAcknowledgmentId, ack.id));
+          .where(eq(riderModificationHistory.acknowledgmentId, ack.id));
       }
 
       return result;
@@ -167,10 +163,8 @@ export const riderAcknowledgmentRouter = router({
       const result = await db
         .update(riderAcknowledgments)
         .set({
-          status: 'pending',
-          artistResponse: 'rejected',
-          artistResponseAt: new Date(),
-          artistResponseNotes: input.reason,
+          status: 'rejected',
+          acknowledgedAt: new Date(),
         })
         .where(eq(riderAcknowledgments.bookingId, input.bookingId));
 
@@ -183,11 +177,8 @@ export const riderAcknowledgmentRouter = router({
           .update(riderModificationHistory)
           .set({
             status: 'rejected',
-            statusChangedAt: new Date(),
-            statusChangedByUserId: input.userId,
-            statusChangeNotes: input.reason,
           })
-          .where(eq(riderModificationHistory.riderAcknowledgmentId, ack.id));
+          .where(eq(riderModificationHistory.acknowledgmentId, ack.id));
       }
 
       return result;
@@ -206,9 +197,8 @@ export const riderAcknowledgmentRouter = router({
       const result = await db
         .update(riderAcknowledgments)
         .set({
-          status: 'accepted',
-          finalizedAt: new Date(),
-          finalizedByUserId: input.userId,
+          status: 'approved',
+          acknowledgedAt: new Date(),
         })
         .where(eq(riderAcknowledgments.bookingId, input.bookingId));
 
@@ -230,9 +220,7 @@ export const riderAcknowledgmentRouter = router({
         .update(riderAcknowledgments)
         .set({
           status: 'rejected',
-          notes: input.reason,
-          finalizedAt: new Date(),
-          finalizedByUserId: input.userId,
+          acknowledgedAt: new Date(),
         })
         .where(eq(riderAcknowledgments.bookingId, input.bookingId));
 
@@ -246,7 +234,7 @@ export const riderAcknowledgmentRouter = router({
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
-      const history = await db.select().from(riderModificationHistory).where(eq(riderModificationHistory.riderAcknowledgmentId, input.acknowledgmentId));
+      const history = await db.select().from(riderModificationHistory).where(eq(riderModificationHistory.acknowledgmentId, input.acknowledgmentId));
       return history;
     }),
 });

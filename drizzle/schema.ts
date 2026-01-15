@@ -277,7 +277,7 @@ export const contracts = mysqlTable("contracts", {
   artistId: int("artistId").notNull(),
   venueId: int("venueId").notNull(),
   contractData: json("contractData").$type<Record<string, any>>(),
-  status: mysqlEnum("status", ["draft", "sent", "signed", "executed"]).default("draft").notNull(),
+  status: mysqlEnum("status", ["draft", "sent", "signed", "executed", "cancelled"]).default("draft").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -348,7 +348,7 @@ export const supportTickets = mysqlTable("support_tickets", {
   description: text("description").notNull(),
   category: varchar("category", { length: 100 }),
   priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
-  status: mysqlEnum("status", ["open", "in_progress", "resolved", "closed"]).default("open").notNull(),
+  status: mysqlEnum("status", ["open", "in_progress", "waiting_user", "resolved", "closed"]).default("open").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -418,3 +418,44 @@ export const knowledgeBaseArticles = mysqlTable("knowledge_base_articles", {
 
 export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
 export type InsertKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
+
+
+/**
+ * Notifications - real-time notifications for users
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // "booking", "message", "review", "rider_acknowledgment", etc.
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message"),
+  relatedId: int("relatedId"), // ID of related entity (booking, message, review, etc.)
+  relatedType: varchar("relatedType", { length: 50 }), // Type of related entity
+  isRead: boolean("isRead").default(false),
+  actionUrl: text("actionUrl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Notification Preferences - user notification settings
+ */
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  emailNotifications: boolean("emailNotifications").default(true),
+  pushNotifications: boolean("pushNotifications").default(true),
+  bookingNotifications: boolean("bookingNotifications").default(true),
+  messageNotifications: boolean("messageNotifications").default(true),
+  reviewNotifications: boolean("reviewNotifications").default(true),
+  riderNotifications: boolean("riderNotifications").default(true),
+  reminderNotifications: boolean("reminderNotifications").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;

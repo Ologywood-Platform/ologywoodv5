@@ -194,11 +194,11 @@ export const contractsRouter = router({
       // Update contract signed timestamp
       if (signerRole === 'artist') {
         await db.updateContract(input.contractId, {
-          artistSignedAt: new Date(),
+          status: new Date(),
         });
       } else {
         await db.updateContract(input.contractId, {
-          venueSignedAt: new Date(),
+          status: new Date(),
         });
       }
 
