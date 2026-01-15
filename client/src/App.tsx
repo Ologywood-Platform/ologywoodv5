@@ -24,6 +24,11 @@ import Reviews from "./pages/Reviews";
 import Calendar from "./pages/Calendar";
 import Messages from "./pages/Messages";
 import Riders from "./pages/Riders";
+import SupportTickets from "./pages/SupportTickets";
+import SupportTicketCreate from "./pages/SupportTicketCreate";
+import SupportTicketDetail from "./pages/SupportTicketDetail";
+import HelpCenter from "./pages/HelpCenter";
+import AdminSupportDashboard from "./pages/AdminSupportDashboard";
 
 function Router() {
   return (
@@ -49,6 +54,11 @@ function Router() {
       <Route path="/venue/:id" component={VenueProfile} />
       <Route path="/contract/:id" component={ContractDetail} />
       <Route path="/payments" component={Payments} />
+      <Route path="/support" component={SupportTickets} />
+      <Route path="/support/create" component={SupportTicketCreate} />
+      <Route path="/support/:id" component={SupportTicketDetail} />
+      <Route path="/help" component={HelpCenter} />
+      <Route path="/admin/support" component={AdminSupportDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

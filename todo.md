@@ -783,3 +783,15 @@
 - [ ] Implement ticket priority system
 - [ ] Add subscriber tier-based SLA display
 - [ ] Create support metrics dashboard
+
+
+## Support System Frontend Pages (COMPLETED)
+- [x] Build Support Ticket Creation page (/support/create)
+- [x] Build Support Ticket List page (/support)
+- [x] Build Support Ticket Detail page (/support/:id)
+- [x] Build Help Center / Knowledge Base page (/help)
+- [x] Build Admin Support Dashboard (/admin/support)
+- [ ] Add Support link to main navigation
+- [ ] Seed support categories and FAQ data
+- [ ] Seed sample knowledge base articles
+- [ ] Build FAQ standalone page (/faq)
