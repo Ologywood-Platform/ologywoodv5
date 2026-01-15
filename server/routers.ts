@@ -20,6 +20,7 @@ import { testdataSeedingRouter } from "./routers/testdata-seeding";
 import { impersonationRouter } from "./routers/impersonation";
 import { testWorkflowsRouter } from "./routers/test-workflows";
 import { supportRouter } from "./routers/support";
+import { adminSeedRouter } from "./routers/admin-seed";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -50,6 +51,7 @@ export const appRouter = router({
   impersonation: impersonationRouter,
   testWorkflows: testWorkflowsRouter,
   support: supportRouter,
+  adminSeed: adminSeedRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

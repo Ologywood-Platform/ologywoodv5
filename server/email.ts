@@ -14,7 +14,7 @@ interface EmailParams {
 /**
  * Send an email using the built-in notification API
  */
-async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
+export async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
   try {
     const response = await fetch(`${ENV.forgeApiUrl}/notification/email`, {
       method: 'POST',

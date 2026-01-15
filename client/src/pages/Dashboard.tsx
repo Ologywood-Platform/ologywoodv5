@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart, TrendingUp, Bell } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart, TrendingUp, Bell, HelpCircle, Headphones } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
@@ -240,6 +240,18 @@ export default function Dashboard() {
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" />
               Notifications
+            </TabsTrigger>
+            
+            {/* Support Tab (Both roles) */}
+            <TabsTrigger value="support">
+              <Headphones className="h-4 w-4 mr-2" />
+              Support
+            </TabsTrigger>
+            
+            {/* Help Tab (Both roles) */}
+            <TabsTrigger value="help">
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Help
             </TabsTrigger>
             
             {/* Calendar Sync Tab (Artists only) */}
@@ -567,6 +579,57 @@ export default function Dashboard() {
               <CalendarSync />
             </TabsContent>
           )}
+          
+          {/* Support Tab Content */}
+          <TabsContent value="support">
+            <Card>
+              <CardHeader>
+                <CardTitle>Support Tickets</CardTitle>
+                <CardDescription>Manage your support requests and get help from our team</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-muted-foreground mb-4">
+                    Need help? Create a support ticket and our team will assist you as soon as possible.
+                  </p>
+                  <div className="flex gap-2">
+                    <Link href="/support">
+                      <a className="inline-flex">
+                        <Button>View My Tickets</Button>
+                      </a>
+                    </Link>
+                    <Link href="/support/create">
+                      <a className="inline-flex">
+                        <Button variant="outline">Create New Ticket</Button>
+                      </a>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Help Tab Content */}
+          <TabsContent value="help">
+            <Card>
+              <CardHeader>
+                <CardTitle>Help Center</CardTitle>
+                <CardDescription>Find answers to common questions and learn how to use Ologywood</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-muted-foreground mb-4">
+                    Browse our knowledge base, FAQs, and tutorials to find the information you need.
+                  </p>
+                  <Link href="/help">
+                    <a className="inline-flex">
+                      <Button>Go to Help Center</Button>
+                    </a>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
           
           {/* Admin Testing Tab Content */}
           {user?.role === 'admin' && (

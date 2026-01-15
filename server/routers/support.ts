@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { supportTickets, supportTicketResponses, supportCategories, faqs, knowledgeBaseArticles } from "../../drizzle/schema";
+import { supportTickets, supportTicketResponses, supportCategories, faqs, knowledgeBaseArticles, users } from "../../drizzle/schema";
 import { eq, desc, and, like } from "drizzle-orm";
+import { sendTicketCreatedEmail, sendTicketResponseEmail, sendTicketResolvedEmail } from "../services/support-notifications";
 
 export const supportRouter = router({
   // Support Tickets
@@ -17,7 +18,7 @@ export const supportRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      const ticket = await db.insert(supportTickets).values({
+      const result = await db.insert(supportTickets).values({
         userId: ctx.user.id,
         categoryId: input.categoryId,
         subject: input.subject,
@@ -25,6 +26,26 @@ export const supportRouter = router({
         priority: input.priority || "medium",
         status: "open",
       });
+
+      const ticket = await db
+        .select()
+        .from(supportTickets)
+        .where(eq(supportTickets.userId, ctx.user.id))
+        .orderBy(desc(supportTickets.createdAt))
+        .limit(1)
+        .then((res: any) => res[0]);
+
+      // Send email notification
+      try {
+        await sendTicketCreatedEmail({
+          ticketId: ticket[0].id,
+          ticketSubject: ticket[0].subject,
+          userEmail: ctx.user.email || "",
+          userName: (ctx.user.name || ctx.user.email) || "",
+        });
+      } catch (error) {
+        console.error("Failed to send ticket created email:", error);
+      }
 
       return ticket;
     }),
@@ -114,12 +135,35 @@ export const supportRouter = router({
           .where(eq(supportTickets.id, input.ticketId));
       }
 
-      const response = await db.insert(supportTicketResponses).values({
+      await db.insert(supportTicketResponses).values({
         ticketId: input.ticketId,
         userId: ctx.user.id,
         message: input.message,
         isStaffResponse: false,
       });
+
+      const response = await db
+        .select()
+        .from(supportTicketResponses)
+        .where(eq(supportTicketResponses.ticketId, input.ticketId))
+        .orderBy(desc(supportTicketResponses.createdAt))
+        .limit(1)
+        .then((res: any) => res[0]);
+
+      // Send email notification for response
+      try {
+        await sendTicketResponseEmail({
+          ticketId: input.ticketId,
+          ticketSubject: ticket.subject,
+          userEmail: ctx.user.email || "",
+          userName: (ctx.user.name || ctx.user.email) || "",
+          responderName: (ctx.user.name || ctx.user.email) || "",
+          responseMessage: input.message,
+          isStaffResponse: false,
+        });
+      } catch (error) {
+        console.error("Failed to send ticket response email:", error);
+      }
 
       return response;
     }),
@@ -146,6 +190,18 @@ export const supportRouter = router({
         .update(supportTickets)
         .set({ status: "closed", resolvedAt: new Date() })
         .where(eq(supportTickets.id, input.ticketId));
+
+      // Send email notification for resolution
+      try {
+        await sendTicketResolvedEmail({
+          ticketId: input.ticketId,
+          ticketSubject: ticket.subject,
+          userEmail: ctx.user.email || "",
+          userName: (ctx.user.name || ctx.user.email) || "",
+        });
+      } catch (error) {
+        console.error("Failed to send ticket resolved email:", error);
+      }
 
       return { success: true };
     }),
