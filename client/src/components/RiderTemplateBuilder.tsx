@@ -11,27 +11,27 @@ import { toast } from 'sonner';
 interface RiderTemplate {
   id: number;
   templateName: string;
-  technicalRequirements?: {
+  technicalRequirements: {
     stageWidth?: string;
     stageDepth?: string;
     soundSystem?: string;
     lighting?: string;
     backline?: string;
     other?: string;
-  };
-  hospitalityRequirements?: {
+  } | null;
+  hospitalityRequirements: {
     dressingRooms?: string;
     catering?: string;
     beverages?: string;
     accommodation?: string;
     other?: string;
-  };
-  financialTerms?: {
+  } | null;
+  financialTerms: {
     depositAmount?: string;
     paymentMethod?: string;
     cancellationPolicy?: string;
     other?: string;
-  };
+  } | null;
 }
 
 export function RiderTemplateBuilder() {
@@ -57,18 +57,18 @@ export function RiderTemplateBuilder() {
   const [formData, setFormData] = useState<RiderTemplate>({
     id: 0,
     templateName: '',
-    technicalRequirements: {},
-    hospitalityRequirements: {},
-    financialTerms: {},
+    technicalRequirements: null,
+    hospitalityRequirements: null,
+    financialTerms: null,
   });
 
   const handleNewTemplate = () => {
     setFormData({
       id: 0,
       templateName: '',
-      technicalRequirements: {},
-      hospitalityRequirements: {},
-      financialTerms: {},
+      technicalRequirements: null,
+      hospitalityRequirements: null,
+      financialTerms: null,
     });
     setSelectedTemplate(null);
     setIsCreating(true);
@@ -92,7 +92,7 @@ export function RiderTemplateBuilder() {
     setFormData(prev => ({
       ...prev,
       technicalRequirements: {
-        ...prev.technicalRequirements,
+        ...(prev.technicalRequirements || {}),
         [field]: value,
       },
     }));
@@ -102,7 +102,7 @@ export function RiderTemplateBuilder() {
     setFormData(prev => ({
       ...prev,
       hospitalityRequirements: {
-        ...prev.hospitalityRequirements,
+        ...(prev.hospitalityRequirements || {}),
         [field]: value,
       },
     }));
@@ -112,7 +112,7 @@ export function RiderTemplateBuilder() {
     setFormData(prev => ({
       ...prev,
       financialTerms: {
-        ...prev.financialTerms,
+        ...(prev.financialTerms || {}),
         [field]: value,
       },
     }));
@@ -129,18 +129,18 @@ export function RiderTemplateBuilder() {
       if (isCreating || formData.id === 0) {
         await createMutation.mutateAsync({
           templateName: formData.templateName,
-          technicalRequirements: formData.technicalRequirements,
-          hospitalityRequirements: formData.hospitalityRequirements,
-          financialTerms: formData.financialTerms,
+          technicalRequirements: formData.technicalRequirements || undefined,
+          hospitalityRequirements: formData.hospitalityRequirements || undefined,
+          financialTerms: formData.financialTerms || undefined,
         });
         toast.success('Template created successfully');
       } else {
         await updateMutation.mutateAsync({
           id: formData.id,
           templateName: formData.templateName,
-          technicalRequirements: formData.technicalRequirements,
-          hospitalityRequirements: formData.hospitalityRequirements,
-          financialTerms: formData.financialTerms,
+          technicalRequirements: formData.technicalRequirements || undefined,
+          hospitalityRequirements: formData.hospitalityRequirements || undefined,
+          financialTerms: formData.financialTerms || undefined,
         });
         toast.success('Template updated successfully');
       }
