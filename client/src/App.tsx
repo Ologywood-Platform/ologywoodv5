@@ -17,6 +17,7 @@ import Subscription from "./pages/Subscription";
 import BookingDetail from "./pages/BookingDetail";
 import VenueProfile from "./pages/VenueProfile";
 import ContractDetail from "./pages/ContractDetail";
+import Payments from "./pages/Payments";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/booking/:id" component={BookingDetail} />
       <Route path="/venue/:id" component={VenueProfile} />
       <Route path="/contract/:id" component={ContractDetail} />
+      <Route path="/payments" component={Payments} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
