@@ -1055,3 +1055,4 @@
 
 ## Bug Fixes
 - [x] Fix NaN error in contract page when parsing contractId from URL parameters
+- [x] Fix nested anchor tag error on admin support page

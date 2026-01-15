@@ -60,11 +60,9 @@ export default function AdminSupportDashboard() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <Link href="/dashboard">
-            <a className="inline-flex">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </a>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Support Dashboard</h1>
