@@ -339,13 +339,14 @@
 - [ ] Write tests for data generator
 - [ ] Integrate into admin dashboard
 - [ ] Create documentation
-
 ## Advanced Testing Features
+
 - [x] Extend testdata router with database insertion endpoints (seedUsers, seedArtists, seedVenues, seedBookings)
 - [x] Create admin impersonation endpoint with temporary session tokens - 4 endpoints
 - [x] Build automated test scenario workflows (Complete Booking, Payment, Contract Signing) - 4 workflows
-- [ ] Create TestDataSeeder UI component with seed and impersonate buttons
-- [ ] Create TestScenarioRunner UI component with workflow execution
-- [ ] Integrate all features into admin dashboard
-- [ ] Write tests for all advanced testing features
+- [x] Create TestDataSeeder UI component with seed and impersonate buttons
+- [x] Create TestScenarioRunner UI component with workflow execution
+- [x] Create UserImpersonation UI component with user switcher and status indicators
+- [x] Integrate all features into AdminDashboard component
+- [x] Write comprehensive end-to-end tests for all workflow scenarios (34 tests)
 - [ ] Create comprehensive testing guide and documentation
