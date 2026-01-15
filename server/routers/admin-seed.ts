@@ -340,12 +340,19 @@ export const adminSeedRouter = router({
     if (!db) throw new Error("Database not available");
 
     try {
+      // Clear existing data to avoid duplicate key errors
+      await db.delete(knowledgeBaseArticles);
+      await db.delete(faqs);
+      await db.delete(supportCategories);
+
       // Seed categories
       for (const category of supportCategoriesData) {
-        await db
-          .insert(supportCategories)
-          .values(category)
-          .onDuplicateKeyUpdate({ set: { name: category.name } });
+        await db.insert(supportCategories).values({
+          name: category.name,
+          description: category.description,
+          order: category.order,
+          isActive: category.isActive,
+        });
       }
 
       // Seed FAQs
