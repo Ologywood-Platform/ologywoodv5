@@ -1069,3 +1069,50 @@
 - [x] Show payment method information
 - [x] Create invoice history view
 - [x] Implement plan upgrade/downgrade flows
+
+
+## Subscription Tier Restrictions & Enforcement
+- [ ] Create subscription tier validation service
+- [ ] Add rider template creation limits
+- [ ] Add booking request monthly limits
+- [ ] Add team member limits
+- [ ] Implement API access restrictions
+- [ ] Add PDF export limits
+- [ ] Create feature access middleware
+
+## Subscription Onboarding Flow
+- [ ] Build onboarding tour component
+- [ ] Create trial activation flow
+- [ ] Implement 14-day Premium trial
+- [ ] Add upgrade prompts at feature limits
+- [ ] Create tier benefits showcase
+- [ ] Build trial expiration notifications
+- [ ] Add trial to subscription tracking
+
+## Subscription Analytics Dashboard
+- [ ] Create analytics data models
+- [ ] Build conversion tracking (Free→Basic, Basic→Premium)
+- [ ] Implement churn rate calculations
+- [ ] Add revenue tracking by tier
+- [ ] Create analytics charts and visualizations
+- [ ] Build admin analytics dashboard
+- [ ] Add export functionality for reports
+
+
+## Subscription Features - Phase Complete
+- [x] Create subscription tier validation service (subscriptionValidation.ts)
+- [x] Add rider template creation limits
+- [x] Add booking request monthly limits
+- [x] Add team member limits
+- [x] Implement API access restrictions
+- [x] Add PDF export limits
+- [x] Build onboarding tour component (SubscriptionOnboarding.tsx)
+- [x] Create trial activation flow (14-day Premium trial)
+- [x] Implement upgrade prompts at feature limits
+- [x] Create tier benefits showcase
+- [x] Create subscription analytics dashboard (SubscriptionAnalytics.tsx)
+- [x] Build conversion tracking (Free→Basic, Basic→Premium)
+- [x] Implement churn rate calculations
+- [x] Add revenue tracking by tier
+- [x] Create analytics charts and visualizations
+- [x] Add export functionality for reports
