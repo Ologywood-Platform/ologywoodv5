@@ -64,7 +64,7 @@ export const contractsRouter = router({
     .query(async ({ ctx, input }) => {
       const contract = await db.getContractById(input.contractId);
       if (!contract) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        return null;
       }
 
       // Verify user has access
@@ -76,7 +76,7 @@ export const contractsRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Unauthorized to view this contract' });
       }
 
-      return contract;
+      return contract || null;
     }),
 
   // Get contract by booking ID
@@ -104,9 +104,11 @@ export const contractsRouter = router({
   getMyContracts: protectedProcedure
     .query(async ({ ctx }) => {
       if (ctx.user.role === 'artist') {
-        return await db.getContractsByArtistId(ctx.user.id);
+        const contracts = await db.getContractsByArtistId(ctx.user.id);
+        return contracts || [];
       } else if (ctx.user.role === 'venue') {
-        return await db.getContractsByVenueId(ctx.user.id);
+        const contracts = await db.getContractsByVenueId(ctx.user.id);
+        return contracts || [];
       }
       return [];
     }),
@@ -240,7 +242,7 @@ export const contractsRouter = router({
     .query(async ({ ctx, input }) => {
       const contract = await db.getContractById(input.contractId);
       if (!contract) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        return [];
       }
 
       // Verify access
@@ -252,7 +254,8 @@ export const contractsRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Unauthorized to view signatures' });
       }
 
-      return await db.getSignaturesByContractId(input.contractId);
+      const signatures = await db.getSignaturesByContractId(input.contractId);
+      return signatures || [];
     }),
 
   // Cancel a contract

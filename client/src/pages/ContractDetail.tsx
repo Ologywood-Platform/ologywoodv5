@@ -13,7 +13,7 @@ export default function ContractDetail() {
   // Query contract details
   const { data: contract, isLoading, error } = trpc.contracts.getById.useQuery(
     { contractId: parseInt(id || "0") },
-    { enabled: !!id }
+    { enabled: !!id, retry: 1 }
   );
 
   if (isLoading) {
@@ -31,7 +31,7 @@ export default function ContractDetail() {
           <CardHeader>
             <CardTitle>Contract Not Found</CardTitle>
             <CardDescription>
-              The contract you're looking for doesn't exist or has been deleted.
+              {error ? `Error: ${error.message}` : "The contract you're looking for doesn't exist or has been deleted."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -125,8 +125,8 @@ export default function ContractDetail() {
 
         {/* Status Badge */}
         <div className="mb-6">
-          <Badge className={getStatusColor(contract.status)}>
-            {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
+          <Badge className={getStatusColor(contract?.status || "pending")}>
+            {contract?.status ? contract.status.charAt(0).toUpperCase() + contract.status.slice(1) : "Pending"}
           </Badge>
         </div>
 
