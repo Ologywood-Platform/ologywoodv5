@@ -429,3 +429,28 @@
 - [x] Add review moderation system
 - [x] Implement review aggregation and analytics
 - [x] Add photo upload for reviews
+
+
+## Artist Availability Blocking
+- [ ] Create availability block database schema
+- [ ] Build availability blocking UI component
+- [ ] Implement calendar integration for blocked dates
+- [ ] Add recurring block patterns (weekly, monthly)
+- [ ] Prevent bookings on blocked dates
+- [ ] Sync blocks with external calendars
+
+## Dispute Resolution & Support Tickets
+- [ ] Create support ticket database schema
+- [ ] Build ticket submission form component
+- [ ] Implement ticket status tracking (open, in-progress, resolved)
+- [ ] Create admin mediation dashboard
+- [ ] Add automated escalation workflows
+- [ ] Implement ticket assignment to support staff
+
+## Advanced Analytics Dashboard
+- [ ] Create analytics data aggregation service
+- [ ] Build artist performance metrics (earnings, bookings, cancellations)
+- [ ] Build venue metrics (artist ratings, repeat bookings, ROI)
+- [ ] Create revenue charts and trends
+- [ ] Implement booking analytics
+- [ ] Add export functionality for reports
