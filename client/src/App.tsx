@@ -29,6 +29,8 @@ import SupportTicketCreate from "./pages/SupportTicketCreate";
 import SupportTicketDetail from "./pages/SupportTicketDetail";
 import HelpCenter from "./pages/HelpCenter";
 import AdminSupportDashboard from "./pages/AdminSupportDashboard";
+import { AIChatWidget } from "./components/AIChatWidget";
+import SupportMetricsDashboard from "./pages/SupportMetricsDashboard";
 
 function Router() {
   return (
@@ -59,6 +61,7 @@ function Router() {
       <Route path="/support/:id" component={SupportTicketDetail} />
       <Route path="/help" component={HelpCenter} />
       <Route path="/admin/support" component={AdminSupportDashboard} />
+      <Route path="/admin/support/metrics" component={SupportMetricsDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -71,6 +74,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <AIChatWidget />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
