@@ -1,5 +1,5 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,17 +93,13 @@ export default function Home() {
           {!isAuthenticated && (
             <div className="flex gap-4 justify-center">
               <a href={getLoginUrl()}>
-                <Button size="lg" className="text-lg px-8">
-                  Get Started
+                <Button size="lg" className="text-lg px-8">Sign In</Button>
+              </a>
+              <a href="/browse" className="no-underline">
+                <Button size="lg" variant="outline" className="text-lg px-8">
+                  Browse Artists
                 </Button>
               </a>
-              <Link href="/browse">
-                <a>
-                  <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-                    <span>Browse Artists</span>
-                  </Button>
-                </a>
-              </Link>
             </div>
           )}
         </div>
@@ -170,7 +166,8 @@ export default function Home() {
                         </div>
                       </CardContent>
                   </Card>
-                </a>              ))}
+                </a>
+              ))}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -178,27 +175,38 @@ export default function Home() {
                 {searchQuery ? "No artists found matching your search." : "No artists available yet."}
               </p>
               {isAuthenticated && user?.role === 'artist' && (
-                <Link href="/dashboard">
-                  <a>
-                    <Button asChild>
-                      <span>Create Your Artist Profile</span>
-                    </Button>
-                  </a>
-                </Link>
+                <a href="/dashboard" className="no-underline">
+                  <Button>
+                    Create Your Artist Profile
+                  </Button>
+                </a>
               )}
             </div>
           )}
           
           {filteredArtists && filteredArtists.length > 6 && (
             <div className="text-center mt-8">
-              <Link href="/browse">
-                <a>
-                  <Button variant="outline" size="lg" asChild>
-                    <span>View All Artists</span>
-                  </Button>
-                </a>
-              </Link>
+              <a href="/browse" className="no-underline">
+                <Button variant="outline" size="lg">
+                  View All Artists
+                </Button>
+              </a>
             </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Book Your Next Event?</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join thousands of venues and event organizers who trust Ologywood to find and book amazing artists.
+          </p>
+          {!isAuthenticated && (
+            <a href={getLoginUrl()}>
+              <Button size="lg" className="text-lg px-8">Get Started Today</Button>
+            </a>
           )}
         </div>
       </section>
@@ -207,71 +215,61 @@ export default function Home() {
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-12 text-center">Why Choose Ologywood?</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Music className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Talented Artists</h3>
-              <p className="text-muted-foreground">
-                Browse verified performing artists across all genres
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Easy Booking</h3>
-              <p className="text-muted-foreground">
-                Check availability and book artists in just a few clicks
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Direct Communication</h3>
-              <p className="text-muted-foreground">
-                Message artists directly to discuss your event details
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-accent/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Secure Platform</h3>
-              <p className="text-muted-foreground">
-                Safe and reliable booking management for all parties
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader>
+                <Music className="h-8 w-8 text-primary mb-2" />
+                <CardTitle>Diverse Talent</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Browse thousands of talented artists across multiple genres and styles.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Calendar className="h-8 w-8 text-primary mb-2" />
+                <CardTitle>Easy Booking</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Simple and streamlined booking process with instant confirmations.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <MessageSquare className="h-8 w-8 text-primary mb-2" />
+                <CardTitle>Direct Communication</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Message artists directly to discuss details and negotiate terms.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Shield className="h-8 w-8 text-primary mb-2" />
+                <CardTitle>Secure Contracts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Professional contracts and secure payment processing for peace of mind.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary to-primary/80 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join Ologywood today and discover the easiest way to book talented artists for your events.
-          </p>
-          {!isAuthenticated && (
-            <a href={getLoginUrl()} style={{ textDecoration: 'none' }}>
-              <Button size="lg" variant="secondary" className="text-lg px-8">
-                Sign Up Now
-              </Button>
-            </a>
-          )}
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-muted/50 py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
+      <footer className="bg-foreground text-background py-8 mt-auto">
+        <div className="container mx-auto px-4 text-center">
           <p>&copy; 2026 Ologywood. All rights reserved.</p>
         </div>
       </footer>

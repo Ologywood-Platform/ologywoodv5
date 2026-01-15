@@ -645,3 +645,8 @@
   - Replaced Link > a > Button structure with direct a > Button in header nav
   - Fixed Dashboard and Browse Artists buttons to use proper anchor navigation
   - Removed nested Link wrapper to prevent HTML validation errors
+
+- [x] Fix nested anchor tag error on unauthenticated home page
+  - Replaced all Link > a > Button structures with direct a > Button in hero and featured sections
+  - Fixed Sign In, Browse Artists, View All Artists, and Create Profile buttons
+  - Removed all nested Link wrappers to prevent HTML validation errors
