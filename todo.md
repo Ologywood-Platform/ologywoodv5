@@ -654,3 +654,7 @@
 - [x] Fix nested anchor tag error on dashboard Browse Artists button
   - Replaced Link > a > Button with direct a > Button in no bookings section
   - Removed nested Link wrapper to prevent HTML validation errors
+
+- [x] Fix notifications tab error
+  - Added missing useState and useEffect imports to NotificationCenter component
+  - Removed duplicate imports that were causing compilation errors
