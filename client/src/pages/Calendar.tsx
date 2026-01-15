@@ -21,9 +21,25 @@ interface BookingEvent {
 export default function Calendar() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 15)); // January 15, 2026
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 15));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [events, setEvents] = useState<BookingEvent[]>([]);
+
+  // Fetch artist profile
+  const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'artist',
+  });
+
+  // Fetch bookings for artist
+  const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'artist',
+  });
+
+  // Fetch availability for artist
+  const { data: availability } = trpc.availability.getForArtist.useQuery(
+    { artistId: artistProfile?.id || 0 },
+    { enabled: !!artistProfile?.id }
+  );
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -32,51 +48,47 @@ export default function Calendar() {
   }, [isAuthenticated, loading]);
 
   useEffect(() => {
-    // Mock data for calendar events
-    const mockEvents: BookingEvent[] = [
-      {
-        id: 1,
-        date: "2026-01-15",
-        title: "The Grand Ballroom - Jazz Night",
-        type: "booking",
-        status: "confirmed",
-        venueOrArtist: "The Grand Ballroom",
-      },
-      {
-        id: 2,
-        date: "2026-01-18",
-        title: "Available for bookings",
-        type: "available",
-        status: "open",
-        venueOrArtist: "Open",
-      },
-      {
-        id: 3,
-        date: "2026-01-22",
-        title: "Downtown Events Center - Rock Concert",
-        type: "booking",
-        status: "pending",
-        venueOrArtist: "Downtown Events Center",
-      },
-      {
-        id: 4,
-        date: "2026-01-25",
-        title: "Unavailable",
-        type: "unavailable",
-        status: "blocked",
-        venueOrArtist: "Personal",
-      },
-      {
-        id: 5,
-        date: "2026-02-05",
-        title: "Riverside Theater - Classical",
-        type: "booking",
-        status: "confirmed",
-        venueOrArtist: "Riverside Theater",
-      },
-    ];
-    setEvents(mockEvents);
-  }, []);
+    // Build events from real data
+    const calendarEvents: BookingEvent[] = [];
+    let eventId = 1;
+
+    // Add bookings as events
+    if (bookings && bookings.length > 0) {
+      bookings.forEach((booking: any) => {
+        const eventDate = new Date(booking.eventDate);
+        calendarEvents.push({
+          id: eventId++,
+          date: eventDate.toISOString().split('T')[0],
+          title: `${booking.venueName} - ${booking.eventDetails || 'Booking'}`,
+          type: 'booking',
+          status: booking.status,
+          venueOrArtist: booking.venueName,
+        });
+      });
+    }
+
+    // Add availability markers
+    if (availability && availability.length > 0) {
+      availability.forEach((avail: any) => {
+        const availDate = new Date(avail.date);
+        const dateStr = availDate.toISOString().split('T')[0];
+        
+        // Only add if not already a booking
+        if (!calendarEvents.find(e => e.date === dateStr)) {
+          calendarEvents.push({
+            id: eventId++,
+            date: dateStr,
+            title: avail.status === 'available' ? 'Available for bookings' : 'Unavailable',
+            type: avail.status as 'available' | 'unavailable',
+            status: avail.status,
+            venueOrArtist: avail.status === 'available' ? 'Open' : 'Blocked',
+          });
+        }
+      });
+    }
+
+    setEvents(calendarEvents);
+  }, [bookings, availability]);
 
   if (loading) {
     return (
@@ -89,8 +101,6 @@ export default function Calendar() {
   if (!isAuthenticated || !user) {
     return null;
   }
-
-
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();

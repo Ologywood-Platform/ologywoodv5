@@ -723,3 +723,40 @@
   - Save user preferences to database
   - Load preferences on component mount
   - Implement preference UI in settings
+
+
+## Real Data Integration & Enhanced Features (IN PROGRESS)
+- [ ] Connect Calendar page to real booking data
+  - Query bookings via TRPC for current user
+  - Display actual availability data
+  - Show real event details on date selection
+- [ ] Connect Messages page to real conversation data
+  - Fetch conversations from database via TRPC
+  - Load actual message history
+  - Display real participant information
+- [ ] Connect Riders page to real templates
+  - Query user's rider templates from database
+  - Load template details dynamically
+  - Update create/edit/delete to use TRPC mutations
+- [ ] Implement PDF export for rider templates
+  - Add html2pdf or PDFKit dependency
+  - Generate professional PDF from template data
+  - Add download button functionality
+  - Include formatting and styling
+- [ ] Implement WebSocket real-time messaging
+  - Set up WebSocket server connection
+  - Add real-time message delivery
+  - Implement typing indicators
+  - Add connection status indicators
+  - Handle reconnection logic
+
+
+## Real Data Integration & Advanced Features (COMPLETED)
+- [x] Connect Calendar page to real booking and availability data via TRPC
+- [x] Connect Messages page to real conversation and message data via TRPC
+- [x] Connect Riders page to real rider template data via TRPC
+- [x] Implement PDF export for rider templates using html2pdf
+- [x] Add WebSocket real-time messaging support with typing indicators
+- [x] Add connection status indicator for real-time messaging
+- [x] Create WebSocket service for message broadcasting
+- [x] Create React hook for WebSocket messaging integration

@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useWebSocketMessaging } from "@/hooks/useWebSocketMessaging";
 
 interface Conversation {
   id: number;
@@ -30,6 +31,15 @@ interface Conversation {
   bookingTitle?: string;
 }
 
+interface Message {
+  id: number;
+  senderId: number;
+  senderName: string;
+  content: string;
+  timestamp: Date | string;
+  read?: boolean;
+}
+
 export default function Messages() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
@@ -37,7 +47,45 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [messageText, setMessageText] = useState("");
-  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Fetch bookings to build conversations
+  const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'artist',
+  });
+
+  const { data: venueBookings } = trpc.booking.getMyVenueBookings.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'venue',
+  });
+
+  // Fetch messages for selected booking
+  const { data: selectedMessages, refetch: refetchMessages } = trpc.message.getForBooking.useQuery(
+    { bookingId: selectedConversation?.bookingId || 0 },
+    { enabled: !!selectedConversation?.bookingId }
+  );
+
+  // Fetch total unread count
+  const { data: unreadData } = trpc.message.getTotalUnreadCount.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // WebSocket real-time messaging
+  const { isConnected: wsConnected, typingUsers } = useWebSocketMessaging(user?.id);
+
+  // Send message mutation
+  const sendMessageMutation = trpc.message.send.useMutation({
+    onSuccess: () => {
+      toast.success("Message sent!");
+      setMessageText("");
+      refetchMessages();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send message");
+    },
+  });
+
+  // Mark as read mutation
+  const markAsReadMutation = trpc.message.markBookingAsRead.useMutation();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -45,74 +93,36 @@ export default function Messages() {
     }
   }, [isAuthenticated, loading]);
 
+  // Build conversations from bookings
   useEffect(() => {
-    // Mock data for conversations
-    const mockConversations: Conversation[] = [
-      {
-        id: 1,
-        participantId: 2,
-        participantName: "The Venue NYC",
-        participantRole: "venue",
-        participantPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=venue1",
-        lastMessage: "Can you confirm the technical requirements?",
-        lastMessageTime: "2 hours ago",
-        unreadCount: 2,
-        bookingId: 5,
-        bookingTitle: "Jazz Night - March 15",
-      },
-      {
-        id: 2,
-        participantId: 3,
-        participantName: "Jazz Club Downtown",
-        participantRole: "venue",
-        participantPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=venue2",
-        lastMessage: "Perfect! See you on Saturday.",
-        lastMessageTime: "1 day ago",
-        unreadCount: 0,
-        bookingId: 6,
-        bookingTitle: "Evening Jazz Set - March 22",
-      },
-      {
-        id: 3,
-        participantId: 4,
-        participantName: "Riverside Theater",
-        participantRole: "venue",
-        participantPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=venue3",
-        lastMessage: "We're excited to have you perform!",
-        lastMessageTime: "3 days ago",
-        unreadCount: 0,
-        bookingId: 7,
-        bookingTitle: "Classical Concert - April 5",
-      },
-      {
-        id: 4,
-        participantId: 5,
-        participantName: "Downtown Events Center",
-        participantRole: "venue",
-        participantPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=venue4",
-        lastMessage: "Looking forward to working with you",
-        lastMessageTime: "1 week ago",
-        unreadCount: 0,
-        bookingId: 8,
-        bookingTitle: "Rock Night - April 12",
-      },
-      {
-        id: 5,
-        participantId: 6,
-        participantName: "The Grand Ballroom",
-        participantRole: "venue",
-        participantPhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=venue5",
-        lastMessage: "Thank you for the amazing performance!",
-        lastMessageTime: "2 weeks ago",
-        unreadCount: 0,
-        bookingId: 9,
-        bookingTitle: "Gala Evening - March 8",
-      },
-    ];
+    const buildConversations = async () => {
+      const allBookings = bookings || venueBookings || [];
+      const convos: Conversation[] = [];
 
-    setConversations(mockConversations);
-    setIsLoadingConversations(false);
-  }, []);
+      for (const booking of allBookings) {
+        // For artists, participant is the venue
+        // For venues, participant is the artist
+        const isArtist = user?.role === 'artist';
+        
+        const conversation: Conversation = {
+          id: booking.id,
+          participantId: isArtist ? booking.venueId : booking.artistId,
+          participantName: isArtist ? booking.venueName : 'Artist',
+          participantRole: isArtist ? 'venue' : 'artist',
+          bookingId: booking.id,
+          bookingTitle: `${booking.eventDetails || 'Booking'} - ${new Date(booking.eventDate).toLocaleDateString()}`,
+          unreadCount: 0,
+        };
+        convos.push(conversation);
+      }
+
+      setConversations(convos);
+    };
+
+    buildConversations();
+  }, [bookings, venueBookings, user?.role]);
+
+
 
   if (loading) {
     return (
@@ -127,27 +137,46 @@ export default function Messages() {
   }
 
   const filteredConversations = conversations.filter((conv) =>
-    conv.participantName.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.bookingTitle?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSendMessage = () => {
-    if (!messageText.trim() || !selectedConversation) return;
+    if (!messageText.trim() || !selectedConversation?.bookingId) return;
 
-    toast.success("Message sent!");
-    setMessageText("");
+    sendMessageMutation.mutate({
+      bookingId: selectedConversation.bookingId,
+      receiverId: selectedConversation.participantId,
+      messageText: messageText,
+    });
   };
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    // Mark as read
-    setConversations(
-      conversations.map((c) =>
-        c.id === conversation.id ? { ...c, unreadCount: 0 } : c
-      )
-    );
+    if (conversation.bookingId) {
+      markAsReadMutation.mutate({ bookingId: conversation.bookingId });
+      refetchMessages();
+    }
   };
 
-  const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  // Update messages when selectedMessages changes
+  useEffect(() => {
+    if (selectedMessages && selectedMessages.length > 0) {
+      const formattedMessages = selectedMessages.map((msg: any) => ({
+        id: msg.id,
+        senderId: msg.senderId,
+        senderName: msg.senderId === user?.id ? 'You' : 'Participant',
+        content: msg.messageText,
+        timestamp: msg.sentAt,
+        read: msg.readAt !== null,
+      }));
+      setMessages(formattedMessages);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedMessages, user?.id]);
+
+  const totalUnread = unreadData?.count || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -200,32 +229,18 @@ export default function Messages() {
                       }`}
                     >
                       <div className="flex items-start justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={conversation.participantPhoto}
-                            alt={conversation.participantName}
-                            className="w-8 h-8 rounded-full"
-                          />
-                          <div>
-                            <p className="font-semibold text-sm text-slate-900">
-                              {conversation.participantName}
-                            </p>
-                            <p className="text-xs text-slate-600">
-                              {conversation.bookingTitle}
-                            </p>
-                          </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm text-slate-900">
+                            {conversation.participantName}
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            {conversation.bookingTitle}
+                          </p>
                         </div>
                         {conversation.unreadCount && conversation.unreadCount > 0 && (
                           <Badge className="bg-blue-500">{conversation.unreadCount}</Badge>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 line-clamp-1">
-                        {conversation.lastMessage}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {conversation.lastMessageTime}
-                      </p>
                     </div>
                   ))
                 ) : (
@@ -244,20 +259,13 @@ export default function Messages() {
               <Card className="h-full flex flex-col">
                 <CardHeader className="border-b border-slate-200">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={selectedConversation.participantPhoto}
-                        alt={selectedConversation.participantName}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div>
-                        <h2 className="font-semibold text-slate-900">
-                          {selectedConversation.participantName}
-                        </h2>
-                        <p className="text-xs text-slate-600">
-                          {selectedConversation.bookingTitle}
-                        </p>
-                      </div>
+                    <div>
+                      <h2 className="font-semibold text-slate-900">
+                        {selectedConversation.participantName}
+                      </h2>
+                      <p className="text-xs text-slate-600">
+                        {selectedConversation.bookingTitle}
+                      </p>
                     </div>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="h-4 w-4" />
@@ -266,39 +274,49 @@ export default function Messages() {
                 </CardHeader>
 
                 <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {/* Mock messages */}
-                  <div className="space-y-4">
-                    <div className="flex justify-start">
-                      <div className="bg-slate-100 rounded-lg p-3 max-w-xs">
-                        <p className="text-sm text-slate-900">
-                          Hi! I wanted to confirm the details for the upcoming event.
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">2 hours ago</p>
+                  {messages.length > 0 ? (
+                    messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`rounded-lg p-3 max-w-xs ${
+                            msg.senderId === user?.id
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-slate-100 text-slate-900'
+                          }`}
+                        >
+                          <p className="text-sm">{msg.content}</p>
+                          <p
+                            className={`text-xs mt-1 ${
+                              msg.senderId === user?.id
+                                ? 'text-blue-100'
+                                : 'text-slate-500'
+                            }`}
+                          >
+                            {new Date(msg.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-slate-600">
+                      <p>No messages yet. Start the conversation!</p>
                     </div>
-
-                    <div className="flex justify-end">
-                      <div className="bg-blue-500 text-white rounded-lg p-3 max-w-xs">
-                        <p className="text-sm">
-                          Sure! I'm all set. What time should I arrive?
-                        </p>
-                        <p className="text-xs text-blue-100 mt-1">1 hour ago</p>
-                      </div>
+                  )}
+                  {typingUsers.length > 0 && (
+                    <div className="flex items-center gap-2 text-slate-600 text-sm">
+                      <span>Participant is typing...</span>
                     </div>
-
-                    <div className="flex justify-start">
-                      <div className="bg-slate-100 rounded-lg p-3 max-w-xs">
-                        <p className="text-sm text-slate-900">
-                          Please arrive 30 minutes before the event starts. Looking forward to it!
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">45 minutes ago</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
 
                 <div className="border-t border-slate-200 p-4">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-2">
                     <Input
                       placeholder="Type your message..."
                       value={messageText}
@@ -312,12 +330,18 @@ export default function Messages() {
                     />
                     <Button
                       onClick={handleSendMessage}
-                      disabled={!messageText.trim()}
+                      disabled={!messageText.trim() || sendMessageMutation.isPending}
                       className="gap-2"
                     >
                       <Send className="h-4 w-4" />
                       Send
                     </Button>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-slate-600">
+                      {wsConnected ? 'Real-time messaging active' : 'Connecting...'}
+                    </span>
                   </div>
                 </div>
               </Card>
