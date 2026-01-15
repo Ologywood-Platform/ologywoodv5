@@ -633,3 +633,81 @@ export const supportSLASettings = mysqlTable("support_sla_settings", {
 
 export type SupportSLASetting = typeof supportSLASettings.$inferSelect;
 export type InsertSupportSLASetting = typeof supportSLASettings.$inferInsert;
+
+/**
+ * Rider Acknowledgments - tracks when venues acknowledge and accept/modify rider requirements
+ */
+export const riderAcknowledgments = mysqlTable("rider_acknowledgments", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  riderTemplateId: int("riderTemplateId").notNull(),
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId").notNull(),
+  
+  // Acknowledgment status
+  status: mysqlEnum("status", ["pending", "acknowledged", "accepted", "modifications_proposed", "rejected"]).notNull().default("pending"),
+  
+  // Venue acknowledgment
+  acknowledgedAt: timestamp("acknowledgedAt"),
+  acknowledgedByUserId: int("acknowledgedByUserId"),
+  
+  // Modifications proposed by venue
+  proposedModifications: json("proposedModifications").$type<{
+    field: string;
+    originalValue: any;
+    proposedValue: any;
+    reason?: string;
+  }[]>(),
+  modificationsProposedAt: timestamp("modificationsProposedAt"),
+  
+  // Artist response to modifications
+  artistResponse: mysqlEnum("artistResponse", ["approved", "rejected", "counter_proposal"]).default("approved"),
+  artistResponseAt: timestamp("artistResponseAt"),
+  artistResponseNotes: text("artistResponseNotes"),
+  
+  // Final agreement
+  finalizedAt: timestamp("finalizedAt"),
+  finalizedByUserId: int("finalizedByUserId"),
+  
+  // Additional notes
+  notes: text("notes"),
+  
+  // Metadata
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RiderAcknowledgment = typeof riderAcknowledgments.$inferSelect;
+export type InsertRiderAcknowledgment = typeof riderAcknowledgments.$inferInsert;
+
+/**
+ * Rider Modification History - audit trail of all rider requirement changes
+ */
+export const riderModificationHistory = mysqlTable("rider_modification_history", {
+  id: int("id").autoincrement().primaryKey(),
+  riderAcknowledgmentId: int("riderAcknowledgmentId").notNull(),
+  modificationNumber: int("modificationNumber").notNull(),
+  
+  // What was changed
+  fieldName: varchar("fieldName", { length: 255 }).notNull(),
+  originalValue: text("originalValue"),
+  newValue: text("newValue"),
+  reason: text("reason"),
+  
+  // Who made the change
+  changedByUserId: int("changedByUserId").notNull(),
+  changedByRole: mysqlEnum("changedByRole", ["artist", "venue"]).notNull(),
+  
+  // Status of this modification
+  status: mysqlEnum("status", ["proposed", "approved", "rejected"]).notNull().default("proposed"),
+  statusChangedAt: timestamp("statusChangedAt"),
+  statusChangedByUserId: int("statusChangedByUserId"),
+  statusChangeNotes: text("statusChangeNotes"),
+  
+  // Metadata
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RiderModificationHistory = typeof riderModificationHistory.$inferSelect;
+export type InsertRiderModificationHistory = typeof riderModificationHistory.$inferInsert;
