@@ -474,3 +474,115 @@ export const notificationPreferences = mysqlTable("notification_preferences", {
 
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
+
+/**
+ * Support categories - predefined categories for support tickets
+ */
+export const supportCategories = mysqlTable("support_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }),
+  order: int("order").default(0),
+  isActive: boolean("isActive").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SupportCategory = typeof supportCategories.$inferSelect;
+export type InsertSupportCategory = typeof supportCategories.$inferInsert;
+
+/**
+ * Support tickets - user-submitted support requests
+ */
+export const supportTickets = mysqlTable("support_tickets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  categoryId: int("categoryId").notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
+  status: mysqlEnum("status", ["open", "in_progress", "waiting_user", "resolved", "closed"]).default("open").notNull(),
+  assignedToId: int("assignedToId"),
+  attachmentUrls: json("attachmentUrls").$type<string[]>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+});
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = typeof supportTickets.$inferInsert;
+
+/**
+ * Support ticket responses - replies in support conversations
+ */
+export const supportTicketResponses = mysqlTable("support_ticket_responses", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  userId: int("userId").notNull(),
+  message: text("message").notNull(),
+  isStaffResponse: boolean("isStaffResponse").default(false),
+  attachmentUrls: json("attachmentUrls").$type<string[]>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SupportTicketResponse = typeof supportTicketResponses.$inferSelect;
+export type InsertSupportTicketResponse = typeof supportTicketResponses.$inferInsert;
+
+/**
+ * Knowledge base articles - self-service help documentation
+ */
+export const knowledgeBaseArticles = mysqlTable("knowledge_base_articles", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  content: text("content").notNull(),
+  categoryId: int("categoryId").notNull(),
+  tags: json("tags").$type<string[]>(),
+  views: int("views").default(0),
+  helpfulVotes: int("helpfulVotes").default(0),
+  unhelpfulVotes: int("unhelpfulVotes").default(0),
+  author: varchar("author", { length: 255 }),
+  isPublished: boolean("isPublished").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
+export type InsertKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
+
+/**
+ * FAQ entries - frequently asked questions
+ */
+export const faqs = mysqlTable("faqs", {
+  id: int("id").autoincrement().primaryKey(),
+  question: varchar("question", { length: 500 }).notNull(),
+  answer: text("answer").notNull(),
+  categoryId: int("categoryId").notNull(),
+  order: int("order").default(0),
+  views: int("views").default(0),
+  isActive: boolean("isActive").default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FAQ = typeof faqs.$inferSelect;
+export type InsertFAQ = typeof faqs.$inferInsert;
+
+/**
+ * Support SLA settings - Service Level Agreements for different subscription tiers
+ */
+export const supportSLASettings = mysqlTable("support_sla_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  subscriptionTier: varchar("subscriptionTier", { length: 50 }).notNull().unique(),
+  responseTimeHours: int("responseTimeHours").notNull(),
+  resolutionTimeHours: int("resolutionTimeHours").notNull(),
+  maxOpenTickets: int("maxOpenTickets").default(10),
+  prioritySupport: boolean("prioritySupport").default(false),
+  liveChat: boolean("liveChat").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SupportSLASetting = typeof supportSLASettings.$inferSelect;
+export type InsertSupportSLASetting = typeof supportSLASettings.$inferInsert;

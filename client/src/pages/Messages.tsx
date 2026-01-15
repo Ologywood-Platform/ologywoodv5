@@ -16,7 +16,6 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useWebSocketMessaging } from "@/hooks/useWebSocketMessaging";
 
 interface Conversation {
   id: number;
@@ -69,9 +68,6 @@ export default function Messages() {
     enabled: isAuthenticated,
   });
 
-  // WebSocket real-time messaging
-  const { isConnected: wsConnected, typingUsers } = useWebSocketMessaging(user?.id);
-
   // Send message mutation
   const sendMessageMutation = trpc.message.send.useMutation({
     onSuccess: () => {
@@ -100,8 +96,6 @@ export default function Messages() {
       const convos: Conversation[] = [];
 
       for (const booking of allBookings) {
-        // For artists, participant is the venue
-        // For venues, participant is the artist
         const isArtist = user?.role === 'artist';
         
         const conversation: Conversation = {
@@ -122,7 +116,22 @@ export default function Messages() {
     buildConversations();
   }, [bookings, venueBookings, user?.role]);
 
-
+  // Update messages when selectedMessages changes
+  useEffect(() => {
+    if (selectedMessages && selectedMessages.length > 0) {
+      const formattedMessages = selectedMessages.map((msg: any) => ({
+        id: msg.id,
+        senderId: msg.senderId,
+        senderName: msg.senderId === user?.id ? 'You' : 'Participant',
+        content: msg.messageText,
+        timestamp: msg.sentAt,
+        read: msg.readAt !== null,
+      }));
+      setMessages(formattedMessages);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedMessages, user?.id]);
 
   if (loading) {
     return (
@@ -159,23 +168,6 @@ export default function Messages() {
     }
   };
 
-  // Update messages when selectedMessages changes
-  useEffect(() => {
-    if (selectedMessages && selectedMessages.length > 0) {
-      const formattedMessages = selectedMessages.map((msg: any) => ({
-        id: msg.id,
-        senderId: msg.senderId,
-        senderName: msg.senderId === user?.id ? 'You' : 'Participant',
-        content: msg.messageText,
-        timestamp: msg.sentAt,
-        read: msg.readAt !== null,
-      }));
-      setMessages(formattedMessages);
-    } else {
-      setMessages([]);
-    }
-  }, [selectedMessages, user?.id]);
-
   const totalUnread = unreadData?.count || 0;
 
   return (
@@ -193,20 +185,24 @@ export default function Messages() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
-              <p className="text-slate-600">
-                {totalUnread > 0 ? `${totalUnread} unread message${totalUnread !== 1 ? "s" : ""}` : "All caught up!"}
-              </p>
+              <p className="text-sm text-slate-600">Manage your conversations</p>
             </div>
           </div>
+          {totalUnread > 0 && (
+            <Badge className="bg-red-500 text-lg px-3 py-1">
+              {totalUnread} Unread
+            </Badge>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Conversations List */}
           <div className="lg:col-span-1">
             <Card className="h-full flex flex-col">
-              <CardHeader>
-                <CardTitle>Conversations</CardTitle>
-                <div className="mt-4 relative">
+              <CardHeader className="border-b border-slate-200">
+                <CardTitle className="text-lg">Conversations</CardTitle>
+                <div className="relative mt-4">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
                     placeholder="Search conversations..."
@@ -216,24 +212,22 @@ export default function Messages() {
                   />
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto space-y-2">
+              <CardContent className="flex-1 overflow-y-auto p-0">
                 {filteredConversations.length > 0 ? (
                   filteredConversations.map((conversation) => (
                     <div
                       key={conversation.id}
                       onClick={() => handleSelectConversation(conversation)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all border-2 ${
-                        selectedConversation?.id === conversation.id
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      className={`p-4 border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 ${
+                        selectedConversation?.id === conversation.id ? 'bg-blue-50' : ''
                       }`}
                     >
-                      <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="font-semibold text-sm text-slate-900">
+                          <h3 className="font-semibold text-slate-900">
                             {conversation.participantName}
-                          </p>
-                          <p className="text-xs text-slate-600">
+                          </h3>
+                          <p className="text-xs text-slate-600 mt-1">
                             {conversation.bookingTitle}
                           </p>
                         </div>
@@ -308,15 +302,10 @@ export default function Messages() {
                       <p>No messages yet. Start the conversation!</p>
                     </div>
                   )}
-                  {typingUsers.length > 0 && (
-                    <div className="flex items-center gap-2 text-slate-600 text-sm">
-                      <span>Participant is typing...</span>
-                    </div>
-                  )}
                 </CardContent>
 
                 <div className="border-t border-slate-200 p-4">
-                  <div className="flex gap-2 mb-2">
+                  <div className="flex gap-2">
                     <Input
                       placeholder="Type your message..."
                       value={messageText}
@@ -337,10 +326,10 @@ export default function Messages() {
                       Send
                     </Button>
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className="flex items-center gap-2 text-xs mt-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
                     <span className="text-slate-600">
-                      {wsConnected ? 'Real-time messaging active' : 'Connecting...'}
+                      Connected
                     </span>
                   </div>
                 </div>
@@ -349,9 +338,11 @@ export default function Messages() {
               <Card className="h-full flex items-center justify-center">
                 <div className="text-center">
                   <MessageCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600 mb-2">Select a conversation to start messaging</p>
-                  <p className="text-sm text-slate-500">
-                    Choose a conversation from the list to view and send messages
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    Select a conversation
+                  </h3>
+                  <p className="text-slate-600">
+                    Choose a conversation from the list to start messaging
                   </p>
                 </div>
               </Card>

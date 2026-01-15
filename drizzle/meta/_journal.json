@@ -120,6 +120,13 @@
       "when": 1768464282029,
       "tag": "0016_unusual_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1768495294406,
+      "tag": "0017_sturdy_lockheed",
+      "breakpoints": true
     }
   ]
 }

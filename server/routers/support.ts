@@ -1,0 +1,309 @@
+import { z } from "zod";
+import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { getDb } from "../db";
+import { supportTickets, supportTicketResponses, supportCategories, faqs, knowledgeBaseArticles } from "../../drizzle/schema";
+import { eq, desc, and, like } from "drizzle-orm";
+
+export const supportRouter = router({
+  // Support Tickets
+  createTicket: protectedProcedure
+    .input(z.object({
+      categoryId: z.number(),
+      subject: z.string().min(5).max(255),
+      description: z.string().min(10),
+      priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const ticket = await db.insert(supportTickets).values({
+        userId: ctx.user.id,
+        categoryId: input.categoryId,
+        subject: input.subject,
+        description: input.description,
+        priority: input.priority || "medium",
+        status: "open",
+      });
+
+      return ticket;
+    }),
+
+  getMyTickets: protectedProcedure
+    .input(z.object({
+      status: z.enum(["open", "in_progress", "waiting_user", "resolved", "closed"]).optional(),
+      limit: z.number().default(20),
+      offset: z.number().default(0),
+    }))
+    .query(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const where = input.status
+        ? and(eq(supportTickets.userId, ctx.user.id), eq(supportTickets.status, input.status))
+        : eq(supportTickets.userId, ctx.user.id);
+
+      const tickets = await db
+        .select()
+        .from(supportTickets)
+        .where(where)
+        .orderBy(desc(supportTickets.createdAt))
+        .limit(input.limit)
+        .offset(input.offset);
+
+      return tickets;
+    }),
+
+  getTicketDetail: protectedProcedure
+    .input(z.object({
+      ticketId: z.number(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const ticket = await db
+        .select()
+        .from(supportTickets)
+        .where(
+          and(
+            eq(supportTickets.id, input.ticketId),
+            eq(supportTickets.userId, ctx.user.id)
+          )
+        )
+        .then((res: any) => res[0]);
+
+      if (!ticket) {
+        throw new Error("Ticket not found");
+      }
+
+      const responses = await db
+        .select()
+        .from(supportTicketResponses)
+        .where(eq(supportTicketResponses.ticketId, input.ticketId))
+        .orderBy(supportTicketResponses.createdAt);
+
+      return { ticket, responses };
+    }),
+
+  addTicketResponse: protectedProcedure
+    .input(z.object({
+      ticketId: z.number(),
+      message: z.string().min(1),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // Verify user owns the ticket
+      const ticket = await db
+        .select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, input.ticketId))
+        .then((res: any) => res[0]);
+
+      if (!ticket || ticket.userId !== ctx.user.id) {
+        throw new Error("Unauthorized");
+      }
+
+      // Update ticket status if it was waiting_user
+      if (ticket.status === "waiting_user") {
+        await db
+          .update(supportTickets)
+          .set({ status: "in_progress" })
+          .where(eq(supportTickets.id, input.ticketId));
+      }
+
+      const response = await db.insert(supportTicketResponses).values({
+        ticketId: input.ticketId,
+        userId: ctx.user.id,
+        message: input.message,
+        isStaffResponse: false,
+      });
+
+      return response;
+    }),
+
+  closeTicket: protectedProcedure
+    .input(z.object({
+      ticketId: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const ticket = await db
+        .select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, input.ticketId))
+        .then((res: any) => res[0]);
+
+      if (!ticket || ticket.userId !== ctx.user.id) {
+        throw new Error("Unauthorized");
+      }
+
+      await db
+        .update(supportTickets)
+        .set({ status: "closed", resolvedAt: new Date() })
+        .where(eq(supportTickets.id, input.ticketId));
+
+      return { success: true };
+    }),
+
+  // Knowledge Base
+  getArticles: publicProcedure
+    .input(z.object({
+      categoryId: z.number().optional(),
+      search: z.string().optional(),
+      limit: z.number().default(20),
+      offset: z.number().default(0),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      let whereConditions = eq(knowledgeBaseArticles.isPublished, true);
+
+      if (input.categoryId) {
+        whereConditions = and(whereConditions, eq(knowledgeBaseArticles.categoryId, input.categoryId)) as any;
+      }
+
+      if (input.search) {
+        whereConditions = and(whereConditions, like(knowledgeBaseArticles.title, `%${input.search}%`)) as any;
+      }
+
+      const articles = await db
+        .select()
+        .from(knowledgeBaseArticles)
+        .where(whereConditions)
+        .orderBy(desc(knowledgeBaseArticles.views))
+        .limit(input.limit)
+        .offset(input.offset);
+
+      return articles;
+    }),
+
+  getArticleBySlug: publicProcedure
+    .input(z.object({
+      slug: z.string(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const article = await db
+        .select()
+        .from(knowledgeBaseArticles)
+        .where(
+          and(
+            eq(knowledgeBaseArticles.slug, input.slug),
+            eq(knowledgeBaseArticles.isPublished, true)
+          )
+        )
+        .then((res: any) => res[0]);
+
+      if (!article) {
+        throw new Error("Article not found");
+      }
+
+      // Increment views
+      await db
+        .update(knowledgeBaseArticles)
+        .set({ views: article.views + 1 })
+        .where(eq(knowledgeBaseArticles.id, article.id));
+
+      return article;
+    }),
+
+  voteArticle: publicProcedure
+    .input(z.object({
+      articleId: z.number(),
+      helpful: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const article = await db
+        .select()
+        .from(knowledgeBaseArticles)
+        .where(eq(knowledgeBaseArticles.id, input.articleId))
+        .then((res: any) => res[0]);
+
+      if (!article) {
+        throw new Error("Article not found");
+      }
+
+      const updateData = input.helpful
+        ? { helpfulVotes: article.helpfulVotes + 1 }
+        : { unhelpfulVotes: article.unhelpfulVotes + 1 };
+
+      await db
+        .update(knowledgeBaseArticles)
+        .set(updateData)
+        .where(eq(knowledgeBaseArticles.id, input.articleId));
+
+      return { success: true };
+    }),
+
+  // FAQ
+  getFAQs: publicProcedure
+    .input(z.object({
+      categoryId: z.number().optional(),
+      limit: z.number().default(50),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      let whereConditions = eq(faqs.isActive, true);
+
+      if (input.categoryId) {
+        whereConditions = and(whereConditions, eq(faqs.categoryId, input.categoryId)) as any;
+      }
+
+      const faqList = await db
+        .select()
+        .from(faqs)
+        .where(whereConditions)
+        .orderBy(faqs.order)
+        .limit(input.limit);
+
+      return faqList;
+    }),
+
+  // Support Categories
+  getCategories: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+
+    const categories = await db
+      .select()
+      .from(supportCategories)
+      .where(eq(supportCategories.isActive, true))
+      .orderBy(supportCategories.order);
+
+    return categories;
+  }),
+
+  // Ticket Statistics
+  getTicketStats: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const tickets = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.userId, ctx.user.id));
+
+    const stats = {
+      total: tickets.length,
+      open: tickets.filter((t: any) => t.status === "open").length,
+      inProgress: tickets.filter((t: any) => t.status === "in_progress").length,
+      resolved: tickets.filter((t: any) => t.status === "resolved").length,
+      closed: tickets.filter((t: any) => t.status === "closed").length,
+    };
+
+    return stats;
+  }),
+});
