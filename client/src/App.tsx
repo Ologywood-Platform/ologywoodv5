@@ -20,6 +20,7 @@ import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
 import BookingsList from "./pages/BookingsList";
 import MessagesDetail from "./pages/MessagesDetail";
+import Reviews from "./pages/Reviews";
 
 function Router() {
   return (
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/bookings/:id" component={BookingDetail} />
       <Route path="/bookings" component={BookingsList} />
       <Route path="/messages/:id" component={MessagesDetail} />
+      <Route path="/reviews" component={Reviews} />
       <Route path="/venue/:id" component={VenueProfile} />
       <Route path="/contract/:id" component={ContractDetail} />
       <Route path="/payments" component={Payments} />
