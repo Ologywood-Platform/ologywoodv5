@@ -118,25 +118,21 @@ export default function SupportTickets() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard">
-              <a className="inline-flex">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </a>
-            </Link>
+          <Link href="/dashboard" className="inline-flex">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
             <div>
               <h1 className="text-3xl font-bold text-slate-900">Support Tickets</h1>
               <p className="text-sm text-slate-600">Manage your support requests</p>
             </div>
           </div>
-          <Link href="/support/create">
-            <a className="inline-flex">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Ticket
-              </Button>
-            </a>
+          <Link href="/support/create" className="inline-flex">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Ticket
+            </Button>
           </Link>
         </div>
 
@@ -219,8 +215,7 @@ export default function SupportTickets() {
             </Card>
           ) : filteredTickets.length > 0 ? (
             filteredTickets.map((ticket: any) => (
-              <Link key={ticket.id} href={`/support/${ticket.id}`}>
-                <a>
+              <Link key={ticket.id} href={`/support/${ticket.id}`} className="block">
                   <Card className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between gap-4">
@@ -256,7 +251,6 @@ export default function SupportTickets() {
                       </div>
                     </CardContent>
                   </Card>
-                </a>
               </Link>
             ))
           ) : (
@@ -265,10 +259,8 @@ export default function SupportTickets() {
                 <div className="text-center">
                   <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                   <p className="text-slate-600 mb-4">No tickets found</p>
-                  <Link href="/support/create">
-                    <a className="inline-flex">
-                      <Button>Create Your First Ticket</Button>
-                    </a>
+                  <Link href="/support/create" className="inline-flex">
+                    <Button>Create Your First Ticket</Button>
                   </Link>
                 </div>
               </CardContent>

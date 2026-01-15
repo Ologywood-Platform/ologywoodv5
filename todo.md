@@ -62,6 +62,7 @@
 - [x] Fix Select component empty value error on Help Center page
 - [x] Fix nested anchor tags in Help Center Quick Links section
 - [x] Fix seed support data endpoint duplicate key error
+- [x] Fix nested anchor tags in Support Tickets page
 
 ## Onboarding
 - [x] Artist onboarding wizard with multi-step form
