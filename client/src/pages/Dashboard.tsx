@@ -18,6 +18,7 @@ import { ArtistProfileEditor } from "@/components/ArtistProfileEditor";
 import { VenueProfileEditor } from "@/components/VenueProfileEditor";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { RiderTemplateBuilder } from "@/components/RiderTemplateBuilder";
+import { RiderAnalyticsDashboard } from "@/components/RiderAnalyticsDashboard";
 import { Messaging } from "@/components/Messaging";
 import { CalendarSync } from "@/components/CalendarSync";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -185,6 +186,12 @@ export default function Dashboard() {
               <TabsTrigger value="riders">
                 <FileText className="h-4 w-4 mr-2" />
                 Riders
+              </TabsTrigger>
+            )}
+            {isArtist && (
+              <TabsTrigger value="riderAnalytics">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Rider Analytics
               </TabsTrigger>
             )}
             {isArtist && (
@@ -488,6 +495,19 @@ export default function Dashboard() {
           {isArtist && (
             <TabsContent value="riders">
               <RiderTemplateBuilder />
+            </TabsContent>
+          )}
+
+          {/* Rider Analytics Tab (Artists only) */}
+          {isArtist && (
+            <TabsContent value="riderAnalytics">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Rider Analytics</h2>
+                  <p className="text-muted-foreground mb-6">Track your rider performance, acceptance rates, and negotiation metrics</p>
+                </div>
+                <RiderAnalyticsDashboard artistId={user?.id || 0} />
+              </div>
             </TabsContent>
           )}
 
