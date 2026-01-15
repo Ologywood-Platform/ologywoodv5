@@ -215,17 +215,15 @@ export function NotificationCenter() {
                     </div>
                     <div className="flex gap-2">
                       {notification.actionUrl && (
-                        <Link href={notification.actionUrl}>
-                          <a>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View
-                            </Button>
-                          </a>
-                        </Link>
+                        <a href={notification.actionUrl} className="no-underline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View
+                          </Button>
+                        </a>
                       )}
                       <Button
                         size="sm"
