@@ -965,3 +965,5 @@
 - [x] Fix nested anchor tags in ContractDetail page - Removed <a> wrapper from Link component
 
 - [x] Fix TRPC contract query error - Suppressed errors with throwOnError: false and error handler filter
+
+- [x] Fix nested anchor tags in Messages page - Removed <a> wrapper from Link component
