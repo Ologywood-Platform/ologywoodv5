@@ -872,7 +872,6 @@ export async function trackProfileView(artistId: number, viewerUserId?: number, 
   
   await db.insert(profileViews).values({
     artistId,
-    viewerId: viewerUserId,
   });
 }
 

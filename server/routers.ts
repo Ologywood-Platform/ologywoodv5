@@ -455,7 +455,12 @@ export const appRouter = router({
     getMyTemplates: artistProcedure.query(async ({ ctx }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) return [];
-      return await db.getRiderTemplatesByArtistId(profile.id);
+      try {
+        return await db.getRiderTemplatesByArtistId(profile.id);
+      } catch (error) {
+        console.error('Error getting rider templates:', error);
+        return [];
+      }
     }),
     
     // Get single template
@@ -469,7 +474,12 @@ export const appRouter = router({
     getForArtist: publicProcedure
       .input(z.object({ artistId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getRiderTemplatesByArtistId(input.artistId);
+        try {
+          return await db.getRiderTemplatesByArtistId(input.artistId);
+        } catch (error) {
+          console.error('Error getting rider templates:', error);
+          return [];
+        }
       }),
     
     // Create template
@@ -939,7 +949,12 @@ export const appRouter = router({
     getByArtist: publicProcedure
       .input(z.object({ artistId: z.number() }))
       .query(async ({ input }) => {
-        const reviews = await db.getReviewsByArtistId(input.artistId);
+        let reviews = [];
+        try {
+          reviews = await db.getReviewsByArtistId(input.artistId);
+        } catch (error) {
+          console.error('Error getting reviews:', error);
+        }
         return reviews || [];
       }),
     
@@ -1287,11 +1302,15 @@ export const appRouter = router({
         ipAddress: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await db.trackProfileView(
-          input.artistId,
-          ctx.user?.id,
-          input.ipAddress
-        );
+        try {
+          await db.trackProfileView(
+            input.artistId,
+            ctx.user?.id,
+            input.ipAddress
+          );
+        } catch (error) {
+          console.error('Error tracking profile view:', error);
+        }
         return { success: true };
       }),
     

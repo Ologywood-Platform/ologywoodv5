@@ -1,0 +1,98 @@
+{
+  "query": "SHOW FULL COLUMNS FROM rider_templates;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SHOW FULL COLUMNS FROM rider_templates;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int(11)",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "artistId",
+      "Type": "int(11)",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "templateName",
+      "Type": "varchar(255)",
+      "Collation": "utf8mb4_bin",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "technicalRequirements",
+      "Type": "json",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "hospitalityRequirements",
+      "Type": "json",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "financialTerms",
+      "Type": "json",
+      "Collation": "NULL",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Collation": "NULL",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP",
+      "Privileges": "select,insert,update,references",
+      "Comment": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tCollation\tNull\tKey\tDefault\tExtra\tPrivileges\tComment\nid\tint(11)\tNULL\tNO\tPRI\tNULL\tauto_increment\tselect,insert,update,references\t\nartistId\tint(11)\tNULL\tNO\t\tNULL\t\tselect,insert,update,references\t\ntemplateName\tvarchar(255)\tutf8mb4_bin\tNO\t\tNULL\t\tselect,insert,update,references\t\ntechnicalRequirements\tjson\tNULL\tNO\t\tNULL\t\tselect,insert,update,references\t\nhospitalityRequirements\tjson\tNULL\tNO\t\tNULL\t\tselect,insert,update,references\t\nfinancialTerms\tjson\tNULL\tYES\t\tNULL\t\tselect,insert,update,references\t\ncreatedAt\ttimestamp\tNULL\tNO\t\tCURRENT_TIMESTAMP\t\tselect,insert,update,references\t\nupdatedAt\ttimestamp\tNULL\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\tselect,insert,update,references\t\n",
+  "stderr": "",
+  "execution_time_ms": 375
+}

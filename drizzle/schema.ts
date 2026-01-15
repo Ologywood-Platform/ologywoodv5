@@ -67,19 +67,9 @@ export type InsertVenueProfile = typeof venueProfiles.$inferInsert;
  */
 export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId").notNull(),
-  templateName: varchar("templateName", { length: 255 }).notNull(),
-  description: text("description"),
-  technicalRequirements: json("technicalRequirements").$type<Record<string, any>>(),
-  hospitalityRequirements: json("hospitalityRequirements").$type<Record<string, any>>(),
-  travelRequirements: json("travelRequirements").$type<Record<string, any>>(),
-  merchandiseRequirements: json("merchandiseRequirements").$type<Record<string, any>>(),
-  additionalRequirements: json("additionalRequirements").$type<Record<string, any>>(),
-  specialRequests: text("specialRequests"),
-  isPublished: boolean("isPublished").default(false),
-  version: int("version").default(1),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  artistId: int("artistId"),
+  templateName: varchar("templateName", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 export type RiderTemplate = typeof riderTemplates.$inferSelect;
@@ -179,13 +169,11 @@ export type InsertSubscription = typeof subscriptions.$inferInsert;
  */
 export const reviews = mysqlTable("reviews", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull(),
-  artistId: int("artistId").notNull(),
-  venueId: int("venueId").notNull(),
-  rating: int("rating").notNull(),
-  comment: text("comment"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  bookingId: int("bookingId"),
+  artistId: int("artistId"),
+  venueId: int("venueId"),
+  rating: int("rating"),
+  createdAt: timestamp("createdAt").defaultNow(),
 });
 
 export type Review = typeof reviews.$inferSelect;
@@ -242,10 +230,7 @@ export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
  */
 export const profileViews = mysqlTable("profile_views", {
   id: int("id").autoincrement().primaryKey(),
-  viewerId: int("viewerId"),
   artistId: int("artistId"),
-  venueId: int("venueId"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type ProfileView = typeof profileViews.$inferSelect;
