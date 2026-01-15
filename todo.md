@@ -522,6 +522,10 @@
   - Created Payments.tsx page component with payment history and booking payments tabs
   - Added /payments route to App.tsx
   - Integrated with existing payment TRPC router
+- [x] Fix /bookings/:id route 404 error - create bookings list and detail routes
+  - Created BookingsList.tsx page component with booking summary and filtering
+  - Added /bookings and /bookings/:id routes to App.tsx
+  - Integrated with existing booking TRPC router
 
 ## Production Readiness - Phase 4: Performance Optimization (COMPLETED)
 - [x] Add database indexes for frequently queried fields (25+ indexes)

@@ -18,6 +18,7 @@ import BookingDetail from "./pages/BookingDetail";
 import VenueProfile from "./pages/VenueProfile";
 import ContractDetail from "./pages/ContractDetail";
 import Payments from "./pages/Payments";
+import BookingsList from "./pages/BookingsList";
 
 function Router() {
   return (
@@ -33,6 +34,8 @@ function Router() {
       <Route path="/rider-templates" component={RiderTemplates} />
       <Route path="/subscription" component={Subscription} />
       <Route path="/booking/:id" component={BookingDetail} />
+      <Route path="/bookings/:id" component={BookingDetail} />
+      <Route path="/bookings" component={BookingsList} />
       <Route path="/venue/:id" component={VenueProfile} />
       <Route path="/contract/:id" component={ContractDetail} />
       <Route path="/payments" component={Payments} />
