@@ -36,20 +36,20 @@ interface Article {
 
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [votedArticles, setVotedArticles] = useState<Set<number>>(new Set());
 
   const { data: categories = [] } = trpc.support.getCategories.useQuery();
 
   const { data: articles = [], isLoading: articlesLoading } = trpc.support.getArticles.useQuery({
-    categoryId: selectedCategoryId ? parseInt(selectedCategoryId) : undefined,
+    categoryId: selectedCategoryId && selectedCategoryId !== "all" ? parseInt(selectedCategoryId) : undefined,
     search: searchQuery || undefined,
     limit: 50,
   });
 
   const { data: faqs = [] } = trpc.support.getFAQs.useQuery({
-    categoryId: selectedCategoryId ? parseInt(selectedCategoryId) : undefined,
+    categoryId: selectedCategoryId && selectedCategoryId !== "all" ? parseInt(selectedCategoryId) : undefined,
     limit: 10,
   });
 
@@ -83,14 +83,12 @@ export default function HelpCenter() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
+          {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <Link href="/dashboard">
-            <a className="inline-flex">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </a>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Help Center</h1>
@@ -114,7 +112,7 @@ export default function HelpCenter() {
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((cat: any) => (
                 <SelectItem key={cat.id} value={cat.id.toString()}>
                   {cat.name}
@@ -188,9 +186,7 @@ export default function HelpCenter() {
                       Still need help? Create a support ticket and our team will assist you.
                     </p>
                     <Link href="/support/create">
-                      <a className="inline-flex">
-                        <Button size="sm">Create Support Ticket</Button>
-                      </a>
+                      <Button size="sm">Create Support Ticket</Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -281,18 +277,14 @@ export default function HelpCenter() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Link href="/support">
-                  <a className="block">
-                    <Button variant="ghost" className="w-full justify-start">
-                      View Support Tickets
-                    </Button>
-                  </a>
+                  <Button variant="ghost" className="w-full justify-start">
+                    View Support Tickets
+                  </Button>
                 </Link>
                 <Link href="/support/create">
-                  <a className="block">
-                    <Button variant="ghost" className="w-full justify-start">
-                      Create New Ticket
-                    </Button>
-                  </a>
+                  <Button variant="ghost" className="w-full justify-start">
+                    Create New Ticket
+                  </Button>
                 </Link>
               </CardContent>
             </Card>

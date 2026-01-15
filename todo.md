@@ -59,6 +59,8 @@
 ## Bug Fixes
 - [x] Fix nested anchor tag error on homepage (Link wrapping <a> elements)
 - [x] Fix nested anchor tag error on dashboard (Support and Help tabs)
+- [x] Fix Select component empty value error on Help Center page
+- [x] Fix nested anchor tags in Help Center Quick Links section
 
 ## Onboarding
 - [x] Artist onboarding wizard with multi-step form
