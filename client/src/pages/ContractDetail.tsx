@@ -16,25 +16,25 @@ export default function ContractDetail() {
   // Query contract details
   const { data: contract, isLoading, error } = trpc.contracts.getById.useQuery(
     { contractId: parseInt(id || "0") },
-    { enabled: !!id, retry: 1 }
+    { enabled: !!id, retry: 1, throwOnError: false }
   );
 
   // Query audit trail
   const { data: auditTrail } = trpc.contractAudit.getAuditTrail.useQuery(
     { contractId: parseInt(id || "0") },
-    { enabled: !!id }
+    { enabled: !!id, throwOnError: false }
   );
 
   // Query contract versions
   const { data: contractVersions } = trpc.contractAudit.getContractVersions.useQuery(
     { contractId: parseInt(id || "0") },
-    { enabled: !!id }
+    { enabled: !!id, throwOnError: false }
   );
 
   // Query status options
   const { data: statusOptions } = trpc.contractStatus.getStatusOptions.useQuery(
     { contractId: parseInt(id || "0") },
-    { enabled: !!id }
+    { enabled: !!id, throwOnError: false }
   );
 
   // Provide mock contract data if not found (for demo purposes)
