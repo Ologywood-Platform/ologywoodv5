@@ -13,33 +13,37 @@ import { ContractComparison } from "@/components/ContractComparison";
 export default function ContractDetail() {
   const { id } = useParams<{ id: string }>();
   
+  // Parse and validate contractId
+  const contractId = id ? parseInt(id, 10) : null;
+  const isValidId = contractId !== null && !isNaN(contractId) && contractId > 0;
+  
   // Query contract details
   const { data: contract, isLoading, error } = trpc.contracts.getById.useQuery(
-    { contractId: parseInt(id || "0") },
-    { enabled: !!id, retry: 1, throwOnError: false }
+    { contractId: contractId || 0 },
+    { enabled: isValidId, retry: 1, throwOnError: false }
   );
 
   // Query audit trail
   const { data: auditTrail } = trpc.contractAudit.getAuditTrail.useQuery(
-    { contractId: parseInt(id || "0") },
-    { enabled: !!id, throwOnError: false }
+    { contractId: contractId || 0 },
+    { enabled: isValidId, throwOnError: false }
   );
 
   // Query contract versions
   const { data: contractVersions } = trpc.contractAudit.getContractVersions.useQuery(
-    { contractId: parseInt(id || "0") },
-    { enabled: !!id, throwOnError: false }
+    { contractId: contractId || 0 },
+    { enabled: isValidId, throwOnError: false }
   );
 
   // Query status options
   const { data: statusOptions } = trpc.contractStatus.getStatusOptions.useQuery(
-    { contractId: parseInt(id || "0") },
-    { enabled: !!id, throwOnError: false }
+    { contractId: contractId || 0 },
+    { enabled: isValidId, throwOnError: false }
   );
 
   // Provide mock contract data if not found (for demo purposes)
   const mockContract = {
-    id: parseInt(id || "5"),
+    id: contractId || 5,
     bookingId: 1,
     status: "pending_signatures",
     contractType: "ryder",

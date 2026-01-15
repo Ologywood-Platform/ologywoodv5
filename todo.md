@@ -1051,3 +1051,7 @@
 - [x] Add FAQ section for common questions
 - [x] Create troubleshooting guide
 - [x] Implement support hours tracking
+
+
+## Bug Fixes
+- [x] Fix NaN error in contract page when parsing contractId from URL parameters
