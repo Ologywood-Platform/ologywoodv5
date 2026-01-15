@@ -347,7 +347,11 @@ export default function Dashboard() {
                     <p className="mb-4">No bookings yet</p>
                     {isVenue && (
                       <Link href="/browse">
-                        <Button>Browse Artists</Button>
+                        <a>
+                          <Button asChild>
+                            <span>Browse Artists</span>
+                          </Button>
+                        </a>
                       </Link>
                     )}
                   </div>

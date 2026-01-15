@@ -593,3 +593,7 @@
   - Replaced Link > Button structure with proper Link > a wrapper
   - Used asChild prop on Button to prevent nested anchor tags
   - Resolved React DOM nesting validation error
+- [x] Fix all nested anchor tags in Dashboard component
+  - Fixed Browse Artists button in bookings tab
+  - Applied proper Link > a > Button structure with asChild prop
+  - Ensured all Link components use correct nesting pattern
