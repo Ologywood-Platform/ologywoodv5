@@ -31,6 +31,8 @@ import HelpCenter from "./pages/HelpCenter";
 import AdminSupportDashboard from "./pages/AdminSupportDashboard";
 import { AIChatWidget } from "./components/AIChatWidget";
 import SupportMetricsDashboard from "./pages/SupportMetricsDashboard";
+import SupportTeamManagement from "./pages/SupportTeamManagement";
+import SLATrackingDashboard from "./pages/SLATrackingDashboard";
 
 function Router() {
   return (
@@ -62,6 +64,8 @@ function Router() {
       <Route path="/help" component={HelpCenter} />
       <Route path="/admin/support" component={AdminSupportDashboard} />
       <Route path="/admin/support/metrics" component={SupportMetricsDashboard} />
+      <Route path="/admin/support-team" component={SupportTeamManagement} />
+      <Route path="/admin/sla-tracking" component={SLATrackingDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
