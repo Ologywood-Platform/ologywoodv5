@@ -635,3 +635,8 @@
 - [x] Fix remaining nested anchor tag error on dashboard
   - Replaced Link > a > Button structure with direct a > Button for back button
   - Removed nested Link wrapper to prevent HTML validation errors
+
+- [x] Fix /contracts/5 route 404 error - resolve duplicate useParams import
+  - Removed duplicate useParams import from ContractDetail component
+  - Consolidated imports from wouter to single line
+  - Route now properly loads contract details with mock data fallback

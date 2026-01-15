@@ -1,11 +1,10 @@
-import { useParams } from "wouter";
+import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Download, Share2, History, GitCompare } from "lucide-react";
-import { Link } from "wouter";
 import { toast } from "sonner";
 import { ContractStatusTransition } from "@/components/ContractStatusTransition";
 import { ContractAuditTrail } from "@/components/ContractAuditTrail";
