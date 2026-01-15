@@ -427,3 +427,50 @@ export const userTemplatePreferences = mysqlTable("user_template_preferences", {
 
 export type UserTemplatePreference = typeof userTemplatePreferences.$inferSelect;
 export type InsertUserTemplatePreference = typeof userTemplatePreferences.$inferInsert;
+
+
+/**
+ * Notifications table - stores in-app notifications for users
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["booking", "message", "payment", "contract", "review"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  actionUrl: text("actionUrl"),
+  isRead: boolean("isRead").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * Notification preferences table - stores user notification preferences
+ */
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  bookingInApp: boolean("bookingInApp").default(true),
+  bookingEmail: boolean("bookingEmail").default(true),
+  bookingPush: boolean("bookingPush").default(true),
+  messageInApp: boolean("messageInApp").default(true),
+  messageEmail: boolean("messageEmail").default(true),
+  messagePush: boolean("messagePush").default(true),
+  contractInApp: boolean("contractInApp").default(true),
+  contractEmail: boolean("contractEmail").default(true),
+  contractPush: boolean("contractPush").default(false),
+  paymentInApp: boolean("paymentInApp").default(true),
+  paymentEmail: boolean("paymentEmail").default(true),
+  paymentPush: boolean("paymentPush").default(true),
+  reviewInApp: boolean("reviewInApp").default(true),
+  reviewEmail: boolean("reviewEmail").default(false),
+  reviewPush: boolean("reviewPush").default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;

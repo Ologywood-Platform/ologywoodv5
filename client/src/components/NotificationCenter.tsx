@@ -25,10 +25,15 @@ interface NotificationPreference {
 }
 
 export function NotificationCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Initialize notifications
+  useEffect(() => {
+    setNotificationsList(mockNotifications);
+  }, []);
 
   // Mock notifications
   const mockNotifications: Notification[] = [
@@ -88,25 +93,25 @@ export function NotificationCenter() {
   ];
 
   useEffect(() => {
-    setNotifications(mockNotifications);
+    setNotificationsList(mockNotifications);
     setPreferences(mockPreferences);
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notificationsList.filter(n => !n.isRead).length;
 
   const handleMarkAsRead = (id: number) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
+    setNotificationsList((prev: Notification[]) =>
+      prev.map((n: Notification) => (n.id === id ? { ...n, isRead: true } : n))
     );
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotificationsList((prev: Notification[]) => prev.map((n: Notification) => ({ ...n, isRead: true })));
     toast.success('All notifications marked as read');
   };
 
   const handleDeleteNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotificationsList((prev: Notification[]) => prev.filter((n: Notification) => n.id !== id));
     toast.success('Notification deleted');
   };
 
@@ -189,8 +194,8 @@ export function NotificationCenter() {
           </div>
 
           <div className="space-y-3">
-            {notifications.length > 0 ? (
-              notifications.map(notification => (
+            {notificationsList.length > 0 ? (
+              notificationsList.map(notification => (
                 <Card
                   key={notification.id}
                   className={`p-4 cursor-pointer transition-colors ${
