@@ -120,13 +120,11 @@ export default function ContractDetail() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/dashboard">
-              <a>
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-              </a>
+            <Link href="/dashboard" className="inline-block">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
             </Link>
             <h1 className="text-3xl font-bold mt-4">Contract #{id}</h1>
             <p className="text-muted-foreground mt-1">

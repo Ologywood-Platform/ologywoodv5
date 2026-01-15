@@ -959,5 +959,7 @@
 - [x] Verify booking modal UI - Professional modal with all booking details displayed correctly
 
 
-## Bug Fixes (Current)
+### Bug Fixes (Current)
 - [x] Fix /contracts/5 route 404 error - Added /contracts/:id route to App.tsx
+- [x] Fix contract not found error on /contracts/5 - Added mock contract data fallback
+- [x] Fix nested anchor tags in ContractDetail page - Removed <a> wrapper from Link component
