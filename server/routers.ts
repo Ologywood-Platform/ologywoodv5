@@ -10,6 +10,8 @@ import * as email from "./email";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 import { contractsRouter } from "./routers/contracts";
+import { contractStatusRouter } from "./routers/contract-status";
+import { contractAuditRouter } from "./routers/contract-audit";
 import { referralRouter } from "./routers/referrals";
 import { verificationRouter } from "./routers/verification";
 import { templatesRouter } from "./routers/templates";
@@ -37,6 +39,8 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 export const appRouter = router({
   system: systemRouter,
   contracts: contractsRouter,
+  contractStatus: contractStatusRouter,
+  contractAudit: contractAuditRouter,
   referrals: referralRouter,
   verification: verificationRouter,
   templates: templatesRouter,

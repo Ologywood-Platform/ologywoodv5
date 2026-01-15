@@ -3,9 +3,13 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Download, Share2, History, GitCompare } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
+import { ContractStatusTransition } from "@/components/ContractStatusTransition";
+import { ContractAuditTrail } from "@/components/ContractAuditTrail";
+import { ContractComparison } from "@/components/ContractComparison";
 
 export default function ContractDetail() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +18,24 @@ export default function ContractDetail() {
   const { data: contract, isLoading, error } = trpc.contracts.getById.useQuery(
     { contractId: parseInt(id || "0") },
     { enabled: !!id, retry: 1 }
+  );
+
+  // Query audit trail
+  const { data: auditTrail } = trpc.contractAudit.getAuditTrail.useQuery(
+    { contractId: parseInt(id || "0") },
+    { enabled: !!id }
+  );
+
+  // Query contract versions
+  const { data: contractVersions } = trpc.contractAudit.getContractVersions.useQuery(
+    { contractId: parseInt(id || "0") },
+    { enabled: !!id }
+  );
+
+  // Query status options
+  const { data: statusOptions } = trpc.contractStatus.getStatusOptions.useQuery(
+    { contractId: parseInt(id || "0") },
+    { enabled: !!id }
   );
 
   // Provide mock contract data if not found (for demo purposes)
@@ -52,10 +74,12 @@ export default function ContractDetail() {
           </CardHeader>
           <CardContent>
             <Link href="/dashboard">
-              <Button className="w-full">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
+              <a>
+                <Button className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </a>
             </Link>
           </CardContent>
         </Card>
@@ -112,12 +136,12 @@ export default function ContractDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto py-8 px-4">
+      <div className="container max-w-6xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/dashboard">
-              <a className="inline-block">
+              <a>
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -148,89 +172,145 @@ export default function ContractDetail() {
           </Badge>
         </div>
 
-        {/* Contract Details */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Contract Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Booking ID</p>
-                <p className="font-semibold">{displayContract.bookingId}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className="font-semibold capitalize">{displayContract.status?.replace(/_/g, " ")}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Created</p>
-                <p className="font-semibold">
-                  {new Date(displayContract.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              {displayContract.artistSignedAt && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Artist Signed</p>
-                  <p className="font-semibold">
-                    {new Date(displayContract.artistSignedAt).toLocaleDateString()}
+        {/* Tabs for different sections */}
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="status">
+              <Badge variant="outline" className="ml-2">Status</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="audit">
+              <History className="h-4 w-4 mr-2" />
+              Audit Trail
+            </TabsTrigger>
+            <TabsTrigger value="comparison">
+              <GitCompare className="h-4 w-4 mr-2" />
+              Comparison
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Details Tab */}
+          <TabsContent value="details" className="space-y-6">
+            {/* Contract Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contract Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Booking ID</p>
+                    <p className="font-semibold">{displayContract.bookingId}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p className="font-semibold capitalize">{displayContract.status?.replace(/_/g, " ")}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Created</p>
+                    <p className="font-semibold">
+                      {new Date(displayContract.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {displayContract.artistSignedAt && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Artist Signed</p>
+                      <p className="font-semibold">
+                        {new Date(displayContract.artistSignedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contract Content */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contract Terms</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none">
+                  <div className="bg-muted p-4 rounded-lg whitespace-pre-wrap text-sm">
+                    {displayContract.contractContent || "No contract content available"}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Signatures */}
+            {(displayContract.artistSignedAt || displayContract.venueSignedAt) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Signatures</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-semibold">Artist Signature</p>
+                        {displayContract.artistSignedAt ? (
+                          <Badge className="bg-green-100 text-green-800">
+                            Signed {new Date(displayContract.artistSignedAt).toLocaleDateString()}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Pending</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-semibold">Venue Signature</p>
+                        {displayContract.venueSignedAt ? (
+                          <Badge className="bg-green-100 text-green-800">
+                            Signed {new Date(displayContract.venueSignedAt).toLocaleDateString()}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Pending</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Status Tab */}
+          <TabsContent value="status">
+            {statusOptions && (
+              <ContractStatusTransition
+                contractId={parseInt(id || "0")}
+                currentStatus={displayContract.status}
+                canSign={statusOptions.canSign}
+                canReject={statusOptions.canReject}
+                canApprove={statusOptions.canApprove}
+                canCancel={statusOptions.canCancel}
+              />
+            )}
+          </TabsContent>
+
+          {/* Audit Trail Tab */}
+          <TabsContent value="audit">
+            {auditTrail && <ContractAuditTrail auditTrail={auditTrail} />}
+          </TabsContent>
+
+          {/* Comparison Tab */}
+          <TabsContent value="comparison">
+            {contractVersions && contractVersions.length > 1 && (
+              <ContractComparison contractId={parseInt(id || "0")} versions={contractVersions} />
+            )}
+            {contractVersions && contractVersions.length <= 1 && (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground text-center py-8">
+                    Only one version available. Comparison requires multiple versions.
                   </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contract Content */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Contract Terms</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none">
-              <div className="bg-muted p-4 rounded-lg whitespace-pre-wrap text-sm">
-                {displayContract.contractContent || "No contract content available"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Signatures */}
-        {(displayContract.artistSignedAt || displayContract.venueSignedAt) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Signatures</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold">Artist Signature</p>
-                    {displayContract.artistSignedAt ? (
-                      <Badge className="bg-green-100 text-green-800">
-                        Signed {new Date(displayContract.artistSignedAt).toLocaleDateString()}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Pending</Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold">Venue Signature</p>
-                    {displayContract.venueSignedAt ? (
-                      <Badge className="bg-green-100 text-green-800">
-                        Signed {new Date(displayContract.venueSignedAt).toLocaleDateString()}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Pending</Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
