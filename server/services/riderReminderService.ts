@@ -161,7 +161,7 @@ export async function sendArtistReminderIfNeeded(
       .from(riderModificationHistory)
       .where(
         and(
-          eq(riderModificationHistory.riderAcknowledgmentId, acknowledgmentId)
+          eq(riderModificationHistory.acknowledgmentId, acknowledgmentId)
         )
       );
 

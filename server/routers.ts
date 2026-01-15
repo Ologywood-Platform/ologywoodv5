@@ -19,9 +19,9 @@ import { testdataRouter } from "./routers/testdata";
 import { testdataSeedingRouter } from "./routers/testdata-seeding";
 import { impersonationRouter } from "./routers/impersonation";
 import { testWorkflowsRouter } from "./routers/test-workflows";
-import { supportRouter } from "./routers/support";
+// import { supportRouter } from "./routers/support";
 import { adminSeedRouter } from "./routers/admin-seed";
-import { supportSeederRouter } from "./routers/support-seeder";
+// import { supportSeederRouter } from "./routers/support-seeder";
 import { aiChatRouter } from "./routers/ai-chat";
 
 // Helper to check if user is an artist
@@ -52,9 +52,9 @@ export const appRouter = router({
   testdataSeeding: testdataSeedingRouter,
   impersonation: impersonationRouter,
   testWorkflows: testWorkflowsRouter,
-  support: supportRouter,
+  // support: supportRouter,
   adminSeed: adminSeedRouter,
-  supportSeeder: supportSeederRouter,
+  // supportSeeder: supportSeederRouter,
   aiChat: aiChatRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

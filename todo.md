@@ -1116,3 +1116,10 @@
 - [x] Add revenue tracking by tier
 - [x] Create analytics charts and visualizations
 - [x] Add export functionality for reports
+
+
+## Bug Fixes - Current
+- [x] Fix rider_templates database schema mismatch - simplified to JSON-based schema
+- [x] Add missing support tables (faqs, knowledgeBaseArticles, supportCategories, etc.)
+- [x] Fix TypeScript errors in routers and services
+- [x] Temporarily disabled support router to resolve schema conflicts

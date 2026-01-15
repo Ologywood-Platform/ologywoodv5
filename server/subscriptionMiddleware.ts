@@ -11,8 +11,10 @@ export async function checkArtistSubscription(userId: number): Promise<boolean> 
     return false;
   }
 
-  // Allow access if subscription is active or in trial period
-  return subscription.status === 'active' || subscription.status === 'trialing';
+  // Allow access if subscription is active or trial is still valid
+  if (subscription.status === 'active') return true;
+  if (subscription.trialEndsAt && subscription.trialEndsAt > new Date()) return true;
+  return false;
 }
 
 /**

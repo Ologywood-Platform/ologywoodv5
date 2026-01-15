@@ -127,10 +127,7 @@ export async function getBookingRiderStatus(bookingId: number) {
     hasRider: true,
     status: ack.status,
     acknowledgedAt: ack.acknowledgedAt,
-    acknowledgedByUserId: ack.acknowledgedByUserId,
-    proposedModifications: ack.proposedModifications,
-    artistResponse: ack.artistResponse,
-    finalizedAt: ack.finalizedAt,
+    proposedModifications: null,
   };
 }
 

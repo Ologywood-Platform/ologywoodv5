@@ -26,11 +26,11 @@ export const riderAnalyticsRouter = router({
         total: acknowledgments.length,
         acknowledged: acknowledgments.filter(a => a.status === 'acknowledged').length,
         modificationsProposed: acknowledgments.filter(a => a.status === 'modifications_proposed').length,
-        accepted: acknowledgments.filter(a => a.status === 'accepted').length,
+        accepted: acknowledgments.filter(a => a.status === 'approved').length,
         rejected: acknowledgments.filter(a => a.status === 'rejected').length,
         pending: acknowledgments.filter(a => a.status === 'pending').length,
         acceptanceRate: acknowledgments.length > 0 
-          ? ((acknowledgments.filter(a => a.status === 'accepted' || a.status === 'acknowledged').length / acknowledgments.length) * 100).toFixed(1)
+          ? ((acknowledgments.filter(a => a.status === 'acknowledged' || a.status === 'approved').length / acknowledgments.length) * 100).toFixed(1)
           : 0,
       };
 
@@ -53,7 +53,7 @@ export const riderAnalyticsRouter = router({
         .from(riderModificationHistory)
         .innerJoin(
           riderAcknowledgments,
-          eq(riderModificationHistory.riderAcknowledgmentId, riderAcknowledgments.id)
+          eq(riderModificationHistory.acknowledgmentId, riderAcknowledgments.id)
         )
         .where(eq(riderAcknowledgments.artistId, input.artistId));
 

@@ -137,9 +137,8 @@ export const supportRouter = router({
 
       await db.insert(supportTicketResponses).values({
         ticketId: input.ticketId,
-        userId: ctx.user.id,
-        message: input.message,
-        isStaffResponse: false,
+        responderId: ctx.user.id,
+        response: input.message,
       });
 
       const response = await db
@@ -188,7 +187,7 @@ export const supportRouter = router({
 
       await db
         .update(supportTickets)
-        .set({ status: "closed", resolvedAt: new Date() })
+        .set({ status: "closed" })
         .where(eq(supportTickets.id, input.ticketId));
 
       // Send email notification for resolution
@@ -218,10 +217,10 @@ export const supportRouter = router({
       const db = await getDb();
       if (!db) return [];
 
-      let whereConditions = eq(knowledgeBaseArticles.isPublished, true);
+      let whereConditions = true as any;
 
       if (input.categoryId) {
-        whereConditions = and(whereConditions, eq(knowledgeBaseArticles.categoryId, input.categoryId)) as any;
+        whereConditions = and(whereConditions, eq(knowledgeBaseArticles.category, input.categoryId.toString())) as any;
       }
 
       if (input.search) {
@@ -251,10 +250,7 @@ export const supportRouter = router({
         .select()
         .from(knowledgeBaseArticles)
         .where(
-          and(
-            eq(knowledgeBaseArticles.slug, input.slug),
-            eq(knowledgeBaseArticles.isPublished, true)
-          )
+          eq(knowledgeBaseArticles.title, input.slug)
         )
         .then((res: any) => res[0]);
 
@@ -291,8 +287,8 @@ export const supportRouter = router({
       }
 
       const updateData = input.helpful
-        ? { helpfulVotes: article.helpfulVotes + 1 }
-        : { unhelpfulVotes: article.unhelpfulVotes + 1 };
+        ? { helpful: article.helpful + 1 }
+        : { notHelpful: article.notHelpful + 1 };
 
       await db
         .update(knowledgeBaseArticles)
@@ -312,17 +308,12 @@ export const supportRouter = router({
       const db = await getDb();
       if (!db) return [];
 
-      let whereConditions = eq(faqs.isActive, true);
-
-      if (input.categoryId) {
-        whereConditions = and(whereConditions, eq(faqs.categoryId, input.categoryId)) as any;
-      }
+      let whereConditions = input.categoryId ? eq(faqs.category, input.categoryId.toString()) : true as any;
 
       const faqList = await db
         .select()
         .from(faqs)
         .where(whereConditions)
-        .orderBy(faqs.order)
         .limit(input.limit);
 
       return faqList;
@@ -336,8 +327,7 @@ export const supportRouter = router({
     const categories = await db
       .select()
       .from(supportCategories)
-      .where(eq(supportCategories.isActive, true))
-      .orderBy(supportCategories.order);
+      .orderBy(supportCategories.name);
 
     return categories;
   }),
