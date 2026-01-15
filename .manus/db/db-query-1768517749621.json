@@ -1,0 +1,106 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "artist_profiles"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "artist_verification"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "availability"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "booking_reminders"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "booking_templates"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "bookings"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "contracts"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "faqs"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "favorites"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "knowledge_base_articles"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "messages"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "notification_preferences"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "notifications"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "profile_views"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "referrals"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "reviews"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "rider_acknowledgments"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "rider_modification_history"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "rider_templates"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "signatures"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "subscriptions"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "support_categories"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "support_sla_settings"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "support_ticket_responses"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "support_tickets"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "system_booking_templates"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "user_credits"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "user_template_preferences"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "users"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "venueReviews"
+    },
+    {
+      "Tables_in_mP6FLm6cHUyVdEMNViNuZS": "venue_profiles"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_mP6FLm6cHUyVdEMNViNuZS\n__drizzle_migrations\nartist_profiles\nartist_verification\navailability\nbooking_reminders\nbooking_templates\nbookings\ncontracts\nfaqs\nfavorites\nknowledge_base_articles\nmessages\nnotification_preferences\nnotifications\nprofile_views\nreferrals\nreviews\nrider_acknowledgments\nrider_modification_history\nrider_templates\nsignatures\nsubscriptions\nsupport_categories\nsupport_sla_settings\nsupport_ticket_responses\nsupport_tickets\nsystem_booking_templates\nuser_credits\nuser_template_preferences\nusers\nvenueReviews\nvenue_profiles\n",
+  "stderr": "",
+  "execution_time_ms": 387
+}
