@@ -617,3 +617,8 @@
   - Fixed Create Your Artist Profile button
   - Fixed View All Artists button
   - All Link > Button combinations now use proper a > Button > span structure
+
+- [x] Fix remaining nested anchor tag errors on dashboard page
+  - Fixed Full Calendar View button in availability section
+  - Fixed View Details button in subscription section
+  - All Link > Button combinations now use proper a > Button > span structure
