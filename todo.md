@@ -957,3 +957,7 @@
 - [x] Verify form validation - Form validates required fields and prevents submission with missing data
 - [x] Test role-based access control - System correctly enforces venue-only booking creation
 - [x] Verify booking modal UI - Professional modal with all booking details displayed correctly
+
+
+## Bug Fixes (Current)
+- [x] Fix /contracts/5 route 404 error - Added /contracts/:id route to App.tsx

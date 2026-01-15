@@ -57,6 +57,7 @@ function Router() {
       <Route path="/reviews" component={Reviews} />
       <Route path="/venue/:id" component={VenueProfile} />
       <Route path="/contract/:id" component={ContractDetail} />
+      <Route path="/contracts/:id" component={ContractDetail} />
       <Route path="/payments" component={Payments} />
       <Route path="/support" component={SupportTickets} />
       <Route path="/support/create" component={SupportTicketCreate} />
