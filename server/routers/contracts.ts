@@ -49,10 +49,12 @@ export const contractsRouter = router({
         bookingId: input.bookingId,
         artistId: booking.artistId,
         venueId: booking.venueId,
-        contractType: input.contractType,
-        contractTitle: input.contractTitle,
-        contractContent: input.contractContent,
-        status: 'pending_signatures',
+        contractData: {
+          type: input.contractType,
+          title: input.contractTitle,
+          content: input.contractContent,
+        },
+        status: 'draft',
       });
 
       return contract;
@@ -126,8 +128,8 @@ export const contractsRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
       }
 
-      // Only allow updates if contract is in draft or pending_signatures status
-      if (contract.status !== 'draft' && contract.status !== 'pending_signatures') {
+      // Only allow updates if contract is in draft status
+      if (contract.status !== 'draft') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot update a signed or executed contract' });
       }
 
@@ -141,8 +143,10 @@ export const contractsRouter = router({
       }
 
       return await db.updateContract(input.contractId, {
-        contractTitle: input.contractTitle,
-        contractContent: input.contractContent,
+        contractData: {
+          title: input.contractTitle,
+          content: input.contractContent,
+        },
       });
     }),
 
@@ -183,22 +187,17 @@ export const contractsRouter = router({
       const signature = await db.createSignature({
         contractId: input.contractId,
         signerId: ctx.user.id,
-        signerRole,
         signatureData: input.signatureData,
-        signatureType: input.signatureType,
-        ipAddress: ctx.req.ip || 'unknown',
-        userAgent: ctx.req.headers['user-agent'] || 'unknown',
-        verificationToken,
       });
 
-      // Update contract signed timestamp
+      // Update contract status to 'sent' when first signature is added
       if (signerRole === 'artist') {
         await db.updateContract(input.contractId, {
-          status: new Date(),
+          status: 'sent',
         });
       } else {
         await db.updateContract(input.contractId, {
-          status: new Date(),
+          status: 'sent',
         });
       }
 
@@ -219,7 +218,7 @@ export const contractsRouter = router({
             to: artist.email,
             artistName: artist.name || 'Artist',
             venueName: venue?.name || 'Venue',
-            contractTitle: contract.contractTitle,
+            contractTitle: contract.contractData?.title || 'Contract',
           });
         }
 
@@ -228,7 +227,7 @@ export const contractsRouter = router({
             to: venue.email,
             artistName: artist?.name || 'Artist',
             venueName: venue.name || 'Venue',
-            contractTitle: contract.contractTitle,
+            contractTitle: contract.contractData?.title || 'Contract',
           });
         }
       }
