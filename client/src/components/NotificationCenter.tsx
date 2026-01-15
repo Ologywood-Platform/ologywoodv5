@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'wouter';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -214,16 +215,17 @@ export function NotificationCenter() {
                     </div>
                     <div className="flex gap-2">
                       {notification.actionUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = notification.actionUrl!;
-                          }}
-                        >
-                          View
-                        </Button>
+                        <Link href={notification.actionUrl}>
+                          <a>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View
+                            </Button>
+                          </a>
+                        </Link>
                       )}
                       <Button
                         size="sm"

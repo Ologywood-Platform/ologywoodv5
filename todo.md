@@ -582,3 +582,9 @@
   - [x] Highlight differences between versions with color coding
   - [x] Show change history and revisions with line-by-line comparison
   - [x] Enable easy version selection for comparison with dropdown selectors
+
+## Bug Fixes - Phase 6
+- [x] Fix admin notification tab contract signed view button error
+  - Replaced window.location.href with wouter Link component for proper routing
+  - Fixed hard page reload issue that was causing 404 errors
+  - Maintained event propagation handling for notification card interactions
