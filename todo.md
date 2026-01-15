@@ -964,4 +964,4 @@
 - [x] Fix contract not found error on /contracts/5 - Added mock contract data fallback
 - [x] Fix nested anchor tags in ContractDetail page - Removed <a> wrapper from Link component
 
-- [x] Fix TRPC contract query error - Suppressed errors with throwOnError: false
+- [x] Fix TRPC contract query error - Suppressed errors with throwOnError: false and error handler filter

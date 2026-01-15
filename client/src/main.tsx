@@ -25,6 +25,9 @@ queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
     redirectToLoginIfUnauthorized(error);
+    if (error instanceof TRPCClientError && error.message.includes("Contract not found")) {
+      return;
+    }
     console.error("[API Query Error]", error);
   }
 });
