@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart, TrendingUp } from "lucide-react";
+import { Music, Calendar, MessageSquare, Settings, ArrowLeft, FileText, Star, Heart, TrendingUp, Bell } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsTabContent from "@/components/ReviewsTabContent";
 import UnreadBadge from "@/components/UnreadBadge";
@@ -17,6 +17,10 @@ import VenueCalendar from "@/components/VenueCalendar";
 import { ArtistProfileEditor } from "@/components/ArtistProfileEditor";
 import { VenueProfileEditor } from "@/components/VenueProfileEditor";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
+import { RiderTemplateBuilder } from "@/components/RiderTemplateBuilder";
+import { Messaging } from "@/components/Messaging";
+import { CalendarSync } from "@/components/CalendarSync";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -223,6 +227,26 @@ export default function Dashboard() {
                   Photos
                 </TabsTrigger>
               </>
+            )}
+            
+            {/* Messaging Tab (Both roles) */}
+            <TabsTrigger value="messaging">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Messages
+            </TabsTrigger>
+            
+            {/* Notifications Tab (Both roles) */}
+            <TabsTrigger value="notifications">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+            
+            {/* Calendar Sync Tab (Artists only) */}
+            {isArtist && (
+              <TabsTrigger value="calendar-sync">
+                <Calendar className="h-4 w-4 mr-2" />
+                Calendar Sync
+              </TabsTrigger>
             )}
           </TabsList>
 
@@ -436,28 +460,7 @@ export default function Dashboard() {
           {/* Riders Tab (Artists only) */}
           {isArtist && (
             <TabsContent value="riders">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">Rider Templates</h2>
-                    <p className="text-muted-foreground">Manage your technical and hospitality requirements</p>
-                  </div>
-                  <Link href="/rider-templates">
-                    <Button>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Manage Templates
-                    </Button>
-                  </Link>
-                </div>
-                <Card>
-                  <CardContent className="pt-6">
-                    <p className="text-muted-foreground text-center">
-                      Create reusable rider templates to streamline your booking process.
-                      Click "Manage Templates" to get started.
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <RiderTemplateBuilder />
             </TabsContent>
           )}
 
@@ -528,6 +531,23 @@ export default function Dashboard() {
           {isVenue && (
             <TabsContent value="photos">
               <PhotoGalleryManager role="venue" />
+            </TabsContent>
+          )}
+          
+          {/* Messaging Tab Content */}
+          <TabsContent value="messaging">
+            <Messaging />
+          </TabsContent>
+          
+          {/* Notifications Tab Content */}
+          <TabsContent value="notifications">
+            <NotificationCenter />
+          </TabsContent>
+          
+          {/* Calendar Sync Tab Content (Artists only) */}
+          {isArtist && (
+            <TabsContent value="calendar-sync">
+              <CalendarSync />
             </TabsContent>
           )}
         </Tabs>

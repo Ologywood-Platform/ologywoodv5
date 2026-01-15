@@ -359,3 +359,24 @@
 - [x] Add profilePhotoUrl field to venue_profiles table
 - [x] Implement ArtistProfileEditor component with all fields
 - [x] Implement VenueProfileEditor component with all fields
+
+## Rider/Contract Template Builder (COMPLETED)
+- [x] Create RiderTemplateBuilder UI component with technical, hospitality, and financial sections
+- [x] Create API endpoints for CRUD operations on rider templates (list, get, create, update, delete)
+- [x] Add template editing capabilities with tabs for each section
+- [x] Integrate into Dashboard Riders tab
+
+## Booking Calendar Sync (COMPLETED)
+- [x] Create CalendarSync component with Google Calendar and iCal support
+- [x] Implement iCal feed URL generation and copying
+- [x] Create calendar sync settings in Dashboard with toggle options
+- [x] Add support for syncing bookings and availability
+- [x] Display supported calendar applications
+
+## Real-time Messaging & Notifications (COMPLETED)
+- [x] Create Messaging component with conversation list and message thread
+- [x] Build messaging UI with real-time message display
+- [x] Create NotificationCenter component with notification list and preferences
+- [x] Implement notification type filtering and preferences
+- [x] Add notification badges and read/unread indicators
+- [x] Integrate all components into Dashboard tabs

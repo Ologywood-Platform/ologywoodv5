@@ -1516,8 +1516,109 @@ export const appRouter = router({
         await db.recordRefund(input.bookingId, refund.id);
         
         return { refundId: refund.id, success: true };
+       }),
+  }),
+  
+  // Rider Template Management
+  riderTemplate: router({
+    // List all rider templates for current artist
+    list: artistProcedure.query(async ({ ctx }) => {
+      return await db.getRiderTemplatesByArtistId(ctx.user.id);
+    }),
+    
+    // Get specific rider template
+    get: artistProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const template = await db.getRiderTemplateById(input.id);
+        if (!template || template.artistId !== ctx.user.id) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' });
+        }
+        return template;
+      }),
+    
+    // Create new rider template
+    create: artistProcedure
+      .input(z.object({
+        templateName: z.string().min(1),
+        technicalRequirements: z.object({
+          stageWidth: z.string().optional(),
+          stageDepth: z.string().optional(),
+          soundSystem: z.string().optional(),
+          lighting: z.string().optional(),
+          backline: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        hospitalityRequirements: z.object({
+          dressingRooms: z.string().optional(),
+          catering: z.string().optional(),
+          beverages: z.string().optional(),
+          accommodation: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        financialTerms: z.object({
+          depositAmount: z.string().optional(),
+          paymentMethod: z.string().optional(),
+          cancellationPolicy: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const template = await db.createRiderTemplate({
+          artistId: ctx.user.id,
+          ...input,
+        });
+        return template;
+      }),
+    
+    // Update rider template
+    update: artistProcedure
+      .input(z.object({
+        id: z.number(),
+        templateName: z.string().optional(),
+        technicalRequirements: z.object({
+          stageWidth: z.string().optional(),
+          stageDepth: z.string().optional(),
+          soundSystem: z.string().optional(),
+          lighting: z.string().optional(),
+          backline: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        hospitalityRequirements: z.object({
+          dressingRooms: z.string().optional(),
+          catering: z.string().optional(),
+          beverages: z.string().optional(),
+          accommodation: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+        financialTerms: z.object({
+          depositAmount: z.string().optional(),
+          paymentMethod: z.string().optional(),
+          cancellationPolicy: z.string().optional(),
+          other: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const template = await db.getRiderTemplateById(input.id);
+        if (!template || template.artistId !== ctx.user.id) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' });
+        }
+        const { id, ...updates } = input;
+        await db.updateRiderTemplate(id, updates);
+        return { success: true };
+      }),
+    
+    // Delete rider template
+    delete: artistProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const template = await db.getRiderTemplateById(input.id);
+        if (!template || template.artistId !== ctx.user.id) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' });
+        }
+        await db.deleteRiderTemplate(input.id);
+        return { success: true };
       }),
   }),
 });
-
 export type AppRouter = typeof appRouter;
