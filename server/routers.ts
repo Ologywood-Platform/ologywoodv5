@@ -661,21 +661,24 @@ export const appRouter = router({
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        return await db.getBookingById(input.id);
+        const booking = await db.getBookingById(input.id);
+        return booking || null;
       }),
     
     // Get bookings for current artist
     getMyArtistBookings: artistProcedure.query(async ({ ctx }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) return [];
-      return await db.getBookingsByArtistId(profile.id);
+      const bookings = await db.getBookingsByArtistId(profile.id);
+      return bookings || [];
     }),
     
     // Get bookings for current venue
     getMyVenueBookings: venueProcedure.query(async ({ ctx }) => {
       const profile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!profile) return [];
-      return await db.getBookingsByVenueId(profile.id);
+      const bookings = await db.getBookingsByVenueId(profile.id);
+      return bookings || [];
     }),
     
     // Update booking status (artist)
@@ -924,21 +927,24 @@ export const appRouter = router({
     getByArtist: publicProcedure
       .input(z.object({ artistId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getReviewsByArtistId(input.artistId);
+        const reviews = await db.getReviewsByArtistId(input.artistId);
+        return reviews || [];
       }),
     
     // Get review for a specific booking
     getByBooking: publicProcedure
       .input(z.object({ bookingId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getReviewByBookingId(input.bookingId);
+        const review = await db.getReviewByBookingId(input.bookingId);
+        return review || null;
       }),
     
     // Get average rating for an artist
     getAverageRating: publicProcedure
       .input(z.object({ artistId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getAverageRatingForArtist(input.artistId);
+        const rating = await db.getAverageRatingForArtist(input.artistId);
+        return rating || { averageRating: 0, reviewCount: 0 };
       }),
 
     // Respond to a review (artist only)
@@ -1046,21 +1052,24 @@ export const appRouter = router({
     getByVenue: protectedProcedure
       .input(z.object({ venueId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getVenueReviewsByVenueId(input.venueId);
+        const reviews = await db.getVenueReviewsByVenueId(input.venueId);
+        return reviews || [];
       }),
     
     // Get venue review by booking ID
     getByBooking: protectedProcedure
       .input(z.object({ bookingId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getVenueReviewByBookingId(input.bookingId);
+        const review = await db.getVenueReviewByBookingId(input.bookingId);
+        return review || null;
       }),
     
     // Get average rating for venue
     getAverageRating: protectedProcedure
       .input(z.object({ venueId: z.number() }))
       .query(async ({ input }) => {
-        return await db.getAverageRatingForVenue(input.venueId);
+        const rating = await db.getAverageRatingForVenue(input.venueId);
+        return rating || { averageRating: 0, reviewCount: 0 };
       }),
     
     // Venue responds to review
