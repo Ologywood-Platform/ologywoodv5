@@ -21,6 +21,7 @@ import { RiderTemplateBuilder } from "@/components/RiderTemplateBuilder";
 import { Messaging } from "@/components/Messaging";
 import { CalendarSync } from "@/components/CalendarSync";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { AdminDashboard } from "@/components/AdminDashboard";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -165,7 +166,7 @@ export default function Dashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 lg:w-auto">
+          <TabsList className="flex w-full overflow-x-auto gap-2 bg-transparent border-b border-border">
             <TabsTrigger value="bookings">
               <Calendar className="h-4 w-4 mr-2" />
               Bookings
@@ -246,6 +247,14 @@ export default function Dashboard() {
               <TabsTrigger value="calendar-sync">
                 <Calendar className="h-4 w-4 mr-2" />
                 Calendar Sync
+              </TabsTrigger>
+            )}
+            
+            {/* Admin Testing Tab (Admin only) */}
+            {user?.role === 'admin' && (
+              <TabsTrigger value="admin-testing">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Admin Testing
               </TabsTrigger>
             )}
           </TabsList>
@@ -548,6 +557,13 @@ export default function Dashboard() {
           {isArtist && (
             <TabsContent value="calendar-sync">
               <CalendarSync />
+            </TabsContent>
+          )}
+          
+          {/* Admin Testing Tab Content */}
+          {user?.role === 'admin' && (
+            <TabsContent value="admin-testing">
+              <AdminDashboard />
             </TabsContent>
           )}
         </Tabs>
