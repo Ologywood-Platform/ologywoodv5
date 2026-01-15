@@ -1,0 +1,272 @@
+import { router, publicProcedure } from '../_core/trpc';
+import { z } from 'zod';
+import { getDb } from '../db';
+import { bookings, riderTemplates, riderAcknowledgments, riderModificationHistory } from '../../drizzle/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
+
+export const riderAnalyticsRouter = router({
+  // Get rider acceptance rates
+  getRiderAcceptanceStats: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      // Get all rider acknowledgments for artist
+      const acknowledgments = await db
+        .select()
+        .from(riderAcknowledgments)
+        .where(eq(riderAcknowledgments.artistId, input.artistId));
+
+      const stats = {
+        total: acknowledgments.length,
+        acknowledged: acknowledgments.filter(a => a.status === 'acknowledged').length,
+        modificationsProposed: acknowledgments.filter(a => a.status === 'modifications_proposed').length,
+        accepted: acknowledgments.filter(a => a.status === 'accepted').length,
+        rejected: acknowledgments.filter(a => a.status === 'rejected').length,
+        pending: acknowledgments.filter(a => a.status === 'pending').length,
+        acceptanceRate: acknowledgments.length > 0 
+          ? ((acknowledgments.filter(a => a.status === 'accepted' || a.status === 'acknowledged').length / acknowledgments.length) * 100).toFixed(1)
+          : 0,
+      };
+
+      return stats;
+    }),
+
+  // Get common modification requests
+  getCommonModifications: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+      limit: z.number().default(10),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      // Get all modifications for artist's riders
+      const modifications = await db
+        .select()
+        .from(riderModificationHistory)
+        .innerJoin(
+          riderAcknowledgments,
+          eq(riderModificationHistory.riderAcknowledgmentId, riderAcknowledgments.id)
+        )
+        .where(eq(riderAcknowledgments.artistId, input.artistId));
+
+      // Count field modifications
+      const fieldCounts: Record<string, { count: number; reasons: string[] }> = {};
+
+      modifications.forEach((mod: any) => {
+        const fieldName = mod.rider_modification_history.fieldName;
+        if (!fieldCounts[fieldName]) {
+          fieldCounts[fieldName] = { count: 0, reasons: [] };
+        }
+        fieldCounts[fieldName].count++;
+        if (mod.rider_modification_history.reason && !fieldCounts[fieldName].reasons.includes(mod.rider_modification_history.reason)) {
+          fieldCounts[fieldName].reasons.push(mod.rider_modification_history.reason);
+        }
+      });
+
+      // Sort by count and return top N
+      const sorted = Object.entries(fieldCounts)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, input.limit)
+        .map(([field, data]) => ({
+          field,
+          count: data.count,
+          topReasons: data.reasons.slice(0, 3),
+        }));
+
+      return sorted;
+    }),
+
+  // Get negotiation timeline metrics
+  getNegotiationMetrics: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      // Get all acknowledgments with timestamps
+      const acknowledgments = await db
+        .select()
+        .from(riderAcknowledgments)
+        .where(eq(riderAcknowledgments.artistId, input.artistId));
+
+      const metrics = {
+        averageTimeToAcknowledge: 0,
+        averageTimeToResolve: 0,
+        averageModificationsPerRider: 0,
+        totalNegotiations: 0,
+      };
+
+      if (acknowledgments.length === 0) {
+        return metrics;
+      }
+
+      let totalAcknowledgeTime = 0;
+      let acknowledgeCount = 0;
+      let totalResolveTime = 0;
+      let resolveCount = 0;
+      let totalModifications = 0;
+
+      for (const ack of acknowledgments) {
+        // Calculate time to acknowledge
+        if (ack.acknowledgedAt && ack.createdAt) {
+          const time = new Date(ack.acknowledgedAt).getTime() - new Date(ack.createdAt).getTime();
+          totalAcknowledgeTime += time;
+          acknowledgeCount++;
+        }
+
+        // Calculate time to resolve
+        if (ack.finalizedAt && ack.createdAt) {
+          const time = new Date(ack.finalizedAt).getTime() - new Date(ack.createdAt).getTime();
+          totalResolveTime += time;
+          resolveCount++;
+        }
+
+        // Count modifications
+        const mods = await db
+          .select()
+          .from(riderModificationHistory)
+          .where(eq(riderModificationHistory.riderAcknowledgmentId, ack.id));
+
+        totalModifications += mods.length;
+      }
+
+      metrics.averageTimeToAcknowledge = acknowledgeCount > 0 ? Math.round(totalAcknowledgeTime / acknowledgeCount / (1000 * 60 * 60)) : 0; // hours
+      metrics.averageTimeToResolve = resolveCount > 0 ? Math.round(totalResolveTime / resolveCount / (1000 * 60 * 60)) : 0; // hours
+      metrics.averageModificationsPerRider = acknowledgments.length > 0 ? parseFloat((totalModifications / acknowledgments.length).toFixed(2)) : 0;
+      metrics.totalNegotiations = acknowledgments.length;
+
+      return metrics;
+    }),
+
+  // Get rider performance over time
+  getRiderPerformanceTimeline: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+      days: z.number().default(30),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - input.days);
+
+      // Get acknowledgments in date range
+      const acknowledgments = await db
+        .select()
+        .from(riderAcknowledgments)
+        .where(
+          and(
+            eq(riderAcknowledgments.artistId, input.artistId),
+            gte(riderAcknowledgments.createdAt, startDate)
+          )
+        );
+
+      // Group by date
+      const timeline: Record<string, { total: number; accepted: number; rejected: number; pending: number }> = {};
+
+      acknowledgments.forEach((ack: any) => {
+        const date = new Date(ack.createdAt).toISOString().split('T')[0];
+        if (!timeline[date]) {
+          timeline[date] = { total: 0, accepted: 0, rejected: 0, pending: 0 };
+        }
+        timeline[date].total++;
+
+        if (ack.status === 'accepted' || ack.status === 'acknowledged') {
+          timeline[date].accepted++;
+        } else if (ack.status === 'rejected') {
+          timeline[date].rejected++;
+        } else {
+          timeline[date].pending++;
+        }
+      });
+
+      // Convert to array and sort by date
+      const data = Object.entries(timeline)
+        .map(([date, stats]) => ({
+          date,
+          ...stats,
+          acceptanceRate: stats.total > 0 ? ((stats.accepted / stats.total) * 100).toFixed(1) : 0,
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      return data;
+    }),
+
+  // Get rider template popularity
+  getRiderTemplatePopularity: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      // Get all rider templates for artist
+      const templates = await db
+        .select()
+        .from(riderTemplates)
+        .where(eq(riderTemplates.artistId, input.artistId));
+
+      const popularity = [];
+
+      for (const template of templates) {
+        // Count bookings using this template
+        const bookingCount = await db
+          .select()
+          .from(bookings)
+          .where(eq(bookings.riderTemplateId, template.id));
+
+        // Count acknowledgments
+        const ackCount = await db
+          .select()
+          .from(riderAcknowledgments)
+          .where(eq(riderAcknowledgments.riderTemplateId, template.id));
+
+        popularity.push({
+          templateId: template.id,
+          templateName: template.templateName,
+          bookingsCount: bookingCount.length,
+          acknowledgementsCount: ackCount.length,
+          acceptanceRate: ackCount.length > 0
+            ? ((ackCount.filter((a: any) => a.status === 'accepted' || a.status === 'acknowledged').length / ackCount.length) * 100).toFixed(1)
+            : 0,
+        });
+      }
+
+      return popularity.sort((a, b) => b.bookingsCount - a.bookingsCount);
+    }),
+
+  // Get detailed rider analytics
+  getDetailedAnalytics: publicProcedure
+    .input(z.object({
+      artistId: z.number(),
+    }))
+    .query(async ({ input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      const acks = await db.select().from(riderAcknowledgments).where(eq(riderAcknowledgments.artistId, input.artistId));
+      const templates = await db.select().from(riderTemplates).where(eq(riderTemplates.artistId, input.artistId));
+      const bookingsList = await db.select().from(bookings).where(eq(bookings.artistId, input.artistId));
+
+      return {
+        summary: {
+          totalRiders: templates.length,
+          totalBookings: bookingsList.length,
+          totalAcknowledgments: acks.length,
+        },
+        timestamp: new Date().toISOString(),
+      };
+    }),
+});

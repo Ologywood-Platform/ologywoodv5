@@ -173,6 +173,7 @@ export const bookings = mysqlTable("bookings", {
   venueName: varchar("venueName", { length: 255 }).notNull(),
   venueAddress: text("venueAddress"),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).notNull().default("pending"),
+  riderTemplateId: int("riderTemplateId"),
   riderData: json("riderData").$type<{
     technical?: object,
     hospitality?: object,
