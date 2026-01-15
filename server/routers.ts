@@ -75,7 +75,58 @@ export const appRouter = router({
         return await db.getArtistProfileById(input.id);
       }),
     
-       // Upload profile photo
+       // Upload and set profile photo
+    uploadProfilePhoto: artistProcedure
+      .input(z.object({
+        fileData: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileExtension = input.fileName.split('.').pop() || 'jpg';
+        const fileKey = `artist-profile-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        await db.updateArtistProfile(profile.id, { profilePhotoUrl: url });
+        return { url, success: true };
+      }),
+    
+    // Update artist profile information
+    updateProfile: artistProcedure
+      .input(z.object({
+        artistName: z.string().min(1).optional(),
+        bio: z.string().optional(),
+        genre: z.array(z.string()).optional(),
+        location: z.string().optional(),
+        feeRangeMin: z.number().optional(),
+        feeRangeMax: z.number().optional(),
+        touringPartySize: z.number().optional(),
+        socialLinks: z.object({
+          instagram: z.string().optional(),
+          facebook: z.string().optional(),
+          youtube: z.string().optional(),
+          spotify: z.string().optional(),
+          twitter: z.string().optional(),
+        }).optional(),
+        profilePhotoUrl: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        await db.updateArtistProfile(profile.id, input);
+        return { success: true, profile: await db.getArtistProfileById(profile.id) };
+      }),
+    
+    // Upload profile photo
     uploadPhoto: artistProcedure
       .input(z.object({
         fileData: z.string(), // base64 encoded image
@@ -295,6 +346,29 @@ export const appRouter = router({
         }
         await db.updateVenueProfile(profile.id, input);
         return { success: true };
+      }),
+    
+    // Upload and set profile photo
+    uploadProfilePhoto: venueProcedure
+      .input(z.object({
+        fileData: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const fileExtension = input.fileName.split('.').pop() || 'jpg';
+        const fileKey = `venue-profile-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        await db.updateVenueProfile(profile.id, { profilePhotoUrl: url });
+        return { url, success: true };
       }),
     
     // Add photo to gallery

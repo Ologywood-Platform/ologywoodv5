@@ -1,0 +1,1 @@
+ALTER TABLE `venue_profiles` ADD `profilePhotoUrl` text;

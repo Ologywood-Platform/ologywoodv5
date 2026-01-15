@@ -14,6 +14,9 @@ import SavedArtistsTab from "@/components/SavedArtistsTab";
 import BookingTemplatesTab from "@/components/BookingTemplatesTab";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import VenueCalendar from "@/components/VenueCalendar";
+import { ArtistProfileEditor } from "@/components/ArtistProfileEditor";
+import { VenueProfileEditor } from "@/components/VenueProfileEditor";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -30,6 +33,9 @@ export default function Dashboard() {
   const { data: venueProfile } = trpc.venue.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'venue',
   });
+
+  const uploadArtistPhotoMutation = trpc.artist.uploadProfilePhoto.useMutation();
+  const uploadVenuePhotoMutation = trpc.venue.uploadProfilePhoto.useMutation();
   
   const { data: artistBookings, refetch: refetchArtistBookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'artist',
@@ -340,18 +346,65 @@ export default function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Profile management coming soon. For now, please contact support to update your profile.
-                </p>
-                {isArtist && artistProfile && (
-                  <div className="space-y-2 text-sm">
-                    <p><strong>Artist Name:</strong> {artistProfile.artistName}</p>
-                    {artistProfile.location && <p><strong>Location:</strong> {artistProfile.location}</p>}
-                    {artistProfile.genre && Array.isArray(artistProfile.genre) && artistProfile.genre.length > 0 && (
-                      <p><strong>Genres:</strong> {artistProfile.genre.join(", ")}</p>
-                    )}
-                  </div>
-                )}
+                <div className="space-y-6">
+                  {isArtist && artistProfile ? (
+                    <>
+                      <ProfilePhotoUpload
+                        currentPhotoUrl={artistProfile.profilePhotoUrl || undefined}
+                        onUpload={async (fileData, fileName, mimeType) => {
+                          try {
+                            const result = await uploadArtistPhotoMutation.mutateAsync({
+                              fileData,
+                              fileName,
+                              mimeType,
+                            });
+                            return result;
+                          } catch (error: any) {
+                            throw new Error(error.message || 'Failed to upload photo');
+                          }
+                        }}
+                        onSuccess={() => {
+                          toast.success('Profile photo updated successfully');
+                        }}
+                        onError={(error) => {
+                          toast.error(error);
+                        }}
+                      />
+                      <ArtistProfileEditor onSave={() => {
+                        toast.success('Profile updated successfully');
+                      }} />
+                    </>
+                  ) : isVenue && venueProfile ? (
+                    <>
+                      <ProfilePhotoUpload
+                        currentPhotoUrl={venueProfile.profilePhotoUrl || undefined}
+                        onUpload={async (fileData, fileName, mimeType) => {
+                          try {
+                            const result = await uploadVenuePhotoMutation.mutateAsync({
+                              fileData,
+                              fileName,
+                              mimeType,
+                            });
+                            return result;
+                          } catch (error: any) {
+                            throw new Error(error.message || 'Failed to upload photo');
+                          }
+                        }}
+                        onSuccess={() => {
+                          toast.success('Profile photo updated successfully');
+                        }}
+                        onError={(error) => {
+                          toast.error(error);
+                        }}
+                      />
+                      <VenueProfileEditor onSave={() => {
+                        toast.success('Profile updated successfully');
+                      }} />
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">Loading your profile...</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -350,3 +350,12 @@
 - [x] Integrate all features into AdminDashboard component
 - [x] Write comprehensive end-to-end tests for all workflow scenarios (34 tests)
 - [ ] Create comprehensive testing guide and documentation
+
+## Profile Picture Upload Feature (COMPLETED)
+- [x] Create profile picture upload API endpoints for artist and venue
+- [x] Build ProfilePhotoUpload UI component with preview and drag-drop
+- [x] Add updateProfile endpoints for artist and venue
+- [x] Integrate profile editors into Dashboard
+- [x] Add profilePhotoUrl field to venue_profiles table
+- [x] Implement ArtistProfileEditor component with all fields
+- [x] Implement VenueProfileEditor component with all fields

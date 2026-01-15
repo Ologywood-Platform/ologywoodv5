@@ -52,6 +52,7 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   contactName: varchar("contactName", { length: 255 }).notNull(),
   contactPhone: varchar("contactPhone", { length: 50 }),
   websiteUrl: text("websiteUrl"),
+  profilePhotoUrl: text("profilePhotoUrl"),
   mediaGallery: json("mediaGallery").$type<{ photos: string[], videos: string[] }>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
