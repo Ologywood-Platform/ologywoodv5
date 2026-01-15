@@ -622,3 +622,8 @@
   - Fixed Full Calendar View button in availability section
   - Fixed View Details button in subscription section
   - All Link > Button combinations now use proper a > Button > span structure
+
+- [x] Fix nested anchor tag error on home page artist cards
+  - Replaced Link component with direct anchor tag for artist cards
+  - Removed Link wrapper to prevent nested anchor validation errors
+  - Artist cards now use proper href navigation without nested anchors

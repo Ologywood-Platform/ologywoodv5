@@ -142,7 +142,7 @@ export default function Home() {
           ) : filteredArtists && filteredArtists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredArtists.slice(0, 6).map((artist) => (
-                <Link key={artist.id} href={`/artist/${artist.id}`}>
+                <a key={artist.id} href={`/artist/${artist.id}`} className="no-underline">
                   <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader>
                         {artist.profilePhotoUrl ? (
@@ -174,8 +174,7 @@ export default function Home() {
                         </div>
                       </CardContent>
                   </Card>
-                </Link>
-              ))}
+                </a>              ))}
             </div>
           ) : (
             <div className="text-center py-12">
