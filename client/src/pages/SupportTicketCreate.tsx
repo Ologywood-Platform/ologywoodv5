@@ -63,18 +63,27 @@ export default function SupportTicketCreate() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validation
+    const errors: string[] = [];
+
     if (!subject.trim()) {
-      toast.error("Please enter a subject");
-      return;
+      errors.push("Subject is required");
+    } else if (subject.trim().length < 5) {
+      errors.push("Subject must be at least 5 characters");
     }
 
     if (!description.trim()) {
-      toast.error("Please enter a description");
-      return;
+      errors.push("Description is required");
+    } else if (description.trim().length < 20) {
+      errors.push("Description must be at least 20 characters");
     }
 
     if (!categoryId) {
-      toast.error("Please select a category");
+      errors.push("Please select a category");
+    }
+
+    if (errors.length > 0) {
+      errors.forEach(error => toast.error(error));
       return;
     }
 
@@ -94,11 +103,9 @@ export default function SupportTicketCreate() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <Link href="/support">
-            <a className="inline-flex">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </a>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Create Support Ticket</h1>
@@ -188,11 +195,9 @@ export default function SupportTicketCreate() {
                   {isSubmitting || createMutation.isPending ? "Creating..." : "Create Ticket"}
                 </Button>
                 <Link href="/support">
-                  <a className="inline-flex">
-                    <Button type="button" variant="outline" className="flex-1">
-                      Cancel
-                    </Button>
-                  </a>
+                  <Button type="button" variant="outline" className="flex-1">
+                    Cancel
+                  </Button>
                 </Link>
               </div>
             </form>

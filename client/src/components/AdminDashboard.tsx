@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { AlertCircle, Zap, Users, Workflow, Lock } from 'lucide-react';
+import { AlertCircle, Zap, Users, Workflow, Lock, Database } from 'lucide-react';
 import { TestDataGenerator } from './TestDataGenerator';
 import { TestDataSeeder } from './TestDataSeeder';
 import { TestScenarioRunner } from './TestScenarioRunner';
 import { UserImpersonation } from './UserImpersonation';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 /**
  * AdminDashboard Component
@@ -14,6 +16,23 @@ import { UserImpersonation } from './UserImpersonation';
  */
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const seedSupportDataMutation = trpc.adminSeed.seedSupportData.useMutation({
+    onSuccess: () => {
+      toast.success('Support data seeded successfully!');
+      setIsSeeding(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to seed support data');
+      setIsSeeding(false);
+    },
+  });
+
+  const handleSeedSupportData = async () => {
+    setIsSeeding(true);
+    seedSupportDataMutation.mutate();
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -36,6 +55,28 @@ export function AdminDashboard() {
               All test data generated here should be cleaned up before deployment.
             </p>
           </div>
+        </div>
+      </Card>
+
+      {/* Support Data Seeding Card */}
+      <Card className="p-6 bg-amber-50 border-amber-200">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <Database className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-900">Populate Support Data</h3>
+              <p className="text-sm text-amber-800 mt-1">
+                Seed support categories, FAQs, and knowledge base articles to make the help system immediately useful.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleSeedSupportData}
+            disabled={isSeeding || seedSupportDataMutation.isPending}
+            className="ml-4 flex-shrink-0"
+          >
+            {isSeeding || seedSupportDataMutation.isPending ? 'Seeding...' : 'Seed Support Data'}
+          </Button>
         </div>
       </Card>
 
