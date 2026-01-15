@@ -594,14 +594,10 @@ export default function Dashboard() {
                   </p>
                   <div className="flex gap-2">
                     <Link href="/support">
-                      <a className="inline-flex">
-                        <Button>View My Tickets</Button>
-                      </a>
+                      <Button>View My Tickets</Button>
                     </Link>
                     <Link href="/support/create">
-                      <a className="inline-flex">
-                        <Button variant="outline">Create New Ticket</Button>
-                      </a>
+                      <Button variant="outline">Create New Ticket</Button>
                     </Link>
                   </div>
                 </div>
@@ -622,9 +618,7 @@ export default function Dashboard() {
                     Browse our knowledge base, FAQs, and tutorials to find the information you need.
                   </p>
                   <Link href="/help">
-                    <a className="inline-flex">
-                      <Button>Go to Help Center</Button>
-                    </a>
+                    <Button>Go to Help Center</Button>
                   </Link>
                 </div>
               </CardContent>
