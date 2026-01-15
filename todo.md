@@ -1056,3 +1056,16 @@
 ## Bug Fixes
 - [x] Fix NaN error in contract page when parsing contractId from URL parameters
 - [x] Fix nested anchor tag error on admin support page
+
+
+## Subscription Tiers - Complete
+- [x] Document subscription tiers and features (SUBSCRIPTION_TIERS.md)
+- [x] Create subscription tier comparison page (SubscriptionPlans.tsx)
+- [x] Build subscription management dashboard (SubscriptionManagement.tsx)
+- [x] Create subscription plans tests (SubscriptionPlans.test.ts)
+- [x] Create subscription management tests (SubscriptionManagement.test.ts)
+- [x] Implement billing cycle toggle (monthly/annual)
+- [x] Display usage statistics and limits
+- [x] Show payment method information
+- [x] Create invoice history view
+- [x] Implement plan upgrade/downgrade flows
