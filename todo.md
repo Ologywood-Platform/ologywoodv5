@@ -967,3 +967,5 @@
 - [x] Fix TRPC contract query error - Suppressed errors with throwOnError: false and error handler filter
 
 - [x] Fix nested anchor tags in Messages page - Removed <a> wrapper from Link component
+
+- [x] Fix nested anchor tags in Calendar page - Removed <a> wrapper from Link component

@@ -470,13 +470,13 @@ export default function Riders() {
                     <div className="text-sm">
                       <p className="text-slate-600 font-medium mb-1">Stage:</p>
                       <p className="text-slate-700 line-clamp-2">
-                        {template.technicalRequirements?.stageWidth} x {template.technicalRequirements?.stageDepth}
+                        {template.stageDimensions || "Not specified"}
                       </p>
                     </div>
                     <div className="text-sm">
                       <p className="text-slate-600 font-medium mb-1">Sound:</p>
                       <p className="text-slate-700 line-clamp-2">
-                        {template.technicalRequirements?.soundSystem || "Not specified"}
+                        {template.paSystemRequired ? "PA System Required" : "Not specified"}
                       </p>
                     </div>
                   </div>

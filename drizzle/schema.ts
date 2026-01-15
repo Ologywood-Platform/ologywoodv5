@@ -68,27 +68,74 @@ export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId").notNull(),
   templateName: varchar("templateName", { length: 255 }).notNull(),
-  technicalRequirements: json("technicalRequirements").$type<{
-    stageWidth?: string,
-    stageDepth?: string,
-    soundSystem?: string,
-    lighting?: string,
-    backline?: string,
-    other?: string
-  }>(),
-  hospitalityRequirements: json("hospitalityRequirements").$type<{
-    dressingRooms?: string,
-    catering?: string,
-    beverages?: string,
-    accommodation?: string,
-    other?: string
-  }>(),
-  financialTerms: json("financialTerms").$type<{
-    depositAmount?: string,
-    paymentMethod?: string,
-    cancellationPolicy?: string,
-    other?: string
-  }>(),
+  description: text("description"),
+  genre: varchar("genre", { length: 100 }),
+  performanceType: varchar("performanceType", { length: 100 }), // Concert, DJ Set, Workshop, etc.
+  performanceDuration: int("performanceDuration"), // in minutes
+  setupTimeRequired: int("setupTimeRequired"), // in minutes
+  soundcheckTimeRequired: int("soundcheckTimeRequired"), // in minutes
+  teardownTimeRequired: int("teardownTimeRequired"), // in minutes
+  numberOfPerformers: int("numberOfPerformers"),
+  
+  // Technical Requirements
+  paSystemRequired: boolean("paSystemRequired").default(false),
+  microphoneType: varchar("microphoneType", { length: 100 }),
+  monitorMixRequired: boolean("monitorMixRequired").default(false),
+  diBoxesNeeded: int("diBoxesNeeded"),
+  audioInterface: varchar("audioInterface", { length: 255 }),
+  lightingRequired: boolean("lightingRequired").default(false),
+  lightingType: varchar("lightingType", { length: 100 }), // Basic, Standard, Advanced, Custom
+  specialEffects: text("specialEffects"),
+  stageDimensions: varchar("stageDimensions", { length: 100 }),
+  stageHeight: decimal("stageHeight", { precision: 5, scale: 2 }),
+  backdropRequired: boolean("backdropRequired").default(false),
+  backdropDetails: text("backdropDetails"),
+  bringingOwnEquipment: boolean("bringingOwnEquipment").default(false),
+  equipmentList: text("equipmentList"),
+  powerRequirements: text("powerRequirements"),
+  backupEquipment: text("backupEquipment"),
+  
+  // Hospitality Requirements
+  dressingRoomRequired: boolean("dressingRoomRequired").default(false),
+  roomTemperature: varchar("roomTemperature", { length: 100 }),
+  furnitureNeeded: json("furnitureNeeded").$type<string[]>(),
+  amenities: json("amenities").$type<string[]>(),
+  cateringProvided: boolean("cateringProvided").default(false),
+  dietaryRestrictions: json("dietaryRestrictions").$type<string[]>(),
+  specificDietaryNeeds: text("specificDietaryNeeds"),
+  beverages: json("beverages").$type<string[]>(),
+  mealTiming: text("mealTiming"),
+  parkingRequired: boolean("parkingRequired").default(false),
+  parkingType: varchar("parkingType", { length: 100 }),
+  loadInAccess: text("loadInAccess"),
+  accessibleEntrance: boolean("accessibleEntrance").default(false),
+  
+  // Travel & Accommodation
+  travelProvided: boolean("travelProvided").default(false),
+  travelMethod: varchar("travelMethod", { length: 100 }),
+  accommodationProvided: boolean("accommodationProvided").default(false),
+  hotelRequirements: text("hotelRequirements"),
+  numberOfRooms: int("numberOfRooms"),
+  checkInCheckOut: text("checkInCheckOut"),
+  groundTransportation: text("groundTransportation"),
+  
+  // Merchandise & Promotion
+  merchandiseSales: boolean("merchandiseSales").default(false),
+  merchandiseCut: decimal("merchandiseCut", { precision: 5, scale: 2 }),
+  photographyAllowed: boolean("photographyAllowed").default(true),
+  videoRecordingAllowed: boolean("videoRecordingAllowed").default(false),
+  socialMediaPermission: boolean("socialMediaPermission").default(true),
+  broadcastingRights: boolean("broadcastingRights").default(false),
+  promotionalMaterials: text("promotionalMaterials"),
+  
+  // Additional
+  specialRequests: text("specialRequests"),
+  emergencyContact: varchar("emergencyContact", { length: 255 }),
+  additionalNotes: text("additionalNotes"),
+  
+  // Metadata
+  isPublished: boolean("isPublished").default(false),
+  version: int("version").default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

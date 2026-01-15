@@ -466,22 +466,22 @@ export default function ArtistProfile() {
                         <ChevronDown className="h-4 w-4" />
                       </CollapsibleTrigger>
                       <CollapsibleContent className="px-3 pt-2 space-y-3 text-sm">
-                        {(template.technicalRequirements as any)?.sound && (
+                        {template.paSystemRequired && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Sound</p>
-                            <p className="text-muted-foreground">{(template.technicalRequirements as any).sound}</p>
+                            <p className="text-muted-foreground">PA System Required</p>
                           </div>
                         )}
-                        {(template.technicalRequirements as any)?.lighting && (
+                        {template.lightingRequired && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Lighting</p>
-                            <p className="text-muted-foreground">{(template.technicalRequirements as any).lighting}</p>
+                            <p className="text-muted-foreground">{template.lightingType || "Standard"}</p>
                           </div>
                         )}
-                        {(template.hospitalityRequirements as any)?.catering && (
+                        {template.cateringProvided && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Catering</p>
-                            <p className="text-muted-foreground">{(template.hospitalityRequirements as any).catering}</p>
+                            <p className="text-muted-foreground">Provided</p>
                           </div>
                         )}
                       </CollapsibleContent>

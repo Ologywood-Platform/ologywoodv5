@@ -405,14 +405,14 @@ export default function RiderTemplates() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    {(template.technicalRequirements as any)?.sound && (
+                    {template.paSystemRequired && (
                       <p className="line-clamp-2">
-                        <strong>Sound:</strong> {(template.technicalRequirements as any).sound}
+                        <strong>Sound:</strong> PA System Required
                       </p>
                     )}
-                    {(template.hospitalityRequirements as any)?.catering && (
+                    {template.cateringProvided && (
                       <p className="line-clamp-2">
-                        <strong>Catering:</strong> {(template.hospitalityRequirements as any).catering}
+                        <strong>Catering:</strong> Provided
                       </p>
                     )}
                   </div>

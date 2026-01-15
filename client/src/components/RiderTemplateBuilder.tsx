@@ -11,27 +11,32 @@ import { toast } from 'sonner';
 interface RiderTemplate {
   id: number;
   templateName: string;
-  technicalRequirements: {
-    stageWidth?: string;
-    stageDepth?: string;
-    soundSystem?: string;
-    lighting?: string;
-    backline?: string;
-    other?: string;
-  } | null;
-  hospitalityRequirements: {
-    dressingRooms?: string;
-    catering?: string;
-    beverages?: string;
-    accommodation?: string;
-    other?: string;
-  } | null;
-  financialTerms: {
-    depositAmount?: string;
-    paymentMethod?: string;
-    cancellationPolicy?: string;
-    other?: string;
-  } | null;
+  description?: string | null;
+  genre?: string | null;
+  performanceType?: string | null;
+  performanceDuration?: number | null;
+  paSystemRequired?: boolean | null;
+  lightingRequired?: boolean | null;
+  lightingType?: string | null;
+  stageDimensions?: string | null;
+  cateringProvided?: boolean | null;
+  dressingRoomRequired?: boolean | null;
+  parkingRequired?: boolean | null;
+  travelProvided?: boolean | null;
+  accommodationProvided?: boolean | null;
+  merchandiseSales?: boolean | null;
+  photographyAllowed?: boolean | null;
+  videoRecordingAllowed?: boolean | null;
+  socialMediaPermission?: boolean | null;
+  broadcastingRights?: boolean | null;
+  specialRequests?: string | null;
+  emergencyContact?: string | null;
+  additionalNotes?: string | null;
+  isPublished?: boolean | null;
+  version?: number | null;
+  technicalRequirements?: any;
+  hospitalityRequirements?: any;
+  financialTerms?: any;
 }
 
 export function RiderTemplateBuilder() {
