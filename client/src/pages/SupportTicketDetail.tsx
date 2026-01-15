@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { TicketAssignmentUI } from "@/components/TicketAssignmentUI";
 
 export default function SupportTicketDetail() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -242,6 +243,20 @@ export default function SupportTicketDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Ticket Assignment Admin Panel */}
+        {user?.role === "admin" && (
+          <Card className="mb-6">
+            <TicketAssignmentUI
+              ticket={ticket}
+              teamMembers={[
+                { id: 1, name: "Sarah Johnson", email: "sarah@ologywood.com", expertise: ["Booking", "Payments"], activeTickets: 3 },
+                { id: 2, name: "Mike Chen", email: "mike@ologywood.com", expertise: ["Technical", "Riders"], activeTickets: 2 },
+                { id: 3, name: "Emma Davis", email: "emma@ologywood.com", expertise: ["Contracts", "Support"], activeTickets: 4 },
+              ]}
+            />
+          </Card>
+        )}
 
         {/* Add Response */}
         {ticket.status !== "closed" && (
