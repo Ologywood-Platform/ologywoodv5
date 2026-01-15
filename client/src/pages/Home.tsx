@@ -54,13 +54,11 @@ export default function Home() {
           <nav className="flex items-center gap-4">
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard">
-                  <a>
-                    <Button variant="ghost" asChild>
-                      <span>Dashboard</span>
-                    </Button>
-                  </a>
-                </Link>
+                <a href="/dashboard" className="no-underline">
+                  <Button variant="ghost">
+                    Dashboard
+                  </Button>
+                </a>
                 <span className="text-sm text-muted-foreground">
                   {user?.name || user?.email}
                 </span>
@@ -68,13 +66,11 @@ export default function Home() {
               </>
             ) : (
               <>
-                <Link href="/browse">
-                  <a>
-                    <Button variant="ghost" asChild>
-                      <span>Browse Artists</span>
-                    </Button>
-                  </a>
-                </Link>
+                <a href="/browse" className="no-underline">
+                  <Button variant="ghost">
+                    Browse Artists
+                  </Button>
+                </a>
                 <a href={getLoginUrl()}>
                   <Button>Sign In</Button>
                 </a>

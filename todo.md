@@ -640,3 +640,8 @@
   - Removed duplicate useParams import from ContractDetail component
   - Consolidated imports from wouter to single line
   - Route now properly loads contract details with mock data fallback
+
+- [x] Fix remaining nested anchor tag error on home page navigation
+  - Replaced Link > a > Button structure with direct a > Button in header nav
+  - Fixed Dashboard and Browse Artists buttons to use proper anchor navigation
+  - Removed nested Link wrapper to prevent HTML validation errors
