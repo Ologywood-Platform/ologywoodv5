@@ -55,7 +55,11 @@ export default function Home() {
             {isAuthenticated ? (
               <>
                 <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
+                  <a>
+                    <Button variant="ghost" asChild>
+                      <span>Dashboard</span>
+                    </Button>
+                  </a>
                 </Link>
                 <span className="text-sm text-muted-foreground">
                   {user?.name || user?.email}
@@ -65,7 +69,11 @@ export default function Home() {
             ) : (
               <>
                 <Link href="/browse">
-                  <Button variant="ghost">Browse Artists</Button>
+                  <a>
+                    <Button variant="ghost" asChild>
+                      <span>Browse Artists</span>
+                    </Button>
+                  </a>
                 </Link>
                 <a href={getLoginUrl()}>
                   <Button>Sign In</Button>
@@ -94,9 +102,11 @@ export default function Home() {
                 </Button>
               </a>
               <Link href="/browse">
-                <Button size="lg" variant="outline" className="text-lg px-8">
-                  Browse Artists
-                </Button>
+                <a>
+                  <Button size="lg" variant="outline" className="text-lg px-8" asChild>
+                    <span>Browse Artists</span>
+                  </Button>
+                </a>
               </Link>
             </div>
           )}
@@ -174,7 +184,11 @@ export default function Home() {
               </p>
               {isAuthenticated && user?.role === 'artist' && (
                 <Link href="/dashboard">
-                  <Button>Create Your Artist Profile</Button>
+                  <a>
+                    <Button asChild>
+                      <span>Create Your Artist Profile</span>
+                    </Button>
+                  </a>
                 </Link>
               )}
             </div>
@@ -183,9 +197,11 @@ export default function Home() {
           {filteredArtists && filteredArtists.length > 6 && (
             <div className="text-center mt-8">
               <Link href="/browse">
-                <Button variant="outline" size="lg">
-                  View All Artists
-                </Button>
+                <a>
+                  <Button variant="outline" size="lg" asChild>
+                    <span>View All Artists</span>
+                  </Button>
+                </a>
               </Link>
             </div>
           )}

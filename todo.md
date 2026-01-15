@@ -609,3 +609,11 @@
   - Modified to always use mock data fallback instead of showing error
   - Contract page now displays successfully when accessed from notification
   - Prevents persistent error messages from appearing on dashboard
+
+- [x] Fix nested anchor tag errors on home page
+  - Fixed Dashboard link in navigation header
+  - Fixed Browse Artists link in navigation header
+  - Fixed Browse Artists button in hero section
+  - Fixed Create Your Artist Profile button
+  - Fixed View All Artists button
+  - All Link > Button combinations now use proper a > Button > span structure
