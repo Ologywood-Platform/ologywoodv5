@@ -12,6 +12,7 @@ import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, 
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import { RiderComparisonTool } from "@/components/RiderComparisonTool";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams } from "wouter";
@@ -74,7 +75,9 @@ export default function ArtistProfile() {
   }
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [showRiderComparison, setShowRiderComparison] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [selectedRiderId, setSelectedRiderId] = useState<number | null>(null);
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [venueName, setVenueName] = useState("");
@@ -120,6 +123,8 @@ export default function ArtistProfile() {
     onSuccess: () => {
       toast.success("Booking request sent successfully!");
       setBookingDialogOpen(false);
+      setSelectedRiderId(null);
+      setShowRiderComparison(false);
       navigate("/dashboard");
     },
     onError: (error) => {
@@ -149,6 +154,11 @@ export default function ArtistProfile() {
       eventDetails,
       totalFee: totalFee ? parseFloat(totalFee) : undefined,
     });
+    
+    // Note: selectedRiderId is stored in state for future use in rider acknowledgment workflow
+    if (selectedRiderId) {
+      console.log(`Booking created with selected rider: ${selectedRiderId}`);
+    }
   };
 
   if (isLoading) {
@@ -267,6 +277,38 @@ export default function ArtistProfile() {
                 </DialogHeader>
                 
                 <form onSubmit={handleBookingSubmit} className="space-y-4">
+                  {riderTemplates && riderTemplates.length > 0 && (
+                    <div className="border-b pb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-base font-semibold">Review Artist Riders</Label>
+                        <Button
+                          type="button"
+                          variant={showRiderComparison ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setShowRiderComparison(!showRiderComparison)}
+                        >
+                          {showRiderComparison ? "Hide" : "Show"} Riders
+                        </Button>
+                      </div>
+                      {showRiderComparison && (
+                        <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                          <RiderComparisonTool
+                            riders={riderTemplates}
+                            onSelect={(riderId) => {
+                              setSelectedRiderId(riderId);
+                              toast.success("Rider selected for this booking");
+                            }}
+                          />
+                        </div>
+                      )}
+                      {selectedRiderId && (
+                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800">
+                          Selected: {riderTemplates.find(r => r.id === selectedRiderId)?.templateName}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {user?.role === 'venue' && templates && templates.length > 0 && (
                     <div>
                       <Label htmlFor="template">Use Template (Optional)</Label>
