@@ -12,6 +12,7 @@ import PaymentSection from '@/components/PaymentSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
+import { RiderModificationNegotiationUI } from '@/components/RiderModificationNegotiationUI';
 import { useParams, useLocation } from 'wouter';
 
 export default function BookingDetail() {
@@ -295,6 +296,21 @@ export default function BookingDetail() {
                   onReviewSubmitted={() => refetch()}
                 />
               )}
+            </div>
+          )}
+
+          {/* Rider Negotiation Section */}
+          {booking.riderTemplateId && (
+            <div>
+              <RiderModificationNegotiationUI
+                riderTemplateId={booking.riderTemplateId}
+                bookingId={bookingId}
+                acknowledgmentId={0}
+                currentUserRole={user.role as 'artist' | 'venue'}
+                currentStatus="pending"
+                riderData={{}}
+                modificationHistory={[]}
+              />
             </div>
           )}
 
