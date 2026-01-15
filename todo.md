@@ -650,3 +650,7 @@
   - Replaced all Link > a > Button structures with direct a > Button in hero and featured sections
   - Fixed Sign In, Browse Artists, View All Artists, and Create Profile buttons
   - Removed all nested Link wrappers to prevent HTML validation errors
+
+- [x] Fix nested anchor tag error on dashboard Browse Artists button
+  - Replaced Link > a > Button with direct a > Button in no bookings section
+  - Removed nested Link wrapper to prevent HTML validation errors

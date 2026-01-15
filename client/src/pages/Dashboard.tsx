@@ -342,13 +342,11 @@ export default function Dashboard() {
                   <div className="text-center py-8 text-muted-foreground">
                     <p className="mb-4">No bookings yet</p>
                     {isVenue && (
-                      <Link href="/browse">
-                        <a>
-                          <Button asChild>
-                            <span>Browse Artists</span>
-                          </Button>
-                        </a>
-                      </Link>
+                      <a href="/browse" className="no-underline">
+                        <Button>
+                          Browse Artists
+                        </Button>
+                      </a>
                     )}
                   </div>
                 )}
