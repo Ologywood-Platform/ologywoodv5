@@ -137,16 +137,12 @@ export default function Dashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/">
-            <a>
-              <Button variant="ghost" size="sm" asChild>
-                <span>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
-                </span>
-              </Button>
-            </a>
-          </Link>
+          <a href="/" className="no-underline">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </a>
           <h1 className="text-3xl font-bold">Dashboard</h1>
         </div>
 

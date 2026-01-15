@@ -18,10 +18,16 @@ export function TestDataGenerator() {
   const [venueCount, setVenueCount] = useState(3);
   const [bookingCount, setBookingCount] = useState(5);
 
+  // Move hooks outside of async functions to follow React rules
+  const generateTestScenarioMutation = trpc.testdata.generateTestScenario.useMutation();
+  const generateArtistsMutation = trpc.testdata.generateArtists.useMutation();
+  const generateVenuesMutation = trpc.testdata.generateVenues.useMutation();
+  const generateBookingsMutation = trpc.testdata.generateBookings.useMutation();
+
   const generateScenario = async () => {
     setLoading(true);
     try {
-      const response = await trpc.testdata.generateTestScenario.useMutation().mutateAsync({
+      const response = await generateTestScenarioMutation.mutateAsync({
         artists: artistCount,
         venues: venueCount,
         bookings: bookingCount,
@@ -37,7 +43,7 @@ export function TestDataGenerator() {
   const generateArtists = async () => {
     setLoading(true);
     try {
-      const response = await trpc.testdata.generateArtists.useMutation().mutateAsync({
+      const response = await generateArtistsMutation.mutateAsync({
         count: artistCount,
       });
       setGeneratedData({ artists: { count: response.data.length, data: response.data } });
@@ -51,7 +57,7 @@ export function TestDataGenerator() {
   const generateVenues = async () => {
     setLoading(true);
     try {
-      const response = await trpc.testdata.generateVenues.useMutation().mutateAsync({
+      const response = await generateVenuesMutation.mutateAsync({
         count: venueCount,
       });
       setGeneratedData({ venues: { count: response.data.length, data: response.data } });
@@ -65,7 +71,7 @@ export function TestDataGenerator() {
   const generateBookings = async () => {
     setLoading(true);
     try {
-      const response = await trpc.testdata.generateBookings.useMutation().mutateAsync({
+      const response = await generateBookingsMutation.mutateAsync({
         count: bookingCount,
       });
       setGeneratedData({ bookings: { count: response.data.length, data: response.data } });

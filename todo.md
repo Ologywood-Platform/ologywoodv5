@@ -627,3 +627,11 @@
   - Replaced Link component with direct anchor tag for artist cards
   - Removed Link wrapper to prevent nested anchor validation errors
   - Artist cards now use proper href navigation without nested anchors
+
+- [x] Fix invalid hook call errors in TestDataGenerator
+  - Moved useMutation hooks outside of async functions to follow React rules
+  - Fixed hook calls for generateTestScenario, generateArtists, generateVenues, generateBookings
+  - Resolved "Invalid hook call" errors on dashboard page
+- [x] Fix remaining nested anchor tag error on dashboard
+  - Replaced Link > a > Button structure with direct a > Button for back button
+  - Removed nested Link wrapper to prevent HTML validation errors
