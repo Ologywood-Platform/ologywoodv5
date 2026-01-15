@@ -682,6 +682,24 @@
   - [ ] Test real-time functionality
 
 
+## Missing Pages Implementation (COMPLETED)
+- [x] Implement Calendar page (/calendar) - Availability management for artists and venues
+  - Display monthly/weekly calendar view
+  - Show booked dates and available slots
+  - Allow users to block/unblock dates
+  - Integrate with booking system
+- [x] Implement standalone Messages page (/messages) - Full messaging interface
+  - Display all conversations
+  - Show message threads
+  - Allow sending/receiving messages
+  - Search and filter conversations
+- [x] Implement Riders/Contract Templates page (/riders) - Artist booking templates
+  - Display artist riders/contract templates
+  - Allow creating new templates
+  - Edit existing templates
+  - Download as PDF
+  - Apply templates to bookings
+
 ## Advanced Notification System (IN PROGRESS - Phase 1 Complete)
 - [x] Create notification database schema and TRPC routers
   - Added notifications and notificationPreferences tables to schema
