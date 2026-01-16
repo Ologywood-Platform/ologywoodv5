@@ -16,11 +16,7 @@ export function initializeSentry(app: any) {
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    integrations: [
-      new SentryTracing.Http({ tracing: true }),
-      new Sentry.Integrations.OnUncaughtException(),
-      new Sentry.Integrations.OnUnhandledRejection(),
-    ],
+    integrations: [],
     // Performance Monitoring
     beforeSend(event: any, hint: any) {
       // Filter out certain errors if needed
@@ -43,14 +39,11 @@ export function initializeSentry(app: any) {
     ],
   });
 
-  // Attach request handler
-  app.use((Sentry as any).Handlers?.requestHandler?.() || ((req: any, res: any, next: any) => next()));
-
-  // Attach tracing middleware
-  app.use((Sentry as any).Handlers?.tracingHandler?.() || ((req: any, res: any, next: any) => next()));
-
-  // Error handler (must be last)
-  app.use((Sentry as any).Handlers?.errorHandler?.() || ((err: any, req: any, res: any, next: any) => next(err)));
+  // Attach error handler middleware
+  app.use((err: any, req: any, res: any, next: any) => {
+    Sentry.captureException(err);
+    next(err);
+  });
 
   console.log('Sentry initialized successfully');
 }
@@ -160,27 +153,12 @@ export function addBreadcrumb(
 
 /**
  * Middleware for TRPC error handling with Sentry
- */
-export function sentryTRPCMiddleware() {
+ */export function sentryTRPCMiddleware() {
   return async (opts: any) => {
-    const transaction = (Sentry as any).startTransaction?.({
-      name: `TRPC ${opts.path}`,
-      op: 'trpc.call',
-    });
-
     try {
-      const result = await opts.next();
-      transaction?.finish?.();
-      return result;
+      return await opts.next();
     } catch (error) {
-      Sentry.withScope?.((scope: any) => {
-        scope.setContext?.('trpc', {
-          path: opts.path,
-          type: opts.type,
-        });
-        Sentry.captureException?.(error);
-      });
-      transaction?.finish?.();
+      Sentry.captureException(error);
       throw error;
     }
   };

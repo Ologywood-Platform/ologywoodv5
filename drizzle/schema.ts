@@ -69,13 +69,12 @@ export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId"),
   templateName: varchar("templateName", { length: 255 }),
-  templateData: json("templateData").$type<Record<string, any>>(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
 });
 
-export type RiderTemplate = typeof riderTemplates.$inferSelect;
-export type InsertRiderTemplate = typeof riderTemplates.$inferInsert;
+export type RiderTemplate = typeof riderTemplates.$inferSelect & { templateData?: Record<string, any> };
+export type InsertRiderTemplate = typeof riderTemplates.$inferInsert & { templateData?: Record<string, any> };
 
 /**
  * Availability - tracks which dates artists are available, booked, or unavailable
@@ -221,13 +220,12 @@ export const bookingTemplates = mysqlTable("booking_templates", {
   id: int("id").autoincrement().primaryKey(),
   venueId: int("venueId").notNull(),
   templateName: varchar("templateName", { length: 255 }).notNull(),
-  templateData: json("templateData").$type<Record<string, any>>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type BookingTemplate = typeof bookingTemplates.$inferSelect;
-export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
+export type BookingTemplate = typeof bookingTemplates.$inferSelect & { templateData?: Record<string, any> };
+export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert & { templateData?: Record<string, any> };
 
 /**
  * Profile views - track who views artist/venue profiles
