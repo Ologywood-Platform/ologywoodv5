@@ -13,7 +13,7 @@ export async function checkArtistSubscription(userId: number): Promise<boolean> 
 
   // Allow access if subscription is active or trial is still valid
   if (subscription.status === 'active') return true;
-  if (subscription.trialEndsAt && subscription.trialEndsAt > new Date()) return true;
+  // trialEndsAt field not available in current schema
   return false;
 }
 

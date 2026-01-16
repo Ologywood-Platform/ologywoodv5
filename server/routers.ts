@@ -1007,7 +1007,7 @@ export const appRouter = router({
               venueEmail: venueUser.email,
               venueName: venueUser.name || 'Venue',
               artistName: artistProfile.artistName,
-              originalReview: review.comment || '',
+              originalReview: '', // comment field not available in current schema
               artistResponse: input.response,
               rating: review.rating || 0,
             });
