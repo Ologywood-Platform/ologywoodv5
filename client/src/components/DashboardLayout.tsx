@@ -171,13 +171,13 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <img src="/logo-gclef.png" alt="Ologywood" className="h-8 w-8" />
+                  <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
                   <span className="font-semibold tracking-tight truncate">
                     Ologywood
                   </span>
                 </div>
               ) : (
-                <img src="/logo-gclef.png" alt="Ologywood" className="h-8 w-8" />
+                <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
               )}
             </div>
           </SidebarHeader>
