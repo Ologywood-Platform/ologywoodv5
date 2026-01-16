@@ -168,7 +168,7 @@ export default function ArtistOnboarding() {
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Music className="h-8 w-8 text-primary" />
+              <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
               <div>
                 <CardTitle>Create Your Artist Profile</CardTitle>
                 <CardDescription>Step {currentStep} of {totalSteps}</CardDescription>

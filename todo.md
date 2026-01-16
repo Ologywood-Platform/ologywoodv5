@@ -1403,3 +1403,10 @@
 - [x] Social media assets created (LinkedIn, Twitter, Instagram)
 - [x] Restart dev server
 - [ ] Save checkpoint
+
+
+## Additional Logo Placement
+- [x] Add logo to Dashboard page (already has logo in DashboardLayout)
+- [x] Add logo to Artist Onboarding page (ArtistOnboarding.tsx)
+- [x] Add logo to Venue Onboarding page (VenueOnboarding.tsx)
+- [ ] Verify logo displays on all pages
