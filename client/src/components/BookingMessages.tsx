@@ -92,13 +92,13 @@ export default function BookingMessages({ bookingId, currentUserId }: BookingMes
                       : 'bg-muted'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.messageText}</p>
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   <p
                     className={`text-xs mt-1 ${
                       isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
                     }`}
                   >
-                    {new Date(message.sentAt).toLocaleString('en-US', {
+                    {new Date(message.createdAt).toLocaleString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       hour: 'numeric',

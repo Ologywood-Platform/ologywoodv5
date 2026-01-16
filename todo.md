@@ -1134,3 +1134,113 @@
 - [x] Restore notifications router
 - [x] Fix support ticket categoryId to category field
 - [x] Add waiting_user status to support ticket enum
+
+
+## Stability & Scalability Improvements (NEW)
+
+### Phase 1: Project Tracking & Checkpoint
+- [ ] Save initial checkpoint of current working state
+- [ ] Document all known issues and fixes applied
+
+### Phase 2: Database Schema Alignment (HIGH PRIORITY)
+- [ ] Audit actual database schema vs Drizzle definitions
+- [ ] Create migration for missing columns (tier, currentPeriodStart, trialEndsAt, comment, etc.)
+- [ ] Run full database migrations with `pnpm db:push`
+- [ ] Verify all tables exist with correct columns
+- [ ] Create database backup strategy
+- [ ] Document schema changes and migration process
+
+### Phase 3: TypeScript Compilation Fixes (HIGH PRIORITY)
+- [ ] Fix 72 remaining TypeScript errors
+- [ ] Enable strict type checking in tsconfig
+- [ ] Add proper type definitions for database queries
+- [ ] Fix Drizzle ORM query builder type issues
+- [ ] Validate all TRPC routers have proper types
+- [ ] Run `pnpm tsc --noEmit` with zero errors
+
+### Phase 4: Error Handling & Logging (HIGH PRIORITY)
+- [ ] Implement centralized error handling middleware
+- [ ] Add try-catch blocks to all database queries
+- [ ] Create error logging service
+- [ ] Add request/response logging
+- [ ] Implement error monitoring (Sentry integration)
+- [ ] Create error recovery strategies
+- [ ] Add user-friendly error messages
+
+### Phase 5: Database Performance Optimization (MEDIUM PRIORITY)
+- [ ] Create indexes on frequently queried columns
+  - [ ] artistId, venueId, userId on bookings
+  - [ ] bookingId, senderId, recipientId on messages
+  - [ ] artistId, venueId on reviews
+  - [ ] userId on subscriptions
+- [ ] Implement query result caching
+- [ ] Optimize N+1 queries
+- [ ] Add pagination to list endpoints
+- [ ] Profile slow queries
+- [ ] Implement connection pooling
+
+### Phase 6: Testing & Quality Assurance (MEDIUM PRIORITY)
+- [ ] Write unit tests for database functions
+- [ ] Write integration tests for TRPC routers
+- [ ] Create end-to-end tests for critical flows
+  - [ ] Artist booking workflow
+  - [ ] Payment processing
+  - [ ] Messaging system
+  - [ ] Rider template management
+- [ ] Set up test coverage reporting
+- [ ] Implement load testing
+- [ ] Security testing and validation
+
+### Phase 7: Feature Completion (MEDIUM PRIORITY)
+- [ ] Implement message read tracking
+- [ ] Complete subscription tier system
+- [ ] Implement rider acknowledgment workflow
+- [ ] Complete Stripe payment integration
+- [ ] Add notification system
+- [ ] Implement availability calendar
+- [ ] Add contract signing workflow
+
+### Phase 8: Infrastructure & Deployment (LOWER PRIORITY)
+- [ ] Set up staging environment
+- [ ] Configure production environment variables
+- [ ] Implement automated database backups
+- [ ] Set up monitoring and alerting
+- [ ] Create CI/CD pipeline
+- [ ] Implement health checks
+- [ ] Set up log aggregation
+
+### Phase 9: Documentation (LOWER PRIORITY)
+- [ ] Document all TRPC routes
+- [ ] Create API documentation
+- [ ] Document database schema with ER diagrams
+- [ ] Create deployment guide
+- [ ] Write developer onboarding guide
+- [ ] Document troubleshooting procedures
+- [ ] Create architecture documentation
+
+### Phase 10: Final Testing & Delivery
+- [ ] End-to-end testing across all features
+- [ ] Performance testing and optimization
+- [ ] Security audit
+- [ ] User acceptance testing
+- [ ] Create release notes
+- [ ] Deploy to production
+- [ ] Monitor for issues
+
+### Known Issues Fixed in Current Session
+- [x] 'order' field error in support categories
+- [x] Database query mismatches (messages, bookings, subscriptions, reviews)
+- [x] Nested anchor tag errors in Dashboard
+- [x] Schema mismatch errors in database queries
+- [x] Error handling for missing database columns
+
+### Known Issues Remaining
+- [ ] 72 TypeScript compilation errors
+- [ ] Schema definition vs actual database mismatch
+- [ ] Missing message read tracking implementation
+- [ ] Incomplete subscription tier system
+- [ ] Missing rider acknowledgment workflow
+- [ ] No comprehensive error logging
+- [ ] No database performance optimization
+- [ ] Limited test coverage
+- [ ] No CI/CD pipeline

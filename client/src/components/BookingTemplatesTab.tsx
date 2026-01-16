@@ -304,8 +304,8 @@ export default function BookingTemplatesTab() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{template.templateName}</CardTitle>
-                    {template.eventType && (
-                      <CardDescription>{template.eventType}</CardDescription>
+                    {template.templateData?.eventType && (
+                      <CardDescription>{template.templateData.eventType}</CardDescription>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -328,27 +328,27 @@ export default function BookingTemplatesTab() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {template.venueName && (
+                {template.templateData?.venueName && (
                   <div>
-                    <span className="font-medium">Venue:</span> {template.venueName}
+                    <span className="font-medium">Venue:</span> {template.templateData.venueName}
                   </div>
                 )}
-                {template.venueCapacity && (
+                {template.templateData?.venueCapacity && (
                   <div>
-                    <span className="font-medium">Capacity:</span> {template.venueCapacity} guests
+                    <span className="font-medium">Capacity:</span> {template.templateData.venueCapacity} guests
                   </div>
                 )}
-                {(template.budgetMin || template.budgetMax) && (
+                {(template.templateData?.budgetMin || template.templateData?.budgetMax) && (
                   <div>
                     <span className="font-medium">Budget:</span> $
-                    {template.budgetMin || '?'} - ${template.budgetMax || '?'}
+                    {template.templateData?.budgetMin || '?'} - ${template.templateData?.budgetMax || '?'}
                   </div>
                 )}
-                {template.standardRequirements && (
+                {template.templateData?.standardRequirements && (
                   <div>
                     <span className="font-medium">Requirements:</span>
                     <p className="text-muted-foreground line-clamp-2">
-                      {template.standardRequirements}
+                      {template.templateData?.standardRequirements}
                     </p>
                   </div>
                 )}

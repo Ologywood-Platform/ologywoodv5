@@ -473,11 +473,9 @@ export default function Dashboard() {
                     <p className="text-muted-foreground">Click dates to mark your availability</p>
                   </div>
                   <Link href="/availability">
-                    <a>
-                      <Button asChild>
-                        <span>Full Calendar View</span>
-                      </Button>
-                    </a>
+                    <Button asChild>
+                      <span>Full Calendar View</span>
+                    </Button>
                   </Link>
                 </div>
                 <AvailabilityCalendar
@@ -521,11 +519,9 @@ export default function Dashboard() {
                     <p className="text-muted-foreground">Manage your Ologywood subscription</p>
                   </div>
                   <Link href="/subscription">
-                    <a>
-                      <Button asChild>
-                        <span>View Details</span>
-                      </Button>
-                    </a>
+                    <Button asChild>
+                      <span>View Details</span>
+                    </Button>
                   </Link>
                 </div>
                 <Card>

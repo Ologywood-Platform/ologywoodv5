@@ -350,8 +350,6 @@ export const adminSeedRouter = router({
         await db.insert(supportCategories).values({
           name: category.name,
           description: category.description,
-          order: category.order,
-          isActive: category.isActive,
         });
       }
 

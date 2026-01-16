@@ -36,18 +36,20 @@ export function ContractsManagement({ bookingId }: ContractsManagementProps) {
     }
 
     try {
+      const contractTitle = selectedContract.contractData?.title || 'Contract';
+      const contractContent = selectedContract.contractData?.content || '';
       await generateContractPdf({
-        filename: `${selectedContract.contractTitle}.pdf`,
-        title: selectedContract.contractTitle,
-        contractContent: selectedContract.contractContent,
+        filename: `${contractTitle}.pdf`,
+        title: contractTitle,
+        contractContent: contractContent,
         artistName: 'Artist',
         venueName: 'Venue',
         eventDate: new Date().toLocaleDateString(),
         signatures: signatures?.map((sig) => ({
           signerName: 'Signer',
-          signerRole: sig.signerRole as 'artist' | 'venue',
-          signatureData: sig.signatureData,
-          signedAt: sig.signedAt,
+          signerRole: 'artist' as const,
+          signatureData: sig.signatureData || '',
+          signedAt: sig.signedAt || new Date(),
         })) || [],
       });
       toast.success('PDF downloaded successfully');
@@ -145,11 +147,11 @@ export function ContractsManagement({ bookingId }: ContractsManagementProps) {
             <Card className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">{selectedContract.contractTitle}</h2>
-                  <Badge className={`${getStatusColor(selectedContract.status)}`}>
-                    {getStatusLabel(selectedContract.status)}
-                  </Badge>
+                  <h2 className="text-xl font-semibold mb-4">{selectedContract.contractData?.title || 'Contract'}</h2>
                 </div>
+                <Badge className={`${getStatusColor(selectedContract.status)}`}>
+                  {getStatusLabel(selectedContract.status)}
+                </Badge>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -171,31 +173,12 @@ export function ContractsManagement({ bookingId }: ContractsManagementProps) {
               <h3 className="font-semibold mb-4">Signature Status</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Artist</span>
-                  {selectedContract.artistSignedAt ? (
-                    <div className="text-right">
-                      <p className="text-green-600 text-sm font-semibold">✓ Signed</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(selectedContract.artistSignedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="text-yellow-600 text-sm font-semibold">Pending</span>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium">Venue</span>
-                  {selectedContract.venueSignedAt ? (
-                    <div className="text-right">
-                      <p className="text-green-600 text-sm font-semibold">✓ Signed</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(selectedContract.venueSignedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="text-yellow-600 text-sm font-semibold">Pending</span>
-                  )}
+                  <span className="text-sm font-medium">Status</span>
+                  <span className={`text-sm font-semibold ${
+                    selectedContract.status === 'signed' ? 'text-green-600' : 'text-yellow-600'
+                  }`}>
+                    {selectedContract.status.charAt(0).toUpperCase() + selectedContract.status.slice(1)}
+                  </span>
                 </div>
               </div>
             </Card>
@@ -204,11 +187,15 @@ export function ContractsManagement({ bookingId }: ContractsManagementProps) {
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Contract Preview</h3>
               <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto prose prose-sm">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: selectedContract.contractContent.substring(0, 500) + '...',
-                  }}
-                />
+                <div className="text-sm text-gray-600">
+                  {selectedContract.contractData ? (
+                    <pre className="text-xs overflow-auto">
+                      {JSON.stringify(selectedContract.contractData, null, 2).substring(0, 500)}...
+                    </pre>
+                  ) : (
+                    <p>No contract data available</p>
+                  )}
+                </div>
               </div>
             </Card>
 

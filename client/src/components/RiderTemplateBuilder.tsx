@@ -10,33 +10,11 @@ import { toast } from 'sonner';
 
 interface RiderTemplate {
   id: number;
-  templateName: string;
-  description?: string | null;
-  genre?: string | null;
-  performanceType?: string | null;
-  performanceDuration?: number | null;
-  paSystemRequired?: boolean | null;
-  lightingRequired?: boolean | null;
-  lightingType?: string | null;
-  stageDimensions?: string | null;
-  cateringProvided?: boolean | null;
-  dressingRoomRequired?: boolean | null;
-  parkingRequired?: boolean | null;
-  travelProvided?: boolean | null;
-  accommodationProvided?: boolean | null;
-  merchandiseSales?: boolean | null;
-  photographyAllowed?: boolean | null;
-  videoRecordingAllowed?: boolean | null;
-  socialMediaPermission?: boolean | null;
-  broadcastingRights?: boolean | null;
-  specialRequests?: string | null;
-  emergencyContact?: string | null;
-  additionalNotes?: string | null;
-  isPublished?: boolean | null;
-  version?: number | null;
-  technicalRequirements?: any;
-  hospitalityRequirements?: any;
-  financialTerms?: any;
+  artistId: number | null;
+  templateName: string | null;
+  templateData: Record<string, any> | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 export function RiderTemplateBuilder() {
@@ -61,27 +39,31 @@ export function RiderTemplateBuilder() {
 
   const [formData, setFormData] = useState<RiderTemplate>({
     id: 0,
+    artistId: null,
     templateName: '',
-    technicalRequirements: null,
-    hospitalityRequirements: null,
-    financialTerms: null,
+    templateData: null,
+    createdAt: null,
+    updatedAt: null,
   });
 
   const handleNewTemplate = () => {
     setFormData({
       id: 0,
+      artistId: null,
       templateName: '',
-      technicalRequirements: null,
-      hospitalityRequirements: null,
-      financialTerms: null,
+      templateData: null,
+      createdAt: null,
+      updatedAt: null,
     });
     setSelectedTemplate(null);
     setIsCreating(true);
   };
 
-  const handleSelectTemplate = (template: RiderTemplate) => {
-    setFormData(template);
-    setSelectedTemplate(template);
+  const handleSelectTemplate = (template: RiderTemplate | null) => {
+    if (template) {
+      setFormData(template);
+      setSelectedTemplate(template);
+    }
     setIsCreating(false);
   };
 
@@ -96,9 +78,12 @@ export function RiderTemplateBuilder() {
   const handleTechnicalChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      technicalRequirements: {
-        ...(prev.technicalRequirements || {}),
-        [field]: value,
+      templateData: {
+        ...(prev.templateData || {}),
+        technical: {
+          ...(prev.templateData?.technical || {}),
+          [field]: value,
+        },
       },
     }));
   };
@@ -106,9 +91,12 @@ export function RiderTemplateBuilder() {
   const handleHospitalityChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      hospitalityRequirements: {
-        ...(prev.hospitalityRequirements || {}),
-        [field]: value,
+      templateData: {
+        ...(prev.templateData || {}),
+        hospitality: {
+          ...(prev.templateData?.hospitality || {}),
+          [field]: value,
+        },
       },
     }));
   };
@@ -116,15 +104,18 @@ export function RiderTemplateBuilder() {
   const handleFinancialChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      financialTerms: {
-        ...(prev.financialTerms || {}),
-        [field]: value,
+      templateData: {
+        ...(prev.templateData || {}),
+        financial: {
+          ...(prev.templateData?.financial || {}),
+          [field]: value,
+        },
       },
     }));
   };
 
   const handleSave = async () => {
-    if (!formData.templateName.trim()) {
+    if (!formData.templateName?.trim()) {
       toast.error('Please enter a template name');
       return;
     }
@@ -134,18 +125,14 @@ export function RiderTemplateBuilder() {
       if (isCreating || formData.id === 0) {
         await createMutation.mutateAsync({
           templateName: formData.templateName,
-          technicalRequirements: formData.technicalRequirements || undefined,
-          hospitalityRequirements: formData.hospitalityRequirements || undefined,
-          financialTerms: formData.financialTerms || undefined,
+          templateData: formData.templateData || {},
         });
         toast.success('Template created successfully');
       } else {
         await updateMutation.mutateAsync({
-          id: formData.id,
+          templateId: formData.id,
           templateName: formData.templateName,
-          technicalRequirements: formData.technicalRequirements || undefined,
-          hospitalityRequirements: formData.hospitalityRequirements || undefined,
-          financialTerms: formData.financialTerms || undefined,
+          templateData: formData.templateData || {},
         });
         toast.success('Template updated successfully');
       }
@@ -234,7 +221,7 @@ export function RiderTemplateBuilder() {
                     <Input
                       type="text"
                       placeholder="e.g., 40 feet"
-                      value={formData.technicalRequirements?.stageWidth || ''}
+                      value={formData.templateData?.technical?.stageWidth || ''}
                       onChange={(e) => handleTechnicalChange('stageWidth', e.target.value)}
                       disabled={loading}
                     />
@@ -244,7 +231,7 @@ export function RiderTemplateBuilder() {
                     <Input
                       type="text"
                       placeholder="e.g., 25 feet"
-                      value={formData.technicalRequirements?.stageDepth || ''}
+                      value={formData.templateData?.technical?.stageDepth || ''}
                       onChange={(e) => handleTechnicalChange('stageDepth', e.target.value)}
                       disabled={loading}
                     />
@@ -253,7 +240,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Sound System</label>
                     <Textarea
                       placeholder="Describe required sound system..."
-                      value={formData.technicalRequirements?.soundSystem || ''}
+                      value={formData.templateData?.technical?.soundSystem || ''}
                       onChange={(e) => handleTechnicalChange('soundSystem', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -263,7 +250,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Lighting</label>
                     <Textarea
                       placeholder="Describe required lighting setup..."
-                      value={formData.technicalRequirements?.lighting || ''}
+                      value={formData.templateData?.technical?.lighting || ''}
                       onChange={(e) => handleTechnicalChange('lighting', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -273,7 +260,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Backline</label>
                     <Textarea
                       placeholder="List required instruments and equipment..."
-                      value={formData.technicalRequirements?.backline || ''}
+                      value={formData.templateData?.technical?.backline || ''}
                       onChange={(e) => handleTechnicalChange('backline', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -283,7 +270,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Other Technical Requirements</label>
                     <Textarea
                       placeholder="Any other technical requirements..."
-                      value={formData.technicalRequirements?.other || ''}
+                      value={formData.templateData?.technical?.other || ''}
                       onChange={(e) => handleTechnicalChange('other', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -296,7 +283,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Dressing Rooms</label>
                     <Textarea
                       placeholder="Describe dressing room requirements..."
-                      value={formData.hospitalityRequirements?.dressingRooms || ''}
+                      value={formData.templateData?.hospitality?.dressingRooms || ''}
                       onChange={(e) => handleHospitalityChange('dressingRooms', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -306,7 +293,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Catering</label>
                     <Textarea
                       placeholder="Describe catering requirements..."
-                      value={formData.hospitalityRequirements?.catering || ''}
+                      value={formData.templateData?.hospitality?.catering || ''}
                       onChange={(e) => handleHospitalityChange('catering', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -316,7 +303,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Beverages</label>
                     <Textarea
                       placeholder="Describe beverage requirements..."
-                      value={formData.hospitalityRequirements?.beverages || ''}
+                      value={formData.templateData?.hospitality?.beverages || ''}
                       onChange={(e) => handleHospitalityChange('beverages', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -326,7 +313,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Accommodation</label>
                     <Textarea
                       placeholder="Describe accommodation requirements..."
-                      value={formData.hospitalityRequirements?.accommodation || ''}
+                      value={formData.templateData?.hospitality?.accommodation || ''}
                       onChange={(e) => handleHospitalityChange('accommodation', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -336,7 +323,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Other Hospitality Requirements</label>
                     <Textarea
                       placeholder="Any other hospitality requirements..."
-                      value={formData.hospitalityRequirements?.other || ''}
+                      value={formData.templateData?.hospitality?.other || ''}
                       onChange={(e) => handleHospitalityChange('other', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -350,7 +337,7 @@ export function RiderTemplateBuilder() {
                     <Input
                       type="text"
                       placeholder="e.g., 50% of total fee"
-                      value={formData.financialTerms?.depositAmount || ''}
+                      value={formData.templateData?.financial?.depositAmount || ''}
                       onChange={(e) => handleFinancialChange('depositAmount', e.target.value)}
                       disabled={loading}
                     />
@@ -359,7 +346,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Payment Method</label>
                     <Textarea
                       placeholder="Describe accepted payment methods..."
-                      value={formData.financialTerms?.paymentMethod || ''}
+                      value={formData.templateData?.financial?.paymentMethod || ''}
                       onChange={(e) => handleFinancialChange('paymentMethod', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -369,7 +356,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Cancellation Policy</label>
                     <Textarea
                       placeholder="Describe cancellation policy..."
-                      value={formData.financialTerms?.cancellationPolicy || ''}
+                      value={formData.templateData?.financial?.cancellationPolicy || ''}
                       onChange={(e) => handleFinancialChange('cancellationPolicy', e.target.value)}
                       disabled={loading}
                       rows={3}
@@ -379,7 +366,7 @@ export function RiderTemplateBuilder() {
                     <label className="block text-sm font-medium mb-2">Other Financial Terms</label>
                     <Textarea
                       placeholder="Any other financial terms..."
-                      value={formData.financialTerms?.other || ''}
+                      value={formData.templateData?.financial?.other || ''}
                       onChange={(e) => handleFinancialChange('other', e.target.value)}
                       disabled={loading}
                       rows={3}

@@ -101,20 +101,20 @@ export default function ArtistProfile() {
     const template = templates.find(t => t.id === parseInt(templateId));
     if (template) {
       setSelectedTemplate(template.id);
-      setVenueName(template.venueName || "");
-      setVenueAddress(template.venueAddress || "");
+      setVenueName(template.templateData?.venueName || "");
+      setVenueAddress(template.templateData?.venueAddress || "");
       
       // Build event details from template
       let details = "";
-      if (template.eventType) details += `Event Type: ${template.eventType}\n`;
-      if (template.venueCapacity) details += `Capacity: ${template.venueCapacity} guests\n`;
-      if (template.standardRequirements) details += `\nRequirements:\n${template.standardRequirements}\n`;
-      if (template.additionalNotes) details += `\nAdditional Notes:\n${template.additionalNotes}`;
+      if (template.templateData?.eventType) details += `Event Type: ${template.templateData.eventType}\n`;
+      if (template.templateData?.venueCapacity) details += `Capacity: ${template.templateData.venueCapacity} guests\n`;
+      if (template.templateData?.standardRequirements) details += `\nRequirements:\n${template.templateData.standardRequirements}\n`;
+      if (template.templateData?.additionalNotes) details += `\nAdditional Notes:\n${template.templateData.additionalNotes}`;
       setEventDetails(details);
       
       // Set budget if available
-      if (template.budgetMax) {
-        setTotalFee(template.budgetMax.toString());
+      if (template.templateData?.budgetMax) {
+        setTotalFee(template.templateData.budgetMax.toString());
       }
     }
   };

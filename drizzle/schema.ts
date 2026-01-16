@@ -69,7 +69,9 @@ export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId"),
   templateName: varchar("templateName", { length: 255 }),
+  templateData: json("templateData").$type<Record<string, any>>(),
   createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
 });
 
 export type RiderTemplate = typeof riderTemplates.$inferSelect;
@@ -173,7 +175,9 @@ export const reviews = mysqlTable("reviews", {
   artistId: int("artistId"),
   venueId: int("venueId"),
   rating: int("rating"),
+  comment: text("comment"),
   createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
 });
 
 export type Review = typeof reviews.$inferSelect;

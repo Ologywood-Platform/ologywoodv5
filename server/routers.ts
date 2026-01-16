@@ -821,8 +821,8 @@ export const appRouter = router({
         await db.createMessage({
           bookingId: input.bookingId,
           senderId: ctx.user.id,
-          receiverId: input.receiverId,
-          messageText: input.messageText,
+          recipientId: input.receiverId,
+          content: input.messageText,
         });
         return { success: true };
       }),
@@ -894,8 +894,8 @@ export const appRouter = router({
         await db.createMessage({
           bookingId,
           senderId: ctx.user.id,
-          receiverId: artistProfile.userId,
-          messageText: input.message,
+          recipientId: artistProfile.userId,
+          content: input.message,
         });
         
         return { bookingId, success: true };
@@ -939,7 +939,7 @@ export const appRouter = router({
           artistId: input.artistId,
           venueId: venueProfile.id,
           rating: input.rating,
-          reviewText: input.reviewText || null,
+          comment: input.reviewText || null,
         });
         
         return { success: true };
@@ -949,7 +949,7 @@ export const appRouter = router({
     getByArtist: publicProcedure
       .input(z.object({ artistId: z.number() }))
       .query(async ({ input }) => {
-        let reviews = [];
+        let reviews: any[] = [];
         try {
           reviews = await db.getReviewsByArtistId(input.artistId);
         } catch (error) {
@@ -1000,16 +1000,18 @@ export const appRouter = router({
         });
 
         // Send email notification to venue
-        const venueUser = await db.getUserById(review.venueId);
-        if (venueUser?.email && artistProfile) {
-          await email.sendReviewResponseEmail({
-            venueEmail: venueUser.email,
-            venueName: venueUser.name || 'Venue',
-            artistName: artistProfile.artistName,
-            originalReview: review.reviewText || '',
-            artistResponse: input.response,
-            rating: review.rating,
-          });
+        if (review.venueId) {
+          const venueUser = await db.getUserById(review.venueId);
+          if (venueUser?.email && artistProfile) {
+            await email.sendReviewResponseEmail({
+              venueEmail: venueUser.email,
+              venueName: venueUser.name || 'Venue',
+              artistName: artistProfile.artistName,
+              originalReview: review.comment || '',
+              artistResponse: input.response,
+              rating: review.rating || 0,
+            });
+          }
         }
 
         return { success: true };
@@ -1053,7 +1055,7 @@ export const appRouter = router({
           venueId: input.venueId,
           artistId: artistProfile.id,
           rating: input.rating,
-          reviewText: input.reviewText,
+          comment: input.reviewText,
         });
         
         // Send email notification to venue
@@ -1132,8 +1134,13 @@ export const appRouter = router({
   subscription: router({
     // Get current user's subscription
     getMy: protectedProcedure.query(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
-      return subscription || null;
+      try {
+        const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+        return subscription || null;
+      } catch (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
     }),
 
     // Create checkout session for subscription
@@ -1251,7 +1258,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         return await db.createBookingTemplate({
-          userId: ctx.user.id,
+          venueId: ctx.user.id,
           ...input,
         });
       }),
@@ -1581,32 +1588,13 @@ export const appRouter = router({
     create: artistProcedure
       .input(z.object({
         templateName: z.string().min(1),
-        technicalRequirements: z.object({
-          stageWidth: z.string().optional(),
-          stageDepth: z.string().optional(),
-          soundSystem: z.string().optional(),
-          lighting: z.string().optional(),
-          backline: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        hospitalityRequirements: z.object({
-          dressingRooms: z.string().optional(),
-          catering: z.string().optional(),
-          beverages: z.string().optional(),
-          accommodation: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        financialTerms: z.object({
-          depositAmount: z.string().optional(),
-          paymentMethod: z.string().optional(),
-          cancellationPolicy: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
+        templateData: z.record(z.string(), z.any()).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const template = await db.createRiderTemplate({
           artistId: ctx.user.id,
-          ...input,
+          templateName: input.templateName,
+          templateData: input.templateData || {},
         });
         return template;
       }),
@@ -1614,37 +1602,19 @@ export const appRouter = router({
     // Update rider template
     update: artistProcedure
       .input(z.object({
-        id: z.number(),
+        templateId: z.number(),
         templateName: z.string().optional(),
-        technicalRequirements: z.object({
-          stageWidth: z.string().optional(),
-          stageDepth: z.string().optional(),
-          soundSystem: z.string().optional(),
-          lighting: z.string().optional(),
-          backline: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        hospitalityRequirements: z.object({
-          dressingRooms: z.string().optional(),
-          catering: z.string().optional(),
-          beverages: z.string().optional(),
-          accommodation: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        financialTerms: z.object({
-          depositAmount: z.string().optional(),
-          paymentMethod: z.string().optional(),
-          cancellationPolicy: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
+        templateData: z.record(z.string(), z.any()).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const template = await db.getRiderTemplateById(input.id);
+        const template = await db.getRiderTemplateById(input.templateId);
         if (!template || template.artistId !== ctx.user.id) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' });
         }
-        const { id, ...updates } = input;
-        await db.updateRiderTemplate(id, updates);
+        await db.updateRiderTemplate(input.templateId, {
+          templateName: input.templateName,
+          templateData: input.templateData,
+        });
         return { success: true };
       }),
     
