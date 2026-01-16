@@ -27,8 +27,8 @@ import { analyticsRouter } from "./routers/analytics";
 import { contractManagementRouter } from "./routers/contract-management";
 import { helpAndSupportRouter } from "./routers/helpAndSupport";
 import { contractPdfRouter } from "./routers/contractPdf";
-import { contractPdfService } from "./contractPdfService";
-import { contractArchiveService } from "./contractArchiveService";
+import * as contractPdfService from "./contractPdfService";
+import * as contractArchiveService from "./contractArchiveService";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
