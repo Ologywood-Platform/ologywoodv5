@@ -1,6 +1,7 @@
 import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { errorAnalytics, getErrorSeverity } from '../analytics/errorAnalytics';
+import { errorGroupingService } from '../analytics/errorGrouping';
 
 /**
  * Analytics TRPC Router
@@ -111,6 +112,44 @@ export const analyticsRouter = router({
       });
 
       return { recorded: true };
+    }),
+
+  /**
+   * Get grouped errors
+   */
+  getGroupedErrors: publicProcedure
+    .input(
+      z.object({
+        severity: z.string().optional(),
+        endpoint: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+    )
+    .query(({ input }: any) => {
+      let groups = errorGroupingService.getGroups();
+      if (input.severity) {
+        groups = groups.filter((g) => g.severity === input.severity);
+      }
+      if (input.endpoint) {
+        groups = groups.filter((g) => g.endpoints.includes(input.endpoint));
+      }
+      return groups.slice(0, input.limit);
+    }),
+
+  /**
+   * Get error group statistics
+   */
+  getGroupStatistics: publicProcedure.query(() => {
+    return errorGroupingService.getStatistics();
+  }),
+
+  /**
+   * Get related errors for an error code
+   */
+  getRelatedErrors: publicProcedure
+    .input(z.object({ errorCode: z.string() }))
+    .query(({ input }: any) => {
+      return errorGroupingService.findRelatedErrors(input.errorCode);
     }),
 
   /**
