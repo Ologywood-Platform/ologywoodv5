@@ -1309,3 +1309,16 @@
 - [ ] Test rate limiting with multiple requests
 - [ ] Test error message display in UI
 - [ ] Document error handling best practices
+
+
+## Rate Limiting, Error Handling & Analytics (Final Phase)
+- [x] Integrate rate limiting middleware into Express server (server/_core/index.ts)
+- [x] Create error display toast component (client/src/components/ErrorToast.tsx)
+- [x] Create error analytics tracking system (server/analytics/errorAnalytics.ts)
+- [x] Create error analytics dashboard component (client/src/components/ErrorAnalyticsDashboard.tsx)
+- [ ] Create TRPC router for error analytics endpoints
+- [ ] Integrate toast component into App.tsx
+- [ ] Integrate error analytics into TRPC error handlers
+- [ ] Test rate limiting with concurrent requests
+- [ ] Test error toast notifications
+- [ ] Deploy error analytics dashboard to admin panel
