@@ -1383,3 +1383,14 @@
 - [x] Update Home page header with G clef icon (Home.tsx)
 - [x] Update DashboardLayout sidebar with G clef icon (DashboardLayout.tsx)
 - [ ] Test logo display across all pages
+
+
+## Final Branding Tasks
+- [x] Add logo to Browse page header (Browse.tsx)
+- [x] Add logo to Artist Profile page header (ArtistProfile.tsx)
+- [x] Add logo to Venue Profile page header (VenueProfile.tsx)
+- [x] Set favicon to logo icon (favicon.ico, favicon-32.png)
+- [x] Create LinkedIn social media asset (1200x627px) (ologywood-linkedin.png)
+- [x] Create Twitter social media asset (1024x512px) (ologywood-twitter.png)
+- [x] Create Instagram social media asset (1080x1080px) (ologywood-instagram.png)
+- [ ] Test logo display across all pages
