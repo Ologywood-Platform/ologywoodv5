@@ -33,6 +33,10 @@ import { AIChatWidget } from "./components/AIChatWidget";
 import SupportMetricsDashboard from "./pages/SupportMetricsDashboard";
 import SupportTeamManagement from "./pages/SupportTeamManagement";
 import SLATrackingDashboard from "./pages/SLATrackingDashboard";
+import ArtistDashboard from "./pages/ArtistDashboard";
+import VenueDashboard from "./pages/VenueDashboard";
+import CertificateVerification from "./pages/CertificateVerification";
+import ContractNavigation from "./components/ContractNavigation";
 
 function Router() {
   return (
@@ -67,6 +71,9 @@ function Router() {
       <Route path="/admin/support/metrics" component={SupportMetricsDashboard} />
       <Route path="/admin/support-team" component={SupportTeamManagement} />
       <Route path="/admin/sla-tracking" component={SLATrackingDashboard} />
+      <Route path="/artist-dashboard" component={ArtistDashboard} />
+      <Route path="/venue-dashboard" component={VenueDashboard} />
+      <Route path="/verify-certificate" component={CertificateVerification} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

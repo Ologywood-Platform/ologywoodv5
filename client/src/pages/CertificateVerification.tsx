@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { trpc } from '../lib/trpc';
 
 interface VerificationResult {
   isValid: boolean;
@@ -24,6 +25,8 @@ export const CertificateVerification: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const verifyMutation = trpc.contractManagement.verifyCertificate.useMutation();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();

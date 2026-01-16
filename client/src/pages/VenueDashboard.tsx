@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ContractManagementDashboard } from '../components/ContractManagementDashboard';
+import { trpc } from '../lib/trpc';
 
 interface Contract {
   id: string;
@@ -18,84 +19,39 @@ interface Contract {
 }
 
 export const VenueDashboard: React.FC = () => {
-  const [contracts, setContracts] = useState<Contract[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'contracts' | 'events'>('overview');
-
-  useEffect(() => {
-    // Fetch contracts from TRPC endpoint
-    fetchContracts();
-  }, []);
-
-  const fetchContracts = async () => {
-    try {
-      setIsLoading(true);
-      // TODO: Replace with actual TRPC call
-      // const contracts = await trpc.contracts.getMyContracts.query();
-      // setContracts(contracts);
-      
-      // Mock data for now
-      setContracts([
-        {
-          id: '1',
-          artistName: 'Jazz Quartet',
-          venueName: 'Your Venue',
-          eventDate: '2026-02-20',
-          eventTime: '20:00',
-          status: 'pending',
-          createdAt: '2026-01-15',
-          expiresAt: '2026-02-15',
-          artistSigned: false,
-          venueSigned: false,
-          contractUrl: 'https://example.com/contracts/1',
-        },
-        {
-          id: '2',
-          artistName: 'Soul Band',
-          venueName: 'Your Venue',
-          eventDate: '2026-03-10',
-          eventTime: '19:30',
-          status: 'signed',
-          createdAt: '2026-01-10',
-          expiresAt: '2026-03-05',
-          artistSigned: true,
-          venueSigned: true,
-          artistSignedAt: '2026-01-12',
-          venueSignedAt: '2026-01-13',
-          contractUrl: 'https://example.com/contracts/2',
-        },
-        {
-          id: '3',
-          artistName: 'Classical Orchestra',
-          venueName: 'Your Venue',
-          eventDate: '2026-04-15',
-          eventTime: '18:00',
-          status: 'pending',
-          createdAt: '2026-01-14',
-          expiresAt: '2026-04-10',
-          artistSigned: true,
-          venueSigned: false,
-          artistSignedAt: '2026-01-14',
-          contractUrl: 'https://example.com/contracts/3',
-        },
-      ]);
-    } catch (error) {
-      console.error('Error fetching contracts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
+  // Fetch contracts using TRPC
+  const { data: contractsData, isLoading, error } = trpc.contractManagement.getVenueContracts.useQuery();
+  
+  const contracts: Contract[] = contractsData?.map((c: any) => ({
+    id: c.id.toString(),
+    artistName: c.artistName,
+    venueName: c.venueName,
+    eventDate: c.eventDate,
+    eventTime: c.eventTime,
+    status: c.status,
+    createdAt: c.createdAt,
+    expiresAt: c.expiresAt,
+    artistSigned: c.artistSigned,
+    venueSigned: c.venueSigned,
+    artistSignedAt: c.artistSignedAt,
+    venueSignedAt: c.venueSignedAt,
+    contractUrl: c.contractUrl,
+  })) || [];
 
   const handleContractClick = (contractId: string) => {
     // Navigate to contract detail view
     console.log('View contract:', contractId);
   };
 
+  const sendReminderMutation = trpc.contractManagement.sendManualReminders.useMutation();
+
   const handleSendReminder = async (contractIds: string[]) => {
     try {
-      // TODO: Replace with actual TRPC call
-      // await trpc.contracts.sendManualReminders.mutate({ contractIds: contractIds.map(Number) });
-      console.log('Sending reminders for contracts:', contractIds);
+      await sendReminderMutation.mutateAsync({ 
+        contractIds: contractIds.map(id => parseInt(id, 10)) 
+      });
       alert('Reminders sent successfully!');
     } catch (error) {
       console.error('Error sending reminders:', error);
@@ -105,11 +61,21 @@ export const VenueDashboard: React.FC = () => {
 
   const handleDownloadContract = async (contractId: string) => {
     try {
-      // TODO: Implement contract download
-      console.log('Downloading contract:', contractId);
-      alert('Contract download feature coming soon');
+      const exportMutation = trpc.contractManagement.exportContractData.useMutation();
+      const result = await exportMutation.mutateAsync({ contractId: parseInt(contractId, 10) });
+      
+      const blob = new Blob([result.data], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contract-${contractId}.html`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading contract:', error);
+      alert('Failed to download contract');
     }
   };
 
@@ -281,11 +247,15 @@ export const VenueDashboard: React.FC = () => {
               <div className="loading-spinner"></div>
               <p>Loading your contracts...</p>
             </div>
+          ) : error ? (
+            <div style={{ padding: '20px', background: '#fee2e2', color: '#991b1b', borderRadius: '6px' }}>
+              <p>Error loading contracts. Please try again later.</p>
+            </div>
           ) : (
             <ContractManagementDashboard
               contracts={contracts}
               userRole="venue"
-              userName="Your Venue"
+              userName={contractsData?.[0]?.venueName || 'Your Venue'}
               onContractClick={handleContractClick}
               onSendReminder={handleSendReminder}
               onDownloadContract={handleDownloadContract}
