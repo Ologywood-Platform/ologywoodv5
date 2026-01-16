@@ -2,10 +2,11 @@
  * TRPC Router for Help Center and Support Tickets
  */
 
-import { router, protectedProcedure, publicProcedure } from '../trpc';
+import { router, protectedProcedure, publicProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { helpArticles, searchArticles, getArticlesByCategory, getAllCategories, getRelatedArticles } from '../helpCenterData';
 import { SupportTicketRouter, createTicketSchema, addResponseSchema, updateTicketSchema, ticketTemplates } from '../supportTicketSystem';
+import { TRPCError } from '@trpc/server';
 
 export const helpAndSupportRouter = router({
   // Help Center endpoints
