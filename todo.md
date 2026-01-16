@@ -1410,3 +1410,24 @@
 - [x] Add logo to Artist Onboarding page (ArtistOnboarding.tsx)
 - [x] Add logo to Venue Onboarding page (VenueOnboarding.tsx)
 - [ ] Verify logo displays on all pages
+
+
+## Email Template Design
+- [x] Create booking confirmation email template (bookingConfirmationEmail.html)
+- [x] Add logo to email header with gradient background
+- [x] Style booking details section with cards
+- [x] Add call-to-action buttons (View Booking, Contact Venue)
+- [x] Create email service with nodemailer integration (emailService.ts)
+- [ ] Integrate email sending into booking router
+- [ ] Test email rendering
+
+
+## Rider Contract Template - Phase 1
+- [x] Create comprehensive markdown rider contract template (riderContractTemplate.md)
+- [x] Create interactive HTML rider contract template (riderContractTemplate.html)
+- [x] Create contract service (contractService.ts) with generation and management
+- [x] Create TRPC contract management router (contract-management.ts)
+- [x] Register contract management router in main routers
+- [ ] Create contract UI components for artist/venue
+- [ ] Add contract signing workflow
+- [ ] Test contract generation and export

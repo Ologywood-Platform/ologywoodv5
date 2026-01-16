@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - Ologywood</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header with gradient and logo */
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .logo-container {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-top: 5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Content sections */
+        .content {
+            padding: 40px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .greeting strong {
+            color: #7c3aed;
+        }
+        
+        /* Booking details card */
+        .booking-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-left: 4px solid #7c3aed;
+            padding: 24px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        
+        .booking-card h2 {
+            color: #1f2937;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .booking-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 16px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        .detail-value.highlight {
+            color: #7c3aed;
+        }
+        
+        .detail-item.full {
+            grid-column: 1 / -1;
+        }
+        
+        /* Status badge */
+        .status-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 16px;
+        }
+        
+        /* Action buttons */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+        }
+        
+        .btn-secondary:hover {
+            background: #f3f4f6;
+        }
+        
+        /* Info section */
+        .info-section {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        
+        .info-section h3 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .info-section p {
+            color: #1e3a8a;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #d1d5db;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .footer-logo {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 15px;
+            display: block;
+            opacity: 0.8;
+        }
+        
+        .footer p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            margin: 15px 0;
+        }
+        
+        .footer-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 11px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #374151;
+            margin: 15px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .booking-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .greeting {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-container">
+                <img src="cid:ologywood-logo" alt="Ologywood" class="logo">
+            </div>
+            <h1>Booking Confirmed!</h1>
+            <p>Your event is all set</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Greeting -->
+            <div class="greeting">
+                Hi <strong>{{artistName}}</strong>,
+                <br><br>
+                Great news! Your booking with <strong>{{venueName}}</strong> has been confirmed. We're excited to have you perform at their venue!
+            </div>
+            
+            <!-- Booking Details -->
+            <div class="booking-card">
+                <h2>📋 Booking Details</h2>
+                <div class="booking-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Event Date</div>
+                        <div class="detail-value">{{eventDate}}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Event Time</div>
+                        <div class="detail-value">{{eventTime}}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Venue</div>
+                        <div class="detail-value">{{venueName}}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Location</div>
+                        <div class="detail-value">{{venueAddress}}</div>
+                    </div>
+                    <div class="detail-item full">
+                        <div class="detail-label">Performance Fee</div>
+                        <div class="detail-value highlight">${{totalFee}}</div>
+                    </div>
+                    <div class="detail-item full">
+                        <div class="detail-label">Payment Status</div>
+                        <span class="status-badge">{{paymentStatus}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Important Info -->
+            <div class="info-section">
+                <h3>ℹ️ Important Information</h3>
+                <p>
+                    Please arrive 30 minutes before your scheduled performance time. 
+                    Contact the venue directly if you have any questions about setup, 
+                    technical requirements, or parking.
+                </p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="actions">
+                <a href="{{dashboardUrl}}" class="btn btn-primary">View Booking Details</a>
+                <a href="{{contactVenueUrl}}" class="btn btn-secondary">Contact Venue</a>
+            </div>
+            
+            <!-- Additional Info -->
+            <div style="background: #f9fafb; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                <p style="color: #4b5563; font-size: 13px; line-height: 1.6; margin: 0;">
+                    <strong>Need Help?</strong><br>
+                    If you have any questions or need to make changes to your booking, 
+                    visit your <a href="{{dashboardUrl}}" style="color: #7c3aed; text-decoration: none;">dashboard</a> 
+                    or contact our support team at <a href="mailto:support@ologywood.com" style="color: #7c3aed; text-decoration: none;">support@ologywood.com</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <img src="cid:ologywood-logo" alt="Ologywood" class="footer-logo">
+            <p><strong>Ologywood - Artist Booking Platform</strong></p>
+            <p>Connecting talented artists with amazing venues</p>
+            
+            <div class="divider"></div>
+            
+            <div class="footer-links">
+                <a href="{{websiteUrl}}">Website</a>
+                <a href="{{facebookUrl}}">Facebook</a>
+                <a href="{{instagramUrl}}">Instagram</a>
+                <a href="{{twitterUrl}}">Twitter</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p>
+                © 2026 Ologywood. All rights reserved.<br>
+                <a href="{{privacyUrl}}" style="color: #60a5fa; text-decoration: none;">Privacy Policy</a> | 
+                <a href="{{termsUrl}}" style="color: #60a5fa; text-decoration: none;">Terms of Service</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

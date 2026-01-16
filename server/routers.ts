@@ -24,6 +24,7 @@ import { adminSeedRouter } from "./routers/admin-seed";
 import { supportSeederRouter } from "./routers/support-seeder";
 import { aiChatRouter } from "./routers/ai-chat";
 import { analyticsRouter } from "./routers/analytics";
+import { contractManagementRouter } from "./routers/contract-management";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -45,6 +46,7 @@ export const appRouter = router({
   system: systemRouter,
   analytics: analyticsRouter,
   contracts: contractsRouter,
+  contractManagement: contractManagementRouter,
   // contractStatus: contractStatusRouter, // Temporarily disabled
   contractAudit: contractAuditRouter,
   referrals: referralRouter,
