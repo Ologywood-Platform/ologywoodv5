@@ -1376,3 +1376,10 @@
 - [x] Update sidebar with logo and icon (DashboardLayout.tsx)
 - [ ] Update favicon
 - [ ] Update other pages with branding
+
+
+## Logo Update
+- [x] Extract G clef and music notes icon from horizontal logo (ologywood-gclef-icon.png)
+- [x] Update Home page header with G clef icon (Home.tsx)
+- [x] Update DashboardLayout sidebar with G clef icon (DashboardLayout.tsx)
+- [ ] Test logo display across all pages
