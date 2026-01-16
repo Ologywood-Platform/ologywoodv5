@@ -128,7 +128,7 @@ export function configureFileUpload(app: Express, uploadPath: string = '/upload'
   app.post(uploadPath, fileUploadValidation({
     maxSize: FILE_SIZE_LIMITS.default,
     allowedTypes: Object.values(ALLOWED_MIME_TYPES).flat(),
-  }), (req: Request, res: Response) => {
+  }), (req: Request & { file?: Express.Multer.File }, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
     }
@@ -148,11 +148,11 @@ export function configureFileUpload(app: Express, uploadPath: string = '/upload'
 
     res.json({
       success: true,
-      file: {
+      file: req.file ? {
         filename: req.file.filename,
         size: req.file.size,
         mimetype: req.file.mimetype,
-      },
+      } : null,
     });
   });
 }

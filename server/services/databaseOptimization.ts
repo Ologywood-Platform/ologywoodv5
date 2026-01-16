@@ -38,7 +38,7 @@ export class QueryCache {
    * Set cached value
    */
   set<T>(key: string, value: T, ttl?: number): void {
-    this.cache.set(key, value, ttl);
+    this.cache.set(key, value, ttl !== undefined ? ttl : 300);
     this.stats.sets++;
   }
 
