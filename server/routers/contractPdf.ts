@@ -3,9 +3,10 @@
  * TRPC endpoints for generating and downloading contract PDFs
  */
 
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
-import { contractPdfService } from '../contractPdfService';
+import * as contractPdfService from '../contractPdfService';
+import { TRPCError } from '@trpc/server';
 
 export const contractPdfRouter = router({
   /**

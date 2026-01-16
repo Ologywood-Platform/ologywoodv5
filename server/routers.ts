@@ -26,6 +26,9 @@ import { aiChatRouter } from "./routers/ai-chat";
 import { analyticsRouter } from "./routers/analytics";
 import { contractManagementRouter } from "./routers/contract-management";
 import { helpAndSupportRouter } from "./routers/helpAndSupport";
+import { contractPdfRouter } from "./routers/contractPdf";
+import { contractPdfService } from "./contractPdfService";
+import { contractArchiveService } from "./contractArchiveService";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -62,6 +65,7 @@ export const appRouter = router({
   supportSeeder: supportSeederRouter,
   aiChat: aiChatRouter,
   helpAndSupport: helpAndSupportRouter,
+  contractPdf: contractPdfRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
