@@ -109,7 +109,7 @@ async function initializeServer(): Promise<void> {
 
     logEvent({
       level: LogLevel.INFO,
-      eventType: LogEventType.SERVER_START,
+      eventType: LogEventType.SERVER_STARTUP,
       message: `Server started on port ${PORT}`,
       details: {
         port: PORT,
@@ -199,9 +199,13 @@ async function initializeServer(): Promise<void> {
       level: LogLevel.CRITICAL,
       eventType: LogEventType.ERROR,
       message: 'Unhandled promise rejection',
-      error: {
+      details: {
         reason: String(reason),
         promise: String(promise),
+      },
+      error: {
+        name: 'UnhandledPromiseRejection',
+        message: String(reason),
       },
     });
   });

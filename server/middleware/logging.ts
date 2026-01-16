@@ -59,6 +59,8 @@ export enum LogEventType {
   ERROR = 'ERROR',
   WARNING = 'WARNING',
   INFO = 'INFO',
+  SERVER_STARTUP = 'SERVER_STARTUP',
+  SERVER_SHUTDOWN = 'SERVER_SHUTDOWN',
 }
 
 /**

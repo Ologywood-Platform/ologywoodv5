@@ -4,7 +4,7 @@
  * Schedule: 00:00 UTC daily (configurable)
  */
 
-import { analyticsMetricsService } from '../analyticsMetricsService';
+import analyticsMetricsService from '../analyticsMetricsService';
 
 /**
  * Execute daily metrics calculation
