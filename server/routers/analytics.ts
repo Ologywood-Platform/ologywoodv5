@@ -2,6 +2,7 @@ import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { errorAnalytics, getErrorSeverity } from '../analytics/errorAnalytics';
 import { errorGroupingService } from '../analytics/errorGrouping';
+import { errorTrendPredictionService } from '../analytics/errorTrendPrediction';
 
 /**
  * Analytics TRPC Router
@@ -151,6 +152,63 @@ export const analyticsRouter = router({
     .query(({ input }: any) => {
       return errorGroupingService.findRelatedErrors(input.errorCode);
     }),
+
+  /**
+   * Get error trend analysis
+   */
+  getTrendAnalysis: publicProcedure
+    .input(z.object({ groupId: z.string() }))
+    .query(({ input }: any) => {
+      return errorTrendPredictionService.getTrendAnalysis(input.groupId);
+    }),
+
+  /**
+   * Get all trend analyses
+   */
+  getAllTrends: publicProcedure.query(() => {
+    return errorTrendPredictionService.getAllTrendAnalyses();
+  }),
+
+  /**
+   * Get anomalies
+   */
+  getAnomalies: publicProcedure.query(() => {
+    return errorTrendPredictionService.getAnomalies();
+  }),
+
+  /**
+   * Get increasing trends
+   */
+  getIncreasingTrends: publicProcedure.query(() => {
+    return errorTrendPredictionService.getIncreasingTrends();
+  }),
+
+  /**
+   * Get prediction alerts
+   */
+  getPredictionAlerts: publicProcedure
+    .input(
+      z.object({
+        hoursBack: z.number().min(1).max(720).default(24),
+      })
+    )
+    .query(({ input }: any) => {
+      return errorTrendPredictionService.getRecentAlerts(input.hoursBack);
+    }),
+
+  /**
+   * Get critical alerts
+   */
+  getCriticalAlerts: publicProcedure.query(() => {
+    return errorTrendPredictionService.getCriticalAlerts();
+  }),
+
+  /**
+   * Get prediction statistics
+   */
+  getPredictionStats: publicProcedure.query(() => {
+    return errorTrendPredictionService.getPredictionStatistics();
+  }),
 
   /**
    * Export errors for analysis (admin only)
