@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,8 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '../lib/trpc';
 
 interface SupportTicketFormProps {
   onSubmit?: (data: TicketFormData) => Promise<void>;
@@ -17,17 +18,17 @@ interface SupportTicketFormProps {
 export interface TicketFormData {
   subject: string;
   description: string;
-  category: 'rider' | 'booking' | 'payment' | 'technical' | 'other';
+  category: 'contracts' | 'billing' | 'technical' | 'account' | 'general';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   attachmentUrl?: string;
 }
 
 const CATEGORIES = [
-  { value: 'rider', label: 'Rider Template Issue', icon: '📋' },
-  { value: 'booking', label: 'Booking Problem', icon: '📅' },
-  { value: 'payment', label: 'Payment Issue', icon: '💳' },
+  { value: 'contracts', label: 'Contract Issue', icon: '📋' },
+  { value: 'billing', label: 'Billing Problem', icon: '💳' },
   { value: 'technical', label: 'Technical Bug', icon: '🐛' },
-  { value: 'other', label: 'Other', icon: '❓' },
+  { value: 'account', label: 'Account Help', icon: '👤' },
+  { value: 'general', label: 'General Question', icon: '❓' },
 ];
 
 const PRIORITIES = [
@@ -41,15 +42,36 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
   const [formData, setFormData] = useState<TicketFormData>({
     subject: '',
     description: '',
-    category: 'other',
+    category: 'general',
     priority: 'medium',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showFAQSuggestion, setShowFAQSuggestion] = useState(false);
+
+  // Fetch FAQ suggestions from TRPC
+  const { data: suggestions } = trpc.supportTickets.getSuggestions.useQuery(
+    { category: formData.category, description: formData.description },
+    { enabled: formData.description.length > 50 }
+  );
+
+  // Check if FAQ suggestion should be shown
+  useMemo(() => {
+    if (suggestions?.shouldSuggestFAQ && formData.description.length > 50) {
+      setShowFAQSuggestion(true);
+    } else {
+      setShowFAQSuggestion(false);
+    }
+  }, [suggestions]);
 
   const handleChange = (field: keyof TicketFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleViewFAQ = (articleId: string) => {
+    // Navigate to FAQ or open in modal
+    window.open(`/help/${articleId}`, '_blank');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +97,7 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
         setFormData({
           subject: '',
           description: '',
-          category: 'other',
+          category: 'general',
           priority: 'medium',
         });
         setSubmitted(false);
@@ -94,10 +116,13 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
           <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Ticket Created Successfully!</h3>
           <p className="text-muted-foreground mb-4">
-            We've received your support request. Our team will respond within 24 hours.
+            We've received your support request. Our team will respond as soon as possible.
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-4">
             Ticket ID: <span className="font-mono font-semibold">#TSK{Math.floor(Math.random() * 100000)}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            You'll receive email updates as your ticket is processed. Check your email for details.
           </p>
         </CardContent>
       </Card>
@@ -117,7 +142,7 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
           {/* Category */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Category *</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.value}
@@ -138,16 +163,16 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
 
           {/* Subject */}
           <div>
-            <Label htmlFor="subject">Subject *</Label>
+            <Label htmlFor="subject">Subject / Title *</Label>
             <Input
               id="subject"
               value={formData.subject}
               onChange={(e) => handleChange('subject', e.target.value)}
-              placeholder="Brief description of your issue"
-              maxLength={100}
+              placeholder="Brief description of your issue (e.g., 'Signature not appearing on contract')"
+              maxLength={200}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {formData.subject.length}/100 characters
+              {formData.subject.length}/200 characters
             </p>
           </div>
 
@@ -162,12 +187,13 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
 - What were you trying to do?
 - What happened instead?
 - When did this occur?
-- Any error messages?"
+- Any error messages?
+- Which contract or booking is affected?"
               rows={6}
-              maxLength={2000}
+              maxLength={5000}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {formData.description.length}/2000 characters
+              {formData.description.length}/5000 characters
             </p>
           </div>
 
@@ -191,6 +217,30 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
               ))}
             </div>
           </div>
+
+          {/* FAQ Suggestion */}
+          {showFAQSuggestion && suggestions?.relatedArticles && suggestions.relatedArticles.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
+              <Lightbulb className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-900">
+                <p className="font-semibold mb-2">💡 We found help articles that might answer your question:</p>
+                <ul className="space-y-1">
+                  {suggestions.relatedArticles.map((article: any) => (
+                    <li key={article.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleViewFAQ(article.id)}
+                        className="text-amber-700 hover:text-amber-900 underline text-xs"
+                      >
+                        {article.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs mt-2 text-amber-700">Still need help? Continue creating a ticket below.</p>
+              </div>
+            </div>
+          )}
 
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
@@ -218,7 +268,7 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !formData.subject.trim() || !formData.description.trim()}
               className="bg-purple-600 hover:bg-purple-700"
             >
               {isSubmitting ? (
