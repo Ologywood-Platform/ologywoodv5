@@ -1431,3 +1431,34 @@
 - [ ] Create contract UI components for artist/venue
 - [ ] Add contract signing workflow
 - [ ] Test contract generation and export
+
+
+## Contract UI Components - Phase 2
+- [x] Create ContractDisplay component for viewing contracts (ContractDisplay.tsx)
+- [ ] Create ContractEditor component for editing contract details
+- [ ] Create ContractForm component for new contract creation
+- [x] Create SignatureCanvas component for digital signatures (SignatureCanvas.tsx)
+- [x] Create ContractSigningWorkflow component for complete signing process (ContractSigningWorkflow.tsx)
+- [ ] Create ContractManagementDashboard for artist/venue dashboards
+- [x] Add contract preview modal (included in ContractDisplay)
+- [ ] Add contract download/export functionality
+
+## Digital Signature Implementation
+- [x] Install signature pad library (react-signature-canvas)
+- [x] Create signature capture UI with preview (SignatureCanvas.tsx)
+- [ ] Implement signature verification logic
+- [ ] Create signature storage and retrieval
+- [x] Add signature timestamp and validation (in SignatureCanvas)
+- [x] Create signature status indicators (in ContractSigningWorkflow)
+- [ ] Add signature revocation capability
+
+## Contract Email Notifications
+- [x] Create contract sent email template (contractNotificationEmails.ts)
+- [x] Create signature request email template (contractNotificationEmails.ts)
+- [x] Create signature received email template (contractNotificationEmails.ts)
+- [x] Create contract reminder email template (contractNotificationEmails.ts)
+- [x] Create contract notification service (contractNotificationService.ts)
+- [ ] Implement email sending on contract attachment
+- [ ] Implement email sending on signature request
+- [ ] Implement email sending on signature completion
+- [ ] Add automated reminder emails (3 days, 1 day before event)
