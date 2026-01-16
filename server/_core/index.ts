@@ -8,7 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
-import { requestLogger } from "../middleware/requestLogger";
+// import { requestLogger } from "../middleware/requestLogger"; // Optional logging middleware
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -44,10 +44,8 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   
-  // Add request logging middleware
-  if (requestLogger) {
-    app.use(requestLogger as any);
-  }
+  // Add request logging middleware (optional - only if available)
+  // app.use(requestLogger as any);
   
   // Apply rate limiting to authentication endpoints
   app.use('/api/oauth/login', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
