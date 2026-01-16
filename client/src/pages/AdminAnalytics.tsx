@@ -2,25 +2,35 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { trpc } from '../lib/trpc';
-import ErrorAnalyticsDashboardWithFilters from '../components/ErrorAnalyticsDashboardWithFilters';
+import GroupedErrorAnalytics from '../components/GroupedErrorAnalytics';
 import { useToastContext } from '../components/ErrorToast';
 import { AdminRoute } from '../components/ProtectedRoute';
 
 /**
  * Admin Analytics Dashboard Page
- * Displays error metrics, trends, and system health
+ * Displays deduplicated error groups with intelligent pattern matching
  */
 const AdminAnalyticsContent: React.FC = () => {
   const navigate = useNavigate();
   const { addError } = useToastContext();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [groupedErrors, setGroupedErrors] = useState<any[]>([]);
+  const [groupStats, setGroupStats] = useState<any>(null);
+
+  // Fetch grouped errors
+  const { data: groupedErrorsData, isLoading: groupsLoading } =
+    trpc.analytics.getGroupedErrors.useQuery({
+      limit: 100,
+    });
+
+  const { data: statsData } = trpc.analytics.getGroupStatistics.useQuery();
 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        setLoading(true);
+        setLoading(false);
         // In a real app, you would check the user's role from the context or API
         // For now, we'll assume admin access is granted if the page is accessible
         setIsAdmin(true);
@@ -34,13 +44,25 @@ const AdminAnalyticsContent: React.FC = () => {
           }
         );
         navigate('/dashboard');
-      } finally {
-        setLoading(false);
       }
     };
 
     checkAdminStatus();
   }, [navigate, addError]);
+
+  // Update grouped errors when data changes
+  useEffect(() => {
+    if (groupedErrorsData) {
+      setGroupedErrors(groupedErrorsData);
+    }
+  }, [groupedErrorsData]);
+
+  // Update stats when data changes
+  useEffect(() => {
+    if (statsData) {
+      setGroupStats(statsData);
+    }
+  }, [statsData]);
 
   if (loading) {
     return (
@@ -91,7 +113,7 @@ const AdminAnalyticsContent: React.FC = () => {
                 Error Analytics Dashboard
               </h1>
               <p className="text-gray-600 mt-1">
-                Monitor system errors, trends, and performance metrics
+                Monitor deduplicated error groups and system health metrics
               </p>
             </div>
           </div>
@@ -100,17 +122,46 @@ const AdminAnalyticsContent: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorAnalyticsDashboardWithFilters />
+        <GroupedErrorAnalytics groups={groupedErrors} loading={groupsLoading} />
       </div>
 
       {/* Footer */}
       <div className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+              <p className="text-xs text-gray-500">Total Groups</p>
+              <p className="text-lg font-bold text-gray-900">
+                {groupStats?.totalGroups || 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Total Errors</p>
+              <p className="text-lg font-bold text-gray-900">
+                {groupStats?.totalErrors || 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Affected Users</p>
+              <p className="text-lg font-bold text-gray-900">
+                {groupStats?.totalAffectedUsers || 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Dedup. Ratio</p>
+              <p className="text-lg font-bold text-gray-900">
+                {groupStats?.averageErrorsPerGroup
+                  ? (groupStats.averageErrorsPerGroup * 100).toFixed(0)
+                  : 0}%
+              </p>
+            </div>
+          </div>
           <p className="text-sm text-gray-600">
             Last updated: {new Date().toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            This dashboard displays real-time error analytics and system health metrics.
+            This dashboard displays deduplicated error groups using intelligent pattern matching.
+            Similar errors are automatically grouped to reduce alert fatigue.
             Data is automatically cleaned up after 72 hours.
           </p>
         </div>
