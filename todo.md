@@ -1354,3 +1354,25 @@
 - [x] Create trend visualization component (ErrorTrendChart.tsx)
 - [x] Add TRPC endpoints for trend data (analytics router)
 - [ ] Test prediction accuracy with real data
+
+
+## Branding & Design
+- [ ] Create Ologywood logo (Hollywood + Music theme)
+- [ ] Update app logo in UI
+- [ ] Create brand guidelines
+
+
+## Logo Integration
+- [ ] Copy logo files to public directory
+- [ ] Update app header with logo and icon
+- [ ] Update favicon
+- [ ] Update branding throughout UI
+- [ ] Test logo display across pages
+
+
+## Logo Integration Status
+- [x] Copy logo files to public directory
+- [x] Update app header with logo and icon (Home.tsx)
+- [x] Update sidebar with logo and icon (DashboardLayout.tsx)
+- [ ] Update favicon
+- [ ] Update other pages with branding

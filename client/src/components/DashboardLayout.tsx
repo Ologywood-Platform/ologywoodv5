@@ -20,6 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
+import { useAuth } from "@/lib/auth";
 import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -170,11 +171,14 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
+                  <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded-lg" />
                   <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                    Ologywood
                   </span>
                 </div>
-              ) : null}
+              ) : (
+                <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded-lg" />
+              )}
             </div>
           </SidebarHeader>
 
