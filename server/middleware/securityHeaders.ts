@@ -39,15 +39,8 @@ export function configureSecurityHeaders() {
     noSniff: true,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     xssFilter: true,
-    permissionsPolicy: {
-      features: {
-        geolocation: ["'none'"],
-        microphone: ["'none'"],
-        camera: ["'none'"],
-        payment: ["'none'"],
-        usb: ["'none'"],
-      },
-    },
+    // permissionsPolicy handled separately below
+    // helmet v7 uses different syntax for permissions-policy
   });
 }
 
