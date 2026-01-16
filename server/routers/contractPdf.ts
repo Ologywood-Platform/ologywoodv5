@@ -25,8 +25,8 @@ export const contractPdfRouter = router({
         eventVenue: z.string(),
         performanceFee: z.number(),
         paymentTerms: z.string(),
-        performanceDetails: z.record(z.any()),
-        technicalRequirements: z.record(z.any()),
+        performanceDetails: z.record(z.string(), z.any()),
+        technicalRequirements: z.record(z.string(), z.any()),
         artistSignatureImage: z.string().optional(),
         venueSignatureImage: z.string().optional(),
         certificateNumber: z.string().optional(),
@@ -128,7 +128,7 @@ export const contractPdfRouter = router({
       z.object({
         contractId: z.string(),
         pdfBase64: z.string(),
-        metadata: z.record(z.any()).optional(),
+        details: z.record(z.string(), z.any()).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
