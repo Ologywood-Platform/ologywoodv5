@@ -23,6 +23,7 @@ import { supportRouter } from "./routers/support";
 import { adminSeedRouter } from "./routers/admin-seed";
 import { supportSeederRouter } from "./routers/support-seeder";
 import { aiChatRouter } from "./routers/ai-chat";
+import { analyticsRouter } from "./routers/analytics";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -42,6 +43,7 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 
 export const appRouter = router({
   system: systemRouter,
+  analytics: analyticsRouter,
   contracts: contractsRouter,
   // contractStatus: contractStatusRouter, // Temporarily disabled
   contractAudit: contractAuditRouter,
@@ -1301,8 +1303,8 @@ export const appRouter = router({
       }),
   }),
   
-  // Analytics router
-  analytics: router({
+  // Analytics router - profile views and stats moved to analytics router
+  profileAnalytics: router({
     trackView: publicProcedure
       .input(z.object({
         artistId: z.number(),
