@@ -88,7 +88,7 @@ export function fileUploadValidation(options?: {
   allowedTypes?: string[];
   allowedExtensions?: string[];
 }) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: any, res: Response, next: NextFunction) => {
     // Check if file exists
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
@@ -166,7 +166,7 @@ export function createFileUploadSecurityMiddleware(options?: {
   allowedTypes?: string[];
   scanForViruses?: boolean;
 }) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: any, res: Response, next: NextFunction) => {
     try {
       // Validate file
       if (!req.file) {
@@ -205,7 +205,9 @@ export function createFileUploadSecurityMiddleware(options?: {
       }
 
       // Sanitize filename
-      req.file.filename = sanitizeFilename(filename);
+      if (req.file) {
+        req.file.filename = sanitizeFilename(filename);
+      }
 
       next();
     } catch (error) {

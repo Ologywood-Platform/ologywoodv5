@@ -1,0 +1,117 @@
+TO: sales@synack.com, sales@bugcrowd.com, sales@hackerone.com
+CC: [Your Email]
+SUBJECT: Penetration Testing Services Inquiry - Ologywood Artist Booking Platform
+
+---
+
+Dear [Firm Name] Team,
+
+We are reaching out to inquire about your professional penetration testing services. Ologywood is a rapidly growing artist booking platform connecting performing artists with event venues. We are seeking a qualified security firm to conduct a comprehensive penetration test of our platform before our public launch.
+
+### About Ologywood
+
+- **Platform:** Artist booking platform (web + mobile)
+- **Users:** 10,000+ beta users
+- **Technology Stack:** Node.js, React, PostgreSQL, AWS
+- **API Endpoints:** 50+
+- **Database Size:** ~1GB
+- **Security Focus:** Contract management, digital signatures, payment processing
+
+### Engagement Requirements
+
+- **Scope:** Web application, API, authentication, data protection, infrastructure
+- **Duration:** 4 weeks
+- **Timeline:** February 1, 2026 - February 28, 2026
+- **Budget:** $25,000 - $50,000
+- **Deliverables:** Detailed report, executive summary, remediation roadmap, re-testing included
+
+### Scope Details
+
+**In-Scope:**
+- Web application security (OWASP Top 10)
+- API security and authentication
+- Database security and data protection
+- Digital signature verification
+- Payment processing security
+- Infrastructure security
+- Access control and authorization
+- Session management
+- Input validation and output encoding
+- Cryptographic implementation
+
+**Out-of-Scope:**
+- Physical security
+- Social engineering (unless pre-approved)
+- Denial of Service attacks (without prior approval)
+- Third-party services (Stripe, AWS, etc.)
+
+### Next Steps
+
+We would appreciate if you could:
+
+1. Confirm your availability for the proposed timeline
+2. Provide a detailed proposal including:
+   - Team qualifications and certifications (OSCP, CEH, GPEN, etc.)
+   - Proposed testing methodology (OWASP, NIST, etc.)
+   - Detailed timeline and deliverables
+   - Cost breakdown
+   - Client references (3-5 similar projects)
+   - Insurance certificates (E&O, Cyber Liability)
+   - NDA and contract terms
+
+3. Schedule a brief call (30 minutes) to discuss scope and requirements
+
+### Contact Information
+
+**Project Lead:**
+[Your Name]
+[Your Title]
+Ologywood
+[Email]
+[Phone]
+
+**Technical Contact:**
+[Technical Lead Name]
+[Technical Title]
+Ologywood
+[Email]
+[Phone]
+
+### Timeline
+
+- **January 17-24:** Receive proposals from firms
+- **January 27-31:** Evaluate proposals and schedule calls
+- **February 3-7:** Final selection and contract negotiation
+- **February 10:** Contract execution and engagement kickoff
+- **February 10 - March 10:** 4-week penetration testing engagement
+- **March 13:** Final report delivery
+- **March 17-24:** Re-testing of fixes
+- **March 27:** Final sign-off
+
+We look forward to hearing from you and working with your team to ensure the security of our platform.
+
+Best regards,
+
+[Your Name]
+[Your Title]
+Ologywood
+[Email]
+[Phone]
+[Website]
+
+---
+
+ATTACHMENTS:
+- SECURITY_AUDIT_REPORT.md (current security posture)
+- PENETRATION_TESTING_GUIDE.md (testing requirements)
+- PRODUCTION_DEPLOYMENT_CHECKLIST.md (deployment timeline)
+
+---
+
+NEXT STEPS:
+1. Copy this email to your email client
+2. Fill in bracketed fields with your information
+3. Attach the three security documents
+4. Send to the three firms listed above
+5. Track responses and schedule calls
+6. Evaluate proposals using the scoring rubric in SECURITY_FIRM_OUTREACH.md
