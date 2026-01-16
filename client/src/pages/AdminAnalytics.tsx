@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { trpc } from '../lib/trpc';
-import ErrorAnalyticsDashboard from '../components/ErrorAnalyticsDashboard';
+import ErrorAnalyticsDashboardWithFilters from '../components/ErrorAnalyticsDashboardWithFilters';
 import { useToastContext } from '../components/ErrorToast';
+import { AdminRoute } from '../components/ProtectedRoute';
 
 /**
  * Admin Analytics Dashboard Page
  * Displays error metrics, trends, and system health
  */
-export const AdminAnalytics: React.FC = () => {
+const AdminAnalyticsContent: React.FC = () => {
   const navigate = useNavigate();
   const { addError } = useToastContext();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -99,7 +100,7 @@ export const AdminAnalytics: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ErrorAnalyticsDashboard />
+        <ErrorAnalyticsDashboardWithFilters />
       </div>
 
       {/* Footer */}
@@ -115,6 +116,14 @@ export const AdminAnalytics: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export const AdminAnalytics: React.FC = () => {
+  return (
+    <AdminRoute>
+      <AdminAnalyticsContent />
+    </AdminRoute>
   );
 };
 
