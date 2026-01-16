@@ -1,0 +1,262 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for GitHub Actions IAM role and monitoring setup'
+
+Parameters:
+  GitHubOrganization:
+    Type: String
+    Description: GitHub organization name
+    Default: ologywood
+  
+  GitHubRepository:
+    Type: String
+    Description: GitHub repository name
+    Default: platform
+  
+  GitHubBranch:
+    Type: String
+    Description: GitHub branch for deployments
+    Default: develop
+
+Resources:
+  # IAM Role for GitHub Actions
+  GitHubActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: GitHubActionsRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub 'arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com'
+            Action: 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'
+                'token.actions.githubusercontent.com:sub': !Sub 'repo:${GitHubOrganization}/${GitHubRepository}:ref:refs/heads/${GitHubBranch}'
+
+  # ECR Push Policy
+  ECRPushPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ECRPushPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ecr:GetDownloadUrlForLayer'
+              - 'ecr:BatchGetImage'
+              - 'ecr:PutImage'
+              - 'ecr:InitiateLayerUpload'
+              - 'ecr:UploadLayerPart'
+              - 'ecr:CompleteLayerUpload'
+              - 'ecr:GetAuthorizationToken'
+            Resource: '*'
+      Roles:
+        - !Ref GitHubActionsRole
+
+  # ECS Deploy Policy
+  ECSDeployPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ECSDeployPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'ecs:UpdateService'
+              - 'ecs:DescribeServices'
+              - 'ecs:DescribeTaskDefinition'
+              - 'ecs:DescribeTasks'
+              - 'ecs:ListTasks'
+            Resource:
+              - !Sub 'arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:service/ologywood-staging/*'
+              - !Sub 'arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:task-definition/ologywood-staging:*'
+      Roles:
+        - !Ref GitHubActionsRole
+
+  # RDS Backup Policy
+  RDSBackupPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: RDSBackupPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'rds:CreateDBSnapshot'
+              - 'rds:DescribeDBSnapshots'
+            Resource:
+              - !Sub 'arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:ologywood-staging'
+              - !Sub 'arn:aws:rds:${AWS::Region}:${AWS::AccountId}:snapshot:*'
+      Roles:
+        - !Ref GitHubActionsRole
+
+  # CloudWatch Logs Policy
+  CloudWatchLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchLogsPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/*'
+      Roles:
+        - !Ref GitHubActionsRole
+
+  # CloudWatch Dashboard
+  OlogywoodDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: ologywood-staging-dashboard
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  [ "AWS/ECS", "CPUUtilization", { "stat": "Average" } ],
+                  [ ".", "MemoryUtilization", { "stat": "Average" } ]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "ECS Cluster Metrics"
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  [ "AWS/ApplicationELB", "TargetResponseTime", { "stat": "Average" } ],
+                  [ ".", "HTTPCode_Target_2XX_Count", { "stat": "Sum" } ],
+                  [ ".", "HTTPCode_Target_5XX_Count", { "stat": "Sum" } ]
+                ],
+                "period": 60,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "Application Load Balancer Metrics"
+              }
+            },
+            {
+              "type": "metric",
+              "properties": {
+                "metrics": [
+                  [ "AWS/RDS", "CPUUtilization", { "stat": "Average" } ],
+                  [ ".", "DatabaseConnections", { "stat": "Average" } ],
+                  [ ".", "ReadLatency", { "stat": "Average" } ],
+                  [ ".", "WriteLatency", { "stat": "Average" } ]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "RDS Database Metrics"
+              }
+            }
+          ]
+        }
+
+  # CPU Alarm
+  HighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ologywood-staging-high-cpu
+      AlarmDescription: Alert when CPU utilization is high
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSAlertTopic
+
+  # Memory Alarm
+  HighMemoryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ologywood-staging-high-memory
+      AlarmDescription: Alert when memory utilization is high
+      MetricName: MemoryUtilization
+      Namespace: AWS/ECS
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 85
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSAlertTopic
+
+  # Error Rate Alarm
+  HighErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ologywood-staging-high-error-rate
+      AlarmDescription: Alert when error rate is high
+      MetricName: HTTPCode_Target_5XX_Count
+      Namespace: AWS/ApplicationELB
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSAlertTopic
+
+  # Response Time Alarm
+  SlowResponseTimeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ologywood-staging-slow-response-time
+      AlarmDescription: Alert when response time is slow
+      MetricName: TargetResponseTime
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSAlertTopic
+
+  # SNS Topic for Alerts
+  SNSAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ologywood-staging-alerts
+      DisplayName: Ologywood Staging Alerts
+
+  # SNS Subscription (replace with your email)
+  SNSEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref SNSAlertTopic
+      Endpoint: alerts@ologywood.com
+
+Outputs:
+  GitHubActionsRoleArn:
+    Description: ARN of the GitHub Actions IAM role
+    Value: !GetAtt GitHubActionsRole.Arn
+    Export:
+      Name: GitHubActionsRoleArn
+
+  DashboardURL:
+    Description: CloudWatch Dashboard URL
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=ologywood-staging-dashboard'
+
+  SNSTopicArn:
+    Description: SNS Topic ARN for alerts
+    Value: !Ref SNSAlertTopic
+    Export:
+      Name: OlogywoodSNSTopicArn
