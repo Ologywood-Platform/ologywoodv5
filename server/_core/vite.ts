@@ -48,20 +48,23 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath =
-    process.env.NODE_ENV === "development"
-      ? path.resolve(import.meta.dirname, "../..", "dist", "public")
-      : path.resolve(import.meta.dirname, "public");
+  // Always use dist/public for both development and production
+  const distPath = path.resolve(import.meta.dirname, "../..", "dist", "public");
+  console.log(`[Static Files] Serving from: ${distPath}`);
+  
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-
+  
+  // Serve static files
   app.use(express.static(distPath));
-
-  // fall through to index.html if the file doesn't exist
+  
+  // Fall through to index.html for SPA routing
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    console.log(`[SPA Fallback] Serving: ${indexPath}`);
+    res.sendFile(indexPath);
   });
 }
