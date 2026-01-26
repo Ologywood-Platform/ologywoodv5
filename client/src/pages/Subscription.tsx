@@ -60,8 +60,8 @@ export default function Subscription() {
   };
 
   const product = SUBSCRIPTION_PRODUCTS.ARTIST_BASIC;
-  const hasActiveSubscription = subscription?.status === 'active' || subscription?.status === 'trialing';
-  const isTrialing = subscription?.status === 'trialing';
+  const hasActiveSubscription = subscription?.status === 'active' || (subscription?.status as any) === 'trialing';
+  const isTrialing = (subscription?.status as any) === 'trialing';
   const isCanceled = stripeStatus?.cancelAtPeriodEnd;
 
   if (!isAuthenticated || user?.role !== 'artist') {

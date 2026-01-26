@@ -21,10 +21,10 @@ const AdminAnalyticsContent: React.FC = () => {
   // Fetch grouped errors
   const { data: groupedErrorsData, isLoading: groupsLoading } =
     trpc.analytics.getGroupedErrors.useQuery({
-      limit: 100,
+      hoursBack: 24,
     });
 
-  const { data: statsData } = trpc.analytics.getGroupStatistics.useQuery();
+  const { data: statsData } = trpc.analytics.getGroupStatistics.useQuery({});
 
   // Check if user is admin
   useEffect(() => {
@@ -53,7 +53,7 @@ const AdminAnalyticsContent: React.FC = () => {
   // Update grouped errors when data changes
   useEffect(() => {
     if (groupedErrorsData) {
-      setGroupedErrors(groupedErrorsData);
+      setGroupedErrors(Array.isArray(groupedErrorsData) ? groupedErrorsData : []);
     }
   }, [groupedErrorsData]);
 

@@ -23,10 +23,14 @@ import { supportRouter } from "./routers/support";
 import { adminSeedRouter } from "./routers/admin-seed";
 import { supportSeederRouter } from "./routers/support-seeder";
 import { aiChatRouter } from "./routers/ai-chat";
-import { analyticsRouter } from "./routers/analytics";
+import { analyticsRouter } from "./routers/analyticsRouter";
 import { contractManagementRouter } from "./routers/contract-management";
 import { helpAndSupportRouter } from "./routers/helpAndSupport";
 import { contractPdfRouter } from "./routers/contractPdf";
+import { supportTicketsRouter } from "./routers/supportTickets";
+import { semanticSearchRouter } from "./routers/semanticSearchRouter";
+import { evictionRouter } from "./routers/evictionRouter";
+import { helpCenterRouter } from "./routers/helpCenterRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 
@@ -66,6 +70,10 @@ export const appRouter = router({
   aiChat: aiChatRouter,
   helpAndSupport: helpAndSupportRouter,
   contractPdf: contractPdfRouter,
+  supportTickets: supportTicketsRouter,
+  semanticSearch: semanticSearchRouter,
+  eviction: evictionRouter,
+  helpCenter: helpCenterRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -1005,8 +1013,7 @@ export const appRouter = router({
 
         // Update the review with the artist's response
         await db.updateReview(input.reviewId, {
-          artistResponse: input.response,
-          respondedAt: new Date(),
+          comment: input.response,
         });
 
         // Send email notification to venue
@@ -1132,8 +1139,7 @@ export const appRouter = router({
 
         // Update the review with the venue's response
         await db.updateVenueReview(input.reviewId, {
-          venueResponse: input.response,
-          respondedAt: new Date(),
+          comment: input.response,
         });
 
         return { success: true };
@@ -1369,7 +1375,7 @@ export const appRouter = router({
         const bookingsNeedingReminders = await db.getBookingsNeedingReminders();
         
         for (const { booking, reminderType } of bookingsNeedingReminders) {
-          const daysUntil = reminderType === '7_days' ? 7 : reminderType === '3_days' ? 3 : 1;
+          const daysUntil = reminderType === 'upcoming' ? 7 : reminderType === 'deposit_due' ? 3 : 1;
           
           const artist = await db.getArtistProfileById(booking.artistId);
           const venue = await db.getVenueProfileById(booking.venueId);

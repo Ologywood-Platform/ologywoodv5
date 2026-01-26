@@ -8,7 +8,7 @@ interface SignatureCanvasProps {
   disabled?: boolean;
 }
 
-export const SignatureCanvasComponent: React.FC<SignatureCanvasProps> = ({
+export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
   onSignatureCapture,
   signerName,
   signerRole,
@@ -195,9 +195,8 @@ export const SignatureCanvasComponent: React.FC<SignatureCanvasProps> = ({
             width: 500,
             height: 200,
             className: 'signature-pad-canvas',
-          }}
+          } as any}
           onEnd={handleDrawStart}
-          disabled={disabled}
         />
       </div>
 
@@ -231,4 +230,4 @@ export const SignatureCanvasComponent: React.FC<SignatureCanvasProps> = ({
   );
 };
 
-export default SignatureCanvasComponent;
+export default SignatureCanvas;

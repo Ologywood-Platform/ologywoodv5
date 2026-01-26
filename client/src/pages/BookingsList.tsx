@@ -68,20 +68,20 @@ export default function BookingsList() {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  const filteredBookings = bookings.filter((booking: Booking) => {
+  const filteredBookings: Booking[] = (bookings as unknown as Booking[]).filter((booking: Booking) => {
     if (filterStatus === "all") return true;
     return booking.status === filterStatus;
   });
 
   const stats = {
     total: bookings.length,
-    pending: bookings.filter((b: Booking) => b.status === "pending").length,
-    confirmed: bookings.filter((b: Booking) => b.status === "confirmed").length,
-    completed: bookings.filter((b: Booking) => b.status === "completed").length,
-    cancelled: bookings.filter((b: Booking) => b.status === "cancelled").length,
+    pending: (bookings as unknown as Booking[]).filter((b: Booking) => b.status === "pending").length,
+    confirmed: (bookings as unknown as Booking[]).filter((b: Booking) => b.status === "confirmed").length,
+    completed: (bookings as unknown as Booking[]).filter((b: Booking) => b.status === "completed").length,
+    cancelled: (bookings as unknown as Booking[]).filter((b: Booking) => b.status === "cancelled").length,
   };
 
-  const totalRevenue = bookings
+  const totalRevenue = (bookings as unknown as Booking[])
     .filter((b: Booking) => b.status === "completed")
     .reduce((sum: number, b: Booking) => sum + (typeof b.totalFee === 'string' ? parseFloat(b.totalFee) : (b.totalFee || 0)), 0);
 

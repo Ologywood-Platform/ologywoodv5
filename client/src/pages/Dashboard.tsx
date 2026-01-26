@@ -328,9 +328,9 @@ export default function Dashboard() {
                               💰 ${booking.totalFee}
                             </p>
                           )}
-                          {booking.eventDetails && (
+                          {(booking as any).eventDetails && (
                             <p className="text-sm text-muted-foreground mb-4">
-                              {booking.eventDetails}
+                              {(booking as any).eventDetails}
                             </p>
                           )}
                           

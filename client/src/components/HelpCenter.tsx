@@ -15,6 +15,8 @@ interface HelpArticle {
   unhelpful: number;
 }
 
+type HelpCategory = string;
+
 interface HelpCenterProps {
   onArticleSelect?: (article: HelpArticle) => void;
 }
@@ -27,39 +29,40 @@ export const HelpCenter: React.FC<HelpCenterProps> = ({ onArticleSelect }) => {
   const [sortBy, setSortBy] = useState<'relevance' | 'views' | 'helpful'>('relevance');
 
   // Fetch help articles from TRPC
-  const { data: articles = [], isLoading } = trpc.helpCenter.getArticles.useQuery();
+  const { data: articlesData = { articles: [], total: 0, hasMore: false }, isLoading } = trpc.helpCenter.getArticles.useQuery({});
+  const articles = articlesData.articles || [];
   const { data: categories = [] } = trpc.helpCenter.getCategories.useQuery();
 
   // Filter and sort articles
   const filteredArticles = useMemo(() => {
-    let filtered = articles;
+    let filtered: HelpArticle[] = [...(articles as any)];
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (article) =>
+        (article: HelpArticle) =>
           article.title.toLowerCase().includes(query) ||
           article.summary.toLowerCase().includes(query) ||
-          article.keywords.some((k) => k.toLowerCase().includes(query))
+          article.keywords.some((k: string) => k.toLowerCase().includes(query))
       );
     }
 
     // Filter by category
     if (selectedCategory) {
-      filtered = filtered.filter((article) => article.category === selectedCategory);
+      filtered = filtered.filter((article: HelpArticle) => article.category === selectedCategory);
     }
 
     // Filter by difficulty
     if (selectedDifficulty) {
-      filtered = filtered.filter((article) => article.difficulty === selectedDifficulty);
+      filtered = filtered.filter((article: HelpArticle) => article.difficulty === selectedDifficulty);
     }
 
     // Sort
     if (sortBy === 'views') {
-      filtered = filtered.sort((a, b) => b.views - a.views);
+      filtered = [...filtered].sort((a: HelpArticle, b: HelpArticle) => b.views - a.views);
     } else if (sortBy === 'helpful') {
-      filtered = filtered.sort((a, b) => {
+      filtered = [...filtered].sort((a: HelpArticle, b: HelpArticle) => {
         const aRatio = a.helpful / (a.helpful + a.unhelpful || 1);
         const bRatio = b.helpful / (b.helpful + b.unhelpful || 1);
         return bRatio - aRatio;
@@ -76,9 +79,10 @@ export const HelpCenter: React.FC<HelpCenterProps> = ({ onArticleSelect }) => {
 
   const handleHelpful = async (articleId: string, helpful: boolean) => {
     try {
-      await trpc.helpCenter.recordFeedback.mutate({
+      await trpc.helpCenter.recordFeedback.useMutation().mutateAsync({
         articleId,
         helpful,
+        comment: undefined,
       });
       // Optionally refresh articles
     } catch (error) {
@@ -240,7 +244,7 @@ export const HelpCenter: React.FC<HelpCenterProps> = ({ onArticleSelect }) => {
             }}
           >
             <option value="">All Categories</option>
-            {categories.map((cat) => (
+            {(categories as any[]).map((cat: any) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
@@ -320,7 +324,7 @@ export const HelpCenter: React.FC<HelpCenterProps> = ({ onArticleSelect }) => {
             <p>No articles found. Try adjusting your search or filters.</p>
           </div>
         ) : (
-          filteredArticles.map((article) => (
+          filteredArticles.map((article: HelpArticle) => (
             <div
               key={article.id}
               onClick={() => handleArticleSelect(article)}

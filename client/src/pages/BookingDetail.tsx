@@ -240,8 +240,8 @@ export default function BookingDetail() {
                         />
                       ))}
                     </div>
-                    {existingVenueReview.reviewText && (
-                      <p className="text-muted-foreground">{existingVenueReview.reviewText}</p>
+                    {existingVenueReview.comment && (
+                      <p className="text-muted-foreground">{existingVenueReview.comment}</p>
                     )}
                     <p className="text-sm text-muted-foreground mt-2">
                       Submitted on {new Date(existingVenueReview.createdAt).toLocaleDateString()}
@@ -273,18 +273,18 @@ export default function BookingDetail() {
                         <Star
                           key={star}
                           className={`w-5 h-5 ${
-                            star <= existingReview.rating
+                            star <= (existingReview.rating ?? 0)
                               ? "fill-yellow-400 text-yellow-400"
                               : "text-gray-300"
                           }`}
                         />
                       ))}
                     </div>
-                    {existingReview.reviewText && (
-                      <p className="text-muted-foreground">{existingReview.reviewText}</p>
+                    {(existingReview as any).comment && (
+                      <p className="text-muted-foreground">{(existingReview as any).comment}</p>
                     )}
                     <p className="text-sm text-muted-foreground mt-2">
-                      Submitted on {new Date(existingReview.createdAt).toLocaleDateString()}
+                      Submitted on {new Date(existingReview.createdAt ?? new Date()).toLocaleDateString()}
                     </p>
                   </CardContent>
                 </Card>

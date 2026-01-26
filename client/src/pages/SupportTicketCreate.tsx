@@ -92,7 +92,7 @@ export default function SupportTicketCreate() {
     createMutation.mutate({
       subject,
       description,
-      categoryId: parseInt(categoryId),
+      category: categoryId,
       priority: priority as any,
     });
   };

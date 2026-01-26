@@ -393,8 +393,8 @@ class ErrorTrendPredictionService {
   clearOldData(hoursOld: number = 72): void {
     const cutoffTime = new Date(Date.now() - hoursOld * 60 * 60 * 1000);
 
-    for (const [groupId, data] of this.trendData) {
-      const filteredData = data.filter((d) => d.timestamp > cutoffTime);
+    for (const [groupId, data] of Array.from(this.trendData)) {
+      const filteredData = data.filter((d: ErrorTrendData) => d.timestamp > cutoffTime);
       if (filteredData.length === 0) {
         this.trendData.delete(groupId);
         this.predictions.delete(groupId);

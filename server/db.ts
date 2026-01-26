@@ -561,11 +561,13 @@ export async function upsertSubscription(data: {
   const db = await getDb();
   if (!db) return;
 
-  await db.insert(subscriptions).values(data).onDuplicateKeyUpdate({
+  const validStatus: 'active' | 'cancelled' | 'past_due' = (data.status === 'active' || data.status === 'canceled' || data.status === 'past_due') ? (data.status === 'canceled' ? 'cancelled' : data.status) : 'active';
+  const insertData = { ...data, status: validStatus };
+  await db.insert(subscriptions).values(insertData as any).onDuplicateKeyUpdate({
     set: {
       stripeCustomerId: data.stripeCustomerId,
       stripeSubscriptionId: data.stripeSubscriptionId,
-      status: data.status,
+      status: validStatus,
       currentPeriodEnd: data.currentPeriodEnd,
       updatedAt: new Date(),
     },
@@ -574,7 +576,7 @@ export async function upsertSubscription(data: {
 
 export async function updateSubscriptionStatus(
   userId: number,
-  status: 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due'
+  status: 'active' | 'cancelled' | 'past_due'
 ) {
   const db = await getDb();
   if (!db) return;
@@ -646,10 +648,10 @@ export async function getReviewById(reviewId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function updateReview(reviewId: number, updates: { artistResponse?: string, respondedAt?: Date }) {
+export async function updateReview(reviewId: number, updates: { comment?: string, rating?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(reviews).set(updates).where(eq(reviews.id, reviewId));
+  await db.update(reviews).set({ ...updates, updatedAt: new Date() }).where(eq(reviews.id, reviewId));
 }
 
 export async function getAverageRatingForArtist(artistId: number): Promise<{ average: number; count: number }> {
@@ -661,7 +663,7 @@ export async function getAverageRatingForArtist(artistId: number): Promise<{ ave
     return { average: 0, count: 0 };
   }
   
-  const sum = artistReviews.reduce((acc, review) => acc + review.rating, 0);
+  const sum = artistReviews.reduce((acc, review) => acc + (review.rating ?? 0), 0);
   return {
     average: sum / artistReviews.length,
     count: artistReviews.length,
@@ -728,10 +730,10 @@ export async function getVenueReviewById(reviewId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function updateVenueReview(reviewId: number, updates: { venueResponse?: string, respondedAt?: Date }) {
+export async function updateVenueReview(reviewId: number, updates: { comment?: string, rating?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(venueReviews).set(updates).where(eq(venueReviews.id, reviewId));
+  await db.update(venueReviews).set({ ...updates, updatedAt: new Date() }).where(eq(venueReviews.id, reviewId));
 }
 
 export async function getAverageRatingForVenue(venueId: number): Promise<{ average: number; count: number }> {
@@ -743,7 +745,7 @@ export async function getAverageRatingForVenue(venueId: number): Promise<{ avera
     return { average: 0, count: 0 };
   }
   
-  const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+  const sum = reviews.reduce((acc, review) => acc + (review.rating ?? 0), 0);
   return {
     average: sum / reviews.length,
     count: reviews.length,
@@ -857,23 +859,25 @@ export async function createBookingTemplate(template: InsertBookingTemplate) {
   return template;
 }
 
-export async function getBookingTemplatesByUserId(userId: number) {
+export async function getBookingTemplatesByUserId(userId: number): Promise<BookingTemplate[]> {
   const db = await getDb();
   if (!db) return [];
   
-  return await db.select().from(bookingTemplates)
+  const templates = await db.select().from(bookingTemplates)
     .where(eq(bookingTemplates.venueId, userId))
     .orderBy(desc(bookingTemplates.updatedAt));
+  
+  return templates as BookingTemplate[];
 }
 
-export async function getBookingTemplateById(id: number) {
+export async function getBookingTemplateById(id: number): Promise<BookingTemplate | null> {
   const db = await getDb();
   if (!db) return null;
   
   const result = await db.select().from(bookingTemplates)
     .where(eq(bookingTemplates.id, id));
   
-  return result[0] || null;
+  return (result[0] as BookingTemplate) || null;
 }
 
 export async function updateBookingTemplate(id: number, updates: Partial<InsertBookingTemplate>) {
@@ -1009,8 +1013,8 @@ export async function getBookingsNeedingReminders() {
   const sentReminders = await db.select().from(bookingReminders);
   
   const bookingsNeedingReminders: Array<{
-    booking: Booking;
-    reminderType: '7_days' | '3_days' | '1_day';
+    booking: any;
+    reminderType: 'upcoming' | 'deposit_due' | 'final_payment_due';
   }> = [];
   
   for (const booking of upcomingBookings) {
@@ -1022,30 +1026,30 @@ export async function getBookingsNeedingReminders() {
     // Check if we need to send 7-day reminder
     if (daysUntil <= 7 && daysUntil > 6) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === '7_days'
+        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
       );
       if (!alreadySent) {
-        bookingsNeedingReminders.push({ booking, reminderType: '7_days' });
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
       }
     }
     
     // Check if we need to send 3-day reminder
     if (daysUntil <= 3 && daysUntil > 2) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === '3_days'
+        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
       );
       if (!alreadySent) {
-        bookingsNeedingReminders.push({ booking, reminderType: '3_days' });
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
       }
     }
     
     // Check if we need to send 1-day reminder
     if (daysUntil <= 1 && daysUntil > 0) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === '1_day'
+        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
       );
       if (!alreadySent) {
-        bookingsNeedingReminders.push({ booking, reminderType: '1_day' });
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
       }
     }
   }
@@ -1060,7 +1064,7 @@ export async function markReminderSent(bookingId: number, reminderType: string) 
   await db.insert(bookingReminders).values({
     bookingId,
     reminderType,
-  });
+  } as any);
 }
 
 
@@ -1097,7 +1101,7 @@ export async function getFavoritedArtistsAvailability(userId: number, startDate:
   const availabilityRecords = await db.select().from(availability)
     .where(
       and(
-        inArray(availability.artistId, artistIds),
+        artistIds.length > 0 ? inArray(availability.artistId, artistIds.filter(id => id !== null) as number[]) : undefined,
         gte(availability.date, startDate),
         lte(availability.date, endDate),
         eq(availability.status, 'available')

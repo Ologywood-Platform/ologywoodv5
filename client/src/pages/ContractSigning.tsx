@@ -139,7 +139,7 @@ export function ContractSigning() {
             <Card className="p-6">
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: contract.contractContent }}
+                dangerouslySetInnerHTML={{ __html: contract.contractContent ?? '' }}
               />
             </Card>
           )}
@@ -161,9 +161,9 @@ export function ContractSigning() {
                     <span className="text-yellow-600 text-sm font-semibold">Pending</span>
                   )}
                 </div>
-                {contract?.artistSignedAt && (
+                  {contract?.artistSignedAt && (
                   <p className="text-xs text-gray-500">
-                    Signed on {new Date(contract.artistSignedAt).toLocaleDateString()}
+                    Signed on {new Date(contract.artistSignedAt!).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -178,9 +178,9 @@ export function ContractSigning() {
                     <span className="text-yellow-600 text-sm font-semibold">Pending</span>
                   )}
                 </div>
-                {contract?.venueSignedAt && (
+                  {contract?.venueSignedAt && (
                   <p className="text-xs text-gray-500">
-                    Signed on {new Date(contract.venueSignedAt).toLocaleDateString()}
+                    Signed on {new Date(contract.venueSignedAt!).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -189,9 +189,9 @@ export function ContractSigning() {
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm font-medium mb-2">Contract Status</p>
                 <p className="text-xs text-gray-600 mb-3">
-                  {contract?.status === 'signed' ? (
+                  {contract?.status === 'executed' ? (
                     <span className="text-green-600 font-semibold">✓ Fully Executed</span>
-                  ) : contract?.status === 'pending_signatures' ? (
+                  ) : contract?.status === 'sent' ? (
                     <span className="text-yellow-600 font-semibold">Awaiting Signatures</span>
                   ) : (
                     <span className="text-gray-600">{contract?.status || 'Draft'}</span>

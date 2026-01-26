@@ -127,7 +127,7 @@ class ContractReminderScheduler {
       const now = new Date();
       console.log(`[ContractReminderScheduler] Checking reminders at ${now.toISOString()}`);
 
-      for (const [contractId, reminder] of this.reminders.entries()) {
+      for (const [contractId, reminder] of Array.from(this.reminders.entries())) {
         const daysUntilEvent = this.calculateDaysUntilEvent(reminder.eventDate);
 
         // Check each reminder interval
@@ -257,7 +257,7 @@ class ContractReminderScheduler {
       failedReminders: 0,
     };
 
-    for (const reminder of this.reminders.values()) {
+    for (const reminder of Array.from(this.reminders.values())) {
       const daysUntilEvent = this.calculateDaysUntilEvent(reminder.eventDate);
 
       // Count upcoming reminders

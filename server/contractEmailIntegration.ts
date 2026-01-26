@@ -3,7 +3,6 @@
  * Wires up contract notifications to the email system
  */
 
-import { sendEmail } from './email';
 import { contractNotificationService } from './contractNotificationService';
 
 interface ContractNotificationParams {
@@ -34,37 +33,25 @@ export async function sendContractCreatedNotification(params: ContractNotificati
 
   try {
     // Send to artist
-    const artistTemplate = contractNotificationService.getContractSentTemplate({
+    await contractNotificationService.sendContractSentNotification({
+      recipientEmail: artistEmail,
       recipientName: artistName,
       senderName: venueName,
-      contractTitle,
+      artistName: artistName,
+      venueName: venueName,
       eventDate,
-      eventVenue,
-      contractId,
-      dashboardUrl: 'https://ologywood.com/artist-dashboard',
-    });
-
-    await sendEmail({
-      to: artistEmail,
-      subject: `Contract Received: ${contractTitle}`,
-      html: artistTemplate,
+      contractUrl: `https://ologywood.com/contracts/${contractId}`,
     });
 
     // Send to venue
-    const venueTemplate = contractNotificationService.getContractSentTemplate({
+    await contractNotificationService.sendContractSentNotification({
+      recipientEmail: venueEmail,
       recipientName: venueName,
       senderName: artistName,
-      contractTitle,
+      artistName: artistName,
+      venueName: venueName,
       eventDate,
-      eventVenue,
-      contractId,
-      dashboardUrl: 'https://ologywood.com/venue-dashboard',
-    });
-
-    await sendEmail({
-      to: venueEmail,
-      subject: `Contract Sent: ${contractTitle}`,
-      html: venueTemplate,
+      contractUrl: `https://ologywood.com/contracts/${contractId}`,
     });
 
     console.log(`[Contract Email] Contract creation notifications sent for contract ${contractId}`);
@@ -100,21 +87,15 @@ export async function sendSignatureRequestNotification(params: {
   } = params;
 
   try {
-    const template = contractNotificationService.getSignatureRequestTemplate({
+    await contractNotificationService.sendSignatureRequestNotification({
+      recipientEmail,
       recipientName,
       senderName,
-      contractTitle,
+      artistName: '',
+      venueName: '',
       eventDate,
-      eventVenue,
-      contractId,
-      signingDeadline: signingDeadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-      signingUrl: `https://ologywood.com/contracts/${contractId}/sign`,
-    });
-
-    await sendEmail({
-      to: recipientEmail,
-      subject: `Action Required: Sign Contract - ${contractTitle}`,
-      html: template,
+      contractUrl: `https://ologywood.com/contracts/${contractId}/sign`,
+      signDeadline: signingDeadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
     });
 
     console.log(`[Contract Email] Signature request sent to ${recipientEmail} for contract ${contractId}`);
@@ -150,21 +131,15 @@ export async function sendSignatureCompletionNotification(params: {
   } = params;
 
   try {
-    const template = contractNotificationService.getSignatureReceivedTemplate({
+    await contractNotificationService.sendSignatureReceivedNotification({
+      recipientEmail,
       recipientName,
-      signerName,
-      contractTitle,
+      senderName: signerName,
+      artistName: '',
+      venueName: '',
       eventDate,
-      eventVenue,
-      contractId,
-      certificateNumber,
-      verificationUrl: `https://ologywood.com/verify-certificate?cert=${certificateNumber}`,
-    });
-
-    await sendEmail({
-      to: recipientEmail,
-      subject: `Contract Signed: ${contractTitle}`,
-      html: template,
+      contractUrl: `https://ologywood.com/verify-certificate?cert=${certificateNumber}`,
+      signedAt: new Date().toLocaleDateString(),
     });
 
     console.log(`[Contract Email] Signature completion notification sent for contract ${contractId}`);
@@ -202,29 +177,26 @@ export async function sendContractReminderNotification(params: {
   } = params;
 
   try {
-    const template = contractNotificationService.getContractReminderTemplate({
+    const daysUntilEvent = Math.ceil(
+      (new Date(eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+
+    await contractNotificationService.sendContractReminderNotification({
+      recipientEmail,
       recipientName,
-      otherPartyName,
-      contractTitle,
+      senderName: otherPartyName,
+      artistName: '',
+      venueName: '',
       eventDate,
-      eventVenue,
-      contractId,
+      contractUrl: `https://ologywood.com/contracts/${contractId}`,
       daysUntilEvent,
-      status,
-      dashboardUrl: 'https://ologywood.com/dashboard',
-    });
+    } as any);
 
     const subject = status === 'pending-signature'
       ? `Reminder: Contract Awaiting Signature - ${contractTitle}`
       : status === 'expiring-soon'
       ? `Urgent: Contract Expiring Soon - ${contractTitle}`
       : `Reminder: Unsigned Contract - ${contractTitle}`;
-
-    await sendEmail({
-      to: recipientEmail,
-      subject,
-      html: template,
-    });
 
     console.log(`[Contract Email] Reminder notification sent for contract ${contractId} (${status})`);
     return true;

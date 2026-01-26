@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SignatureCanvasComponent } from './SignatureCanvas';
+import SignatureCanvas from './SignatureCanvas';
 import { ContractDisplay } from './ContractDisplay';
 
 interface Signature {
@@ -482,7 +482,7 @@ export const ContractSigningWorkflow: React.FC<ContractSigningWorkflowProps> = (
               </p>
             </div>
 
-            <SignatureCanvasComponent
+            <SignatureCanvas
               onSignatureCapture={handleSignatureCapture}
               signerName={currentSignerName}
               signerRole={currentSignerRole}

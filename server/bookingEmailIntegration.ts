@@ -3,7 +3,7 @@
  * Integrates contract email notifications into the booking creation workflow
  */
 
-import { contractEmailIntegration } from './contractEmailIntegration';
+import contractEmailIntegration from './contractEmailIntegration';
 import { contractReminderScheduler } from './contractReminderScheduler';
 
 interface BookingCreatedData {

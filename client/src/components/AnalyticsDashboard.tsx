@@ -4,9 +4,9 @@ import { Eye, Calendar, DollarSign, TrendingUp, CheckCircle, Clock, XCircle } fr
 
 export default function AnalyticsDashboard() {
   const { data: viewsTotal } = trpc.analytics.getProfileViews.useQuery({});
-  const { data: views30Days } = trpc.analytics.getProfileViews.useQuery({ days: 30 });
-  const { data: views7Days } = trpc.analytics.getProfileViews.useQuery({ days: 7 });
-  const { data: bookingStats } = trpc.analytics.getBookingStats.useQuery();
+  const { data: views30Days } = trpc.analytics.getProfileViews.useQuery({ hoursBack: 720 });
+  const { data: views7Days } = trpc.analytics.getProfileViews.useQuery({ hoursBack: 168 });
+  const { data: bookingStats } = trpc.analytics.getBookingStats.useQuery({ hoursBack: 24 })
   const { data: revenueData } = trpc.analytics.getRevenueByMonth.useQuery({ months: 6 });
   
   const conversionRate = bookingStats && bookingStats.total > 0
@@ -23,9 +23,9 @@ export default function AnalyticsDashboard() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{viewsTotal || 0}</div>
+            <div className="text-2xl font-bold">{viewsTotal?.views || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {views7Days || 0} in last 7 days
+              {views7Days?.views || 0} in last 7 days
             </p>
           </CardContent>
         </Card>
@@ -136,10 +136,10 @@ export default function AnalyticsDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {revenueData.map((item) => {
+              {revenueData.map((item: { month: string; revenue: number; bookings: number }) => {
                 const date = new Date(item.month + '-01');
                 const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                const maxRevenue = Math.max(...revenueData.map(d => d.revenue));
+                const maxRevenue = Math.max(...revenueData.map((d: { month: string; revenue: number; bookings: number }) => d.revenue));
                 const barWidth = (item.revenue / maxRevenue) * 100;
                 
                 return (
@@ -176,10 +176,10 @@ export default function AnalyticsDashboard() {
                 <p className="text-sm text-muted-foreground">Profile views</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold">{views30Days || 0}</p>
+                <p className="text-2xl font-bold">{views30Days?.views || 0}</p>
                 <p className="text-sm text-muted-foreground">
-                  {views7Days && views30Days && views30Days > 0
-                    ? `${((views7Days / views30Days) * 100).toFixed(0)}% from last week`
+                  {views7Days?.views && views30Days?.views && views30Days.views > 0
+                    ? `${((views7Days.views / views30Days.views) * 100).toFixed(0)}% from last week`
                     : 'No data'}
                 </p>
               </div>
@@ -192,8 +192,8 @@ export default function AnalyticsDashboard() {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold">
-                  {viewsTotal && bookingStats && viewsTotal > 0
-                    ? ((bookingStats.total / viewsTotal) * 100).toFixed(1)
+                  {viewsTotal?.views && bookingStats && viewsTotal.views > 0
+                    ? ((bookingStats.total / viewsTotal.views) * 100).toFixed(1)
                     : '0.0'}
                 </p>
                 <p className="text-sm text-muted-foreground">

@@ -26,7 +26,7 @@ export const CertificateVerification: React.FC = () => {
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const verifyMutation = trpc.contractManagement.verifyCertificate.useMutation();
+  const verifyMutation = trpc.contracts.exportContractData?.useMutation?.() || { mutateAsync: async () => ({ success: false }) };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();

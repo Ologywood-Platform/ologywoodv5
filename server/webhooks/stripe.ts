@@ -155,7 +155,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   console.log(`[Stripe Webhook] Subscription deleted for user ${userId}`);
 
-  await db.updateSubscriptionStatus(parseInt(userId), 'canceled');
+  await db.updateSubscriptionStatus(parseInt(userId), 'cancelled');
   
   // Send cancellation email
   const user = await db.getUserById(parseInt(userId));

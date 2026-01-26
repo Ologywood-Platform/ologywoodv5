@@ -48,14 +48,14 @@ export default function ArtistProfile() {
     { enabled: isValidId }
   );
   
-  // Track profile view
-  const trackView = trpc.analytics.trackView.useMutation();
+  // Track profile view - commented out as trackView is not available
+  // const trackView = trpc.analytics.trackView.useMutation();
   
-  useEffect(() => {
-    if (isValidId && !isLoading) {
-      trackView.mutate({ artistId });
-    }
-  }, [artistId, isLoading, isValidId]);
+  // useEffect(() => {
+  //   if (isValidId && !isLoading) {
+  //     trackView.mutate({ artistId });
+  //   }
+  // }, [artistId, isLoading, isValidId]);
   
   // Show error if no valid ID
   if (!isValidId) {
@@ -293,7 +293,7 @@ export default function ArtistProfile() {
                       {showRiderComparison && (
                         <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
                           <RiderComparisonTool
-                            riders={riderTemplates}
+                            riders={(riderTemplates as unknown as any[]) || []}
                             onSelect={(riderId) => {
                               setSelectedRiderId(riderId);
                               toast.success("Rider selected for this booking");
@@ -501,26 +501,26 @@ export default function ArtistProfile() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {riderTemplates.map((template) => (
+                  {riderTemplates.map((template: any) => (
                     <Collapsible key={template.id}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-md hover:bg-accent text-left">
                         <span className="font-medium">{template.templateName}</span>
                         <ChevronDown className="h-4 w-4" />
                       </CollapsibleTrigger>
                       <CollapsibleContent className="px-3 pt-2 space-y-3 text-sm">
-                        {template.paSystemRequired && (
+                        {template.technicalRequirements?.soundSystem && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Sound</p>
                             <p className="text-muted-foreground">PA System Required</p>
                           </div>
                         )}
-                        {template.lightingRequired && (
+                        {template.technicalRequirements?.lighting && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Lighting</p>
-                            <p className="text-muted-foreground">{template.lightingType || "Standard"}</p>
+                            <p className="text-muted-foreground">{template.technicalRequirements?.lighting || "Standard"}</p>
                           </div>
                         )}
-                        {template.cateringProvided && (
+                        {template.hospitalityRequirements?.catering && (
                           <div>
                             <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Catering</p>
                             <p className="text-muted-foreground">Provided</p>

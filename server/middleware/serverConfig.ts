@@ -128,7 +128,7 @@ export function configureFileUpload(app: Express, uploadPath: string = '/upload'
   app.post(uploadPath, fileUploadValidation({
     maxSize: FILE_SIZE_LIMITS.default,
     allowedTypes: Object.values(ALLOWED_MIME_TYPES).flat(),
-  }), (req: Request & { file?: Express.Multer.File }, res: Response) => {
+  }), (req: Request & { file?: any }, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
     }

@@ -200,18 +200,18 @@ export default function VenueProfile() {
                       </span>
                     </div>
                     
-                    {review.reviewText && (
-                      <p className="text-muted-foreground mb-3">{review.reviewText}</p>
+                    {review.comment && (
+                      <p className="text-muted-foreground mb-3">{review.comment}</p>
                     )}
 
                     {/* Venue Response */}
-                    {review.venueResponse ? (
+                    {false ? (
                       <div className="bg-muted p-4 rounded-lg mt-3">
-                        <p className="text-sm font-semibold mb-1">Response from {venueProfile.organizationName}</p>
-                        <p className="text-sm text-muted-foreground">{review.venueResponse}</p>
-                        {review.respondedAt && (
+                        <p className="text-sm font-semibold mb-1">Response from {venueProfile?.organizationName}</p>
+                        <p className="text-sm text-muted-foreground">Venue response not available</p>
+                        {false && (
                           <p className="text-xs text-muted-foreground mt-2">
-                            Responded on {new Date(review.respondedAt).toLocaleDateString()}
+                            Responded on {new Date().toLocaleDateString()}
                           </p>
                         )}
                       </div>

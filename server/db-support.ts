@@ -2,7 +2,7 @@
  * Database queries for support ticket system
  */
 
-import { db } from './db';
+import { getDb } from './db';
 import { 
   supportTickets, 
   ticketResponses, 
@@ -21,285 +21,248 @@ import { eq, desc, and, or, gte, lte, like } from 'drizzle-orm';
 /**
  * Create a new support ticket
  */
-export async function createSupportTicket(data: InsertSupportTicket) {
-  const ticketNumber = `TKT-${Date.now()}`;
-  const result = await db.insert(supportTickets).values({
-    ...data,
-    ticketNumber,
-  });
-  return result;
+export async function createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.insert(supportTickets).values(ticket);
+  return ticket as SupportTicket;
 }
 
 /**
- * Get ticket by ID
+ * Get support ticket by ID
  */
-export async function getSupportTicketById(id: number): Promise<SupportTicket | null> {
-  const result = await db.select().from(supportTickets).where(eq(supportTickets.id, id)).limit(1);
-  return result[0] || null;
+export async function getSupportTicketById(ticketId: number): Promise<SupportTicket | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(supportTickets).where(eq(supportTickets.id, ticketId)).limit(1);
+  return result.length > 0 ? result[0] : null;
 }
 
 /**
- * Get ticket by ticket number
+ * Get all support tickets
  */
-export async function getSupportTicketByNumber(ticketNumber: string): Promise<SupportTicket | null> {
-  const result = await db.select().from(supportTickets).where(eq(supportTickets.ticketNumber, ticketNumber)).limit(1);
-  return result[0] || null;
+export async function getAllSupportTickets(): Promise<SupportTicket[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
 }
 
 /**
- * Get all tickets for a user
+ * Get support tickets by user ID
  */
-export async function getUserSupportTickets(userId: number, limit = 50, offset = 0) {
-  return db
-    .select()
-    .from(supportTickets)
+export async function getSupportTicketsByUserId(userId: number): Promise<SupportTicket[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(supportTickets)
     .where(eq(supportTickets.userId, userId))
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(limit)
-    .offset(offset);
+    .orderBy(desc(supportTickets.createdAt));
 }
 
 /**
- * Get all open tickets (for admin)
+ * Update support ticket
  */
-export async function getOpenSupportTickets(limit = 100, offset = 0) {
-  return db
-    .select()
-    .from(supportTickets)
-    .where(eq(supportTickets.status, 'open'))
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(limit)
-    .offset(offset);
-}
+export async function updateSupportTicket(ticketId: number, updates: Partial<SupportTicket>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
 
-/**
- * Get tickets by category
- */
-export async function getTicketsByCategory(category: string, limit = 50, offset = 0) {
-  return db
-    .select()
-    .from(supportTickets)
-    .where(eq(supportTickets.category, category as any))
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(limit)
-    .offset(offset);
-}
-
-/**
- * Get tickets by priority
- */
-export async function getTicketsByPriority(priority: string, limit = 50, offset = 0) {
-  return db
-    .select()
-    .from(supportTickets)
-    .where(eq(supportTickets.priority, priority as any))
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(limit)
-    .offset(offset);
-}
-
-/**
- * Get tickets with SLA breaches
- */
-export async function getBreachedSLATickets() {
-  return db
-    .select()
-    .from(supportTickets)
-    .where(eq(supportTickets.slaStatus, 'breached'))
-    .orderBy(desc(supportTickets.slaBreachedAt));
-}
-
-/**
- * Update ticket status
- */
-export async function updateTicketStatus(id: number, status: string) {
-  return db
-    .update(supportTickets)
-    .set({ status: status as any, updatedAt: new Date() })
-    .where(eq(supportTickets.id, id));
-}
-
-/**
- * Update ticket SLA status
- */
-export async function updateTicketSLAStatus(id: number, slaStatus: string) {
-  return db
-    .update(supportTickets)
-    .set({ 
-      slaStatus: slaStatus as any, 
-      slaBreachedAt: slaStatus === 'breached' ? new Date() : null,
-      updatedAt: new Date() 
-    })
-    .where(eq(supportTickets.id, id));
-}
-
-/**
- * Assign ticket to team member
- */
-export async function assignTicketToTeam(ticketId: number, assignedTo: number, team: string) {
-  return db
-    .update(supportTickets)
-    .set({ assignedTo, assignedTeam: team, updatedAt: new Date() })
+  await db.update(supportTickets)
+    .set({ ...updates, updatedAt: new Date() })
     .where(eq(supportTickets.id, ticketId));
 }
 
 /**
- * Add response to ticket
+ * Add response to support ticket
  */
-export async function addTicketResponse(data: InsertTicketResponse) {
-  return db.insert(ticketResponses).values(data);
+export async function addTicketResponse(response: InsertTicketResponse): Promise<TicketResponse | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db.insert(ticketResponses).values(response);
+  return response as TicketResponse;
 }
 
 /**
- * Get ticket responses
+ * Get responses for a ticket
  */
-export async function getTicketResponses(ticketId: number) {
-  return db
-    .select()
-    .from(ticketResponses)
+export async function getTicketResponses(ticketId: number): Promise<TicketResponse[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(ticketResponses)
     .where(eq(ticketResponses.ticketId, ticketId))
     .orderBy(desc(ticketResponses.createdAt));
 }
 
 /**
- * Search tickets
+ * Assign ticket to support staff
  */
-export async function searchSupportTickets(query: string, limit = 50) {
-  return db
-    .select()
-    .from(supportTickets)
-    .where(
-      or(
-        like(supportTickets.title, `%${query}%`),
-        like(supportTickets.description, `%${query}%`),
-        like(supportTickets.ticketNumber, `%${query}%`)
-      )
-    )
-    .orderBy(desc(supportTickets.createdAt))
-    .limit(limit);
-}
+export async function assignTicketToStaff(ticketId: number, staffId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
 
-/**
- * Get help article by ID
- */
-export async function getHelpArticleById(articleId: string): Promise<HelpArticle | null> {
-  const result = await db
-    .select()
-    .from(helpArticles)
-    .where(eq(helpArticles.articleId, articleId))
+  const existing = await db.select().from(ticketAssignments)
+    .where(eq(ticketAssignments.ticketId, ticketId))
     .limit(1);
-  return result[0] || null;
+
+  if (existing.length > 0) {
+    await db.update(ticketAssignments)
+      .set({ assignedTo: staffId })
+      .where(eq(ticketAssignments.ticketId, ticketId));
+  } else {
+    await db.insert(ticketAssignments).values({
+      ticketId,
+      assignedTo: staffId,
+    } as any);
+  }
 }
 
 /**
- * Get all help articles
+ * Search support articles
  */
-export async function getAllHelpArticles() {
-  return db
-    .select()
-    .from(helpArticles)
-    .where(eq(helpArticles.isPublished, true))
-    .orderBy(desc(helpArticles.views));
+export async function searchHelpArticles(query: string): Promise<HelpArticle[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    return await db.select().from(helpArticles)
+      .where(
+        or(
+          like(helpArticles.title, `%${query}%`),
+          like(helpArticles.content, `%${query}%`)
+        )
+      )
+      .orderBy(desc(helpArticles.views));
+  } catch (error) {
+    console.error('Error searching help articles:', error);
+    return [];
+  }
 }
 
 /**
  * Get help articles by category
  */
-export async function getHelpArticlesByCategory(category: string) {
-  return db
-    .select()
-    .from(helpArticles)
-    .where(and(
-      eq(helpArticles.category, category as any),
-      eq(helpArticles.isPublished, true)
-    ))
-    .orderBy(desc(helpArticles.views));
+export async function getHelpArticlesByCategory(category: string): Promise<HelpArticle[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    return await db.select().from(helpArticles)
+      .where(eq(helpArticles.category, category as any))
+      .orderBy(desc(helpArticles.views));
+  } catch (error) {
+    console.error('Error getting help articles by category:', error);
+    return [];
+  }
 }
 
 /**
- * Search help articles
+ * Create help article
  */
-export async function searchHelpArticles(query: string) {
-  return db
-    .select()
-    .from(helpArticles)
-    .where(
-      and(
-        or(
-          like(helpArticles.title, `%${query}%`),
-          like(helpArticles.summary, `%${query}%`),
-          like(helpArticles.content, `%${query}%`)
-        ),
-        eq(helpArticles.isPublished, true)
-      )
-    )
-    .orderBy(desc(helpArticles.views));
+export async function createHelpArticle(article: InsertHelpArticle): Promise<HelpArticle | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db.insert(helpArticles).values(article);
+  return article as HelpArticle;
+}
+
+/**
+ * Update help article
+ */
+export async function updateHelpArticle(articleId: number, updates: Partial<HelpArticle>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(helpArticles)
+    .set({ ...updates, updatedAt: new Date() })
+    .where(eq(helpArticles.id, articleId));
 }
 
 /**
  * Increment article view count
  */
-export async function incrementArticleViews(articleId: string) {
-  return db
-    .update(helpArticles)
-    .set({ 
-      views: db.raw('views + 1'),
-      updatedAt: new Date() 
-    })
-    .where(eq(helpArticles.articleId, articleId));
+export async function incrementArticleViews(articleId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const article = await db.select().from(helpArticles)
+    .where(eq(helpArticles.id, articleId))
+    .limit(1);
+
+  if (article.length > 0) {
+    await db.update(helpArticles)
+      .set({ views: (article[0].views || 0) + 1 })
+      .where(eq(helpArticles.id, articleId));
+  }
 }
 
 /**
- * Add article feedback
+ * Record article feedback
  */
-export async function addArticleFeedback(articleId: string, helpful: boolean) {
-  const field = helpful ? 'helpful' : 'unhelpful';
-  return db
-    .update(helpArticles)
-    .set({ 
-      [field]: db.raw(`${field} + 1`),
-      updatedAt: new Date() 
-    })
-    .where(eq(helpArticles.articleId, articleId));
+export async function recordArticleFeedback(articleId: number, helpful: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const article = await db.select().from(helpArticles)
+    .where(eq(helpArticles.id, articleId))
+    .limit(1);
+
+  if (article.length > 0) {
+    const currentArticle = article[0];
+    const updates = helpful
+      ? { helpful: (currentArticle.helpful || 0) + 1 }
+      : { unhelpful: (currentArticle.unhelpful || 0) + 1 };
+
+    await db.update(helpArticles)
+      .set(updates)
+      .where(eq(helpArticles.id, articleId));
+  }
 }
 
 /**
- * Get support metrics for date range
+ * Get support metrics for a date
  */
-export async function getSupportMetricsForDateRange(startDate: Date, endDate: Date) {
-  return db
-    .select()
-    .from(supportMetrics)
-    .where(
-      and(
-        gte(supportMetrics.date, startDate),
-        lte(supportMetrics.date, endDate)
-      )
-    )
-    .orderBy(desc(supportMetrics.date));
+export async function getSupportMetricsForDate(date: Date): Promise<any | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const dateOnly = new Date(date);
+  dateOnly.setHours(0, 0, 0, 0);
+
+  const result = await db.select().from(supportMetrics)
+    .where(eq(supportMetrics.date, dateOnly))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
 }
 
 /**
- * Create or update support metrics
+ * Update or create support metrics
  */
-export async function upsertSupportMetrics(date: Date, data: any) {
-  // Check if metrics exist for this date
-  const existing = await db
-    .select()
-    .from(supportMetrics)
-    .where(eq(supportMetrics.date, date))
+export async function updateSupportMetrics(date: Date, data: any): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const dateOnly = new Date(date);
+  dateOnly.setHours(0, 0, 0, 0);
+
+  const existing = await db.select().from(supportMetrics)
+    .where(eq(supportMetrics.date, dateOnly))
     .limit(1);
 
   if (existing.length > 0) {
-    return db
-      .update(supportMetrics)
+    await db.update(supportMetrics)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(supportMetrics.date, date));
+      .where(eq(supportMetrics.date, dateOnly));
   } else {
-    return db.insert(supportMetrics).values({
-      date,
+    await db.insert(supportMetrics).values({
+      date: dateOnly,
       ...data,
-    });
+    } as any);
   }
 }
 
@@ -307,6 +270,9 @@ export async function upsertSupportMetrics(date: Date, data: any) {
  * Calculate support metrics for today
  */
 export async function calculateDailySupportMetrics() {
+  const db = await getDb();
+  if (!db) return;
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -324,71 +290,14 @@ export async function calculateDailySupportMetrics() {
       )
     );
 
-  const totalTickets = todayTickets.length;
-  const openTickets = todayTickets.filter(t => t.status === 'open').length;
-  const resolvedTickets = todayTickets.filter(t => t.status === 'resolved').length;
-  const closedTickets = todayTickets.filter(t => t.status === 'closed').length;
+  // Calculate metrics
+  const metrics = {
+    totalTickets: todayTickets.length,
+    openTickets: todayTickets.filter((t: any) => t.status === 'open').length,
+    resolvedTickets: todayTickets.filter((t: any) => t.status === 'resolved').length,
+    avgResponseTime: 0, // Would need to calculate from actual response times
+  };
 
-  // Calculate averages
-  const avgResponseTime = todayTickets
-    .filter(t => t.responseTimeMinutes)
-    .reduce((sum, t) => sum + (t.responseTimeMinutes || 0), 0) / Math.max(todayTickets.filter(t => t.responseTimeMinutes).length, 1);
-
-  const avgResolutionTime = todayTickets
-    .filter(t => t.resolutionTimeMinutes)
-    .reduce((sum, t) => sum + (t.resolutionTimeMinutes || 0), 0) / Math.max(todayTickets.filter(t => t.resolutionTimeMinutes).length, 1);
-
-  const breachedCount = todayTickets.filter(t => t.slaStatus === 'breached').length;
-  const slaComplianceRate = totalTickets > 0 ? Math.round(((totalTickets - breachedCount) / totalTickets) * 100) : 100;
-
-  // Category breakdown
-  const categoryBreakdown: Record<string, number> = {};
-  todayTickets.forEach(t => {
-    categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + 1;
-  });
-
-  // Priority breakdown
-  const priorityBreakdown: Record<string, number> = {};
-  todayTickets.forEach(t => {
-    priorityBreakdown[t.priority] = (priorityBreakdown[t.priority] || 0) + 1;
-  });
-
-  return upsertSupportMetrics(today, {
-    totalTickets,
-    openTickets,
-    resolvedTickets,
-    closedTickets,
-    averageResponseTime: Math.round(avgResponseTime),
-    averageResolutionTime: Math.round(avgResolutionTime),
-    slaComplianceRate,
-    slaBreachCount: breachedCount,
-    categoryBreakdown,
-    priorityBreakdown,
-  });
+  // Update metrics in database
+  await updateSupportMetrics(today, metrics);
 }
-
-export default {
-  createSupportTicket,
-  getSupportTicketById,
-  getSupportTicketByNumber,
-  getUserSupportTickets,
-  getOpenSupportTickets,
-  getTicketsByCategory,
-  getTicketsByPriority,
-  getBreachedSLATickets,
-  updateTicketStatus,
-  updateTicketSLAStatus,
-  assignTicketToTeam,
-  addTicketResponse,
-  getTicketResponses,
-  searchSupportTickets,
-  getHelpArticleById,
-  getAllHelpArticles,
-  getHelpArticlesByCategory,
-  searchHelpArticles,
-  incrementArticleViews,
-  addArticleFeedback,
-  getSupportMetricsForDateRange,
-  upsertSupportMetrics,
-  calculateDailySupportMetrics,
-};

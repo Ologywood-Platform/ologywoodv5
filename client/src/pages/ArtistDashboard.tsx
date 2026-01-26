@@ -22,7 +22,7 @@ export const ArtistDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'contracts' | 'bookings'>('overview');
   
   // Fetch contracts using TRPC
-  const { data: contractsData, isLoading, error } = trpc.contractManagement.getArtistContracts.useQuery();
+  const { data: contractsData, isLoading, error } = trpc.contracts.getArtistContracts.useQuery();
   
   const contracts: Contract[] = contractsData?.map((c: any) => ({
     id: c.id.toString(),
@@ -45,7 +45,7 @@ export const ArtistDashboard: React.FC = () => {
     console.log('View contract:', contractId);
   };
 
-  const sendReminderMutation = trpc.contractManagement.sendManualReminders.useMutation();
+  const sendReminderMutation = trpc.contracts.sendManualReminders.useMutation();
 
   const handleSendReminder = async (contractIds: string[]) => {
     try {
@@ -61,10 +61,10 @@ export const ArtistDashboard: React.FC = () => {
 
   const handleDownloadContract = async (contractId: string) => {
     try {
-      const exportMutation = trpc.contractManagement.exportContractData.useMutation();
-      const result = await exportMutation.mutateAsync({ contractId: parseInt(contractId, 10) });
+      const exportMutation = trpc.contracts.exportContractData.useMutation();
+      const result = await exportMutation.mutateAsync({ format: 'json' });
       
-      const blob = new Blob([result.data], { type: 'text/html' });
+      const blob = new Blob([result.url], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -255,7 +255,7 @@ export const ArtistDashboard: React.FC = () => {
             <ContractManagementDashboard
               contracts={contracts}
               userRole="artist"
-              userName={contractsData?.[0]?.artistName || 'Your Name'}
+              userName={contractsData && contractsData.length > 0 ? (contractsData[0] as any)?.artistName || 'Your Name' : 'Your Name'}
               onContractClick={handleContractClick}
               onSendReminder={handleSendReminder}
               onDownloadContract={handleDownloadContract}

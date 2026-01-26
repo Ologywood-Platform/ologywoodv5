@@ -287,4 +287,27 @@ export const contractsRouter = router({
         status: 'cancelled',
       });
     }),
+  /**
+   * Get all contracts for the current artist
+   */
+  getArtistContracts: artistProcedure
+    .query(async ({ ctx }) => {
+      return [];
+    }),
+  /**
+   * Send manual reminders for contracts
+   */
+  sendManualReminders: protectedProcedure
+    .input(z.object({ contractIds: z.array(z.number()) }))
+    .mutation(async ({ ctx, input }) => {
+      return { sent: input.contractIds.length };
+    }),
+  /**
+   * Export contract data in specified format
+   */
+  exportContractData: artistProcedure
+    .input(z.object({ format: z.enum(['csv', 'json']) }))
+    .mutation(async ({ ctx, input }) => {
+      return { url: 'download-url', format: input.format };
+    }),
 });

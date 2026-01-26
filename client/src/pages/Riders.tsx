@@ -470,13 +470,13 @@ export default function Riders() {
                     <div className="text-sm">
                       <p className="text-slate-600 font-medium mb-1">Stage:</p>
                       <p className="text-slate-700 line-clamp-2">
-                        {template.stageDimensions || "Not specified"}
+                        {(template as any).technicalRequirements?.stageWidth || "Not specified"}
                       </p>
                     </div>
                     <div className="text-sm">
                       <p className="text-slate-600 font-medium mb-1">Sound:</p>
                       <p className="text-slate-700 line-clamp-2">
-                        {template.paSystemRequired ? "PA System Required" : "Not specified"}
+                        {(template as any).technicalRequirements?.soundSystem ? "PA System Required" : "Not specified"}
                       </p>
                     </div>
                   </div>
@@ -486,7 +486,7 @@ export default function Riders() {
                       variant="outline"
                       size="sm"
                       className="flex-1 gap-2"
-                      onClick={() => handleViewTemplate(template)}
+                      onClick={() => handleViewTemplate(template as RiderTemplate)}
                     >
                       <Eye className="h-4 w-4" />
                       View
@@ -495,7 +495,7 @@ export default function Riders() {
                       variant="outline"
                       size="sm"
                       className="flex-1 gap-2"
-                      onClick={() => handleOpenDialog(template)}
+                      onClick={() => handleOpenDialog(template as RiderTemplate)}
                     >
                       <Edit className="h-4 w-4" />
                       Edit
@@ -504,7 +504,7 @@ export default function Riders() {
                       variant="outline"
                       size="sm"
                       className="gap-2"
-                      onClick={() => handleDownloadPDF(template)}
+                      onClick={() => handleDownloadPDF(template as RiderTemplate)}
                       title="Download as PDF"
                     >
                       <Download className="h-4 w-4" />

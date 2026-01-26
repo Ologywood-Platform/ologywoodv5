@@ -143,7 +143,7 @@ class ErrorGroupingService {
     let bestMatchGroupId: string | null = null;
     let bestSimilarity = 0.7; // Threshold for grouping
 
-    for (const [existingGroupId, group] of this.groups) {
+    for (const [existingGroupId, group] of Array.from(this.groups)) {
       const similarity = this.calculateSimilarity(pattern, group.pattern);
       if (similarity > bestSimilarity) {
         bestSimilarity = similarity;
@@ -299,10 +299,10 @@ class ErrorGroupingService {
     targetGroup.count += sourceGroup.count;
     targetGroup.affectedUsers += sourceGroup.affectedUsers;
     targetGroup.errorCodes = [
-      ...new Set([...targetGroup.errorCodes, ...sourceGroup.errorCodes]),
+      ...Array.from(new Set([...targetGroup.errorCodes, ...sourceGroup.errorCodes])),
     ];
     targetGroup.endpoints = [
-      ...new Set([...targetGroup.endpoints, ...sourceGroup.endpoints]),
+      ...Array.from(new Set([...targetGroup.endpoints, ...sourceGroup.endpoints])),
     ];
     targetGroup.examples = [
       ...targetGroup.examples,
@@ -324,7 +324,7 @@ class ErrorGroupingService {
   clearOldGroups(hoursOld: number = 72): void {
     const cutoffTime = new Date(Date.now() - hoursOld * 60 * 60 * 1000);
 
-    for (const [groupId, group] of this.groups) {
+    for (const [groupId, group] of Array.from(this.groups)) {
       if (group.lastOccurred < cutoffTime) {
         this.groups.delete(groupId);
 

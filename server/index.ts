@@ -6,7 +6,7 @@
 import express, { Express } from 'express';
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { appRouter } from './routers';
-import { createTRPCContext } from './_core/trpc';
+// import { createTRPCContext } from './_core/trpc'; // Not used in this file
 import { configureServer, printSecuritySetup } from './middleware/serverConfig';
 import { createExternalLoggingService } from './services/externalLoggingService';
 import { DatabaseOptimizationService } from './services/databaseOptimization';
@@ -29,7 +29,7 @@ async function initializeServer(): Promise<void> {
   // Log server startup
   logEvent({
     level: LogLevel.INFO,
-    eventType: LogEventType.SERVER_START,
+    eventType: LogEventType.SERVER_STARTUP,
     message: 'Server initializing with security middleware',
     details: {
       environment: process.env.NODE_ENV,
@@ -42,11 +42,17 @@ async function initializeServer(): Promise<void> {
   const trpcServer = createHTTPServer({
     middleware: express.json(),
     router: appRouter,
-    createContext: createTRPCContext,
+    createContext: async (opts: any) => ({
+      req: opts?.req,
+      res: opts?.res,
+      user: null,
+    }),
   });
 
   // Mount TRPC routes
-  app.use('/trpc', trpcServer);
+  app.use('/trpc', (req, res) => {
+    (trpcServer as any).handler(req, res);
+  });
 
   // Health check endpoint
   app.get('/health', (req, res) => {

@@ -274,11 +274,12 @@ export async function generateAnalyticsReport(dateRange: 'today' | '7days' | '30
   try {
     console.log(`[Analytics] Generating analytics report for ${dateRange}`);
 
+    const validDateRange: 'all' | 'today' | '7days' | '30days' = dateRange === '90days' ? '30days' : dateRange;
     const [contracts, support, bookings, users] = await Promise.all([
-      calculateContractMetrics(dateRange),
-      calculateSupportMetrics(dateRange),
-      calculateBookingMetrics(dateRange),
-      calculateUserMetrics(dateRange),
+      calculateContractMetrics(validDateRange),
+      calculateSupportMetrics(validDateRange),
+      calculateBookingMetrics(validDateRange),
+      calculateUserMetrics(validDateRange),
     ]);
 
     const report = {

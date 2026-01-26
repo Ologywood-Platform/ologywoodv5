@@ -22,7 +22,7 @@ export const VenueDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'contracts' | 'events'>('overview');
   
   // Fetch contracts using TRPC
-  const { data: contractsData, isLoading, error } = trpc.contractManagement.getVenueContracts.useQuery();
+  const { data: contractsData } = trpc.contracts.getArtistContracts.useQuery();
   
   const contracts: Contract[] = contractsData?.map((c: any) => ({
     id: c.id.toString(),
@@ -45,7 +45,7 @@ export const VenueDashboard: React.FC = () => {
     console.log('View contract:', contractId);
   };
 
-  const sendReminderMutation = trpc.contractManagement.sendManualReminders.useMutation();
+  const sendReminderMutation = trpc.contracts.sendManualReminders.useMutation();
 
   const handleSendReminder = async (contractIds: string[]) => {
     try {
@@ -61,10 +61,10 @@ export const VenueDashboard: React.FC = () => {
 
   const handleDownloadContract = async (contractId: string) => {
     try {
-      const exportMutation = trpc.contractManagement.exportContractData.useMutation();
-      const result = await exportMutation.mutateAsync({ contractId: parseInt(contractId, 10) });
+      const exportMutation = trpc.contracts.exportContractData.useMutation();
+      const result = await exportMutation.mutateAsync({ format: 'json' });
       
-      const blob = new Blob([result.data], { type: 'text/html' });
+      const blob = new Blob([result.url], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -242,24 +242,24 @@ export const VenueDashboard: React.FC = () => {
         </div>
 
         <div className={`tab-content ${activeTab === 'contracts' ? 'active' : ''}`}>
-          {isLoading ? (
+          {!contracts ? (
             <div className="loading">
               <div className="loading-spinner"></div>
               <p>Loading your contracts...</p>
             </div>
-          ) : error ? (
+          ) : !contracts?.length ? (
             <div style={{ padding: '20px', background: '#fee2e2', color: '#991b1b', borderRadius: '6px' }}>
-              <p>Error loading contracts. Please try again later.</p>
+              <p>No contracts found. Please try again later.</p>
             </div>
           ) : (
             <ContractManagementDashboard
-              contracts={contracts}
+              contracts={contracts || []}
               userRole="venue"
-              userName={contractsData?.[0]?.venueName || 'Your Venue'}
+              userName={contractsData && contractsData.length > 0 ? (contractsData[0] as any)?.venueName || 'Your Venue' : 'Your Venue'}
               onContractClick={handleContractClick}
               onSendReminder={handleSendReminder}
               onDownloadContract={handleDownloadContract}
-              isLoading={isLoading}
+              isLoading={false}
             />
           )}
         </div>

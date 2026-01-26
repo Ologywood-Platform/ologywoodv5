@@ -30,9 +30,10 @@ export function RiderTemplateBuilder() {
 
   useEffect(() => {
     if (myTemplates) {
-      setTemplates(myTemplates);
-      if (myTemplates.length > 0 && !selectedTemplate) {
-        setSelectedTemplate(myTemplates[0]);
+      const templates = myTemplates as RiderTemplate[];
+      setTemplates(templates);
+      if (templates.length > 0 && !selectedTemplate) {
+        setSelectedTemplate(templates[0]);
       }
     }
   }, [myTemplates]);
@@ -201,7 +202,7 @@ export function RiderTemplateBuilder() {
                 <Input
                   type="text"
                   name="templateName"
-                  value={formData.templateName}
+                  value={formData.templateName || ''}
                   onChange={handleInputChange}
                   placeholder="e.g., Standard Rock Show, Festival Setup"
                   disabled={loading}

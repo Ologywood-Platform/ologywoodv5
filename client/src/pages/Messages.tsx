@@ -104,7 +104,7 @@ export default function Messages() {
           participantName: isArtist ? booking.venueName : 'Artist',
           participantRole: isArtist ? 'venue' : 'artist',
           bookingId: booking.id,
-          bookingTitle: `${booking.eventDetails || 'Booking'} - ${new Date(booking.eventDate).toLocaleDateString()}`,
+          bookingTitle: `${(booking as any).eventDetails || 'Booking'} - ${new Date(booking.eventDate).toLocaleDateString()}`,
           unreadCount: 0,
         };
         convos.push(conversation);

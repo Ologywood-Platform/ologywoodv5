@@ -400,17 +400,17 @@ export default function RiderTemplates() {
                     </div>
                   </div>
                   <CardDescription>
-                    Created {new Date(template.createdAt).toLocaleDateString()}
+                    Created {new Date(template.createdAt ?? new Date()).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                    {template.paSystemRequired && (
+                    {(template as any).technicalRequirements?.soundSystem && (
                       <p className="line-clamp-2">
                         <strong>Sound:</strong> PA System Required
                       </p>
                     )}
-                    {template.cateringProvided && (
+                    {(template as any).hospitalityRequirements?.catering && (
                       <p className="line-clamp-2">
                         <strong>Catering:</strong> Provided
                       </p>

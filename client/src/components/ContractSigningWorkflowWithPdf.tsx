@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { SignatureCanvas } from './SignatureCanvas';
+import SignatureCanvas from './SignatureCanvas';
 import { trpc } from '../lib/trpc';
 
 interface ContractData {
@@ -107,7 +107,7 @@ export const ContractSigningWorkflowWithPdf: React.FC<ContractSigningWorkflowWit
         await archivePdfMutation.mutateAsync({
           contractId: contract.contractId,
           pdfBase64: pdfResult.pdfBase64,
-          metadata: pdfResult.metadata,
+          details: pdfResult.metadata,
         });
 
         setStep('download');
@@ -255,7 +255,11 @@ export const ContractSigningWorkflowWithPdf: React.FC<ContractSigningWorkflowWit
 
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">Digital Signature</label>
-            <SignatureCanvas onSignatureCapture={handleSignatureCapture} />
+            <SignatureCanvas 
+              onSignatureCapture={handleSignatureCapture}
+              signerName={contract.artistName}
+              signerRole="artist"
+            />
           </div>
 
           <div className="flex gap-4">

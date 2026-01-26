@@ -185,7 +185,6 @@ you can adjust alert thresholds in the admin settings.
           to: adminEmail,
           subject,
           html: htmlContent,
-          text: textContent,
         })
         .catch((error) => {
           console.error(`[Email Alert] Failed to send alert to ${adminEmail}:`, error);
