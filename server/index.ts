@@ -11,6 +11,7 @@ import { configureServer, printSecuritySetup } from './middleware/serverConfig';
 import { createExternalLoggingService } from './services/externalLoggingService';
 import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
+import path from 'path';
 
 /**
  * Initialize server with all middleware and services
@@ -49,9 +50,18 @@ async function initializeServer(): Promise<void> {
     }),
   });
 
+  // Serve static files from dist/public
+  const publicPath = path.join(process.cwd(), 'dist', 'public');
+  app.use(express.static(publicPath));
+
   // Mount TRPC routes
   app.use('/trpc', (req, res) => {
     (trpcServer as any).handler(req, res);
+  });
+
+  // Serve index.html for all other routes (SPA fallback)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
   });
 
   // Health check endpoint
