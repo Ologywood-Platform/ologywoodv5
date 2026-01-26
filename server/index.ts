@@ -39,6 +39,11 @@ async function initializeServer(): Promise<void> {
     },
   });
 
+  // Serve static files from dist/public FIRST (before all routes)
+  const publicPath = path.join(process.cwd(), 'dist', 'public');
+  console.log(`Serving static files from: ${publicPath}`);
+  app.use(express.static(publicPath, { maxAge: '1h' }));
+
   // Create TRPC HTTP server
   const trpcServer = createHTTPServer({
     middleware: express.json(),
@@ -50,18 +55,21 @@ async function initializeServer(): Promise<void> {
     }),
   });
 
-  // Serve static files from dist/public
-  const publicPath = path.join(process.cwd(), 'dist', 'public');
-  app.use(express.static(publicPath));
-
   // Mount TRPC routes
   app.use('/trpc', (req, res) => {
     (trpcServer as any).handler(req, res);
   });
 
-  // Serve index.html for all other routes (SPA fallback)
+  // Serve index.html for all other routes (SPA fallback) - MUST be last
   app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    const indexPath = path.join(publicPath, 'index.html');
+    console.log(`Serving SPA fallback: ${indexPath}`);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Error loading application');
+      }
+    });
   });
 
   // Health check endpoint
