@@ -1,9 +1,16 @@
 import Stripe from 'stripe';
 import { SUBSCRIPTION_PRODUCTS } from '../shared/products';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
-});
+// Initialize Stripe only if API key is provided
+let stripe: Stripe | null = null;
+
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  });
+} else {
+  console.warn('[Stripe] WARNING: STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
+}
 
 export { stripe };
 
@@ -15,6 +22,9 @@ export async function getOrCreateStripeCustomer(params: {
   name?: string;
   userId: string;
 }): Promise<string> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
   // Check if customer already exists by email
   const existingCustomers = await stripe.customers.list({
     email: params.email,
@@ -48,10 +58,13 @@ export async function createSubscriptionCheckoutSession(params: {
   successUrl: string;
   cancelUrl: string;
 }): Promise<string> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
   const product = SUBSCRIPTION_PRODUCTS.ARTIST_BASIC;
 
   // Create or get the price
-  const prices = await stripe.prices.list({
+  const prices = await stripe!.prices.list({
     lookup_keys: ['artist_basic_monthly'],
     limit: 1,
   });
@@ -62,12 +75,12 @@ export async function createSubscriptionCheckoutSession(params: {
     priceId = prices.data[0]!.id;
   } else {
     // Create the product and price if they don't exist
-    const stripeProduct = await stripe.products.create({
+    const stripeProduct = await stripe!.products.create({
       name: product.name,
       description: product.description,
     });
 
-    const stripePrice = await stripe.prices.create({
+    const stripePrice = await stripe!.prices.create({
       product: stripeProduct.id,
       unit_amount: product.priceMonthly,
       currency: product.currency,
@@ -80,7 +93,7 @@ export async function createSubscriptionCheckoutSession(params: {
     priceId = stripePrice.id;
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await stripe!.checkout.sessions.create({
     customer: params.customerId,
     client_reference_id: params.userId,
     mode: 'subscription',
@@ -115,8 +128,12 @@ export async function createSubscriptionCheckoutSession(params: {
  * Get subscription status from Stripe
  */
 export async function getSubscriptionStatus(subscriptionId: string) {
+  if (!stripe) {
+    console.error('Stripe is not configured.');
+    return null;
+  }
   try {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscription = await stripe!.subscriptions.retrieve(subscriptionId);
     const subData = subscription as any;
     return {
       status: subscription.status,
@@ -134,7 +151,10 @@ export async function getSubscriptionStatus(subscriptionId: string) {
  * Cancel a subscription at period end
  */
 export async function cancelSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.update(subscriptionId, {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
+  return await stripe!.subscriptions.update(subscriptionId, {
     cancel_at_period_end: true,
   });
 }
@@ -143,7 +163,10 @@ export async function cancelSubscription(subscriptionId: string) {
  * Reactivate a canceled subscription
  */
 export async function reactivateSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.update(subscriptionId, {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
+  return await stripe!.subscriptions.update(subscriptionId, {
     cancel_at_period_end: false,
   });
 }
