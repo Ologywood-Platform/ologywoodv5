@@ -3,8 +3,12 @@ import fs from "fs";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
+import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -48,8 +52,9 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // Always use dist/public for both development and production
-  const distPath = path.resolve(import.meta.dirname, "../..", "dist", "public");
+  // Use __dirname (where dist/index.js is) to find dist/public
+  // This works reliably on Render and other cloud platforms
+  const distPath = path.join(__dirname, "public");
   console.log(`[Static Files] Serving from: ${distPath}`);
   
   if (!fs.existsSync(distPath)) {
