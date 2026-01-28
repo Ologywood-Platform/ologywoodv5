@@ -40,6 +40,7 @@ import { bulkContractRouter } from "./routers/bulkContractRouter";
 import { realtimeNotificationsRouter } from "./routers/realtimeNotificationsRouter";
 import { paymentAnalyticsRouter } from "./routers/paymentAnalyticsRouter";
 import { artistVerificationRouter } from "./routers/artistVerificationRouter";
+import { emailVerificationRouter } from "./routers/emailVerificationRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 
@@ -92,6 +93,7 @@ export const appRouter = router({
   realtimeNotifications: realtimeNotificationsRouter,
   paymentAnalytics: paymentAnalyticsRouter,
   artistVerification: artistVerificationRouter,
+  emailVerification: emailVerificationRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
