@@ -30,6 +30,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  console.log('[Server] Starting Ologywood server...');
   const app = express();
   const server = createServer(app);
   
@@ -50,6 +51,11 @@ async function startServer() {
   // Apply rate limiting to authentication endpoints
   app.use('/api/oauth/login', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
   app.use('/api/oauth/callback', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
+  
+  // Health check endpoint (must be before rate limiting)
+  app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
@@ -82,11 +88,22 @@ async function startServer() {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${port}/`);
     console.log('[Rate Limiter] Initialized with cleanup every 60 seconds');
+    console.log('[Health Check] Available at /health');
   });
 }
+
+process.on('SIGTERM', () => {
+  console.log('[Server] SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('[Server] SIGINT received, shutting down gracefully');
+  process.exit(0);
+});
 
 startServer().catch((error) => {
   console.error('[Server Error]', error);
