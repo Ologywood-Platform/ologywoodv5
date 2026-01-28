@@ -3,8 +3,7 @@
 .env.development
 .env.test
 
-# Build artifacts
-dist
+# Build artifacts (dist is generated during build, don't ignore)
 node_modules
 .vite
 
