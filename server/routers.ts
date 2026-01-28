@@ -35,6 +35,8 @@ import { riderContractRouter } from "./routers/riderContractRouter";
 import { signatureRouter } from "./routers/signatureRouter";
 import { contractTemplateRouter } from "./routers/contractTemplateRouter";
 import { contractHistoryRouter } from "./routers/contractHistoryRouter";
+import { webhookRouter } from "./routers/webhookRouter";
+import { bulkContractRouter } from "./routers/bulkContractRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 
@@ -82,6 +84,8 @@ export const appRouter = router({
   signature: signatureRouter,
   contractTemplate: contractTemplateRouter,
   contractHistory: contractHistoryRouter,
+  webhook: webhookRouter,
+  bulkContract: bulkContractRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
