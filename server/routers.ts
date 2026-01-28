@@ -32,6 +32,9 @@ import { semanticSearchRouter } from "./routers/semanticSearchRouter";
 import { evictionRouter } from "./routers/evictionRouter";
 import { helpCenterRouter } from "./routers/helpCenterRouter";
 import { riderContractRouter } from "./routers/riderContractRouter";
+import { signatureRouter } from "./routers/signatureRouter";
+import { contractTemplateRouter } from "./routers/contractTemplateRouter";
+import { contractHistoryRouter } from "./routers/contractHistoryRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 
@@ -76,6 +79,9 @@ export const appRouter = router({
   eviction: evictionRouter,
   helpCenter: helpCenterRouter,
   riderContract: riderContractRouter,
+  signature: signatureRouter,
+  contractTemplate: contractTemplateRouter,
+  contractHistory: contractHistoryRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
