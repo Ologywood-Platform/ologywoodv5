@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "wouter";
-import { Star, MapPin, Music, Calendar, Users, ExternalLink } from "lucide-react";
+import { Star, MapPin, Music, Calendar, Users, ExternalLink, Loader } from "lucide-react";
+import { trpc } from "../lib/trpc";
 
 interface ArtistPortfolioProps {
   artistId?: string;
@@ -10,66 +11,60 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
   const { artistId: paramArtistId } = useParams<{ artistId: string }>();
   const id = propArtistId || paramArtistId;
   const [activeTab, setActiveTab] = useState<"gallery" | "reviews" | "bookings">("gallery");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - replace with actual API call
+  // Fetch artist profile from API
+  const { data: artistData, isLoading: isArtistLoading } = trpc.artist.getProfile.useQuery(
+    { id: parseInt(id || "1") },
+    { enabled: !!id }
+  );
+
+  useEffect(() => {
+    setIsLoading(isArtistLoading);
+  }, [isArtistLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader size={48} className="animate-spin text-purple-600" />
+          <p className="text-gray-600">Loading artist profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!artistData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Artist Not Found</h2>
+          <p className="text-gray-600">The artist profile you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
+
   const artist = {
-    id: parseInt(id || "1"),
-    name: "The Jazz Collective",
-    bio: "Award-winning jazz ensemble bringing sophisticated sounds to venues across the country.",
-    genre: ["Jazz", "Blues", "Soul"],
-    location: "New York, NY",
-    rating: 4.8,
-    reviewCount: 127,
-    profileImage: "https://via.placeholder.com/300x300?text=Artist+Profile",
-    gallery: [
-      { id: 1, url: "https://via.placeholder.com/400x300?text=Performance+1", caption: "Live at Madison Square Garden" },
-      { id: 2, url: "https://via.placeholder.com/400x300?text=Performance+2", caption: "Studio Session" },
-      { id: 3, url: "https://via.placeholder.com/400x300?text=Performance+3", caption: "Outdoor Festival" },
-      { id: 4, url: "https://via.placeholder.com/400x300?text=Performance+4", caption: "Concert Hall" },
-    ],
-    reviews: [
-      {
-        id: 1,
-        author: "Sarah Johnson",
-        venue: "The Blue Note",
-        rating: 5,
-        text: "Absolutely fantastic performance! The energy and musicianship were outstanding.",
-        date: "2024-01-15",
-      },
-      {
-        id: 2,
-        author: "Michael Chen",
-        venue: "Jazz at Lincoln Center",
-        rating: 5,
-        text: "Professional, talented, and a joy to work with. Highly recommended!",
-        date: "2024-01-10",
-      },
-      {
-        id: 3,
-        author: "Emma Rodriguez",
-        venue: "The Fillmore",
-        rating: 4,
-        text: "Great performance. Would love to book them again.",
-        date: "2024-01-05",
-      },
-    ],
-    bookings: [
-      { id: 1, venue: "The Blue Note", date: "2024-02-15", status: "confirmed" },
-      { id: 2, venue: "Jazz at Lincoln Center", date: "2024-02-22", status: "confirmed" },
-      { id: 3, venue: "The Fillmore", date: "2024-03-10", status: "pending" },
-    ],
+    id: artistData.id || parseInt(id || "1"),
+    name: artistData.artistName || "Unknown Artist",
+    bio: artistData.bio || "No bio available",
+    genre: artistData.genre || [],
+    location: artistData.location || "Unknown",
+    rating: 4.8, // Would come from reviews API
+    reviewCount: 127, // Would come from reviews API
+    profileImage: artistData.profilePhotoUrl || "https://via.placeholder.com/300x300?text=Artist+Profile",
+    gallery: artistData.mediaGallery?.photos || [],
+    reviews: [], // Would fetch from reviews API
+    bookings: [], // Would fetch from bookings API
     stats: {
-      totalBookings: 45,
-      yearsActive: 8,
-      tourPartySize: 5,
-      minFee: 2500,
-      maxFee: 7500,
+      totalBookings: 45, // Would fetch from bookings API
+      yearsActive: 8, // Would calculate from createdAt
+      tourPartySize: artistData.touringPartySize || 5,
+      minFee: artistData.feeRangeMin || 2500,
+      maxFee: artistData.feeRangeMax || 7500,
     },
-    socialLinks: {
-      instagram: "https://instagram.com",
-      spotify: "https://spotify.com",
-      youtube: "https://youtube.com",
-    },
+    socialLinks: artistData.socialLinks || {},
   };
 
   const renderStars = (rating: number) => {
@@ -95,7 +90,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
             <img
               src={artist.profileImage}
               alt={artist.name}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg"
+              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />
             <div className="flex-1">
               <h1 className="text-4xl font-bold mb-2">{artist.name}</h1>
@@ -113,7 +108,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
                 </div>
                 <div className="flex items-center gap-2">
                   <Music size={18} />
-                  {artist.genre.join(", ")}
+                  {artist.genre.length > 0 ? artist.genre.join(", ") : "No genres specified"}
                 </div>
                 <div className="flex items-center gap-2">
                   <Users size={18} />
@@ -164,7 +159,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Gallery
+              Gallery ({artist.gallery.length})
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
@@ -191,64 +186,85 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
 
         {/* Gallery Tab */}
         {activeTab === "gallery" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {artist.gallery.map((image) => (
-              <div key={image.id} className="group relative overflow-hidden rounded-lg">
-                <img
-                  src={image.url}
-                  alt={image.caption}
-                  className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                  <p className="text-white text-sm">{image.caption}</p>
-                </div>
+          <div>
+            {artist.gallery.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {artist.gallery.map((imageUrl, idx) => (
+                  <div key={idx} className="group relative overflow-hidden rounded-lg">
+                    <img
+                      src={imageUrl}
+                      alt={`Gallery ${idx + 1}`}
+                      className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-600">No gallery photos yet</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Reviews Tab */}
         {activeTab === "reviews" && (
-          <div className="space-y-6">
-            {artist.reviews.map((review) => (
-              <div key={review.id} className="bg-white p-6 rounded-lg border border-gray-200">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-900">{review.author}</p>
-                    <p className="text-sm text-gray-600">{review.venue}</p>
+          <div>
+            {artist.reviews.length > 0 ? (
+              <div className="space-y-6">
+                {artist.reviews.map((review) => (
+                  <div key={review.id} className="bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">{review.author}</p>
+                        <p className="text-sm text-gray-600">{review.venue}</p>
+                      </div>
+                      <div className="flex">{renderStars(review.rating)}</div>
+                    </div>
+                    <p className="text-gray-700 mb-2">{review.text}</p>
+                    <p className="text-xs text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex">{renderStars(review.rating)}</div>
-                </div>
-                <p className="text-gray-700 mb-2">{review.text}</p>
-                <p className="text-xs text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-600">No reviews yet</p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Bookings Tab */}
         {activeTab === "bookings" && (
-          <div className="space-y-4">
-            {artist.bookings.map((booking) => (
-              <div key={booking.id} className="bg-white p-6 rounded-lg border border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Calendar size={24} className="text-purple-600" />
-                  <div>
-                    <p className="font-semibold text-gray-900">{booking.venue}</p>
-                    <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
+          <div>
+            {artist.bookings.length > 0 ? (
+              <div className="space-y-4">
+                {artist.bookings.map((booking) => (
+                  <div key={booking.id} className="bg-white p-6 rounded-lg border border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Calendar size={24} className="text-purple-600" />
+                      <div>
+                        <p className="font-semibold text-gray-900">{booking.venue}</p>
+                        <p className="text-sm text-gray-600">{new Date(booking.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        booking.status === "confirmed"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </span>
                   </div>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    booking.status === "confirmed"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                </span>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <p className="text-gray-600">No upcoming bookings</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -264,38 +280,40 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
         </div>
 
         {/* Social Links */}
-        <div className="mt-8 flex justify-center gap-4">
-          {artist.socialLinks.instagram && (
-            <a
-              href={artist.socialLinks.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 hover:text-purple-600 transition-colors"
-            >
-              <ExternalLink size={20} />
-            </a>
-          )}
-          {artist.socialLinks.spotify && (
-            <a
-              href={artist.socialLinks.spotify}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 hover:text-purple-600 transition-colors"
-            >
-              <ExternalLink size={20} />
-            </a>
-          )}
-          {artist.socialLinks.youtube && (
-            <a
-              href={artist.socialLinks.youtube}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 hover:text-purple-600 transition-colors"
-            >
-              <ExternalLink size={20} />
-            </a>
-          )}
-        </div>
+        {Object.keys(artist.socialLinks).length > 0 && (
+          <div className="mt-8 flex justify-center gap-4">
+            {artist.socialLinks.instagram && (
+              <a
+                href={artist.socialLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
+                <ExternalLink size={20} />
+              </a>
+            )}
+            {artist.socialLinks.spotify && (
+              <a
+                href={artist.socialLinks.spotify}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
+                <ExternalLink size={20} />
+              </a>
+            )}
+            {artist.socialLinks.youtube && (
+              <a
+                href={artist.socialLinks.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-purple-600 transition-colors"
+              >
+                <ExternalLink size={20} />
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
