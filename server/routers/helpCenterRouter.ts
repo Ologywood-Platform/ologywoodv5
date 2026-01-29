@@ -10,7 +10,14 @@ interface HelpArticle {
   id: string;
   title: string;
   category: string;
+  summary: string;
   content: string;
+  keywords: string[];
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedReadTime: number;
+  views: number;
+  helpful: number;
+  unhelpful: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,13 +29,14 @@ interface HelpCategory {
   articleCount: number;
 }
 
-// Comprehensive help articles
+// Comprehensive help articles with all required fields
 const HELP_ARTICLES: HelpArticle[] = [
   // Getting Started
   {
     id: '1',
     title: 'Getting Started as an Artist',
     category: 'getting-started',
+    summary: 'Learn how to set up your artist profile and start receiving booking requests on Ologywood.',
     content: `Welcome to Ologywood! Here's how to get started as a performing artist:
 
 1. **Create Your Account**: Sign up with your email or social media account
@@ -44,6 +52,12 @@ Tips for Success:
 - Keep your rates competitive
 - Respond quickly to booking inquiries
 - Maintain accurate availability calendar`,
+    keywords: ['artist', 'profile', 'setup', 'getting started', 'onboarding'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 234,
+    helpful: 156,
+    unhelpful: 12,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -51,6 +65,7 @@ Tips for Success:
     id: '2',
     title: 'Getting Started as a Venue',
     category: 'getting-started',
+    summary: 'Set up your venue profile and learn how to browse and book artists for your events.',
     content: `Welcome to Ologywood! Here's how to get started as a venue:
 
 1. **Create Your Account**: Sign up with your email or social media account
@@ -66,6 +81,12 @@ Tips for Success:
 - Plan bookings in advance
 - Review artist riders and confirm requirements
 - Leave feedback after performances`,
+    keywords: ['venue', 'profile', 'booking', 'artists', 'setup'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 189,
+    helpful: 142,
+    unhelpful: 8,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -75,6 +96,7 @@ Tips for Success:
     id: '3',
     title: 'How to Create a Booking Request',
     category: 'bookings',
+    summary: 'Step-by-step guide to creating and submitting a booking request to an artist.',
     content: `Creating a booking request is easy:
 
 1. **Find an Artist**: Browse or search for artists on Ologywood
@@ -90,6 +112,12 @@ Tips for Success:
 6. **Submit Request**: The artist will review and respond
 
 The artist will respond within 24-48 hours. Once confirmed, you'll both receive a contract to sign.`,
+    keywords: ['booking', 'request', 'artist', 'event', 'contract'],
+    difficulty: 'beginner',
+    estimatedReadTime: 4,
+    views: 412,
+    helpful: 289,
+    unhelpful: 15,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -97,6 +125,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '4',
     title: 'Managing Your Bookings',
     category: 'bookings',
+    summary: 'Understand booking statuses and how to manage your confirmed bookings.',
     content: `Track and manage all your bookings from your dashboard:
 
 **Booking Status Meanings:**
@@ -118,6 +147,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Cancel up to 30 days before event: Full refund
 - Cancel 15-30 days before: 50% refund
 - Cancel less than 15 days: No refund`,
+    keywords: ['booking', 'management', 'status', 'cancellation', 'refund'],
+    difficulty: 'beginner',
+    estimatedReadTime: 6,
+    views: 356,
+    helpful: 234,
+    unhelpful: 22,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -127,6 +162,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '5',
     title: 'Understanding Rider Requirements',
     category: 'contracts',
+    summary: 'Learn what riders are and how to review artist technical and hospitality requirements.',
     content: `A rider is a document that outlines an artist's technical and hospitality requirements for a performance.
 
 **Common Rider Sections:**
@@ -162,6 +198,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Communicate any issues or limitations early
 - Some items may be negotiable
 - Confirm all requirements are met before the event`,
+    keywords: ['rider', 'requirements', 'technical', 'hospitality', 'contract'],
+    difficulty: 'intermediate',
+    estimatedReadTime: 8,
+    views: 523,
+    helpful: 412,
+    unhelpful: 31,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -169,6 +211,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '6',
     title: 'Creating and Managing Rider Templates',
     category: 'contracts',
+    summary: 'Create custom rider templates for different types of performances.',
     content: `As an artist, create custom rider templates for different performance types:
 
 **How to Create a Rider Template:**
@@ -193,6 +236,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Venues must acknowledge and confirm they can meet your requirements
 - You can modify riders before confirming a booking
 - Keep riders updated as your needs change`,
+    keywords: ['rider', 'template', 'requirements', 'artist', 'technical'],
+    difficulty: 'intermediate',
+    estimatedReadTime: 7,
+    views: 298,
+    helpful: 201,
+    unhelpful: 18,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -202,6 +251,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '7',
     title: 'Pricing Your Services',
     category: 'payments',
+    summary: 'Learn how to set competitive pricing for your performances.',
     content: `Setting the right price for your performances:
 
 **Factors to Consider:**
@@ -230,6 +280,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Final payment due before event
 - Payments processed through Stripe
 - Funds available in your account within 2-3 business days`,
+    keywords: ['pricing', 'rates', 'fees', 'payment', 'artist'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 445,
+    helpful: 312,
+    unhelpful: 28,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -237,6 +293,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '8',
     title: 'How Payments Work',
     category: 'payments',
+    summary: 'Understand the payment process and timeline for bookings.',
     content: `Understanding the payment process on Ologywood:
 
 **Payment Timeline:**
@@ -265,6 +322,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 **Fees:**
 - Ologywood charges 5% platform fee on all transactions
 - Payment processing fees vary by payment method`,
+    keywords: ['payment', 'refund', 'invoice', 'deposit', 'processing'],
+    difficulty: 'intermediate',
+    estimatedReadTime: 6,
+    views: 367,
+    helpful: 267,
+    unhelpful: 19,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -274,6 +337,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '9',
     title: 'Signing and Managing Contracts',
     category: 'contracts',
+    summary: 'Learn how to review, sign, and manage booking contracts.',
     content: `How to sign and manage booking contracts:
 
 **Contract Process:**
@@ -305,6 +369,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Contract is stored in your booking history
 - Both parties can reference it anytime
 - Keep a copy for your records`,
+    keywords: ['contract', 'signing', 'agreement', 'terms', 'legal'],
+    difficulty: 'intermediate',
+    estimatedReadTime: 7,
+    views: 289,
+    helpful: 198,
+    unhelpful: 14,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -314,6 +384,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '10',
     title: 'Updating Your Profile',
     category: 'account',
+    summary: 'Keep your profile current to attract more bookings and opportunities.',
     content: `Keep your profile up to date to attract more bookings:
 
 **What to Update:**
@@ -343,6 +414,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Complete identity verification to build trust
 - Get a verification badge on your profile
 - Increases booking requests`,
+    keywords: ['profile', 'update', 'photo', 'bio', 'verification'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 512,
+    helpful: 378,
+    unhelpful: 25,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -350,6 +427,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '11',
     title: 'Managing Your Availability',
     category: 'account',
+    summary: 'Keep your availability calendar accurate to prevent double-bookings.',
     content: `Keep your availability calendar accurate:
 
 **Why Availability Matters:**
@@ -379,6 +457,12 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
 - Be realistic about your availability
 - Update when plans change
 - Consider travel time between events`,
+    keywords: ['availability', 'calendar', 'booking', 'schedule', 'dates'],
+    difficulty: 'beginner',
+    estimatedReadTime: 4,
+    views: 267,
+    helpful: 189,
+    unhelpful: 11,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -388,6 +472,7 @@ The artist will respond within 24-48 hours. Once confirmed, you'll both receive 
     id: '12',
     title: 'Frequently Asked Questions',
     category: 'support',
+    summary: 'Find answers to the most common questions about using Ologywood.',
     content: `Common questions about Ologywood:
 
 **Q: How much does Ologywood cost?**
@@ -416,6 +501,12 @@ A: Credit/Debit cards, bank transfers, and PayPal (where available).
 
 **Q: How do I delete my account?**
 A: Go to Settings > Account > Delete Account. Note: You cannot delete if you have active bookings.`,
+    keywords: ['faq', 'questions', 'answers', 'help', 'support'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 678,
+    helpful: 521,
+    unhelpful: 42,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -423,6 +514,7 @@ A: Go to Settings > Account > Delete Account. Note: You cannot delete if you hav
     id: '13',
     title: 'Troubleshooting Common Issues',
     category: 'support',
+    summary: 'Solutions to common problems and technical issues.',
     content: `Solutions to common problems:
 
 **I can't log in**
@@ -464,6 +556,12 @@ A: Go to Settings > Account > Delete Account. Note: You cannot delete if you hav
 - Click "Request Cancellation"
 - Follow the cancellation process
 - Refund processed according to policy`,
+    keywords: ['troubleshooting', 'problems', 'issues', 'help', 'support'],
+    difficulty: 'intermediate',
+    estimatedReadTime: 6,
+    views: 445,
+    helpful: 312,
+    unhelpful: 28,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -471,6 +569,7 @@ A: Go to Settings > Account > Delete Account. Note: You cannot delete if you hav
     id: '14',
     title: 'Safety and Security',
     category: 'support',
+    summary: 'Learn how to stay safe and secure on the Ologywood platform.',
     content: `Staying safe on Ologywood:
 
 **Protecting Your Account:**
@@ -508,6 +607,12 @@ A: Go to Settings > Account > Delete Account. Note: You cannot delete if you hav
 - Protect your data
 - Investigate complaints
 - Support dispute resolution`,
+    keywords: ['safety', 'security', 'protection', 'fraud', 'verification'],
+    difficulty: 'beginner',
+    estimatedReadTime: 5,
+    views: 356,
+    helpful: 267,
+    unhelpful: 19,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -519,7 +624,7 @@ const HELP_CATEGORIES: HelpCategory[] = [
   { id: '3', name: 'Contracts', description: 'Riders, contracts, and requirements', articleCount: 3 },
   { id: '4', name: 'Payments', description: 'Pricing, payments, and invoices', articleCount: 2 },
   { id: '5', name: 'Account', description: 'Profile and account management', articleCount: 2 },
-  { id: '6', name: 'Support', description: 'FAQs and troubleshooting', articleCount: 2 },
+  { id: '6', name: 'Support', description: 'FAQs and troubleshooting', articleCount: 3 },
 ];
 
 export const helpCenterRouter = router({
@@ -549,7 +654,8 @@ export const helpCenterRouter = router({
         filtered = filtered.filter(
           a =>
             a.title.toLowerCase().includes(searchLower) ||
-            a.content.toLowerCase().includes(searchLower)
+            a.content.toLowerCase().includes(searchLower) ||
+            a.keywords.some(k => k.toLowerCase().includes(searchLower))
         );
       }
 
@@ -591,7 +697,8 @@ export const helpCenterRouter = router({
       const results = HELP_ARTICLES.filter(
         a =>
           a.title.toLowerCase().includes(queryLower) ||
-          a.content.toLowerCase().includes(queryLower)
+          a.content.toLowerCase().includes(queryLower) ||
+          a.keywords.some(k => k.toLowerCase().includes(queryLower))
       ).slice(0, input.limit);
 
       return results;
@@ -602,7 +709,7 @@ export const helpCenterRouter = router({
    */
   getCategories: publicProcedure
     .query(async () => {
-      return HELP_CATEGORIES;
+      return HELP_CATEGORIES.map(cat => cat.name);
     }),
 
   /**
@@ -620,8 +727,10 @@ export const helpCenterRouter = router({
   getPopularArticles: publicProcedure
     .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
     .query(async ({ input }) => {
-      // Return first N articles (in real app, would be based on view count)
-      return HELP_ARTICLES.slice(0, input.limit);
+      // Return articles sorted by views
+      return [...HELP_ARTICLES]
+        .sort((a, b) => b.views - a.views)
+        .slice(0, input.limit);
     }),
 
   /**
