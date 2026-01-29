@@ -55,8 +55,8 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
     reviewCount: 127, // Would come from reviews API
     profileImage: artistData.profilePhotoUrl || "https://via.placeholder.com/300x300?text=Artist+Profile",
     gallery: artistData.mediaGallery?.photos || [],
-    reviews: [], // Would fetch from reviews API
-    bookings: [], // Would fetch from bookings API
+    reviews: [] as any[],
+    bookings: [] as any[],
     stats: {
       totalBookings: 45, // Would fetch from bookings API
       yearsActive: 8, // Would calculate from createdAt
