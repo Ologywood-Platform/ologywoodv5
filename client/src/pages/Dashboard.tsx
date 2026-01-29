@@ -22,6 +22,7 @@ import { RiderAnalyticsDashboard } from "@/components/RiderAnalyticsDashboard";
 import { Messaging } from "@/components/Messaging";
 import { CalendarSync } from "@/components/CalendarSync";
 import { NotificationCenter } from "@/components/NotificationCenter";
+import { NotificationPreferences } from "@/components/NotificationPreferences";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -586,7 +587,12 @@ export default function Dashboard() {
           
           {/* Notifications Tab Content */}
           <TabsContent value="notifications">
-            <NotificationCenter />
+            <div className="space-y-6">
+              <NotificationCenter />
+              <div className="border-t pt-6">
+                <NotificationPreferences />
+              </div>
+            </div>
           </TabsContent>
           
           {/* Calendar Sync Tab Content (Artists only) */}
