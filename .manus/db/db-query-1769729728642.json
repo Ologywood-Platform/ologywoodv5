@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, userId, artistName FROM artist_profiles WHERE userId = 150043",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, userId, artistName FROM artist_profiles WHERE userId = 150043",
+  "rows": [
+    {
+      "id": "30001",
+      "userId": "150043",
+      "artistName": "Ologywood"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tartistName\n30001\t150043\tOlogywood\n",
+  "stderr": "",
+  "execution_time_ms": 105
+}

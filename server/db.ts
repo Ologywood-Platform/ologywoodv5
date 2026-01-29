@@ -461,36 +461,45 @@ export async function getBookingById(id: number) {
 }
 
 export async function getBookingsByArtistId(artistId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  // Select only core columns to avoid schema mismatch
-  return await db.select({
-    id: bookings.id,
-    artistId: bookings.artistId,
-    venueId: bookings.venueId,
-    eventDate: bookings.eventDate,
-    eventTime: bookings.eventTime,
-    venueName: bookings.venueName,
-    venueAddress: bookings.venueAddress,
-    status: bookings.status,
-    totalFee: bookings.totalFee,
-    depositAmount: bookings.depositAmount,
-    paymentStatus: bookings.paymentStatus,
-    createdAt: bookings.createdAt,
-    updatedAt: bookings.updatedAt,
-  }).from(bookings)
-    .where(eq(bookings.artistId, artistId))
-    .orderBy(desc(bookings.createdAt));
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    // Select only core columns to avoid schema mismatch
+    return await db.select({
+      id: bookings.id,
+      artistId: bookings.artistId,
+      venueId: bookings.venueId,
+      eventDate: bookings.eventDate,
+      eventTime: bookings.eventTime,
+      venueName: bookings.venueName,
+      venueAddress: bookings.venueAddress,
+      status: bookings.status,
+      totalFee: bookings.totalFee,
+      depositAmount: bookings.depositAmount,
+      createdAt: bookings.createdAt,
+      updatedAt: bookings.updatedAt,
+    }).from(bookings)
+      .where(eq(bookings.artistId, artistId))
+      .orderBy(desc(bookings.createdAt));
+  } catch (error) {
+    console.error('Error fetching bookings for artist:', error);
+    return [];
+  }
 }
 
 export async function getBookingsByVenueId(venueId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  return await db.select().from(bookings)
-    .where(eq(bookings.venueId, venueId))
-    .orderBy(desc(bookings.createdAt));
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    return await db.select().from(bookings)
+      .where(eq(bookings.venueId, venueId))
+      .orderBy(desc(bookings.createdAt));
+  } catch (error) {
+    console.error('Error fetching bookings for venue:', error);
+    return [];
+  }
 }
 
 export async function updateBooking(id: number, updates: Partial<Booking>) {
