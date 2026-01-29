@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Music, Building2, ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type OnboardingStep = "role" | "profile" | "photo" | "review";
+type OnboardingStep = "role" | "profile" | "review";
 
 interface OnboardingWizardProps {
   onComplete: (data: any) => void;
@@ -26,9 +26,8 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
     feeMin: "",
     feeMax: "",
   });
-  const [photoUrl, setPhotoUrl] = useState<string>("");
 
-  const steps: OnboardingStep[] = ["role", "profile", "photo", "review"];
+  const steps: OnboardingStep[] = ["role", "profile", "review"];
   const currentStepIndex = steps.indexOf(currentStep);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
@@ -41,16 +40,10 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePhotoUpload = (url: string) => {
-    setPhotoUrl(url);
-    setCurrentStep("review");
-  };
-
   const handleComplete = () => {
     onComplete({
       role,
       ...profileData,
-      photoUrl,
     });
   };
 
@@ -78,8 +71,6 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
         } else {
           return profileData.name && profileData.location;
         }
-      case "photo":
-        return photoUrl !== "";
       case "review":
         return true;
       default:
@@ -250,7 +241,7 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                       <Input
                         id="feeMax"
                         type="number"
-                        placeholder="5000"
+                        placeholder="2500"
                         value={profileData.feeMax}
                         onChange={(e) => handleProfileChange("feeMax", e.target.value)}
                       />
@@ -260,98 +251,34 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
               )}
 
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">
+                  {role === "artist" ? "Bio / About You" : "About Your Venue"}
+                </Label>
                 <Textarea
                   id="bio"
-                  placeholder={role === "artist" ? "Tell venues about your music and experience" : "Tell artists about your venue"}
+                  placeholder={role === "artist" 
+                    ? "Tell us about your music style and experience" 
+                    : "Tell us about your venue"}
                   value={profileData.bio}
                   onChange={(e) => handleProfileChange("bio", e.target.value)}
                   rows={4}
                 />
               </div>
 
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={handleBack} className="flex-1">
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleBack}
+                  variant="outline"
+                  className="w-full"
+                >
                   Back
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={!isStepComplete()}
-                  className="flex-1"
+                  className="w-full"
                 >
-                  Next <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Photo Upload Step */}
-        {currentStep === "photo" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Add a Photo</CardTitle>
-              <CardDescription>
-                Upload a professional photo to complete your profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  {role === "artist" ? (
-                    <Music className="h-12 w-12 mx-auto" />
-                  ) : (
-                    <Building2 className="h-12 w-12 mx-auto" />
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Drag and drop your photo here, or click to select
-                </p>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  id="photo-upload"
-                  onChange={(e) => {
-                    // In a real app, this would upload to S3
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        setPhotoUrl(event.target?.result as string);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                />
-                <label htmlFor="photo-upload">
-                  <Button variant="outline" asChild>
-                    <span>Choose File</span>
-                  </Button>
-                </label>
-              </div>
-
-              {photoUrl && (
-                <div className="text-center">
-                  <img
-                    src={photoUrl}
-                    alt="Preview"
-                    className="max-h-48 mx-auto rounded-lg"
-                  />
-                  <p className="text-sm text-green-600 mt-2">✓ Photo selected</p>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={handleBack} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  onClick={handleNext}
-                  disabled={!isStepComplete()}
-                  className="flex-1"
-                >
-                  Next <ArrowRight className="ml-2 h-4 w-4" />
+                  Continue <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -364,48 +291,61 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
             <CardHeader>
               <CardTitle>Review Your Profile</CardTitle>
               <CardDescription>
-                Make sure everything looks good before completing setup
+                Make sure everything looks good before we create your account
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  {photoUrl && (
-                    <img
-                      src={photoUrl}
-                      alt="Profile"
-                      className="w-20 h-20 rounded-lg object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{profileData.name}</h3>
-                    <p className="text-sm text-muted-foreground">{profileData.location}</p>
-                    {role === "artist" && (
-                      <p className="text-sm text-muted-foreground">
-                        {profileData.genre} • ${profileData.feeMin} - ${profileData.feeMax}
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-4 bg-muted p-4 rounded-lg">
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Role</p>
+                  <p className="text-lg font-semibold capitalize">{role}</p>
                 </div>
-                <p className="text-sm">{profileData.bio}</p>
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    {role === "artist" ? "Artist Name" : "Venue Name"}
+                  </p>
+                  <p className="text-lg">{profileData.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-muted-foreground">Location</p>
+                  <p className="text-lg">{profileData.location}</p>
+                </div>
+                {role === "artist" && (
+                  <>
+                    <div>
+                      <p className="text-sm font-semibold text-muted-foreground">Genre</p>
+                      <p className="text-lg">{profileData.genre}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-muted-foreground">Fee Range</p>
+                      <p className="text-lg">${profileData.feeMin} - ${profileData.feeMax}</p>
+                    </div>
+                  </>
+                )}
+                {profileData.bio && (
+                  <div>
+                    <p className="text-sm font-semibold text-muted-foreground">Bio</p>
+                    <p className="text-lg">{profileData.bio}</p>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
-                  ✓ Your profile is ready! You can edit these details anytime in your dashboard.
-                </p>
-              </div>
-
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={handleBack} className="flex-1">
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleBack}
+                  variant="outline"
+                  className="w-full"
+                >
                   Back
                 </Button>
                 <Button
                   onClick={handleComplete}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="w-full"
+                  size="lg"
                 >
-                  {isLoading ? "Setting up..." : "Complete Setup"}
+                  {isLoading ? "Creating Profile..." : "Complete Setup"}
+                  {!isLoading && <Check className="ml-2 h-4 w-4" />}
                 </Button>
               </div>
             </CardContent>
