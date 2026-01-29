@@ -23,6 +23,7 @@ import { Messaging } from "@/components/Messaging";
 import { CalendarSync } from "@/components/CalendarSync";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { NotificationPreferences } from "@/components/NotificationPreferences";
+import { FavoritesTab } from "@/components/FavoritesTab";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
@@ -193,6 +194,18 @@ export default function Dashboard() {
               <TabsTrigger value="riderAnalytics">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Rider Analytics
+              </TabsTrigger>
+            )}
+            {isArtist && (
+              <TabsTrigger value="favorites">
+                <Heart className="h-4 w-4 mr-2" />
+                Favorites
+              </TabsTrigger>
+            )}
+            {isVenue && (
+              <TabsTrigger value="favorites">
+                <Heart className="h-4 w-4 mr-2" />
+                Favorites
               </TabsTrigger>
             )}
             {isArtist && (
@@ -507,6 +520,13 @@ export default function Dashboard() {
                 </div>
                 <RiderAnalyticsDashboard artistId={user?.id || 0} />
               </div>
+            </TabsContent>
+          )}
+
+          {/* Favorites Tab (Both roles) */}
+          {(isArtist || isVenue) && (
+            <TabsContent value="favorites">
+              <FavoritesTab />
             </TabsContent>
           )}
 
