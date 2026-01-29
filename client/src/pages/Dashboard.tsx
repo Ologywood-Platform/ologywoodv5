@@ -19,7 +19,6 @@ import { VenueProfileEditor } from "@/components/VenueProfileEditor";
 import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
 import { RiderTemplateBuilder } from "@/components/RiderTemplateBuilder";
 import { RiderAnalyticsDashboard } from "@/components/RiderAnalyticsDashboard";
-import { RiderContractTemplate } from "@/components/RiderContractTemplate";
 import { Messaging } from "@/components/Messaging";
 import { CalendarSync } from "@/components/CalendarSync";
 import { NotificationCenter } from "@/components/NotificationCenter";
@@ -493,13 +492,7 @@ export default function Dashboard() {
           {/* Riders Tab (Artists only) */}
           {isArtist && (
             <TabsContent value="riders">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Rider Templates</h2>
-                  <p className="text-muted-foreground mb-6">Create and manage your technical and hospitality requirements for bookings</p>
-                </div>
-                <RiderContractTemplate />
-              </div>
+              <RiderTemplateBuilder />
             </TabsContent>
           )}
 
