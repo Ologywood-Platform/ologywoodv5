@@ -810,7 +810,7 @@ export const helpCenterRouter = router({
         search: z.string().optional().describe('Search articles by title or content'),
         limit: z.number().min(1).max(100).default(20).describe('Max results'),
         offset: z.number().min(0).default(0).describe('Pagination offset'),
-      })
+      }).passthrough()
     )
     .query(async ({ input }) => {
       let filtered = [...HELP_ARTICLES];
