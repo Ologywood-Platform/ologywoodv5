@@ -1,0 +1,8 @@
+{
+  "query": "-- Create sample reviews\nINSERT INTO `reviews` (\n  `artistId`, `reviewerId`, `rating`, `comment`, `createdAt`, `updatedAt`\n) VALUES\n(\n  2, 5, 5, 'Luna Echo was absolutely fantastic! The energy was incredible and the sound quality was perfect. Highly recommend for any event!', NOW(), NOW()\n),\n(\n  3, 6, 5, 'The Velvet Collective brought such elegance to our wedding. Every guest was impressed. Professional, talented, and wonderful to work with.', NOW(), NOW()\n),\n(\n  4, 7, 4, 'DJ Sonic Wave kept the dance floor packed all night! Great music selection and professional setup. Will definitely book again!', NOW(), NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute -- Create sample reviews\nINSERT INTO `reviews` (\n  `artistId`, `reviewerId`, `rating`, `comment`, `createdAt`, `updatedAt`\n) VALUES\n(\n  2, 5, 5, 'Luna Echo was absolutely fantastic! The energy was incredible and the sound quality was perfect. Highly recommend for any event!', NOW(), NOW()\n),\n(\n  3, 6, 5, 'The Velvet Collective brought such elegance to our wedding. Every guest was impressed. Professional, talented, and wonderful to work with.', NOW(), NOW()\n),\n(\n  4, 7, 4, 'DJ Sonic Wave kept the dance floor packed all night! Great music selection and professional setup. Will definitely book again!', NOW(), NOW()\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'reviewerId' in 'field list'"
+  ]
+}

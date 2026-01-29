@@ -1,0 +1,9 @@
+{
+  "query": "-- Create sample venue profiles\nINSERT INTO `venue_profiles` (\n  `userId`, `organizationName`, `contactName`, `contactPhone`, `websiteUrl`, `createdAt`, `updatedAt`\n) VALUES\n(\n  5,\n  'Sunset Events LLC',\n  'Sarah Martinez',\n  '(415) 555-0123',\n  'https://rooftopgarden.events',\n  NOW(),\n  NOW()\n),\n(\n  6,\n  'Elegant Weddings Co',\n  'James Thompson',\n  '(312) 555-0456',\n  'https://crystalballroom.com',\n  NOW(),\n  NOW()\n),\n(\n  7,\n  'Urban Entertainment',\n  'Marcus Johnson',\n  '(512) 555-0789',\n  'https://thewarehouseaustin.com',\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute -- Create sample venue profiles\nINSERT INTO `venue_profiles` (\n  `userId`, `organizationName`, `contactName`, `contactPhone`, `websiteUrl`, `createdAt`, `updatedAt`\n) VALUES\n(\n  5,\n  'Sunset Events LLC',\n  'Sarah Martinez',\n  '(415) 555-0123',\n  'https://rooftopgarden.events',\n  NOW(),\n  NOW()\n),\n(\n  6,\n  'Elegant Weddings Co',\n  'James Thompson',\n  '(312) 555-0456',\n  'https://crystalballroom.com',\n  NOW(),\n  NOW()\n),\n(\n  7,\n  'Urban Entertainment',\n  'Marcus Johnson',\n  '(512) 555-0789',\n  'https://thewarehouseaustin.com',\n  NOW(),\n  NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 75
+}

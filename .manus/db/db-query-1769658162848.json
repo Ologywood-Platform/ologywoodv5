@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `knowledge_base_articles` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `title` varchar(255) NOT NULL,\n  `content` text NOT NULL,\n  `category` varchar(100),\n  `tags` json,\n  `views` int DEFAULT 0,\n  `helpful` int DEFAULT 0,\n  `notHelpful` int DEFAULT 0,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  `updatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute CREATE TABLE IF NOT EXISTS `knowledge_base_articles` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `title` varchar(255) NOT NULL,\n  `content` text NOT NULL,\n  `category` varchar(100),\n  `tags` json,\n  `views` int DEFAULT 0,\n  `helpful` int DEFAULT 0,\n  `notHelpful` int DEFAULT 0,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,\n  `updatedAt` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 179
+}

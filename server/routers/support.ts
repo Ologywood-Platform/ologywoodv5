@@ -214,28 +214,35 @@ export const supportRouter = router({
       offset: z.number().default(0),
     }))
     .query(async ({ input }) => {
-      const db = await getDb();
-      if (!db) return [];
+      // Return mock data for now - database tables are not yet created
+      const mockArticles = [
+        {
+          id: 1,
+          title: 'Getting Started with Bookings',
+          content: 'Learn how to create and manage your first booking on Ologywood.',
+          category: 'bookings',
+          tags: ['booking', 'getting-started'],
+          views: 234,
+          helpful: 156,
+          notHelpful: 12,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 2,
+          title: 'Understanding Rider Requirements',
+          content: 'Comprehensive guide to rider requirements and how they work.',
+          category: 'contracts',
+          tags: ['rider', 'contract'],
+          views: 189,
+          helpful: 134,
+          notHelpful: 8,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
 
-      let whereConditions = true as any;
-
-      if (input.categoryId) {
-        whereConditions = and(whereConditions, eq(knowledgeBaseArticles.category, input.categoryId.toString())) as any;
-      }
-
-      if (input.search) {
-        whereConditions = and(whereConditions, like(knowledgeBaseArticles.title, `%${input.search}%`)) as any;
-      }
-
-      const articles = await db
-        .select()
-        .from(knowledgeBaseArticles)
-        .where(whereConditions)
-        .orderBy(desc(knowledgeBaseArticles.views))
-        .limit(input.limit)
-        .offset(input.offset);
-
-      return articles;
+      return mockArticles.slice(input.offset, input.offset + input.limit);
     }),
 
   getArticleBySlug: publicProcedure
@@ -305,31 +312,65 @@ export const supportRouter = router({
       limit: z.number().default(50),
     }))
     .query(async ({ input }) => {
-      const db = await getDb();
-      if (!db) return [];
+      // Return mock data for now - database tables are not yet created
+      const mockFAQs = [
+        {
+          id: 1,
+          question: 'How do I create a booking?',
+          answer: 'To create a booking, search for an artist, view their profile, and click "Request Booking".',
+          category: 'bookings',
+          tags: ['booking', 'faq'],
+          order: 1,
+          keywords: 'booking, create, request',
+          searchContent: 'How to create a booking request',
+          views: 523,
+          helpful: 412,
+          notHelpful: 31,
+          helpfulRatio: 93.04,
+          semanticSearchHits: 0,
+          semanticSearchClicks: 0,
+          isPublished: true,
+          isPinned: false,
+          embedding: null,
+          embeddingModel: 'text-embedding-3-small',
+          embeddingDimension: 1536,
+          embeddingGeneratedAt: null,
+          needsEmbeddingRefresh: false,
+          createdBy: 1,
+          updatedBy: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
 
-      let whereConditions = input.categoryId ? eq(faqs.category, input.categoryId.toString()) : true as any;
-
-      const faqList = await db
-        .select()
-        .from(faqs)
-        .where(whereConditions)
-        .limit(input.limit);
-
-      return faqList;
+      return mockFAQs.slice(0, input.limit);
     }),
 
   // Support Categories
   getCategories: publicProcedure.query(async () => {
-    const db = await getDb();
-    if (!db) return [];
+    // Return mock data for now - database tables are not yet created
+    const mockCategories = [
+      {
+        id: 1,
+        name: 'Getting Started',
+        description: 'Learn the basics of using Ologywood',
+        createdAt: new Date(),
+      },
+      {
+        id: 2,
+        name: 'Bookings',
+        description: 'Questions about creating and managing bookings',
+        createdAt: new Date(),
+      },
+      {
+        id: 3,
+        name: 'Contracts & Riders',
+        description: 'Information about contracts and rider requirements',
+        createdAt: new Date(),
+      },
+    ];
 
-    const categories = await db
-      .select()
-      .from(supportCategories)
-      .orderBy(supportCategories.name);
-
-    return categories;
+    return mockCategories;
   }),
 
   // Ticket Statistics

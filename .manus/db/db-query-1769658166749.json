@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `support_categories` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `name` varchar(100) NOT NULL UNIQUE,\n  `description` text,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute CREATE TABLE IF NOT EXISTS `support_categories` (\n  `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,\n  `name` varchar(100) NOT NULL UNIQUE,\n  `description` text,\n  `createdAt` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 229
+}
