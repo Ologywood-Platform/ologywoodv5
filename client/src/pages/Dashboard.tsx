@@ -145,8 +145,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsTrigger className="overflow-x-auto flex gap-2 mb-6" asChild>
-            <div className="flex gap-2 border-b">
+          <div className="flex gap-2 border-b overflow-x-auto mb-6">
             <TabsTrigger value="profile">
               <Settings className="h-4 w-4 mr-2" />
               Profile
@@ -212,8 +211,7 @@ export default function Dashboard() {
                 Admin
               </TabsTrigger>
             )}
-            </div>
-          </TabsTrigger>
+          </div>
 
           {/* Profile Tab */}
           <TabsContent value="profile">
