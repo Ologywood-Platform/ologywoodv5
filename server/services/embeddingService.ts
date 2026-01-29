@@ -605,8 +605,22 @@ export async function generateEmbeddingsBatch(
  * @returns Similarity score (0-1)
  */
 export function cosineSimilarity(vecA: number[], vecB: number[]): number {
+  // Validate input
+  if (!Array.isArray(vecA) || !Array.isArray(vecB)) {
+    throw new Error('Vectors must be arrays');
+  }
+  
+  if (vecA.length === 0 || vecB.length === 0) {
+    throw new Error('Vectors cannot be empty');
+  }
+  
   if (vecA.length !== vecB.length) {
     throw new Error('Vectors must have the same dimension');
+  }
+  
+  // Check for NaN values
+  if (vecA.some(v => isNaN(v)) || vecB.some(v => isNaN(v))) {
+    throw new Error('Vectors cannot contain NaN values');
   }
 
   let dotProduct = 0;

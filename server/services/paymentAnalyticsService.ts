@@ -2,6 +2,8 @@ import { getDb } from "../db";
 import { bookings, contracts, users } from "../../drizzle/schema";
 import { eq, gte, lte, and } from "drizzle-orm";
 
+const db = getDb();
+
 export interface RevenueData {
   period: string;
   amount: number;
@@ -138,7 +140,8 @@ class PaymentAnalyticsService {
 
     // Populate artist names
     for (const result of results) {
-      const artist = await db.select().from(users).where(eq(users.id, result.artistId)).limit(1);
+      const artistIdNum = parseInt(result.artistId, 10);
+      const artist = await db.select().from(users).where(eq(users.id, artistIdNum)).limit(1);
       if (artist.length > 0) {
         result.artistName = artist[0].name || "Unknown Artist";
       }
@@ -198,7 +201,8 @@ class PaymentAnalyticsService {
 
     // Populate venue names
     for (const result of results) {
-      const venue = await db.select().from(users).where(eq(users.id, result.venueId)).limit(1);
+      const venueIdNum = parseInt(result.venueId, 10);
+      const venue = await db.select().from(users).where(eq(users.id, venueIdNum)).limit(1);
       if (venue.length > 0) {
         result.venueName = venue[0].name || "Unknown Venue";
       }
