@@ -12,7 +12,6 @@ import { createExternalLoggingService } from './services/externalLoggingService'
 import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import path from 'path';
-import uploadRouter from './routes/upload';
 
 /**
  * Initialize server with all middleware and services
@@ -55,9 +54,6 @@ async function initializeServer(): Promise<void> {
       user: null,
     }),
   });
-
-  // Mount API routes
-  app.use('/api/upload', uploadRouter);
 
   // Mount TRPC routes
   app.use('/trpc', (req, res) => {

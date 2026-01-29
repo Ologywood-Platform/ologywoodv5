@@ -119,16 +119,14 @@ export const appRouter = router({
   artist: router({
     // Get current artist's profile
     getMyProfile: artistProcedure.query(async ({ ctx }) => {
-      const profile = await db.getArtistProfileByUserId(ctx.user.id);
-      return profile || null;
+      return await db.getArtistProfileByUserId(ctx.user.id);
     }),
     
     // Get any artist profile by ID (public)
     getProfile: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        const profile = await db.getArtistProfileById(input.id);
-        return profile || null;
+        return await db.getArtistProfileById(input.id);
       }),
     
        // Upload and set profile photo
@@ -361,16 +359,14 @@ export const appRouter = router({
   venue: router({
     // Get current venue's profile
     getMyProfile: venueProcedure.query(async ({ ctx }) => {
-      const profile = await db.getVenueProfileByUserId(ctx.user.id);
-      return profile || null;
+      return await db.getVenueProfileByUserId(ctx.user.id);
     }),
     
     // Get venue profile by ID (public)
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        const profile = await db.getVenueProfileById(input.id);
-        return profile || null;
+        return await db.getVenueProfileById(input.id);
       }),
     
     // Create venue profile

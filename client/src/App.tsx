@@ -36,7 +36,6 @@ import SLATrackingDashboard from "./pages/SLATrackingDashboard";
 import ArtistDashboard from "./pages/ArtistDashboard";
 import VenueDashboard from "./pages/VenueDashboard";
 import CertificateVerification from "./pages/CertificateVerification";
-import Onboarding from "./pages/Onboarding";
 import ContractNavigation from "./components/ContractNavigation";
 
 function Router() {
@@ -47,7 +46,6 @@ function Router() {
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
-      <Route path="/onboarding" component={Onboarding} />
       <Route path="/onboarding/artist" component={ArtistOnboarding} />
       <Route path="/onboarding/venue" component={VenueOnboarding} />
       <Route path="/availability" component={Availability} />
