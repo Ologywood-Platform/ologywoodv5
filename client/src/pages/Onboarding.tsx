@@ -69,20 +69,21 @@ export default function Onboarding() {
     try {
       if (data.role === "artist") {
         createArtistProfile.mutate({
-          artistName: data.name,
+          artistName: data.artistName,
           location: data.location,
           bio: data.bio,
           genre: data.genre ? [data.genre] : [],
-          feeRangeMin: data.feeMin ? parseInt(data.feeMin) : undefined,
-          feeRangeMax: data.feeMax ? parseInt(data.feeMax) : undefined,
+          feeRangeMin: data.feeRangeMin ? parseInt(data.feeRangeMin) : undefined,
+          feeRangeMax: data.feeRangeMax ? parseInt(data.feeRangeMax) : undefined,
           touringPartySize: 1,
         });
       } else if (data.role === "venue") {
         createVenueProfile.mutate({
-          venueName: data.name,
+          organizationName: data.organizationName,
+          contactName: data.contactName,
+          contactPhone: data.contactPhone,
           location: data.location,
-          description: data.bio,
-          capacity: 100, // Default capacity
+          bio: data.bio,
         });
       }
     } catch (error) {
