@@ -16,8 +16,8 @@ class EmailVerificationService {
 
   constructor() {
     this.sgMail = sgMail;
-    if (ENV.SENDGRID_API_KEY) {
-      this.sgMail.setApiKey(ENV.SENDGRID_API_KEY);
+    if (ENV.sendgridApiKey) {
+      this.sgMail.setApiKey(ENV.sendgridApiKey);
     }
   }
 
@@ -25,7 +25,7 @@ class EmailVerificationService {
    * Send verification submission confirmation email
    */
   async sendVerificationSubmittedEmail(data: VerificationEmailData): Promise<void> {
-    if (!ENV.SENDGRID_API_KEY || !ENV.SENDGRID_FROM_EMAIL) {
+    if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
       console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
@@ -53,7 +53,7 @@ class EmailVerificationService {
     try {
       await this.sgMail.send({
         to: data.recipientEmail,
-        from: ENV.SENDGRID_FROM_EMAIL,
+        from: ENV.sendgridFromEmail,
         subject: "Artist Verification Submitted",
         html: htmlContent,
       });
@@ -67,7 +67,7 @@ class EmailVerificationService {
    * Send verification approved email
    */
   async sendVerificationApprovedEmail(data: VerificationEmailData): Promise<void> {
-    if (!ENV.SENDGRID_API_KEY || !ENV.SENDGRID_FROM_EMAIL) {
+    if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
       console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
@@ -99,7 +99,7 @@ class EmailVerificationService {
     try {
       await this.sgMail.send({
         to: data.recipientEmail,
-        from: ENV.SENDGRID_FROM_EMAIL,
+        from: ENV.sendgridFromEmail,
         subject: "🎉 Your Artist Verification is Approved!",
         html: htmlContent,
       });
@@ -113,7 +113,7 @@ class EmailVerificationService {
    * Send verification rejected email
    */
   async sendVerificationRejectedEmail(data: VerificationEmailData): Promise<void> {
-    if (!ENV.SENDGRID_API_KEY || !ENV.SENDGRID_FROM_EMAIL) {
+    if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
       console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
@@ -145,7 +145,7 @@ class EmailVerificationService {
     try {
       await this.sgMail.send({
         to: data.recipientEmail,
-        from: ENV.SENDGRID_FROM_EMAIL,
+        from: ENV.sendgridFromEmail,
         subject: "Verification Status Update",
         html: htmlContent,
       });
@@ -159,7 +159,7 @@ class EmailVerificationService {
    * Send verification appeal email
    */
   async sendVerificationAppealEmail(data: VerificationEmailData): Promise<void> {
-    if (!ENV.SENDGRID_API_KEY || !ENV.SENDGRID_FROM_EMAIL) {
+    if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
       console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
@@ -183,7 +183,7 @@ class EmailVerificationService {
     try {
       await this.sgMail.send({
         to: data.recipientEmail,
-        from: ENV.SENDGRID_FROM_EMAIL,
+        from: ENV.sendgridFromEmail,
         subject: "Appeal Received - Verification Review",
         html: htmlContent,
       });
@@ -197,7 +197,7 @@ class EmailVerificationService {
    * Send verification reminder email
    */
   async sendVerificationReminderEmail(data: VerificationEmailData): Promise<void> {
-    if (!ENV.SENDGRID_API_KEY || !ENV.SENDGRID_FROM_EMAIL) {
+    if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
       console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
@@ -230,7 +230,7 @@ class EmailVerificationService {
     try {
       await this.sgMail.send({
         to: data.recipientEmail,
-        from: ENV.SENDGRID_FROM_EMAIL,
+        from: ENV.sendgridFromEmail,
         subject: "Complete Your Artist Verification Today",
         html: htmlContent,
       });

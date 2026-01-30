@@ -33,11 +33,9 @@ export class PaymentTestingService {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
-      const booking = await db.query.bookings.findFirst({
-        where: eq(bookings.id, bookingId),
-      });
+      const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
 
-      if (!booking) {
+      if (!booking || booking.length === 0) {
         return {
           success: false,
           bookingId,
@@ -48,7 +46,7 @@ export class PaymentTestingService {
         };
       }
 
-      const previousStatus = booking.status;
+      const previousStatus = booking[0].status;
 
       // Update booking status to 'confirmed'
       await db
@@ -87,11 +85,9 @@ export class PaymentTestingService {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
-      const booking = await db.query.bookings.findFirst({
-        where: eq(bookings.id, bookingId),
-      });
+      const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
 
-      if (!booking) {
+      if (!booking || booking.length === 0) {
         return {
           success: false,
           bookingId,
@@ -102,7 +98,7 @@ export class PaymentTestingService {
         };
       }
 
-      const previousStatus = booking.status;
+      const previousStatus = booking[0].status;
 
       // Update booking status to 'cancelled' (payment failed)
       await db
@@ -141,11 +137,9 @@ export class PaymentTestingService {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
       
-      const booking = await db.query.bookings.findFirst({
-        where: eq(bookings.id, bookingId),
-      });
+      const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
 
-      if (!booking) {
+      if (!booking || booking.length === 0) {
         return {
           success: false,
           bookingId,
@@ -156,7 +150,7 @@ export class PaymentTestingService {
         };
       }
 
-      const previousStatus = booking.status;
+      const previousStatus = booking[0].status;
 
       // Update booking status to 'pending' for retry
       await db
