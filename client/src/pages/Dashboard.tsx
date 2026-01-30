@@ -74,6 +74,16 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, loading]);
 
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      const isArtist = user.role === 'artist';
+      const hasProfile = isArtist ? artistProfile : venueProfile;
+      if (hasProfile === null) {
+        navigate('/onboarding');
+      }
+    }
+  }, [loading, isAuthenticated, user, artistProfile, venueProfile, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

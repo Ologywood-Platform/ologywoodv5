@@ -775,27 +775,37 @@ export async function getAverageRatingForVenue(venueId: number): Promise<{ avera
 // ============= FAVORITES FUNCTIONS =============
 
 export async function addFavorite(userId: number, artistId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  // Check if already favorited
-  const existing = await db.select().from(favorites)
-    .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
-  
-  if (existing.length > 0) {
-    return existing[0];
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    // Check if already favorited
+    const existing = await db.select({ id: favorites.id, userId: favorites.userId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    await db.insert(favorites).values({ userId, artistId });
+    return { userId, artistId };
+  } catch (error) {
+    console.error('Error adding favorite:', error);
+    throw error;
   }
-  
-  await db.insert(favorites).values({ userId, artistId });
-  return { userId, artistId };
 }
 
 export async function removeFavorite(userId: number, artistId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  await db.delete(favorites)
-    .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    await db.delete(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+  } catch (error) {
+    console.error('Error removing favorite:', error);
+    throw error;
+  }
 }
 
 export async function getFavoritesByUser(userId: number) {
@@ -816,13 +826,18 @@ export async function getFavoritesByUser(userId: number) {
 }
 
 export async function isFavorited(userId: number, artistId: number) {
-  const db = await getDb();
-  if (!db) return false;
-  
-  const result = await db.select().from(favorites)
-    .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
-  
-  return result.length > 0;
+  try {
+    const db = await getDb();
+    if (!db) return false;
+    
+    const result = await db.select({ id: favorites.id, userId: favorites.userId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+    
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error checking if favorited:', error);
+    return false;
+  }
 }
 
 export async function getFavoriteCount(artistId: number) {
