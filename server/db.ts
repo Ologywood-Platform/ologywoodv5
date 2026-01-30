@@ -314,7 +314,20 @@ export async function getAllArtists() {
   const db = await getDb();
   if (!db) return [];
   
-  return await db.select().from(artistProfiles);
+  const artists = await db.select().from(artistProfiles);
+  
+  // Ensure all JSON fields are properly parsed and serializable
+  return artists.map(artist => ({
+    ...artist,
+    genre: Array.isArray(artist.genre) ? artist.genre : [],
+    mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
+    socialLinks: artist.socialLinks || {},
+    // Ensure all fields are serializable
+    profilePhotoUrl: artist.profilePhotoUrl || null,
+    websiteUrl: artist.websiteUrl || null,
+    bio: artist.bio || null,
+    location: artist.location || null,
+  }));
 }
 
 // ============= VENUE PROFILE FUNCTIONS =============

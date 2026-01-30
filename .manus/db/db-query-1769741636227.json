@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, artistName, genre, mediaGallery, socialLinks FROM artist_profiles LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, artistName, genre, mediaGallery, socialLinks FROM artist_profiles LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "artistName": "Luna Echo",
+      "genre": "[\"Indie Pop\", \"Electronic\", \"Synthwave\"]",
+      "mediaGallery": "NULL",
+      "socialLinks": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tartistName\tgenre\tmediaGallery\tsocialLinks\n1\tLuna Echo\t[\"Indie Pop\", \"Electronic\", \"Synthwave\"]\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

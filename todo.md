@@ -2237,3 +2237,9 @@ The Ologywood platform is production-ready with:
 - [ ] Integrate acknowledgment workflow into booking flow
 - [ ] Test end-to-end functionality
 - [ ] Verify venues can see rider requirements when reviewing artist profiles
+
+
+## Bug Fixes - API Response Transformation
+- [x] Fix API transformation error on homepage - JSON fields not serializable
+- [x] Update getAllArtists function to properly parse and serialize JSON fields
+- [x] Ensure all JSON fields have default values for TRPC compatibility
