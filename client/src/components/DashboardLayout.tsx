@@ -28,6 +28,7 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import DashboardHeader from './DashboardHeader';
+import { NotificationPersistence } from './NotificationPersistence';
 import io, { Socket } from 'socket.io-client';
 
 const menuItems = [
@@ -45,6 +46,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const handleNotificationsLoaded = (notifications: any[]) => {
+    console.log('[DashboardLayout] Loaded notifications:', notifications);
+  };
+
+  const handleNotificationReceived = (notification: any) => {
+    console.log('[DashboardLayout] Received notification:', notification);
+  };
+
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
@@ -204,6 +213,10 @@ function DashboardLayoutContent({
 
   return (
     <>
+      <NotificationPersistence
+        onNotificationsLoaded={handleNotificationsLoaded}
+        onNotificationReceived={handleNotificationReceived}
+      />
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
