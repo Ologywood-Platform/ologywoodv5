@@ -328,17 +328,27 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
 }
 
 export async function getVenueProfileByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  try {
+    const db = await getDb();
+    if (!db) return undefined;
+    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error('Error getting venue profile by user ID:', error);
+    return undefined;
+  }
 }
 
 export async function getVenueProfileById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  try {
+    const db = await getDb();
+    if (!db) return undefined;
+    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error('Error getting venue profile by ID:', error);
+    return undefined;
+  }
 }
 
 export async function updateVenueProfile(id: number, updates: Partial<VenueProfile>) {
@@ -894,14 +904,19 @@ export async function createBookingTemplate(template: InsertBookingTemplate) {
 }
 
 export async function getBookingTemplatesByUserId(userId: number): Promise<BookingTemplate[]> {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const templates = await db.select().from(bookingTemplates)
-    .where(eq(bookingTemplates.venueId, userId))
-    .orderBy(desc(bookingTemplates.updatedAt));
-  
-  return templates as BookingTemplate[];
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    const templates = await db.select().from(bookingTemplates)
+      .where(eq(bookingTemplates.venueId, userId))
+      .orderBy(desc(bookingTemplates.updatedAt));
+    
+    return templates as BookingTemplate[];
+  } catch (error) {
+    console.error('Error getting booking templates by user ID:', error);
+    return [];
+  }
 }
 
 export async function getBookingTemplateById(id: number): Promise<BookingTemplate | null> {

@@ -215,8 +215,7 @@ export type InsertVenueReview = typeof venueReviews.$inferInsert & { reviewText?
 export const favorites = mysqlTable("favorites", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  artistId: int("artistId"),
-  venueId: int("venueId"),
+  artistId: int("artistId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
