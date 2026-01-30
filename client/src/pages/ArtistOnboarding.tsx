@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Music, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
+import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 
 export default function ArtistOnboarding() {
   const { user } = useAuth();
@@ -161,6 +162,11 @@ export default function ArtistOnboarding() {
   };
 
   const progress = (currentStep / totalSteps) * 100;
+
+  // Show skeleton while mutations are pending
+  if (uploadPhoto.isPending || createProfile.isPending) {
+    return <SkeletonOnboarding />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">

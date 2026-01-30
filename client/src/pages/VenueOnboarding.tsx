@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Building2, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
+import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 
 export default function VenueOnboarding() {
   const { user } = useAuth();
@@ -52,21 +53,32 @@ export default function VenueOnboarding() {
     }
   };
 
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSubmit = () => {
-    if (!organizationName.trim() || !contactName.trim()) {
-      toast.error("Organization name and contact name are required");
+    if (!organizationName.trim()) {
+      toast.error("Organization name is required");
       return;
     }
 
     createProfile.mutate({
       organizationName,
-      contactName,
+      contactName: contactName || undefined,
       contactPhone: contactPhone || undefined,
       websiteUrl: websiteUrl || undefined,
     });
   };
 
   const progress = (currentStep / totalSteps) * 100;
+
+  // Show skeleton while mutation is pending
+  if (createProfile.isPending) {
+    return <SkeletonOnboarding />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
@@ -97,39 +109,36 @@ export default function VenueOnboarding() {
               </div>
 
               <div>
-                <Label htmlFor="organizationName">Organization/Venue Name *</Label>
+                <Label htmlFor="organizationName">Organization Name *</Label>
                 <Input
                   id="organizationName"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
-                  placeholder="Your venue or company name"
-                  className="mt-1"
+                  placeholder="Your venue or organization name"
+                  className="mt-2"
                 />
               </div>
 
               <div>
-                <Label htmlFor="contactName">Contact Person Name *</Label>
+                <Label htmlFor="contactName">Contact Name *</Label>
                 <Input
                   id="contactName"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Your full name"
-                  className="mt-1"
+                  placeholder="Your name"
+                  className="mt-2"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This is the primary contact for booking inquiries
-                </p>
               </div>
 
               <div>
-                <Label htmlFor="contactPhone">Contact Phone Number</Label>
+                <Label htmlFor="contactPhone">Contact Phone</Label>
                 <Input
                   id="contactPhone"
-                  type="tel"
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  className="mt-1"
+                  placeholder="Your phone number"
+                  type="tel"
+                  className="mt-2"
                 />
               </div>
             </div>
@@ -139,41 +148,34 @@ export default function VenueOnboarding() {
           {currentStep === 2 && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Online Presence</h3>
+                <h3 className="text-lg font-semibold mb-4">Website & Social</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Add your website so artists can learn more about your venue.
+                  Add your website URL so artists can learn more about your venue.
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="website">Website (Optional)</Label>
+                <Label htmlFor="websiteUrl">Website URL</Label>
                 <Input
-                  id="website"
-                  type="url"
+                  id="websiteUrl"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://yourvenue.com"
-                  className="mt-1"
+                  placeholder="https://yourwebsite.com"
+                  type="url"
+                  className="mt-2"
                 />
-              </div>
-
-              <div className="bg-muted/50 rounded-lg p-4 mt-6">
-                <h4 className="font-semibold mb-2">You're all set!</h4>
-                <p className="text-sm text-muted-foreground">
-                  Once you complete setup, you'll be able to browse artists and send booking requests. 
-                  Artists will see your organization name and contact information when reviewing requests.
-                </p>
               </div>
             </div>
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t">
+          <div className="flex gap-3 justify-between pt-6">
             <Button
               variant="outline"
-              onClick={() => setCurrentStep(currentStep - 1)}
+              onClick={handleBack}
               disabled={currentStep === 1}
             >
+              <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
               Back
             </Button>
 
@@ -184,14 +186,8 @@ export default function VenueOnboarding() {
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={createProfile.isPending}>
-                {createProfile.isPending ? (
-                  "Creating..."
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Complete Setup
-                  </>
-                )}
+                {createProfile.isPending ? "Creating..." : "Create Profile"}
+                <Check className="h-4 w-4 ml-2" />
               </Button>
             )}
           </div>

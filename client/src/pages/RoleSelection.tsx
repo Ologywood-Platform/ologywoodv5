@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { getLoginUrl } from "@/const";
 import { useEffect } from "react";
+import { SkeletonRoleSelection } from "@/components/SkeletonLoaders";
 
 export default function RoleSelection() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -41,11 +42,7 @@ export default function RoleSelection() {
   }, [user, loading, navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <SkeletonRoleSelection />;
   }
 
   if (!isAuthenticated || !user) {
@@ -55,6 +52,11 @@ export default function RoleSelection() {
   const handleSelectRole = (role: 'artist' | 'venue') => {
     updateRole.mutate({ role });
   };
+
+  // Show skeleton while mutation is pending
+  if (updateRole.isPending) {
+    return <SkeletonRoleSelection />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
