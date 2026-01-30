@@ -84,6 +84,19 @@ export default function ArtistProfile() {
   const [venueAddress, setVenueAddress] = useState("");
   const [eventDetails, setEventDetails] = useState("");
   const [totalFee, setTotalFee] = useState("");
+  const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
+  
+  const toggleRiderExpanded = (riderId: number) => {
+    setExpandedRiders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(riderId)) {
+        newSet.delete(riderId);
+      } else {
+        newSet.add(riderId);
+      }
+      return newSet;
+    });
+  };
   
   // Load templates for venues
   const { data: templates } = trpc.bookingTemplate.getMyTemplates.useQuery(
@@ -502,28 +515,49 @@ export default function ArtistProfile() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {riderTemplates.map((template: any) => (
-                    <Collapsible key={template.id}>
+                    <Collapsible key={template.id} open={expandedRiders.has(template.id)} onOpenChange={() => toggleRiderExpanded(template.id)}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-md hover:bg-accent text-left">
                         <span className="font-medium">{template.templateName}</span>
-                        <ChevronDown className="h-4 w-4" />
+                        <ChevronDown className={`h-4 w-4 transition-transform ${expandedRiders.has(template.id) ? 'rotate-180' : ''}`} />
                       </CollapsibleTrigger>
                       <CollapsibleContent className="px-3 pt-2 space-y-3 text-sm">
-                        {template.technicalRequirements?.soundSystem && (
-                          <div>
-                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Sound</p>
-                            <p className="text-muted-foreground">PA System Required</p>
-                          </div>
-                        )}
-                        {template.technicalRequirements?.lighting && (
-                          <div>
-                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Lighting</p>
-                            <p className="text-muted-foreground">{template.technicalRequirements?.lighting || "Standard"}</p>
-                          </div>
-                        )}
-                        {template.hospitalityRequirements?.catering && (
-                          <div>
-                            <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Catering</p>
-                            <p className="text-muted-foreground">Provided</p>
+                        {(template.technicalRequirements?.soundSystem || template.technicalRequirements?.lighting || template.technicalRequirements?.backline || template.hospitalityRequirements?.catering || template.financialTerms?.depositAmount) ? (
+                          <>
+                            {template.technicalRequirements?.soundSystem && (
+                              <div>
+                                <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Sound</p>
+                                <p className="text-muted-foreground">PA System Required</p>
+                              </div>
+                            )}
+                            {template.technicalRequirements?.lighting && (
+                              <div>
+                                <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Lighting</p>
+                                <p className="text-muted-foreground">{template.technicalRequirements?.lighting || "Standard"}</p>
+                              </div>
+                            )}
+                            {template.technicalRequirements?.backline && (
+                              <div>
+                                <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Backline</p>
+                                <p className="text-muted-foreground">{template.technicalRequirements.backline}</p>
+                              </div>
+                            )}
+                            {template.hospitalityRequirements?.catering && (
+                              <div>
+                                <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Catering</p>
+                                <p className="text-muted-foreground">Provided</p>
+                              </div>
+                            )}
+                            {template.financialTerms?.depositAmount && (
+                              <div>
+                                <p className="font-semibold text-xs uppercase text-muted-foreground mb-1">Deposit</p>
+                                <p className="text-muted-foreground">${template.financialTerms.depositAmount}</p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="py-4 text-center">
+                            <p className="text-muted-foreground text-sm">No specific requirements listed for this rider.</p>
+                            <p className="text-xs text-muted-foreground mt-2">Contact the artist for more details.</p>
                           </div>
                         )}
                       </CollapsibleContent>
