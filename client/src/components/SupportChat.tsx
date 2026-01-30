@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, X, Send, Loader, AlertCircle, CheckCircle } from 'lucide-react';
+import { MessageCircle, X, Send, Loader, AlertCircle, CheckCircle, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -49,6 +49,9 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check if support is online
@@ -67,7 +70,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
     };
 
     checkSupportHours();
-    const interval = setInterval(checkSupportHours, 60000); // Check every minute
+    const interval = setInterval(checkSupportHours, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -75,12 +78,11 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
   // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
-    // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
@@ -93,16 +95,19 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
     setInputValue('');
     setIsLoading(true);
 
+    // Simulate typing indicator
+    setTimeout(() => {
+      setIsTyping(true);
+    }, 500);
+
     // Simulate API call
     setTimeout(() => {
-      // Update user message status
       setMessages(prev =>
         prev.map(msg =>
           msg.id === userMessage.id ? { ...msg, status: 'sent' } : msg
         )
       );
 
-      // Add support response based on keywords
       let supportResponse = '';
 
       if (text.toLowerCase().includes('rider')) {
@@ -131,11 +136,23 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
 
       setMessages(prev => [...prev, supportMessage]);
       setIsLoading(false);
-    }, 1000);
+      setIsTyping(false);
+
+      // Show rating after 3 support messages
+      if (messages.filter(m => m.sender === 'support').length >= 3) {
+        setShowRating(true);
+      }
+    }, 2000);
   };
 
   const handleQuickReply = (reply: string) => {
     handleSendMessage(reply);
+  };
+
+  const handleRating = (stars: number) => {
+    setRating(stars);
+    toast.success(`Thanks for rating! You gave us ${stars} stars.`);
+    setShowRating(false);
   };
 
   if (!isOpen) {
@@ -226,7 +243,9 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
             </div>
           </div>
         ))}
-        {isLoading && (
+
+        {/* Typing Indicator */}
+        {isTyping && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg rounded-bl-none">
               <div className="flex gap-2">
@@ -237,11 +256,48 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
             </div>
           </div>
         )}
+
+        {isLoading && !isTyping && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg rounded-bl-none">
+              <div className="flex gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Rating Section */}
+      {showRating && (
+        <div className="border-t border-gray-200 p-3 bg-blue-50">
+          <p className="text-xs text-gray-700 font-semibold mb-2">How helpful was this conversation?</p>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map(star => (
+              <button
+                key={star}
+                onClick={() => handleRating(star)}
+                className="hover:scale-110 transition-transform"
+              >
+                <Star
+                  className={`h-5 w-5 ${
+                    star <= rating
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-gray-300'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Quick Replies */}
-      {messages.length <= 2 && (
+      {messages.length <= 2 && !showRating && (
         <div className="border-t border-gray-200 p-3 space-y-2">
           <p className="text-xs text-gray-600 font-semibold">Quick questions:</p>
           <div className="flex flex-wrap gap-2">
