@@ -168,7 +168,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
   }
 
   return (
-    <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-[calc(100%-2rem)] sm:w-96 max-h-screen sm:max-h-[600px] flex flex-col bg-white rounded-t-3xl sm:rounded-lg shadow-2xl border-0 sm:border border-gray-200 left-4 sm:left-auto mx-2 sm:mx-0">
+    <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 max-h-screen sm:max-h-[600px] flex flex-col bg-white rounded-t-3xl sm:rounded-lg shadow-2xl border-0 sm:border border-gray-200 px-2 sm:px-0 overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.map(msg => (
           <div
             key={msg.id}
@@ -298,14 +298,14 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
 
       {/* Quick Replies */}
       {messages.length <= 2 && !showRating && (
-        <div className="border-t border-gray-200 p-3 space-y-2">
+        <div className="border-t border-gray-200 px-4 py-3 space-y-2">
           <p className="text-xs text-gray-600 font-semibold">Quick questions:</p>
           <div className="flex flex-wrap gap-2">
             {QUICK_REPLIES.slice(0, 3).map((reply, idx) => (
               <button
                 key={idx}
                 onClick={() => handleQuickReply(reply)}
-                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors"
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors truncate"
               >
                 {reply}
               </button>
@@ -315,7 +315,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
       )}
 
       {/* Input */}
-      <div className="border-t border-gray-200 p-3 flex gap-2">
+      <div className="border-t border-gray-200 px-4 py-3 flex gap-2">
         <Input
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}

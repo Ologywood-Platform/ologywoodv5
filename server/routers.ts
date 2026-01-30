@@ -620,6 +620,49 @@ export const appRouter = router({
         await db.deleteRiderTemplate(input.id);
         return { success: true };
       }),
+    
+    // Admin: Clean up duplicate riders for an artist
+    cleanupDuplicates: protectedProcedure
+      .input(z.object({ artistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can clean up duplicates
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+        }
+        
+        try {
+          const riders = await db.getRiderTemplatesByArtistId(input.artistId);
+          
+          // Group riders by templateName to find duplicates
+          const grouped = new Map<string, any[]>();
+          for (const rider of riders) {
+            const name = rider.templateName;
+            if (!grouped.has(name)) {
+              grouped.set(name, []);
+            }
+            grouped.get(name)!.push(rider);
+          }
+          
+          // Delete duplicates, keeping only the first one of each name
+          let deletedCount = 0;
+          for (const [name, group] of grouped.entries()) {
+            if (group.length > 1) {
+              // Sort by ID to keep the first one
+              group.sort((a, b) => a.id - b.id);
+              // Delete all except the first
+              for (let i = 1; i < group.length; i++) {
+                await db.deleteRiderTemplate(group[i].id);
+                deletedCount++;
+              }
+            }
+          }
+          
+          return { success: true, deletedCount, message: `Deleted ${deletedCount} duplicate riders` };
+        } catch (error) {
+          console.error('Error cleaning up duplicates:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to clean up duplicates' });
+        }
+      }),
   }),
 
   // Availability Management
