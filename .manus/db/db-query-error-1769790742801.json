@@ -1,0 +1,8 @@
+{
+  "query": "UPDATE artistProfiles SET profileImage = '/velvet-collective-profile.jpg' WHERE name = 'The Velvet Collective' OR bio LIKE '%Velvet%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute UPDATE artistProfiles SET profileImage = '/velvet-collective-profile.jpg' WHERE name = 'The Velvet Collective' OR bio LIKE '%Velvet%';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'mp6flm6chuyvdemnvinuzs.artistProfiles' doesn't exist"
+  ]
+}

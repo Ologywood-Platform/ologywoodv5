@@ -80,14 +80,14 @@ export function AdminDashboard() {
         </div>
       </Card>
 
-      {/* Tabs Navigation */}
+      {/* Tabs Navigation - Mobile Optimized */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="data-generator">Data Generator</TabsTrigger>
-          <TabsTrigger value="data-seeder">Data Seeder</TabsTrigger>
-          <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
-          <TabsTrigger value="impersonation">Impersonation</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 sm:gap-2 h-auto p-1 sm:p-2">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-1 sm:px-2">Overview</TabsTrigger>
+          <TabsTrigger value="data-generator" className="text-xs sm:text-sm py-2 px-1 sm:px-2">Generator</TabsTrigger>
+          <TabsTrigger value="data-seeder" className="text-xs sm:text-sm py-2 px-1 sm:px-2">Seeder</TabsTrigger>
+          <TabsTrigger value="scenarios" className="text-xs sm:text-sm py-2 px-1 sm:px-2">Scenarios</TabsTrigger>
+          <TabsTrigger value="impersonation" className="text-xs sm:text-sm py-2 px-1 sm:px-2">Impersonate</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}

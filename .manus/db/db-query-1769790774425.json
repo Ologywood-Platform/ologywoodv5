@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE artist_profiles SET profilePhotoUrl = '/velvet-collective-profile.jpg' WHERE artistName = 'The Velvet Collective' OR bio LIKE '%Velvet%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute UPDATE artist_profiles SET profilePhotoUrl = '/velvet-collective-profile.jpg' WHERE artistName = 'The Velvet Collective' OR bio LIKE '%Velvet%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 423
+}

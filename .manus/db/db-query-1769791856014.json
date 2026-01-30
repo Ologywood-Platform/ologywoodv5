@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE artist_profiles SET profilePhotoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/NwtHQmDiFuSFZdOc.png' WHERE artistName LIKE '%Velvet%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute UPDATE artist_profiles SET profilePhotoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/NwtHQmDiFuSFZdOc.png' WHERE artistName LIKE '%Velvet%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 451
+}

@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, artistName, profilePhotoUrl FROM artist_profiles WHERE artistName LIKE '%Luna%' OR artistName LIKE '%DJ%' OR artistName LIKE '%Sonic%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, artistName, profilePhotoUrl FROM artist_profiles WHERE artistName LIKE '%Luna%' OR artistName LIKE '%DJ%' OR artistName LIKE '%Sonic%';",
+  "rows": [
+    {
+      "id": "1",
+      "artistName": "Luna Echo",
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
+    },
+    {
+      "id": "3",
+      "artistName": "DJ Sonic Wave",
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tartistName\tprofilePhotoUrl\n1\tLuna Echo\thttps://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop\n3\tDJ Sonic Wave\thttps://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop\n",
+  "stderr": "",
+  "execution_time_ms": 365
+}

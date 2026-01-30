@@ -1,0 +1,14 @@
+{
+  "query": "SELECT id, artistName FROM artist_profiles WHERE artistName LIKE '%Velvet%' OR artistName LIKE '%velvet%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, artistName FROM artist_profiles WHERE artistName LIKE '%Velvet%' OR artistName LIKE '%velvet%';",
+  "rows": [
+    {
+      "id": "2",
+      "artistName": "The Velvet Collective"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tartistName\n2\tThe Velvet Collective\n",
+  "stderr": "",
+  "execution_time_ms": 349
+}
