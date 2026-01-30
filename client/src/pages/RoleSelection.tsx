@@ -33,6 +33,13 @@ export default function RoleSelection() {
     }
   }, [isAuthenticated, loading]);
 
+  useEffect(() => {
+    // If user already has a role, redirect to dashboard
+    if (!loading && user && (user.role === 'artist' || user.role === 'venue')) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -42,12 +49,6 @@ export default function RoleSelection() {
   }
 
   if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // If user already has a role, redirect
-  if (user.role === 'artist' || user.role === 'venue') {
-    navigate("/dashboard");
     return null;
   }
 
