@@ -323,8 +323,21 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(venueProfiles).values(profile);
-  return result;
+  try {
+    // Only insert required fields that exist in the database
+    const cleanedProfile = {
+      userId: profile.userId,
+      organizationName: profile.organizationName,
+      contactName: profile.contactName,
+      contactPhone: profile.contactPhone,
+    };
+    
+    const result = await db.insert(venueProfiles).values(cleanedProfile as any);
+    return result;
+  } catch (error) {
+    console.error('Error creating venue profile:', error);
+    throw error;
+  }
 }
 
 export async function getVenueProfileByUserId(userId: number) {
