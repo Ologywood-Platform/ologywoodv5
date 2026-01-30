@@ -55,66 +55,66 @@ export default function SupportMetricsDashboard() {
   const resolutionRate = ((metrics.resolvedTickets / metrics.totalTickets) * 100).toFixed(1);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Support Metrics Dashboard</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Support Metrics Dashboard</h1>
           <p className="text-gray-600">Real-time support team performance and ticket analytics</p>
         </div>
 
         {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 sm:mb-8">
           {/* Total Tickets */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 border-l-4 border-purple-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Tickets</p>
-                <p className="text-3xl font-bold text-gray-900">{metrics.totalTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{metrics.totalTickets}</p>
               </div>
               <AlertCircle className="w-12 h-12 text-purple-200" />
             </div>
           </div>
 
           {/* Open Tickets */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 border-l-4 border-orange-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Open Tickets</p>
-                <p className="text-3xl font-bold text-gray-900">{metrics.openTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{metrics.openTickets}</p>
               </div>
               <Clock className="w-12 h-12 text-orange-200" />
             </div>
           </div>
 
           {/* Resolution Rate */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Resolution Rate</p>
-                <p className="text-3xl font-bold text-gray-900">{resolutionRate}%</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{resolutionRate}%</p>
               </div>
               <CheckCircle className="w-12 h-12 text-green-200" />
             </div>
           </div>
 
           {/* Avg Resolution Time */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Avg Resolution</p>
-                <p className="text-3xl font-bold text-gray-900">{metrics.avgResolutionTime}h</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{metrics.avgResolutionTime}h</p>
               </div>
               <TrendingUp className="w-12 h-12 text-blue-200" />
             </div>
           </div>
 
           {/* Satisfaction Score */}
-          <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 border-l-4 border-yellow-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Satisfaction</p>
-                <p className="text-3xl font-bold text-gray-900">{metrics.satisfactionScore}/5</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{metrics.satisfactionScore}/5</p>
               </div>
               <Users className="w-12 h-12 text-yellow-200" />
             </div>
@@ -122,9 +122,9 @@ export default function SupportMetricsDashboard() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:p-4 md:p-8 mb-6 sm:mb-8">
           {/* Tickets Over Time */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Tickets This Week</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={mockTicketData}>
@@ -140,7 +140,7 @@ export default function SupportMetricsDashboard() {
           </div>
 
           {/* Issues by Category */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Issues by Category</h2>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -164,7 +164,7 @@ export default function SupportMetricsDashboard() {
           </div>
 
           {/* Resolution Time by Priority */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Avg Resolution Time by Priority</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={mockResolutionTimeData}>
@@ -178,7 +178,7 @@ export default function SupportMetricsDashboard() {
           </div>
 
           {/* Team Performance */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Team Performance</h2>
             <div className="space-y-4">
               {mockTeamPerformance.map((member) => (
@@ -199,9 +199,9 @@ export default function SupportMetricsDashboard() {
         </div>
 
         {/* SLA Compliance */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">SLA Compliance by Tier</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="border rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-2">Free Users</h3>
               <p className="text-sm text-gray-600 mb-2">Target: 72 hours</p>

@@ -58,26 +58,26 @@ export default function AdminSupportDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <Link href="/dashboard">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Support Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">Support Dashboard</h1>
             <p className="text-sm text-slate-600">Manage support tickets and team performance</p>
           </div>
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Open Tickets</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">24</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">24</p>
                 </div>
                 <AlertCircle className="h-8 w-8 text-red-500" />
               </div>
@@ -89,7 +89,7 @@ export default function AdminSupportDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-600">In Progress</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">12</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">12</p>
                 </div>
                 <Clock className="h-8 w-8 text-yellow-500" />
               </div>
@@ -101,7 +101,7 @@ export default function AdminSupportDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Resolved Today</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">8</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">8</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
               </div>
@@ -113,7 +113,7 @@ export default function AdminSupportDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm text-slate-600">Avg Response Time</p>
-                  <p className="text-3xl font-bold text-slate-900 mt-1">2.4h</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">2.4h</p>
                 </div>
                 <Zap className="h-8 w-8 text-blue-500" />
               </div>
@@ -123,7 +123,7 @@ export default function AdminSupportDashboard() {
 
         {/* Tabs */}
         <Tabs defaultValue="tickets" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
             <TabsTrigger value="team">Team Performance</TabsTrigger>
             <TabsTrigger value="sla">SLA Compliance</TabsTrigger>
@@ -255,7 +255,7 @@ export default function AdminSupportDashboard() {
                           <p className="text-sm text-slate-600">Support Specialist</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-6 text-right">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-3 sm:p-4 md:p-6 text-right">
                         <div>
                           <p className="text-xs text-slate-600">Resolved</p>
                           <p className="font-semibold text-slate-900">{member.resolved}</p>

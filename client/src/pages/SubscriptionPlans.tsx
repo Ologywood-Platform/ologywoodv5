@@ -61,13 +61,13 @@ export default function SubscriptionPlans() {
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Simple, Transparent Pricing</h1>
-          <p className="text-lg text-slate-600 mb-8">
+          <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold text-slate-900 mb-4">Simple, Transparent Pricing</h1>
+          <p className="text-lg text-slate-600 mb-6 sm:mb-8">
             Choose the perfect plan for your artist booking needs
           </p>
 
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8">
             <button
               onClick={() => setBillingCycle("monthly")}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${
@@ -93,14 +93,14 @@ export default function SubscriptionPlans() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:p-4 md:p-8 mb-12">
           {/* Free Plan */}
           <Card className="relative">
             <CardHeader>
               <CardTitle className="text-2xl">Free</CardTitle>
               <CardDescription>Perfect for getting started</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900">$0</span>
+                <span className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold text-slate-900">$0</span>
                 <span className="text-slate-600 ml-2">/month</span>
               </div>
             </CardHeader>
@@ -141,7 +141,7 @@ export default function SubscriptionPlans() {
               <CardTitle className="text-2xl">Basic</CardTitle>
               <CardDescription>For active artists and venues</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900">${prices.basic}</span>
+                <span className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold text-slate-900">${prices.basic}</span>
                 <span className="text-slate-600 ml-2">/month{savings}</span>
               </div>
             </CardHeader>
@@ -191,7 +191,7 @@ export default function SubscriptionPlans() {
               <CardTitle className="text-2xl">Premium</CardTitle>
               <CardDescription>For professional operations</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold text-slate-900">${prices.premium}</span>
+                <span className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold text-slate-900">${prices.premium}</span>
                 <span className="text-slate-600 ml-2">/month{savings}</span>
               </div>
             </CardHeader>
@@ -310,11 +310,11 @@ export default function SubscriptionPlans() {
 
         {/* FAQ Section */}
         <div className="mt-16 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-6 sm:mb-8 text-center">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow">
+            <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 Can I change my plan anytime?
               </h3>
@@ -323,7 +323,7 @@ export default function SubscriptionPlans() {
                 settings. Changes take effect at your next billing cycle.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow">
+            <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 What happens if I downgrade?
               </h3>
@@ -333,7 +333,7 @@ export default function SubscriptionPlans() {
                 be archived.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow">
+            <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 Do you offer annual billing discounts?
               </h3>
@@ -342,7 +342,7 @@ export default function SubscriptionPlans() {
                 Premium is $950/year instead of monthly pricing.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow">
+            <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 Is there a free trial?
               </h3>
@@ -351,7 +351,7 @@ export default function SubscriptionPlans() {
                 before committing to a paid plan.
               </p>
             </div>
-            <div className="bg-white rounded-lg p-6 shadow">
+            <div className="bg-white rounded-lg p-3 sm:p-4 md:p-6 shadow">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 What payment methods do you accept?
               </h3>
@@ -365,8 +365,8 @@ export default function SubscriptionPlans() {
 
         {/* CTA Section */}
         <div className="mt-16 bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-          <p className="text-lg mb-8 opacity-90">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">Ready to get started?</h2>
+          <p className="text-lg mb-6 sm:mb-8 opacity-90">
             Join thousands of artists and venues using Ologywood to streamline their bookings
           </p>
           <div className="flex gap-4 justify-center">

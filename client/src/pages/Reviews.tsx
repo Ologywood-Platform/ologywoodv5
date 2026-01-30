@@ -166,7 +166,7 @@ export default function Reviews() {
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Reviews & Ratings</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Reviews & Ratings</h1>
           <p className="text-gray-600 mt-2">
             Manage your professional reputation with reviews from collaborators
           </p>
@@ -176,13 +176,13 @@ export default function Reviews() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Rating Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600">Average Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{reviewStats.averageRating}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{reviewStats.averageRating}</div>
               <div className="mt-2">{renderStars(Math.round(reviewStats.averageRating))}</div>
             </CardContent>
           </Card>
@@ -192,7 +192,7 @@ export default function Reviews() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Reviews</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{reviewStats.totalReviews}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{reviewStats.totalReviews}</div>
               <p className="text-sm text-gray-600 mt-2">From verified bookings</p>
             </CardContent>
           </Card>
@@ -202,7 +202,7 @@ export default function Reviews() {
               <CardTitle className="text-sm font-medium text-gray-600">5-Star Reviews</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{reviewStats.ratingDistribution[5]}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">{reviewStats.ratingDistribution[5]}</div>
               <p className="text-sm text-gray-600 mt-2">Excellent ratings</p>
             </CardContent>
           </Card>
@@ -212,14 +212,14 @@ export default function Reviews() {
               <CardTitle className="text-sm font-medium text-gray-600">Response Rate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">50%</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600">50%</div>
               <p className="text-sm text-gray-600 mt-2">Reviews responded to</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Rating Distribution */}
-        <Card className="mb-8">
+        <Card className="mb-6 sm:mb-8">
           <CardHeader>
             <CardTitle>Rating Distribution</CardTitle>
           </CardHeader>

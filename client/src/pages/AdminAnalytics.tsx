@@ -66,7 +66,7 @@ const AdminAnalyticsContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-3 sm:px-4">
         <div className="animate-spin">
           <AlertCircle className="w-8 h-8 text-gray-400" />
         </div>
@@ -76,18 +76,18 @@ const AdminAnalyticsContent: React.FC = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-6">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 px-3 sm:px-4">
+        <div className="text-center max-w-md w-full">
+          <AlertCircle className="w-10 sm:w-12 h-10 sm:h-12 text-red-500 mx-auto mb-3 sm:mb-4" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
             You do not have permission to access this page.
           </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
             Go Back to Dashboard
           </button>
         </div>
@@ -97,22 +97,22 @@ const AdminAnalyticsContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-2"
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-2 text-xs sm:text-sm"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                 Back to Dashboard
               </button>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">
                 Error Analytics Dashboard
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
                 Monitor deduplicated error groups and system health metrics
               </p>
             </div>
@@ -120,43 +120,43 @@ const AdminAnalyticsContent: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Mobile Optimized */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
         <GroupedErrorAnalytics groups={groupedErrors} loading={groupsLoading} />
       </div>
 
-      {/* Footer */}
-      <div className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div>
-              <p className="text-xs text-gray-500">Total Groups</p>
-              <p className="text-lg font-bold text-gray-900">
+      {/* Footer - Mobile Optimized */}
+      <div className="bg-white border-t border-gray-200 mt-8 sm:mt-12">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 truncate">Total Groups</p>
+              <p className="text-base sm:text-lg font-bold text-gray-900">
                 {groupStats?.totalGroups || 0}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">Total Errors</p>
-              <p className="text-lg font-bold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 truncate">Total Errors</p>
+              <p className="text-base sm:text-lg font-bold text-gray-900">
                 {groupStats?.totalErrors || 0}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">Affected Users</p>
-              <p className="text-lg font-bold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 truncate">Affected Users</p>
+              <p className="text-base sm:text-lg font-bold text-gray-900">
                 {groupStats?.totalAffectedUsers || 0}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-gray-500">Dedup. Ratio</p>
-              <p className="text-lg font-bold text-gray-900">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 truncate">Dedup. Ratio</p>
+              <p className="text-base sm:text-lg font-bold text-gray-900">
                 {groupStats?.averageErrorsPerGroup
                   ? (groupStats.averageErrorsPerGroup * 100).toFixed(0)
                   : 0}%
               </p>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             Last updated: {new Date().toLocaleString()}
           </p>
           <p className="text-xs text-gray-500 mt-2">

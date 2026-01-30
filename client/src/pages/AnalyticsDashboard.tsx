@@ -90,13 +90,13 @@ export default function AnalyticsDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Analytics Dashboard</h1>
           <p className="text-muted-foreground">Monitor your booking performance and growth metrics</p>
         </div>
 
         {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
           {/* Total Bookings */}
           <Card>
             <CardHeader className="pb-3">
@@ -106,7 +106,7 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{metrics?.totalBookings || 0}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold">{metrics?.totalBookings || 0}</div>
               <p className="text-xs text-green-600 mt-2">
                 <TrendingUp className="h-3 w-3 inline mr-1" />
                 +{metrics?.monthlyGrowth || 0}% from last month
@@ -123,7 +123,7 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">${(metrics?.totalRevenue || 0).toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold">${(metrics?.totalRevenue || 0).toLocaleString()}</div>
               <p className="text-xs text-green-600 mt-2">
                 <TrendingUp className="h-3 w-3 inline mr-1" />
                 +{metrics?.revenueGrowth || 0}% from last month
@@ -140,7 +140,7 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{metrics?.activeUsers || 0}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold">{metrics?.activeUsers || 0}</div>
               <p className="text-xs text-muted-foreground mt-2">Booked in last 30 days</p>
             </CardContent>
           </Card>
@@ -154,14 +154,14 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{metrics?.completionRate || 0}%</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold">{metrics?.completionRate || 0}%</div>
               <p className="text-xs text-muted-foreground mt-2">Target: 75%</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:p-4 md:p-8 mb-6 sm:mb-8">
           {/* Booking Trend */}
           <Card>
             <CardHeader>
@@ -216,7 +216,7 @@ export default function AnalyticsDashboard() {
             <CardDescription>Key insights and recommendations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-semibold text-sm mb-2">Average Booking Value</h4>
                 <p className="text-2xl font-bold text-blue-600">

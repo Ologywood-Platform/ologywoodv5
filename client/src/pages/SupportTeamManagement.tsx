@@ -129,11 +129,11 @@ export default function SupportTeamManagement() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Users className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-slate-900">Support Team Management</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">Support Team Management</h1>
             </div>
             <Button onClick={() => setIsAddingMember(!isAddingMember)} className="gap-2">
               <Plus className="w-4 h-4" />
@@ -144,12 +144,12 @@ export default function SupportTeamManagement() {
         </div>
 
         {/* Team Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 sm:mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-slate-600 mb-2">Active Tickets</p>
-                <p className="text-3xl font-bold text-blue-600">{totalActiveTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600">{totalActiveTickets}</p>
               </div>
             </CardContent>
           </Card>
@@ -157,7 +157,7 @@ export default function SupportTeamManagement() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-slate-600 mb-2">Resolved This Month</p>
-                <p className="text-3xl font-bold text-green-600">{totalResolvedTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">{totalResolvedTickets}</p>
               </div>
             </CardContent>
           </Card>
@@ -165,7 +165,7 @@ export default function SupportTeamManagement() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-slate-600 mb-2">Avg Resolution Time</p>
-                <p className="text-3xl font-bold text-orange-600">{avgResolutionTime}h</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-600">{avgResolutionTime}h</p>
               </div>
             </CardContent>
           </Card>
@@ -173,7 +173,7 @@ export default function SupportTeamManagement() {
 
         {/* Add Member Form */}
         {isAddingMember && (
-          <Card className="mb-8">
+          <Card className="mb-6 sm:mb-8">
             <CardHeader>
               <CardTitle>Add New Team Member</CardTitle>
             </CardHeader>
@@ -270,7 +270,7 @@ export default function SupportTeamManagement() {
                 </div>
 
                 {/* Performance Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4 border-t border-slate-200">
                   <div>
                     <p className="text-xs text-slate-600 mb-1">Active Tickets</p>
                     <p className="text-lg font-semibold text-slate-900">{member.activeTickets}</p>

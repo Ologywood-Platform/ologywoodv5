@@ -97,7 +97,7 @@ export default function Payments() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Payments</h1>
                 <p className="text-gray-600 mt-1">Manage your payment history and transactions</p>
               </div>
             </div>
@@ -108,13 +108,13 @@ export default function Payments() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-3 sm:p-4 md:p-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600">Total Earnings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 ${totalEarnings.toFixed(2)}
               </div>
               <p className="text-xs text-gray-500 mt-2">Completed payments</p>
@@ -126,7 +126,7 @@ export default function Payments() {
               <CardTitle className="text-sm font-medium text-gray-600">Pending Payments</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-600">
                 ${pendingAmount.toFixed(2)}
               </div>
               <p className="text-xs text-gray-500 mt-2">Awaiting completion</p>
@@ -138,7 +138,7 @@ export default function Payments() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Transactions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {paymentHistory?.length || 0}
               </div>
               <p className="text-xs text-gray-500 mt-2">All time</p>
@@ -262,7 +262,7 @@ export default function Payments() {
                     {bookingPayments.map((booking: BookingPayment) => (
                       <Card key={booking.id} className="border">
                         <CardContent className="pt-6">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                               <p className="text-sm text-gray-600">Booking ID</p>
                               <p className="font-semibold">#{booking.id}</p>

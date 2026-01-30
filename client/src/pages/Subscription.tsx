@@ -90,7 +90,7 @@ export default function Subscription() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-4xl font-bold">Subscription Management</h1>
+            <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold">Subscription Management</h1>
             <p className="text-muted-foreground">
               Manage your Ologywood artist subscription
             </p>
@@ -176,7 +176,7 @@ export default function Subscription() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-2xl">{product.name}</CardTitle>
                   <div className="text-right">
-                    <div className="text-3xl font-bold">
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold">
                       ${(product.priceMonthly / 100).toFixed(0)}
                     </div>
                     <div className="text-sm text-muted-foreground">per month</div>

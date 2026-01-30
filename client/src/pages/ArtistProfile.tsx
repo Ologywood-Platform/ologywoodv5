@@ -214,7 +214,7 @@ export default function ArtistProfile() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           {artist.profilePhotoUrl ? (
             <div className="w-full h-64 md:h-96 rounded-lg overflow-hidden mb-6">
               <img 
@@ -231,7 +231,7 @@ export default function ArtistProfile() {
           
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">{artist.artistName}</h1>
+              <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">{artist.artistName}</h1>
               <p className="text-xl text-muted-foreground mb-4">
                 {Array.isArray(artist.genre) && artist.genre.length > 0 
                   ? artist.genre.join(", ") 
@@ -408,7 +408,7 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:p-4 md:p-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Bio */}
@@ -430,7 +430,7 @@ export default function ArtistProfile() {
                   <CardTitle>Media Gallery</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {mediaGallery.photos.map((photo, idx) => (
                       <img 
                         key={idx}

@@ -115,19 +115,19 @@ export default function SLATrackingDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">SLA Tracking Dashboard</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-2">SLA Tracking Dashboard</h1>
           <p className="text-slate-600">Monitor ticket SLA compliance and escalation status</p>
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
                 <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                 <p className="text-sm text-slate-600 mb-1">On Track</p>
-                <p className="text-3xl font-bold text-blue-600">{onTrackTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600">{onTrackTickets}</p>
               </div>
             </CardContent>
           </Card>
@@ -136,7 +136,7 @@ export default function SLATrackingDashboard() {
               <div className="text-center">
                 <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto mb-2" />
                 <p className="text-sm text-slate-600 mb-1">Escalated</p>
-                <p className="text-3xl font-bold text-orange-600">{escalatedTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-orange-600">{escalatedTickets}</p>
               </div>
             </CardContent>
           </Card>
@@ -145,7 +145,7 @@ export default function SLATrackingDashboard() {
               <div className="text-center">
                 <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
                 <p className="text-sm text-slate-600 mb-1">Overdue</p>
-                <p className="text-3xl font-bold text-red-600">{overdueTickets}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-600">{overdueTickets}</p>
               </div>
             </CardContent>
           </Card>
@@ -154,7 +154,7 @@ export default function SLATrackingDashboard() {
               <div className="text-center">
                 <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <p className="text-sm text-slate-600 mb-1">Compliance</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">
                   {Math.round(((tickets.length - overdueTickets) / tickets.length) * 100)}%
                 </p>
               </div>
@@ -163,13 +163,13 @@ export default function SLATrackingDashboard() {
         </div>
 
         {/* SLA Policies */}
-        <Card className="mb-8">
+        <Card className="mb-6 sm:mb-8">
           <CardHeader>
             <CardTitle>SLA Response Time Policies</CardTitle>
             <CardDescription>Service level agreements by ticket priority</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { priority: 'Urgent', response: '1 hour', resolution: '4 hours', color: 'bg-red-50 border-red-200' },
                 { priority: 'High', response: '4 hours', resolution: '24 hours', color: 'bg-orange-50 border-orange-200' },

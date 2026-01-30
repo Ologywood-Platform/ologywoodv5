@@ -116,7 +116,7 @@ export default function SupportTickets() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
           <Link href="/dashboard" className="inline-flex">
             <Button variant="ghost" size="icon">
@@ -124,7 +124,7 @@ export default function SupportTickets() {
             </Button>
           </Link>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Support Tickets</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">Support Tickets</h1>
               <p className="text-sm text-slate-600">Manage your support requests</p>
             </div>
           </div>
@@ -138,11 +138,11 @@ export default function SupportTickets() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 sm:mb-8">
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">{stats.total}</p>
                   <p className="text-sm text-slate-600">Total Tickets</p>
                 </div>
               </CardContent>
@@ -150,7 +150,7 @@ export default function SupportTickets() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-500">{stats.open}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-500">{stats.open}</p>
                   <p className="text-sm text-slate-600">Open</p>
                 </div>
               </CardContent>
@@ -158,7 +158,7 @@ export default function SupportTickets() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-yellow-500">{stats.inProgress}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-500">{stats.inProgress}</p>
                   <p className="text-sm text-slate-600">In Progress</p>
                 </div>
               </CardContent>
@@ -166,7 +166,7 @@ export default function SupportTickets() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-500">{stats.resolved}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-500">{stats.resolved}</p>
                   <p className="text-sm text-slate-600">Resolved</p>
                 </div>
               </CardContent>
@@ -174,7 +174,7 @@ export default function SupportTickets() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-green-500">{stats.closed}</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-500">{stats.closed}</p>
                   <p className="text-sm text-slate-600">Closed</p>
                 </div>
               </CardContent>

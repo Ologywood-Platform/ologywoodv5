@@ -29,10 +29,10 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="animate-spin rounded-full h-10 sm:h-12 w-10 sm:w-12 border-b-2 border-primary mx-auto mb-3 sm:mb-4"></div>
+          <p className="text-sm sm:text-base text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -40,16 +40,16 @@ export default function AdminDashboard() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="border-destructive max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-destructive" />
+      <div className="flex items-center justify-center min-h-screen bg-background px-3 sm:px-4">
+        <Card className="border-destructive w-full max-w-md">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
               Authentication Required
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Please log in to access the admin dashboard.
             </p>
           </CardContent>
@@ -60,19 +60,19 @@ export default function AdminDashboard() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="border-destructive max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+      <div className="flex items-center justify-center min-h-screen bg-background px-3 sm:px-4">
+        <Card className="border-destructive w-full max-w-md">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive flex-shrink-0" />
               Access Denied
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
+          <CardContent className="space-y-3 sm:space-y-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               You do not have permission to access the admin dashboard. Only administrators can view this page.
             </p>
-            <p className="text-sm text-muted-foreground mt-4">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Your role: <span className="font-semibold capitalize">{user.role}</span>
             </p>
           </CardContent>
@@ -83,49 +83,49 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {/* Header - Mobile Optimized */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-1 sm:mt-2">
             System monitoring and performance metrics for Ologywood
           </p>
-          <div className="flex items-center gap-2 mt-4">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 mt-3 sm:mt-4">
+            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-muted-foreground truncate">
               Logged in as: <span className="font-semibold">{user.name}</span>
             </span>
           </div>
         </div>
 
-        {/* Admin Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">User Role</CardTitle>
+        {/* Admin Info Cards - Mobile Optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium">User Role</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold capitalize">{user.role}</p>
+            <CardContent className="flex-1">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold capitalize">{user.role}</p>
               <p className="text-xs text-muted-foreground mt-1">Current account role</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">User ID</CardTitle>
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium">User ID</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{user.id}</p>
+            <CardContent className="flex-1">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold break-all">{user.id}</p>
               <p className="text-xs text-muted-foreground mt-1">Unique identifier</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Last Signed In</CardTitle>
+          <Card className="flex flex-col sm:col-span-2 lg:col-span-1">
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium">Last Signed In</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm font-mono">
+            <CardContent className="flex-1">
+              <p className="text-xs sm:text-sm font-mono break-all">
                 {new Date((user as any).lastSignedIn).toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Last login time</p>
@@ -133,14 +133,14 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Socket.io Metrics Dashboard */}
-        <div className="bg-card border rounded-lg p-8">
+        {/* Socket.io Metrics Dashboard - Mobile Optimized */}
+        <div className="bg-card border rounded-lg p-3 sm:p-4 md:p-8 overflow-x-auto">
           <SocketMetricsDashboard />
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>
+        {/* Footer - Mobile Optimized */}
+        <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-muted-foreground">
+          <p className="break-words">
             Admin Dashboard • Last updated: {new Date().toLocaleTimeString()}
           </p>
         </div>

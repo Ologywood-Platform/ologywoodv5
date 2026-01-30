@@ -98,7 +98,7 @@ export default function BookingsList() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Bookings</h1>
                 <p className="text-gray-600 mt-1">
                   {isArtist ? "Manage your booking requests and confirmations" : "View and manage your venue bookings"}
                 </p>
@@ -111,13 +111,13 @@ export default function BookingsList() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-600">Total Bookings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{stats.total}</div>
             </CardContent>
           </Card>
 
@@ -126,7 +126,7 @@ export default function BookingsList() {
               <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-600">{stats.pending}</div>
             </CardContent>
           </Card>
 
@@ -135,7 +135,7 @@ export default function BookingsList() {
               <CardTitle className="text-sm font-medium text-gray-600">Confirmed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">{stats.confirmed}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">{stats.confirmed}</div>
             </CardContent>
           </Card>
 
@@ -144,7 +144,7 @@ export default function BookingsList() {
               <CardTitle className="text-sm font-medium text-gray-600">Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{stats.completed}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-600">{stats.completed}</div>
             </CardContent>
           </Card>
 
@@ -153,7 +153,7 @@ export default function BookingsList() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
         </div>
@@ -213,7 +213,7 @@ export default function BookingsList() {
                             </Badge>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4" />
                               <span>{typeof booking.eventDate === 'string' ? new Date(booking.eventDate).toLocaleDateString() : (booking.eventDate as Date).toLocaleDateString()}</span>

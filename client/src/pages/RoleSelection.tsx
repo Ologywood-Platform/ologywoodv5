@@ -58,14 +58,14 @@ export default function RoleSelection() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Welcome to Ologywood!</h1>
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">Welcome to Ologywood!</h1>
           <p className="text-lg text-muted-foreground">
             Let's get you set up. Are you an artist or a venue?
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-3 sm:gap-4 md:gap-3 sm:p-4 md:p-6">
           {/* Artist Card */}
           <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
             <CardHeader>

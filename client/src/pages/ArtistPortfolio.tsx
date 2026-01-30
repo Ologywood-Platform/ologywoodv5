@@ -86,14 +86,14 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-8 items-center">
+          <div className="flex flex-col md:flex-row gap-3 sm:p-4 md:p-8 items-center">
             <img
               src={artist.profileImage}
               alt={artist.name}
               className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />
             <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2">{artist.name}</h1>
+              <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">{artist.name}</h1>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   {renderStars(artist.rating)}
@@ -129,28 +129,28 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200">
             <div className="text-2xl font-bold text-purple-600">{artist.stats.totalBookings}</div>
             <div className="text-sm text-gray-600">Total Bookings</div>
           </div>
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200">
             <div className="text-2xl font-bold text-purple-600">{artist.stats.yearsActive}</div>
             <div className="text-sm text-gray-600">Years Active</div>
           </div>
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200">
             <div className="text-2xl font-bold text-purple-600">${(artist.stats.minFee / 1000).toFixed(1)}K</div>
             <div className="text-sm text-gray-600">Starting Rate</div>
           </div>
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200">
             <div className="text-2xl font-bold text-purple-600">{artist.stats.tourPartySize}</div>
             <div className="text-sm text-gray-600">Tour Party Size</div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-8">
-          <div className="flex gap-8">
+        <div className="border-b border-gray-200 mb-6 sm:mb-8">
+          <div className="flex gap-3 sm:p-4 md:p-8">
             <button
               onClick={() => setActiveTab("gallery")}
               className={`pb-4 font-semibold transition-colors ${
@@ -188,7 +188,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
         {activeTab === "gallery" && (
           <div>
             {artist.gallery.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {artist.gallery.map((imageUrl, idx) => (
                   <div key={idx} className="group relative overflow-hidden rounded-lg">
                     <img
@@ -213,7 +213,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
             {artist.reviews.length > 0 ? (
               <div className="space-y-6">
                 {artist.reviews.map((review) => (
-                  <div key={review.id} className="bg-white p-6 rounded-lg border border-gray-200">
+                  <div key={review.id} className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-semibold text-gray-900">{review.author}</p>
@@ -240,7 +240,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
             {artist.bookings.length > 0 ? (
               <div className="space-y-4">
                 {artist.bookings.map((booking) => (
-                  <div key={booking.id} className="bg-white p-6 rounded-lg border border-gray-200 flex items-center justify-between">
+                  <div key={booking.id} className="bg-white p-3 sm:p-4 md:p-6 rounded-lg border border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Calendar size={24} className="text-purple-600" />
                       <div>
@@ -269,7 +269,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
         )}
 
         {/* CTA Section */}
-        <div className="mt-12 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-8 text-center">
+        <div className="mt-12 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-3 sm:p-4 md:p-8 text-center">
           <h3 className="text-2xl font-bold mb-4">Ready to book {artist.name}?</h3>
           <p className="mb-6 text-lg opacity-90">
             Starting at ${(artist.stats.minFee / 100).toFixed(2)} • Professional • Verified

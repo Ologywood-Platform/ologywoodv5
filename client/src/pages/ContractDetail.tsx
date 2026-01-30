@@ -121,9 +121,9 @@ export default function ContractDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+      <div className="container max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
             <Link href="/dashboard" className="inline-block">
               <Button variant="ghost" size="sm">
@@ -131,7 +131,7 @@ export default function ContractDetail() {
                 Back
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold mt-4">Contract #{id}</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mt-4">Contract #{id}</h1>
             <p className="text-muted-foreground mt-1">
               Booking Contract Details
             </p>
@@ -157,7 +157,7 @@ export default function ContractDetail() {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="status">
               <Badge variant="outline" className="ml-2">Status</Badge>
