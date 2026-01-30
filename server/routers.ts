@@ -45,6 +45,7 @@ import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
 import { userRouter } from "./routers/userRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
+import paymentTestingRoutes from "./routes/paymentTestingRoutes";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -98,6 +99,23 @@ export const appRouter = router({
   emailVerification: emailVerificationRouter,
   smsNotifications: smsNotificationsRouter,
   user: userRouter,
+  paymentTesting: router({
+    success: publicProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return { success: true, bookingId: input.bookingId, message: 'Payment success test' };
+      }),
+    failure: publicProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return { success: true, bookingId: input.bookingId, message: 'Payment failure test' };
+      }),
+    retry: publicProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return { success: true, bookingId: input.bookingId, message: 'Payment retry test' };
+      }),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
