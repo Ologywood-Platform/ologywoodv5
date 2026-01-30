@@ -18,13 +18,20 @@ interface OnboardingWizardProps {
 export default function OnboardingWizard({ onComplete, isLoading = false }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("role");
   const [role, setRole] = useState<"artist" | "venue" | null>(null);
-  const [profileData, setProfileData] = useState({
-    name: "",
+  const [artistData, setArtistData] = useState({
+    artistName: "",
+    genre: "",
+    bio: "",
+    location: "",
+    feeRangeMin: "",
+    feeRangeMax: "",
+  });
+  const [venueData, setVenueData] = useState({
+    organizationName: "",
+    contactName: "",
+    contactPhone: "",
     location: "",
     bio: "",
-    genre: "",
-    feeMin: "",
-    feeMax: "",
   });
 
   const steps: OnboardingStep[] = ["role", "profile", "review"];
@@ -36,15 +43,26 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
     setCurrentStep("profile");
   };
 
-  const handleProfileChange = (field: string, value: string) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
+  const handleArtistChange = (field: string, value: string) => {
+    setArtistData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleVenueChange = (field: string, value: string) => {
+    setVenueData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleComplete = () => {
-    onComplete({
-      role,
-      ...profileData,
-    });
+    if (role === "artist") {
+      onComplete({
+        role,
+        ...artistData,
+      });
+    } else {
+      onComplete({
+        role,
+        ...venueData,
+      });
+    }
   };
 
   const handleBack = () => {
@@ -67,9 +85,9 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
         return role !== null;
       case "profile":
         if (role === "artist") {
-          return profileData.name && profileData.location && profileData.genre && profileData.feeMin && profileData.feeMax;
+          return artistData.artistName && artistData.location && artistData.genre && artistData.feeRangeMin && artistData.feeRangeMax;
         } else {
-          return profileData.name && profileData.location;
+          return venueData.organizationName && venueData.contactName && venueData.location;
         }
       case "review":
         return true;
@@ -191,37 +209,35 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <Label htmlFor="name">
-                  {role === "artist" ? "Artist Name" : "Venue Name"}
-                </Label>
-                <Input
-                  id="name"
-                  placeholder={role === "artist" ? "Your stage name" : "Your venue name"}
-                  value={profileData.name}
-                  onChange={(e) => handleProfileChange("name", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  placeholder="City, State"
-                  value={profileData.location}
-                  onChange={(e) => handleProfileChange("location", e.target.value)}
-                />
-              </div>
-
-              {role === "artist" && (
+              {role === "artist" ? (
                 <>
+                  <div>
+                    <Label htmlFor="artistName">Artist Name</Label>
+                    <Input
+                      id="artistName"
+                      placeholder="Your stage name"
+                      value={artistData.artistName}
+                      onChange={(e) => handleArtistChange("artistName", e.target.value)}
+                    />
+                  </div>
+
                   <div>
                     <Label htmlFor="genre">Genre</Label>
                     <Input
                       id="genre"
                       placeholder="e.g., Rock, Jazz, Pop"
-                      value={profileData.genre}
-                      onChange={(e) => handleProfileChange("genre", e.target.value)}
+                      value={artistData.genre}
+                      onChange={(e) => handleArtistChange("genre", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      placeholder="City, State"
+                      value={artistData.location}
+                      onChange={(e) => handleArtistChange("location", e.target.value)}
                     />
                   </div>
 
@@ -232,8 +248,8 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                         id="feeMin"
                         type="number"
                         placeholder="500"
-                        value={profileData.feeMin}
-                        onChange={(e) => handleProfileChange("feeMin", e.target.value)}
+                        value={artistData.feeRangeMin}
+                        onChange={(e) => handleArtistChange("feeRangeMin", e.target.value)}
                       />
                     </div>
                     <div>
@@ -242,28 +258,77 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                         id="feeMax"
                         type="number"
                         placeholder="2500"
-                        value={profileData.feeMax}
-                        onChange={(e) => handleProfileChange("feeMax", e.target.value)}
+                        value={artistData.feeRangeMax}
+                        onChange={(e) => handleArtistChange("feeRangeMax", e.target.value)}
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <Label htmlFor="bio">Bio / About You</Label>
+                    <Textarea
+                      id="bio"
+                      placeholder="Tell us about your music style and experience"
+                      value={artistData.bio}
+                      onChange={(e) => handleArtistChange("bio", e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label htmlFor="organizationName">Venue Name</Label>
+                    <Input
+                      id="organizationName"
+                      placeholder="Your venue name"
+                      value={venueData.organizationName}
+                      onChange={(e) => handleVenueChange("organizationName", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactName">Contact Name</Label>
+                    <Input
+                      id="contactName"
+                      placeholder="Your name"
+                      value={venueData.contactName}
+                      onChange={(e) => handleVenueChange("contactName", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input
+                      id="contactPhone"
+                      placeholder="(555) 123-4567"
+                      value={venueData.contactPhone}
+                      onChange={(e) => handleVenueChange("contactPhone", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      placeholder="City, State"
+                      value={venueData.location}
+                      onChange={(e) => handleVenueChange("location", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="bio">About Your Venue</Label>
+                    <Textarea
+                      id="bio"
+                      placeholder="Tell us about your venue"
+                      value={venueData.bio}
+                      onChange={(e) => handleVenueChange("bio", e.target.value)}
+                      rows={4}
+                    />
+                  </div>
                 </>
               )}
-
-              <div>
-                <Label htmlFor="bio">
-                  {role === "artist" ? "Bio / About You" : "About Your Venue"}
-                </Label>
-                <Textarea
-                  id="bio"
-                  placeholder={role === "artist" 
-                    ? "Tell us about your music style and experience" 
-                    : "Tell us about your venue"}
-                  value={profileData.bio}
-                  onChange={(e) => handleProfileChange("bio", e.target.value)}
-                  rows={4}
-                />
-              </div>
 
               <div className="flex gap-3">
                 <Button
@@ -278,7 +343,7 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                   disabled={!isStepComplete()}
                   className="w-full"
                 >
-                  Continue <ArrowRight className="ml-2 h-4 w-4" />
+                  Review <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -290,43 +355,56 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
           <Card>
             <CardHeader>
               <CardTitle>Review Your Profile</CardTitle>
-              <CardDescription>
-                Make sure everything looks good before we create your account
-              </CardDescription>
+              <CardDescription>Make sure everything looks good</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-4 bg-muted p-4 rounded-lg">
-                <div>
-                  <p className="text-sm font-semibold text-muted-foreground">Role</p>
-                  <p className="text-lg font-semibold capitalize">{role}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-muted-foreground">
-                    {role === "artist" ? "Artist Name" : "Venue Name"}
-                  </p>
-                  <p className="text-lg">{profileData.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-muted-foreground">Location</p>
-                  <p className="text-lg">{profileData.location}</p>
-                </div>
-                {role === "artist" && (
+              <div className="bg-muted p-4 rounded-lg space-y-3">
+                {role === "artist" ? (
                   <>
                     <div>
-                      <p className="text-sm font-semibold text-muted-foreground">Genre</p>
-                      <p className="text-lg">{profileData.genre}</p>
+                      <p className="text-sm text-muted-foreground">Artist Name</p>
+                      <p className="font-semibold">{artistData.artistName}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-muted-foreground">Fee Range</p>
-                      <p className="text-lg">${profileData.feeMin} - ${profileData.feeMax}</p>
+                      <p className="text-sm text-muted-foreground">Genre</p>
+                      <p className="font-semibold">{artistData.genre}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Location</p>
+                      <p className="font-semibold">{artistData.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Fee Range</p>
+                      <p className="font-semibold">${artistData.feeRangeMin} - ${artistData.feeRangeMax}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Bio</p>
+                      <p className="font-semibold">{artistData.bio}</p>
                     </div>
                   </>
-                )}
-                {profileData.bio && (
-                  <div>
-                    <p className="text-sm font-semibold text-muted-foreground">Bio</p>
-                    <p className="text-lg">{profileData.bio}</p>
-                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Venue Name</p>
+                      <p className="font-semibold">{venueData.organizationName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Contact Name</p>
+                      <p className="font-semibold">{venueData.contactName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Contact Phone</p>
+                      <p className="font-semibold">{venueData.contactPhone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Location</p>
+                      <p className="font-semibold">{venueData.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">About</p>
+                      <p className="font-semibold">{venueData.bio}</p>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -342,10 +420,8 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                   onClick={handleComplete}
                   disabled={isLoading}
                   className="w-full"
-                  size="lg"
                 >
-                  {isLoading ? "Creating Profile..." : "Complete Setup"}
-                  {!isLoading && <Check className="ml-2 h-4 w-4" />}
+                  {isLoading ? "Creating..." : "Complete Setup"} <Check className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
