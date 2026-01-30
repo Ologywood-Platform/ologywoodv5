@@ -11,7 +11,10 @@ import { configureServer, printSecuritySetup } from './middleware/serverConfig';
 import { createExternalLoggingService } from './services/externalLoggingService';
 import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
+import { socketService } from './services/socketService';
+import paymentRoutes from './routes/paymentRoutes';
 import path from 'path';
+import http from 'http';
 
 /**
  * Initialize server with all middleware and services
@@ -59,6 +62,13 @@ async function initializeServer(): Promise<void> {
   app.use('/trpc', (req, res) => {
     (trpcServer as any).handler(req, res);
   });
+
+  // Mount payment routes
+  app.use('/api/payment', paymentRoutes);
+
+  // Initialize Socket.io for real-time notifications
+  const httpServer = http.createServer(app);
+  socketService.initialize(httpServer);
 
   // Serve index.html for all other routes (SPA fallback) - MUST be last
   app.get('*', (req, res) => {
@@ -113,7 +123,7 @@ async function initializeServer(): Promise<void> {
 
   // Start server
   const PORT = process.env.PORT || 3000;
-  const server = app.listen(PORT, () => {
+  const server = httpServer.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║         Ologywood Server Started Successfully              ║
@@ -128,6 +138,8 @@ async function initializeServer(): Promise<void> {
 ║ Status: GET /status                                        ║
 ║ Metrics: GET /metrics                                      ║
 ║ TRPC: /trpc                                                ║
+║ Payment Routes: /api/payment                               ║
+║ Socket.io: Real-time notifications enabled                 ║
 ╚════════════════════════════════════════════════════════════╝
     `);
 

@@ -20,13 +20,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
-// useAuth is already imported from @/_core/hooks/useAuth at line 1
+import { useAuth } from '@/_core/hooks/useAuth';
 import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import DashboardHeader from './DashboardHeader';
+import io, { Socket } from 'socket.io-client';
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Page 1", path: "/" },
@@ -108,6 +110,7 @@ function DashboardLayoutContent({
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
   const { user, logout } = useCustomAuth();
+  const authUser = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -115,6 +118,53 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const socketRef = useRef<Socket | null>(null);
+
+  // Initialize Socket.io connection for real-time notifications
+  useEffect(() => {
+    if (!authUser.user?.id) return;
+
+    // Connect to Socket.io
+    socketRef.current = io(window.location.origin, {
+      auth: {
+        token: localStorage.getItem('auth_token') || '',
+      },
+      query: {
+        userId: authUser.user.id.toString(),
+      },
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('[Socket.io] Connected to server');
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('[Socket.io] Disconnected from server');
+    });
+
+    socketRef.current.on('notification:new', (notification) => {
+      console.log('[Socket.io] New notification:', notification);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [authUser.user?.id]);
+
+  // Custom hook for auth
+  function useCustomAuth() {
+    const auth = useAuth();
+    return {
+      user: auth.user,
+      logout: auth.logout,
+    };
+  }
 
   useEffect(() => {
     if (isCollapsed) {
@@ -247,20 +297,7 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <DashboardHeader />
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
     </>
