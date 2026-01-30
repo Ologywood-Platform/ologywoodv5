@@ -159,7 +159,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center justify-center w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+        className="fixed bottom-4 right-4 z-40 flex items-center justify-center w-14 h-14 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
         aria-label="Open support chat"
       >
         <MessageCircle className="h-6 w-6" />
@@ -168,7 +168,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
   }
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 w-full sm:w-96 max-w-sm sm:max-w-none max-h-[600px] flex flex-col bg-white rounded-lg shadow-2xl border border-gray-200 mx-4 sm:mx-0">
+    <div className="fixed bottom-0 right-0 left-0 sm:bottom-6 sm:right-6 sm:left-auto z-50 w-screen sm:w-96 max-h-screen sm:max-h-[600px] flex flex-col bg-white rounded-t-3xl sm:rounded-lg shadow-2xl border-0 sm:border border-gray-200 sm:mx-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
