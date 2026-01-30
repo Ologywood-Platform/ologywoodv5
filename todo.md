@@ -2226,3 +2226,14 @@ The Ologywood platform is production-ready with:
 - [x] Create comprehensive unit tests for EssentialRiderTemplate (60+ test cases)
 - [x] Update Drizzle schema for venue_profiles to include location and bio fields
 - [x] Verify database schema matches actual database structure
+
+
+## Rider Template Preview for Venues (NEW)
+- [x] Create RiderTemplatePreview component (read-only display) - COMPLETED
+- [x] Add tests for RiderTemplatePreview component - 60+ test cases
+- [x] Create RiderAcknowledgmentWorkflow component for booking confirmation
+- [x] Add tests for RiderAcknowledgmentWorkflow - 40+ test cases
+- [ ] Integrate preview into artist profile page
+- [ ] Integrate acknowledgment workflow into booking flow
+- [ ] Test end-to-end functionality
+- [ ] Verify venues can see rider requirements when reviewing artist profiles
