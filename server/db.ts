@@ -324,15 +324,15 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
   if (!db) throw new Error("Database not available");
   
   try {
-    // Only insert required fields that exist in the database
-    const cleanedProfile = {
+    // Use Drizzle insert to properly handle the data
+    const result = await db.insert(venueProfiles).values({
       userId: profile.userId,
       organizationName: profile.organizationName,
-      contactName: profile.contactName,
-      contactPhone: profile.contactPhone,
-    };
-    
-    const result = await db.insert(venueProfiles).values(cleanedProfile as any);
+      contactName: profile.contactName || null,
+      contactPhone: profile.contactPhone || null,
+      location: (profile as any).location || null,
+      bio: (profile as any).bio || null,
+    });
     return result;
   } catch (error) {
     console.error('Error creating venue profile:', error);
