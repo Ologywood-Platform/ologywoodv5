@@ -460,7 +460,7 @@ export async function getAvailabilityForDate(artistId: number, date: string) {
   const result = await db.select().from(availability)
     .where(and(
       eq(availability.artistId, artistId),
-      sql`${availability.date} = ${date}`
+      eq(availability.date, date)
     ))
     .limit(1);
     
