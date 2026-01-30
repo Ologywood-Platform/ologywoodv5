@@ -168,7 +168,7 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
   }
 
   return (
-    <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-screen sm:w-96 max-h-screen sm:max-h-[600px] flex flex-col bg-white rounded-t-3xl sm:rounded-lg shadow-2xl border-0 sm:border border-gray-200 left-4 sm:left-auto">
+    <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-screen sm:w-96 max-h-screen sm:max-h-[600px] flex flex-col bg-white rounded-t-3xl sm:rounded-lg shadow-2xl border-0 sm:border border-gray-200 left-6 sm:left-auto">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
