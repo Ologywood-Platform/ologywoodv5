@@ -330,18 +330,20 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                 </>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-6">
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="w-full"
+                  size="sm"
+                  className="flex-1"
                 >
                   Back
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={!isStepComplete()}
-                  className="w-full"
+                  size="sm"
+                  className="flex-1"
                 >
                   Review <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -408,18 +410,20 @@ export default function OnboardingWizard({ onComplete, isLoading = false }: Onbo
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-6">
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="w-full"
+                  size="sm"
+                  className="flex-1"
                 >
                   Back
                 </Button>
                 <Button
                   onClick={handleComplete}
                   disabled={isLoading}
-                  className="w-full"
+                  size="sm"
+                  className="flex-1"
                 >
                   {isLoading ? "Creating..." : "Complete Setup"} <Check className="ml-2 h-4 w-4" />
                 </Button>
