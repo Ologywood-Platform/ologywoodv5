@@ -330,24 +330,24 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
 export async function getVenueProfileByUserId(userId: number) {
   try {
     const db = await getDb();
-    if (!db) return undefined;
+    if (!db) return null;
     const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
-    return result.length > 0 ? result[0] : undefined;
+    return result.length > 0 ? result[0] : null;
   } catch (error) {
     console.error('Error getting venue profile by user ID:', error);
-    return undefined;
+    return null;
   }
 }
 
 export async function getVenueProfileById(id: number) {
   try {
     const db = await getDb();
-    if (!db) return undefined;
+    if (!db) return null;
     const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
-    return result.length > 0 ? result[0] : undefined;
+    return result.length > 0 ? result[0] : null;
   } catch (error) {
     console.error('Error getting venue profile by ID:', error);
-    return undefined;
+    return null;
   }
 }
 

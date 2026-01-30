@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import RoleSelection from "./pages/RoleSelection";
 import ArtistOnboarding from "./pages/ArtistOnboarding";
 import VenueOnboarding from "./pages/VenueOnboarding";
+import Onboarding from "./pages/Onboarding";
 import Availability from "./pages/Availability";
 import RiderTemplates from "./pages/RiderTemplates";
 import Subscription from "./pages/Subscription";
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
+      <Route path="/onboarding" component={Onboarding} />
       <Route path="/onboarding/artist" component={ArtistOnboarding} />
       <Route path="/onboarding/venue" component={VenueOnboarding} />
       <Route path="/availability" component={Availability} />
