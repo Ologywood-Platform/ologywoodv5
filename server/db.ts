@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, inArray, like, or, desc, sql, isNull } from "drizzle-orm";
+import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -16,11 +16,92 @@ import {
   profileViews, InsertProfileView, ProfileView,
   bookingReminders, InsertBookingReminder, BookingReminder,
   contracts, InsertContract, Contract,
-  signatures, InsertSignature, Signature
+  signatures, InsertSignature, Signature,
+  calendarEvents, InsertCalendarEvent, CalendarEvent,
+  calendarSyncTokens, InsertCalendarSyncToken, CalendarSyncToken
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+
+// ============= CALENDAR EVENT FUNCTIONS =============
+
+export async function createCalendarEvent(data: InsertCalendarEvent): Promise<CalendarEvent> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+  
+  const result = await db.insert(calendarEvents).values(data);
+  const eventId = (result as any).insertId;
+  const event = await db.select().from(calendarEvents).where(eq(calendarEvents.id as any, eventId)).limit(1);
+  return event[0] as CalendarEvent;
+}
+
+export async function getCalendarEventById(id: number): Promise<CalendarEvent | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(calendarEvents).where(eq(calendarEvents.id as any, id)).limit(1);
+  return result[0];
+}
+
+export async function getCalendarEventsByUserId(userId: number, startDate?: string, endDate?: string): Promise<CalendarEvent[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let conditions = [eq(calendarEvents.userId as any, userId)];
+  
+  if (startDate) {
+    conditions.push(gte(calendarEvents.startDate as any, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(calendarEvents.endDate as any, endDate));
+  }
+  
+  return await db.select().from(calendarEvents)
+    .where(and(...conditions))
+    .orderBy(asc(calendarEvents.startDate as any));
+}
+
+export async function updateCalendarEvent(id: number, data: Partial<InsertCalendarEvent>): Promise<CalendarEvent | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  await db.update(calendarEvents)
+    .set(data)
+    .where(eq(calendarEvents.id as any, id));
+  
+  return getCalendarEventById(id);
+}
+
+export async function deleteCalendarEvent(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.delete(calendarEvents)
+    .where(eq(calendarEvents.id as any, id));
+  
+  return (result as any).affectedRows > 0;
+}
+
+export async function createCalendarSyncToken(data: InsertCalendarSyncToken): Promise<CalendarSyncToken> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+  
+  const result = await db.insert(calendarSyncTokens).values(data);
+  const tokenId = (result as any).insertId;
+  const token = await db.select().from(calendarSyncTokens).where(eq(calendarSyncTokens.id as any, tokenId)).limit(1);
+  return token[0] as CalendarSyncToken;
+}
+
+export async function getCalendarSyncTokenByUserId(userId: number): Promise<CalendarSyncToken | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(calendarSyncTokens).where(eq(calendarSyncTokens.userId as any, userId)).limit(1);
+  return result[0];
+}
 
 // ============= CONTRACT FUNCTIONS =============
 
@@ -496,31 +577,19 @@ export async function getBookingById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function getBookingsByArtistId(artistId: number) {
+export async function getBookingsByArtistId(artistId: number): Promise<Booking[]> {
   try {
     const db = await getDb();
     if (!db) return [];
     
-    // Select only core columns to avoid schema mismatch
-    return await db.select({
-      id: bookings.id,
-      artistId: bookings.artistId,
-      venueId: bookings.venueId,
-      eventDate: bookings.eventDate,
-      eventTime: bookings.eventTime,
-      venueName: bookings.venueName,
-      venueAddress: bookings.venueAddress,
-      status: bookings.status,
-      totalFee: bookings.totalFee,
-      depositAmount: bookings.depositAmount,
-      createdAt: bookings.createdAt,
-      updatedAt: bookings.updatedAt,
-    }).from(bookings)
-      .where(eq(bookings.artistId, artistId))
+    // Use simple select to avoid type inference issues
+    const results = await db.select().from(bookings)
+      .where(eq(bookings.artistId as any, artistId))
       .orderBy(desc(bookings.createdAt));
+    return results as any[];
   } catch (error) {
     console.error('Error fetching bookings for artist:', error);
-    return [];
+    return [] as Booking[];
   }
 }
 

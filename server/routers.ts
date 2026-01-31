@@ -43,6 +43,7 @@ import { artistVerificationRouter } from "./routers/artistVerificationRouter";
 import { emailVerificationRouter } from "./routers/emailVerificationRouter";
 import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
 import { userRouter } from "./routers/userRouter";
+import { calendarRouter } from "./routers/calendarRouter";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 import paymentTestingRoutes from "./routes/paymentTestingRoutes";
@@ -1731,5 +1732,7 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+  
+  calendarEvent: calendarRouter,
 });
 export type AppRouter = typeof appRouter;

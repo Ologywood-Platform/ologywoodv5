@@ -680,3 +680,70 @@ export const evictionMaintenanceLog = mysqlTable(
 
 export type EvictionMaintenanceLog = typeof evictionMaintenanceLog.$inferSelect;
 export type InsertEvictionMaintenanceLog = typeof evictionMaintenanceLog.$inferInsert;
+
+/**
+ * Calendar Events - tracks artist availability, bookings, and personal events
+ * Supports drag-and-drop rescheduling and external calendar sync
+ */
+export const calendarEvents = mysqlTable("calendar_events", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  userType: mysqlEnum("userType", ["artist", "venue"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  eventType: mysqlEnum("eventType", ["booking", "availability", "unavailable", "personal", "synced"]).notNull(),
+  startDate: date("startDate").notNull(),
+  startTime: varchar("startTime", { length: 50 }),
+  endDate: date("endDate"),
+  endTime: varchar("endTime", { length: 50 }),
+  location: varchar("location", { length: 255 }),
+  bookingId: int("bookingId"),
+  externalCalendarId: varchar("externalCalendarId", { length: 255 }),
+  externalEventId: varchar("externalEventId", { length: 255 }),
+  externalCalendarType: mysqlEnum("externalCalendarType", ["google", "outlook", "apple"]),
+  color: varchar("color", { length: 50 }).default("blue"),
+  isAllDay: boolean("isAllDay").default(false),
+  isRecurring: boolean("isRecurring").default(false),
+  recurrencePattern: json("recurrencePattern").$type<{
+    frequency?: string;
+    interval?: number;
+    endDate?: string;
+    daysOfWeek?: string[];
+  }>(),
+  reminders: json("reminders").$type<Array<{ type: string; minutesBefore: number }>>(),
+  metadata: json("metadata").$type<Record<string, any>>(),
+  syncedAt: timestamp("syncedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("idx_calendar_events_user").on(table.userId),
+  startDateIdx: index("idx_calendar_events_start").on(table.startDate),
+  bookingIdIdx: index("idx_calendar_events_booking").on(table.bookingId),
+  externalEventIdx: index("idx_calendar_events_external").on(table.externalEventId),
+}));
+
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type InsertCalendarEvent = typeof calendarEvents.$inferInsert;
+
+/**
+ * Calendar Sync Tokens - stores OAuth tokens for external calendar sync
+ */
+export const calendarSyncTokens = mysqlTable("calendar_sync_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  calendarType: mysqlEnum("calendarType", ["google", "outlook", "apple"]).notNull(),
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken"),
+  tokenExpiry: timestamp("tokenExpiry"),
+  calendarId: varchar("calendarId", { length: 255 }),
+  isActive: boolean("isActive").default(true),
+  lastSyncAt: timestamp("lastSyncAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("idx_sync_tokens_user").on(table.userId),
+  calendarTypeIdx: index("idx_sync_tokens_type").on(table.calendarType),
+}));
+
+export type CalendarSyncToken = typeof calendarSyncTokens.$inferSelect;
+export type InsertCalendarSyncToken = typeof calendarSyncTokens.$inferInsert;
