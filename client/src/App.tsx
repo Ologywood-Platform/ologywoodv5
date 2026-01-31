@@ -42,6 +42,8 @@ import { VenueBrowse } from "./pages/VenueBrowse";
 import { VenueProfileDetail } from "./pages/VenueProfileDetail";
 import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
 import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample";
+import UpgradePlan from "./pages/UpgradePlan";
+import TeamManagement from "./pages/TeamManagement";
 
 function Router() {
   return (
@@ -52,6 +54,8 @@ function Router() {
       <Route path="/venues/:id" component={VenueProfileDetail} />
       <Route path="/venue-analytics" component={VenueAnalyticsDashboard} />
       <Route path="/tutorial-example" component={VenueProfileTutorialExample} />
+      <Route path="/upgrade" component={UpgradePlan} />
+      <Route path="/team" component={TeamManagement} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
