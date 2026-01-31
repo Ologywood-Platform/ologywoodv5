@@ -16,7 +16,7 @@ import { RiderComparisonTool } from "@/components/RiderComparisonTool";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
 
 export default function ArtistProfile() {
