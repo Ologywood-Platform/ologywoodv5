@@ -2377,3 +2377,10 @@ The Ologywood platform is production-ready with:
 - [ ] Create backend TRPC endpoints for event management (create, update, delete)
 - [ ] Add real-time sync notifications for external calendar events
 - [x] Test all integrations and create checkpoint
+
+
+## Bug Fixes & Follow-ups (Current)
+- [x] Fix "Write a Review" button - integrated ReviewSystem component into ArtistProfile
+- [ ] Create backend TRPC endpoints for calendar event management (create, update, delete)
+- [ ] Implement drop zone handlers for drag-and-drop rescheduling
+- [ ] Set up external calendar webhook handlers for Google Calendar and Outlook

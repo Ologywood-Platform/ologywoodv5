@@ -1,4 +1,4 @@
-import { useRoute, Link, useLocation } from "wouter";
+import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -13,6 +13,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "@/components/RiderComparisonTool";
+import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useParams } from "wouter";
@@ -630,6 +631,22 @@ export default function ArtistProfile() {
                 readOnly
               />
             </div>
+
+            {/* Review System */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Reviews & Feedback</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReviewSystem
+                  targetId={artistId}
+                  targetType="artist"
+                  onReviewSubmitted={(review) => {
+                    toast.success('Review submitted successfully!');
+                  }}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
