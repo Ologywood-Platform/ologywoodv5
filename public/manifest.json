@@ -84,6 +84,18 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "Check your messages",
+      "url": "/messages",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
