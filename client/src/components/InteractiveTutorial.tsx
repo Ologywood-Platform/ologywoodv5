@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { tutorialAnalytics } from '@/lib/tutorialAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -40,6 +41,16 @@ export function InteractiveTutorial({
   const step = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
   const isLastStep = currentStep === steps.length - 1;
+
+  // Track tutorial started
+  useEffect(() => {
+    tutorialAnalytics.trackTutorialStarted(tutorialId);
+  }, [tutorialId]);
+
+  // Track step viewed
+  useEffect(() => {
+    tutorialAnalytics.trackStepViewed(tutorialId, step.id);
+  }, [tutorialId, step.id]);
 
   // Highlight elements on mount
   useEffect(() => {
@@ -84,11 +95,13 @@ export function InteractiveTutorial({
   };
 
   const handleComplete = () => {
+    tutorialAnalytics.trackTutorialCompleted(tutorialId);
     setIsOpen(false);
     onComplete?.();
   };
 
   const handleSkip = () => {
+    tutorialAnalytics.trackTutorialSkipped(tutorialId);
     setIsOpen(false);
     onSkip?.();
   };
