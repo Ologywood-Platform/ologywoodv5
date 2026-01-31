@@ -44,11 +44,12 @@ import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
 import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample";
 import UpgradePlan from "./pages/UpgradePlan";
 import TeamManagement from "./pages/TeamManagement";
+import Marketing from "./pages/Marketing";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/home" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/venues" component={VenueBrowse} />
       <Route path="/venues/:id" component={VenueProfileDetail} />
@@ -56,6 +57,8 @@ function Router() {
       <Route path="/tutorial-example" component={VenueProfileTutorialExample} />
       <Route path="/upgrade" component={UpgradePlan} />
       <Route path="/team" component={TeamManagement} />
+      <Route path="/" component={Marketing} />
+      <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
