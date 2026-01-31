@@ -40,6 +40,7 @@ import CertificateVerification from "./pages/CertificateVerification";
 import ContractNavigation from "./components/ContractNavigation";
 import { VenueBrowse } from "./pages/VenueBrowse";
 import { VenueProfileDetail } from "./pages/VenueProfileDetail";
+import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
 
 function Router() {
   return (
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/browse" component={Browse} />
       <Route path="/venues" component={VenueBrowse} />
       <Route path="/venues/:id" component={VenueProfileDetail} />
+      <Route path="/venue-analytics" component={VenueAnalyticsDashboard} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />

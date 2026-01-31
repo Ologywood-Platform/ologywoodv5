@@ -211,14 +211,25 @@ export const venueReviews = mysqlTable("venue_reviews", {
   bookingId: int("bookingId").notNull(),
   venueId: int("venueId").notNull(),
   artistId: int("artistId").notNull(),
-  rating: int("rating").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  title: varchar("title", { length: 255 }),
   comment: text("comment"),
+  professionalism: int("professionalism"), // 1-5 rating for professionalism
+  soundQuality: int("soundQuality"), // 1-5 rating for sound quality
+  amenitiesRating: int("amenitiesRating"), // 1-5 rating for amenities
+  audienceRating: int("audienceRating"), // 1-5 rating for audience quality
+  helpful: int("helpful").default(0), // Count of helpful votes
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  venueIdIdx: index("idx_venue_reviews_venue").on(table.venueId),
+  artistIdIdx: index("idx_venue_reviews_artist").on(table.artistId),
+  bookingIdIdx: index("idx_venue_reviews_booking").on(table.bookingId),
+  createdAtIdx: index("idx_venue_reviews_created").on(table.createdAt),
+}));
 
-export type VenueReview = typeof venueReviews.$inferSelect & { reviewText?: string };
-export type InsertVenueReview = typeof venueReviews.$inferInsert & { reviewText?: string };
+export type VenueReview = typeof venueReviews.$inferSelect;
+export type InsertVenueReview = typeof venueReviews.$inferInsert;
 
 /**
  * Favorites - artists and venues that users have favorited
@@ -759,3 +770,24 @@ export const calendarSyncTokens = mysqlTable("calendar_sync_tokens", {
 
 export type CalendarSyncToken = typeof calendarSyncTokens.$inferSelect;
 export type InsertCalendarSyncToken = typeof calendarSyncTokens.$inferInsert;
+
+
+
+/**
+ * Venue Inquiry Tracking - tracks artist inquiries and booking attempts
+ */
+export const venueInquiries = mysqlTable("venue_inquiries", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  artistId: int("artistId").notNull(),
+  inquiryType: mysqlEnum("inquiryType", ["view", "contact", "booking_request", "message"]).notNull(),
+  details: json("details").$type<Record<string, any>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  venueIdIdx: index("idx_venue_inquiries_venue").on(table.venueId),
+  artistIdIdx: index("idx_venue_inquiries_artist").on(table.artistId),
+  createdAtIdx: index("idx_venue_inquiries_created").on(table.createdAt),
+}));
+
+export type VenueInquiry = typeof venueInquiries.$inferSelect;
+export type InsertVenueInquiry = typeof venueInquiries.$inferInsert;
