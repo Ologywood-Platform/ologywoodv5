@@ -2363,3 +2363,10 @@ The Ologywood platform is production-ready with:
 
 ## Bug Fixes (Current)
 - [x] Fix "add event" button on Calendar page - added onClick handler with toast notification
+
+
+## Calendar Enhancements (Current Sprint)
+- [x] Build Event Creation Modal with form and date/time pickers (EventCreationModal.tsx)
+- [x] Implement Drag-and-Drop Rescheduling functionality (DraggableCalendarEvent.tsx)
+- [x] Add Calendar Sync Integration with external calendars (CalendarSyncIntegration.tsx)
+- [x] Test all calendar features and create checkpoint
