@@ -2359,3 +2359,7 @@ The Ologywood platform is production-ready with:
 - [x] Integrate skeleton screens into venue onboarding
 - [x] Add smooth fade-in animations for content transitions
 - [x] Test skeleton screens across all pages
+
+
+## Bug Fixes (Current)
+- [x] Fix "add event" button on Calendar page - added onClick handler with toast notification

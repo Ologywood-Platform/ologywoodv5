@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 interface BookingEvent {
@@ -330,7 +330,15 @@ export default function Calendar() {
                   <div className="text-center py-8">
                     <CalendarIcon className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                     <p className="text-sm text-slate-600 mb-4">No events on this date</p>
-                    <Button className="w-full">Add Event</Button>
+                    <Button 
+                      className="w-full" 
+                      onClick={() => {
+                        toast.info("Add event functionality coming soon!");
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Event
+                    </Button>
                   </div>
                 ) : (
                   <div className="text-center py-8">
