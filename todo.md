@@ -2398,3 +2398,12 @@ The Ologywood platform is production-ready with:
 - [x] Fix venue profile creation error in onboarding - implemented upsert pattern to update existing profiles
 
 - [x] Fix URL input field on venue profile onboarding - added missing useState import
+
+
+## Venue Profile Enhancement for Artists (Current)
+- [x] Enhance VenueProfile component with artist-focused information (capacity, amenities, parking, accessibility)
+- [x] Add skeleton loaders for smooth loading experience
+- [x] Fixed React hooks error by moving respondMutation to top of component
+- [ ] Add venue profile link to booking details so artists can view venue info
+- [ ] Add venue information card to artist dashboard showing upcoming performances
+- [ ] Add venue profile preview in booking confirmation modal

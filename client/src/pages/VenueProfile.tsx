@@ -2,7 +2,7 @@ import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -23,16 +23,6 @@ export default function VenueProfile() {
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');
 
-  if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <ProfileHeaderSkeleton />
-        <ProfileSectionSkeleton />
-        <ProfileSectionSkeleton />
-      </div>
-    );
-  }
-
   const respondMutation = trpc.venueReview.respondToReview.useMutation({
     onSuccess: () => {
       toast.success('Response submitted successfully');
@@ -44,6 +34,16 @@ export default function VenueProfile() {
       toast.error(error.message || 'Failed to submit response');
     },
   });
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <ProfileHeaderSkeleton />
+        <ProfileSectionSkeleton />
+        <ProfileSectionSkeleton />
+      </div>
+    );
+  }
 
   const handleRespond = (reviewId: number) => {
     if (!responseText.trim()) {
@@ -150,6 +150,83 @@ export default function VenueProfile() {
                 <span>🌐 <a href={venueProfile.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{venueProfile.websiteUrl}</a></span>
               </div>
             )}
+            
+            {venueProfile.bio && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-muted-foreground">{venueProfile.bio}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Venue Amenities & Details for Artists */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Venue Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Venue Type</p>
+                    <p className="text-sm text-muted-foreground">Concert Hall / Event Space</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Capacity</p>
+                    <p className="text-sm text-muted-foreground">Up to 500 guests</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold">Location</p>
+                    <p className="text-sm text-muted-foreground">{venueProfile.location || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Amenities */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Amenities & Facilities</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                <span className="text-sm">Power Supply</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Wifi className="h-5 w-5 text-primary" />
+                <span className="text-sm">WiFi Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-primary" />
+                <span className="text-sm">Sound System</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Accessibility className="h-5 w-5 text-primary" />
+                <span className="text-sm">Accessible</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ParkingCircle className="h-5 w-5 text-primary" />
+                <span className="text-sm">Parking Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Music className="h-5 w-5 text-primary" />
+                <span className="text-sm">Stage Setup</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -173,6 +250,16 @@ export default function VenueProfile() {
             </CardContent>
           </Card>
         )}
+
+        {/* Artist Reviews Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>What Artists Say</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Read reviews from artists who have performed at this venue</p>
+          </CardContent>
+        </Card>
 
         {/* Reviews Section */}
         <Card>
