@@ -394,14 +394,29 @@ export const appRouter = router({
     createProfile: venueProcedure
       .input(z.object({
         organizationName: z.string().min(1),
-        contactName: z.string().min(1),
+        contactName: z.string().optional(),
         contactPhone: z.string().optional(),
-        websiteUrl: z.string().optional(),
+        location: z.string().optional(),
+        website: z.string().optional(),
+        email: z.string().optional(),
+        venueType: z.string().optional(),
+        capacity: z.number().optional(),
+        amenities: z.array(z.string()).optional(),
+        bio: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         await db.createVenueProfile({
           userId: ctx.user.id,
-          ...input,
+          organizationName: input.organizationName,
+          contactName: input.contactName,
+          contactPhone: input.contactPhone,
+          location: input.location,
+          website: input.website,
+          email: input.email,
+          venueType: input.venueType,
+          capacity: input.capacity,
+          amenities: input.amenities,
+          bio: input.bio,
         });
         return { success: true };
       }),
