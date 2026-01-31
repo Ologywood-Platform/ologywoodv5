@@ -418,7 +418,25 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
   if (!db) throw new Error("Database not available");
   
   try {
-    // Use Drizzle insert to properly handle the data
+    // Check if profile already exists
+    const existing = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, profile.userId)).limit(1);
+    
+    if (existing && existing.length > 0) {
+      // Update existing profile
+      const result = await db.update(venueProfiles)
+        .set({
+          organizationName: profile.organizationName,
+          contactName: profile.contactName || null,
+          contactPhone: profile.contactPhone || null,
+          location: (profile as any).location || null,
+          bio: (profile as any).bio || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(venueProfiles.userId, profile.userId));
+      return result;
+    }
+    
+    // Create new profile
     const result = await db.insert(venueProfiles).values({
       userId: profile.userId,
       organizationName: profile.organizationName,
@@ -429,10 +447,12 @@ export async function createVenueProfile(profile: InsertVenueProfile) {
     });
     return result;
   } catch (error) {
-    console.error('Error creating venue profile:', error);
+    console.error("Error creating/updating venue profile:", error);
     throw error;
   }
 }
+
+// Old function - no longer used
 
 export async function getVenueProfileByUserId(userId: number) {
   try {

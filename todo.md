@@ -2392,3 +2392,7 @@ The Ologywood platform is production-ready with:
 - [x] Build Booking Confirmation Flow with deposit calculation and contract preview (BookingConfirmationModal.tsx)
 - [x] Implement Artist Search Filters (genre, location, price range, availability) - Already implemented
 - [x] Optimize Mobile Booking Experience with streamlined flow (MobileBookingOptimization.tsx)
+
+
+## Bug Fixes (Current)
+- [x] Fix venue profile creation error in onboarding - implemented upsert pattern to update existing profiles
