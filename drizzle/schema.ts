@@ -54,6 +54,18 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   contactPhone: varchar("contactPhone", { length: 50 }),
   location: varchar("location", { length: 255 }),
   bio: text("bio"),
+  // Directory listing fields
+  isListed: boolean("isListed").default(true).notNull(), // Free listing on directory
+  website: text("website"),
+  email: varchar("email", { length: 320 }),
+  capacity: int("capacity"), // Max attendees
+  venueType: varchar("venueType", { length: 100 }), // e.g., "Club", "Theater", "Hall", "Outdoor"
+  amenities: json("amenities").$type<string[]>(), // e.g., ["PA System", "Stage", "Parking", "Bar"]
+  profilePhotoUrl: text("profilePhotoUrl"),
+  mediaGallery: json("mediaGallery").$type<{ photos: string[], videos: string[] }>(),
+  averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default(0),
+  reviewCount: int("reviewCount").default(0),
+  listingViews: int("listingViews").default(0), // Track directory views
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

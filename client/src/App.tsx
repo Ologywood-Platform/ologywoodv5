@@ -38,12 +38,16 @@ import ArtistDashboard from "./pages/ArtistDashboard";
 import VenueDashboard from "./pages/VenueDashboard";
 import CertificateVerification from "./pages/CertificateVerification";
 import ContractNavigation from "./components/ContractNavigation";
+import { VenueBrowse } from "./pages/VenueBrowse";
+import { VenueProfileDetail } from "./pages/VenueProfileDetail";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/browse" component={Browse} />
+      <Route path="/venues" component={VenueBrowse} />
+      <Route path="/venues/:id" component={VenueProfileDetail} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />

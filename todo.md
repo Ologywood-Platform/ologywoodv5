@@ -2428,3 +2428,23 @@ The Ologywood platform is production-ready with:
 - [x] Build booking analytics dashboard with metrics
 - [x] Add revenue tracking and trends visualization
 - [x] Test complete end-to-end booking flow
+
+
+## Authentication Issues (URGENT - Current)
+- [x] Fix sign-in functionality - users cannot sign in (VERIFIED WORKING)
+- [x] Fix sign-out functionality - users cannot sign out (VERIFIED WORKING)
+- [x] Verify authentication endpoints are working (CONFIRMED)
+- [x] Check session/token management (CONFIRMED)
+- [x] Test complete auth flow after fixes (VERIFIED)
+
+
+## Venue Directory (Yellow Pages) - NEW FEATURE
+- [x] Design venue listing database schema with searchable fields
+- [x] Create venue listing CRUD backend endpoints
+- [x] Build venue browse page with search and filtering
+- [x] Create individual venue profile showcase pages
+- [ ] Add venue listing form to venue onboarding
+- [ ] Implement venue search with location, amenities, capacity filters (backend)
+- [ ] Add venue ratings and reviews display
+- [ ] Create venue analytics dashboard (views, inquiries)
+- [ ] Test complete venue directory flow
