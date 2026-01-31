@@ -11,6 +11,7 @@ interface Message {
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -25,6 +26,16 @@ export function AIChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const topicsQuery = trpc.aiChat.getSuggestedTopics.useQuery();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,13 +111,22 @@ export function AIChatWidget() {
     setInputValue(topic);
   };
 
+  // Calculate chat window dimensions based on screen size
+  const chatWindowWidth = isMobile ? "calc(100vw - 1rem)" : "w-96";
+  const chatWindowMaxHeight = isMobile ? "max-h-[70vh]" : "max-h-[600px]";
+  const buttonBottom = isMobile ? "bottom-4" : "bottom-6";
+  const buttonRight = isMobile ? "right-4" : "right-6";
+  const chatWindowBottom = isMobile ? "bottom-20" : "bottom-24";
+  const chatWindowRight = isMobile ? "right-2" : "right-6";
+
   return (
     <>
-      {/* Chat Button */}
+      {/* Chat Button - Positioned to the right */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-40 flex items-center justify-center"
+        className={`fixed ${buttonBottom} ${buttonRight} bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-40 flex items-center justify-center hover:scale-110`}
         aria-label="Open chat"
+        title="Chat with AI Support"
       >
         {isOpen ? (
           <X className="w-6 h-6" />
@@ -117,14 +137,18 @@ export function AIChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 max-h-[600px] bg-white rounded-lg shadow-2xl flex flex-col z-40 border border-gray-200">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg">
-            <h3 className="font-semibold text-lg">Ologywood Support</h3>
-            <p className="text-sm text-purple-100">AI-powered assistance 24/7</p>
+        <div className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-40 border border-gray-200 overflow-hidden`}>
+          {/* Header - Fixed height to prevent text cutoff */}
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg flex-shrink-0">
+            <h3 className="font-semibold text-lg whitespace-nowrap overflow-hidden text-overflow-ellipsis">
+              Ologywood Support
+            </h3>
+            <p className="text-sm text-purple-100 whitespace-nowrap overflow-hidden text-overflow-ellipsis">
+              💡 AI-powered assistance 24/7
+            </p>
           </div>
 
-          {/* Messages */}
+          {/* Messages - Scrollable */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div
@@ -134,13 +158,13 @@ export function AIChatWidget() {
                 }`}
               >
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                  className={`max-w-xs px-4 py-2 rounded-lg break-words ${
                     message.role === "user"
                       ? "bg-purple-600 text-white rounded-br-none"
                       : "bg-gray-100 text-gray-900 rounded-bl-none"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">
+                  <p className="text-sm whitespace-pre-wrap break-words">
                     {message.content}
                   </p>
                   <p
@@ -180,7 +204,7 @@ export function AIChatWidget() {
             {/* Suggested Topics - Show only if no user messages */}
             {messages.length === 1 && topicsQuery.data && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-xs text-gray-500 mb-2 font-semibold">
+                <p className="text-xs text-gray-500 mb-2 font-semibold whitespace-nowrap">
                   Popular topics:
                 </p>
                 <div className="space-y-2">
@@ -188,7 +212,7 @@ export function AIChatWidget() {
                     <button
                       key={idx}
                       onClick={() => handleSuggestedTopic(topic.topic)}
-                      className="w-full text-left text-sm px-3 py-2 rounded bg-gray-50 hover:bg-purple-50 transition-colors text-gray-700 hover:text-purple-700"
+                      className="w-full text-left text-sm px-3 py-2 rounded bg-gray-50 hover:bg-purple-50 transition-colors text-gray-700 hover:text-purple-700 break-words"
                     >
                       {topic.icon} {topic.topic}
                     </button>
@@ -200,10 +224,10 @@ export function AIChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Input - Fixed at bottom */}
           <form
             onSubmit={handleSendMessage}
-            className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg"
+            className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg flex-shrink-0"
           >
             <div className="flex gap-2">
               <input
@@ -212,19 +236,19 @@ export function AIChatWidget() {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Type your question..."
                 disabled={isLoading}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 text-sm"
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputValue.trim()}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 transition-colors flex items-center justify-center"
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 transition-colors flex items-center justify-center flex-shrink-0"
+                title="Send message"
               >
                 <Send className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Tip: Type "help" or ask any question about bookings, payments,
-              or riders
+            <p className="text-xs text-gray-500 mt-2 break-words">
+              💡 Tip: Type "help" or ask any question about bookings, payments, or riders
             </p>
           </form>
         </div>
