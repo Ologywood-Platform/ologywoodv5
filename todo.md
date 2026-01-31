@@ -2396,3 +2396,5 @@ The Ologywood platform is production-ready with:
 
 ## Bug Fixes (Current)
 - [x] Fix venue profile creation error in onboarding - implemented upsert pattern to update existing profiles
+
+- [x] Fix URL input field on venue profile onboarding - added missing useState import
