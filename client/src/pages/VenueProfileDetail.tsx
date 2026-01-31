@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, MapPin, Users, Phone, Globe, Mail, Clock, AlertCircle } from 'lucide-react';
+import { VenueShareButtons } from '@/components/VenueShareButtons';
 
 interface VenueProfileDetailProps {
   venueId?: number;
@@ -214,9 +215,18 @@ export function VenueProfileDetail({ venueId }: VenueProfileDetailProps) {
                   <p className="font-semibold">{venue.operatingHours}</p>
                 </div>
 
-                <Button size="lg" className="w-full" onClick={() => setIsContacting(true)}>
-                  Contact Venue
-                </Button>
+                <div className="space-y-3">
+                  <Button size="lg" className="w-full" onClick={() => setIsContacting(true)}>
+                    Contact Venue
+                  </Button>
+                  <VenueShareButtons
+                    venueId={venue.id}
+                    venueName={venue.organizationName}
+                    venueLocation={venue.location}
+                    venueDescription={venue.bio}
+                    profilePhotoUrl={venue.profilePhotoUrl}
+                  />
+                </div>
               </CardContent>
             </Card>
 
