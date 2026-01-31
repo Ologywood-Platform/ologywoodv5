@@ -145,9 +145,9 @@ export default function VenueProfile() {
               </div>
             )}
             
-            {venueProfile.websiteUrl && (
+            {venueProfile.website && (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span>🌐 <a href={venueProfile.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{venueProfile.websiteUrl}</a></span>
+                <span>🌐 <a href={venueProfile.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{venueProfile.website}</a></span>
               </div>
             )}
             

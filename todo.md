@@ -2480,6 +2480,8 @@ The Ologywood platform is production-ready with:
 
 ## Bug Fixes - URGENT
 - [x] Fix venue profile setup - Complete Setup button not working, page stays on setup screen (FIXED - backend endpoint now accepts all fields)
+- [x] Database migration for venue engagement fields (emailVerified, profileCompletionScore, etc.) - COMPLETED
+- [x] Fix TypeScript property name mismatch (websiteUrl -> website in VenueProfile) - FIXED
 
 
 ## Venue Engagement Enhancements - NEW FEATURES

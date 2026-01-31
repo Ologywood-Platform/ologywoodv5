@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `venue_profiles` \nADD COLUMN `emailVerified` boolean NOT NULL DEFAULT false AFTER `listingViews`,\nADD COLUMN `emailVerificationToken` varchar(255) AFTER `emailVerified`,\nADD COLUMN `emailVerificationSentAt` timestamp AFTER `emailVerificationToken`,\nADD COLUMN `profileCompletionScore` int NOT NULL DEFAULT 0 AFTER `emailVerificationSentAt`,\nADD COLUMN `profileCompletionUpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `profileCompletionScore`;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute ALTER TABLE `venue_profiles` \nADD COLUMN `emailVerified` boolean NOT NULL DEFAULT false AFTER `listingViews`,\nADD COLUMN `emailVerificationToken` varchar(255) AFTER `emailVerified`,\nADD COLUMN `emailVerificationSentAt` timestamp AFTER `emailVerificationToken`,\nADD COLUMN `profileCompletionScore` int NOT NULL DEFAULT 0 AFTER `emailVerificationSentAt`,\nADD COLUMN `profileCompletionUpdatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `profileCompletionScore`;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'listingviews' in 'venue_profiles'"
+  ]
+}
