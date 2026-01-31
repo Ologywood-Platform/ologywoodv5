@@ -66,8 +66,13 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default(0),
   reviewCount: int("reviewCount").default(0),
   listingViews: int("listingViews").default(0), // Track directory views
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  emailVerificationSentAt: timestamp("emailVerificationSentAt"),
+  profileCompletionScore: int("profileCompletionScore").default(0).notNull(),
+  profileCompletionUpdatedAt: timestamp("profileCompletionUpdatedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
 });
 
 export type VenueProfile = typeof venueProfiles.$inferSelect;
