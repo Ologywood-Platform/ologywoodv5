@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
+import { cacheManager } from "../middleware/cacheManager";
 // import { requestLogger } from "../middleware/requestLogger"; // Optional logging middleware
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -36,6 +37,9 @@ async function startServer() {
   
   // Start rate limit cleanup
   startRateLimitCleanup(60000);
+  
+  // Initialize cache manager
+  cacheManager.init(60000); // Cleanup every 60 seconds
   
   // Stripe webhook MUST be registered before express.json() for signature verification
   const { handleStripeWebhook } = await import('../webhooks/stripe');

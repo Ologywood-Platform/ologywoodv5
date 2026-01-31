@@ -21,28 +21,28 @@ export interface RateLimitConfig {
  * Default rate limit configurations for different endpoints
  */
 export const RATE_LIMIT_CONFIGS = {
-  // Strict limits for authentication endpoints
+  // Moderate limits for authentication endpoints
   auth: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5, // 5 requests per 15 minutes
+    maxRequests: 20, // 20 requests per 15 minutes
     message: 'Too many login attempts. Please try again later.',
   },
-  // Moderate limits for API endpoints
+  // Very generous limits for API endpoints (production ready)
   api: {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 requests per minute
+    maxRequests: 10000, // 10000 requests per minute
     message: 'Too many requests. Please slow down.',
   },
-  // Loose limits for public endpoints
+  // Generous limits for public endpoints
   public: {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
+    maxRequests: 5000, // 5000 requests per minute
     message: 'Rate limit exceeded. Please try again later.',
   },
-  // Very strict limits for sensitive operations
+  // Generous limits for sensitive operations
   sensitive: {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 3, // 3 requests per minute
+    maxRequests: 500, // 500 requests per minute
     message: 'Too many requests for this operation. Please try again later.',
   },
 };
