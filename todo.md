@@ -2370,3 +2370,10 @@ The Ologywood platform is production-ready with:
 - [x] Implement Drag-and-Drop Rescheduling functionality (DraggableCalendarEvent.tsx)
 - [x] Add Calendar Sync Integration with external calendars (CalendarSyncIntegration.tsx)
 - [x] Test all calendar features and create checkpoint
+
+
+## Calendar Integration (Current Sprint)
+- [x] Integrate components into Calendar page and connect event handlers (EventCreationModal, CalendarSyncIntegration)
+- [ ] Create backend TRPC endpoints for event management (create, update, delete)
+- [ ] Add real-time sync notifications for external calendar events
+- [x] Test all integrations and create checkpoint

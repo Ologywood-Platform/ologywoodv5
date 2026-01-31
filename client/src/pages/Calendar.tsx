@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
+import EventCreationModal, { EventData } from "@/components/EventCreationModal";
+import CalendarSyncIntegration from "@/components/CalendarSyncIntegration";
 
 interface BookingEvent {
   id: number;
@@ -24,6 +26,9 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 15));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [events, setEvents] = useState<BookingEvent[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [showSyncSettings, setShowSyncSettings] = useState(false);
 
   // Fetch artist profile
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
@@ -332,9 +337,7 @@ export default function Calendar() {
                     <p className="text-sm text-slate-600 mb-4">No events on this date</p>
                     <Button 
                       className="w-full" 
-                      onClick={() => {
-                        toast.info("Add event functionality coming soon!");
-                      }}
+                      onClick={() => setIsModalOpen(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Event
@@ -379,6 +382,53 @@ export default function Calendar() {
           </div>
         </div>
       </div>
+
+      {/* Event Creation Modal */}
+      {isModalOpen && selectedDate && (
+        <EventCreationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          selectedDate={selectedDate}
+          onEventCreate={(eventData: EventData) => {
+            setIsCreatingEvent(true);
+            setTimeout(() => {
+              const newEvent: BookingEvent = {
+                id: events.length + 1,
+                date: selectedDate.toLocaleDateString(),
+                title: eventData.title,
+                type: eventData.type,
+                status: "Pending",
+                venueOrArtist: "Self",
+              };
+              setEvents([...events, newEvent]);
+              setIsCreatingEvent(false);
+              setIsModalOpen(false);
+              toast.success(`Event created successfully!`);
+            }, 1000);
+          }}
+        />
+      )}
+
+      {/* Calendar Sync Settings Modal */}
+      {showSyncSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Calendar Sync Settings</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSyncSettings(false)}
+              >
+                Close
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <CalendarSyncIntegration />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
