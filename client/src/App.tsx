@@ -45,6 +45,9 @@ import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample
 import UpgradePlan from "./pages/UpgradePlan";
 import TeamManagement from "./pages/TeamManagement";
 import Marketing from "./pages/Marketing";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import Contact from "./pages/Contact";
 
 function Router() {
   return (
@@ -58,6 +61,9 @@ function Router() {
       <Route path="/upgrade" component={UpgradePlan} />
       <Route path="/team" component={TeamManagement} />
       <Route path="/" component={Marketing} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/contact" component={Contact} />
       <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />

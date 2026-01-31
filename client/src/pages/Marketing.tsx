@@ -416,9 +416,9 @@ export default function Marketing() {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <p>&copy; 2026 Ologywood. All rights reserved.</p>
           <div style={{ marginTop: '1rem', display: 'flex', gap: '2rem', justifyContent: 'center' }}>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>Privacy Policy</a>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>Terms of Service</a>
-            <a href="#" style={{ color: 'white', textDecoration: 'none' }}>Contact</a>
+              <a href="/privacy" style={{ color: 'white', textDecoration: 'none' }}>Privacy Policy</a>
+            <a href="/terms" style={{ color: 'white', textDecoration: 'none' }}>Terms of Service</a>
+            <a href="/contact" style={{ color: 'white', textDecoration: 'none' }}>Contact</a>
           </div>
         </div>
       </footer>
