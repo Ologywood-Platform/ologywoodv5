@@ -1,7 +1,7 @@
-import { router, protectedProcedure } from '@/_core/trpc';
+import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
-import { getDb } from '@/server/db';
-import { users, artistProfiles, venueProfiles } from '@/drizzle/schema';
+import { getDb } from '../db';
+import { users, artistProfiles, venueProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 
