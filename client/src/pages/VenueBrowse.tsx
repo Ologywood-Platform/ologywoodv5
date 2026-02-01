@@ -90,13 +90,13 @@ const mockVenues: Venue[] = [
     venueType: 'Lounge',
     capacity: 150,
     amenities: ['Intimate Setting', 'Bar', 'Private Booths', 'Valet Parking'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=500&h=300&fit=crop',
+    profilePhotoUrl: '/venues/jazz-lounge.jpg',
     averageRating: 4.9,
     reviewCount: 31,
-    bio: 'Upscale jazz lounge featuring live performances nightly.',
+    bio: 'Sophisticated jazz lounge with intimate seating, premium bar selection, and live jazz performances nightly. Perfect for corporate events and special occasions.',
     website: 'https://jazzlounge.com',
     contactPhone: '(323) 555-0105',
-    email: 'reservations@jazzlounge.com',
+    email: 'info@ologywood.com',
   },
 ];
 
