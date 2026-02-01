@@ -36,6 +36,13 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
 
+  // Redirect authenticated users to dashboard
+  if (isAuthenticated && user?.role) {
+    const dashboardPath = user.role === 'artist' ? '/artist-dashboard' : '/venue-dashboard';
+    window.location.href = dashboardPath;
+    return null;
+  }
+
   const filteredArtists = artists?.filter(artist => 
     searchQuery === "" || 
     artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
