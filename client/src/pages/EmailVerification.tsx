@@ -9,7 +9,7 @@ export default function EmailVerification() {
   const [message, setMessage] = useState('');
   const [venueId, setVenueId] = useState<number | null>(null);
 
-  const verifyEmailMutation = trpc.emailVerification.verifyEmail.useMutation();
+  const verifyEmailMutation = trpc.emailVerification.verifyEmail?.useMutation?.() || { mutateAsync: async () => ({ success: false }) };
 
   useEffect(() => {
     const verifyToken = async () => {
