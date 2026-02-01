@@ -62,6 +62,7 @@ import BookingCalendar from "./pages/BookingCalendar";
 import ReferralProgram from "./pages/ReferralProgram";
 import Settings from "./pages/Settings";
 import DashboardV2 from "./pages/DashboardV2";
+import TestingDashboard from "./pages/TestingDashboard";
 
 function Router() {
   return (
@@ -94,6 +95,7 @@ function Router() {
       <Route path="/referral" component={ReferralProgram} />
       <Route path="/settings" component={Settings} />
       <Route path="/dashboard-v2" component={DashboardV2} />
+      <Route path="/testing-dashboard" component={TestingDashboard} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
