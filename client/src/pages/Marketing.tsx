@@ -632,8 +632,33 @@ export default function Marketing() {
               </ul>
             </div>
           </div>
-          <div style={{ borderTop: '1px solid #374151', paddingTop: '2rem', textAlign: 'center' }}>
-            <p>&copy; 2026 Ologywood. All rights reserved.</p>
+          <div style={{ borderTop: '1px solid #374151', paddingTop: '2rem' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '2rem',
+              marginBottom: '2rem',
+              fontSize: '0.85rem',
+            }}>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Contact</h5>
+                <p style={{ margin: '0.25rem 0' }}>Email: <a href="mailto:info@ologywood.com" style={{ color: '#6366f1', textDecoration: 'none' }}>info@ologywood.com</a></p>
+                <p style={{ margin: '0.25rem 0' }}>Phone: <a href="tel:678-525-0891" style={{ color: '#6366f1', textDecoration: 'none' }}>678-525-0891</a></p>
+              </div>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Address</h5>
+                <p style={{ margin: '0.25rem 0' }}>171 Prestwick Dr</p>
+                <p style={{ margin: '0.25rem 0' }}>Hoschton, GA</p>
+              </div>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Hours</h5>
+                <p style={{ margin: '0.25rem 0' }}>Monday - Friday</p>
+                <p style={{ margin: '0.25rem 0' }}>9:00 AM - 6:00 PM EST</p>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', paddingTop: '1rem', borderTop: '1px solid #374151' }}>
+              <p>&copy; 2026 Ologywood. All rights reserved.</p>
+            </div>
           </div>
         </div>
       </footer>

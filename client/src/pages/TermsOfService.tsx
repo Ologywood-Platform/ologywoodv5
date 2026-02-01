@@ -1,158 +1,227 @@
-import React from 'react';
+import React from "react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default function TermsOfService() {
   return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', lineHeight: '1.6', color: '#333' }}>
-      {/* Navigation */}
-      <nav style={{
-        background: 'white',
-        padding: '1rem 2rem',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <a href="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#6366f1', textDecoration: 'none' }}>
-            🎭 Ologywood
-          </a>
-          <a href="/" style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 'bold' }}>
-            Back to Home
-          </a>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-lg sm:text-2xl font-bold text-primary">
+            <img src="/logo-icon.png" alt="Ologywood" className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
+            <span className="hidden sm:inline">Ologywood</span>
+            <span className="sm:hidden">OW</span>
+          </Link>
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </Link>
         </div>
-      </nav>
+      </header>
 
       {/* Content */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 2rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: '#1f2937' }}>Terms of Service</h1>
-        
-        <p style={{ marginBottom: '1rem', color: '#6b7280' }}>
-          <strong>Last Updated: January 31, 2026</strong>
+      <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
+        <p className="text-sm text-muted-foreground mb-8">
+          Last updated: January 31, 2026
         </p>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>1. Acceptance of Terms</h2>
-          <p>
-            By accessing and using Ologywood, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-          </p>
-        </section>
+        <div className="prose prose-sm sm:prose max-w-none space-y-6">
+          {/* Agreement to Terms */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">1. Agreement to Terms</h2>
+            <p className="text-base leading-relaxed">
+              By accessing and using the Ologywood platform (the "Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service. Ologywood reserves the right to make changes to these Terms of Service at any time and for any reason. We will alert you about any changes by updating the "Last updated" date of these Terms of Service. Any changes or modifications will be effective immediately upon posting to the Service, and your continued use of the Service following the posting of revised Terms of Service means that you accept and agree to the changes.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>2. Use License</h2>
-          <p>
-            Permission is granted to temporarily download one copy of the materials (information or software) on Ologywood for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
-          </p>
-          <ul style={{ marginLeft: '2rem' }}>
-            <li>Modifying or copying the materials</li>
-            <li>Using the materials for any commercial purpose or for any public display</li>
-            <li>Attempting to decompile or reverse engineer any software contained on Ologywood</li>
-            <li>Removing any copyright or other proprietary notations from the materials</li>
-            <li>Transferring the materials to another person or "mirroring" the materials on any other server</li>
-          </ul>
-        </section>
+          {/* Use License */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">2. Use License</h2>
+            <p className="text-base leading-relaxed">
+              Permission is granted to temporarily download one copy of the materials (information or software) on Ologywood's Service for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
+              <li>Modify or copy the materials</li>
+              <li>Use the materials for any commercial purpose or for any public display</li>
+              <li>Attempt to decompile or reverse engineer any software contained on the Service</li>
+              <li>Remove any copyright or other proprietary notations from the materials</li>
+              <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
+              <li>Violate any applicable laws or regulations related to access to or use of the Service</li>
+              <li>Harass or cause distress or inconvenience to any person</li>
+              <li>Obscure or alter any legal notices or proprietary notices</li>
+            </ul>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>3. Disclaimer</h2>
-          <p>
-            The materials on Ologywood are provided on an 'as is' basis. Ologywood makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-          </p>
-        </section>
+          {/* Disclaimer of Warranties */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">3. Disclaimer of Warranties</h2>
+            <p className="text-base leading-relaxed">
+              The materials on Ologywood's Service are provided on an 'as is' basis. Ologywood makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights. Further, Ologywood does not warrant or make any representations concerning the accuracy, likely results, or reliability of the use of the materials on its website or otherwise relating to such materials or on any sites linked to this site.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>4. Limitations</h2>
-          <p>
-            In no event shall Ologywood or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Ologywood.
-          </p>
-        </section>
+          {/* Limitations of Liability */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">4. Limitations of Liability</h2>
+            <p className="text-base leading-relaxed">
+              In no event shall Ologywood or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Ologywood's Service, even if Ologywood or an authorized representative has been notified orally or in writing of the possibility of such damage.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>5. Accuracy of Materials</h2>
-          <p>
-            The materials appearing on Ologywood could include technical, typographical, or photographic errors. Ologywood does not warrant that any of the materials on its website are accurate, complete, or current. Ologywood may make changes to the materials contained on its website at any time without notice.
-          </p>
-        </section>
+          {/* Accuracy of Materials */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">5. Accuracy of Materials</h2>
+            <p className="text-base leading-relaxed">
+              The materials appearing on Ologywood's Service could include technical, typographical, or photographic errors. Ologywood does not warrant that any of the materials on its Service are accurate, complete, or current. Ologywood may make changes to the materials contained on its Service at any time without notice.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>6. Links</h2>
-          <p>
-            Ologywood has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Ologywood of the site. Use of any such linked website is at the user's own risk.
-          </p>
-        </section>
+          {/* Materials and Content */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">6. Materials and Content</h2>
+            <p className="text-base leading-relaxed">
+              The materials on Ologywood's Service are protected by copyright law and owned or controlled by Ologywood or the party credited as the provider of the materials. You are granted a limited license to access and use these materials solely for your personal, non-commercial use. Any other use of the materials without the prior written permission of Ologywood is strictly prohibited.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>7. Modifications</h2>
-          <p>
-            Ologywood may revise these terms of service for its website at any time without notice. By using this website, you are agreeing to be bound by the then current version of these terms of service.
-          </p>
-        </section>
+          {/* User-Generated Content */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">7. User-Generated Content</h2>
+            <p className="text-base leading-relaxed">
+              By submitting content to Ologywood (including profiles, photos, messages, reviews, and rider templates), you grant Ologywood a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and distribute such content. You represent and warrant that you own or have the necessary rights to the content you submit and that such content does not violate any third-party rights or applicable laws.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              You are solely responsible for the content you submit. Ologywood reserves the right to remove any content that violates these Terms of Service or is otherwise objectionable.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>8. User Accounts</h2>
-          <p>
-            When you create an account on Ologywood, you must provide accurate, complete, and current information. You are responsible for maintaining the confidentiality of your password and account. You agree to accept responsibility for all activities that occur under your account. You must notify us immediately of any unauthorized use of your account.
-          </p>
-        </section>
+          {/* Booking and Payment Terms */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">8. Booking and Payment Terms</h2>
+            <p className="text-base leading-relaxed">
+              When you make a booking through Ologywood, you agree to pay all charges and fees associated with the booking. Payments are processed securely through Stripe. You are responsible for providing accurate payment information and maintaining sufficient funds. Ologywood is not responsible for declined payments or insufficient funds.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Cancellation Policy:</strong> Cancellations and refunds are subject to the terms agreed upon between the artist and venue. Ologywood facilitates bookings but is not responsible for disputes between parties. For cancellation inquiries, please contact the other party directly or reach out to our support team.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>9. User Conduct</h2>
-          <p>
-            You agree not to use Ologywood to:
-          </p>
-          <ul style={{ marginLeft: '2rem' }}>
-            <li>Harass, threaten, embarrass, or cause distress or discomfort to any individual</li>
-            <li>Obscene or abusive language or graphic files</li>
-            <li>Disrupt the normal flow of dialogue within Ologywood</li>
-            <li>Attempt to gain unauthorized access to Ologywood</li>
-            <li>Engage in any form of fraud or deception</li>
-          </ul>
-        </section>
+          {/* Dispute Resolution */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">9. Dispute Resolution</h2>
+            <p className="text-base leading-relaxed">
+              Ologywood provides a platform for artists and venues to connect and conduct business. While we strive to facilitate positive interactions, Ologywood is not responsible for disputes between users. We encourage users to communicate directly to resolve any issues. If you have a dispute with another user, please contact our support team at <a href="mailto:info@ologywood.com" className="text-primary hover:underline">info@ologywood.com</a>.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>10. Booking Agreements</h2>
-          <p>
-            Bookings made through Ologywood are binding agreements between artists and venues. Both parties agree to honor the terms specified in the booking confirmation. Cancellations must follow the cancellation policy specified at the time of booking.
-          </p>
-        </section>
+          {/* Prohibited Conduct */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">10. Prohibited Conduct</h2>
+            <p className="text-base leading-relaxed">
+              You agree not to engage in any of the following prohibited conduct:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
+              <li>Harassing, threatening, or abusing other users</li>
+              <li>Posting false, misleading, or defamatory content</li>
+              <li>Attempting to gain unauthorized access to the Service or other users' accounts</li>
+              <li>Uploading viruses or malicious code</li>
+              <li>Spamming or sending unsolicited messages</li>
+              <li>Violating any applicable laws or regulations</li>
+              <li>Infringing on intellectual property rights</li>
+              <li>Engaging in fraud or deceptive practices</li>
+            </ul>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>11. Payments</h2>
-          <p>
-            All payments are processed through Stripe. By making a payment, you authorize Ologywood to charge your payment method for the booking amount. Ologywood is not responsible for payment processing errors or disputes.
-          </p>
-        </section>
+          {/* Account Termination */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">11. Account Termination</h2>
+            <p className="text-base leading-relaxed">
+              Ologywood reserves the right to terminate or suspend your account and access to the Service immediately, without prior notice or liability, for any reason whatsoever, including if you breach the Terms of Service. Upon termination, your right to use the Service will immediately cease.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>12. Intellectual Property Rights</h2>
-          <p>
-            All content on Ologywood, including text, graphics, logos, images, and software, is the property of Ologywood or its content suppliers and is protected by international copyright laws.
-          </p>
-        </section>
+          {/* Limitation of Liability */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">12. Limitation of Liability</h2>
+            <p className="text-base leading-relaxed">
+              To the fullest extent permitted by law, in no event shall Ologywood, its directors, employees, or agents be liable to you for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of or inability to use the Service.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>13. Governing Law</h2>
-          <p>
-            These terms and conditions are governed by and construed in accordance with the laws of the United States, and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
-          </p>
-        </section>
+          {/* Indemnification */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">13. Indemnification</h2>
+            <p className="text-base leading-relaxed">
+              You agree to indemnify, defend, and hold harmless Ologywood and its officers, directors, employees, and agents from any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising out of or related to your use of the Service or your violation of these Terms of Service.
+            </p>
+          </section>
 
-        <section style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#1f2937' }}>14. Contact Information</h2>
-          <p>
-            If you have any questions about these Terms of Service, please contact us at:
-          </p>
-          <p>
-            <strong>Email:</strong> legal@ologywood.com<br />
-            <strong>Address:</strong> Ologywood, Inc., 123 Music Lane, Nashville, TN 37201<br />
-            <strong>Phone:</strong> 1-800-OLOGYWOOD
-          </p>
-        </section>
-      </div>
+          {/* Third-Party Links */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">14. Third-Party Links</h2>
+            <p className="text-base leading-relaxed">
+              Ologywood's Service may contain links to third-party websites. Ologywood is not responsible for the content, accuracy, or practices of these external sites. Your use of third-party websites is at your own risk and subject to their terms and conditions.
+            </p>
+          </section>
+
+          {/* Intellectual Property Rights */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">15. Intellectual Property Rights</h2>
+            <p className="text-base leading-relaxed">
+              The Service and its entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio) are owned by Ologywood, its licensors, or other providers of such material and are protected by United States and international copyright, trademark, and other intellectual property laws.
+            </p>
+          </section>
+
+          {/* Governing Law */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">16. Governing Law</h2>
+            <p className="text-base leading-relaxed">
+              These Terms of Service and your use of the Service are governed by and construed in accordance with the laws of the State of Georgia, United States, without regard to its conflict of law provisions. You agree to submit to the exclusive jurisdiction of the courts located in Georgia.
+            </p>
+          </section>
+
+          {/* Entire Agreement */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">17. Entire Agreement</h2>
+            <p className="text-base leading-relaxed">
+              These Terms of Service, together with our Privacy Policy and any other policies or guidelines published on the Service, constitute the entire agreement between you and Ologywood regarding your use of the Service and supersede all prior and contemporaneous agreements, understandings, negotiations, and discussions, whether oral or written.
+            </p>
+          </section>
+
+          {/* Contact Information */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">18. Contact Information</h2>
+            <p className="text-base leading-relaxed">
+              If you have questions about these Terms of Service, please contact us:
+            </p>
+            <div className="bg-muted p-4 rounded-lg mt-4 space-y-2 text-base">
+              <p><strong>Ologywood</strong></p>
+              <p>Email: <a href="mailto:info@ologywood.com" className="text-primary hover:underline">info@ologywood.com</a></p>
+              <p>Phone: <a href="tel:678-525-0891" className="text-primary hover:underline">678-525-0891</a></p>
+              <p>Address: 171 Prestwick Dr, Hoschton, GA</p>
+            </div>
+          </section>
+        </div>
+
+        {/* Footer Navigation */}
+        <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row gap-4 justify-between">
+          <Link href="/privacy-policy">
+            <Button variant="outline" className="w-full sm:w-auto">
+              View Privacy Policy
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button className="w-full sm:w-auto">
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }
