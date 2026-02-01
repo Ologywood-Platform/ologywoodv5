@@ -18,7 +18,9 @@ import {
   contracts, InsertContract, Contract,
   signatures, InsertSignature, Signature,
   calendarEvents, InsertCalendarEvent, CalendarEvent,
-  calendarSyncTokens, InsertCalendarSyncToken, CalendarSyncToken
+  calendarSyncTokens, InsertCalendarSyncToken, CalendarSyncToken,
+  supportTickets, InsertSupportTicket, SupportTicket,
+  supportTicketResponses, InsertSupportTicketResponse, SupportTicketResponse
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
