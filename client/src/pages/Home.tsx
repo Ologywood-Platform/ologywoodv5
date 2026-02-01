@@ -36,12 +36,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
 
-  // Redirect authenticated users to dashboard
-  if (isAuthenticated && user?.role) {
-    const dashboardPath = user.role === 'artist' ? '/artist-dashboard' : '/venue-dashboard';
-    window.location.href = dashboardPath;
-    return null;
-  }
+  // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
 
   const filteredArtists = artists?.filter(artist => 
     searchQuery === "" || 
