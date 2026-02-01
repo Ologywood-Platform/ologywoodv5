@@ -48,6 +48,9 @@ import Marketing from "./pages/Marketing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
+import RiderBuilder from "./pages/RiderBuilder";
+import ContactForm from "./pages/ContactForm";
+import FAQ from "./pages/FAQ";
 
 function Router() {
   return (
@@ -66,6 +69,9 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/contact" component={Contact} />
+      <Route path="/rider-builder" component={RiderBuilder} />
+      <Route path="/contact-form" component={ContactForm} />
+      <Route path="/faq" component={FAQ} />
       <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
