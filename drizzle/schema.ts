@@ -796,3 +796,6 @@ export const venueInquiries = mysqlTable("venue_inquiries", {
 
 export type VenueInquiry = typeof venueInquiries.$inferSelect;
 export type InsertVenueInquiry = typeof venueInquiries.$inferInsert;
+
+
+

@@ -51,6 +51,7 @@ import Contact from "./pages/Contact";
 import { VenueGallery } from "./pages/VenueGallery";
 import { VenueReviews } from "./pages/VenueReviews";
 import RiderBuilder from "./pages/RiderBuilder";
+import SavedRiders from "./pages/SavedRiders";
 import ContactForm from "./pages/ContactForm";
 import FAQ from "./pages/FAQ";
 import OnboardingTutorials from "./pages/OnboardingTutorials";
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/terms" component={TermsOfService} />
       <Route path="/contact" component={Contact} />
       <Route path="/rider-builder" component={RiderBuilder} />
+      <Route path="/saved-riders" component={SavedRiders} />
       <Route path="/contact-form" component={ContactForm} />
       <Route path="/faq" component={FAQ} />
       <Route path="/tutorials" component={OnboardingTutorials} />

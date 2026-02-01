@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Plus, Trash2, Save, Share2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 interface RiderSection {
   id: string;
@@ -29,6 +30,12 @@ export default function RiderBuilder() {
     },
   ]);
 
+  const [templateName, setTemplateName] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTemplateMutation = trpc.riderManagement.saveTemplate.useMutation();
+
   const addSection = () => {
     const newId = Math.max(...sections.map((s) => parseInt(s.id)), 0) + 1;
     setSections([
@@ -49,6 +56,37 @@ export default function RiderBuilder() {
 
   const deleteSection = (id: string) => {
     setSections(sections.filter((s) => s.id !== id));
+  };
+
+  const saveAsTemplate = async () => {
+    if (!templateName.trim()) {
+      alert("Please enter a template name");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const cleanedSections = sections.map((s) => ({
+        title: s.title,
+        content: s.content,
+        isRequired: true,
+      }));
+
+      await saveTemplateMutation.mutateAsync({
+        templateName,
+        description: `Rider template created on ${new Date().toLocaleDateString()}`,
+        sections: cleanedSections,
+        isPublic,
+      });
+
+      alert("Rider template saved successfully!");
+      setShowSaveModal(false);
+      setTemplateName("");
+    } catch (error) {
+      alert("Failed to save template. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const downloadRider = () => {
@@ -96,9 +134,59 @@ export default function RiderBuilder() {
       {/* Content */}
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">
-            Rider Contract Template Builder
-          </h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+              Rider Contract Template Builder
+            </h1>
+            <Button
+              onClick={() => setShowSaveModal(true)}
+              className="gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Save className="h-4 w-4" />
+              Save Template
+            </Button>
+          </div>
+
+          {/* Save Modal */}
+          {showSaveModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <h2 className="text-2xl font-bold mb-4">Save Rider Template</h2>
+                <input
+                  type="text"
+                  placeholder="Template name (e.g., 'Standard Rider')"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="w-full border rounded px-3 py-2 mb-4"
+                />
+                <label className="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                  />
+                  <span>Make this template public (shareable)</span>
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={saveAsTemplate}
+                    disabled={isSaving}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    {isSaving ? "Saving..." : "Save Template"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowSaveModal(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <p className="text-muted-foreground mb-8">
             Create a professional rider template for your bookings. Customize technical requirements, hospitality needs, and payment terms.
           </p>
@@ -160,9 +248,10 @@ export default function RiderBuilder() {
               <Download className="h-5 w-5" />
               Download Rider
             </button>
-            <Link href="/">
-              <Button variant="outline" className="w-full sm:w-auto">
-                Back to Home
+            <Link href="/saved-riders">
+              <Button variant="outline" className="w-full sm:w-auto gap-2">
+                <Share2 className="h-4 w-4" />
+                My Templates
               </Button>
             </Link>
           </div>
@@ -170,7 +259,7 @@ export default function RiderBuilder() {
           {/* Info Box */}
           <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-900">
-              <strong>💡 Tip:</strong> Your rider template will be saved to your profile and can be shared with venues when making booking inquiries. You can update it anytime to reflect your current needs.
+              <strong>💡 Tip:</strong> Click "Save Template" to store your rider in your profile. You can reuse, edit, and share saved templates with venues when making booking inquiries.
             </p>
           </div>
         </div>

@@ -28,6 +28,7 @@ import { contractManagementRouter } from "./routers/contract-management";
 import { helpAndSupportRouter } from "./routers/helpAndSupport";
 import { contractPdfRouter } from "./routers/contractPdf";
 import { supportTicketsRouter } from "./routers/supportTickets";
+import { riderManagementRouter } from "./routers/riderManagement";
 import { semanticSearchRouter } from "./routers/semanticSearchRouter";
 import { evictionRouter } from "./routers/evictionRouter";
 import { helpCenterRouter } from "./routers/helpCenterRouter";
@@ -104,6 +105,7 @@ export const appRouter = router({
   user: userRouter,
   venueDirectory: venueDirectoryRouter,
   contact: contactRouter,
+  riderManagement: riderManagementRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))
