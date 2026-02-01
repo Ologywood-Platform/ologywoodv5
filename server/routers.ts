@@ -45,6 +45,7 @@ import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
 import { userRouter } from "./routers/userRouter";
 import { calendarRouter } from "./routers/calendarRouter";
 import { venueDirectoryRouter } from "./routers/venueDirectoryRouter";
+import { contactRouter } from "./routers/contact";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 import paymentTestingRoutes from "./routes/paymentTestingRoutes";
@@ -102,6 +103,7 @@ export const appRouter = router({
   smsNotifications: smsNotificationsRouter,
   user: userRouter,
   venueDirectory: venueDirectoryRouter,
+  contact: contactRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))

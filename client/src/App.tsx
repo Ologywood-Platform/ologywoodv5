@@ -51,6 +51,8 @@ import Contact from "./pages/Contact";
 import RiderBuilder from "./pages/RiderBuilder";
 import ContactForm from "./pages/ContactForm";
 import FAQ from "./pages/FAQ";
+import OnboardingTutorials from "./pages/OnboardingTutorials";
+import BookingAnalytics from "./pages/BookingAnalytics";
 
 function Router() {
   return (
@@ -72,6 +74,8 @@ function Router() {
       <Route path="/rider-builder" component={RiderBuilder} />
       <Route path="/contact-form" component={ContactForm} />
       <Route path="/faq" component={FAQ} />
+      <Route path="/tutorials" component={OnboardingTutorials} />
+      <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />

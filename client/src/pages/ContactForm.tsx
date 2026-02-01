@@ -2,34 +2,46 @@ import React, { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail, Phone, MapPin, Send } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    userType: "artist",
+    userType: "artist" as const,
     subject: "",
     message: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const contactMutation = trpc.contact.submitContactForm.useMutation();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send to your backend
-    console.log("Form submitted:", formData);
-    setSubmitted(true);
-    setTimeout(() => {
+    setLoading(true);
+    setError("");
+
+    try {
+      await contactMutation.mutateAsync(formData);
+      setSubmitted(true);
       setFormData({ name: "", email: "", userType: "artist", subject: "", message: "" });
-      setSubmitted(false);
-    }, 3000);
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,6 +122,12 @@ export default function ContactForm() {
               </div>
             )}
 
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-900">✗ {error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold mb-2">Name</label>
@@ -179,10 +197,11 @@ export default function ContactForm() {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-semibold"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="h-5 w-5" />
-                Send Message
+                {loading ? "Sending..." : "Send Message"}
               </button>
             </form>
           </div>
