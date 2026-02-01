@@ -57,6 +57,8 @@ import OnboardingTutorials from "./pages/OnboardingTutorials";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import { DemoVenueProfile } from "./pages/DemoVenueProfile";
 import EmailVerification from "./pages/EmailVerification";
+import BookingCalendar from "./pages/BookingCalendar";
+import ReferralProgram from "./pages/ReferralProgram";
 
 function Router() {
   return (
@@ -84,6 +86,8 @@ function Router() {
       <Route path="/venue-reviews" component={VenueReviews} />
       <Route path="/demo-venue" component={DemoVenueProfile} />
       <Route path="/verify-email" component={EmailVerification} />
+      <Route path="/booking-calendar" component={BookingCalendar} />
+      <Route path="/referral" component={ReferralProgram} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />

@@ -2561,3 +2561,9 @@ The Ologywood platform is production-ready with:
 - [x] Build referral program with credits/discounts - referralProgramService.ts
 - [x] Test all three features end-to-end
 - [x] Final checkpoint and publication
+
+
+## Growth-Accelerating Features (In Progress)
+- [ ] Real-Time Booking Notifications (WebSocket)
+- [ ] Booking Calendar Integration (Venue Availability)
+- [ ] Referral Program with Rewards & Leaderboards
