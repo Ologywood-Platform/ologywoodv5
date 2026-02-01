@@ -2593,3 +2593,12 @@ The Ologywood platform is production-ready with:
 - [x] Fixed database query errors on /support page
 - [x] All support router tests passing (6/6)
 - [x] User can now view support tickets without errors
+
+
+## Artist Dashboard Access Control Fix (COMPLETED)
+- [x] Identified role-based access control issue on /artist-dashboard
+- [x] Updated artistProcedure to allow both artists and venues to access contracts
+- [x] Created comprehensive access control tests (4 tests passing)
+- [x] Verified venue users can now access artist dashboard
+- [x] Verified artists and admins still have access
+- [x] Verified unauthorized roles are still blocked

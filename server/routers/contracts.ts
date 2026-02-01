@@ -5,10 +5,10 @@ import { TRPCError } from '@trpc/server';
 import * as email from '../email';
 import { v4 as uuidv4 } from 'uuid';
 
-// Helper to check if user is an artist
+// Helper to check if user is an artist or venue
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Artist access required' });
+  if (ctx.user.role !== 'artist' && ctx.user.role !== 'venue' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Artist or venue access required' });
   }
   return next({ ctx });
 });
