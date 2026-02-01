@@ -100,23 +100,21 @@ export default function DashboardV2() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-                <Music className="h-8 w-8" />
-                <span className="hidden sm:inline">Ologywood</span>
-              </Link>
-            </div>
+        <div className="w-full px-3 sm:px-4 py-2 sm:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold text-primary flex-shrink-0">
+              <Music className="h-6 sm:h-8 w-6 sm:w-8" />
+              <span className="hidden sm:inline">Ologywood</span>
+            </Link>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 sm:gap-4 ml-auto">
               {unreadCount && unreadCount.count > 0 && (
                 <Link href="/messages">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <MessageSquare className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="relative h-8 sm:h-10 w-8 sm:w-10 p-0 sm:px-3">
+                    <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
                     <Badge 
                       variant="destructive" 
-                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                      className="absolute -top-1 -right-1 h-4 sm:h-5 w-4 sm:w-5 flex items-center justify-center p-0 text-xs"
                     >
                       {unreadCount.count}
                     </Badge>
@@ -124,13 +122,13 @@ export default function DashboardV2() {
                 </Link>
               )}
               <Link href="/settings">
-                <Button variant="ghost" size="sm">
-                  <Settings className="h-5 w-5" />
+                <Button variant="ghost" size="sm" className="h-8 sm:h-10 w-8 sm:w-10 p-0 sm:px-3">
+                  <Settings className="h-4 sm:h-5 w-4 sm:w-5" />
                 </Button>
               </Link>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground hidden sm:inline">{user.name || user.email}</span>
-                <Badge variant="secondary" className="hidden sm:inline">
+              <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline truncate">{user.name || user.email}</span>
+                <Badge variant="secondary" className="hidden sm:inline text-xs">
                   {isArtist ? 'Artist' : isVenue ? 'Venue' : user.role}
                 </Badge>
               </div>
@@ -139,11 +137,12 @@ export default function DashboardV2() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-3 sm:px-4 py-4 sm:py-8">
+        <div className="max-w-6xl mx-auto">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Welcome back, {user.name?.split(' ')[0]}!</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 break-words">Welcome back, {user.name?.split(' ')[0]}!</h1>
+          <p className="text-xs sm:text-base text-muted-foreground">
             {isArtist 
               ? 'Manage your bookings, availability, and riders' 
               : 'Manage your venues, bookings, and artist connections'}
@@ -400,6 +399,7 @@ export default function DashboardV2() {
             </TabsContent>
           )}
         </Tabs>
+        </div>
       </div>
     </div>
   );

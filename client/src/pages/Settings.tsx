@@ -42,155 +42,200 @@ export default function Settings() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <div className="w-24" />
+        <div className="w-full px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <Link href="/dashboard" className="flex-shrink-0">
+              <Button variant="ghost" size="sm" className="h-8 sm:h-10 px-2 sm:px-3">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden xs:inline ml-1 text-xs sm:text-sm">Back</span>
+              </Button>
+            </Link>
+            <h1 className="text-lg sm:text-2xl font-bold flex-1 text-center truncate">Settings</h1>
+            <div className="w-12 sm:w-24 flex-shrink-0" />
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2 mb-8">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="media" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              <span className="hidden sm:inline">Media</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Alerts</span>
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
-              <span className="hidden sm:inline">Privacy</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <span className="hidden sm:inline">Billing</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="w-full px-3 sm:px-4 py-4 sm:py-8">
+        <div className="max-w-4xl mx-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {/* Mobile Tabs - Scrollable */}
+            <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 mb-6 sm:mb-8">
+              <TabsList className="inline-flex w-full sm:w-auto sm:grid sm:grid-cols-5 gap-1 sm:gap-2 bg-muted p-1">
+                <TabsTrigger 
+                  value="profile" 
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Profile</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="media" 
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Image className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Media</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="notifications" 
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Bell className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Alerts</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="privacy" 
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Lock className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Privacy</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="billing" 
+                  className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <Zap className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Billing</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  {isArtist 
-                    ? 'Update your artist profile details' 
-                    : 'Update your venue profile details'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isArtist ? (
-                  <ArtistProfileEditor />
-                ) : (
-                  <VenueProfileEditor />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-3 sm:space-y-4">
+              <Card className="border">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Profile Information</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    {isArtist 
+                      ? 'Update your artist profile details' 
+                      : 'Update your venue profile details'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {isArtist ? (
+                    <ArtistProfileEditor />
+                  ) : (
+                    <VenueProfileEditor />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Media Tab */}
-          <TabsContent value="media" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Media Gallery</CardTitle>
-                <CardDescription>
-                  Manage your photos and media files
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PhotoGalleryManager role={isArtist ? 'artist' : 'venue'} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* Media Tab */}
+            <TabsContent value="media" className="space-y-3 sm:space-y-4">
+              <Card className="border">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Media Gallery</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Manage your photos and media files
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <PhotoGalleryManager role={isArtist ? 'artist' : 'venue'} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Control how and when you receive notifications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <NotificationPreferences />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* Notifications Tab */}
+            <TabsContent value="notifications" className="space-y-3 sm:space-y-4">
+              <Card className="border">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Notification Preferences</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Control how and when you receive notifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <NotificationPreferences />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Privacy Tab */}
-          <TabsContent value="privacy" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacy & Security</CardTitle>
-                <CardDescription>
-                  Manage your privacy settings and security options
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Profile Visibility</p>
-                      <p className="text-sm text-muted-foreground">Control who can see your profile</p>
+            {/* Privacy Tab */}
+            <TabsContent value="privacy" className="space-y-3 sm:space-y-4">
+              <Card className="border">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Privacy & Security</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Manage your privacy settings and security options
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2 sm:space-y-3">
+                    {/* Profile Visibility */}
+                    <div className="p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base break-words">Profile Visibility</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Control who can see your profile</p>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm">
+                          Configure
+                        </Button>
+                      </div>
                     </div>
-                    <Button variant="outline" size="sm">Configure</Button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Data Download</p>
-                      <p className="text-sm text-muted-foreground">Download your personal data</p>
-                    </div>
-                    <Button variant="outline" size="sm">Download</Button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Account Deletion</p>
-                      <p className="text-sm text-muted-foreground">Permanently delete your account</p>
-                    </div>
-                    <Button variant="destructive" size="sm">Delete Account</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Billing Tab */}
-          <TabsContent value="billing" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing & Subscription</CardTitle>
-                <CardDescription>
-                  Manage your subscription and billing information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="p-4 border rounded-lg bg-muted">
-                    <p className="font-medium mb-2">Current Plan</p>
-                    <p className="text-2xl font-bold text-primary">Free Plan</p>
-                    <p className="text-sm text-muted-foreground mt-2">Upgrade to unlock premium features</p>
+                    {/* Data Download */}
+                    <div className="p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base break-words">Data Download</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Download your personal data</p>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm">
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Account Deletion */}
+                    <div className="p-3 sm:p-4 border rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base break-words">Account Deletion</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Permanently delete your account</p>
+                        </div>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
+                        >
+                          Delete Account
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <Link href="/upgrade">
-                    <Button className="w-full">View Upgrade Options</Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Billing Tab */}
+            <TabsContent value="billing" className="space-y-3 sm:space-y-4">
+              <Card className="border">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Billing & Subscription</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm mt-1">
+                    Manage your subscription and billing information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="p-3 sm:p-4 border rounded-lg bg-muted">
+                      <p className="font-medium text-sm sm:text-base mb-2">Current Plan</p>
+                      <p className="text-xl sm:text-2xl font-bold text-primary">Free Plan</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-2">Upgrade to unlock premium features</p>
+                    </div>
+                    <Link href="/upgrade" className="block">
+                      <Button className="w-full text-xs sm:text-sm h-9 sm:h-10">
+                        View Upgrade Options
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
