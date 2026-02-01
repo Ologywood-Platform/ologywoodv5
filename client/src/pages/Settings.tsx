@@ -10,12 +10,20 @@ import { ArtistProfileEditor } from '@/components/ArtistProfileEditor';
 import { VenueProfileEditor } from '@/components/VenueProfileEditor';
 import { PhotoGalleryManager } from '@/components/PhotoGalleryManager';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
+import { PrivacySecurityModal } from '@/components/PrivacySecurityModal';
 import { Link } from 'wouter';
 
 export default function Settings() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+  const [privacyModalType, setPrivacyModalType] = useState<'visibility' | 'download' | 'delete'>('visibility');
+
+  const openPrivacyModal = (type: 'visibility' | 'download' | 'delete') => {
+    setPrivacyModalType(type);
+    setPrivacyModalOpen(true);
+  };
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -169,7 +177,12 @@ export default function Settings() {
                           <p className="font-medium text-sm sm:text-base break-words">Profile Visibility</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Control who can see your profile</p>
                         </div>
-                        <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
+                          onClick={() => openPrivacyModal('visibility')}
+                        >
                           Configure
                         </Button>
                       </div>
@@ -182,7 +195,12 @@ export default function Settings() {
                           <p className="font-medium text-sm sm:text-base break-words">Data Download</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Download your personal data</p>
                         </div>
-                        <Button variant="outline" size="sm" className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
+                          onClick={() => openPrivacyModal('download')}
+                        >
                           Download
                         </Button>
                       </div>
@@ -199,6 +217,7 @@ export default function Settings() {
                           variant="destructive" 
                           size="sm" 
                           className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
+                          onClick={() => openPrivacyModal('delete')}
                         >
                           Delete Account
                         </Button>
@@ -237,6 +256,13 @@ export default function Settings() {
           </Tabs>
         </div>
       </div>
+
+      {/* Privacy & Security Modal */}
+      <PrivacySecurityModal 
+        open={privacyModalOpen}
+        onOpenChange={setPrivacyModalOpen}
+        type={privacyModalType}
+      />
     </div>
   );
 }
