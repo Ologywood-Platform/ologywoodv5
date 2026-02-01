@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -96,6 +97,7 @@ const mockVenueReviews: VenueReview[] = [
 ];
 
 export function VenueReviews() {
+  const [, navigate] = useLocation();
   const [selectedVenue, setSelectedVenue] = useState<VenueReview | null>(mockVenueReviews[0]);
   const [sortBy, setSortBy] = useState<'recent' | 'helpful' | 'rating'>('recent');
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -311,7 +313,10 @@ export function VenueReviews() {
                     <p className="text-slate-600 mb-4">
                       Share your experience and help other artists make informed decisions
                     </p>
-                    <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Button 
+                      onClick={() => navigate('/demo-venue')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                    >
                       Write a Review
                     </Button>
                   </CardContent>

@@ -55,6 +55,7 @@ import ContactForm from "./pages/ContactForm";
 import FAQ from "./pages/FAQ";
 import OnboardingTutorials from "./pages/OnboardingTutorials";
 import BookingAnalytics from "./pages/BookingAnalytics";
+import { DemoVenueProfile } from "./pages/DemoVenueProfile";
 
 function Router() {
   return (
@@ -80,6 +81,7 @@ function Router() {
       <Route path="/analytics" component={BookingAnalytics} />
       <Route path="/venue-gallery" component={VenueGallery} />
       <Route path="/venue-reviews" component={VenueReviews} />
+      <Route path="/demo-venue" component={DemoVenueProfile} />
       <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />

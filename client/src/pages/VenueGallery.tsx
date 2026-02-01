@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Share2, Facebook, Twitter, Linkedin, Instagram, X } from 'lucide-react';
@@ -71,6 +72,7 @@ const mockVenueGalleries: Venue[] = [
 ];
 
 export function VenueGallery() {
+  const [, navigate] = useLocation();
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(mockVenueGalleries[0]);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(
     mockVenueGalleries[0]?.gallery[0] || null
@@ -235,7 +237,10 @@ export function VenueGallery() {
                       {selectedVenue.name} is a premier venue in {selectedVenue.location}. 
                       Browse our photo gallery to see the amazing facilities and atmosphere.
                     </p>
-                    <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    <Button 
+                      onClick={() => navigate('/demo-venue')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                    >
                       View Full Profile
                     </Button>
                   </CardContent>
