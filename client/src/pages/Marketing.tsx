@@ -373,7 +373,7 @@ export default function Marketing() {
             <li>✓ Collaborate with team members</li>
           </ul>
           <a
-            href={getLoginUrl()}
+            href={`${getLoginUrl()}?role=venue`}
             style={{
               padding: '0.75rem 1.5rem',
               background: '#667eea',
@@ -576,7 +576,7 @@ export default function Marketing() {
               Sign Up as Artist
             </a>
             <a
-              href={getLoginUrl()}
+              href={`${getLoginUrl()}?role=venue`}
               style={{
                 padding: isMobile ? '0.6rem 1.2rem' : '0.75rem 1.5rem',
                 background: 'white',
