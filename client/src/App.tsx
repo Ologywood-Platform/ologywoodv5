@@ -60,6 +60,8 @@ import { DemoVenueProfile } from "./pages/DemoVenueProfile";
 import EmailVerification from "./pages/EmailVerification";
 import BookingCalendar from "./pages/BookingCalendar";
 import ReferralProgram from "./pages/ReferralProgram";
+import Settings from "./pages/Settings";
+import DashboardV2 from "./pages/DashboardV2";
 
 function Router() {
   return (
@@ -90,6 +92,8 @@ function Router() {
       <Route path="/verify-email" component={EmailVerification} />
       <Route path="/booking-calendar" component={BookingCalendar} />
       <Route path="/referral" component={ReferralProgram} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/dashboard-v2" component={DashboardV2} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/get-started" component={RoleSelection} />
