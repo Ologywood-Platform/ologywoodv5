@@ -3,8 +3,6 @@
  * Calculates venue profile completion percentage based on filled fields
  */
 
-import { VenueProfile } from '@/drizzle/schema';
-
 export interface ProfileCompletionBreakdown {
   basicInfo: number; // organizationName, contactName, location
   contact: number; // email, contactPhone
@@ -20,7 +18,7 @@ export interface ProfileCompletionBreakdown {
  * Calculate profile completion score
  * Returns a score from 0-100 based on how many fields are filled
  */
-export function calculateProfileCompletion(profile: VenueProfile): ProfileCompletionBreakdown {
+export function calculateProfileCompletion(profile: any): ProfileCompletionBreakdown {
   const completedFields: string[] = [];
   const missingFields: string[] = [];
 
