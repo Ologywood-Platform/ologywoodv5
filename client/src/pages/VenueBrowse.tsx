@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Users, Star, Phone, Globe } from 'lucide-react';
+import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
 
 interface Venue {
   id: number;
@@ -30,10 +30,10 @@ const mockVenues: Venue[] = [
     venueType: 'Club',
     capacity: 300,
     amenities: ['PA System', 'Stage', 'Parking', 'Bar'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500&h=300&fit=crop',
+    profilePhotoUrl: '/venues/blue-room.jpg',
     averageRating: 4.8,
     reviewCount: 24,
-    bio: 'Intimate live music venue in downtown LA featuring local and touring artists.',
+    bio: 'Intimate live music venue in downtown LA featuring local and touring artists. Cozy setting with vintage concert posters and professional stage lighting.',
     website: 'https://theblueroom.com',
     contactPhone: '(213) 555-0101',
     email: 'info@theblueroom.com',
@@ -45,10 +45,10 @@ const mockVenues: Venue[] = [
     venueType: 'Theater',
     capacity: 800,
     amenities: ['Full PA System', 'Professional Lighting', 'Dressing Rooms', 'Parking'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=300&fit=crop',
+    profilePhotoUrl: '/venues/sunset-theater.jpg',
     averageRating: 4.9,
     reviewCount: 42,
-    bio: 'Historic theater hosting concerts, comedy, and theatrical productions.',
+    bio: 'Historic theater hosting concerts, comedy, and theatrical productions. Grand auditorium with ornate architecture and professional theatrical lighting.',
     website: 'https://sunsettheater.com',
     contactPhone: '(213) 555-0102',
     email: 'bookings@sunsettheater.com',
@@ -60,10 +60,10 @@ const mockVenues: Venue[] = [
     venueType: 'Club',
     capacity: 250,
     amenities: ['DJ Booth', 'Dance Floor', 'Bar', 'Parking'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&h=300&fit=crop',
+    profilePhotoUrl: '/venues/downtown-club.jpg',
     averageRating: 4.6,
     reviewCount: 18,
-    bio: 'Modern nightclub with state-of-the-art sound and lighting.',
+    bio: 'Modern nightclub with state-of-the-art sound and lighting. Contemporary design with vibrant LED lighting and professional DJ booth.',
     website: 'https://downtownclub.com',
     contactPhone: '(213) 555-0103',
     email: 'info@downtownclub.com',
@@ -75,10 +75,10 @@ const mockVenues: Venue[] = [
     venueType: 'Outdoor',
     capacity: 5000,
     amenities: ['Outdoor Stage', 'Seating', 'Parking', 'Food Vendors'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=300&fit=crop',
+    profilePhotoUrl: '/venues/amphitheater.jpg',
     averageRating: 4.7,
     reviewCount: 56,
-    bio: 'Large outdoor amphitheater perfect for festivals and major events.',
+    bio: 'Large outdoor amphitheater perfect for festivals and major events. Beautiful natural setting with professional stage and stadium seating for thousands.',
     website: 'https://theamphitheater.com',
     contactPhone: '(310) 555-0104',
     email: 'events@theamphitheater.com',

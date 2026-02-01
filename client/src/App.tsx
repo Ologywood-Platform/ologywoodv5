@@ -48,6 +48,8 @@ import Marketing from "./pages/Marketing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
+import { VenueGallery } from "./pages/VenueGallery";
+import { VenueReviews } from "./pages/VenueReviews";
 import RiderBuilder from "./pages/RiderBuilder";
 import ContactForm from "./pages/ContactForm";
 import FAQ from "./pages/FAQ";
@@ -76,6 +78,8 @@ function Router() {
       <Route path="/faq" component={FAQ} />
       <Route path="/tutorials" component={OnboardingTutorials} />
       <Route path="/analytics" component={BookingAnalytics} />
+      <Route path="/venue-gallery" component={VenueGallery} />
+      <Route path="/venue-reviews" component={VenueReviews} />
       <Route path="/home" component={Home} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
