@@ -75,7 +75,7 @@ function Router() {
       <Route path="/tutorial-example" component={VenueProfileTutorialExample} />
       <Route path="/upgrade" component={UpgradePlan} />
       <Route path="/team" component={TeamManagement} />
-      <Route path="/" component={Marketing} />
+      <Route path="/" component={Home} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
