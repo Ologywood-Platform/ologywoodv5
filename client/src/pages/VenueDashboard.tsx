@@ -1,277 +1,356 @@
 import React, { useState } from 'react';
-import { ContractManagementDashboard } from '../components/ContractManagementDashboard';
-import { trpc } from '../lib/trpc';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Calendar,
+  Settings,
+  Search,
+  MessageSquare,
+  Heart,
+  ArrowLeft,
+  Menu,
+  X,
+  BarChart3,
+  Music,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@/lib/trpc';
+import { useLocation } from 'wouter';
 
-interface Contract {
-  id: string;
-  artistName: string;
-  venueName: string;
-  eventDate: string;
-  eventTime: string;
-  status: 'pending' | 'signed' | 'expired' | 'rejected';
-  createdAt: string;
-  expiresAt: string;
-  artistSigned: boolean;
-  venueSigned: boolean;
-  artistSignedAt?: string;
-  venueSignedAt?: string;
-  contractUrl: string;
-}
+export function VenueDashboard() {
+  const [, navigate] = useLocation();
+  const [activeSection, setActiveSection] = useState('overview');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-export const VenueDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'contracts' | 'events'>('overview');
-  
-  // Fetch contracts using TRPC
-  const { data: contractsData } = trpc.contracts.getArtistContracts.useQuery();
-  
-  const contracts: Contract[] = contractsData?.map((c: any) => ({
-    id: c.id.toString(),
-    artistName: c.artistName,
-    venueName: c.venueName,
-    eventDate: c.eventDate,
-    eventTime: c.eventTime,
-    status: c.status,
-    createdAt: c.createdAt,
-    expiresAt: c.expiresAt,
-    artistSigned: c.artistSigned,
-    venueSigned: c.venueSigned,
-    artistSignedAt: c.artistSignedAt,
-    venueSignedAt: c.venueSignedAt,
-    contractUrl: c.contractUrl,
-  })) || [];
+  const { data: user } = useQuery({
+    queryKey: ['auth.me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me');
+      if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    },
+  });
 
-  const handleContractClick = (contractId: string) => {
-    // Navigate to contract detail view
-    console.log('View contract:', contractId);
-  };
+  const { data: venueProfile } = trpc.venue.getMyProfile.useQuery();
+  const { data: bookings } = trpc.booking.getMyVenueBookings.useQuery();
 
-  const sendReminderMutation = trpc.contracts.sendManualReminders.useMutation();
-
-  const handleSendReminder = async (contractIds: string[]) => {
-    try {
-      await sendReminderMutation.mutateAsync({ 
-        contractIds: contractIds.map(id => parseInt(id, 10)) 
-      });
-      alert('Reminders sent successfully!');
-    } catch (error) {
-      console.error('Error sending reminders:', error);
-      alert('Failed to send reminders');
-    }
-  };
-
-  const handleDownloadContract = async (contractId: string) => {
-    try {
-      const exportMutation = trpc.contracts.exportContractData.useMutation();
-      const result = await exportMutation.mutateAsync({ format: 'json' });
-      
-      const blob = new Blob([result.url], { type: 'text/html' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `contract-${contractId}.html`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading contract:', error);
-      alert('Failed to download contract');
-    }
-  };
+  // Navigation sections with logical grouping for venues
+  const navigationSections = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: BarChart3,
+      description: 'Dashboard & quick stats',
+    },
+    {
+      id: 'discover',
+      label: 'Discover',
+      icon: Search,
+      description: 'Browse & find artists',
+    },
+    {
+      id: 'bookings',
+      label: 'Bookings',
+      icon: Calendar,
+      description: 'Manage bookings & events',
+    },
+    {
+      id: 'saved',
+      label: 'Saved Artists',
+      icon: Heart,
+      description: 'Your favorite artists',
+    },
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: Music,
+      description: 'Edit venue info & media',
+    },
+    {
+      id: 'communication',
+      label: 'Communication',
+      icon: MessageSquare,
+      description: 'Messages & notifications',
+    },
+    {
+      id: 'account',
+      label: 'Account',
+      icon: Settings,
+      description: 'Settings & support',
+    },
+  ];
 
   return (
-    <div style={{ padding: '20px' }}>
-      <style>{`
-        .dashboard-container {
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .dashboard-header {
-          margin-bottom: 30px;
-        }
-
-        .dashboard-header h1 {
-          font-size: 32px;
-          font-weight: 700;
-          margin: 0 0 10px 0;
-          color: #1f2937;
-        }
-
-        .dashboard-header p {
-          font-size: 16px;
-          color: #6b7280;
-          margin: 0;
-        }
-
-        .tabs {
-          display: flex;
-          gap: 0;
-          margin: 30px 0 20px 0;
-          border-bottom: 2px solid #e5e7eb;
-        }
-
-        .tab-button {
-          padding: 12px 20px;
-          border: none;
-          background: transparent;
-          font-size: 15px;
-          font-weight: 600;
-          color: #6b7280;
-          cursor: pointer;
-          border-bottom: 3px solid transparent;
-          transition: all 0.3s;
-          margin-bottom: -2px;
-        }
-
-        .tab-button.active {
-          color: #7c3aed;
-          border-bottom-color: #7c3aed;
-        }
-
-        .tab-button:hover {
-          color: #1f2937;
-        }
-
-        .tab-content {
-          display: none;
-        }
-
-        .tab-content.active {
-          display: block;
-        }
-
-        .overview-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          margin-bottom: 30px;
-        }
-
-        .stat-card {
-          background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
-          color: white;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
-        }
-
-        .stat-card h3 {
-          font-size: 14px;
-          font-weight: 600;
-          opacity: 0.9;
-          margin: 0 0 10px 0;
-        }
-
-        .stat-value {
-          font-size: 32px;
-          font-weight: 700;
-          margin: 0;
-        }
-
-        .loading {
-          text-align: center;
-          padding: 40px;
-          color: #6b7280;
-        }
-
-        .loading-spinner {
-          display: inline-block;
-          width: 40px;
-          height: 40px;
-          border: 4px solid rgba(124, 58, 237, 0.3);
-          border-top-color: #7c3aed;
-          border-radius: 50%;
-          animation: spin 0.6s linear infinite;
-          margin-bottom: 10px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>🎭 Venue Dashboard</h1>
-          <p>Manage your events, artist contracts, and booking details</p>
-        </div>
-
-        <div className="tabs">
-          <button
-            className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'contracts' ? 'active' : ''}`}
-            onClick={() => setActiveTab('contracts')}
-          >
-            Contracts
-          </button>
-          <button
-            className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-            onClick={() => setActiveTab('events')}
-          >
-            Events
-          </button>
-        </div>
-
-        <div className={`tab-content ${activeTab === 'overview' ? 'active' : ''}`}>
-          <div className="overview-grid">
-            <div className="stat-card">
-              <h3>Total Contracts</h3>
-              <p className="stat-value">{contracts.length}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Awaiting Signature</h3>
-              <p className="stat-value">{contracts.filter((c) => c.status === 'pending').length}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Confirmed Events</h3>
-              <p className="stat-value">{contracts.filter((c) => c.status === 'signed').length}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Upcoming Events</h3>
-              <p className="stat-value">
-                {contracts.filter((c) => new Date(c.eventDate) > new Date()).length}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Venue Dashboard</h1>
+              <p className="text-sm text-slate-600">{user?.name || 'Venue'}</p>
             </div>
           </div>
-        </div>
 
-        <div className={`tab-content ${activeTab === 'contracts' ? 'active' : ''}`}>
-          {!contracts ? (
-            <div className="loading">
-              <div className="loading-spinner"></div>
-              <p>Loading your contracts...</p>
-            </div>
-          ) : !contracts?.length ? (
-            <div style={{ padding: '20px', background: '#fee2e2', color: '#991b1b', borderRadius: '6px' }}>
-              <p>No contracts found. Please try again later.</p>
-            </div>
-          ) : (
-            <ContractManagementDashboard
-              contracts={contracts || []}
-              userRole="venue"
-              userName={contractsData && contractsData.length > 0 ? (contractsData[0] as any)?.venueName || 'Your Venue' : 'Your Venue'}
-              onContractClick={handleContractClick}
-              onSendReminder={handleSendReminder}
-              onDownloadContract={handleDownloadContract}
-              isLoading={false}
-            />
-          )}
+          {/* Mobile Menu Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
         </div>
+      </header>
 
-        <div className={`tab-content ${activeTab === 'events' ? 'active' : ''}`}>
-          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-            <p>Events calendar feature coming soon</p>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Sidebar Navigation */}
+          <aside
+            className={`md:col-span-1 ${
+              mobileMenuOpen ? 'block' : 'hidden md:block'
+            }`}
+          >
+            <div className="space-y-2 sticky top-24">
+              {navigationSections.map((section) => {
+                const Icon = section.icon;
+                const isActive = activeSection === section.id;
+
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => {
+                      setActiveSection(section.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-start gap-3 ${
+                      isActive
+                        ? 'bg-primary text-white shadow-md'
+                        : 'bg-white text-slate-900 hover:bg-slate-50 border border-slate-200'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">{section.label}</div>
+                      <div
+                        className={`text-xs ${
+                          isActive
+                            ? 'text-white/80'
+                            : 'text-slate-600'
+                        }`}
+                      >
+                        {section.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="md:col-span-3">
+            {activeSection === 'overview' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-slate-600">
+                        Total Bookings
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">
+                        {bookings?.length || 0}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-slate-600">
+                        Profile Completion
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">
+                        {venueProfile?.profileCompletionScore || 0}%
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium text-slate-600">
+                        Venue Rating
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">
+                        {venueProfile?.averageRating?.toFixed(1) || 'N/A'}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setActiveSection('discover')}
+                    >
+                      Find Artists
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setActiveSection('bookings')}
+                    >
+                      View Bookings
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setActiveSection('profile')}
+                    >
+                      Edit Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setActiveSection('communication')}
+                    >
+                      Messages
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeSection === 'discover' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Discover Artists</CardTitle>
+                  <CardDescription>
+                    Browse and search for artists to book
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Artist discovery interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'bookings' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bookings & Events</CardTitle>
+                  <CardDescription>
+                    Manage your event bookings and calendar
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Booking management interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'saved' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved Artists</CardTitle>
+                  <CardDescription>
+                    Your favorite artists and bookmarks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Saved artists interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'profile' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Venue Profile</CardTitle>
+                  <CardDescription>
+                    Edit your venue information and media
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Venue profile editing interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'communication' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Messages & Notifications</CardTitle>
+                  <CardDescription>
+                    Stay connected with artists and manage alerts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Communication interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'account' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Settings</CardTitle>
+                  <CardDescription>
+                    Manage subscription, support, and preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Account settings interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </main>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default VenueDashboard;

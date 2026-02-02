@@ -23,10 +23,10 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export function ArtistDashboardV3() {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
