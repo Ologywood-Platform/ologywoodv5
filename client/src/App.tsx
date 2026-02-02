@@ -44,7 +44,7 @@ import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
 import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample";
 import UpgradePlan from "./pages/UpgradePlan";
 import TeamManagement from "./pages/TeamManagement";
-
+import Marketing from "./pages/Marketing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
@@ -75,7 +75,7 @@ function Router() {
       <Route path="/tutorial-example" component={VenueProfileTutorialExample} />
       <Route path="/upgrade" component={UpgradePlan} />
       <Route path="/team" component={TeamManagement} />
-      <Route path="/" component={Home} />
+      <Route path="/" component={Marketing} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />

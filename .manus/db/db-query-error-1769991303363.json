@@ -1,8 +1,0 @@
-{
-  "query": "INSERT INTO artist_profiles (userId, stageName, bio, genres, location, availabilityStatus, website, email, phone, profilePhotoUrl, mediaGallery, averageRating, reviewCount, bookingsCompleted, hourlyRate, minimumBookingLength, travelRadius, equipment, socialMediaLinks, profileCompletionScore, profileCompletionUpdatedAt, createdAt, updatedAt) VALUES (1, 'Test Artist', 'Test bio', JSON_ARRAY('Rock', 'Pop'), 'New York', 'available', 'https://example.com', 'artist@example.com', '555-1234', '', JSON_ARRAY(), 0, 0, 0, 100, 2, 50, JSON_ARRAY(), JSON_OBJECT(), 50, NOW(), NOW(), NOW()) ON DUPLICATE KEY UPDATE stageName='Test Artist';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute INSERT INTO artist_profiles (userId, stageName, bio, genres, location, availabilityStatus, website, email, phone, profilePhotoUrl, mediaGallery, averageRating, reviewCount, bookingsCompleted, hourlyRate, minimumBookingLength, travelRadius, equipment, socialMediaLinks, profileCompletionScore, profileCompletionUpdatedAt, createdAt, updatedAt) VALUES (1, 'Test Artist', 'Test bio', JSON_ARRAY('Rock', 'Pop'), 'New York', 'available', 'https://example.com', 'artist@example.com', '555-1234', '', JSON_ARRAY(), 0, 0, 0, 100, 2, 50, JSON_ARRAY(), JSON_OBJECT(), 50, NOW(), NOW(), NOW()) ON DUPLICATE KEY UPDATE stageName='Test Artist';",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'stageName' in 'field list'"
-  ]
-}

@@ -1,25 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getLoginUrl } from '../const';
 
 export default function Marketing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
-  // Check if user is signed in and redirect
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          // User is signed in, redirect to dashboard
-          window.location.href = '/dashboard';
-        }
-      } catch (error) {
-        // User is not signed in, show marketing page
-      }
-    };
-    checkAuth();
-  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -116,6 +100,7 @@ export default function Marketing() {
                 display: 'flex',
                 alignItems: 'center',
               }}
+              aria-label="Toggle menu"
             >
               ☰
             </button>
@@ -125,16 +110,16 @@ export default function Marketing() {
         {/* Mobile Menu */}
         {isMobile && mobileMenuOpen && (
           <div style={{
-            marginTop: '1rem',
-            paddingTop: '1rem',
-            borderTop: '1px solid #eee',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
+            marginTop: '1rem',
+            paddingTop: '1rem',
+            borderTop: '1px solid #eee',
           }}>
-            <a href="#features" style={{ color: '#666', textDecoration: 'none' }}>Features</a>
-            <a href="#pricing" style={{ color: '#666', textDecoration: 'none' }}>Pricing</a>
-            <a href="#testimonials" style={{ color: '#666', textDecoration: 'none' }}>Reviews</a>
+            <a href="#features" style={{ color: '#666', textDecoration: 'none', fontSize: '0.95rem' }}>Features</a>
+            <a href="#pricing" style={{ color: '#666', textDecoration: 'none', fontSize: '0.95rem' }}>Pricing</a>
+            <a href="#testimonials" style={{ color: '#666', textDecoration: 'none', fontSize: '0.95rem' }}>Reviews</a>
             <a
               href={getLoginUrl()}
               style={{
@@ -143,8 +128,11 @@ export default function Marketing() {
                 color: '#6366f1',
                 border: '2px solid #6366f1',
                 borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
                 textDecoration: 'none',
                 display: 'inline-block',
+                textAlign: 'center',
               }}
             >
               Sign In
@@ -157,8 +145,11 @@ export default function Marketing() {
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
                 textDecoration: 'none',
                 display: 'inline-block',
+                textAlign: 'center',
               }}
             >
               Get Started
@@ -169,63 +160,94 @@ export default function Marketing() {
 
       {/* Hero Section */}
       <section style={{
-        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
-        padding: isMobile ? '3rem 1rem' : '5rem 2rem',
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
         textAlign: 'center',
       }}>
-        <h1 style={{ fontSize: isMobile ? '2rem' : '3.5rem', marginBottom: '1rem', fontWeight: 'bold' }}>
-          Connect Artists & Venues
-        </h1>
-        <p style={{ fontSize: isMobile ? '1rem' : '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
-          The ultimate platform for booking live performances. Seamless, secure, and built for everyone.
-        </p>
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a
-            href={getLoginUrl()}
-            style={{
-              padding: '1rem 2rem',
-              background: 'white',
-              color: '#6366f1',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
-          >
-            Get Started Free
-          </a>
-          <a
-            href="#features"
-            style={{
-              padding: '1rem 2rem',
-              background: 'transparent',
-              color: 'white',
-              border: '2px solid white',
-              borderRadius: '0.5rem',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
-          >
-            Learn More
-          </a>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h1 style={{ 
+            fontSize: isMobile ? '1.75rem' : '3rem', 
+            marginBottom: '1rem', 
+            fontWeight: 'bold', 
+            lineHeight: '1.2',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Book Talented Artists for Your Events
+          </h1>
+          <p style={{ 
+            fontSize: isMobile ? '0.95rem' : '1.25rem', 
+            marginBottom: '2rem', 
+            opacity: 0.95, 
+            lineHeight: '1.5',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Connect with performing artists, manage bookings, and streamline your event planning all in one place.
+          </p>
+          <div style={{ 
+            display: 'flex', 
+            gap: isMobile ? '0.75rem' : '1rem', 
+            justifyContent: 'center', 
+            flexWrap: 'wrap',
+            padding: isMobile ? '0 0.5rem' : '0',
+          }}>
+            <a
+              href={getLoginUrl()}
+              style={{
+                padding: isMobile ? '0.6rem 1.2rem' : '0.75rem 1.5rem',
+                background: 'white',
+                color: '#667eea',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              For Artists
+            </a>
+            <a
+              href={getLoginUrl()}
+              style={{
+                padding: isMobile ? '0.6rem 1.2rem' : '0.75rem 1.5rem',
+                background: 'white',
+                color: '#667eea',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              For Venues
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section id="features" style={{
-        padding: isMobile ? '3rem 1rem' : '5rem 2rem',
-        background: '#f8f9fa',
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: '#f9fafb',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: isMobile ? '2rem' : '2.5rem', textAlign: 'center', marginBottom: '3rem', fontWeight: 'bold' }}>
-            Why Choose Ologywood?
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            textAlign: 'center', 
+            marginBottom: '2rem', 
+            fontWeight: 'bold',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Powerful Features
           </h2>
           <div style={{
             display: 'grid',
@@ -233,20 +255,269 @@ export default function Marketing() {
             gap: '2rem',
           }}>
             {[
-              { icon: '🎵', title: 'For Artists', desc: 'Showcase your talent, manage bookings, and grow your career' },
-              { icon: '🎭', title: 'For Venues', desc: 'Find the perfect performers and manage events effortlessly' },
-              { icon: '🔒', title: 'Secure & Reliable', desc: 'Enterprise-grade security with Stripe payments' },
-            ].map((feature, i) => (
-              <div key={i} style={{
+              { icon: '📅', title: 'Smart Calendar Sync', desc: 'Sync availability with Google Calendar and Outlook' },
+              { icon: '📋', title: 'Rider Templates', desc: 'Create custom riders with technical and hospitality requirements' },
+              { icon: '💳', title: 'Secure Payments', desc: 'Process payments with Stripe integration' },
+              { icon: '🏢', title: 'Venue Directory', desc: 'Free listing for venues to get discovered' },
+              { icon: '⭐', title: 'Reviews & Ratings', desc: 'Build trust with community reviews' },
+              { icon: '📊', title: 'Analytics', desc: 'Track bookings, revenue, and performance metrics' },
+              { icon: '👥', title: 'Team Management', desc: 'Invite team members and manage roles' },
+              { icon: '📱', title: 'Mobile App', desc: 'Install as native app on iOS and Android' },
+              { icon: '🎓', title: 'Interactive Tutorials', desc: 'Learn features with guided walkthroughs' },
+            ].map((feature, idx) => (
+              <div key={idx} style={{
+                padding: '1.5rem',
                 background: 'white',
-                padding: '2rem',
-                borderRadius: '0.75rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                textAlign: 'center',
+                borderRadius: '0.5rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{feature.icon}</div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{feature.title}</h3>
-                <p style={{ color: '#666' }}>{feature.desc}</p>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{feature.icon}</div>
+                <h3 style={{ 
+                  fontSize: isMobile ? '1rem' : '1.1rem', 
+                  fontWeight: 'bold', 
+                  marginBottom: '0.5rem',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                }}>
+                  {feature.title}
+                </h3>
+                <p style={{ 
+                  fontSize: '0.9rem', 
+                  color: '#666', 
+                  lineHeight: '1.5',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                }}>
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* For Artists Section */}
+      <section style={{
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: 'white',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            marginBottom: '1.5rem', 
+            fontWeight: 'bold',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            🎤 For Artists
+          </h2>
+          <ul style={{ 
+            fontSize: isMobile ? '0.9rem' : '1rem', 
+            lineHeight: '1.8', 
+            marginBottom: '1.5rem',
+            paddingLeft: '1.5rem',
+          }}>
+            <li>✓ Get discovered by venues looking for your talent</li>
+            <li>✓ Manage your availability and bookings in one place</li>
+            <li>✓ Create professional rider templates</li>
+            <li>✓ Receive payments securely through Stripe</li>
+            <li>✓ Track your earnings and performance metrics</li>
+            <li>✓ Share your profile on social media</li>
+          </ul>
+          <a
+            href={getLoginUrl()}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}
+          >
+            Sign Up as Artist
+          </a>
+        </div>
+      </section>
+
+      {/* For Venues Section */}
+      <section style={{
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: '#f9fafb',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            marginBottom: '1.5rem', 
+            fontWeight: 'bold',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            🎪 For Venues
+          </h2>
+          <ul style={{ 
+            fontSize: isMobile ? '0.9rem' : '1rem', 
+            lineHeight: '1.8', 
+            marginBottom: '1.5rem',
+            paddingLeft: '1.5rem',
+          }}>
+            <li>✓ Get free promotion in our venue directory</li>
+            <li>✓ Browse and book talented artists</li>
+            <li>✓ Manage all bookings in one dashboard</li>
+            <li>✓ Receive reviews from artists</li>
+            <li>✓ Track listing views and inquiries</li>
+            <li>✓ Collaborate with team members</li>
+          </ul>
+          <a
+            href={`${getLoginUrl()}?role=venue`}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}
+          >
+            Sign Up as Venue
+          </a>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" style={{
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: 'white',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            textAlign: 'center', 
+            marginBottom: '2rem', 
+            fontWeight: 'bold',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Simple, Transparent Pricing
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '2rem',
+          }}>
+            {[
+              { name: 'Free', price: '$0', features: ['Basic profile', 'Browse artists', 'Limited bookings', 'Community support'] },
+              { name: 'Professional', price: '$29', features: ['Calendar sync', 'Custom riders', 'Advanced analytics', 'Team management', 'Priority support'], highlight: true },
+              { name: 'Enterprise', price: 'Custom', features: ['Everything in Pro', 'API access', 'Custom integrations', 'Dedicated support'] },
+            ].map((plan, idx) => (
+              <div key={idx} style={{
+                padding: '2rem',
+                background: plan.highlight ? '#667eea' : '#f9fafb',
+                borderRadius: '0.5rem',
+                border: plan.highlight ? 'none' : '1px solid #e5e7eb',
+                color: plan.highlight ? 'white' : 'black',
+              }}>
+                <h3 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: 'bold', 
+                  marginBottom: '0.5rem',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                }}>
+                  {plan.name}
+                </h3>
+                <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                  {plan.price}<span style={{ fontSize: '1rem' }}>/month</span>
+                </p>
+                <ul style={{ 
+                  fontSize: '0.95rem', 
+                  lineHeight: '1.8', 
+                  marginBottom: '1.5rem',
+                  listStyle: 'none',
+                  padding: 0,
+                }}>
+                  {plan.features.map((feature, fidx) => (
+                    <li key={fidx}>✓ {feature}</li>
+                  ))}
+                </ul>
+                <a
+                  href={getLoginUrl()}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: plan.highlight ? 'white' : '#667eea',
+                    color: plan.highlight ? '#667eea' : 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'inline-block',
+                    width: '100%',
+                    textAlign: 'center',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  Get Started
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" style={{
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: '#f9fafb',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            textAlign: 'center', 
+            marginBottom: '2rem', 
+            fontWeight: 'bold',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Loved by Artists and Venues
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '2rem',
+          }}>
+            {[
+              { quote: 'Ologywood made it so easy to manage my bookings. I love the calendar sync feature!', author: 'Sarah Martinez', role: 'Jazz Vocalist' },
+              { quote: 'Finding the right artists has never been easier. The platform is intuitive and reliable.', author: 'James Chen', role: 'Venue Manager' },
+              { quote: 'The rider templates save us so much time. Highly recommend to anyone in the industry.', author: 'Michael Thompson', role: 'Event Planner' },
+            ].map((testimonial, idx) => (
+              <div key={idx} style={{
+                padding: '1.5rem',
+                background: 'white',
+                borderRadius: '0.5rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+              }}>
+                <div style={{ 
+                  fontSize: '0.9rem', 
+                  marginBottom: '1rem', 
+                  color: '#666', 
+                  lineHeight: '1.6',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                }}>
+                  "⭐⭐⭐⭐⭐ {testimonial.quote}"
+                </div>
+                <div style={{ fontWeight: 'bold', fontSize: '0.95rem', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{testimonial.author}</div>
+                <div style={{ fontSize: '0.85rem', color: '#666', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{testimonial.role}</div>
               </div>
             ))}
           </div>
@@ -255,45 +526,141 @@ export default function Marketing() {
 
       {/* CTA Section */}
       <section style={{
-        background: '#6366f1',
+        padding: isMobile ? '2rem 1rem' : '4rem 2rem',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
-        padding: isMobile ? '3rem 1rem' : '4rem 2rem',
         textAlign: 'center',
       }}>
-        <h2 style={{ fontSize: isMobile ? '2rem' : '2.5rem', marginBottom: '1rem', fontWeight: 'bold' }}>
-          Ready to Get Started?
-        </h2>
-        <p style={{ fontSize: '1.1rem', marginBottom: '2rem', opacity: 0.9 }}>
-          Join thousands of artists and venues already using Ologywood
-        </p>
-        <a
-          href={getLoginUrl()}
-          style={{
-            padding: '1rem 2rem',
-            background: 'white',
-            color: '#6366f1',
-            border: 'none',
-            borderRadius: '0.5rem',
-            fontSize: '1rem',
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ 
+            fontSize: isMobile ? '1.5rem' : '2rem', 
+            marginBottom: '1rem', 
             fontWeight: 'bold',
-            cursor: 'pointer',
-            textDecoration: 'none',
-            display: 'inline-block',
-          }}
-        >
-          Sign Up Now
-        </a>
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Ready to Transform Your Booking Experience?
+          </h2>
+          <p style={{ 
+            fontSize: isMobile ? '0.95rem' : '1.1rem', 
+            marginBottom: '2rem', 
+            opacity: 0.95,
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+          }}>
+            Join thousands of artists and venues already using Ologywood.
+          </p>
+          <div style={{ 
+            display: 'flex', 
+            gap: isMobile ? '0.75rem' : '1rem', 
+            justifyContent: 'center', 
+            flexWrap: 'wrap',
+            padding: isMobile ? '0 0.5rem' : '0',
+          }}>
+            <a
+              href={getLoginUrl()}
+              style={{
+                padding: isMobile ? '0.6rem 1.2rem' : '0.75rem 1.5rem',
+                background: 'white',
+                color: '#667eea',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Sign Up as Artist
+            </a>
+            <a
+              href={`${getLoginUrl()}?role=venue`}
+              style={{
+                padding: isMobile ? '0.6rem 1.2rem' : '0.75rem 1.5rem',
+                background: 'white',
+                color: '#667eea',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Sign Up as Venue
+            </a>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
       <footer style={{
-        background: '#1f2937',
-        color: '#999',
         padding: isMobile ? '2rem 1rem' : '3rem 2rem',
-        textAlign: 'center',
+        background: '#1f2937',
+        color: '#d1d5db',
         fontSize: '0.9rem',
       }}>
-        <p>&copy; 2026 Ologywood. All rights reserved.</p>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+            gap: '2rem',
+            marginBottom: '2rem',
+          }}>
+            <div>
+              <h4 style={{ color: 'white', marginBottom: '1rem', fontWeight: 'bold' }}>Ologywood</h4>
+              <p style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>The modern platform for booking artists and managing events.</p>
+            </div>
+            <div>
+              <h4 style={{ color: 'white', marginBottom: '1rem', fontWeight: 'bold' }}>Quick Links</h4>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                <li><a href="#features" style={{ color: '#d1d5db', textDecoration: 'none' }}>Features</a></li>
+                <li><a href="#pricing" style={{ color: '#d1d5db', textDecoration: 'none' }}>Pricing</a></li>
+                <li><a href="#testimonials" style={{ color: '#d1d5db', textDecoration: 'none' }}>Reviews</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 style={{ color: 'white', marginBottom: '1rem', fontWeight: 'bold' }}>Legal</h4>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                <li><a href="/privacy-policy" style={{ color: '#d1d5db', textDecoration: 'none' }}>Privacy Policy</a></li>
+                <li><a href="/terms-of-service" style={{ color: '#d1d5db', textDecoration: 'none' }}>Terms of Service</a></li>
+                <li><a href="/contact" style={{ color: '#d1d5db', textDecoration: 'none' }}>Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid #374151', paddingTop: '2rem' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '2rem',
+              marginBottom: '2rem',
+              fontSize: '0.85rem',
+            }}>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Contact</h5>
+                <p style={{ margin: '0.25rem 0' }}>Email: <a href="mailto:info@ologywood.com" style={{ color: '#6366f1', textDecoration: 'none' }}>info@ologywood.com</a></p>
+                <p style={{ margin: '0.25rem 0' }}>Phone: <a href="tel:678-525-0891" style={{ color: '#6366f1', textDecoration: 'none' }}>678-525-0891</a></p>
+              </div>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Address</h5>
+                <p style={{ margin: '0.25rem 0' }}>171 Prestwick Dr</p>
+                <p style={{ margin: '0.25rem 0' }}>Hoschton, GA</p>
+              </div>
+              <div>
+                <h5 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>Hours</h5>
+                <p style={{ margin: '0.25rem 0' }}>Monday - Friday</p>
+                <p style={{ margin: '0.25rem 0' }}>9:00 AM - 6:00 PM EST</p>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', paddingTop: '1rem', borderTop: '1px solid #374151' }}>
+              <p>&copy; 2026 Ologywood. All rights reserved.</p>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
