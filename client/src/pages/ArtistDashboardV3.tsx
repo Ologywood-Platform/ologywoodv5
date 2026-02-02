@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Calendar,
   Settings,
@@ -21,23 +19,13 @@ import {
   Image,
   Star,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc';
 import { useLocation } from 'wouter';
+import { trpc } from '@/lib/trpc';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const { data: user } = useQuery({
-    queryKey: ['auth.me'],
-    queryFn: async () => {
-      const response = await fetch('/api/auth/me');
-      if (!response.ok) throw new Error('Failed to fetch user');
-      return response.json();
-    },
-  });
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
@@ -49,48 +37,49 @@ export function ArtistDashboardV3() {
       label: 'Overview',
       icon: BarChart3,
       description: 'Dashboard & quick stats',
+      action: () => setActiveSection('overview'),
     },
     {
-      id: 'booking',
+      id: 'bookings',
       label: 'Bookings',
       icon: Calendar,
-      description: 'Manage bookings & requests',
-      subsections: ['bookings', 'calendar-sync'],
+      description: 'Manage bookings & events',
+      action: () => navigate('/bookings'),
     },
     {
       id: 'profile',
       label: 'Profile',
-      icon: Settings,
+      icon: Music,
       description: 'Edit profile & media',
-      subsections: ['profile', 'photos', 'availability'],
+      action: () => navigate('/onboarding/artist'),
+    },
+    {
+      id: 'availability',
+      label: 'Availability',
+      icon: Clock,
+      description: 'Manage your availability',
+      action: () => navigate('/availability'),
     },
     {
       id: 'riders',
       label: 'Riders',
       icon: FileText,
-      description: 'Manage performance riders',
-      subsections: ['riders', 'rider-analytics'],
-    },
-    {
-      id: 'performance',
-      label: 'Performance',
-      icon: Star,
-      description: 'Reviews & analytics',
-      subsections: ['reviews', 'analytics'],
+      description: 'Performance riders',
+      action: () => navigate('/riders'),
     },
     {
       id: 'communication',
       label: 'Communication',
       icon: MessageSquare,
       description: 'Messages & notifications',
-      subsections: ['messages', 'notifications'],
+      action: () => navigate('/messages'),
     },
     {
       id: 'account',
       label: 'Account',
       icon: Settings,
       description: 'Settings & support',
-      subsections: ['subscription', 'support', 'help'],
+      action: () => navigate('/settings'),
     },
   ];
 
@@ -111,7 +100,7 @@ export function ArtistDashboardV3() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Artist Dashboard</h1>
-              <p className="text-sm text-slate-600">{user?.name || 'Artist'}</p>
+              <p className="text-sm text-slate-600">{artistProfile?.stageName || 'Artist'}</p>
             </div>
           </div>
 
@@ -148,7 +137,7 @@ export function ArtistDashboardV3() {
                   <button
                     key={section.id}
                     onClick={() => {
-                      setActiveSection(section.id);
+                      section.action();
                       setMobileMenuOpen(false);
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-start gap-3 ${
@@ -210,7 +199,7 @@ export function ArtistDashboardV3() {
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm font-medium text-slate-600">
-                        Average Rating
+                        Artist Rating
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -229,28 +218,28 @@ export function ArtistDashboardV3() {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => setActiveSection('profile')}
-                    >
-                      Edit Profile
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setActiveSection('booking')}
+                      onClick={() => navigate('/bookings')}
                     >
                       View Bookings
                     </Button>
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => setActiveSection('riders')}
+                      onClick={() => navigate('/onboarding/artist')}
                     >
-                      Manage Riders
+                      Edit Profile
                     </Button>
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => setActiveSection('communication')}
+                      onClick={() => navigate('/availability')}
+                    >
+                      Availability
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate('/messages')}
                     >
                       Messages
                     </Button>
@@ -259,12 +248,12 @@ export function ArtistDashboardV3() {
               </div>
             )}
 
-            {activeSection === 'booking' && (
+            {activeSection === 'bookings' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Bookings & Calendar</CardTitle>
+                  <CardTitle>Bookings & Events</CardTitle>
                   <CardDescription>
-                    Manage your bookings and sync with calendar
+                    Manage your event bookings and calendar
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -279,15 +268,32 @@ export function ArtistDashboardV3() {
             {activeSection === 'profile' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile & Media</CardTitle>
+                  <CardTitle>Artist Profile</CardTitle>
                   <CardDescription>
-                    Edit your profile, upload photos, and manage availability
+                    Edit your profile information and media
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12 text-slate-600">
-                    <Image className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Profile editing interface</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeSection === 'availability' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Availability</CardTitle>
+                  <CardDescription>
+                    Manage your availability and calendar
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12 text-slate-600">
+                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Availability management interface</p>
                   </div>
                 </CardContent>
               </Card>
@@ -298,30 +304,13 @@ export function ArtistDashboardV3() {
                 <CardHeader>
                   <CardTitle>Performance Riders</CardTitle>
                   <CardDescription>
-                    Manage your rider templates and analytics
+                    Manage your performance requirements and riders
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12 text-slate-600">
                     <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Rider management interface</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'performance' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance & Reviews</CardTitle>
-                  <CardDescription>
-                    View your reviews and performance analytics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Performance analytics interface</p>
                   </div>
                 </CardContent>
               </Card>
@@ -366,3 +355,5 @@ export function ArtistDashboardV3() {
     </div>
   );
 }
+
+export default ArtistDashboardV3;

@@ -97,6 +97,7 @@ function Router() {
 
 
       <Route path="/artist/:id" component={ArtistProfile} />
+      <Route path="/artist-profile-edit" component={ArtistOnboarding} />
       <Route path="/dashboard" component={ArtistDashboardV3} />
       <Route path="/get-started" component={RoleSelection} />
       <Route path="/onboarding" component={Onboarding} />
