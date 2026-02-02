@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("bookings");
 
+
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'artist',
   });

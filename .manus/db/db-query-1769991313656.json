@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO artist_profiles (userId, artistName, genre, bio, location, feeRangeMin, feeRangeMax, touringPartySize, profilePhotoUrl, mediaGallery, websiteUrl, socialLinks, createdAt, updatedAt) VALUES (1, 'Test Artist', JSON_ARRAY('Rock', 'Pop'), 'Test bio', 'New York', 100, 500, 1, '', JSON_OBJECT('photos', JSON_ARRAY(), 'videos', JSON_ARRAY()), 'https://example.com', JSON_OBJECT(), NOW(), NOW()) ON DUPLICATE KEY UPDATE artistName='Test Artist';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute INSERT INTO artist_profiles (userId, artistName, genre, bio, location, feeRangeMin, feeRangeMax, touringPartySize, profilePhotoUrl, mediaGallery, websiteUrl, socialLinks, createdAt, updatedAt) VALUES (1, 'Test Artist', JSON_ARRAY('Rock', 'Pop'), 'Test bio', 'New York', 100, 500, 1, '', JSON_OBJECT('photos', JSON_ARRAY(), 'videos', JSON_ARRAY()), 'https://example.com', JSON_OBJECT(), NOW(), NOW()) ON DUPLICATE KEY UPDATE artistName='Test Artist';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 134
+}
