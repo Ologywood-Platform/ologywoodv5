@@ -1,9 +1,11 @@
-import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useLocation } from 'wouter';
+import { toast } from 'sonner';
 
 interface Venue {
   id: number;
@@ -101,9 +103,34 @@ const mockVenues: Venue[] = [
 ];
 
 export function VenueBrowse() {
+  const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedAmenity, setSelectedAmenity] = useState<string | null>(null);
+  const [copiedVenueId, setCopiedVenueId] = useState<number | null>(null);
+
+  const handleShare = (venue: Venue, platform: string) => {
+    const venueUrl = `${window.location.origin}/venue/${venue.id}`;
+    const text = `Check out ${venue.organizationName} on Ologywood - ${venue.bio}`;
+    
+    const shareUrls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(venueUrl)}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(venueUrl)}&text=${encodeURIComponent(text)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(venueUrl)}`,
+    };
+
+    if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+    }
+  };
+
+  const handleCopyLink = (venue: Venue) => {
+    const venueUrl = `${window.location.origin}/venue/${venue.id}`;
+    navigator.clipboard.writeText(venueUrl);
+    setCopiedVenueId(venue.id);
+    toast.success('Link copied to clipboard!');
+    setTimeout(() => setCopiedVenueId(null), 2000);
+  };
 
   const venueTypes = ['Club', 'Theater', 'Lounge', 'Outdoor', 'Hall'];
   const allAmenities = Array.from(
@@ -289,8 +316,60 @@ export function VenueBrowse() {
                     )}
                   </div>
 
+                  {/* Social Sharing */}
+                  <div className="pt-3 border-t">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">Share this venue</p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleShare(venue, 'facebook')}
+                        title="Share on Facebook"
+                      >
+                        <Facebook className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleShare(venue, 'twitter')}
+                        title="Share on Twitter"
+                      >
+                        <Twitter className="h-4 w-4 text-sky-400" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleShare(venue, 'linkedin')}
+                        title="Share on LinkedIn"
+                      >
+                        <Linkedin className="h-4 w-4 text-blue-700" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleCopyLink(venue)}
+                        title="Copy link"
+                      >
+                        {copiedVenueId === venue.id ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
                   {/* View Profile Button */}
-                  <Button className="w-full mt-4">View Full Profile</Button>
+                  <Button 
+                    className="w-full mt-4"
+                    onClick={() => navigate(`/venues/${venue.id}`)}
+                  >
+                    View Full Profile
+                  </Button>
                 </CardContent>
               </Card>
             ))}

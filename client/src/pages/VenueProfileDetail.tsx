@@ -4,61 +4,145 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, MapPin, Users, Phone, Globe, Mail, Clock, AlertCircle } from 'lucide-react';
+import { useParams, useLocation } from 'wouter';
 import { VenueShareButtons } from '@/components/VenueShareButtons';
 
-interface VenueProfileDetailProps {
-  venueId?: number;
-}
-
-export function VenueProfileDetail({ venueId }: VenueProfileDetailProps) {
-  const [isContacting, setIsContacting] = useState(false);
-
-  // Mock venue data - would be fetched from API
-  const venue = {
+const mockVenueData: Record<number, any> = {
+  1: {
     id: 1,
     organizationName: 'The Blue Room',
     location: 'Los Angeles, CA',
     venueType: 'Club',
     capacity: 300,
     amenities: ['PA System', 'Stage', 'Parking', 'Bar', 'Sound Engineer', 'Lighting'],
-    profilePhotoUrl: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&h=600&fit=crop',
-    mediaGallery: [
-      'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
-    ],
+    profilePhotoUrl: '/venues/blue-room.jpg',
     averageRating: 4.8,
     reviewCount: 24,
-    bio: 'Intimate live music venue in downtown LA featuring local and touring artists. We specialize in indie, rock, and alternative music with a focus on supporting emerging talent.',
+    bio: 'Intimate live music venue in downtown LA featuring local and touring artists.',
     website: 'https://theblueroom.com',
     contactPhone: '(213) 555-0101',
     email: 'info@theblueroom.com',
     operatingHours: 'Mon-Sun: 8 PM - 2 AM',
     bookingInfo: 'Contact us for booking inquiries. We accept all genres and are open to new artists.',
     reviews: [
-      {
-        id: 1,
-        author: 'Sarah M.',
-        rating: 5,
-        date: '2 weeks ago',
-        text: 'Amazing venue! Great sound system and supportive staff. Highly recommend for any artist.',
-      },
-      {
-        id: 2,
-        author: 'John D.',
-        rating: 5,
-        date: '1 month ago',
-        text: 'Professional setup with excellent technical support. The crowd was fantastic.',
-      },
-      {
-        id: 3,
-        author: 'Emma L.',
-        rating: 4,
-        date: '2 months ago',
-        text: 'Good venue with decent equipment. Would appreciate better parking options.',
-      },
+      { id: 1, author: 'Sarah M.', rating: 5, date: '2 weeks ago', text: 'Amazing venue! Great sound system and supportive staff.' },
+      { id: 2, author: 'John D.', rating: 5, date: '1 month ago', text: 'Professional setup with excellent technical support.' },
+    ],
+  },
+  2: {
+    id: 2,
+    organizationName: 'Sunset Theater',
+    location: 'Los Angeles, CA',
+    venueType: 'Theater',
+    capacity: 800,
+    amenities: ['Full PA System', 'Professional Lighting', 'Dressing Rooms', 'Parking'],
+    profilePhotoUrl: '/venues/sunset-theater.jpg',
+    averageRating: 4.9,
+    reviewCount: 42,
+    bio: 'Historic theater hosting concerts, comedy, and theatrical productions.',
+    website: 'https://sunsettheater.com',
+    contactPhone: '(213) 555-0102',
+    email: 'bookings@sunsettheater.com',
+    operatingHours: 'Tue-Sun: 7 PM - 11 PM',
+    bookingInfo: 'Professional venue for concerts and theatrical productions. Contact for booking.',
+    reviews: [
+      { id: 1, author: 'Mike T.', rating: 5, date: '1 week ago', text: 'Excellent venue with professional staff.' },
+      { id: 2, author: 'Lisa R.', rating: 5, date: '2 weeks ago', text: 'Beautiful theater with great acoustics.' },
+    ],
+  },
+  3: {
+    id: 3,
+    organizationName: 'Downtown Club',
+    location: 'Los Angeles, CA',
+    venueType: 'Club',
+    capacity: 250,
+    amenities: ['DJ Booth', 'Dance Floor', 'Bar', 'Parking'],
+    profilePhotoUrl: '/venues/downtown-club.jpg',
+    averageRating: 4.6,
+    reviewCount: 18,
+    bio: 'Modern nightclub with state-of-the-art sound and lighting.',
+    website: 'https://downtownclub.com',
+    contactPhone: '(213) 555-0103',
+    email: 'info@downtownclub.com',
+    operatingHours: 'Thu-Sat: 10 PM - 4 AM',
+    bookingInfo: 'Great venue for DJ and electronic music events.',
+    reviews: [
+      { id: 1, author: 'Alex P.', rating: 5, date: '3 days ago', text: 'Amazing DJ setup and great crowd.' },
+    ],
+  },
+  4: {
+    id: 4,
+    organizationName: 'The Amphitheater',
+    location: 'Santa Monica, CA',
+    venueType: 'Outdoor',
+    capacity: 5000,
+    amenities: ['Outdoor Stage', 'Seating', 'Parking', 'Food Vendors'],
+    profilePhotoUrl: '/venues/amphitheater.jpg',
+    averageRating: 4.7,
+    reviewCount: 56,
+    bio: 'Large outdoor amphitheater perfect for festivals and major events.',
+    website: 'https://theamphitheater.com',
+    contactPhone: '(310) 555-0104',
+    email: 'events@theamphitheater.com',
+    operatingHours: 'Seasonal: May - October',
+    bookingInfo: 'Perfect for festivals and outdoor concerts. Large capacity venue.',
+    reviews: [
+      { id: 1, author: 'Emma S.', rating: 5, date: '1 month ago', text: 'Perfect outdoor venue for festivals.' },
+    ],
+  },
+  5: {
+    id: 5,
+    organizationName: 'Jazz Lounge',
+    location: 'Hollywood, CA',
+    venueType: 'Lounge',
+    capacity: 150,
+    amenities: ['Intimate Setting', 'Bar', 'Private Booths', 'Valet Parking'],
+    profilePhotoUrl: '/venues/jazz-lounge.jpg',
+    averageRating: 4.9,
+    reviewCount: 31,
+    bio: 'Sophisticated jazz lounge with intimate seating and premium bar selection.',
+    website: 'https://jazzlounge.com',
+    contactPhone: '(323) 555-0105',
+    email: 'info@jazzlounge.com',
+    operatingHours: 'Tue-Sun: 7 PM - 2 AM',
+    bookingInfo: 'Intimate venue perfect for jazz, blues, and acoustic performances.',
+    reviews: [
+      { id: 1, author: 'David M.', rating: 5, date: '5 days ago', text: 'Perfect intimate jazz venue.' },
+    ],
+  },
+};
+
+export function VenueProfileDetail() {
+  const { id: idParam } = useParams();
+  const [, navigate] = useLocation();
+  const venueId = idParam ? parseInt(idParam) : 1;
+  const [isContacting, setIsContacting] = useState(false);
+
+  // Get venue data from mock data with fallback
+  const defaultVenue = {
+    id: 1,
+    organizationName: 'The Blue Room',
+    location: 'Los Angeles, CA',
+    venueType: 'Club',
+    capacity: 300,
+    amenities: ['PA System', 'Stage', 'Parking', 'Bar', 'Sound Engineer', 'Lighting'],
+    profilePhotoUrl: '/venues/blue-room.jpg',
+    mediaGallery: ['/venues/blue-room.jpg', '/venues/blue-room.jpg', '/venues/blue-room.jpg'],
+    averageRating: 4.8,
+    reviewCount: 24,
+    bio: 'Intimate live music venue in downtown LA featuring local and touring artists.',
+    website: 'https://theblueroom.com',
+    contactPhone: '(213) 555-0101',
+    email: 'info@theblueroom.com',
+    operatingHours: 'Mon-Sun: 8 PM - 2 AM',
+    bookingInfo: 'Contact us for booking inquiries. We accept all genres and are open to new artists.',
+    reviews: [
+      { id: 1, author: 'Sarah M.', rating: 5, date: '2 weeks ago', text: 'Amazing venue! Great sound system and supportive staff.' },
+      { id: 2, author: 'John D.', rating: 5, date: '1 month ago', text: 'Professional setup with excellent technical support.' },
     ],
   };
+  
+  const venue = mockVenueData[venueId] ? { ...defaultVenue, ...mockVenueData[venueId], mediaGallery: [mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl] } : defaultVenue;
 
   return (
     <div className="min-h-screen bg-gray-50">
