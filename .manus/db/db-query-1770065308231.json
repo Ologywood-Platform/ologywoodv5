@@ -1,0 +1,14 @@
+{
+  "query": "SELECT id, userId FROM artist_profiles WHERE artistName = 'Ologywood' AND (profilePhotoUrl IS NULL OR profilePhotoUrl = '');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, userId FROM artist_profiles WHERE artistName = 'Ologywood' AND (profilePhotoUrl IS NULL OR profilePhotoUrl = '');",
+  "rows": [
+    {
+      "id": "60003",
+      "userId": "450137"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\n60003\t450137\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}
