@@ -1,0 +1,15 @@
+{
+  "query": "UPDATE users SET name = 'Ologywood' WHERE id = 450137; SELECT id, email, name FROM users WHERE id = 450137;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute UPDATE users SET name = 'Ologywood' WHERE id = 450137; SELECT id, email, name FROM users WHERE id = 450137;",
+  "rows": [
+    {
+      "id": "450137",
+      "email": "ologywood5@gmail.com",
+      "name": "Ologywood"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\n450137\tologywood5@gmail.com\tOlogywood\n",
+  "stderr": "",
+  "execution_time_ms": 79
+}

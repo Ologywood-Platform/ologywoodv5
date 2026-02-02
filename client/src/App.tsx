@@ -7,7 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ArtistProfile from "./pages/ArtistProfile";
-import Dashboard from "./pages/Dashboard";
+import { Dashboard } from '@/pages/Dashboard';
+import { ArtistDashboardV3 } from '@/pages/ArtistDashboardV3';
 import RoleSelection from "./pages/RoleSelection";
 import ArtistOnboarding from "./pages/ArtistOnboarding";
 import VenueOnboarding from "./pages/VenueOnboarding";
@@ -98,6 +99,7 @@ function Router() {
       <Route path="/testing-dashboard" component={TestingDashboard} />
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/artist-dashboard-v3" component={ArtistDashboardV3} />
       <Route path="/get-started" component={RoleSelection} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/onboarding/artist" component={ArtistOnboarding} />

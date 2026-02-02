@@ -29,7 +29,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-export default function Dashboard() {
+export function Dashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("bookings");
@@ -688,3 +688,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
