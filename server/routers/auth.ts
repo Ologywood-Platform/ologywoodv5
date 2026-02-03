@@ -4,6 +4,7 @@ import { getDb } from '../db';
 import { users } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
+import { emailConfirmationService } from '../services/emailConfirmationService';
 
 // Validation schemas
 const signupSchema = z.object({
@@ -18,6 +19,84 @@ const loginSchema = z.object({
 });
 
 export const authRouter = router({
+  // Verify email confirmation token
+  verifyEmail: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const result = emailConfirmationService.verifyConfirmationToken(input.token);
+
+        if (!result.valid) {
+          throw new Error('Invalid or expired confirmation token');
+        }
+
+        const db = await getDb();
+        if (!db) {
+          throw new Error('Database not available');
+        }
+
+        // Update user to mark email as verified
+        await db.update(users).set({
+          emailVerified: true,
+          lastSignedIn: new Date(),
+        }).where(eq(users.id, result.userId!));
+
+        return {
+          success: true,
+          message: 'Email verified successfully',
+          email: result.email,
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Email verification failed');
+      }
+    }),
+
+  // Resend confirmation email
+  resendConfirmationEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new Error('Database not available');
+        }
+
+        const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+
+        if (userResult.length === 0) {
+          throw new Error('User not found');
+        }
+
+        const user = userResult[0];
+
+        // Check if already verified
+        if ((user as any).emailVerified) {
+          return {
+            success: false,
+            message: 'Email is already verified',
+          };
+        }
+
+        const token = emailConfirmationService.generateConfirmationToken(input.email, user.id);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
+
+        await emailConfirmationService.sendResendConfirmationEmail({
+          recipientEmail: input.email,
+          recipientName: user.name || 'User',
+          verificationLink,
+          expiresIn: '24 hours',
+        });
+
+        return {
+          success: true,
+          message: 'Confirmation email sent successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to resend confirmation email');
+      }
+    }),
+
   // Email/Password Signup
   signup: publicProcedure
     .input(signupSchema)
@@ -46,6 +125,7 @@ export const authRouter = router({
           loginMethod: 'email',
           openId: `email_${input.email}`, // Generate a unique openId for email users
           lastSignedIn: new Date(),
+          emailVerified: false,
         });
 
         const newUserId = (result as any).insertId;
@@ -55,6 +135,23 @@ export const authRouter = router({
           throw new Error('Failed to create user');
         }
 
+        // Generate verification token and send email
+        const token = emailConfirmationService.generateConfirmationToken(input.email, newUserId);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
+
+        try {
+          await emailConfirmationService.sendConfirmationEmail({
+            recipientEmail: input.email,
+            recipientName: input.name,
+            verificationLink,
+            expiresIn: '24 hours',
+          });
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
+          // Don't fail signup if email fails, but log it
+        }
+
         return {
           success: true,
           user: {
@@ -62,8 +159,10 @@ export const authRouter = router({
             email: newUser[0].email,
             name: newUser[0].name,
             role: newUser[0].role,
+            emailVerified: false,
           },
-          message: 'Account created successfully',
+          message: 'Account created successfully. Please check your email to confirm your address.',
+          requiresEmailVerification: true,
         };
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Signup failed');
@@ -100,6 +199,7 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: (user as any).emailVerified,
           },
           message: 'Logged in successfully',
         };
@@ -151,6 +251,7 @@ export const authRouter = router({
           email: user.email,
           name: user.name,
           role: user.role,
+          emailVerified: (user as any).emailVerified,
         };
       } catch (error) {
         return null;

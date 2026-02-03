@@ -48,6 +48,7 @@ import Marketing from "./pages/Marketing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
+import BookingStatusDashboard from "./pages/BookingStatusDashboard";
 import { VenueGallery } from "./pages/VenueGallery";
 import { VenueReviews } from "./pages/VenueReviews";
 import RiderBuilder from "./pages/RiderBuilder";
@@ -111,6 +112,7 @@ function Router() {
       <Route path="/bookings/:id" component={BookingDetail} />
       <Route path="/bookings/create" component={BookingCreate} />
       <Route path="/bookings" component={BookingsList} />
+      <Route path="/booking-status" component={BookingStatusDashboard} />
       <Route path="/messages/:id" component={MessagesDetail} />
       <Route path="/messages" component={Messages} />
       <Route path="/calendar" component={Calendar} />
