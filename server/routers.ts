@@ -48,6 +48,8 @@ import { calendarRouter } from "./routers/calendarRouter";
 import { venueDirectoryRouter } from "./routers/venueDirectoryRouter";
 import { contactRouter } from "./routers/contact";
 import { privacyRouter } from "./routers/privacy";
+import { authRouter } from "./routers/auth";
+import { messagingRouter } from "./routers/messaging";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 import paymentTestingRoutes from "./routes/paymentTestingRoutes";
@@ -108,6 +110,7 @@ export const appRouter = router({
   contact: contactRouter,
   riderManagement: riderManagementRouter,
   privacy: privacyRouter,
+  messaging: messagingRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))
@@ -140,6 +143,7 @@ export const appRouter = router({
         await db.updateUserRole(ctx.user.id, input.role);
         return { role: input.role };
       }),
+    ...authRouter,
   }),
 
   // Artist Profile Management

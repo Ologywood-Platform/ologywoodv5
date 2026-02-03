@@ -1,7 +1,8 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { getDb } from '../db';
-import { notifications } from '../../drizzle/schema';
+// TODO: notifications table needs to be created in schema
+// import { notifications } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 let db: any = null;

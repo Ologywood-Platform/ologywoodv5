@@ -24,7 +24,8 @@
 import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
-import { faqs, semanticSearchLogs } from '../../drizzle/schema';
+// TODO: faqs and semanticSearchLogs tables need to be created in schema
+// import { faqs, semanticSearchLogs } from '../../drizzle/schema';
 import { eq, desc, and, or, isNotNull, gte, lte, sql } from 'drizzle-orm';
 import {
   generateEmbedding,

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { supportTickets, supportTicketResponses, supportCategories, faqs, knowledgeBaseArticles, users } from "../../drizzle/schema";
+import { users } from "../../drizzle/schema";
+// TODO: supportTickets, supportTicketResponses, supportCategories, faqs, knowledgeBaseArticles need to be created in schema
 import { eq, desc, and, like } from "drizzle-orm";
 import { sendTicketCreatedEmail, sendTicketResponseEmail, sendTicketResolvedEmail } from "../services/support-notifications";
 

@@ -8,7 +8,6 @@ import {
   availability, InsertAvailability, Availability,
   bookings, InsertBooking, Booking,
   messages, InsertMessage, Message,
-  subscriptions, InsertSubscription, Subscription,
   reviews, InsertReview, Review,
   venueReviews, InsertVenueReview, VenueReview,
   favorites, InsertFavorite, Favorite,
@@ -16,11 +15,7 @@ import {
   profileViews, InsertProfileView, ProfileView,
   bookingReminders, InsertBookingReminder, BookingReminder,
   contracts, InsertContract, Contract,
-  signatures, InsertSignature, Signature,
-  calendarEvents, InsertCalendarEvent, CalendarEvent,
-  calendarSyncTokens, InsertCalendarSyncToken, CalendarSyncToken,
-  supportTickets, InsertSupportTicket, SupportTicket,
-  supportTicketResponses, InsertSupportTicketResponse, SupportTicketResponse
+  signatures, InsertSignature, Signature
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 

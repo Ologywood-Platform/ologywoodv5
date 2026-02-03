@@ -38,7 +38,7 @@ import ArtistDashboard from "./pages/ArtistDashboard";
 import VenueDashboard from "./pages/VenueDashboard";
 import CertificateVerification from "./pages/CertificateVerification";
 import ContractNavigation from "./components/ContractNavigation";
-import { VenueBrowse } from "./pages/VenueBrowse";
+import VenueBrowse from "./pages/VenueBrowse";
 import { VenueProfileDetail } from "./pages/VenueProfileDetail";
 import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
 import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample";
@@ -57,6 +57,7 @@ import FAQ from "./pages/FAQ";
 import OnboardingTutorials from "./pages/OnboardingTutorials";
 import BookingAnalytics from "./pages/BookingAnalytics";
 import { DemoVenueProfile } from "./pages/DemoVenueProfile";
+import BookingCreate from "./pages/BookingCreate";
 import EmailVerification from "./pages/EmailVerification";
 import BookingCalendar from "./pages/BookingCalendar";
 import ReferralProgram from "./pages/ReferralProgram";
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/subscription" component={Subscription} />
       <Route path="/booking/:id" component={BookingDetail} />
       <Route path="/bookings/:id" component={BookingDetail} />
+      <Route path="/bookings/create" component={BookingCreate} />
       <Route path="/bookings" component={BookingsList} />
       <Route path="/messages/:id" component={MessagesDetail} />
       <Route path="/messages" component={Messages} />

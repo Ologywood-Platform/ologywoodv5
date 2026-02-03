@@ -6,7 +6,8 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { faqs } from "../../drizzle/schema";
+// TODO: faqs table needs to be created in schema
+// import { faqs } from "../../drizzle/schema";
 import { eq, like, and, or } from "drizzle-orm";
 
 export const supportTicketsRouter = router({

@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Search, MapPin, DollarSign } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar } from "lucide-react";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { QuickSignupModal } from "@/components/QuickSignupModal";
 
 export default function Browse() {
+  const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     location?: string;
@@ -18,6 +22,17 @@ export default function Browse() {
     availableTo?: string;
   }>({});
   
+  // Modal state
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    actionType: 'book' | 'message';
+    targetType: 'artist' | 'venue';
+    artistId?: number;
+  }>({
+    actionType: 'book',
+    targetType: 'artist',
+  });
+
   const { data: artists, isLoading } = trpc.artist.search.useQuery(filters);
 
   const filteredArtists = artists?.filter(artist => {
@@ -29,6 +44,41 @@ export default function Browse() {
     
     return matchesSearch;
   });
+
+  const handleBookClick = (artistId: number) => {
+    if (!isAuthenticated) {
+      setModalConfig({
+        actionType: 'book',
+        targetType: 'artist',
+        artistId,
+      });
+      setShowSignupModal(true);
+    } else {
+      navigate(`/bookings/create?artistId=${artistId}`);
+    }
+  };
+
+  const handleMessageClick = (artistId: number) => {
+    if (!isAuthenticated) {
+      setModalConfig({
+        actionType: 'message',
+        targetType: 'artist',
+        artistId,
+      });
+      setShowSignupModal(true);
+    } else {
+      navigate(`/messages?artistId=${artistId}`);
+    }
+  };
+
+  const handleSignupSuccess = () => {
+    // After signup, redirect to the action they wanted to do
+    if (modalConfig.actionType === 'book' && modalConfig.artistId) {
+      navigate(`/bookings/create?artistId=${modalConfig.artistId}`);
+    } else if (modalConfig.actionType === 'message' && modalConfig.artistId) {
+      navigate(`/messages?artistId=${modalConfig.artistId}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,57 +98,46 @@ export default function Browse() {
       </header>
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        {/* Title - Mobile Optimized */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-8">Browse Artists</h1>
-        
-        {/* Search and Filters - Mobile Optimized */}
-        <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-1 lg:grid-cols-3 sm:gap-6">
-          <div className="lg:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 sm:h-5 w-4 sm:w-5" />
+        {/* Search Bar */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex gap-2 sm:gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                type="text"
-                placeholder="Search by artist name or genre..."
+                placeholder="Search artists by name or genre..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 text-sm sm:text-base py-2 sm:py-3"
+                className="pl-10 text-xs sm:text-sm"
               />
             </div>
           </div>
-          
-          <div>
-            <SearchFilters onFilterChange={setFilters} />
-          </div>
         </div>
 
-        {/* Results */}
-        {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">
-            Loading artists...
-          </div>
-        ) : filteredArtists && filteredArtists.length > 0 ? (
+        {/* Filters */}
+        <SearchFilters onFiltersChange={setFilters} />
+
+        {/* Artists Grid */}
+        {filteredArtists && filteredArtists.length > 0 ? (
           <>
-            <p className="text-muted-foreground mb-6 text-sm sm:text-base">
-              Showing {filteredArtists.length} {filteredArtists.length === 1 ? 'artist' : 'artists'}
-            </p>
-            
-            {/* Artist Grid - Mobile Optimized */}
+            <div className="mb-4">
+              <p className="text-sm text-muted-foreground">
+                Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
+              </p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredArtists.map((artist) => (
+              {filteredArtists.map(artist => (
                 <Link key={artist.id} href={`/artist/${artist.id}`}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
-                    <CardHeader className="pb-3 sm:pb-4">
-                      {artist.profilePhotoUrl ? (
-                        <img 
-                          src={artist.profilePhotoUrl} 
+                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                    {artist.profilePhotoUrl && (
+                      <div className="h-40 sm:h-48 overflow-hidden bg-gray-200">
+                        <img
+                          src={artist.profilePhotoUrl}
                           alt={artist.artistName}
-                          className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-md mb-3 sm:mb-4"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform"
                         />
-                      ) : (
-                        <div className="w-full h-32 sm:h-40 md:h-48 bg-muted rounded-md mb-3 sm:mb-4 flex items-center justify-center">
-                          <Music className="h-10 sm:h-12 md:h-16 w-10 sm:w-12 md:w-16 text-muted-foreground" />
-                        </div>
-                      )}
+                      </div>
+                    )}
+                    <CardHeader className="pb-2 sm:pb-3">
                       <CardTitle className="text-base sm:text-lg line-clamp-1">{artist.artistName}</CardTitle>
                       <CardDescription className="text-xs sm:text-sm line-clamp-1">
                         {Array.isArray(artist.genre) && artist.genre.length > 0 
@@ -128,9 +167,71 @@ export default function Browse() {
                       </div>
                       <div className="flex gap-2 mt-3 sm:mt-4">
                         <FavoriteButton artistId={artist.id} size="sm" showText={false} />
-                        <Button className="flex-1" variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9">
+                        <Button 
+                          className="flex-1 text-xs sm:text-sm h-8 sm:h-9" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/artist/${artist.id}`);
+                          }}
+                        >
                           View Profile
                         </Button>
+                        {isAuthenticated && user?.role === 'venue' && (
+                          <Button
+                            size="sm"
+                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleBookClick(artist.id);
+                            }}
+                          >
+                            <Calendar className="h-3 w-3" />
+                            <span className="hidden sm:inline">Book</span>
+                          </Button>
+                        )}
+                        {!isAuthenticated && (
+                          <Button
+                            size="sm"
+                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleBookClick(artist.id);
+                            }}
+                          >
+                            <Calendar className="h-3 w-3" />
+                            <span className="hidden sm:inline">Book</span>
+                          </Button>
+                        )}
+                        {isAuthenticated && user?.role !== 'artist' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleMessageClick(artist.id);
+                            }}
+                          >
+                            <MessageSquare className="h-3 w-3" />
+                            <span className="hidden sm:inline">Message</span>
+                          </Button>
+                        )}
+                        {!isAuthenticated && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleMessageClick(artist.id);
+                            }}
+                          >
+                            <MessageSquare className="h-3 w-3" />
+                            <span className="hidden sm:inline">Message</span>
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -146,6 +247,15 @@ export default function Browse() {
           </div>
         )}
       </div>
+
+      {/* Quick Signup Modal */}
+      <QuickSignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSignupSuccess={handleSignupSuccess}
+        actionType={modalConfig.actionType}
+        targetType={modalConfig.targetType}
+      />
     </div>
   );
 }

@@ -8,12 +8,17 @@
  */
 
 import { getDb } from '../db';
-import { 
-  evictionPolicyConfig, 
-  evictionMaintenanceLog,
-  EvictionPolicyConfig,
-  InsertEvictionMaintenanceLog
-} from '../../drizzle/schema';
+// TODO: evictionPolicyConfig and evictionMaintenanceLog tables need to be created in schema
+// import { 
+//   evictionPolicyConfig, 
+//   evictionMaintenanceLog,
+//   EvictionPolicyConfig,
+//   InsertEvictionMaintenanceLog
+// } from '../../drizzle/schema';
+
+// Placeholder types for now
+type EvictionPolicyConfig = any;
+type InsertEvictionMaintenanceLog = any;
 import { eq, and, desc, gte, lt } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 

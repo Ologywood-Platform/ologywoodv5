@@ -41,7 +41,8 @@
  */
 
 import { getDb } from '../db';
-import { faqs } from '../../drizzle/schema';
+// TODO: faqs table needs to be created in schema
+// import { faqs } from '../../drizzle/schema';
 import { eq, isNull, or, and, gte } from 'drizzle-orm';
 import {
   generateEmbeddingsBatch,

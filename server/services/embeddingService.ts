@@ -13,7 +13,8 @@ import { createHash } from 'crypto';
 import PQueue from 'p-queue';
 import { Redis } from 'ioredis';
 import { getDb } from '../db';
-import { embeddingCache } from '../../drizzle/schema';
+// TODO: embeddingCache table needs to be created in schema
+// import { embeddingCache } from '../../drizzle/schema';
 import { eq, sql } from 'drizzle-orm';
 
 // ============================================================================

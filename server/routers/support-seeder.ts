@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { supportCategories, faqs, knowledgeBaseArticles } from "../../drizzle/schema";
+// TODO: These tables need to be created in schema
+// import { supportCategories, faqs, knowledgeBaseArticles } from "../../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 

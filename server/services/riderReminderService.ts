@@ -1,5 +1,7 @@
 import { getDb } from '../db';
-import { riderAcknowledgments, riderModificationHistory, users, bookings, riderTemplates } from '../../drizzle/schema';
+import { users, bookings, riderTemplates } from '../../drizzle/schema';
+// TODO: riderAcknowledgments and riderModificationHistory tables need to be created in schema
+// import { riderAcknowledgments, riderModificationHistory } from '../../drizzle/schema';
 import { eq, and, lt, isNull } from 'drizzle-orm';
 import { generateVenueRiderReminderHTML, generateArtistModificationReminderHTML } from '../emails/riderReminders';
 

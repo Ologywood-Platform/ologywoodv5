@@ -1,16 +1,19 @@
-import { mysqlTable, int, varchar, text, timestamp, boolean, json, date, mysqlEnum, decimal, unique } from "drizzle-orm/mysql-core";
-import { index } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  openId: varchar("openId", { length: 64 }).unique(), // OAuth ID, nullable for email/password users
   name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
+  email: varchar("email", { length: 320 }).unique(),
+  password: varchar("password", { length: 255 }), // Hashed password for email/password auth
+  loginMethod: varchar("loginMethod", { length: 64 }), // 'oauth', 'email', etc.
   role: mysqlEnum("role", ["user", "admin", "artist", "venue"]).default("user").notNull(),
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  emailVerificationSentAt: timestamp("emailVerificationSentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -18,6 +21,7 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type UserWithoutPassword = Omit<User, 'password'>;
 
 /**
  * Artist profile table - stores detailed information for performing artists
@@ -57,7 +61,7 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   // Directory listing fields
   isListed: boolean("isListed").default(true).notNull(), // Free listing on directory
   website: text("website"),
-  email: varchar("email", { length: 320 }),
+  email: varchar("email", { length: 320 }).unique(),
   capacity: int("capacity"), // Max attendees
   venueType: varchar("venueType", { length: 100 }), // e.g., "Club", "Theater", "Hall", "Outdoor"
   amenities: json("amenities").$type<string[]>(), // e.g., ["PA System", "Stage", "Parking", "Bar"]
@@ -99,62 +103,42 @@ export type InsertRiderTemplate = typeof riderTemplates.$inferInsert & { templat
 export const availability = mysqlTable("availability", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId").notNull(),
-  date: date("date").notNull(),
-  status: mysqlEnum("status", ["available", "booked", "unavailable"]).notNull().default("available"),
-  notes: text("notes"),
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD format
+  status: mysqlEnum("status", ["available", "booked", "unavailable"]).default("available").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  uniqueArtistDate: unique().on(table.artistId, table.date),
-}));
+});
 
 export type Availability = typeof availability.$inferSelect;
 export type InsertAvailability = typeof availability.$inferInsert;
 
 /**
- * Bookings - stores all booking requests and confirmed bookings
+ * Bookings - tracks booking requests between venues and artists
  */
 export const bookings = mysqlTable("bookings", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId").notNull(),
   venueId: int("venueId").notNull(),
-  eventDate: date("eventDate").notNull(),
-  eventTime: varchar("eventTime", { length: 50 }),
-  venueName: varchar("venueName", { length: 255 }).notNull(),
-  venueAddress: text("venueAddress"),
-  status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).notNull().default("pending"),
-  riderTemplateId: int("riderTemplateId"),
-  riderData: json("riderData").$type<{
-    technical?: object,
-    hospitality?: object,
-    financial?: object
-  }>(),
+  artistId: int("artistId").notNull(),
+  eventDate: timestamp("eventDate").notNull(),
+  eventTime: varchar("eventTime", { length: 5 }), // HH:MM format
+  eventDetails: text("eventDetails"),
+  status: mysqlEnum("status", ["pending", "confirmed", "completed", "cancelled"]).default("pending").notNull(),
   totalFee: decimal("totalFee", { precision: 10, scale: 2 }),
   depositAmount: decimal("depositAmount", { precision: 10, scale: 2 }),
-  eventDetails: text("eventDetails"),
-  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "deposit_paid", "full_paid", "refunded"]).default("unpaid"),
   depositPaidAt: timestamp("depositPaidAt"),
-  fullPaymentPaidAt: timestamp("fullPaymentPaidAt"),
+  fullPaymentAt: timestamp("fullPaymentAt"),
+  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "deposit_paid", "fully_paid", "refunded"]).default("unpaid").notNull(),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
   stripeRefundId: varchar("stripeRefundId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type Booking = typeof bookings.$inferSelect & {
-  eventDetails?: {
-    description?: string;
-    notes?: string;
-    duration?: number;
-    setList?: string;
-    specialRequests?: string;
-    [key: string]: any;
-  };
-};
+export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
 
 /**
- * Messages - in-platform messaging between artists and venues for specific bookings
+ * Messages - in-platform messaging for booking conversations
  */
 export const messages = mysqlTable("messages", {
   id: int("id").autoincrement().primaryKey(),
@@ -162,8 +146,9 @@ export const messages = mysqlTable("messages", {
   senderId: int("senderId").notNull(),
   recipientId: int("recipientId").notNull(),
   content: text("content").notNull(),
-  attachmentUrl: text("attachmentUrl"),
-  isRead: boolean("isRead").default(false),
+  isRead: boolean("isRead").default(false).notNull(),
+  readAt: timestamp("readAt"),
+  lastReadAt: timestamp("lastReadAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -172,76 +157,61 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = typeof messages.$inferInsert;
 
 /**
- * Subscriptions - tracks user subscription plans
- */
-export const subscriptions = mysqlTable("subscriptions", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
-  tier: mysqlEnum("tier", ["free", "basic", "premium"]).default("free").notNull(),
-  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
-  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
-  status: mysqlEnum("status", ["active", "cancelled", "past_due"]).default("active"),
-  currentPeriodStart: timestamp("currentPeriodStart"),
-  currentPeriodEnd: timestamp("currentPeriodEnd"),
-  trialEndsAt: timestamp("trialEndsAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Subscription = typeof subscriptions.$inferSelect;
-export type InsertSubscription = typeof subscriptions.$inferInsert;
-
-/**
  * Reviews - artist reviews from venues
  */
 export const reviews = mysqlTable("reviews", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId"),
-  artistId: int("artistId"),
-  venueId: int("venueId"),
-  rating: int("rating"),
+  bookingId: int("bookingId").notNull().unique(),
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId").notNull(),
+  rating: int("rating").notNull(), // 1-5
   comment: text("comment"),
-  createdAt: timestamp("createdAt").defaultNow(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
+  artistResponse: text("artistResponse"),
+  respondedAt: timestamp("respondedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = typeof reviews.$inferInsert;
 
 /**
- * Venue reviews - venue reviews from artists
+ * Venue Reviews - artist reviews of venues
  */
 export const venueReviews = mysqlTable("venue_reviews", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull(),
+  bookingId: int("bookingId").notNull().unique(),
   venueId: int("venueId").notNull(),
   artistId: int("artistId").notNull(),
-  rating: int("rating").notNull(), // 1-5 stars
-  title: varchar("title", { length: 255 }),
+  rating: int("rating").notNull(), // 1-5
   comment: text("comment"),
-  professionalism: int("professionalism"), // 1-5 rating for professionalism
-  soundQuality: int("soundQuality"), // 1-5 rating for sound quality
-  amenitiesRating: int("amenitiesRating"), // 1-5 rating for amenities
-  audienceRating: int("audienceRating"), // 1-5 rating for audience quality
-  helpful: int("helpful").default(0), // Count of helpful votes
+  venueResponse: text("venueResponse"),
+  respondedAt: timestamp("respondedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  venueIdIdx: index("idx_venue_reviews_venue").on(table.venueId),
-  artistIdIdx: index("idx_venue_reviews_artist").on(table.artistId),
-  bookingIdIdx: index("idx_venue_reviews_booking").on(table.bookingId),
-  createdAtIdx: index("idx_venue_reviews_created").on(table.createdAt),
-}));
+});
 
 export type VenueReview = typeof venueReviews.$inferSelect;
 export type InsertVenueReview = typeof venueReviews.$inferInsert;
 
 /**
- * Favorites - artists and venues that users have favorited
+ * Profile Views - track artist profile visits
+ */
+export const profileViews = mysqlTable("profile_views", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+});
+
+export type ProfileView = typeof profileViews.$inferSelect;
+export type InsertProfileView = typeof profileViews.$inferInsert;
+
+/**
+ * Favorites - venue's favorite artists
  */
 export const favorites = mysqlTable("favorites", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
+  venueId: int("venueId").notNull(),
   artistId: int("artistId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -250,552 +220,99 @@ export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
 
 /**
- * Booking templates - saved booking request templates
+ * Booking Templates - reusable booking request templates
  */
 export const bookingTemplates = mysqlTable("booking_templates", {
   id: int("id").autoincrement().primaryKey(),
   venueId: int("venueId").notNull(),
   templateName: varchar("templateName", { length: 255 }).notNull(),
+  eventDetails: text("eventDetails"),
+  totalFee: decimal("totalFee", { precision: 10, scale: 2 }),
+  depositAmount: decimal("depositAmount", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type BookingTemplate = typeof bookingTemplates.$inferSelect & {
-  templateData?: {
-    eventType?: string;
-    venueName?: string;
-    venueCapacity?: number;
-    budgetMin?: number;
-    budgetMax?: number;
-    standardRequirements?: string;
-    paSystemRequired?: boolean;
-    lightingRequired?: boolean;
-    lightingType?: string;
-    cateringProvided?: boolean;
-    [key: string]: any;
-  };
-  paSystemRequired?: boolean;
-  lightingRequired?: boolean;
-  lightingType?: string;
-  cateringProvided?: boolean;
-};
-export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert & {
-  templateData?: {
-    eventType?: string;
-    venueName?: string;
-    venueCapacity?: number;
-    budgetMin?: number;
-    budgetMax?: number;
-    standardRequirements?: string;
-    paSystemRequired?: boolean;
-    lightingRequired?: boolean;
-    lightingType?: string;
-    cateringProvided?: boolean;
-    [key: string]: any;
-  };
-  paSystemRequired?: boolean;
-  lightingRequired?: boolean;
-  lightingType?: string;
-  cateringProvided?: boolean;
-};
+export type BookingTemplate = typeof bookingTemplates.$inferSelect;
+export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
 
 /**
- * Profile views - track who views artist/venue profiles
- */
-export const profileViews = mysqlTable("profile_views", {
-  id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId"),
-});
-
-export type ProfileView = typeof profileViews.$inferSelect;
-export type InsertProfileView = typeof profileViews.$inferInsert;
-
-/**
- * Booking reminders - reminders for upcoming bookings
+ * Booking Reminders - track sent reminders
  */
 export const bookingReminders = mysqlTable("booking_reminders", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("bookingId").notNull(),
-  userId: int("userId").notNull(),
-  reminderType: mysqlEnum("reminderType", ["upcoming", "deposit_due", "final_payment_due"]).notNull(),
-  reminderDate: date("reminderDate").notNull(),
-  sent: boolean("sent").default(false),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  reminderType: mysqlEnum("reminderType", ["7_days", "3_days", "1_day"]).notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
 });
 
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
 
 /**
- * Contracts - booking contracts
+ * Contracts - digital contracts for bookings
  */
 export const contracts = mysqlTable("contracts", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull(),
+  bookingId: int("bookingId").notNull().unique(),
   artistId: int("artistId").notNull(),
   venueId: int("venueId").notNull(),
   contractData: json("contractData").$type<Record<string, any>>(),
-  status: mysqlEnum("status", ["draft", "sent", "signed", "executed", "cancelled"]).default("draft").notNull(),
+  pdfUrl: text("pdfUrl"),
+  status: mysqlEnum("status", ["pending", "signed_by_artist", "signed_by_venue", "fully_signed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type Contract = typeof contracts.$inferSelect & {
-  artistName?: string;
-  venueName?: string;
-  contractTitle?: string;
-  contractType?: string;
-  contractContent?: string;
-  artistSignedAt?: Date | null;
-  venueSignedAt?: Date | null;
-};
+export type Contract = typeof contracts.$inferSelect;
 export type InsertContract = typeof contracts.$inferInsert;
 
 /**
- * Signatures - contract signatures
+ * Signatures - digital signatures on contracts
  */
 export const signatures = mysqlTable("signatures", {
   id: int("id").autoincrement().primaryKey(),
   contractId: int("contractId").notNull(),
-  signerId: int("signerId").notNull(),
-  signatureData: text("signatureData"),
-  signedAt: timestamp("signedAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  userId: int("userId").notNull(),
+  signatureData: text("signatureData").notNull(), // Base64 encoded signature
+  signedAt: timestamp("signedAt").defaultNow().notNull(),
 });
 
 export type Signature = typeof signatures.$inferSelect;
 export type InsertSignature = typeof signatures.$inferInsert;
 
 /**
- * Rider acknowledgments - tracks rider acknowledgment workflow
+ * Referrals - track referral program
  */
-export const riderAcknowledgments = mysqlTable("rider_acknowledgments", {
+export const referrals = mysqlTable("referrals", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull(),
-  riderTemplateId: int("riderTemplateId").notNull(),
-  venueId: int("venueId").notNull(),
-  artistId: int("artistId").notNull(),
-  status: mysqlEnum("status", ["pending", "acknowledged", "modifications_proposed", "approved", "rejected"]).default("pending").notNull(),
-  acknowledgedAt: timestamp("acknowledgedAt"),
+  referrerId: int("referrerId").notNull(),
+  referredId: int("referredId"),
+  referralCode: varchar("referralCode", { length: 20 }).unique().notNull(),
+  status: mysqlEnum("status", ["pending", "completed", "rewarded"]).default("pending").notNull(),
+  rewardAmount: decimal("rewardAmount", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type RiderAcknowledgment = typeof riderAcknowledgments.$inferSelect;
-export type InsertRiderAcknowledgment = typeof riderAcknowledgments.$inferInsert;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;
 
 /**
- * Rider modification history - tracks modifications to riders
+ * Verification Badges - track artist verification status
  */
-export const riderModificationHistory = mysqlTable("rider_modification_history", {
+export const verificationBadges = mysqlTable("verification_badges", {
   id: int("id").autoincrement().primaryKey(),
-  acknowledgmentId: int("acknowledgmentId").notNull(),
-  proposedBy: int("proposedBy").notNull(),
-  proposedModifications: json("proposedModifications").$type<Record<string, any>>(),
-  reason: text("reason"),
-  status: mysqlEnum("status", ["pending", "approved", "rejected", "counter_proposed"]).default("pending").notNull(),
-  respondedAt: timestamp("respondedAt"),
+  artistId: int("artistId").notNull().unique(),
+  completedBookings: int("completedBookings").default(0),
+  averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default(0),
+  hasProfilePhoto: boolean("hasProfilePhoto").default(false),
+  hasBio: boolean("hasBio").default(false),
+  hasRiderTemplate: boolean("hasRiderTemplate").default(false),
+  verificationStatus: mysqlEnum("verificationStatus", ["bronze", "silver", "gold", "platinum"]).default("bronze").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-export type RiderModificationHistory = typeof riderModificationHistory.$inferSelect;
-export type InsertRiderModificationHistory = typeof riderModificationHistory.$inferInsert;
-
-
-/**
- * Support tickets - user support requests
- */
-export const supportTickets = mysqlTable("support_tickets", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  subject: varchar("subject", { length: 255 }).notNull(),
-  description: text("description").notNull(),
-  category: varchar("category", { length: 100 }),
-  priority: mysqlEnum("priority", ["low", "medium", "high", "urgent"]).default("medium").notNull(),
-  status: mysqlEnum("status", ["open", "in_progress", "waiting_user", "resolved", "closed"]).default("open").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type SupportTicket = typeof supportTickets.$inferSelect;
-export type InsertSupportTicket = typeof supportTickets.$inferInsert;
-
-/**
- * Support ticket responses
- */
-export const supportTicketResponses = mysqlTable("support_ticket_responses", {
-  id: int("id").autoincrement().primaryKey(),
-  ticketId: int("ticketId").notNull(),
-  responderId: int("responderId").notNull(),
-  response: text("response").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type SupportTicketResponse = typeof supportTicketResponses.$inferSelect;
-export type InsertSupportTicketResponse = typeof supportTicketResponses.$inferInsert;
-
-/**
- * Support categories
- */
-export const supportCategories = mysqlTable("support_categories", {
-  id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 100 }).notNull().unique(),
-  description: text("description"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type SupportCategory = typeof supportCategories.$inferSelect;
-export type InsertSupportCategory = typeof supportCategories.$inferInsert;
-
-/**
- * FAQs - Frequently Asked Questions for support and knowledge base
- * Stores common questions and answers organized by category
- */
-export const faqs = mysqlTable("faqs", {
-  // Primary identifier
-  id: int("id").autoincrement().primaryKey(),
-  
-  // Core content fields
-  question: varchar("question", { length: 500 }).notNull(),
-  answer: text("answer").notNull(),
-  
-  // Organization and metadata
-  category: varchar("category", { length: 100 }),
-  tags: json("tags").$type<string[]>().default([]),
-  order: int("order").default(0),
-  
-  // Search and relevance
-  keywords: text("keywords"), // Comma-separated keywords for search
-  searchContent: text("searchContent"), // Denormalized content for full-text search
-  
-  // Engagement metrics
-  views: int("views").default(0),
-  helpful: int("helpful").default(0),
-  notHelpful: int("notHelpful").default(0),
-  helpfulRatio: decimal("helpfulRatio", { precision: 5, scale: 2 }).default('0.00'), // percentage 0-100
-  semanticSearchHits: int("semanticSearchHits").default(0),
-  semanticSearchClicks: int("semanticSearchClicks").default(0),
-  
-  // Status and visibility
-  isPublished: boolean("isPublished").default(true),
-  isPinned: boolean("isPinned").default(false),
-  
-  // Embedding fields for vector search
-  embedding: json("embedding").$type<number[]>(),
-  embeddingModel: varchar("embeddingModel", { length: 100 }).default("text-embedding-3-small"),
-  embeddingDimension: int("embeddingDimension").default(1536),
-  embeddingGeneratedAt: timestamp("embeddingGeneratedAt"),
-  needsEmbeddingRefresh: boolean("needsEmbeddingRefresh").default(false),
-  
-  // Audit trail
-  createdBy: int("createdBy"),
-  updatedBy: int("updatedBy"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type FAQ = typeof faqs.$inferSelect;
-export type InsertFAQ = typeof faqs.$inferInsert;
-
-/**
- * Knowledge base articles
- */
-export const knowledgeBaseArticles = mysqlTable("knowledge_base_articles", {
-  id: int("id").autoincrement().primaryKey(),
-  title: varchar("title", { length: 255 }).notNull(),
-  content: text("content").notNull(),
-  category: varchar("category", { length: 100 }),
-  tags: json("tags").$type<string[]>(),
-  views: int("views").default(0),
-  helpful: int("helpful").default(0),
-  notHelpful: int("notHelpful").default(0),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
-export type InsertKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
-
-
-/**
- * Notifications - real-time notifications for users
- */
-export const notifications = mysqlTable("notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  type: varchar("type", { length: 50 }).notNull(), // "booking", "message", "review", "rider_acknowledgment", etc.
-  title: varchar("title", { length: 255 }).notNull(),
-  message: text("message"),
-  relatedId: int("relatedId"), // ID of related entity (booking, message, review, etc.)
-  relatedType: varchar("relatedType", { length: 50 }), // Type of related entity
-  isRead: boolean("isRead").default(false),
-  actionUrl: text("actionUrl"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$inferInsert;
-
-/**
- * Notification Preferences - user notification settings
- */
-export const notificationPreferences = mysqlTable("notification_preferences", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
-  emailNotifications: boolean("emailNotifications").default(true),
-  pushNotifications: boolean("pushNotifications").default(true),
-  bookingNotifications: boolean("bookingNotifications").default(true),
-  messageNotifications: boolean("messageNotifications").default(true),
-  reviewNotifications: boolean("reviewNotifications").default(true),
-  riderNotifications: boolean("riderNotifications").default(true),
-  reminderNotifications: boolean("reminderNotifications").default(true),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
-
-/**
- * Embedding Cache - stores pre-generated embeddings for performance optimization
- * Reduces OpenAI API calls by 70-80% and improves response time from 500ms to 10-50ms
- */
-export const embeddingCache = mysqlTable("embedding_cache", {
-  id: int("id").autoincrement().primaryKey(),
-  textHash: varchar("textHash", { length: 64 }).unique().notNull(),
-  text: text("text").notNull(),
-  embedding: json("embedding").$type<number[]>().notNull(),
-  model: varchar("model", { length: 50 }).default("text-embedding-3-small"),
-  dimension: int("dimension").default(1536),
-  usageCount: int("usageCount").default(0),
-  lastUsedAt: timestamp("lastUsedAt").defaultNow(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type EmbeddingCache = typeof embeddingCache.$inferSelect;
-export type InsertEmbeddingCache = typeof embeddingCache.$inferInsert;
-
-/**
- * Semantic Search Logs - tracks all search queries, results, and user interactions
- * Used for analytics, trending analysis, and search quality measurement
- */
-export const semanticSearchLogs = mysqlTable("semantic_search_logs", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: varchar("userId", { length: 255 }).notNull(),
-  query: text("query").notNull(),
-  queryEmbedding: json("queryEmbedding").$type<number[]>(),
-  resultsCount: int("resultsCount").default(0),
-  topResultId: int("topResultId"),
-  topResultScore: decimal("topResultScore", { precision: 5, scale: 4 }),
-  responseTimeMs: int("responseTimeMs"),
-  method: varchar("method", { length: 50 }).default("semantic"),
-  clicked: boolean("clicked").default(false),
-  clickedFaqId: int("clickedFaqId"),
-  clickedPosition: int("clickedPosition"),
-  rating: int("rating"),
-  timestamp: timestamp("timestamp").defaultNow(),
-  fallbackToKeyword: boolean("fallbackToKeyword").default(false),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type SemanticSearchLog = typeof semanticSearchLogs.$inferSelect;
-export type InsertSemanticSearchLog = typeof semanticSearchLogs.$inferInsert;
-
-// ============================================================================
-// EVICTION MANAGEMENT TABLES
-// ============================================================================
-
-/**
- * Eviction Policy Configuration Table
- * 
- * Stores configuration for eviction policies that manage embedding cache cleanup.
- * Supports multiple policy types: age-based, usage-based, hybrid, and size-based.
- */
-export const evictionPolicyConfig = mysqlTable(
-  "eviction_policy_config",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    
-    // Policy identification
-    policyName: varchar("policyName", { length: 50 }).unique().notNull(),
-    policyType: varchar("policyType", { length: 50 }).notNull(),
-    
-    // Age-based threshold (days)
-    ageThresholdDays: int("ageThresholdDays").default(7),
-    
-    // Usage-based thresholds
-    usageThreshold: int("usageThreshold"),
-    usagePercentile: decimal("usagePercentile", { precision: 3, scale: 2 }),
-    
-    // Size-based threshold (MB)
-    maxCacheSizeMb: int("maxCacheSizeMb"),
-    
-    // Policy status and scheduling
-    enabled: boolean("enabled").default(true).notNull(),
-    runFrequency: varchar("runFrequency", { length: 50 }).default("daily").notNull(),
-    runTime: varchar("runTime", { length: 8 }).default("02:00:00"),
-    
-    // Documentation
-    description: text("description"),
-    
-    // Audit trail
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  },
-  (table) => ({
-    // Performance indexes
-    policyNameIdx: index("idx_eviction_policy_name").on(table.policyName),
-    enabledIdx: index("idx_eviction_enabled").on(table.enabled),
-    policyTypeIdx: index("idx_eviction_policy_type").on(table.policyType),
-    runFrequencyIdx: index("idx_eviction_run_frequency").on(table.runFrequency),
-  })
-);
-
-export type EvictionPolicyConfig = typeof evictionPolicyConfig.$inferSelect;
-export type InsertEvictionPolicyConfig = typeof evictionPolicyConfig.$inferInsert;
-
-/**
- * Eviction Maintenance Log Table
- * 
- * Records all eviction operations for monitoring, auditing, and analytics.
- * Tracks execution time, space freed, and operation status.
- */
-export const evictionMaintenanceLog = mysqlTable(
-  "eviction_maintenance_log",
-  {
-    id: int("id").autoincrement().primaryKey(),
-    
-    // Policy reference
-    policyName: varchar("policyName", { length: 50 }).notNull(),
-    
-    // Operation metrics
-    embeddingsDeleted: int("embeddingsDeleted").notNull(),
-    spaceFreedMb: decimal("spaceFreedMb", { precision: 10, scale: 2 }).notNull(),
-    cacheSizeBeforeMb: decimal("cacheSizeBeforeMb", { precision: 10, scale: 2 }).notNull(),
-    cacheSizeAfterMb: decimal("cacheSizeAfterMb", { precision: 10, scale: 2 }).notNull(),
-    
-    // Performance tracking
-    executionTimeMs: int("executionTimeMs").notNull(),
-    
-    // Status and error handling
-    status: varchar("status", { length: 20 }).notNull(), // 'success', 'error', 'running', 'skipped'
-    errorMessage: text("errorMessage"),
-    
-    // Additional data
-    parameters: json("parameters"),
-    notes: text("notes"),
-    
-    // Timestamp
-    executionTimestamp: timestamp("executionTimestamp").defaultNow().notNull(),
-  },
-  (table) => ({
-    // Performance indexes
-    policyNameIdx: index("idx_eviction_log_policy").on(table.policyName),
-    statusIdx: index("idx_eviction_log_status").on(table.status),
-    timestampIdx: index("idx_eviction_log_timestamp").on(table.executionTimestamp),
-    policyTimestampIdx: index("idx_eviction_log_policy_timestamp").on(
-      table.policyName,
-      table.executionTimestamp
-    ),
-  })
-);
-
-export type EvictionMaintenanceLog = typeof evictionMaintenanceLog.$inferSelect;
-export type InsertEvictionMaintenanceLog = typeof evictionMaintenanceLog.$inferInsert;
-
-/**
- * Calendar Events - tracks artist availability, bookings, and personal events
- * Supports drag-and-drop rescheduling and external calendar sync
- */
-export const calendarEvents = mysqlTable("calendar_events", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  userType: mysqlEnum("userType", ["artist", "venue"]).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  eventType: mysqlEnum("eventType", ["booking", "availability", "unavailable", "personal", "synced"]).notNull(),
-  startDate: date("startDate").notNull(),
-  startTime: varchar("startTime", { length: 50 }),
-  endDate: date("endDate"),
-  endTime: varchar("endTime", { length: 50 }),
-  location: varchar("location", { length: 255 }),
-  bookingId: int("bookingId"),
-  externalCalendarId: varchar("externalCalendarId", { length: 255 }),
-  externalEventId: varchar("externalEventId", { length: 255 }),
-  externalCalendarType: mysqlEnum("externalCalendarType", ["google", "outlook", "apple"]),
-  color: varchar("color", { length: 50 }).default("blue"),
-  isAllDay: boolean("isAllDay").default(false),
-  isRecurring: boolean("isRecurring").default(false),
-  recurrencePattern: json("recurrencePattern").$type<{
-    frequency?: string;
-    interval?: number;
-    endDate?: string;
-    daysOfWeek?: string[];
-  }>(),
-  reminders: json("reminders").$type<Array<{ type: string; minutesBefore: number }>>(),
-  metadata: json("metadata").$type<Record<string, any>>(),
-  syncedAt: timestamp("syncedAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("idx_calendar_events_user").on(table.userId),
-  startDateIdx: index("idx_calendar_events_start").on(table.startDate),
-  bookingIdIdx: index("idx_calendar_events_booking").on(table.bookingId),
-  externalEventIdx: index("idx_calendar_events_external").on(table.externalEventId),
-}));
-
-export type CalendarEvent = typeof calendarEvents.$inferSelect;
-export type InsertCalendarEvent = typeof calendarEvents.$inferInsert;
-
-/**
- * Calendar Sync Tokens - stores OAuth tokens for external calendar sync
- */
-export const calendarSyncTokens = mysqlTable("calendar_sync_tokens", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
-  calendarType: mysqlEnum("calendarType", ["google", "outlook", "apple"]).notNull(),
-  accessToken: text("accessToken").notNull(),
-  refreshToken: text("refreshToken"),
-  tokenExpiry: timestamp("tokenExpiry"),
-  calendarId: varchar("calendarId", { length: 255 }),
-  isActive: boolean("isActive").default(true),
-  lastSyncAt: timestamp("lastSyncAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  userIdIdx: index("idx_sync_tokens_user").on(table.userId),
-  calendarTypeIdx: index("idx_sync_tokens_type").on(table.calendarType),
-}));
-
-export type CalendarSyncToken = typeof calendarSyncTokens.$inferSelect;
-export type InsertCalendarSyncToken = typeof calendarSyncTokens.$inferInsert;
-
-
-
-/**
- * Venue Inquiry Tracking - tracks artist inquiries and booking attempts
- */
-export const venueInquiries = mysqlTable("venue_inquiries", {
-  id: int("id").autoincrement().primaryKey(),
-  venueId: int("venueId").notNull(),
-  artistId: int("artistId").notNull(),
-  inquiryType: mysqlEnum("inquiryType", ["view", "contact", "booking_request", "message"]).notNull(),
-  details: json("details").$type<Record<string, any>>(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}, (table) => ({
-  venueIdIdx: index("idx_venue_inquiries_venue").on(table.venueId),
-  artistIdIdx: index("idx_venue_inquiries_artist").on(table.artistId),
-  createdAtIdx: index("idx_venue_inquiries_created").on(table.createdAt),
-}));
-
-export type VenueInquiry = typeof venueInquiries.$inferSelect;
-export type InsertVenueInquiry = typeof venueInquiries.$inferInsert;
-
-
-
+export type VerificationBadge = typeof verificationBadges.$inferSelect;
+export type InsertVerificationBadge = typeof verificationBadges.$inferInsert;

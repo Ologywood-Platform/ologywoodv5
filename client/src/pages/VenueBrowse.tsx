@@ -2,10 +2,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check } from 'lucide-react';
+import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check, MessageSquare, Calendar } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
+import { QuickSignupModal } from '@/components/QuickSignupModal';
 
 interface Venue {
   id: number;
@@ -102,17 +104,81 @@ const mockVenues: Venue[] = [
   },
 ];
 
-export function VenueBrowse() {
+export default function VenueBrowse() {
+  const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedAmenity, setSelectedAmenity] = useState<string | null>(null);
   const [copiedVenueId, setCopiedVenueId] = useState<number | null>(null);
 
+  // Modal state
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    actionType: 'book' | 'message';
+    targetType: 'artist' | 'venue';
+    venueId?: number;
+  }>({
+    actionType: 'book',
+    targetType: 'venue',
+  });
+
+  const handleBookClick = (venueId: number) => {
+    if (!isAuthenticated) {
+      setModalConfig({
+        actionType: 'book',
+        targetType: 'venue',
+        venueId,
+      });
+      setShowSignupModal(true);
+    } else {
+      navigate(`/bookings/create?venueId=${venueId}`);
+    }
+  };
+
+  const handleMessageClick = (venueId: number) => {
+    if (!isAuthenticated) {
+      setModalConfig({
+        actionType: 'message',
+        targetType: 'venue',
+        venueId,
+      });
+      setShowSignupModal(true);
+    } else {
+      navigate(`/messages?venueId=${venueId}`);
+    }
+  };
+
+  const handleSignupSuccess = () => {
+    if (modalConfig.actionType === 'book' && modalConfig.venueId) {
+      navigate(`/bookings/create?venueId=${modalConfig.venueId}`);
+    } else if (modalConfig.actionType === 'message' && modalConfig.venueId) {
+      navigate(`/messages?venueId=${modalConfig.venueId}`);
+    }
+  };
+
+  const allVenueTypes = Array.from(new Set(mockVenues.map(v => v.venueType).filter(Boolean)));
+  const allAmenities = Array.from(new Set(mockVenues.flatMap(v => v.amenities || [])));
+
+  const filteredVenues = useMemo(() => {
+    return mockVenues.filter(venue => {
+      const matchesSearch = searchTerm === '' ||
+        venue.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        venue.location.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesType = selectedType === null || venue.venueType === selectedType;
+
+      const matchesAmenity = selectedAmenity === null ||
+        (venue.amenities && venue.amenities.includes(selectedAmenity));
+
+      return matchesSearch && matchesType && matchesAmenity;
+    });
+  }, [searchTerm, selectedType, selectedAmenity]);
+
   const handleShare = (venue: Venue, platform: string) => {
-    const venueUrl = `${window.location.origin}/venue/${venue.id}`;
+    const venueUrl = `${window.location.origin}/venues/${venue.id}`;
     const text = `Check out ${venue.organizationName} on Ologywood - ${venue.bio}`;
-    
+
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(venueUrl)}`,
       twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(venueUrl)}&text=${encodeURIComponent(text)}`,
@@ -125,282 +191,306 @@ export function VenueBrowse() {
   };
 
   const handleCopyLink = (venue: Venue) => {
-    const venueUrl = `${window.location.origin}/venue/${venue.id}`;
+    const venueUrl = `${window.location.origin}/venues/${venue.id}`;
     navigator.clipboard.writeText(venueUrl);
     setCopiedVenueId(venue.id);
     toast.success('Link copied to clipboard!');
     setTimeout(() => setCopiedVenueId(null), 2000);
   };
 
-  const venueTypes = ['Club', 'Theater', 'Lounge', 'Outdoor', 'Hall'];
-  const allAmenities = Array.from(
-    new Set(mockVenues.flatMap(v => v.amenities || []))
-  );
-
-  const filteredVenues = useMemo(() => {
-    return mockVenues.filter(venue => {
-      const matchesSearch = venue.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           venue.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           venue.bio?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = !selectedType || venue.venueType === selectedType;
-      const matchesAmenity = !selectedAmenity || venue.amenities?.includes(selectedAmenity);
-      
-      return matchesSearch && matchesType && matchesAmenity;
-    });
-  }, [searchTerm, selectedType, selectedAmenity]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-2">Find Your Perfect Venue</h1>
-          <p className="text-purple-100">Browse venues in our directory and book your next event</p>
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Find Your Perfect Venue</h1>
+          <p className="text-gray-600 text-sm">Browse venues in our directory and book your next event</p>
         </div>
-      </div>
+      </header>
 
-      {/* Search and Filters */}
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Search Bar */}
         <div className="mb-8">
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
-              placeholder="Search by venue name or location..."
+              placeholder="Search venues by name or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 py-6 text-lg"
+              className="pl-10 py-2 text-base"
             />
           </div>
+        </div>
 
-          {/* Filter Buttons */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-sm mb-2">Venue Type</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedType === null ? 'default' : 'outline'}
-                  onClick={() => setSelectedType(null)}
-                  className="rounded-full"
-                >
-                  All Types
-                </Button>
-                {venueTypes.map(type => (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6 sticky top-24">
+              {/* Venue Type Filter */}
+              <div>
+                <h3 className="font-semibold text-sm mb-2">Venue Type</h3>
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    key={type}
-                    variant={selectedType === type ? 'default' : 'outline'}
-                    onClick={() => setSelectedType(type)}
+                    variant={selectedType === null ? 'default' : 'outline'}
+                    onClick={() => setSelectedType(null)}
                     className="rounded-full"
                   >
-                    {type}
+                    All Types
                   </Button>
-                ))}
+                  {allVenueTypes.map(type => (
+                    <Button
+                      key={type}
+                      variant={selectedType === type ? 'default' : 'outline'}
+                      onClick={() => setSelectedType(type)}
+                      className="rounded-full text-xs"
+                    >
+                      {type}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <h3 className="font-semibold text-sm mb-2">Amenities</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedAmenity === null ? 'default' : 'outline'}
-                  onClick={() => setSelectedAmenity(null)}
-                  className="rounded-full"
-                >
-                  All Amenities
-                </Button>
-                {allAmenities.map(amenity => (
+              {/* Amenities Filter */}
+              <div>
+                <h3 className="font-semibold text-sm mb-2">Amenities</h3>
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    key={amenity}
-                    variant={selectedAmenity === amenity ? 'default' : 'outline'}
-                    onClick={() => setSelectedAmenity(amenity)}
-                    className="rounded-full text-xs"
+                    variant={selectedAmenity === null ? 'default' : 'outline'}
+                    onClick={() => setSelectedAmenity(null)}
+                    className="rounded-full"
                   >
-                    {amenity}
+                    All Amenities
                   </Button>
-                ))}
+                  {allAmenities.map(amenity => (
+                    <Button
+                      key={amenity}
+                      variant={selectedAmenity === amenity ? 'default' : 'outline'}
+                      onClick={() => setSelectedAmenity(amenity)}
+                      className="rounded-full text-xs"
+                    >
+                      {amenity}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing <strong>{filteredVenues.length}</strong> venue{filteredVenues.length !== 1 ? 's' : ''}
-          </p>
-        </div>
+          {/* Results */}
+          <div className="lg:col-span-3">
+            {/* Results Count */}
+            <div className="mb-6">
+              <p className="text-gray-600">
+                Showing <strong>{filteredVenues.length}</strong> venue{filteredVenues.length !== 1 ? 's' : ''}
+              </p>
+            </div>
 
-        {/* Venues Grid */}
-        {filteredVenues.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVenues.map(venue => (
-              <Card key={venue.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                {/* Venue Image */}
-                {venue.profilePhotoUrl && (
-                  <div className="h-48 overflow-hidden bg-gray-200">
-                    <img
-                      src={venue.profilePhotoUrl}
-                      alt={venue.organizationName}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
-                    />
-                  </div>
-                )}
-
-                <CardHeader>
-                  <CardTitle className="text-lg">{venue.organizationName}</CardTitle>
-                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-2">
-                    <MapPin className="h-4 w-4" />
-                    {venue.location}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {/* Rating */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{venue.averageRating}</span>
-                    </div>
-                    <span className="text-sm text-gray-600">({venue.reviewCount} reviews)</span>
-                  </div>
-
-                  {/* Venue Type and Capacity */}
-                  <div className="flex gap-2 flex-wrap">
-                    {venue.venueType && (
-                      <Badge variant="secondary">{venue.venueType}</Badge>
+            {/* Venues Grid */}
+            {filteredVenues.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredVenues.map(venue => (
+                  <Card key={venue.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    {/* Venue Image */}
+                    {venue.profilePhotoUrl && (
+                      <div className="h-48 overflow-hidden bg-gray-200">
+                        <img
+                          src={venue.profilePhotoUrl}
+                          alt={venue.organizationName}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform"
+                        />
+                      </div>
                     )}
-                    {venue.capacity && (
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {venue.capacity} capacity
-                      </Badge>
-                    )}
-                  </div>
 
-                  {/* Bio */}
-                  {venue.bio && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{venue.bio}</p>
-                  )}
+                    <CardHeader>
+                      <CardTitle className="text-lg">{venue.organizationName}</CardTitle>
+                      <div className="flex items-center gap-1 text-sm text-gray-600 mt-2">
+                        <MapPin className="h-4 w-4" />
+                        {venue.location}
+                      </div>
+                    </CardHeader>
 
-                  {/* Amenities */}
-                  {venue.amenities && venue.amenities.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-700 mb-2">Amenities</p>
-                      <div className="flex flex-wrap gap-1">
-                        {venue.amenities.slice(0, 3).map(amenity => (
-                          <Badge key={amenity} variant="outline" className="text-xs">
-                            {amenity}
-                          </Badge>
-                        ))}
-                        {venue.amenities.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{venue.amenities.length - 3} more
+                    <CardContent className="space-y-4">
+                      {/* Rating */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-semibold">{venue.averageRating}</span>
+                        </div>
+                        <span className="text-sm text-gray-600">({venue.reviewCount} reviews)</span>
+                      </div>
+
+                      {/* Venue Type and Capacity */}
+                      <div className="flex gap-2 flex-wrap">
+                        {venue.venueType && (
+                          <Badge variant="secondary">{venue.venueType}</Badge>
+                        )}
+                        {venue.capacity && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {venue.capacity} capacity
                           </Badge>
                         )}
                       </div>
-                    </div>
-                  )}
 
-                  {/* Contact Info */}
-                  <div className="space-y-2 pt-2 border-t">
-                    {venue.contactPhone && (
-                      <a href={`tel:${venue.contactPhone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                        <Phone className="h-4 w-4" />
-                        {venue.contactPhone}
-                      </a>
-                    )}
-                    {venue.website && (
-                      <a href={venue.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
-                        <Globe className="h-4 w-4" />
-                        Visit Website
-                      </a>
-                    )}
-                  </div>
+                      {/* Bio */}
+                      {venue.bio && (
+                        <p className="text-sm text-gray-600 line-clamp-2">{venue.bio}</p>
+                      )}
 
-                  {/* Social Sharing */}
-                  <div className="pt-3 border-t">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">Share this venue</p>
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleShare(venue, 'facebook')}
-                        title="Share on Facebook"
-                      >
-                        <Facebook className="h-4 w-4 text-blue-600" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleShare(venue, 'twitter')}
-                        title="Share on Twitter"
-                      >
-                        <Twitter className="h-4 w-4 text-sky-400" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleShare(venue, 'linkedin')}
-                        title="Share on LinkedIn"
-                      >
-                        <Linkedin className="h-4 w-4 text-blue-700" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleCopyLink(venue)}
-                        title="Copy link"
-                      >
-                        {copiedVenueId === venue.id ? (
-                          <Check className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
+                      {/* Amenities */}
+                      {venue.amenities && venue.amenities.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-700 mb-2">Amenities</p>
+                          <div className="flex flex-wrap gap-1">
+                            {venue.amenities.slice(0, 3).map(amenity => (
+                              <Badge key={amenity} variant="outline" className="text-xs">
+                                {amenity}
+                              </Badge>
+                            ))}
+                            {venue.amenities.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{venue.amenities.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Contact Info */}
+                      <div className="space-y-2 pt-2 border-t">
+                        {venue.contactPhone && (
+                          <a href={`tel:${venue.contactPhone}`} className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                            <Phone className="h-4 w-4" />
+                            {venue.contactPhone}
+                          </a>
                         )}
-                      </Button>
-                    </div>
-                  </div>
+                        {venue.website && (
+                          <a href={venue.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
+                            <Globe className="h-4 w-4" />
+                            Visit Website
+                          </a>
+                        )}
+                      </div>
 
-                  {/* View Profile Button */}
-                  <Button 
-                    className="w-full mt-4"
-                    onClick={() => navigate(`/venues/${venue.id}`)}
-                  >
-                    View Full Profile
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Social Sharing */}
+                      <div className="pt-3 border-t">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Share this venue</p>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleShare(venue, 'facebook')}
+                            title="Share on Facebook"
+                          >
+                            <Facebook className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleShare(venue, 'twitter')}
+                            title="Share on Twitter"
+                          >
+                            <Twitter className="h-4 w-4 text-sky-400" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleShare(venue, 'linkedin')}
+                            title="Share on LinkedIn"
+                          >
+                            <Linkedin className="h-4 w-4 text-blue-700" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleCopyLink(venue)}
+                            title="Copy link"
+                          >
+                            {copiedVenueId === venue.id ? (
+                              <Check className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          className="flex-1"
+                          variant="outline"
+                          onClick={() => navigate(`/venues/${venue.id}`)}
+                        >
+                          View Profile
+                        </Button>
+                        {(isAuthenticated && user?.role === 'artist') || !isAuthenticated ? (
+                          <Button
+                            className="flex-1 gap-2"
+                            onClick={() => handleBookClick(venue.id)}
+                          >
+                            <Calendar className="h-4 w-4" />
+                            Book
+                          </Button>
+                        ) : null}
+                        {(isAuthenticated && user?.role !== 'venue') || !isAuthenticated ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => handleMessageClick(venue.id)}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            Message
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No venues found matching your criteria.</p>
+                <Button variant="outline" onClick={() => {
+                  setSearchTerm('');
+                  setSelectedType(null);
+                  setSelectedAmenity(null);
+                }} className="mt-4">
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No venues found matching your criteria.</p>
-            <Button variant="outline" onClick={() => {
-              setSearchTerm('');
-              setSelectedType(null);
-              setSelectedAmenity(null);
-            }} className="mt-4">
-              Clear Filters
+        </div>
+
+        {/* Footer Info */}
+        <div className="bg-gray-50 py-12 mt-12 rounded-lg">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <h2 className="text-2xl font-bold mb-4">List Your Venue for Free</h2>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Are you a venue owner? Add your venue to our directory for free and get discovered by artists looking to book events. 
+              Promote your space and connect with performers in your area.
+            </p>
+            <Button size="lg" className="gap-2">
+              Add Your Venue
             </Button>
           </div>
-        )}
-      </div>
-
-      {/* Footer Info */}
-      <div className="bg-gray-50 py-12 mt-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-4">List Your Venue for Free</h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Are you a venue owner? Add your venue to our directory for free and get discovered by artists looking to book events. 
-            Promote your space and connect with performers in your area.
-          </p>
-          <Button size="lg" className="gap-2">
-            Add Your Venue
-          </Button>
         </div>
       </div>
+
+      {/* Quick Signup Modal */}
+      <QuickSignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSignupSuccess={handleSignupSuccess}
+        actionType={modalConfig.actionType}
+        targetType={modalConfig.targetType}
+      />
     </div>
   );
 }
