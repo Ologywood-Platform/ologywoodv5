@@ -63,6 +63,8 @@ import EmailVerification from "./pages/EmailVerification";
 import BookingCalendar from "./pages/BookingCalendar";
 import ReferralProgram from "./pages/ReferralProgram";
 import Settings from "./pages/Settings";
+import RiderDocumentUpload from "./pages/RiderDocumentUpload";
+import BookingCalendarView from "./pages/BookingCalendarView";
 import DashboardV2 from "./pages/DashboardV2";
 import TestingDashboard from "./pages/TestingDashboard";
 
@@ -113,6 +115,8 @@ function Router() {
       <Route path="/bookings/create" component={BookingCreate} />
       <Route path="/bookings" component={BookingsList} />
       <Route path="/booking-status" component={BookingStatusDashboard} />
+      <Route path="/rider-documents" component={RiderDocumentUpload} />
+      <Route path="/booking-calendar" component={BookingCalendarView} />
       <Route path="/messages/:id" component={MessagesDetail} />
       <Route path="/messages" component={Messages} />
       <Route path="/calendar" component={Calendar} />

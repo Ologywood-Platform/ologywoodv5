@@ -94,6 +94,48 @@ export const notificationRouter = router({
       }
     }),
 
+  // Approve booking request
+  approveBooking: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .mutation(async ({ ctx, input }: any) => {
+      try {
+        const db = await getDb();
+        if (!db) return { success: false };
+        
+        const { bookings } = await import('../../drizzle/schema');
+        await db.update(bookings).set({
+          status: 'confirmed',
+          updatedAt: new Date(),
+        }).where(eq(bookings.id, input.bookingId));
+        
+        return { success: true, message: 'Booking approved successfully' };
+      } catch (error) {
+        console.error('Error approving booking:', error);
+        return { success: false, message: 'Failed to approve booking' };
+      }
+    }),
+
+  // Decline booking request
+  declineBooking: protectedProcedure
+    .input(z.object({ bookingId: z.number(), reason: z.string().optional() }))
+    .mutation(async ({ ctx, input }: any) => {
+      try {
+        const db = await getDb();
+        if (!db) return { success: false };
+        
+        const { bookings } = await import('../../drizzle/schema');
+        await db.update(bookings).set({
+          status: 'cancelled',
+          updatedAt: new Date(),
+        }).where(eq(bookings.id, input.bookingId));
+        
+        return { success: true, message: 'Booking declined successfully' };
+      } catch (error) {
+        console.error('Error declining booking:', error);
+        return { success: false, message: 'Failed to decline booking' };
+      }
+    }),
+
   // Create notification (for system use)
   create: protectedProcedure
     .input(
