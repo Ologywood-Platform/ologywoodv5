@@ -255,22 +255,23 @@ export async function processPendingReminders(preferences?: ReminderPreferences)
     if (!db) throw new Error('Database not available');
 
     // Get all pending acknowledgments
-    const pendingAcknowledgments = await db
-      .select()
-      .from(riderAcknowledgments)
-      .where(isNull(riderAcknowledgments.acknowledgedAt));
+    // TODO: Implement riderAcknowledgments table
+    // const pendingAcknowledgments = await db
+    //   .select()
+    //   .from(riderAcknowledgments)
+    //   .where(isNull(riderAcknowledgments.acknowledgedAt));
 
-    console.log(`[Rider Reminder] Processing ${pendingAcknowledgments.length} pending acknowledgments`);
+    // console.log(`[Rider Reminder] Processing ${pendingAcknowledgments.length} pending acknowledgments`);
 
     // Send venue reminders
-    for (const ack of pendingAcknowledgments) {
-      await sendVenueReminderIfNeeded(ack.id, prefs);
-    }
+    // for (const ack of pendingAcknowledgments) {
+    //   await sendVenueReminderIfNeeded(ack.id, prefs);
+    // }
 
     // Send artist reminders for pending modifications
-    for (const ack of pendingAcknowledgments) {
-      await sendArtistReminderIfNeeded(ack.id, prefs);
-    }
+    // for (const ack of pendingAcknowledgments) {
+    //   await sendArtistReminderIfNeeded(ack.id, prefs);
+    // }
   } catch (error) {
     console.error('[Rider Reminder] Error processing pending reminders:', error);
   }

@@ -136,19 +136,20 @@ class SocketService {
     try {
       const database = await getDatabase();
       // Store notification in database
-      const notification = await database.insert(notifications).values({
-        userId: payload.userId,
-        type: payload.type,
-        title: payload.title,
-        message: payload.message,
-        actionUrl: payload.actionUrl,
-        data: payload.data ? JSON.stringify(payload.data) : null,
-        read: false,
-      });
+      // TODO: Implement notifications table
+      // const notification = await database.insert(notifications).values({
+      //   userId: payload.userId,
+      //   type: payload.type,
+      //   title: payload.title,
+      //   message: payload.message,
+      //   actionUrl: payload.actionUrl,
+      //   data: payload.data ? JSON.stringify(payload.data) : null,
+      //   read: false,
+      // });
 
       // Emit to user's rooms
       this.io.to(`user:${payload.userId}`).emit('notification:new', {
-        id: notification[0],
+        id: Date.now(),
         ...payload,
         timestamp: new Date(),
         read: false,
@@ -239,10 +240,11 @@ class SocketService {
 
     try {
       const database = await getDatabase();
-      await database
-        .update(notifications)
-        .set({ read: true })
-        .where(eq(notifications.id, notificationId))
+      // TODO: Implement notifications table
+      // await database
+      //   .update(notifications)
+      //   .set({ read: true })
+      //   .where(eq(notifications.id, notificationId))
 
       console.log(`[Socket.io] Notification ${notificationId} marked as read`);
     } catch (error) {
