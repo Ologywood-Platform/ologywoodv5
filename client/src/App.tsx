@@ -31,6 +31,7 @@ import SupportTicketDetail from "./pages/SupportTicketDetail";
 import HelpCenter from "./pages/HelpCenter";
 import AdminSupportDashboard from "./pages/AdminSupportDashboard";
 import { AIChatWidget } from "./components/AIChatWidget";
+import Footer from "./components/Footer";
 import SupportMetricsDashboard from "./pages/SupportMetricsDashboard";
 import SupportTeamManagement from "./pages/SupportTeamManagement";
 import SLATrackingDashboard from "./pages/SLATrackingDashboard";
@@ -48,6 +49,9 @@ import Marketing from "./pages/Marketing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Cookies from "./pages/Cookies";
 import BookingStatusDashboard from "./pages/BookingStatusDashboard";
 import { VenueGallery } from "./pages/VenueGallery";
 import { VenueReviews } from "./pages/VenueReviews";
@@ -70,7 +74,9 @@ import TestingDashboard from "./pages/TestingDashboard";
 
 function Router() {
   return (
-    <Switch>
+    <div className="flex flex-col min-h-screen">
+      <div className="flex-1">
+        <Switch>
       <Route path="/home" component={Home} />
       <Route path="/browse" component={Browse} />
       <Route path="/venues" component={VenueBrowse} />
@@ -85,6 +91,9 @@ function Router() {
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/contact" component={Contact} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/cookies" component={Cookies} />
       <Route path="/rider-builder" component={RiderBuilder} />
       <Route path="/saved-riders" component={SavedRiders} />
       <Route path="/contact-form" component={ContactForm} />
@@ -139,7 +148,10 @@ function Router() {
       <Route path="/verify-certificate" component={CertificateVerification} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
-    </Switch>
+        </Switch>
+      </div>
+      <Footer />
+    </div>
   );
 }
 
