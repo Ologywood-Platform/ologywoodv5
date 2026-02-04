@@ -71,6 +71,8 @@ import RiderDocumentUpload from "./pages/RiderDocumentUpload";
 import BookingCalendarView from "./pages/BookingCalendarView";
 import DashboardV2 from "./pages/DashboardV2";
 import TestingDashboard from "./pages/TestingDashboard";
+import ArtistAnalyticsDashboard from "./pages/ArtistAnalyticsDashboard";
+import DisputeResolutionDashboard from "./pages/DisputeResolutionDashboard";
 
 function Router() {
   return (
@@ -126,6 +128,8 @@ function Router() {
       <Route path="/booking-status" component={BookingStatusDashboard} />
       <Route path="/rider-documents" component={RiderDocumentUpload} />
       <Route path="/booking-calendar" component={BookingCalendarView} />
+      <Route path="/artist-analytics" component={ArtistAnalyticsDashboard} />
+      <Route path="/disputes" component={DisputeResolutionDashboard} />
       <Route path="/messages/:id" component={MessagesDetail} />
       <Route path="/messages" component={Messages} />
       <Route path="/calendar" component={Calendar} />
@@ -161,8 +165,8 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <AIChatWidget />
           <Router />
+          <AIChatWidget />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
