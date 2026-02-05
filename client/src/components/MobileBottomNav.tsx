@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { Home, Search, MessageCircle, Calendar, User } from 'lucide-react';
 import { useAuth } from '@/_core/hooks/useAuth';
 
@@ -12,8 +12,7 @@ interface NavItem {
 }
 
 export function MobileBottomNav() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [pathname, navigate] = useLocation();
   const { user } = useAuth();
 
   // Don't show on desktop
@@ -56,7 +55,7 @@ export function MobileBottomNav() {
   ];
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    return pathname === path || pathname.startsWith(path + '/');
   };
 
   return (

@@ -52,6 +52,7 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
+import Accessibility from "./pages/Accessibility";
 import BookingStatusDashboard from "./pages/BookingStatusDashboard";
 import { VenueGallery } from "./pages/VenueGallery";
 import { VenueReviews } from "./pages/VenueReviews";
@@ -96,6 +97,7 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/cookies" component={Cookies} />
+      <Route path="/accessibility" component={Accessibility} />
       <Route path="/rider-builder" component={RiderBuilder} />
       <Route path="/saved-riders" component={SavedRiders} />
       <Route path="/contact-form" component={ContactForm} />

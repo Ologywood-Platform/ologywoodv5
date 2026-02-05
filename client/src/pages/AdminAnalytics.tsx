@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'wouter';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import GroupedErrorAnalytics from '../components/GroupedErrorAnalytics';

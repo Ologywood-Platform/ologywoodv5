@@ -1,11 +1,10 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export const ContractNavigation: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [pathname, navigate] = useLocation();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => pathname === path;
 
   return (
     <nav style={{

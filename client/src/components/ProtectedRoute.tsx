@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { AlertCircle } from 'lucide-react';
 import { hasRouteAccess, UserRole } from '../middleware/routeProtection';
 import { useToastContext } from './ErrorToast';
@@ -29,7 +29,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles = [],
   requiresAuth = true,
 }) => {
-  const location = useLocation();
+  const [pathname, navigate] = useLocation();
   const { addError } = useToastContext();
 
   // Get user from context or localStorage
@@ -39,7 +39,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const userRole = user?.role as UserRole | null;
 
   // Check if user has access
-  const hasAccess = hasRouteAccess(userRole, isAuthenticated, location.pathname);
+  const hasAccess = hasRouteAccess(userRole, isAuthenticated, pathname);
 
   if (!hasAccess) {
     // Show error toast
@@ -68,13 +68,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
 
     // Redirect to login or dashboard
-    return (
-      <Navigate
-        to={isAuthenticated ? '/dashboard' : '/login'}
-        state={{ from: location }}
-        replace
-      />
-    );
+    React.useEffect(() => {
+      navigate(isAuthenticated ? '/dashboard' : '/login');
+    }, [isAuthenticated, navigate]);
+    return null;
   }
 
   return <>{children}</>;

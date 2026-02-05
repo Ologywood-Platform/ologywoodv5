@@ -2753,3 +2753,51 @@ The Ologywood platform is production-ready with:
 - [x] Implement auto-update on bookings
 - [x] Create sync status indicator
 - [x] Add manual sync trigger button
+
+
+## Monetization Features (PENDING)
+
+### Subscription Tiers
+- [ ] Design Free/Basic/Premium subscription plans with feature limits
+- [ ] Implement storage limits for photos and documents per tier
+- [ ] Add listing limits (number of active bookings/availability slots)
+- [ ] Create analytics access restrictions by tier
+- [ ] Build automatic upgrade prompts when users hit tier limits
+- [ ] Add tier comparison page showing features and pricing
+- [ ] Implement tier-based feature flags in codebase
+- [ ] Create admin dashboard for tier management
+- [ ] Add tier information to user profiles
+- [ ] Create tier downgrade/cancellation workflow
+
+### Revenue Sharing Dashboard
+- [ ] Create revenue sharing database schema and calculations
+- [ ] Build artist earnings breakdown by booking type
+- [ ] Implement venue earnings tracking and reporting
+- [ ] Create transparent fee calculation display (platform fees, payment processing)
+- [ ] Build payment history with detailed transaction information
+- [ ] Add earnings charts and trends visualization
+- [ ] Implement monthly earnings reports
+- [ ] Create payout schedule and status tracking
+- [ ] Add earnings filters (date range, booking type, status)
+- [ ] Build admin dashboard for revenue monitoring
+- [ ] Create automated earnings calculations and payouts
+
+### Smart Pricing Suggestions
+- [ ] Analyze historical booking data for pricing patterns
+- [ ] Implement demand-based pricing recommendations
+- [ ] Create venue type-based pricing suggestions
+- [ ] Add seasonal pricing recommendations
+- [ ] Build time-of-day pricing optimization
+- [ ] Create machine learning model for price predictions
+- [ ] Add competitor pricing analysis (anonymized)
+- [ ] Build pricing recommendation UI in artist dashboard
+- [ ] Implement A/B testing for suggested prices
+- [ ] Create pricing performance analytics
+- [ ] Add pricing history and trend analysis
+
+## Navigation & Routing Fixes (COMPLETED)
+- [x] Fix all react-router-dom imports to use wouter
+- [x] Add Accessibility route to App.tsx
+- [x] Fix all back links and navigation
+- [x] Test footer links (Terms, Privacy, Cookies, Accessibility)
+- [x] Create comprehensive sitemap (SITEMAP.md)
