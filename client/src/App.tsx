@@ -53,6 +53,8 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
 import Accessibility from "./pages/Accessibility";
+import HowItWorksArtist from "./pages/HowItWorksArtist";
+import HowItWorksVenue from "./pages/HowItWorksVenue";
 import BookingStatusDashboard from "./pages/BookingStatusDashboard";
 import { VenueGallery } from "./pages/VenueGallery";
 import { VenueReviews } from "./pages/VenueReviews";
@@ -98,6 +100,8 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/cookies" component={Cookies} />
       <Route path="/accessibility" component={Accessibility} />
+      <Route path="/how-it-works-artist" component={HowItWorksArtist} />
+      <Route path="/how-it-works-venue" component={HowItWorksVenue} />
       <Route path="/rider-builder" component={RiderBuilder} />
       <Route path="/saved-riders" component={SavedRiders} />
       <Route path="/contact-form" component={ContactForm} />
