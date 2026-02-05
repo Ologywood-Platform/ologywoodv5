@@ -234,13 +234,13 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
+                  <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-8 w-8 rounded" />
                   <span className="font-semibold tracking-tight truncate">
                     Ologywood
                   </span>
                 </div>
               ) : (
-                <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
+                <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-8 w-8 rounded" />
               )}
             </div>
           </SidebarHeader>

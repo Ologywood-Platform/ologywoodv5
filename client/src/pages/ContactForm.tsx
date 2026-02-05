@@ -50,7 +50,7 @@ export default function ContactForm() {
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-lg sm:text-2xl font-bold text-primary">
-            <img src="/logo-icon.png" alt="Ologywood" className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
+            <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
             <span className="hidden sm:inline">Ologywood</span>
             <span className="sm:hidden">OW</span>
           </Link>

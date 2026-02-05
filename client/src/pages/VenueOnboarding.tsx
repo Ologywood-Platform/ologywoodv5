@@ -136,7 +136,7 @@ export default function VenueOnboarding() {
         <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <img src="/logo-icon.png" alt="Ologywood" className="h-8 w-8 rounded" />
+              <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-8 w-8 rounded" />
               <div>
                 <CardTitle>Create Your Venue Profile</CardTitle>
                 <CardDescription>Step {currentStep} of {totalSteps}</CardDescription>

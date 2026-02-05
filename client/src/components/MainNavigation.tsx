@@ -34,8 +34,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ userRole, userNa
             alignItems: 'center',
             gap: '8px',
           }}>
-            <span style={{ fontSize: '24px' }}>🎭</span>
-            Ologywood
+            <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" style={{ height: '40px', width: '40px', objectFit: 'contain' }} />
           </a>
         </Link>
 
