@@ -76,6 +76,17 @@ import DashboardV2 from "./pages/DashboardV2";
 import TestingDashboard from "./pages/TestingDashboard";
 import ArtistAnalyticsDashboard from "./pages/ArtistAnalyticsDashboard";
 import DisputeResolutionDashboard from "./pages/DisputeResolutionDashboard";
+import About from "./pages/About";
+import Blog from "./pages/Blog";
+import Careers from "./pages/Careers";
+import Press from "./pages/Press";
+import Pricing from "./pages/Pricing";
+import SupportPage from "./pages/SupportPage";
+import ArtistResources from "./pages/ArtistResources";
+import VenueResources from "./pages/VenueResources";
+import Partner from "./pages/Partner";
+import SuccessStories from "./pages/SuccessStories";
+import Verification from "./pages/Verification";
 
 function Router() {
   return (
@@ -115,7 +126,16 @@ function Router() {
       <Route path="/booking-calendar" component={BookingCalendar} />
       <Route path="/referral" component={ReferralProgram} />
       <Route path="/settings" component={Settings} />
-
+      <Route path="/about" component={About} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/press" component={Press} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/resources/artists" component={ArtistResources} />
+      <Route path="/resources/venues" component={VenueResources} />
+      <Route path="/partner" component={Partner} />
+      <Route path="/success-stories" component={SuccessStories} />
+      <Route path="/verification" component={Verification} />
 
       <Route path="/artist/:id" component={ArtistProfile} />
       <Route path="/artist-profile-edit" component={ArtistOnboarding} />
@@ -145,6 +165,7 @@ function Router() {
       <Route path="/contract/:id" component={ContractDetail} />
       <Route path="/contracts/:id" component={ContractDetail} />
       <Route path="/payments" component={Payments} />
+      <Route path="/support-page" component={SupportPage} />
       <Route path="/support" component={SupportTickets} />
       <Route path="/support/create" component={SupportTicketCreate} />
       <Route path="/support/:id" component={SupportTicketDetail} />

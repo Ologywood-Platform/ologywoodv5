@@ -49,7 +49,7 @@ const Footer = () => {
       links: [
         { label: 'Help Center', path: '/help' },
         { label: 'FAQ', path: '/faq' },
-        { label: 'Contact Support', path: '/support' },
+        { label: 'Contact Support', path: '/support-page' },
         { label: 'Terms of Service', path: '/terms' },
         { label: 'Privacy Policy', path: '/privacy' },
         { label: 'Cookie Policy', path: '/cookies' },
