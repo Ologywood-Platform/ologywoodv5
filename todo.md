@@ -2837,3 +2837,11 @@ The Ologywood platform is production-ready with:
 ### Support Section
 - [x] /help - Help Center page (already existed)
 - [x] /support-page - Support/Contact Support page
+
+
+## Suggested Follows Feature (COMPLETED)
+- [x] Create SuggestedFollows UI component with 4 sample artists
+- [x] Add Follow/Dismiss functionality with interactive buttons
+- [x] Integrate into Home page below Featured Artists section
+- [x] Display artist images, genres, location, ratings, and followers
+- [x] Responsive design for mobile and desktop

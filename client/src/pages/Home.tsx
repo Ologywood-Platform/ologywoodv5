@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { getLoginUrl } from "@/const";
+import SuggestedFollows from "@/components/SuggestedFollows";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logout.useMutation();
@@ -197,6 +198,13 @@ export default function Home() {
               </a>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Suggested Follows Section */}
+      <section className="py-8 sm:py-16">
+        <div className="container mx-auto px-3 sm:px-4">
+          <SuggestedFollows />
         </div>
       </section>
 

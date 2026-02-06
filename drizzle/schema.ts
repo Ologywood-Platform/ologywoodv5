@@ -316,3 +316,18 @@ export const verificationBadges = mysqlTable("verification_badges", {
 
 export type VerificationBadge = typeof verificationBadges.$inferSelect;
 export type InsertVerificationBadge = typeof verificationBadges.$inferInsert;
+
+
+/**
+ * Follows - track user follows for artists and venues
+ */
+export const follows = mysqlTable("follows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId").notNull(), // User who is following
+  followingId: int("followingId").notNull(), // Artist or Venue being followed
+  followingType: mysqlEnum("followingType", ["artist", "venue"]).notNull(), // Type of entity being followed
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Follow = typeof follows.$inferSelect;
+export type InsertFollow = typeof follows.$inferInsert;
