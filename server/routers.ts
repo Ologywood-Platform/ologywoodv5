@@ -56,6 +56,8 @@ import { followsRouter } from "./routers/follows";
 import { availabilityAlertsRouter } from "./routers/availabilityAlerts";
 import { referralRewardsRouter } from "./routers/referralRewards";
 import { browseFiltersRouter } from "./routers/browseFilters";
+import { artistOnboardingRouter } from "./routers/artistOnboarding";
+import { bookingAnalyticsExportRouter } from "./routers/bookingAnalyticsExport";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 import paymentTestingRoutes from "./routes/paymentTestingRoutes";
@@ -122,6 +124,8 @@ export const appRouter = router({
   availabilityAlerts: availabilityAlertsRouter,
   referralRewards: referralRewardsRouter,
   browseFilters: browseFiltersRouter,
+  artistOnboarding: artistOnboardingRouter,
+  bookingAnalyticsExport: bookingAnalyticsExportRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))
