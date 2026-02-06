@@ -52,6 +52,7 @@ import { privacyRouter } from "./routers/privacy";
 import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
 import { paymentsRouter } from "./routers/payments";
+import { followsRouter } from "./routers/follows";
 import * as contractPdfService from "./contractPdfService";
 import * as contractArchiveService from "./contractArchiveService";
 import paymentTestingRoutes from "./routes/paymentTestingRoutes";
@@ -114,6 +115,7 @@ export const appRouter = router({
   privacy: privacyRouter,
   messaging: messagingRouter,
   payments: paymentsRouter,
+  follows: followsRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))
