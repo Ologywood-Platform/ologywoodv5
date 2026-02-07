@@ -8,6 +8,7 @@ import { X, Search } from 'lucide-react';
 
 interface SearchFiltersProps {
   onFilterChange: (filters: {
+    genre?: string[];
     location?: string;
     minFee?: number;
     maxFee?: number;
@@ -16,14 +17,28 @@ interface SearchFiltersProps {
   }) => void;
 }
 
+const GENRES = [
+  'Rock', 'Pop', 'Jazz', 'Blues', 'Hip-Hop', 'Electronic', 'Country',
+  'R&B', 'Soul', 'Reggae', 'Latin', 'Classical', 'Folk', 'Indie'
+];
+
 export function SearchFilters({ onFilterChange }: SearchFiltersProps) {
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [availableFrom, setAvailableFrom] = useState('');
   const [availableTo, setAvailableTo] = useState('');
 
+  const handleGenreToggle = (genre: string) => {
+    const newGenres = selectedGenres.includes(genre)
+      ? selectedGenres.filter(g => g !== genre)
+      : [...selectedGenres, genre];
+    setSelectedGenres(newGenres);
+  };
+
   const handleApplyFilters = () => {
     onFilterChange({
+      genre: selectedGenres.length > 0 ? selectedGenres : undefined,
       location: location || undefined,
       minFee: priceRange[0] > 0 ? priceRange[0] : undefined,
       maxFee: priceRange[1] < 10000 ? priceRange[1] : undefined,
@@ -33,6 +48,7 @@ export function SearchFilters({ onFilterChange }: SearchFiltersProps) {
   };
 
   const handleReset = () => {
+    setSelectedGenres([]);
     setLocation('');
     setPriceRange([0, 10000]);
     setAvailableFrom('');
@@ -40,15 +56,64 @@ export function SearchFilters({ onFilterChange }: SearchFiltersProps) {
     onFilterChange({});
   };
 
+  const activeFilterCount = [
+    selectedGenres.length > 0,
+    location,
+    priceRange[0] > 0 || priceRange[1] < 10000,
+    availableFrom,
+    availableTo,
+  ].filter(Boolean).length;
+
   return (
-    <Card>
+    <Card className="mb-6 sm:mb-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5" />
           Search Filters
+          {activeFilterCount > 0 && (
+            <span className="ml-auto text-sm font-normal text-muted-foreground">
+              {activeFilterCount} active
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Genre Filter */}
+        <div className="space-y-3">
+          <Label>Genres</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {GENRES.map(genre => (
+              <label key={genre} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedGenres.includes(genre)}
+                  onChange={() => handleGenreToggle(genre)}
+                  className="w-4 h-4 text-primary rounded"
+                />
+                <span className="text-sm text-foreground">{genre}</span>
+              </label>
+            ))}
+          </div>
+          {selectedGenres.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {selectedGenres.map(genre => (
+                <span
+                  key={genre}
+                  className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs"
+                >
+                  {genre}
+                  <button
+                    onClick={() => handleGenreToggle(genre)}
+                    className="hover:text-primary/70"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Location Filter */}
         <div className="space-y-2">
           <Label htmlFor="location">Location</Label>

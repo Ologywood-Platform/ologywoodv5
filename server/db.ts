@@ -342,6 +342,16 @@ export async function searchArtists(filters: {
   // Apply filters in application code for MVP
   let filtered = results;
   
+  // Filter by genre
+  if (filters.genre && filters.genre.length > 0) {
+    filtered = filtered.filter(a => {
+      const artistGenres = Array.isArray(a.genre) ? a.genre : [];
+      return filters.genre!.some(selectedGenre => 
+        artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
+      );
+    });
+  }
+  
   if (filters.location) {
     filtered = filtered.filter(a => 
       a.location?.toLowerCase().includes(filters.location!.toLowerCase())

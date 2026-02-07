@@ -114,7 +114,7 @@ export default function Browse() {
         </div>
 
         {/* Filters */}
-        <SearchFilters onFiltersChange={setFilters} />
+        <SearchFilters onFilterChange={setFilters} />
 
         {/* Artists Grid */}
         {filteredArtists && filteredArtists.length > 0 ? (
