@@ -90,7 +90,7 @@ export function ArtistPortfolio({ artistId: propArtistId }: ArtistPortfolioProps
             <img
               src={artist.profileImage}
               alt={artist.name}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover object-top"
             />
             <div className="flex-1">
               <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">{artist.name}</h1>

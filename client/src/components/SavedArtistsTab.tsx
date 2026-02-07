@@ -71,17 +71,17 @@ export default function SavedArtistsTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {favorites.map((artist) => (
           <Link key={artist.id} href={`/artist/${artist.id}`}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full group overflow-hidden">
               <CardHeader>
                 {artist.profilePhotoUrl ? (
                   <img
                     src={artist.profilePhotoUrl}
                     alt={artist.artistName}
-                    className="w-full h-48 object-cover rounded-md mb-4"
+                    className="w-full h-48 object-cover object-top rounded-md mb-4 group-hover:scale-105 transition duration-300"
                   />
                 ) : (
-                  <div className="w-full h-48 bg-muted rounded-md mb-4 flex items-center justify-center">
-                    <Music className="h-16 w-16 text-muted-foreground" />
+                  <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-blue-100 rounded-md mb-4 flex items-center justify-center">
+                    <Music className="h-16 w-16 text-purple-400" />
                   </div>
                 )}
                 <CardTitle>{artist.artistName}</CardTitle>

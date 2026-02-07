@@ -80,18 +80,19 @@ export const FollowedArtistsDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {followedArtists.map((artist) => (
-          <div key={artist.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-            {/* Artist Image */}
-            <div className="relative h-40 bg-gray-200 overflow-hidden">
+          <div key={artist.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden group">
+            {/* Artist Image - Optimized for face visibility */}
+            <div className="relative h-48 bg-gray-200 overflow-hidden">
               {artist.profilePhotoUrl ? (
                 <img
                   src={artist.profilePhotoUrl}
                   alt={artist.artistName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-blue-500">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-blue-500 flex-col gap-2">
                   <Heart className="w-12 h-12 text-white" />
+                  <span className="text-white text-xs font-medium">No photo</span>
                 </div>
               )}
             </div>

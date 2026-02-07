@@ -101,21 +101,22 @@ export const ArtistDiscoveryCarousel: React.FC<ArtistDiscoveryCarouselProps> = (
             <div
               key={artist.id}
               onClick={() => onArtistClick(artist.id)}
-              className="flex-shrink-0 w-80 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+              className="flex-shrink-0 w-80 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden group"
             >
-              {/* Image */}
-              <div className="relative h-48 bg-gray-200 overflow-hidden">
+              {/* Image - Optimized for face visibility */}
+              <div className="relative h-64 bg-gray-200 overflow-hidden">
                 {artist.profilePhotoUrl ? (
                   <img
                     src={artist.profilePhotoUrl}
                     alt={artist.artistName}
-                    className="w-full h-full object-cover hover:scale-105 transition"
+                    className="w-full h-full object-cover object-top group-hover:scale-110 transition duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                    <span className="text-white text-4xl font-bold">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-col gap-2">
+                    <span className="text-white text-5xl font-bold">
                       {artist.artistName.charAt(0)}
                     </span>
+                    <span className="text-white text-xs font-medium">No photo</span>
                   </div>
                 )}
 

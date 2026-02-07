@@ -84,12 +84,12 @@ export function MobileArtistCarousel({ title, artists, onArtistClick }: MobileAr
         className="relative bg-white rounded-xl overflow-hidden shadow-md"
       >
         {/* Artist Card */}
-        <div className="aspect-video sm:aspect-square relative overflow-hidden bg-gradient-to-br from-purple-100 to-purple-50">
+        <div className="aspect-video sm:aspect-square relative overflow-hidden bg-gradient-to-br from-purple-100 to-purple-50 group">
           {currentArtist.image ? (
             <img
               src={currentArtist.image}
               alt={currentArtist.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -100,10 +100,10 @@ export function MobileArtistCarousel({ title, artists, onArtistClick }: MobileAr
             </div>
           )}
 
-          {/* Overlay with Info */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
-            <h3 className="text-xl sm:text-2xl font-bold text-white">{currentArtist.name}</h3>
-            <p className="text-sm text-gray-200">{currentArtist.genre}</p>
+          {/* Overlay with Info - Enhanced for better readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">{currentArtist.name}</h3>
+            <p className="text-sm text-gray-100 drop-shadow">{currentArtist.genre}</p>
 
             {/* Rating */}
             <div className="flex items-center gap-2 mt-2">
