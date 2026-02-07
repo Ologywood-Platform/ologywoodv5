@@ -92,8 +92,8 @@ export default function Contact() {
               <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>📍 Address</h3>
               <p style={{ color: '#6b7280' }}>
                 Ologywood, Inc.<br />
-                123 Music Lane<br />
-                Nashville, TN 37201<br />
+                171 Prestwick Dr<br />
+                Hoschton, GA 30548<br />
                 United States
               </p>
             </div>

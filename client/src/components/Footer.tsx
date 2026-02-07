@@ -6,11 +6,11 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, url: 'https://facebook.com/ologywood', color: 'hover:text-blue-600' },
-    { name: 'Instagram', icon: Instagram, url: 'https://instagram.com/ologywood', color: 'hover:text-pink-600' },
-    { name: 'Twitter', icon: Twitter, url: 'https://twitter.com/ologywood', color: 'hover:text-blue-400' },
-    { name: 'LinkedIn', icon: Linkedin, url: 'https://linkedin.com/company/ologywood', color: 'hover:text-blue-700' },
-    { name: 'YouTube', icon: Youtube, url: 'https://youtube.com/@ologywood', color: 'hover:text-red-600' },
+    { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@Ologywood', color: 'hover:text-red-600' },
+    { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/ologywood_artist_service/', color: 'hover:text-pink-600' },
+    { name: 'TikTok', icon: Twitter, url: 'https://www.tiktok.com/@ologywood', color: 'hover:text-gray-400' },
+    { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/profile.php?id=61587512344110', color: 'hover:text-blue-600' },
+    { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/showcase/ologywood-com/about/?viewAsMember=true', color: 'hover:text-blue-700' },
   ];
 
   const footerSections = [
@@ -129,8 +129,8 @@ const Footer = () => {
                 <div>
                   <p className="text-gray-400 text-sm">Address</p>
                   <p className="text-white">
-                    123 Entertainment Ave<br />
-                    Los Angeles, CA 90001<br />
+                    171 Prestwick Dr<br />
+                    Hoschton, GA 30548<br />
                     United States
                   </p>
                 </div>

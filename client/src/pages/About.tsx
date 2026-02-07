@@ -134,6 +134,31 @@ const About = () => {
         </div>
       </div>
 
+      {/* Contact Section */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Get In Touch</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center">
+            <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
+            <a href="mailto:support@ologywood.com" className="text-purple-600 hover:text-purple-700">
+              support@ologywood.com
+            </a>
+          </div>
+          <div className="text-center">
+            <h3 className="font-semibold text-gray-900 mb-2">Call Us</h3>
+            <a href="tel:+1-800-654-9963" className="text-purple-600 hover:text-purple-700">
+              +1 (800) 654-9963
+            </a>
+          </div>
+          <div className="text-center">
+            <h3 className="font-semibold text-gray-900 mb-2">Visit Us</h3>
+            <p className="text-gray-600">
+              171 Prestwick Dr, Hoschton, GA 30548
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
