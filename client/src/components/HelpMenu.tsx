@@ -242,7 +242,7 @@ export function HelpMenu({ onTutorialSelect }: HelpMenuProps) {
                         size="sm"
                         className="w-full justify-start"
                         onClick={() => {
-                          window.location.href = 'mailto:support@ologywood.com';
+                          window.location.href = 'mailto:info@ologywood.com';
                         }}
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
@@ -276,7 +276,7 @@ export function HelpMenu({ onTutorialSelect }: HelpMenuProps) {
 
                     <div className="pt-3 border-t">
                       <p className="text-xs text-gray-600">
-                        📧 support@ologywood.com
+                        📧 info@ologywood.com
                         <br />
                         ⏰ Response time: Usually within 24 hours
                       </p>

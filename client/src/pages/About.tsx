@@ -140,8 +140,8 @@ const About = () => {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
             <h3 className="font-semibold text-gray-900 mb-2">Email Us</h3>
-            <a href="mailto:support@ologywood.com" className="text-purple-600 hover:text-purple-700">
-              support@ologywood.com
+            <a href="mailto:info@ologywood.com" className="text-purple-600 hover:text-purple-700">
+              info@ologywood.com
             </a>
           </div>
           <div className="text-center">

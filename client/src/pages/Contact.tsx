@@ -67,8 +67,8 @@ export default function Contact() {
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>📧 Email</h3>
               <p style={{ color: '#6b7280' }}>
-                <a href="mailto:support@ologywood.com" style={{ color: '#6366f1', textDecoration: 'none' }}>
-                  support@ologywood.com
+                <a href="mailto:info@ologywood.com" style={{ color: '#6366f1', textDecoration: 'none' }}>
+                  info@ologywood.com
                 </a>
               </p>
               <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
@@ -260,7 +260,7 @@ export default function Contact() {
               What if I have a technical issue?
             </h3>
             <p style={{ color: '#6b7280' }}>
-              Please contact our technical support team at support@ologywood.com or call 1-800-OLOGYWOOD. Include as much detail as possible about the issue.
+              Please contact our technical support team at info@ologywood.com or call 1-800-OLOGYWOOD. Include as much detail as possible about the issue.
             </p>
           </div>
 

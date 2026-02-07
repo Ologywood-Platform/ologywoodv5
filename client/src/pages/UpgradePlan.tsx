@@ -248,7 +248,7 @@ export function UpgradePlan() {
             Need help choosing a plan? Our team is here to help.
           </p>
           <a
-            href="mailto:support@ologywood.com"
+            href="mailto:info@ologywood.com"
             className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
           >
             Contact Sales

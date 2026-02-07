@@ -155,7 +155,7 @@ export default function PaymentSuccess() {
 
           {/* Support Message */}
           <div className="text-center text-xs text-gray-500">
-            <p>Questions? Contact our support team at support@ologywood.com</p>
+            <p>Questions? Contact our support team at info@ologywood.com</p>
           </div>
         </CardContent>
       </Card>

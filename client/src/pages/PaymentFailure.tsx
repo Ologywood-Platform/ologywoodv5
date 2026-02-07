@@ -133,7 +133,7 @@ export default function PaymentFailure() {
           <div className="p-4 bg-gray-50 rounded-lg text-center">
             <p className="text-sm text-gray-600 mb-2">Still having trouble?</p>
             <a
-              href="mailto:support@ologywood.com"
+              href="mailto:info@ologywood.com"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               Contact our support team

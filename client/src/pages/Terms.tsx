@@ -97,7 +97,7 @@ const Terms = () => {
             If you have any questions about these Terms of Service, please contact us at:
           </p>
           <ul>
-            <li>Email: support@ologywood.com</li>
+            <li>Email: info@ologywood.com</li>
             <li>Phone: +1 (800) 654-9963</li>
             <li>Address: 123 Entertainment Ave, Los Angeles, CA 90001</li>
           </ul>

@@ -8,7 +8,7 @@ const SupportPage = () => {
       icon: Mail,
       title: 'Email Support',
       description: 'Send us an email and we\'ll respond within 24 hours',
-      contact: 'support@ologywood.com',
+      contact: 'info@ologywood.com',
       time: 'Response time: 24 hours',
     },
     {

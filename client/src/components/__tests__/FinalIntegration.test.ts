@@ -148,7 +148,7 @@ describe('Payment Failure Page', () => {
 
   describe('Support Section', () => {
     it('should display support email link', () => {
-      const email = 'support@ologywood.com';
+      const email = 'info@ologywood.com';
       expect(email).toContain('@');
     });
 

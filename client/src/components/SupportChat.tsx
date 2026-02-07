@@ -343,8 +343,8 @@ export function SupportChat({ userId, userName, userEmail, onClose }: SupportCha
       <div className="border-t border-gray-200 bg-gray-50 p-2 text-center text-xs text-gray-600 rounded-b-lg">
         <p>
           For urgent issues, email{' '}
-          <a href="mailto:support@ologywood.com" className="text-purple-600 hover:underline">
-            support@ologywood.com
+          <a href="mailto:info@ologywood.com" className="text-purple-600 hover:underline">
+            info@ologywood.com
           </a>
         </p>
       </div>
