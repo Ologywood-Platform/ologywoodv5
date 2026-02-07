@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import TikTokIcon from './TikTokIcon';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,7 +10,7 @@ const Footer = () => {
     { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@Ologywood', color: 'hover:text-red-600' },
     { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/ologywood_artist_service/', color: 'hover:text-pink-600' },
     { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/profile.php?id=61587512344110', color: 'hover:text-blue-600' },
-    { name: 'TikTok', icon: Instagram, url: 'https://www.tiktok.com/@ologywood', color: 'hover:text-gray-400' },
+    { name: 'TikTok', icon: TikTokIcon, url: 'https://www.tiktok.com/@ologywood', color: 'hover:text-black' },
     { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/showcase/ologywood-com/about/?viewAsMember=true', color: 'hover:text-blue-700' },
   ];
 
