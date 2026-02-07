@@ -2916,3 +2916,30 @@ The Ologywood platform is production-ready with:
 - [x] Added hover scale effects (scale-110) for better interactivity
 - [x] Improved placeholder designs with gradients and icons
 - [x] Ensured faces are fully visible in all artist image displays
+
+
+## Feature 7: Image Upload Guidance (COMPLETED)
+- [x] Create imageUploadGuidanceService for backend
+- [x] Build ImageUploadGuide UI component with tips and best practices
+- [x] Add modal that shows during first profile photo upload
+- [x] Create visual examples of optimal photo composition
+- [x] Add downloadable guide PDF for artists
+- [x] Integrate into artist onboarding flow
+
+## Feature 8: Image Cropping Tool (COMPLETED)
+- [x] Create ImageCropper component with client-side cropping
+- [x] Add zoom, rotation, and aspect ratio controls
+- [x] Build preview with rule-of-thirds grid lines
+- [x] Add cropping tool to profile photo upload flow
+- [x] Create before/after preview comparison
+- [x] Add aspect ratio presets (square, portrait, landscape)
+
+## Feature 9: Artist Photo Gallery (COMPLETED)
+- [x] Create ArtistPhotoGallery component with full functionality
+- [x] Build gallery upload/management interface
+- [x] Add photo ordering/reordering with drag-and-drop
+- [x] Build gallery display with lightbox/modal viewer
+- [x] Add photo captions and descriptions
+- [x] Include navigation arrows for lightbox
+- [x] Add empty state with upload prompt
+- [x] Include gallery tips and best practices
