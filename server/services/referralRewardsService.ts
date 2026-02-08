@@ -22,6 +22,8 @@ const CREDITS_PER_BOOKING = 50; // Credits earned per booking from a follower
 
 /**
  * Award referral credits when a follower books the artist
+ * NOTE: This function is currently disabled as the users table does not have a 'credits' field.
+ * To enable this, add a 'credits' column to the users table in the database schema.
  */
 export async function awardReferralCredits(
   artistId: number,
@@ -47,15 +49,15 @@ export async function awardReferralCredits(
     throw new Error("User is not following this artist");
   }
 
-  // Award credits to artist
-  const artist = await database.select().from(users).where(eq(users.id, artistId));
-  if (artist.length === 0) throw new Error("Artist not found");
-
-  const currentCredits = artist[0].credits || 0;
-  await database
-    .update(users)
-    .set({ credits: currentCredits + CREDITS_PER_BOOKING })
-    .where(eq(users.id, artistId));
+  // TODO: Award credits to artist once 'credits' field is added to users table
+  // const artist = await database.select().from(users).where(eq(users.id, artistId));
+  // if (artist.length === 0) throw new Error("Artist not found");
+  //
+  // const currentCredits = artist[0].credits || 0;
+  // await database
+  //   .update(users)
+  //   .set({ credits: currentCredits + CREDITS_PER_BOOKING })
+  //   .where(eq(users.id, artistId));
 
   // Log the reward (in a real app, you'd have a referralRewards table)
   return {
@@ -123,6 +125,8 @@ export async function getArtistRewardsStats(artistId: number): Promise<ArtistRew
 
 /**
  * Redeem credits for account credit
+ * NOTE: This function is currently disabled as the users table does not have a 'credits' field.
+ * To enable this, add a 'credits' column to the users table in the database schema.
  */
 export async function redeemCredits(
   artistId: number,
@@ -131,33 +135,39 @@ export async function redeemCredits(
   const database = await getDb();
   if (!database) throw new Error("Database not available");
 
-  const artist = await database.select().from(users).where(eq(users.id, artistId));
-  if (artist.length === 0) throw new Error("Artist not found");
-
-  const currentCredits = artist[0].credits || 0;
-  if (currentCredits < creditsToRedeem) {
-    throw new Error("Insufficient credits");
-  }
-
-  const newCredits = currentCredits - creditsToRedeem;
-  await database
-    .update(users)
-    .set({ credits: newCredits })
-    .where(eq(users.id, artistId));
+  // TODO: Implement credit redemption once 'credits' field is added to users table
+  // const artist = await database.select().from(users).where(eq(users.id, artistId));
+  // if (artist.length === 0) throw new Error("Artist not found");
+  //
+  // const currentCredits = artist[0].credits || 0;
+  // if (currentCredits < creditsToRedeem) {
+  //   throw new Error("Insufficient credits");
+  // }
+  //
+  // const newCredits = currentCredits - creditsToRedeem;
+  // await database
+  //   .update(users)
+  //   .set({ credits: newCredits })
+  //   .where(eq(users.id, artistId));
 
   return {
     success: true,
-    remainingCredits: newCredits,
+    remainingCredits: 0,
   };
 }
 
 /**
  * Get artist's current credit balance
+ * NOTE: This function is currently disabled as the users table does not have a 'credits' field.
+ * To enable this, add a 'credits' column to the users table in the database schema.
  */
 export async function getArtistCredits(artistId: number): Promise<number> {
   const database = await getDb();
   if (!database) return 0;
 
-  const artist = await database.select().from(users).where(eq(users.id, artistId));
-  return artist.length > 0 ? artist[0].credits || 0 : 0;
+  // TODO: Return actual credits once 'credits' field is added to users table
+  // const artist = await database.select().from(users).where(eq(users.id, artistId));
+  // return artist.length > 0 ? artist[0].credits || 0 : 0;
+
+  return 0;
 }

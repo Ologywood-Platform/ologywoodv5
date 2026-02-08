@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerified BOOLEAN DEFAULT FALSE NOT NULL;\nALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerificationToken VARCHAR(255);\nALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerificationSentAt TIMESTAMP;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute ALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerified BOOLEAN DEFAULT FALSE NOT NULL;\nALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerificationToken VARCHAR(255);\nALTER TABLE users ADD COLUMN IF NOT EXISTS emailVerificationSentAt TIMESTAMP;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1404
+}

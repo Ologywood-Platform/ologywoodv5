@@ -241,9 +241,19 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
+    try {
+      await db.insert(users).values(values).onDuplicateKeyUpdate({
+        set: updateSet,
+      });
+    } catch (insertError: any) {
+      // If it's a duplicate key error, try updating instead
+      if (insertError?.code === 'ER_DUP_ENTRY') {
+        console.log("[Database] User already exists, updating instead");
+        await db.update(users).set(updateSet).where(eq(users.openId, user.openId));
+      } else {
+        throw insertError;
+      }
+    }
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
