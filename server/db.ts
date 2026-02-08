@@ -310,18 +310,18 @@ export async function createArtistProfile(profile: InsertArtistProfile) {
 
 export async function getArtistProfileByUserId(userId: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function getArtistProfileById(id: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function updateArtistProfile(id: number, updates: Partial<ArtistProfile>) {
