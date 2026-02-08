@@ -5,11 +5,10 @@ import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal,
  */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).unique(), // OAuth ID, nullable for email/password users
+  openId: varchar("openId", { length: 64 }).unique(), // OAuth ID
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
-  password: varchar("password", { length: 255 }), // Hashed password for email/password auth
-  loginMethod: varchar("loginMethod", { length: 64 }), // 'oauth', 'email', etc.
+  loginMethod: varchar("loginMethod", { length: 64 }), // 'oauth', 'google', 'github', etc.
   role: mysqlEnum("role", ["user", "admin", "artist", "venue"]).default("user").notNull(),
   emailVerified: boolean("emailVerified").default(false).notNull(),
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
@@ -21,7 +20,7 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-export type UserWithoutPassword = Omit<User, 'password'>;
+
 
 /**
  * Artist profile table - stores detailed information for performing artists
