@@ -1017,6 +1017,102 @@ export const appRouter = router({
         
         return { success: true };
       }),
+    
+    // Create deposit payment intent
+    createDepositPayment: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        depositAmount: z.number().positive(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // Verify user is either the venue or artist
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        
+        if (!venueProfile && !artistProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        
+        // Create Stripe payment intent
+        const stripe = require('stripe')(ENV.stripeSecretKey);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(input.depositAmount * 100), // Convert to cents
+          currency: 'usd',
+          metadata: {
+            bookingId: input.bookingId,
+            userId: ctx.user.id,
+            type: 'booking_deposit',
+          },
+        });
+        
+        // Update booking with payment intent ID
+        await db.updateBooking(input.bookingId, {
+          stripePaymentIntentId: paymentIntent.id,
+        });
+        
+        return {
+          clientSecret: paymentIntent.client_secret,
+          paymentIntentId: paymentIntent.id,
+        };
+      }),
+    
+    // Confirm deposit payment
+    confirmDepositPayment: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        paymentIntentId: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // Verify payment intent succeeded
+        const stripe = require('stripe')(ENV.stripeSecretKey);
+        const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId);
+        
+        if (paymentIntent.status !== 'succeeded') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payment not completed' });
+        }
+        
+        // Update booking payment status
+        await db.updateBooking(input.bookingId, {
+          paymentStatus: 'deposit_paid',
+          depositPaidAt: new Date(),
+        });
+        
+        // Send confirmation emails
+        const artistProfile = await db.getArtistProfileById(booking.artistId);
+        const venueProfile = await db.getVenueProfileById(booking.venueId);
+        
+        if (artistProfile && venueProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          const venueUser = await db.getUserById(venueProfile.userId);
+          
+          if (artistUser?.email) {
+            await email.sendEmail({
+              to: artistUser.email,
+              subject: 'Deposit Received for Booking',
+              html: `<p>Deposit of $${booking.depositAmount} has been received for your booking on ${booking.eventDate}.</p>`,
+            });
+          }
+          if (venueUser?.email) {
+            await email.sendEmail({
+              to: venueUser.email,
+              subject: 'Deposit Confirmed',
+              html: `<p>Deposit of $${booking.depositAmount} has been confirmed for your booking.</p>`,
+            });
+          }
+        }
+        
+        return { success: true };
+      }),
   }),
 
   // Messaging
