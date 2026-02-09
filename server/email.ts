@@ -778,3 +778,131 @@ export async function sendNewsletterSubscriptionEmail(email: string): Promise<bo
     html,
   });
 }
+
+
+/**
+ * Send email verification link to venue
+ */
+export async function sendVenueVerificationEmail(params: {
+  venueEmail: string;
+  venueName: string;
+  verificationToken: string;
+  verificationLink: string;
+}): Promise<boolean> {
+  const { venueEmail, venueName, verificationLink } = params;
+  
+  const subject = 'Verify Your Ologywood Venue Account';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">🎭 Verify Your Venue</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #333;">Hello ${venueName},</p>
+        
+        <p style="color: #666; line-height: 1.6;">
+          Thank you for registering your venue on Ologywood! To complete your account setup and start booking talented artists, please verify your email address.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            Verify Email Address
+          </a>
+        </div>
+        
+        <p style="color: #666; font-size: 14px; text-align: center;">
+          Or copy and paste this link in your browser:<br>
+          <code style="background: #f0f0f0; padding: 8px 12px; border-radius: 4px; display: inline-block; word-break: break-all;">
+            ${verificationLink}
+          </code>
+        </p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+          <h3 style="margin-top: 0; color: #8b5cf6;">Why Verify?</h3>
+          <ul style="color: #666; line-height: 1.8; margin: 0; padding-left: 20px;">
+            <li>Unlock full access to artist discovery and booking</li>
+            <li>Receive booking requests and messages from artists</li>
+            <li>Build trust with verified artist badge</li>
+            <li>Access analytics and booking insights</li>
+          </ul>
+        </div>
+        
+        <p style="color: #666; font-size: 14px;">
+          This verification link will expire in 24 hours. If you didn't create this account, please ignore this email.
+        </p>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+          This is an automated message from Ologywood. Please do not reply to this email.<br>
+          © 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: venueEmail,
+    subject,
+    html,
+  });
+}
+
+/**
+ * Send verification confirmation email to venue
+ */
+export async function sendVenueVerificationConfirmationEmail(params: {
+  venueEmail: string;
+  venueName: string;
+}): Promise<boolean> {
+  const { venueEmail, venueName } = params;
+  
+  const subject = 'Email Verified - Welcome to Ologywood!';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">✓ Email Verified!</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #333;">Hello ${venueName},</p>
+        
+        <p style="color: #666; line-height: 1.6;">
+          Congratulations! Your email has been verified and your venue account is now fully active. You can now browse artists, send booking requests, and manage your venue profile.
+        </p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+          <h3 style="margin-top: 0; color: #10b981;">Next Steps</h3>
+          <ol style="color: #666; line-height: 1.8;">
+            <li>Complete your venue profile with photos and details</li>
+            <li>Browse and discover talented artists</li>
+            <li>Send booking requests to artists you like</li>
+            <li>Manage your bookings and calendar</li>
+          </ol>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            Go to Dashboard
+          </a>
+        </div>
+        
+        <p style="color: #666; font-size: 14px;">
+          If you have any questions or need assistance, our support team is here to help. Visit our <a href="https://ologywood.com/help" style="color: #8b5cf6; text-decoration: none;">Help Center</a> for more information.
+        </p>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+          This is an automated message from Ologywood. Please do not reply to this email.<br>
+          © 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: venueEmail,
+    subject,
+    html,
+  });
+}

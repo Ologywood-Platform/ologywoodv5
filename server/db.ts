@@ -495,6 +495,18 @@ export async function getVenueProfileById(id: number) {
   }
 }
 
+export async function getVenueProfileByToken(token: string) {
+  try {
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.emailVerificationToken, token)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error('Error getting venue profile by token:', error);
+    return null;
+  }
+}
+
 export async function updateVenueProfile(id: number, updates: Partial<VenueProfile>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

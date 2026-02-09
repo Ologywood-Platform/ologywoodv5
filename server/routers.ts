@@ -7,6 +7,7 @@ import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import * as email from "./email";
+import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } from "./email";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 import { contractsRouter } from "./routers/contracts";
@@ -549,6 +550,77 @@ export const appRouter = router({
         });
         
         return { success: true };
+      }),
+    
+    // Send email verification
+    sendVerificationEmail: venueProcedure
+      .mutation(async ({ ctx }) => {
+        const profile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        if (!profile.email) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Venue email not set' });
+        }
+        
+        if (profile.emailVerified) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Email already verified' });
+        }
+        
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationLink = `${ENV.appUrl}/verify-venue-email?token=${verificationToken}`;
+        
+        // Update profile with token and timestamp
+        await db.updateVenueProfile(profile.id, {
+          emailVerificationToken: verificationToken,
+          emailVerificationSentAt: new Date(),
+        });
+        
+        // Send verification email
+        const emailSent = await sendVenueVerificationEmail({
+          venueEmail: profile.email,
+          venueName: profile.organizationName,
+          verificationToken,
+          verificationLink,
+        });
+        
+        if (!emailSent) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to send verification email' });
+        }
+        
+        return { success: true, message: 'Verification email sent' };
+      }),
+    
+    // Verify email with token
+    verifyEmail: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .mutation(async ({ input }) => {
+        const profile = await db.getVenueProfileByToken(input.token);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Invalid or expired verification token' });
+        }
+        
+        if (profile.emailVerified) {
+          return { success: true, message: 'Email already verified' };
+        }
+        
+        // Mark email as verified
+        await db.updateVenueProfile(profile.id, {
+          emailVerified: true,
+          emailVerificationToken: null,
+        });
+        
+        // Send confirmation email
+        if (profile.email) {
+          await sendVenueVerificationConfirmationEmail({
+            venueEmail: profile.email,
+            venueName: profile.organizationName,
+          });
+        }
+        
+        return { success: true, message: 'Email verified successfully' };
       }),
   }),
 
