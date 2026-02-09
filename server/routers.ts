@@ -1776,5 +1776,25 @@ export const appRouter = router({
   }),
   
   calendarEvent: calendarRouter,
+  
+  newsletter: router({
+    subscribe: publicProcedure
+      .input(z.object({
+        email: z.string().email('Invalid email address'),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          // Send welcome email to subscriber
+          await email.sendNewsletterSubscriptionEmail(input.email);
+          return { success: true, message: 'Successfully subscribed to newsletter' };
+        } catch (error) {
+          console.error('[Newsletter] Subscription error:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to subscribe to newsletter. Please try again later.',
+          });
+        }
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

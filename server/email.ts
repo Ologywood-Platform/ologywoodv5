@@ -722,3 +722,59 @@ export async function sendContractForSignature(params: {
     html,
   });
 }
+
+
+/**
+ * Send newsletter subscription confirmation email
+ */
+export async function sendNewsletterSubscriptionEmail(email: string): Promise<boolean> {
+  const subject = 'Welcome to Ologywood Newsletter!';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">🎵 Welcome to Ologywood!</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="font-size: 16px; color: #333;">Thank you for subscribing to our newsletter!</p>
+        
+        <p style="color: #666; line-height: 1.6;">
+          You'll now receive the latest tips, industry insights, and success stories from the live entertainment world delivered straight to your inbox.
+        </p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+          <h3 style="margin-top: 0; color: #8b5cf6;">What to Expect</h3>
+          <ul style="color: #666; line-height: 1.8;">
+            <li>🎯 Artist tips to maximize your bookings</li>
+            <li>🎭 Venue guides for finding perfect talent</li>
+            <li>📈 Industry trends and innovations</li>
+            <li>⭐ Success stories from our community</li>
+            <li>💡 Marketing and business strategies</li>
+          </ul>
+        </div>
+        
+        <p style="color: #666; font-size: 14px;">
+          We respect your inbox and promise to send only valuable content. You can unsubscribe anytime.
+        </p>
+        
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://ologywood.com" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Visit Ologywood
+          </a>
+        </p>
+        
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+          This is an automated message from Ologywood. Please do not reply to this email.<br>
+          © 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: email,
+    subject,
+    html,
+  });
+}
