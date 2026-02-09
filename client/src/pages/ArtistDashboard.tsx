@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ContractManagementDashboard } from '../components/ContractManagementDashboard';
+import { ArtistProfileSetupWizard } from '../components/ArtistProfileSetupWizard';
 import { trpc } from '../lib/trpc';
 
 interface Contract {
@@ -81,6 +82,9 @@ export const ArtistDashboard: React.FC = () => {
 
   return (
     <div style={{ padding: '20px' }}>
+      {/* Show setup wizard for profile completion */}
+      <ArtistProfileSetupWizard />
+
       <style>{`
         .dashboard-container {
           max-width: 1400px;

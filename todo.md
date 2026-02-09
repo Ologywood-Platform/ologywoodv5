@@ -3014,3 +3014,12 @@ The Ologywood platform is production-ready with:
 - [ ] Update onboarding wizard descriptions and tooltips
 - [ ] Update dashboard welcome messages and feature descriptions
 - [x] Review and test all updated content pages
+
+
+## Artist Profile Setup Wizard (Current Sprint)
+- [x] Design wizard flow and database schema for tracking setup progress
+- [x] Build wizard UI components (WizardContainer, StepIndicator, StepPages)
+- [x] Implement wizard navigation logic (next, previous, skip, complete)
+- [x] Add setup progress tracking and completion detection
+- [x] Create comprehensive tests for wizard functionality
+- [x] Test wizard end-to-end and verify user flow
