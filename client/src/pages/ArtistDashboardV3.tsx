@@ -231,13 +231,15 @@ export function ArtistDashboardV3() {
                     >
                       Edit Profile
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate('/availability')}
-                    >
-                      Availability
-                    </Button>
+                    {user?.role === 'artist' && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => navigate('/availability')}
+                      >
+                        Availability
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       className="w-full"
