@@ -3300,3 +3300,12 @@ The Ologywood platform is production-ready with:
 - [x] Audit all database functions for schema mismatches (DATABASE_AUDIT_REPORT.md created)
 - [x] Create database schema validation tests with vitest (db.schema.test.ts created)
 - [x] Implement global error handler middleware for JSON responses (error-handler.ts + registered in server)
+
+
+## Phase 12: Missing TRPC Procedure Fix \u2705 COMPLETE
+
+### aiChat Router Registration
+- [x] Found aiChat.getSuggestedTopics being called in AIChatWidget.tsx
+- [x] Identified aiChatRouter was commented out in routers.ts (lines 30 and 105)
+- [x] Uncommented import and registration of aiChatRouter
+- [x] Tested availability page - error resolved, no more "No procedure found" error

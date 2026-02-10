@@ -27,7 +27,7 @@ import { messagingRouter } from "./routers/messaging";
 // import { supportRouter } from "./routers/support";
 // import { adminSeedRouter } from "./routers/admin-seed";
 // import { supportSeederRouter } from "./routers/support-seeder";
-// import { aiChatRouter } from "./routers/ai-chat";
+import { aiChatRouter } from "./routers/ai-chat";
 // import { analyticsRouter } from "./routers/analyticsRouter";
 // import { contractManagementRouter } from "./routers/contract-management";
 // import { helpAndSupportRouter } from "./routers/helpAndSupport";
@@ -102,7 +102,7 @@ export const appRouter = router({
   // support: supportRouter,
   // adminSeed: adminSeedRouter,
   // supportSeeder: supportSeederRouter,
-  // aiChat: aiChatRouter,
+  aiChat: aiChatRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
   // supportTickets: supportTicketsRouter,
