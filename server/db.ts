@@ -1009,20 +1009,21 @@ export async function getVenuesWhoFavoritedArtist(artistId: number) {
   const db = await getDb();
   if (!db) return [];
   
-  // Get all users who favorited this artist
-  const userFavorites = await db.select().from(favorites)
+  // Get all venues that favorited this artist
+  const venueFavorites = await db.select().from(favorites)
     .where(eq(favorites.artistId, artistId));
   
-  if (userFavorites.length === 0) return [];
+  if (venueFavorites.length === 0) return [];
   
-  const userIds = userFavorites.map(f => f.userId);
+  const venueIds = venueFavorites.map(f => f.venueId);
   
-  // Get user details and venue profiles
-  const venueUsers = await db.select().from(users)
-    .where(sql`${users.id} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`);
-  
+  // Get venue profiles for those venues
   const venueProfilesList = await db.select().from(venueProfiles)
-    .where(sql`${venueProfiles.userId} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`);
+    .where(sql`${venueProfiles.id} IN (${sql.join(venueIds.map(id => sql`${id}`), sql`, `)})`);
+  
+  // Get user emails for those venues
+  const venueUsers = await db.select().from(users)
+    .where(sql`${users.id} IN (${sql.join(venueProfilesList.map(p => sql`${p.userId}`), sql`, `)})`);
   
   // Combine user and venue profile data
   return venueUsers.map(user => {

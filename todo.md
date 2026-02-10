@@ -3262,9 +3262,11 @@ The Ologywood platform is production-ready with:
 - [x] Tested end-to-end: Dashboard now shows correct quick actions based on user role
 
 
-### Calendar Date Selection Bug - Off-by-One Error ✅ FIXED (PROPER FIX)
+### Calendar Date Selection Bug - Off-by-One Error ✅ COMPLETELY FIXED
 - [x] Audit Availability calendar date selection logic (Found in both frontend and backend)
 - [x] Identify timezone offset causing day-before selection (Backend: new Date(input.date) treats as UTC)
 - [x] Apply CORRECT fix in backend routers.ts (Parse date string: split('-') then new Date(year, month-1, day))
 - [x] Frontend fix already applied in AvailabilityCalendar.tsx (Direct string formatting without Date object)
+- [x] Fixed favorites table query error (Changed userId to venueId, corrected schema mapping)
+- [x] Tested availability calendar display (Dates showing correctly with no off-by-one errors)
 - [x] Added critical comments to prevent regression in both frontend and backend
