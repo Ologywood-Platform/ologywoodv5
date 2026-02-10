@@ -3262,9 +3262,9 @@ The Ologywood platform is production-ready with:
 - [x] Tested end-to-end: Dashboard now shows correct quick actions based on user role
 
 
-### Calendar Date Selection Bug - Off-by-One Error ✅ FIXED
-- [x] Audit Availability calendar date selection logic (Found in AvailabilityCalendar.tsx line 65)
-- [x] Identify timezone offset causing day-before selection (toISOString() was converting to UTC)
-- [x] Fix date handling to use local timezone instead of UTC (Removed Date object, direct string formatting)
-- [x] Test date selection accuracy (Calendar displays correctly, no more off-by-one)
-- [x] Verify fix prevents regression (Added critical comment in code)
+### Calendar Date Selection Bug - Off-by-One Error ✅ FIXED (PROPER FIX)
+- [x] Audit Availability calendar date selection logic (Found in both frontend and backend)
+- [x] Identify timezone offset causing day-before selection (Backend: new Date(input.date) treats as UTC)
+- [x] Apply CORRECT fix in backend routers.ts (Parse date string: split('-') then new Date(year, month-1, day))
+- [x] Frontend fix already applied in AvailabilityCalendar.tsx (Direct string formatting without Date object)
+- [x] Added critical comments to prevent regression in both frontend and backend

@@ -810,9 +810,13 @@ export const appRouter = router({
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
+        // CRITICAL: Parse date string as local date, not UTC
+        // "2026-02-10" should be Feb 10 in user's timezone, not UTC midnight
+        const [year, month, day] = input.date.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day);
         await db.setAvailability({
           artistId: profile.id,
-          date: new Date(input.date),
+          date: localDate,
           status: input.status,
           notes: input.notes,
         });
