@@ -3340,3 +3340,12 @@ The Ologywood platform is production-ready with:
 - [x] Fix remaining schema mismatches in database functions (Audited, no fixes needed)
 - [x] Add Venue Dashboard with role-specific navigation (Created at /venue-dashboard)
 - [x] Implement Booking Deposit System with Stripe integration (50% deposit + full payment flow)
+
+
+## Simple Ryder Contract Template (Current Sprint)
+- [x] Create SimpleRyderTemplate component with essential fields only
+- [x] Build clean, UX-friendly form with clear sections
+- [x] Implement API endpoints for saving/loading templates
+- [ ] Add template to artist dashboard
+- [ ] Test end-to-end workflow
+- [x] Document usage and fields
