@@ -7,7 +7,7 @@ interface EmailTemplate {
 }
 
 interface NotificationPayload {
-  type: 'booking_request' | 'message' | 'contract_update' | 'payment' | 'review';
+  type: 'booking_request' | 'booking_confirmed' | 'booking_cancelled' | 'message' | 'contract_update' | 'payment' | 'review';
   recipientEmail: string;
   recipientName: string;
   data: Record<string, any>;
@@ -51,6 +51,10 @@ function getEmailTemplate(type: string, data: Record<string, any>): EmailTemplat
   switch (type) {
     case 'booking_request':
       return getBookingRequestTemplate(data);
+    case 'booking_confirmed':
+      return getBookingConfirmedTemplate(data);
+    case 'booking_cancelled':
+      return getBookingCancelledTemplate(data);
     case 'message':
       return getMessageTemplate(data);
     case 'contract_update':
@@ -90,6 +94,60 @@ Please log in to Ologywood to review and respond to this booking request.`,
       
       <p><a href="${process.env.FRONTEND_URL}/bookings" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
         View Booking Request
+      </a></p>
+    `,
+  };
+}
+
+function getBookingConfirmedTemplate(data: Record<string, any>): EmailTemplate {
+  return {
+    subject: `Booking Confirmed: ${data.eventDate} at ${data.venueName}`,
+    text: `Your booking has been confirmed!\n\nEvent Details:\n- Date: ${data.eventDate}\n- Time: ${data.eventTime}\n- Venue: ${data.venueName}\n- Location: ${data.location}\n- Fee: $${data.fee}\n\nArtist: ${data.artistName}\nGenres: ${data.genres}\n\nRider Requirements:\n${data.riderSummary}\n\nPlease log in to Ologywood for full details and to communicate with the ${data.recipientType === 'artist' ? 'venue' : 'artist'}.`,
+    html: `
+      <h2>Booking Confirmed! ✓</h2>
+      <p>Your booking has been confirmed for <strong>${data.eventDate}</strong> at <strong>${data.venueName}</strong>.</p>
+      
+      <h3>Event Details</h3>
+      <ul>
+        <li><strong>Date:</strong> ${data.eventDate}</li>
+        <li><strong>Time:</strong> ${data.eventTime}</li>
+        <li><strong>Venue:</strong> ${data.venueName}</li>
+        <li><strong>Location:</strong> ${data.location}</li>
+        <li><strong>Fee:</strong> $${data.fee}</li>
+      </ul>
+      
+      <h3>${data.recipientType === 'artist' ? 'Artist' : 'Venue'} Information</h3>
+      <ul>
+        <li><strong>Name:</strong> ${data.artistName}</li>
+        <li><strong>Genres:</strong> ${data.genres}</li>
+      </ul>
+      
+      <h3>Rider Requirements</h3>
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        ${data.riderSummary}
+      </div>
+      
+      <p><a href="${process.env.FRONTEND_URL}/booking/${data.bookingId}" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        View Full Booking Details
+      </a></p>
+      
+      <p style="margin-top: 20px; color: #666; font-size: 14px;">Questions? Message the ${data.recipientType === 'artist' ? 'venue' : 'artist'} directly through Ologywood.</p>
+    `,
+  };
+}
+
+function getBookingCancelledTemplate(data: Record<string, any>): EmailTemplate {
+  return {
+    subject: `Booking Cancelled: ${data.eventDate} at ${data.venueName}`,
+    text: `A booking has been cancelled.\n\nEvent Details:\n- Date: ${data.eventDate}\n- Venue: ${data.venueName}\n- Reason: ${data.cancellationReason}\n\nPlease log in to Ologywood for more information.`,
+    html: `
+      <h2>Booking Cancelled</h2>
+      <p>A booking scheduled for <strong>${data.eventDate}</strong> at <strong>${data.venueName}</strong> has been cancelled.</p>
+      
+      <p><strong>Cancellation Reason:</strong> ${data.cancellationReason}</p>
+      
+      <p><a href="${process.env.FRONTEND_URL}/bookings" style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+        View Bookings
       </a></p>
     `,
   };
