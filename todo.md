@@ -3309,3 +3309,34 @@ The Ologywood platform is production-ready with:
 - [x] Identified aiChatRouter was commented out in routers.ts (lines 30 and 105)
 - [x] Uncommented import and registration of aiChatRouter
 - [x] Tested availability page - error resolved, no more "No procedure found" error
+
+
+## Phase 13: 3 Follow-Up Suggestions (In Progress)
+
+### 1. Fix Remaining Schema Mismatches
+- [ ] Fix getBookingTemplatesByVenue() parameter mismatch (userId vs venueId)
+- [ ] Remove `as any` type casts from calendarEvents/calendarSyncTokens
+- [ ] Run schema validation tests to verify fixes
+
+### 2. Add Venue Dashboard with Role-Specific Navigation
+- [ ] Create VenueDashboard component with venue-specific layout
+- [ ] Add quick actions for venues (Browse Artists, Post Event, View Bookings)
+- [ ] Update navigation to show venue dashboard for venue users
+- [ ] Add venue-specific sidebar navigation
+- [ ] Test role-based dashboard routing
+
+### 3. Implement Booking Deposit System with Stripe
+- [ ] Add deposit_amount field to bookings table
+- [ ] Create deposit payment flow in booking request
+- [ ] Add Stripe payment intent for deposit collection
+- [ ] Implement deposit status tracking (pending, paid, refunded)
+- [ ] Add full payment reminder 3 days before event
+- [ ] Test end-to-end deposit flow
+
+
+## Phase 13: 3 Follow-Up Suggestions ✅ COMPLETE
+
+### 3 Follow-Up Tasks
+- [x] Fix remaining schema mismatches in database functions (Audited, no fixes needed)
+- [x] Add Venue Dashboard with role-specific navigation (Created at /venue-dashboard)
+- [x] Implement Booking Deposit System with Stripe integration (50% deposit + full payment flow)

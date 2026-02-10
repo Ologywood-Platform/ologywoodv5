@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ArtistProfile from "./pages/ArtistProfile";
 import { ArtistDashboardV3 } from '@/pages/ArtistDashboardV3';
+import { VenueDashboard } from '@/pages/VenueDashboard';
 import RoleSelection from "./pages/RoleSelection";
 import ArtistOnboarding from "./pages/ArtistOnboarding";
 import VenueOnboarding from "./pages/VenueOnboarding";
@@ -50,6 +51,7 @@ function Router() {
           <Route path="/onboarding/artist" component={ArtistOnboarding} />
           <Route path="/onboarding/venue" component={VenueOnboarding} />
           <Route path="/dashboard" component={ArtistDashboardV3} />
+          <Route path="/venue-dashboard" component={VenueDashboard} />
           
           {/* Discovery */}
           <Route path="/browse" component={Browse} />
