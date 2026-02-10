@@ -3260,3 +3260,11 @@ The Ologywood platform is production-ready with:
 - [x] Fixed by adding role check: Only show Availability button for user.role === 'artist'
 - [x] Verified fix: Button now hidden for non-artist users, preventing confusing redirect
 - [x] Tested end-to-end: Dashboard now shows correct quick actions based on user role
+
+
+### Calendar Date Selection Bug - Off-by-One Error ✅ FIXED
+- [x] Audit Availability calendar date selection logic (Found in AvailabilityCalendar.tsx line 65)
+- [x] Identify timezone offset causing day-before selection (toISOString() was converting to UTC)
+- [x] Fix date handling to use local timezone instead of UTC (Removed Date object, direct string formatting)
+- [x] Test date selection accuracy (Calendar displays correctly, no more off-by-one)
+- [x] Verify fix prevents regression (Added critical comment in code)

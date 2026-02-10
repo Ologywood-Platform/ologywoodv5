@@ -62,10 +62,10 @@ export default function AvailabilityCalendar({
 
   const formatDate = (day: number) => {
     // Format date as YYYY-MM-DD in local timezone (not UTC)
-    const d = new Date(year, month, day);
-    const year_str = d.getFullYear();
-    const month_str = String(d.getMonth() + 1).padStart(2, '0');
-    const day_str = String(d.getDate()).padStart(2, '0');
+    // CRITICAL: Do NOT use toISOString() as it converts to UTC and causes off-by-one errors
+    const year_str = year;
+    const month_str = String(month + 1).padStart(2, '0');
+    const day_str = String(day).padStart(2, '0');
     return `${year_str}-${month_str}-${day_str}`;
   };
 
