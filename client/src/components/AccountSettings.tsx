@@ -1,0 +1,387 @@
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import {
+  AlertCircle,
+  Bell,
+  CreditCard,
+  Lock,
+  LogOut,
+  Mail,
+  Phone,
+  Settings,
+  Shield,
+  HelpCircle,
+  ExternalLink,
+  CheckCircle,
+  Clock,
+} from 'lucide-react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { useLocation } from 'wouter';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
+
+export function AccountSettings() {
+  const { user, logout } = useAuth();
+  const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState('profile');
+
+  const { data: subscription } = trpc.subscription.getStatus.useQuery();
+  const logoutMutation = trpc.auth.logout.useMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      logout();
+      navigate('/');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+        </TabsList>
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>
+                Your account details and contact information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Email */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Email Address</Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 p-3 bg-gray-50 rounded-lg border">
+                    <p className="text-sm">{user?.email}</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Change
+                  </Button>
+                </div>
+              </div>
+
+              {/* Name */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Full Name</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    value={user?.name || ''}
+                    readOnly
+                    className="flex-1 bg-gray-50"
+                  />
+                  <Button variant="outline" size="sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
+
+              {/* Account Created */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Account Created</Label>
+                <div className="p-3 bg-gray-50 rounded-lg border">
+                  <p className="text-sm">
+                    {user?.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      : 'Unknown'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Account Status */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Account Status</Label>
+                <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">Active</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Security Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Security
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button variant="outline" className="w-full justify-start">
+                <Shield className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Lock className="h-4 w-4 mr-2" />
+                Two-Factor Authentication
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Subscription Tab */}
+        <TabsContent value="subscription" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription Plan</CardTitle>
+              <CardDescription>
+                Manage your subscription and billing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {subscription ? (
+                <>
+                  {/* Current Plan */}
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg capitalize">
+                          {subscription.planName || 'Basic'} Plan
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {subscription.status === 'active'
+                            ? 'Your subscription is active'
+                            : `Status: ${subscription.status}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold">
+                          ${subscription.amount || '29'}
+                        </p>
+                        <p className="text-xs text-gray-600">per month</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Renewal Date */}
+                  {subscription.renewalDate && (
+                    <div className="space-y-2">
+                      <Label className="text-base font-semibold">
+                        Renewal Date
+                      </Label>
+                      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
+                        <Clock className="h-4 w-4 text-gray-600" />
+                        <span className="text-sm">
+                          {new Date(subscription.renewalDate).toLocaleDateString(
+                            'en-US',
+                            {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            }
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Method */}
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold">
+                      Payment Method
+                    </Label>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-gray-600" />
+                        <span className="text-sm">Visa ending in 4242</span>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        Update
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      View Invoice
+                    </Button>
+                    <Button variant="outline" className="flex-1">
+                      Upgrade Plan
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 mb-4">
+                    No active subscription found
+                  </p>
+                  <Button className="bg-purple-600 hover:bg-purple-700">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Choose a Plan
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Billing History */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Billing History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">February 2026</p>
+                    <p className="text-xs text-gray-600">Subscription renewal</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">$29.00</p>
+                    <p className="text-xs text-green-600">Paid</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notification Preferences
+              </CardTitle>
+              <CardDescription>
+                Control how and when you receive notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Email Notifications */}
+              <div className="space-y-3">
+                <h3 className="font-semibold">Email Notifications</h3>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">Booking Requests</p>
+                    <p className="text-xs text-gray-600">
+                      Get notified when venues request bookings
+                    </p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">Messages</p>
+                    <p className="text-xs text-gray-600">
+                      Get notified of new messages from venues
+                    </p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">Booking Reminders</p>
+                    <p className="text-xs text-gray-600">
+                      Reminders before upcoming performances
+                    </p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <p className="font-medium text-sm">Marketing & Updates</p>
+                    <p className="text-xs text-gray-600">
+                      News about new features and opportunities
+                    </p>
+                  </div>
+                  <input type="checkbox" className="h-4 w-4" />
+                </div>
+              </div>
+
+              <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                Save Preferences
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Support Tab */}
+        <TabsContent value="support" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="h-5 w-5" />
+                Help & Support
+              </CardTitle>
+              <CardDescription>
+                Get help with your account and the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <HelpCircle className="h-4 w-4 mr-2" />
+                Help Center
+                <ExternalLink className="h-4 w-4 ml-auto" />
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Mail className="h-4 w-4 mr-2" />
+                Contact Support
+                <ExternalLink className="h-4 w-4 ml-auto" />
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Phone className="h-4 w-4 mr-2" />
+                Call Us: +1 (800) 654-9963
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-700">Danger Zone</CardTitle>
+              <CardDescription className="text-red-600">
+                Irreversible actions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                variant="destructive"
+                className="w-full justify-start"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+              </Button>
+              <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Delete Account
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

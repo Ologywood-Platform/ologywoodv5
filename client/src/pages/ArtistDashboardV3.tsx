@@ -22,6 +22,7 @@ import {
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { AccountSettings } from '@/components/AccountSettings';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -81,7 +82,7 @@ export function ArtistDashboardV3() {
       label: 'Account',
       icon: Settings,
       description: 'Settings & support',
-      action: () => navigate('/dashboard'),
+      action: () => setActiveSection('account'),
     },
   ];
 
@@ -337,22 +338,7 @@ export function ArtistDashboardV3() {
               </Card>
             )}
 
-            {activeSection === 'account' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                  <CardDescription>
-                    Manage subscription, support, and preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Account settings interface</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {activeSection === 'account' && <AccountSettings />}
           </main>
         </div>
       </div>
