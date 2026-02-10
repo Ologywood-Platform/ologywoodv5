@@ -1,9 +1,11 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, Navigate } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+
+// MVP CORE ROUTES ONLY
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ArtistProfile from "./pages/ArtistProfile";
@@ -11,174 +13,82 @@ import { ArtistDashboardV3 } from '@/pages/ArtistDashboardV3';
 import RoleSelection from "./pages/RoleSelection";
 import ArtistOnboarding from "./pages/ArtistOnboarding";
 import VenueOnboarding from "./pages/VenueOnboarding";
-import Onboarding from "./pages/Onboarding";
 import Availability from "./pages/Availability";
-import RiderTemplates from "./pages/RiderTemplates";
-import Subscription from "./pages/Subscription";
-import BookingDetail from "./pages/BookingDetail";
-import VenueProfile from "./pages/VenueProfile";
-import ContractDetail from "./pages/ContractDetail";
-import Payments from "./pages/Payments";
-import BookingsList from "./pages/BookingsList";
-import MessagesDetail from "./pages/MessagesDetail";
-import Reviews from "./pages/Reviews";
-import Calendar from "./pages/Calendar";
-import Messages from "./pages/Messages";
-import Riders from "./pages/Riders";
-import SupportTickets from "./pages/SupportTickets";
-import SupportTicketCreate from "./pages/SupportTicketCreate";
-import SupportTicketDetail from "./pages/SupportTicketDetail";
-import HelpCenter from "./pages/HelpCenter";
-import AdminSupportDashboard from "./pages/AdminSupportDashboard";
-import { AIChatWidget } from "./components/AIChatWidget";
-import Footer from "./components/Footer";
-import SupportMetricsDashboard from "./pages/SupportMetricsDashboard";
-import SupportTeamManagement from "./pages/SupportTeamManagement";
-import SLATrackingDashboard from "./pages/SLATrackingDashboard";
-import ArtistDashboard from "./pages/ArtistDashboard";
-import VenueDashboard from "./pages/VenueDashboard";
-import CertificateVerification from "./pages/CertificateVerification";
-import ContractNavigation from "./components/ContractNavigation";
-import VenueBrowse from "./pages/VenueBrowse";
-import { VenueProfileDetail } from "./pages/VenueProfileDetail";
-import { VenueAnalyticsDashboard } from "./pages/VenueAnalyticsDashboard";
-import { VenueProfileTutorialExample } from "./pages/VenueProfileTutorialExample";
-import UpgradePlan from "./pages/UpgradePlan";
-import TeamManagement from "./pages/TeamManagement";
-import Marketing from "./pages/Marketing";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import Contact from "./pages/Contact";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Cookies from "./pages/Cookies";
-import Accessibility from "./pages/Accessibility";
-import HowItWorksArtist from "./pages/HowItWorksArtist";
-import HowItWorksVenue from "./pages/HowItWorksVenue";
-import BookingStatusDashboard from "./pages/BookingStatusDashboard";
-import { VenueGallery } from "./pages/VenueGallery";
-import { VenueReviews } from "./pages/VenueReviews";
 import RiderBuilder from "./pages/RiderBuilder";
 import SavedRiders from "./pages/SavedRiders";
-import ContactForm from "./pages/ContactForm";
-import FAQ from "./pages/FAQ";
-import OnboardingTutorials from "./pages/OnboardingTutorials";
-import BookingAnalytics from "./pages/BookingAnalytics";
-import { DemoVenueProfile } from "./pages/DemoVenueProfile";
+import BookingDetail from "./pages/BookingDetail";
 import BookingCreate from "./pages/BookingCreate";
-import EmailVerification from "./pages/EmailVerification";
-import BookingCalendar from "./pages/BookingCalendar";
-import ReferralProgram from "./pages/ReferralProgram";
-import Settings from "./pages/Settings";
-import RiderDocumentUpload from "./pages/RiderDocumentUpload";
-import BookingCalendarView from "./pages/BookingCalendarView";
-import DashboardV2 from "./pages/DashboardV2";
-import TestingDashboard from "./pages/TestingDashboard";
-import ArtistAnalyticsDashboard from "./pages/ArtistAnalyticsDashboard";
-import DisputeResolutionDashboard from "./pages/DisputeResolutionDashboard";
-import About from "./pages/About";
-import Blog from "./pages/Blog";
-import Careers from "./pages/Careers";
-import Press from "./pages/Press";
-import Pricing from "./pages/Pricing";
-import SupportPage from "./pages/SupportPage";
-import ArtistResources from "./pages/ArtistResources";
-import VenueResources from "./pages/VenueResources";
-import Partner from "./pages/Partner";
-import SuccessStories from "./pages/SuccessStories";
-import Verification from "./pages/Verification";
+import BookingsList from "./pages/BookingsList";
+import VenueProfile from "./pages/VenueProfile";
+import VenueBrowse from "./pages/VenueBrowse";
+import { VenueProfileDetail } from "./pages/VenueProfileDetail";
+import Messages from "./pages/Messages";
+import MessagesDetail from "./pages/MessagesDetail";
+import Riders from "./pages/Riders";
+import { AIChatWidget } from "./components/AIChatWidget";
+import Footer from "./components/Footer";
+
+// Legal pages (required for compliance)
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import Cookies from "./pages/Cookies";
+import Accessibility from "./pages/Accessibility";
 
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-1">
         <Switch>
-      <Route path="/home" component={Home} />
-      <Route path="/browse" component={Browse} />
-      <Route path="/venues" component={VenueBrowse} />
-      <Route path="/venues/:id" component={VenueProfileDetail} />
-      <Route path="/venue-analytics" component={VenueAnalyticsDashboard} />
-      <Route path="/tutorial-example" component={VenueProfileTutorialExample} />
-      <Route path="/upgrade" component={UpgradePlan} />
-      <Route path="/team" component={TeamManagement} />
-      <Route path="/" component={Home} />
-      <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/terms-of-service" component={TermsOfService} />
-      <Route path="/privacy" component={PrivacyPolicy} />
-      <Route path="/terms" component={TermsOfService} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/cookies" component={Cookies} />
-      <Route path="/accessibility" component={Accessibility} />
-      <Route path="/how-it-works-artist" component={HowItWorksArtist} />
-      <Route path="/how-it-works-venue" component={HowItWorksVenue} />
-      <Route path="/rider-builder" component={RiderBuilder} />
-      <Route path="/saved-riders" component={SavedRiders} />
-      <Route path="/contact-form" component={ContactForm} />
-      <Route path="/faq" component={FAQ} />
-      <Route path="/tutorials" component={OnboardingTutorials} />
-      <Route path="/analytics" component={BookingAnalytics} />
-      <Route path="/venue-gallery" component={VenueGallery} />
-      <Route path="/venue-reviews" component={VenueReviews} />
-      <Route path="/demo-venue" component={DemoVenueProfile} />
-      <Route path="/verify-email" component={EmailVerification} />
-      <Route path="/booking-calendar" component={BookingCalendar} />
-      <Route path="/referral" component={ReferralProgram} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/about" component={About} />
-      <Route path="/blog" component={Blog} />
-      <Route path="/careers" component={Careers} />
-      <Route path="/press" component={Press} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/resources/artists" component={ArtistResources} />
-      <Route path="/resources/venues" component={VenueResources} />
-      <Route path="/partner" component={Partner} />
-      <Route path="/success-stories" component={SuccessStories} />
-      <Route path="/verification" component={Verification} />
-
-      <Route path="/artist/:id" component={ArtistProfile} />
-      <Route path="/artist-profile-edit" component={ArtistOnboarding} />
-      <Route path="/dashboard" component={ArtistDashboardV3} />
-      <Route path="/get-started" component={RoleSelection} />
-      <Route path="/onboarding" component={Onboarding} />
-      <Route path="/onboarding/artist" component={ArtistOnboarding} />
-      <Route path="/onboarding/venue" component={VenueOnboarding} />
-      <Route path="/availability" component={Availability} />
-      <Route path="/rider-templates" component={RiderTemplates} />
-      <Route path="/subscription" component={Subscription} />
-      <Route path="/booking/:id" component={BookingDetail} />
-      <Route path="/bookings/:id" component={BookingDetail} />
-      <Route path="/bookings/create" component={BookingCreate} />
-      <Route path="/bookings" component={BookingsList} />
-      <Route path="/booking-status" component={BookingStatusDashboard} />
-      <Route path="/rider-documents" component={RiderDocumentUpload} />
-      <Route path="/booking-calendar" component={BookingCalendarView} />
-      <Route path="/artist-analytics" component={ArtistAnalyticsDashboard} />
-      <Route path="/disputes" component={DisputeResolutionDashboard} />
-      <Route path="/messages/:id" component={MessagesDetail} />
-      <Route path="/messages" component={Messages} />
-      <Route path="/calendar" component={Calendar} />
-      <Route path="/riders" component={Riders} />
-      <Route path="/reviews" component={Reviews} />
-      <Route path="/venue/:id" component={VenueProfile} />
-      <Route path="/contract/:id" component={ContractDetail} />
-      <Route path="/contracts/:id" component={ContractDetail} />
-      <Route path="/payments" component={Payments} />
-      <Route path="/support-page" component={SupportPage} />
-      <Route path="/support" component={SupportTickets} />
-      <Route path="/support/create" component={SupportTicketCreate} />
-      <Route path="/support/:id" component={SupportTicketDetail} />
-      <Route path="/help" component={HelpCenter} />
-      <Route path="/admin/support" component={AdminSupportDashboard} />
-      <Route path="/admin/support/metrics" component={SupportMetricsDashboard} />
-      <Route path="/admin/support-team" component={SupportTeamManagement} />
-      <Route path="/admin/sla-tracking" component={SLATrackingDashboard} />
-      <Route path="/artist-dashboard" component={ArtistDashboard} />
-      <Route path="/venue-dashboard" component={VenueDashboard} />
-      <Route path="/verify-certificate" component={CertificateVerification} />
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
+          {/* ============================================
+              MVP CORE ROUTES ONLY - PRODUCTION PATHS
+              ============================================ */}
+          
+          {/* Authentication & Accounts */}
+          <Route path="/" component={Home} />
+          <Route path="/home" component={Home} />
+          <Route path="/get-started" component={RoleSelection} />
+          <Route path="/onboarding/artist" component={ArtistOnboarding} />
+          <Route path="/onboarding/venue" component={VenueOnboarding} />
+          <Route path="/dashboard" component={ArtistDashboardV3} />
+          
+          {/* Discovery */}
+          <Route path="/browse" component={Browse} />
+          <Route path="/artist/:id" component={ArtistProfile} />
+          <Route path="/venues" component={VenueBrowse} />
+          <Route path="/venue/:id" component={VenueProfile} />
+          <Route path="/venues/:id" component={VenueProfileDetail} />
+          
+          {/* Core Booking Flow */}
+          <Route path="/bookings/create" component={BookingCreate} />
+          <Route path="/bookings" component={BookingsList} />
+          <Route path="/booking/:id" component={BookingDetail} />
+          <Route path="/bookings/:id" component={BookingDetail} />
+          
+          {/* Rider System */}
+          <Route path="/rider-builder" component={RiderBuilder} />
+          <Route path="/saved-riders" component={SavedRiders} />
+          <Route path="/riders" component={Riders} />
+          
+          {/* Communication */}
+          <Route path="/messages" component={Messages} />
+          <Route path="/messages/:id" component={MessagesDetail} />
+          
+          {/* Availability Management */}
+          <Route path="/availability" component={Availability} />
+          
+          {/* Legal Pages (compliance only) */}
+          <Route path="/privacy-policy" component={PrivacyPolicy} />
+          <Route path="/privacy" component={PrivacyPolicy} />
+          <Route path="/terms-of-service" component={TermsOfService} />
+          <Route path="/terms" component={TermsOfService} />
+          <Route path="/cookies" component={Cookies} />
+          <Route path="/accessibility" component={Accessibility} />
+          
+          {/* ============================================
+              HARD 404 - ALL OTHER ROUTES SILENCED
+              ============================================ */}
+          <Route path="/404" component={NotFound} />
+          <Route component={NotFound} />
         </Switch>
       </div>
       <Footer />

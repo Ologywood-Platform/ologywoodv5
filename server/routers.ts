@@ -10,58 +10,61 @@ import * as email from "./email";
 import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } from "./email";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
-import { contractsRouter } from "./routers/contracts";
-// import { contractStatusRouter } from "./routers/contract-status"; // Temporarily disabled
-import { contractAuditRouter } from "./routers/contract-audit";
-import { referralRouter } from "./routers/referrals";
-import { verificationRouter } from "./routers/verification";
-import { templatesRouter } from "./routers/templates";
-import { testdataRouter } from "./routers/testdata";
-import { testdataSeedingRouter } from "./routers/testdata-seeding";
-import { impersonationRouter } from "./routers/impersonation";
-import { testWorkflowsRouter } from "./routers/test-workflows";
-import { supportRouter } from "./routers/support";
-import { adminSeedRouter } from "./routers/admin-seed";
-import { supportSeederRouter } from "./routers/support-seeder";
-import { aiChatRouter } from "./routers/ai-chat";
-import { analyticsRouter } from "./routers/analyticsRouter";
-import { contractManagementRouter } from "./routers/contract-management";
-import { helpAndSupportRouter } from "./routers/helpAndSupport";
-import { contractPdfRouter } from "./routers/contractPdf";
-import { supportTicketsRouter } from "./routers/supportTickets";
-import { riderManagementRouter } from "./routers/riderManagement";
-import { semanticSearchRouter } from "./routers/semanticSearchRouter";
-import { evictionRouter } from "./routers/evictionRouter";
-import { helpCenterRouter } from "./routers/helpCenterRouter";
-import { riderContractRouter } from "./routers/riderContractRouter";
-import { signatureRouter } from "./routers/signatureRouter";
-import { contractTemplateRouter } from "./routers/contractTemplateRouter";
-import { contractHistoryRouter } from "./routers/contractHistoryRouter";
-import { webhookRouter } from "./routers/webhookRouter";
-import { bulkContractRouter } from "./routers/bulkContractRouter";
-import { realtimeNotificationsRouter } from "./routers/realtimeNotifications";
-import { bookingEscrowRouter } from "./routers/bookingEscrow";
-import { paymentAnalyticsRouter } from "./routers/paymentAnalyticsRouter";
-import { artistVerificationRouter } from "./routers/artistVerificationRouter";
-import { emailVerificationRouter } from "./routers/emailVerificationRouter";
-import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
-import { userRouter } from "./routers/userRouter";
-import { calendarRouter } from "./routers/calendarRouter";
-import { venueDirectoryRouter } from "./routers/venueDirectoryRouter";
-import { contactRouter } from "./routers/contact";
-import { privacyRouter } from "./routers/privacy";
+// ===== MVP ROUTERS ONLY =====
 import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
-import { paymentsRouter } from "./routers/payments";
-import { followsRouter } from "./routers/follows";
-import { availabilityAlertsRouter } from "./routers/availabilityAlerts";
-import { referralRewardsRouter } from "./routers/referralRewards";
-import { browseFiltersRouter } from "./routers/browseFilters";
-import { artistOnboardingRouter } from "./routers/artistOnboarding";
-import { bookingAnalyticsExportRouter } from "./routers/bookingAnalyticsExport";
-import * as contractPdfService from "./contractPdfService";
-import * as contractArchiveService from "./contractArchiveService";
-import paymentTestingRoutes from "./routes/paymentTestingRoutes";
+
+// ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
+// import { contractsRouter } from "./routers/contracts";
+// import { contractAuditRouter } from "./routers/contract-audit";
+// import { referralRouter } from "./routers/referrals";
+// import { verificationRouter } from "./routers/verification";
+// import { templatesRouter } from "./routers/templates";
+// import { testdataRouter } from "./routers/testdata";
+// import { testdataSeedingRouter } from "./routers/testdata-seeding";
+// import { impersonationRouter } from "./routers/impersonation";
+// import { testWorkflowsRouter } from "./routers/test-workflows";
+// import { supportRouter } from "./routers/support";
+// import { adminSeedRouter } from "./routers/admin-seed";
+// import { supportSeederRouter } from "./routers/support-seeder";
+// import { aiChatRouter } from "./routers/ai-chat";
+// import { analyticsRouter } from "./routers/analyticsRouter";
+// import { contractManagementRouter } from "./routers/contract-management";
+// import { helpAndSupportRouter } from "./routers/helpAndSupport";
+// import { contractPdfRouter } from "./routers/contractPdf";
+// import { supportTicketsRouter } from "./routers/supportTickets";
+// import { riderManagementRouter } from "./routers/riderManagement";
+// import { semanticSearchRouter } from "./routers/semanticSearchRouter";
+// import { evictionRouter } from "./routers/evictionRouter";
+// import { helpCenterRouter } from "./routers/helpCenterRouter";
+// import { riderContractRouter } from "./routers/riderContractRouter";
+// import { signatureRouter } from "./routers/signatureRouter";
+// import { contractTemplateRouter } from "./routers/contractTemplateRouter";
+// import { contractHistoryRouter } from "./routers/contractHistoryRouter";
+// import { webhookRouter } from "./routers/webhookRouter";
+// import { bulkContractRouter } from "./routers/bulkContractRouter";
+// import { realtimeNotificationsRouter } from "./routers/realtimeNotifications";
+// import { bookingEscrowRouter } from "./routers/bookingEscrow";
+// import { paymentAnalyticsRouter } from "./routers/paymentAnalyticsRouter";
+// import { artistVerificationRouter } from "./routers/artistVerificationRouter";
+// import { emailVerificationRouter } from "./routers/emailVerificationRouter";
+// import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
+// import { userRouter } from "./routers/userRouter";
+// import { calendarRouter } from "./routers/calendarRouter";
+// import { venueDirectoryRouter } from "./routers/venueDirectoryRouter";
+// import { contactRouter } from "./routers/contact";
+// import { privacyRouter } from "./routers/privacy";
+// import { paymentsRouter } from "./routers/payments";
+// import { followsRouter } from "./routers/follows";
+// import { availabilityAlertsRouter } from "./routers/availabilityAlerts";
+// import { referralRewardsRouter } from "./routers/referralRewards";
+// import { browseFiltersRouter } from "./routers/browseFilters";
+// import { artistOnboardingRouter } from "./routers/artistOnboarding";
+// import { bookingAnalyticsExportRouter } from "./routers/bookingAnalyticsExport";
+// Deprecated services - commented out for noise elimination
+// import * as contractPdfService from "./contractPdfService";
+// import * as contractArchiveService from "./contractArchiveService";
+// import paymentTestingRoutes from "./routes/paymentTestingRoutes";
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -80,53 +83,55 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const appRouter = router({
-  system: systemRouter,
-  analytics: analyticsRouter,
-  contracts: contractsRouter,
-  contractManagement: contractManagementRouter,
-  // contractStatus: contractStatusRouter, // Temporarily disabled
-  contractAudit: contractAuditRouter,
-  referrals: referralRouter,
-  verification: verificationRouter,
-  templates: templatesRouter,
-  testdata: testdataRouter,
-  testdataSeeding: testdataSeedingRouter,
-  impersonation: impersonationRouter,
-  testWorkflows: testWorkflowsRouter,
-  support: supportRouter,
-  adminSeed: adminSeedRouter,
-  supportSeeder: supportSeederRouter,
-  aiChat: aiChatRouter,
-  helpAndSupport: helpAndSupportRouter,
-  contractPdf: contractPdfRouter,
-  supportTickets: supportTicketsRouter,
-  semanticSearch: semanticSearchRouter,
-  eviction: evictionRouter,
-  helpCenter: helpCenterRouter,
-  riderContract: riderContractRouter,
-  signature: signatureRouter,
-  contractTemplate: contractTemplateRouter,
-  contractHistory: contractHistoryRouter,
-  webhook: webhookRouter,
-  bulkContract: bulkContractRouter,
-  realtimeNotifications: realtimeNotificationsRouter,
-  paymentAnalytics: paymentAnalyticsRouter,
-  artistVerification: artistVerificationRouter,
-  emailVerification: emailVerificationRouter,
-  smsNotifications: smsNotificationsRouter,
-  user: userRouter,
-  venueDirectory: venueDirectoryRouter,
-  contact: contactRouter,
-  riderManagement: riderManagementRouter,
-  privacy: privacyRouter,
-  messaging: messagingRouter,
-  payments: paymentsRouter,
-  follows: followsRouter,
-  availabilityAlerts: availabilityAlertsRouter,
-  referralRewards: referralRewardsRouter,
-  browseFilters: browseFiltersRouter,
-  artistOnboarding: artistOnboardingRouter,
-  bookingAnalyticsExport: bookingAnalyticsExportRouter,
+  // ===== MVP CORE ROUTERS ONLY =====
+  // (Defined inline below at lines ~172, ~412, ~634, ~850)
+  
+  // ===== NON-MVP ROUTERS (DISABLED FOR MVP) =====
+  // system: systemRouter,
+  // analytics: analyticsRouter,
+  // contracts: contractsRouter,
+  // contractManagement: contractManagementRouter,
+  // contractAudit: contractAuditRouter,
+  // referrals: referralRouter,
+  // verification: verificationRouter,
+  // templates: templatesRouter,
+  // testdata: testdataRouter,
+  // testdataSeeding: testdataSeedingRouter,
+  // impersonation: impersonationRouter,
+  // testWorkflows: testWorkflowsRouter,
+  // support: supportRouter,
+  // adminSeed: adminSeedRouter,
+  // supportSeeder: supportSeederRouter,
+  // aiChat: aiChatRouter,
+  // helpAndSupport: helpAndSupportRouter,
+  // contractPdf: contractPdfRouter,
+  // supportTickets: supportTicketsRouter,
+  // semanticSearch: semanticSearchRouter,
+  // eviction: evictionRouter,
+  // helpCenter: helpCenterRouter,
+  // riderContract: riderContractRouter,
+  // signature: signatureRouter,
+  // contractTemplate: contractTemplateRouter,
+  // contractHistory: contractHistoryRouter,
+  // webhook: webhookRouter,
+  // bulkContract: bulkContractRouter,
+  // realtimeNotifications: realtimeNotificationsRouter,
+  // paymentAnalytics: paymentAnalyticsRouter,
+  // artistVerification: artistVerificationRouter,
+  // emailVerification: emailVerificationRouter,
+  // smsNotifications: smsNotificationsRouter,
+  // user: userRouter,
+  // venueDirectory: venueDirectoryRouter,
+  // contact: contactRouter,
+  // riderManagement: riderManagementRouter,
+  // privacy: privacyRouter,
+  // payments: paymentsRouter,
+  // follows: followsRouter,
+  // availabilityAlerts: availabilityAlertsRouter,
+  // referralRewards: referralRewardsRouter,
+  // browseFilters: browseFiltersRouter,
+  // artistOnboarding: artistOnboardingRouter,
+  // bookingAnalyticsExport: bookingAnalyticsExportRouter,
   paymentTesting: router({
     success: publicProcedure
       .input(z.object({ bookingId: z.number() }))
@@ -1943,7 +1948,7 @@ export const appRouter = router({
       }),
   }),
   
-  calendarEvent: calendarRouter,
+  // calendarEvent: calendarRouter, // Deprecated - commented out for noise elimination
   
   newsletter: router({
     subscribe: publicProcedure

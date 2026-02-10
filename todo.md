@@ -3071,3 +3071,96 @@ The Ologywood platform is production-ready with:
 - [x] Add performance metrics and KPI tracking
 - [x] Create comparison views (artist vs venue analytics)
 - [x] Test analytics dashboard end-to-end
+
+
+## MVP Reduction Strategy (CRITICAL - START HERE)
+
+### Phase 1: Route Mapping & Cleanup
+- [ ] Audit all 70+ routes and categorize into KEEP/DISABLE/DELETE
+- [ ] Document KEEP routes (essential for golden path)
+- [ ] Document DISABLE routes (non-essential features)
+- [ ] Document DELETE routes (conflicting or duplicate)
+- [ ] Disable non-MVP routes in App.tsx
+- [ ] Disable non-MVP endpoints in routers.ts
+- [ ] Remove broken analytics services
+- [ ] Remove partial admin dashboards
+
+### Phase 2: Golden Path Polish
+- [ ] Fix artist onboarding flow (sign up → profile completion)
+- [ ] Fix rider builder functionality
+- [ ] Fix booking request creation
+- [ ] Fix venue discovery and artist browsing
+- [ ] Fix booking acceptance flow
+- [ ] Fix confirmation workflow
+- [ ] Test complete end-to-end flow
+- [ ] Create minimal logging for booking flow
+
+### Phase 3: MVP Architecture Design
+- [ ] Document simplified data model
+- [ ] Document core API endpoints
+- [ ] Create MVP feature specification
+- [ ] Define scaling strategy for Phase 2 features
+
+
+## Phase 2: NOISE ELIMINATION ✅ COMPLETE
+
+### 4-Step Noise Elimination Plan
+- [x] Step 1: Navigation Silence - Remove non-MVP items from sidebar
+- [x] Step 2: Route Hard Cut - Comment out non-MVP routes in App.tsx
+- [x] Step 3: Feature Quarantine - Move 90 dead pages to /deprecated folder (73 pages moved)
+- [x] Step 4: Kill Dead API Calls - Remove unused TRPC endpoints (50+ routers commented out)
+- [x] Step 5: Verify system stability and test MVP paths (All tests passed)
+
+## Phase 3: Golden Path Polish (After Noise Elimination)
+
+### Artist Rider Template
+- [x] Create comprehensive artist rider contract template (ARTIST_RIDER_TEMPLATE.md)
+- [ ] Create rider template CRUD endpoints (create, read, update, delete)
+- [ ] Build rider template form UI in artist dashboard
+- [ ] Integrate rider templates into booking workflow
+- [ ] Display rider details in booking requests from venues
+
+### Database Schema Fixes
+- [ ] Fix fullPaymentAt column mismatch in bookings table
+- [ ] Verify all database columns match schema definitions
+- [ ] Run database migrations to sync schema
+
+### Artist Onboarding Flow
+- [x] Test artist profile setup wizard (Step 1-3 working)
+- [ ] Verify profile data is saved correctly
+- [ ] Test profile completion percentage calculation
+- [ ] Verify artist can edit profile after onboarding
+
+### Rider Builder Testing
+- [ ] Test creating a new rider template
+- [ ] Test editing existing rider template
+- [ ] Test deleting rider template
+- [ ] Test rider template preview
+- [ ] Test rider template sharing with venues
+
+### Booking Request Flow
+- [ ] Test artist sending booking request to venue
+- [ ] Test rider attachment to booking request
+- [ ] Test venue receiving booking request
+- [ ] Test venue viewing rider details
+- [ ] Test venue accepting/declining booking
+
+### Venue Acceptance Workflow
+- [ ] Test venue browsing artists
+- [ ] Test venue creating booking request
+- [ ] Test venue accepting artist's terms
+- [ ] Test confirmation email notifications
+- [ ] Test booking status tracking
+
+### End-to-End Testing
+- [ ] Complete golden path: Artist signup → Profile → Rider → Booking request
+- [ ] Complete golden path: Venue signup → Browse → Accept booking
+- [ ] Test all Quick Action buttons
+- [ ] Test all navigation flows
+- [ ] Test error handling and validation
+
+### Bug Fixes Needed
+- [ ] Fix database schema mismatch (fullPaymentAt column)
+- [ ] Fix newsletter double opt-in service TypeScript errors
+- [ ] Fix any broken links or missing data
+- [ ] Fix UI issues in core booking flow

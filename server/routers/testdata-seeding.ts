@@ -179,7 +179,6 @@ export const testdataSeedingRouter = router({
           status,
           depositAmount: status !== 'pending' ? 500 : null,
           depositPaidAt: status !== 'pending' && Math.random() > 0.5 ? new Date() : null,
-          fullPaymentAt: status === 'completed' ? new Date() : null,
           createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
           updatedAt: new Date(),
         };

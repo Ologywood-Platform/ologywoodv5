@@ -162,6 +162,13 @@
       "when": 1770560239157,
       "tag": "0022_stale_william_stryker",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1770740952606,
+      "tag": "0023_zippy_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

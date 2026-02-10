@@ -20,12 +20,14 @@ import {
   Star,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
@@ -79,7 +81,7 @@ export function ArtistDashboardV3() {
       label: 'Account',
       icon: Settings,
       description: 'Settings & support',
-      action: () => navigate('/settings'),
+      action: () => navigate('/dashboard'),
     },
   ];
 
