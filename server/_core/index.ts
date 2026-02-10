@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
+import { globalErrorHandler, notFoundHandler } from "../error-handler";
 // import { requestLogger } from "../middleware/requestLogger"; // Optional logging middleware
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -84,6 +85,10 @@ async function startServer() {
   } else {
     serveStatic(app);
   }
+
+  // Global error handlers (must be registered LAST)
+  app.use(notFoundHandler);
+  app.use(globalErrorHandler);
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);
