@@ -24,7 +24,7 @@ const Footer = () => {
     {
       title: 'Platform',
       links: [
-        { label: 'Browse Artists', path: '/' },
+        { label: 'Browse Artists', path: '/browse' },
         { label: 'How It Works', path: '/' },
         { label: 'Contact Us', path: 'mailto:info@ologywood.com' },
       ],
@@ -34,23 +34,23 @@ const Footer = () => {
       links: [
         { label: 'Artist Dashboard', path: '/dashboard' },
         { label: 'Create Rider', path: '/rider-builder' },
-        { label: 'My Bookings', path: '/dashboard' },
+        { label: 'My Bookings', path: '/bookings' },
       ],
     },
     {
       title: 'For Venues',
       links: [
-        { label: 'Browse Artists', path: '/' },
-        { label: 'Find Talent', path: '/' },
-        { label: 'My Bookings', path: '/dashboard' },
+        { label: 'Browse Artists', path: '/browse' },
+        { label: 'Find Talent', path: '/browse' },
+        { label: 'My Bookings', path: '/bookings' },
       ],
     },
     {
       title: 'Legal',
       links: [
-        { label: 'Terms of Service', path: '/terms' },
-        { label: 'Privacy Policy', path: '/privacy' },
-        { label: 'Cookie Policy', path: '/cookies' },
+        { label: 'Terms of Service', path: '/terms-of-service' },
+        { label: 'Privacy Policy', path: '/privacy-policy' },
+        { label: 'Cookie Policy', path: '/cookie-policy' },
       ],
     },
   ];
@@ -223,13 +223,13 @@ const Footer = () => {
           </div>
           
           <div className="flex gap-6 text-sm">
-            <Link to="/terms" className="text-gray-400 hover:text-white transition">
+            <Link to="/terms-of-service" className="text-gray-400 hover:text-white transition">
               Terms
             </Link>
-            <Link to="/privacy" className="text-gray-400 hover:text-white transition">
+            <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition">
               Privacy
             </Link>
-            <Link to="/cookies" className="text-gray-400 hover:text-white transition">
+            <Link to="/cookie-policy" className="text-gray-400 hover:text-white transition">
               Cookies
             </Link>
           </div>
