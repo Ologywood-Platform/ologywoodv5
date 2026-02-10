@@ -1962,12 +1962,19 @@ export const appRouter = router({
     subscribe: publicProcedure
       .input(z.object({
         email: z.string().email('Invalid email address'),
+        name: z.string().optional(),
+        source: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         try {
-          // Send welcome email to subscriber
-          await email.sendNewsletterSubscriptionEmail(input.email);
-          return { success: true, message: 'Successfully subscribed to newsletter' };
+          console.log('[Newsletter] Subscription attempt for:', input.email);
+          const emailSent = await email.sendNewsletterSubscriptionEmail(input.email);
+          if (!emailSent) {
+            console.error('[Newsletter] Email sending failed for:', input.email);
+            throw new Error('Email service failed');
+          }
+          console.log('[Newsletter] Successfully subscribed:', input.email);
+          return { success: true, message: 'Successfully subscribed to newsletter! Check your email for confirmation.' };
         } catch (error) {
           console.error('[Newsletter] Subscription error:', error);
           throw new TRPCError({

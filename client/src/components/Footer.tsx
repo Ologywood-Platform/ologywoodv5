@@ -8,6 +8,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
   
   const subscriptionMutation = trpc.newsletter.subscribe.useMutation();
 
@@ -59,24 +60,28 @@ const Footer = () => {
     e.preventDefault();
     
     if (!email.trim()) {
+      setErrorMessage('Please enter a valid email address');
       setSubscriptionStatus('error');
-      setTimeout(() => setSubscriptionStatus('idle'), 3000);
+      setTimeout(() => setSubscriptionStatus('idle'), 4000);
       return;
     }
 
     setSubscriptionStatus('loading');
+    setErrorMessage('');
     try {
-      await subscriptionMutation.mutateAsync({
+      const result = await subscriptionMutation.mutateAsync({
         email,
         name: '',
         source: 'footer',
       });
       setSubscriptionStatus('success');
       setEmail('');
-      setTimeout(() => setSubscriptionStatus('idle'), 3000);
-    } catch (error) {
+      setTimeout(() => setSubscriptionStatus('idle'), 5000);
+    } catch (error: any) {
+      const errorMsg = error?.message || 'Failed to subscribe. Please try again later.';
+      setErrorMessage(errorMsg);
       setSubscriptionStatus('error');
-      setTimeout(() => setSubscriptionStatus('idle'), 3000);
+      setTimeout(() => setSubscriptionStatus('idle'), 5000);
     }
   };
 
@@ -106,10 +111,10 @@ const Footer = () => {
               </button>
             </form>
             {subscriptionStatus === 'success' && (
-              <p className="text-green-400 text-sm mt-2">✓ Successfully subscribed!</p>
+              <p className="text-green-400 text-sm mt-2">✓ Successfully subscribed! Check your email for confirmation.</p>
             )}
             {subscriptionStatus === 'error' && (
-              <p className="text-red-400 text-sm mt-2">✗ Please enter a valid email</p>
+              <p className="text-red-400 text-sm mt-2">✗ {errorMessage || 'Please enter a valid email'}</p>
             )}
           </div>
         </div>

@@ -169,6 +169,20 @@
       "when": 1770740952606,
       "tag": "0023_zippy_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1770763857241,
+      "tag": "0024_long_nebula",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1770764120034,
+      "tag": "0025_cultured_eddie_brock",
+      "breakpoints": true
     }
   ]
 }
