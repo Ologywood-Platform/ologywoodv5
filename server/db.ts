@@ -928,64 +928,64 @@ export async function getAverageRatingForVenue(venueId: number): Promise<{ avera
 
 // ============= FAVORITES FUNCTIONS =============
 
-export async function addFavorite(userId: number, artistId: number) {
+export async function addFavorite(venueId: number, artistId: number) {
   try {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     
     // Check if already favorited
-    const existing = await db.select({ id: favorites.id, userId: favorites.userId, artistId: favorites.artistId }).from(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+    const existing = await db.select({ id: favorites.id, venueId: favorites.venueId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
     
     if (existing.length > 0) {
       return existing[0];
     }
     
-    await db.insert(favorites).values({ userId, artistId });
-    return { userId, artistId };
+    await db.insert(favorites).values({ venueId, artistId });
+    return { venueId, artistId };
   } catch (error) {
     console.error('Error adding favorite:', error);
     throw error;
   }
 }
 
-export async function removeFavorite(userId: number, artistId: number) {
+export async function removeFavorite(venueId: number, artistId: number) {
   try {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
     
     await db.delete(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
   } catch (error) {
     console.error('Error removing favorite:', error);
     throw error;
   }
 }
 
-export async function getFavoritesByUser(userId: number) {
+export async function getFavoritesByVenue(venueId: number) {
   const db = await getDb();
   if (!db) return [];
   
   // Get favorites with artist profile details
-  const userFavorites = await db.select().from(favorites)
-    .where(eq(favorites.userId, userId));
+  const venueFavorites = await db.select().from(favorites)
+    .where(eq(favorites.venueId, venueId));
   
-  if (userFavorites.length === 0) return [];
+  if (venueFavorites.length === 0) return [];
   
-  const artistIds = userFavorites.map(f => f.artistId);
+  const artistIds = venueFavorites.map(f => f.artistId);
   const artists = await db.select().from(artistProfiles)
     .where(sql`${artistProfiles.id} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`);
   
   return artists;
 }
 
-export async function isFavorited(userId: number, artistId: number) {
+export async function isFavorited(venueId: number, artistId: number) {
   try {
     const db = await getDb();
     if (!db) return false;
     
-    const result = await db.select({ id: favorites.id, userId: favorites.userId, artistId: favorites.artistId }).from(favorites)
-      .where(and(eq(favorites.userId, userId), eq(favorites.artistId, artistId)));
+    const result = await db.select({ id: favorites.id, venueId: favorites.venueId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
     
     return result.length > 0;
   } catch (error) {
@@ -1006,8 +1006,9 @@ export async function getFavoriteCount(artistId: number) {
 
 
 export async function getVenuesWhoFavoritedArtist(artistId: number) {
-  const db = await getDb();
-  if (!db) return [];
+  try {
+    const db = await getDb();
+    if (!db) return [];
   
   // Get all venues that favorited this artist
   const venueFavorites = await db.select().from(favorites)
@@ -1038,6 +1039,10 @@ export async function getVenuesWhoFavoritedArtist(artistId: number) {
       organizationName: profile?.organizationName,
     };
   }).filter(v => v.email); // Only return venues with email addresses
+  } catch (error) {
+    console.error('Error getting venues who favorited artist:', error);
+    return []; // Return empty array on error instead of crashing
+  }
 }
 
 
