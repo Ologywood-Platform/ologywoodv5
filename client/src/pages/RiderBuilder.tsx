@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Plus, Trash2, Save, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Plus, Trash2, Save, Share2, GripVertical, Eye, Copy } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useState } from "react";
 
 interface RiderSection {
   id: string;
@@ -33,7 +33,9 @@ export default function RiderBuilder() {
   const [templateName, setTemplateName] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
   const saveTemplateMutation = trpc.riderManagement.saveTemplate.useMutation();
 
   const addSection = () => {
@@ -56,6 +58,27 @@ export default function RiderBuilder() {
 
   const deleteSection = (id: string) => {
     setSections(sections.filter((s) => s.id !== id));
+  };
+
+  const reorderSections = (fromIndex: number, toIndex: number) => {
+    const newSections = [...sections];
+    const [movedSection] = newSections.splice(fromIndex, 1);
+    newSections.splice(toIndex, 0, movedSection);
+    setSections(newSections);
+    setDraggedId(null);
+  };
+
+  const duplicateSection = (id: string) => {
+    const sectionToDuplicate = sections.find((s) => s.id === id);
+    if (sectionToDuplicate) {
+      const newId = Math.max(...sections.map((s) => parseInt(s.id)), 0) + 1;
+      const newSection = {
+        ...sectionToDuplicate,
+        id: newId.toString(),
+        title: `${sectionToDuplicate.title} (Copy)`,
+      };
+      setSections([...sections, newSection]);
+    }
   };
 
   const saveAsTemplate = async () => {
@@ -188,7 +211,7 @@ export default function RiderBuilder() {
           )}
 
           <p className="text-muted-foreground mb-8">
-            Create a professional rider template for your bookings. Customize technical requirements, hospitality needs, and payment terms.
+            Create a professional rider template for your bookings. Customize technical requirements, hospitality needs, and payment terms. Drag sections to reorder, or copy sections to reuse them.
           </p>
 
           {/* Rider Name */}
@@ -204,22 +227,49 @@ export default function RiderBuilder() {
           </div>
 
           {/* Sections */}
-          <div className="space-y-6 mb-8">
-            {sections.map((section) => (
-              <div key={section.id} className="border rounded-lg p-6 bg-gray-50">
-                <div className="flex justify-between items-start mb-4">
-                  <input
-                    type="text"
-                    value={section.title}
-                    onChange={(e) => updateSection(section.id, "title", e.target.value)}
-                    className="flex-1 text-lg font-semibold px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    onClick={() => deleteSection(section.id)}
-                    className="ml-2 p-2 text-red-500 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+          <div className="space-y-4 mb-8">
+            {sections.map((section, index) => (
+              <div
+                key={section.id}
+                draggable
+                onDragStart={() => setDraggedId(section.id)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  const draggedIndex = sections.findIndex((s) => s.id === draggedId);
+                  if (draggedIndex !== index && draggedIndex !== -1) {
+                    reorderSections(draggedIndex, index);
+                  }
+                }}
+                className={`border rounded-lg p-6 bg-gray-50 transition ${
+                  draggedId === section.id ? "opacity-50" : ""
+                }`}
+              >
+                <div className="flex justify-between items-start mb-4 gap-3">
+                  <div className="flex items-center gap-2 flex-1">
+                    <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
+                    <input
+                      type="text"
+                      value={section.title}
+                      onChange={(e) => updateSection(section.id, "title", e.target.value)}
+                      className="flex-1 text-lg font-semibold px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => duplicateSection(section.id)}
+                      className="p-2 text-blue-500 hover:bg-blue-50 rounded"
+                      title="Duplicate section"
+                    >
+                      <Copy className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => deleteSection(section.id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded"
+                      title="Delete section"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   value={section.content}
@@ -242,6 +292,13 @@ export default function RiderBuilder() {
               Add Section
             </button>
             <button
+              onClick={() => setShowPreview(!showPreview)}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            >
+              <Eye className="h-5 w-5" />
+              {showPreview ? "Hide" : "Preview"}
+            </button>
+            <button
               onClick={downloadRider}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
@@ -256,10 +313,27 @@ export default function RiderBuilder() {
             </Link>
           </div>
 
+          {/* Preview Section */}
+          {showPreview && (
+            <div className="mt-8 p-6 bg-gray-100 border-2 border-gray-300 rounded-lg">
+              <h2 className="text-2xl font-bold mb-4">Preview: {riderName}</h2>
+              <div className="bg-white p-6 rounded-lg space-y-6">
+                {sections.map((section) => (
+                  <div key={section.id}>
+                    <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
+                    <div className="text-gray-700 whitespace-pre-wrap text-sm">
+                      {section.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Info Box */}
           <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-900">
-              <strong>💡 Tip:</strong> Click "Save Template" to store your rider in your profile. You can reuse, edit, and share saved templates with venues when making booking inquiries.
+              <strong>💡 Tip:</strong> Click "Save Template" to store your rider in your profile. You can reuse, edit, and share saved templates with venues when making booking inquiries. Drag sections to reorder them, or use the copy icon to duplicate sections.
             </p>
           </div>
         </div>
