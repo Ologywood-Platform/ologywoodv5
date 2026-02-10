@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'wouter';
 import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import TikTokIcon from './TikTokIcon';
+import { trpc } from '@/lib/trpc';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [email, setEmail] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  
+  const subscriptionMutation = trpc.newsletter.subscribe.useMutation();
 
   const socialLinks = [
     { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@Ologywood', color: 'hover:text-red-600' },
@@ -14,49 +19,66 @@ const Footer = () => {
     { name: 'LinkedIn', icon: Linkedin, url: 'https://www.linkedin.com/showcase/ologywood-com/about/?viewAsMember=true', color: 'hover:text-blue-700' },
   ];
 
+  // MVP-only footer sections - removed all dead links
   const footerSections = [
     {
-      title: 'Company',
+      title: 'Platform',
       links: [
-        { label: 'About Us', path: '/about' },
-        { label: 'Blog', path: '/blog' },
-        { label: 'Careers', path: '/careers' },
-        { label: 'Press Kit', path: '/press' },
-        { label: 'Contact Us', path: '/contact' },
+        { label: 'Browse Artists', path: '/' },
+        { label: 'How It Works', path: '/' },
+        { label: 'Contact Us', path: 'mailto:info@ologywood.com' },
       ],
     },
     {
       title: 'For Artists',
       links: [
-        { label: 'How It Works', path: '/how-it-works-artist' },
-        { label: 'Pricing', path: '/pricing' },
-        { label: 'Artist Resources', path: '/resources/artists' },
-        { label: 'Verification', path: '/verification' },
-        { label: 'Success Stories', path: '/success-stories' },
+        { label: 'Artist Dashboard', path: '/dashboard' },
+        { label: 'Create Rider', path: '/rider-builder' },
+        { label: 'My Bookings', path: '/dashboard' },
       ],
     },
     {
       title: 'For Venues',
       links: [
-        { label: 'How It Works', path: '/how-it-works-venue' },
-        { label: 'Venue Directory', path: '/venues' },
-        { label: 'Venue Resources', path: '/resources/venues' },
-        { label: 'Verification', path: '/verification' },
-        { label: 'Partner With Us', path: '/partner' },
+        { label: 'Browse Artists', path: '/' },
+        { label: 'Find Talent', path: '/' },
+        { label: 'My Bookings', path: '/dashboard' },
       ],
     },
     {
-      title: 'Support & Legal',
+      title: 'Legal',
       links: [
-        { label: 'Help Center', path: '/help' },
-        { label: 'FAQ', path: '/faq' },
-        { label: 'Contact Support', path: '/support-page' },
         { label: 'Terms of Service', path: '/terms' },
         { label: 'Privacy Policy', path: '/privacy' },
         { label: 'Cookie Policy', path: '/cookies' },
       ],
     },
   ];
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setSubscriptionStatus('error');
+      setTimeout(() => setSubscriptionStatus('idle'), 3000);
+      return;
+    }
+
+    setSubscriptionStatus('loading');
+    try {
+      await subscriptionMutation.mutateAsync({
+        email,
+        name: '',
+        source: 'footer',
+      });
+      setSubscriptionStatus('success');
+      setEmail('');
+      setTimeout(() => setSubscriptionStatus('idle'), 3000);
+    } catch (error) {
+      setSubscriptionStatus('error');
+      setTimeout(() => setSubscriptionStatus('idle'), 3000);
+    }
+  };
 
   return (
     <footer className="bg-gray-900 text-gray-300 pt-16 pb-8">
@@ -67,16 +89,28 @@ const Footer = () => {
           <div className="max-w-md">
             <h3 className="text-white text-lg font-semibold mb-2">Stay Updated</h3>
             <p className="text-gray-400 text-sm mb-4">Get the latest news about artists, venues, and booking opportunities.</p>
-            <div className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 px-4 py-2 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
               />
-              <button className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-medium text-sm">
-                Subscribe
+              <button 
+                type="submit"
+                disabled={subscriptionStatus === 'loading'}
+                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-medium text-sm disabled:opacity-50"
+              >
+                {subscriptionStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </button>
-            </div>
+            </form>
+            {subscriptionStatus === 'success' && (
+              <p className="text-green-400 text-sm mt-2">✓ Successfully subscribed!</p>
+            )}
+            {subscriptionStatus === 'error' && (
+              <p className="text-red-400 text-sm mt-2">✗ Please enter a valid email</p>
+            )}
           </div>
         </div>
 
@@ -88,12 +122,21 @@ const Footer = () => {
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-400 hover:text-white transition text-sm"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.path.startsWith('mailto:') ? (
+                      <a
+                        href={link.path}
+                        className="text-gray-400 hover:text-white transition text-sm"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.path}
+                        className="text-gray-400 hover:text-white transition text-sm"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -188,9 +231,6 @@ const Footer = () => {
             </Link>
             <Link to="/cookies" className="text-gray-400 hover:text-white transition">
               Cookies
-            </Link>
-            <Link to="/accessibility" className="text-gray-400 hover:text-white transition">
-              Accessibility
             </Link>
           </div>
 
