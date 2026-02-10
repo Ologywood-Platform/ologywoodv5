@@ -1017,6 +1017,9 @@ export async function getVenuesWhoFavoritedArtist(artistId: number) {
   
   const venueIds = venueFavorites.map(f => f.venueId);
   
+  // Handle empty array case - SQL IN clause fails with empty arrays
+  if (venueIds.length === 0) return [];
+  
   // Get venue profiles for those venues
   const venueProfilesList = await db.select().from(venueProfiles)
     .where(sql`${venueProfiles.id} IN (${sql.join(venueIds.map(id => sql`${id}`), sql`, `)})`);
