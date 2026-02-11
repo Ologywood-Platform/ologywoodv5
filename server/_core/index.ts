@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import sitemapRoutes from "../routes/sitemapRoutes";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -61,6 +62,9 @@ async function startServer() {
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // Sitemap and robots.txt routes (BEFORE Vite setup)
+  app.use('/', sitemapRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

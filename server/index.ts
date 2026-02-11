@@ -13,6 +13,7 @@ import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
 import paymentRoutes from './routes/paymentRoutes';
+import sitemapRoutes from './routes/sitemapRoutes';
 import path from 'path';
 import http from 'http';
 
@@ -42,7 +43,10 @@ async function initializeServer(): Promise<void> {
     },
   });
 
-  // Serve static files from dist/public FIRST (before all routes)
+  // Mount sitemap and SEO routes FIRST (before static files)
+  app.use('/', sitemapRoutes);
+
+  // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');
   console.log(`Serving static files from: ${publicPath}`);
   app.use(express.static(publicPath, { maxAge: '1h' }));
@@ -69,18 +73,6 @@ async function initializeServer(): Promise<void> {
   // Initialize Socket.io for real-time notifications
   const httpServer = http.createServer(app);
   socketService.initialize(httpServer);
-
-  // Serve index.html for all other routes (SPA fallback) - MUST be last
-  app.get('*', (req, res) => {
-    const indexPath = path.join(publicPath, 'index.html');
-    console.log(`Serving SPA fallback: ${indexPath}`);
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        console.error('Error serving index.html:', err);
-        res.status(500).send('Error loading application');
-      }
-    });
-  });
 
   // Health check endpoint
   app.get('/health', (req, res) => {
@@ -118,6 +110,20 @@ async function initializeServer(): Promise<void> {
       database: metrics,
       suggestions,
       timestamp: new Date().toISOString(),
+    });
+  });
+
+
+
+  // Serve index.html for all other routes (SPA fallback) - MUST be last
+  app.get('*', (req, res) => {
+    const indexPath = path.join(publicPath, 'index.html');
+    console.log(`Serving SPA fallback: ${indexPath}`);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Error loading application');
+      }
     });
   });
 
