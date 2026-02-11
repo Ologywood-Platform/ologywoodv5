@@ -24,11 +24,15 @@ import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { EmailPreferencesCenter } from './EmailPreferencesCenter';
+import { PhotoManagement } from './PhotoManagement';
+import { MediaGalleryManager } from './MediaGalleryManager';
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [mediaPhotos, setMediaPhotos] = useState<string[]>([]);
 
   const { data: subscription } = trpc.subscription.getStatus.useQuery();
   const logoutMutation = trpc.auth.logout.useMutation();
@@ -121,6 +125,22 @@ export function AccountSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Photo Management Section */}
+          <PhotoManagement
+            currentPhotoUrl={profilePhotoUrl}
+            artistId={user?.role === 'artist' ? user?.id : undefined}
+            venueId={user?.role === 'venue' ? user?.id : undefined}
+            onPhotoUpdate={setProfilePhotoUrl}
+          />
+
+          {/* Media Gallery Section */}
+          <MediaGalleryManager
+            photos={mediaPhotos}
+            artistId={user?.role === 'artist' ? user?.id : undefined}
+            venueId={user?.role === 'venue' ? user?.id : undefined}
+            onPhotosUpdate={setMediaPhotos}
+          />
 
           {/* Security Section */}
           <Card>

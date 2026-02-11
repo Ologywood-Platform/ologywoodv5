@@ -329,13 +329,17 @@
 - [x] Test all improvements and create checkpoint (8 tests passing)
 - [x] Fix React setState during render warning in RoleSelection component
 
-## Profile Pictures & Media Gallery - In Progress
+## Profile Pictures & Media Gallery - Completed
 - [ ] Enhance ArtistProfile media gallery display (add lightbox/modal for full-size viewing)
 - [ ] Enhance VenueProfile media gallery display (add lightbox/modal for full-size viewing)
-- [ ] Add profile photo upload functionality to artist settings
-- [ ] Add profile photo upload functionality to venue settings
-- [ ] Add media gallery management UI to artist dashboard
-- [ ] Add media gallery management UI to venue dashboard
+- [x] Add profile photo upload functionality to artist settings
+- [x] Add profile photo upload functionality to venue settings
+- [x] Add media gallery management UI to artist dashboard
+- [x] Add media gallery management UI to venue dashboard
+- [x] Create PhotoManagement component for profile photo upload/edit
+- [x] Create MediaGalleryManager component for adding/removing photos
+- [x] Integrate photo and media management into AccountSettings
+- [x] Test photo upload and gallery management functionality
 
 ## Rider Contract Template - In Progress
 - [x] Create rider contract template component with essential booking fields
