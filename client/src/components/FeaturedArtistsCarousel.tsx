@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Artist } from "@/types";
+import { LazyImage } from "./LazyImage";
 
 interface FeaturedArtistsCarouselProps {
   artists: Artist[];
@@ -84,10 +85,11 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted h-64 sm:h-72 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {artist.profilePhotoUrl ? (
-                        <img
+                        <LazyImage
                           src={artist.profilePhotoUrl}
                           alt={artist.name}
-                          className="w-full h-full object-cover"
+                          containerClassName="w-full h-full"
+                          imageClassName="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-primary/20 to-accent/20">

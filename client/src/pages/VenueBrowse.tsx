@@ -8,6 +8,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
+import { LazyImage } from '@/components/LazyImage';
 
 interface Venue {
   id: number;
@@ -293,10 +294,11 @@ export default function VenueBrowse() {
                     {/* Venue Image */}
                     {venue.profilePhotoUrl && (
                       <div className="h-48 overflow-hidden bg-gray-200">
-                        <img
+                        <LazyImage
                           src={venue.profilePhotoUrl}
                           alt={venue.organizationName}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform"
+                          containerClassName="w-full h-full"
+                          imageClassName="w-full h-full object-cover hover:scale-105 transition-transform"
                         />
                       </div>
                     )}

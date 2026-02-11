@@ -9,6 +9,7 @@ import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar } from "luci
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
+import { LazyImage } from "@/components/LazyImage";
 import { useEffect } from "react";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
@@ -137,10 +138,11 @@ export default function Browse() {
                   <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
                     {artist.profilePhotoUrl && (
                       <div className="h-40 sm:h-48 overflow-hidden bg-gray-200">
-                        <img
+                        <LazyImage
                           src={artist.profilePhotoUrl}
                           alt={artist.artistName}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform"
+                          containerClassName="w-full h-full"
+                          imageClassName="w-full h-full object-cover hover:scale-105 transition-transform"
                         />
                       </div>
                     )}
