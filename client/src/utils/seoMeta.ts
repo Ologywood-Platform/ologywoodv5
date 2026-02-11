@@ -22,7 +22,7 @@ export interface MetaTagsConfig {
  * Set meta tags for a page
  */
 export function setMetaTags(config: MetaTagsConfig) {
-  const baseUrl = process.env.VITE_APP_URL || 'https://ologywood.com';
+  const baseUrl = import.meta.env.VITE_APP_URL || 'https://ologywood.com';
 
   // Title
   document.title = config.title;
@@ -95,6 +95,9 @@ function updateCanonicalTag(url: string) {
 /**
  * Predefined meta tags for common pages
  */
+// Get base URL for meta tags
+const getBaseUrl = () => import.meta.env.VITE_APP_URL || 'https://ologywood.com';
+
 export const pageMetaTags = {
   home: {
     title: 'Ologywood - Book Talented Artists for Your Events',

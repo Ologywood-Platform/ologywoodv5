@@ -3477,3 +3477,8 @@ The Ologywood platform is production-ready with:
 - [x] Implement meta tag generation for all page types (home, browse, faq, etc.)
 - [ ] Add meta tags to remaining pages (Browse, ArtistProfile, VenueProfile, etc.) - future enhancement
 - [ ] Verify sitemap and robots.txt are served correctly on production deployment
+
+## Bug Fixes - Recent
+- [x] Fix "process is not defined" error in seoMeta.ts
+  - Changed process.env to import.meta.env for Vite client-side compatibility
+  - Verified homepage loads without errors
