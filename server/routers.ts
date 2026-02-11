@@ -11,6 +11,8 @@ import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } fr
 import * as emailService from "./services/emailService";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
+import * as imageOptimization from "./imageOptimization";
+import { handlePhotoUpload } from "./handlers/imageUploadHandler";
 // ===== MVP ROUTERS ONLY =====
 import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
@@ -274,7 +276,7 @@ export const appRouter = router({
         // Upload to S3
         const { url } = await storagePut(fileKey, buffer, input.mimeType);
         
-        return { url };
+        return await handlePhotoUpload(input, ctx.user.id, "artist-photos");
       }),
 
     // Create artist profile
