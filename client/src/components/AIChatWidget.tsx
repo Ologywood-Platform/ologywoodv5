@@ -24,8 +24,9 @@ export function AIChatWidget() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
-  const topicsQuery = trpc.aiChat.getSuggestedTopics.useQuery();
+  // Note: aiChat router is disabled in MVP. These mutations are kept for future enhancement.
+  // const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
+  // const topicsQuery = trpc.aiChat.getSuggestedTopics.useQuery();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -61,50 +62,17 @@ export function AIChatWidget() {
     setInputValue("");
     setIsLoading(true);
 
-    try {
-      const response = await sendMessageMutation.mutateAsync({
-        message: inputValue,
-        conversationHistory: messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-      });
+    // AI Chat feature is disabled in MVP
+    // For now, show a placeholder message
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      content: "Thank you for reaching out! Please contact our support team at info@ologywood.com for assistance. We're here to help!",
+      timestamp: new Date(),
+    };
 
-      // Add assistant response
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: response.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      // If escalation needed, show notification
-      if (response.shouldEscalate) {
-        setTimeout(() => {
-          const escalationMsg: Message = {
-            id: (Date.now() + 2).toString(),
-            role: "assistant",
-            content: `🔔 A support agent will be with you shortly. Your issue: "${response.escalationReason}"`,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, escalationMsg]);
-        }, 1000);
-      }
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content:
-          "Sorry, I encountered an error. Please try again or contact support.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages((prev) => [...prev, assistantMessage]);
+    setIsLoading(false);
   };
 
   const handleSuggestedTopic = (topic: string) => {
@@ -201,25 +169,7 @@ export function AIChatWidget() {
               </div>
             )}
 
-            {/* Suggested Topics - Show only if no user messages */}
-            {messages.length === 1 && topicsQuery.data && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-xs text-gray-500 mb-2 font-semibold whitespace-nowrap">
-                  Popular topics:
-                </p>
-                <div className="space-y-2">
-                  {topicsQuery.data.slice(0, 4).map((topic, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSuggestedTopic(topic.topic)}
-                      className="w-full text-left text-sm px-3 py-2 rounded bg-gray-50 hover:bg-purple-50 transition-colors text-gray-700 hover:text-purple-700 break-words"
-                    >
-                      {topic.icon} {topic.topic}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Suggested Topics - Disabled in MVP */}
 
             <div ref={messagesEndRef} />
           </div>
@@ -234,15 +184,15 @@ export function AIChatWidget() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your question..."
-                disabled={isLoading}
+                placeholder="Contact support at info@ologywood.com"
+                disabled={true}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 text-sm"
               />
               <button
                 type="submit"
-                disabled={isLoading || !inputValue.trim()}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 transition-colors flex items-center justify-center flex-shrink-0"
-                title="Send message"
+                disabled={true}
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg disabled:bg-gray-400 transition-colors flex items-center justify-center flex-shrink-0"
+                title="Support feature coming soon"
               >
                 <Send className="w-4 h-4" />
               </button>

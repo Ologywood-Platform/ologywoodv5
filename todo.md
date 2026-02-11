@@ -3408,3 +3408,6 @@ The Ologywood platform is production-ready with:
 - [x] Verify Trust Badges section displays correctly and shows accurate platform metrics
 - [x] Test end-to-end: Homepage → How It Works → FAQ → Trust Badges navigation
 - [x] Verify all sections are mobile-responsive
+
+## Bug Fixes
+- [x] Fix aiChat.getSuggestedTopics API error by disabling aiChat router calls in AIChatWidget
