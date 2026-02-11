@@ -22,7 +22,7 @@ import BookingCreate from "./pages/BookingCreate";
 import BookingsList from "./pages/BookingsList";
 import VenueProfile from "./pages/VenueProfile";
 import VenueBrowse from "./pages/VenueBrowse";
-import { VenueProfileDetail } from "./pages/VenueProfileDetail";
+import VenueProfileDetail from "./pages/VenueProfileDetail";
 import Messages from "./pages/Messages";
 import MessagesDetail from "./pages/MessagesDetail";
 import Riders from "./pages/Riders";

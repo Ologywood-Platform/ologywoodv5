@@ -20,12 +20,20 @@ import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
+import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
   const artistId = idParam ? parseInt(idParam) : 0;
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
+
+  // Set SEO meta tags when artist data loads
+  useEffect(() => {
+    if (artist) {
+      setMetaTags(pageMetaTags.artistProfile(artist.artistName));
+    }
+  }, [artist]);
   
   // Only query if we have a valid numeric artist ID
   const isValidId = !isNaN(artistId) && artistId > 0;

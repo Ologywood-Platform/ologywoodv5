@@ -9,10 +9,17 @@ import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar } from "luci
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
+import { useEffect } from "react";
+import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.browse);
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     location?: string;
