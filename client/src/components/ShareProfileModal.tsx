@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check } from 'lucide-react';
+import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
 
@@ -14,6 +15,7 @@ interface ShareProfileModalProps {
   artistId: number;
   artistName: string;
   artistBio?: string;
+  artistProfileImage?: string;
 }
 
 export function ShareProfileModal({
@@ -22,6 +24,7 @@ export function ShareProfileModal({
   artistId,
   artistName,
   artistBio,
+  artistProfileImage,
 }: ShareProfileModalProps) {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
@@ -32,6 +35,54 @@ export function ShareProfileModal({
   // Generate profile URL
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
   const shareText = `Check out ${artistName} on Ologywood - Book amazing artists for your events!`;
+  
+  // Update Open Graph meta tags for better social sharing
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    // Remove existing meta tags
+    const existingOGTitle = document.querySelector('meta[property="og:title"]');
+    const existingOGDescription = document.querySelector('meta[property="og:description"]');
+    const existingOGImage = document.querySelector('meta[property="og:image"]');
+    const existingOGUrl = document.querySelector('meta[property="og:url"]');
+    
+    if (existingOGTitle) existingOGTitle.remove();
+    if (existingOGDescription) existingOGDescription.remove();
+    if (existingOGImage) existingOGImage.remove();
+    if (existingOGUrl) existingOGUrl.remove();
+    
+    // Add new meta tags
+    const ogTitle = document.createElement('meta');
+    ogTitle.setAttribute('property', 'og:title');
+    ogTitle.setAttribute('content', `${artistName} - Ologywood Artist`);
+    document.head.appendChild(ogTitle);
+    
+    const ogDescription = document.createElement('meta');
+    ogDescription.setAttribute('property', 'og:description');
+    ogDescription.setAttribute('content', artistBio || shareText);
+    document.head.appendChild(ogDescription);
+    
+    let ogImage: HTMLMetaElement | null = null;
+    if (artistProfileImage) {
+      ogImage = document.createElement('meta');
+      ogImage.setAttribute('property', 'og:image');
+      ogImage.setAttribute('content', artistProfileImage);
+      document.head.appendChild(ogImage);
+    }
+    
+    const ogUrl = document.createElement('meta');
+    ogUrl.setAttribute('property', 'og:url');
+    ogUrl.setAttribute('content', profileUrl);
+    document.head.appendChild(ogUrl);
+    
+    return () => {
+      // Cleanup on unmount
+      ogTitle.remove();
+      ogDescription.remove();
+      if (ogImage) ogImage.remove();
+      ogUrl.remove();
+    };
+  }, [isOpen, artistName, artistBio, artistProfileImage, profileUrl]);
 
   // Copy to clipboard
   const handleCopyLink = async () => {
@@ -109,6 +160,24 @@ export function ShareProfileModal({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Artist Preview Section */}
+          <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            {artistProfileImage && (
+              <img
+                src={artistProfileImage}
+                alt={artistName}
+                className="w-16 h-16 rounded-full object-cover border-2 border-purple-300"
+              />
+            )}
+            <div className="flex-1">
+              <h3 className="font-bold text-lg text-gray-900">{artistName}</h3>
+              {artistBio && (
+                <p className="text-sm text-gray-600 line-clamp-2">{artistBio}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">This is how your profile will appear when shared</p>
+            </div>
+          </div>
+
           {/* Copy Link Section */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Your Profile Link</Label>
@@ -141,6 +210,7 @@ export function ShareProfileModal({
           {/* Social Share Section */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Share on Social Media</Label>
+            <p className="text-xs text-gray-500">Your profile image and name will be included in the preview</p>
             <div className="grid grid-cols-5 gap-2">
               <Button
                 onClick={() => handleSocialShare('facebook')}
@@ -192,14 +262,22 @@ export function ShareProfileModal({
               <div className="text-sm text-gray-600">
                 Generate a QR code for your profile. Great for business cards and posters!
               </div>
-              <Button
-                onClick={() => setShowQR(!showQR)}
-                variant="outline"
-                className="gap-2"
-              >
-                <QrCode className="w-4 h-4" />
-                {showQR ? 'Hide' : 'Show'} QR Code
-              </Button>
+              <div className="flex items-center gap-2">
+                {artistProfileImage && (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    <Image className="w-3 h-3" />
+                    Profile image included
+                  </span>
+                )}
+                <Button
+                  onClick={() => setShowQR(!showQR)}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <QrCode className="w-4 h-4" />
+                  {showQR ? 'Hide' : 'Show'} QR Code
+                </Button>
+              </div>
             </div>
             {showQR && (
               <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg">

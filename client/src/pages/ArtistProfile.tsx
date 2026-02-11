@@ -670,6 +670,7 @@ export default function ArtistProfile() {
           artistId={artistId}
           artistName={artist.artistName}
           artistBio={artist.bio}
+          artistProfileImage={artist.profilePhotoUrl}
         />
       )}
     </div>
