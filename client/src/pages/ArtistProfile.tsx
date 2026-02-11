@@ -10,11 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star } from "lucide-react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ShareProfileModal } from "@/components/ShareProfileModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "@/components/RiderComparisonTool";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect } from "react";
+import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
@@ -86,6 +88,7 @@ export default function ArtistProfile() {
   const [eventDetails, setEventDetails] = useState("");
   const [totalFee, setTotalFee] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
+  const [shareProfileOpen, setShareProfileOpen] = useState(false);
   
   const toggleRiderExpanded = (riderId: number) => {
     setExpandedRiders(prev => {
@@ -276,6 +279,15 @@ export default function ArtistProfile() {
             
             <div className="flex gap-2">
               <FavoriteButton artistId={artistId} size="lg" />
+              <Button
+                onClick={() => setShareProfileOpen(true)}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </Button>
               <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="lg" className="md:min-w-[200px]">
@@ -650,6 +662,17 @@ export default function ArtistProfile() {
           </div>
         </div>
       </div>
+
+      {/* Share Profile Modal */}
+      {artist && (
+        <ShareProfileModal
+          isOpen={shareProfileOpen}
+          onClose={() => setShareProfileOpen(false)}
+          artistId={artistId}
+          artistName={artist.artistName}
+          artistBio={artist.bio}
+        />
+      )}
     </div>
   );
 }
