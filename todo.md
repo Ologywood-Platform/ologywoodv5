@@ -329,6 +329,24 @@
 - [x] Test all improvements and create checkpoint (8 tests passing)
 - [x] Fix React setState during render warning in RoleSelection component
 
+## Profile Pictures & Media Gallery - In Progress
+- [ ] Enhance ArtistProfile media gallery display (add lightbox/modal for full-size viewing)
+- [ ] Enhance VenueProfile media gallery display (add lightbox/modal for full-size viewing)
+- [ ] Add profile photo upload functionality to artist settings
+- [ ] Add profile photo upload functionality to venue settings
+- [ ] Add media gallery management UI to artist dashboard
+- [ ] Add media gallery management UI to venue dashboard
+
+## Rider Contract Template - In Progress
+- [x] Create rider contract template component with essential booking fields
+- [x] Design rider template form with technical requirements section
+- [x] Add hospitality requirements section to rider template
+- [x] Integrate rider template into booking workflow (imported in Riders.tsx)
+- [x] Create rider template management UI in dashboard (existing Riders page)
+- [x] Add rider template preview functionality (Preview tab in component)
+- [x] Create comprehensive rider contract template documentation (RIDER_CONTRACT_TEMPLATE.md)
+- [x] Write unit tests for RiderContractTemplate component
+
 ## Follow-Up Implementation
 - [x] Set up production email service guide (SendGrid/Mailgun)
 - [x] Create quick-start video tutorial script and embed guide
