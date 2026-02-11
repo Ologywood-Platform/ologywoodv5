@@ -3370,3 +3370,4 @@ The Ologywood platform is production-ready with:
 - [x] Add step-by-step guides for both user types
 - [x] Add routing and navigation to How It Works page
 - [x] Test How It Works page functionality
+- [x] Fix How It Works footer link to navigate to /how-it-works
