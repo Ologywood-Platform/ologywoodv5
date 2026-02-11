@@ -71,6 +71,9 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
               value: html,
             },
           ],
+          headers: {
+            "List-Unsubscribe": `<https://ologywood.com/unsubscribe?email=${encodeURIComponent(to)}>`,
+          },
         }),
       });
 
@@ -806,7 +809,7 @@ export async function sendNewsletterSubscriptionEmail(email: string): Promise<bo
         </div>
         
         <p style="color: #666; font-size: 14px;">
-          We respect your inbox and promise to send only valuable content. You can unsubscribe anytime.
+          We respect your inbox and promise to send only valuable content. You can unsubscribe anytime. <a href="https://ologywood.com/unsubscribe?email=${email}" style="color: #8b5cf6; text-decoration: none;">Click here to unsubscribe</a>.
         </p>
         
         <p style="text-align: center; margin: 30px 0;">
