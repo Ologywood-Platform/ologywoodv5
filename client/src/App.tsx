@@ -29,6 +29,7 @@ import Riders from "./pages/Riders";
 import HowItWorks from "./pages/HowItWorks";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
+import { Unsubscribe } from "./pages/Unsubscribe";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 
@@ -85,6 +86,7 @@ function Router() {
           <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/contact" component={Contact} />
           <Route path="/faq" component={FAQ} />
+          <Route path="/unsubscribe" component={Unsubscribe} />
           
           {/* Legal Pages (compliance only) */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />
