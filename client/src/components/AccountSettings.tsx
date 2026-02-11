@@ -23,6 +23,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { EmailPreferencesCenter } from './EmailPreferencesCenter';
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
@@ -46,10 +47,11 @@ export function AccountSettings() {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="support">Support</TabsTrigger>
         </TabsList>
 
@@ -324,6 +326,11 @@ export function AccountSettings() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Email Preferences Tab */}
+        <TabsContent value="email" className="space-y-4 mt-6">
+          <EmailPreferencesCenter />
         </TabsContent>
 
         {/* Support Tab */}

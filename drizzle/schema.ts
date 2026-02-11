@@ -330,3 +330,26 @@ export const follows = mysqlTable("follows", {
 
 export type Follow = typeof follows.$inferSelect;
 export type InsertFollow = typeof follows.$inferInsert;
+
+
+/**
+ * Email Preferences - allows users to control email subscription frequency and content categories
+ */
+export const emailPreferences = mysqlTable("email_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  // Email frequency: 'daily', 'weekly', 'never'
+  frequency: mysqlEnum("frequency", ["daily", "weekly", "never"]).default("weekly").notNull(),
+  // Content categories user wants to receive
+  bookingUpdates: boolean("bookingUpdates").default(true).notNull(),
+  newOpportunities: boolean("newOpportunities").default(true).notNull(),
+  platformNews: boolean("platformNews").default(false).notNull(),
+  weeklyDigest: boolean("weeklyDigest").default(true).notNull(),
+  reminders: boolean("reminders").default(true).notNull(),
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EmailPreference = typeof emailPreferences.$inferSelect;
+export type InsertEmailPreference = typeof emailPreferences.$inferInsert;

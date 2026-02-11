@@ -13,6 +13,7 @@ import { updateSubscriptionStatus } from "./db";
 // ===== MVP ROUTERS ONLY =====
 import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
+import { emailPreferencesRouter } from "./routers/emailPreferences";
 
 // ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
 // import { contractsRouter } from "./routers/contracts";
@@ -107,6 +108,7 @@ export const appRouter = router({
   // aiChat: aiChatRouter,
   // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
+  emailPreferences: emailPreferencesRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
   // supportTickets: supportTicketsRouter,

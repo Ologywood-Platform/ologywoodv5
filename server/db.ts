@@ -15,7 +15,8 @@ import {
   profileViews, InsertProfileView, ProfileView,
   bookingReminders, InsertBookingReminder, BookingReminder,
   contracts, InsertContract, Contract,
-  signatures, InsertSignature, Signature
+  signatures, InsertSignature, Signature,
+  emailPreferences, InsertEmailPreference, EmailPreference
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1369,4 +1370,102 @@ export async function getPaymentHistory(bookingId: number) {
   .limit(1);
   
   return booking[0] || null;
+}
+
+
+// ============= EMAIL PREFERENCES FUNCTIONS =============
+
+export async function getEmailPreferences(userId: number): Promise<EmailPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select()
+    .from(emailPreferences)
+    .where(eq(emailPreferences.userId, userId))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function createEmailPreferences(userId: number): Promise<EmailPreference> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const data: InsertEmailPreference = {
+    userId,
+    frequency: 'weekly',
+    bookingUpdates: true,
+    newOpportunities: true,
+    platformNews: false,
+    weeklyDigest: true,
+    reminders: true,
+  };
+  
+  try {
+    const result = await db.insert(emailPreferences).values(data);
+    const prefId = (result as any).insertId;
+    
+    if (!prefId) {
+      // If insertId is not available, fetch by userId
+      const prefs = await db.select()
+        .from(emailPreferences)
+        .where(eq(emailPreferences.userId, userId))
+        .limit(1);
+      
+      if (prefs.length === 0) {
+        throw new Error("Failed to create email preferences");
+      }
+      return prefs[0] as EmailPreference;
+    }
+    
+    const prefs = await db.select()
+      .from(emailPreferences)
+      .where(eq(emailPreferences.id, prefId))
+      .limit(1);
+    
+    if (prefs.length === 0) {
+      throw new Error("Failed to retrieve created email preferences");
+    }
+    
+    return prefs[0] as EmailPreference;
+  } catch (error) {
+    console.error('Error creating email preferences:', error);
+    throw error;
+  }
+}
+
+export async function updateEmailPreferences(userId: number, updates: Partial<InsertEmailPreference>): Promise<EmailPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // First check if preferences exist
+  let prefs = await getEmailPreferences(userId);
+  
+  // If not, create them
+  if (!prefs) {
+    prefs = await createEmailPreferences(userId);
+  }
+  
+  // Update the preferences
+  await db.update(emailPreferences)
+    .set(updates)
+    .where(eq(emailPreferences.userId, userId));
+  
+  // Return updated preferences
+  return getEmailPreferences(userId);
+}
+
+export async function deleteEmailPreferences(userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    const result = await db.delete(emailPreferences)
+      .where(eq(emailPreferences.userId, userId));
+    
+    return (result as any).affectedRows > 0;
+  } catch (error) {
+    console.error('Error deleting email preferences:', error);
+    return false;
+  }
 }

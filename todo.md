@@ -3393,3 +3393,11 @@ The Ologywood platform is production-ready with:
 - [ ] Test and validate payment and booking workflow end-to-end
 - [ ] Implement unsubscribe feature (isolated approach)
 - [ ] Generate pre-launch validation report
+
+## Email Preferences Center
+- [x] Update database schema with emailPreferences table (frequency, categories)
+- [x] Create email preferences API endpoints (get, update)
+- [x] Build email preferences UI component with frequency and category toggles
+- [x] Integrate preferences center into Account Settings
+- [ ] Update email sending logic to respect user preferences (future enhancement)
+- [x] Test email preferences workflow end-to-end
