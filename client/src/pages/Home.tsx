@@ -8,6 +8,9 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { getLoginUrl } from "@/const";
 import SuggestedFollows from "@/components/SuggestedFollows";
+import { HowItWorksSection } from "@/components/HowItWorksSection";
+import { FAQSection } from "@/components/FAQSection";
+import { TrustBadges } from "@/components/TrustBadges";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logout.useMutation();
@@ -200,6 +203,15 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* How It Works Section */}
+      <HowItWorksSection />
+
+      {/* Trust Badges Section */}
+      <TrustBadges />
+
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* Suggested Follows Section */}
       <section className="py-8 sm:py-16">
