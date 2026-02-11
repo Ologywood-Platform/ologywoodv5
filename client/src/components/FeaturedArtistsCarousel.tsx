@@ -83,9 +83,9 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                 <Link key={artist.id} href={`/artist/${artist.id}`}>
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted h-64 sm:h-72 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
-                      {artist.profileImage ? (
+                      {artist.profilePhotoUrl ? (
                         <img
-                          src={artist.profileImage}
+                          src={artist.profilePhotoUrl}
                           alt={artist.name}
                           className="w-full h-full object-cover"
                         />

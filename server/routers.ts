@@ -87,6 +87,20 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const appRouter = router({
+  // Debug endpoint for testing input parsing
+  debug: router({
+    testPublicInput: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return { received: input, type: typeof input };
+      }),
+    testProtectedInput: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return { received: input, type: typeof input };
+      }),
+  }),
+  
   // ===== MVP CORE ROUTERS ONLY =====
   // (Defined inline below at lines ~172, ~412, ~634, ~850)
   

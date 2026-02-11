@@ -27,7 +27,14 @@ const loggingMiddleware = t.middleware(async (opts) => {
 });
 
 export const router = t.router;
-export const publicProcedure = t.procedure.use(loggingMiddleware);
+
+const contextMiddleware = t.middleware(async (opts) => {
+  return opts.next({
+    ctx: opts.ctx,
+  });
+});
+
+export const publicProcedure = t.procedure.use(loggingMiddleware).use(contextMiddleware);
 
 const requireUser = t.middleware(async opts => {
   const { ctx, next } = opts;
@@ -44,7 +51,7 @@ const requireUser = t.middleware(async opts => {
   });
 });
 
-export const protectedProcedure = t.procedure.use(loggingMiddleware).use(requireUser);
+export const protectedProcedure = t.procedure.use(loggingMiddleware).use(contextMiddleware).use(requireUser);
 
 export const adminProcedure = t.procedure.use(loggingMiddleware).use(
   t.middleware(async opts => {

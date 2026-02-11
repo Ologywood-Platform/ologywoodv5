@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import superjson from "superjson";
 import { serveStatic, setupVite } from "./vite";
 import sitemapRoutes from "../routes/sitemapRoutes";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
@@ -77,6 +78,7 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      transformer: superjson,
     })
   );
   // Apply rate limiting to public endpoints

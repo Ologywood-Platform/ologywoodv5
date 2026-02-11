@@ -27,13 +27,6 @@ export default function ArtistProfile() {
   const artistId = idParam ? parseInt(idParam) : 0;
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
-
-  // Set SEO meta tags when artist data loads
-  useEffect(() => {
-    if (artist) {
-      setMetaTags(pageMetaTags.artistProfile(artist.artistName));
-    }
-  }, [artist]);
   
   // Only query if we have a valid numeric artist ID
   const isValidId = !isNaN(artistId) && artistId > 0;
@@ -42,6 +35,13 @@ export default function ArtistProfile() {
     { id: artistId },
     { enabled: isValidId }
   );
+
+  // Set SEO meta tags when artist data loads
+  useEffect(() => {
+    if (artist) {
+      setMetaTags(pageMetaTags.artistProfile(artist.artistName));
+    }
+  }, [artist]);
   const { data: availability } = trpc.availability.getForArtist.useQuery(
     { artistId },
     { enabled: isValidId }
@@ -58,15 +58,6 @@ export default function ArtistProfile() {
     { artistId },
     { enabled: isValidId }
   );
-  
-  // Track profile view - commented out as trackView is not available
-  // const trackView = trpc.analytics.trackView.useMutation();
-  
-  // useEffect(() => {
-  //   if (isValidId && !isLoading) {
-  //     trackView.mutate({ artistId });
-  //   }
-  // }, [artistId, isLoading, isValidId]);
   
   // Show error if no valid ID
   if (!isValidId) {
