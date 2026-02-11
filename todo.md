@@ -3377,3 +3377,19 @@ The Ologywood platform is production-ready with:
 - [x] Add List-Unsubscribe header to all marketing emails
 - [x] Implement bounce handling and invalid email tracking in database
 - [x] Test all email improvements end-to-end
+
+
+## Unsubscribe Feature - End-to-End
+- [ ] Create unsubscribe API endpoint
+- [ ] Create Unsubscribe page component
+- [ ] Add unsubscribe route to App.tsx
+- [ ] Test end-to-end unsubscribe flow
+
+
+## Pre-Launch Validation - Critical 4
+- [ ] Test and validate database data completeness and accuracy
+- [ ] Test mobile responsiveness on all key flows (booking, artist profile, dashboard)
+- [ ] Test and validate rider PDF export functionality
+- [ ] Test and validate payment and booking workflow end-to-end
+- [ ] Implement unsubscribe feature (isolated approach)
+- [ ] Generate pre-launch validation report
