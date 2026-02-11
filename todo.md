@@ -3442,3 +3442,22 @@ The Ologywood platform is production-ready with:
 - [x] Create email invite functionality to send profile to venues
 - [x] Integrate ShareProfileModal into ArtistProfile page
 - [x] Test all sharing features end-to-end (component created and integrated, ready for browser testing)
+
+## Platform Audit
+- [ ] Audit core functionality (auth, profiles, bookings, riders, messaging)
+- [ ] Audit homepage and content sections
+- [ ] Audit user settings and preferences
+- [ ] Audit database schema and data integrity
+- [ ] Audit API endpoints and error handling
+- [ ] Audit performance, security, and accessibility
+- [ ] Compile audit findings and recommendations
+
+## Audit Findings - Critical Issues
+- [x] Remove/disable PaymentSectionEnhanced.tsx (calls non-existent createInstallmentCheckout)
+- [x] Remove/disable PrivacySecurityModal.tsx (calls non-existent privacy router)
+- [x] Remove/disable RiderContractBuilder.tsx (calls non-existent riderContract router)
+- [x] Remove/disable ContractBuilderPage.tsx (calls non-existent riderContract router)
+- [ ] Fix PaymentSection.tsx (createDepositCheckout may not exist)
+- [ ] Fix PaymentFailure.tsx (deprecated page, may reference non-existent endpoints)
+- [x] Cleaned up all references in Settings.tsx
+- [x] Reduced TypeScript errors from 646 → 633

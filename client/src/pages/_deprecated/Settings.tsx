@@ -10,20 +10,14 @@ import { ArtistProfileEditor } from '@/components/ArtistProfileEditor';
 import { VenueProfileEditor } from '@/components/VenueProfileEditor';
 import { PhotoGalleryManager } from '@/components/PhotoGalleryManager';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
-import { PrivacySecurityModal } from '@/components/PrivacySecurityModal';
+// Removed: PrivacySecurityModal (non-MVP component)
 import { Link } from 'wouter';
 
 export default function Settings() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
-  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
-  const [privacyModalType, setPrivacyModalType] = useState<'visibility' | 'download' | 'delete'>('visibility');
-
-  const openPrivacyModal = (type: 'visibility' | 'download' | 'delete') => {
-    setPrivacyModalType(type);
-    setPrivacyModalOpen(true);
-  };
+  // Removed: Privacy modal functionality (non-MVP component)
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -181,7 +175,7 @@ export default function Settings() {
                           variant="outline" 
                           size="sm" 
                           className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
-                          onClick={() => openPrivacyModal('visibility')}
+                          onClick={() => {}}
                         >
                           Configure
                         </Button>
@@ -199,7 +193,7 @@ export default function Settings() {
                           variant="outline" 
                           size="sm" 
                           className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
-                          onClick={() => openPrivacyModal('download')}
+                          onClick={() => {}}
                         >
                           Download
                         </Button>
@@ -217,7 +211,7 @@ export default function Settings() {
                           variant="destructive" 
                           size="sm" 
                           className="w-full sm:w-auto flex-shrink-0 text-xs sm:text-sm"
-                          onClick={() => openPrivacyModal('delete')}
+                          onClick={() => {}}
                         >
                           Delete Account
                         </Button>
@@ -257,12 +251,7 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Privacy & Security Modal */}
-      <PrivacySecurityModal 
-        open={privacyModalOpen}
-        onOpenChange={setPrivacyModalOpen}
-        type={privacyModalType}
-      />
+      {/* Privacy & Security Modal - Removed (non-MVP component) */}
     </div>
   );
 }
