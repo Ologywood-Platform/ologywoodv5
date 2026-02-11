@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Calendar, MessageSquare, Shield, Search, LogOut, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getLoginUrl } from "@/const";
 import SuggestedFollows from "@/components/SuggestedFollows";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { FAQSection } from "@/components/FAQSection";
 import { TrustBadges } from "@/components/TrustBadges";
+import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 function LogoutButton() {
   const logoutMutation = trpc.auth.logout.useMutation();
@@ -39,6 +40,11 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.home);
+  }, []);
 
   // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
 
