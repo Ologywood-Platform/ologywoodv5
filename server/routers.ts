@@ -17,6 +17,7 @@ import { handlePhotoUpload } from "./handlers/imageUploadHandler";
 import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
 import { emailPreferencesRouter } from "./routers/emailPreferences";
+import { emailTestingRouter } from "./routers/emailTesting";
 
 // ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
 // import { contractsRouter } from "./routers/contracts";
@@ -1984,6 +1985,8 @@ export const appRouter = router({
   }),
   
   // calendarEvent: calendarRouter, // Deprecated - commented out for noise elimination
+  
+  emailTesting: emailTestingRouter,
   
   newsletter: router({
     subscribe: publicProcedure
