@@ -27,7 +27,7 @@ const Footer = () => {
       links: [
         { label: 'Browse Artists', path: '/browse' },
         { label: 'How It Works', path: '/how-it-works' },
-        { label: 'Contact Us', path: 'mailto:info@ologywood.com' },
+        { label: 'Contact Us', path: '/contact' },
       ],
     },
     {
