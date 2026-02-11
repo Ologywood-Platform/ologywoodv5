@@ -3461,3 +3461,9 @@ The Ologywood platform is production-ready with:
 - [ ] Fix PaymentFailure.tsx (deprecated page, may reference non-existent endpoints)
 - [x] Cleaned up all references in Settings.tsx
 - [x] Reduced TypeScript errors from 646 → 633
+
+## Bug Fixes
+- [x] Fix nested <a> tag error on /riders page (React DOM validation error)
+  - Removed inner <a> element that was nested inside Link component
+  - Moved inline-flex class to Button element
+  - Verified fix resolves React DOM validation error
