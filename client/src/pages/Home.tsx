@@ -8,8 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { getLoginUrl } from "@/const";
 import SuggestedFollows from "@/components/SuggestedFollows";
-import { HowItWorksSection } from "@/components/HowItWorksSection";
-import { FAQSection } from "@/components/FAQSection";
+import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
@@ -138,86 +137,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Artists - Mobile Optimized */}
-      <section className="py-8 sm:py-16">
-        <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center">Featured Artists</h2>
-          
-          {isLoading ? (
-            <div className="text-center text-muted-foreground text-sm sm:text-base">Loading artists...</div>
-          ) : filteredArtists && filteredArtists.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredArtists.slice(0, 6).map((artist) => (
-                <a key={artist.id} href={`/artist/${artist.id}`} className="no-underline">
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
-                    <CardHeader className="pb-3 sm:pb-4">
-                      {artist.profilePhotoUrl ? (
-                        <img 
-                          src={artist.profilePhotoUrl} 
-                          alt={artist.artistName}
-                          className="w-full h-32 sm:h-40 md:h-48 object-cover rounded-md mb-3 sm:mb-4"
-                        />
-                      ) : (
-                        <div className="w-full h-32 sm:h-40 md:h-48 bg-gradient-to-br from-primary/10 to-accent/10 rounded-md mb-3 sm:mb-4 flex items-center justify-center">
-                          <Music className="h-10 sm:h-12 md:h-16 w-10 sm:w-12 md:w-16 text-primary" />
-                        </div>
-                      )}
-                      <CardTitle className="text-base sm:text-lg line-clamp-1">{artist.artistName}</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm line-clamp-1">
-                        {Array.isArray(artist.genre) && artist.genre.length > 0 
-                          ? artist.genre.join(", ") 
-                          : "Various Genres"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1 pb-3 sm:pb-4">
-                      <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-muted-foreground">
-                        {artist.location && (
-                          <p className="line-clamp-1">📍 {artist.location}</p>
-                        )}
-                        {artist.feeRangeMin && artist.feeRangeMax && (
-                          <p className="line-clamp-1">💰 ${artist.feeRangeMin} - ${artist.feeRangeMax}</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-base sm:text-lg mb-4">
-                {searchQuery ? "No artists found matching your search." : "No artists available yet."}
-              </p>
-              {isAuthenticated && user?.role === 'artist' && (
-                <a href="/dashboard" className="no-underline">
-                  <Button>
-                    Create Your Artist Profile
-                  </Button>
-                </a>
-              )}
-            </div>
-          )}
-          
-          {filteredArtists && filteredArtists.length > 6 && (
-            <div className="text-center mt-6 sm:mt-8">
-              <a href="/browse" className="no-underline">
-                <Button variant="outline" size="lg" className="text-sm sm:text-base">
-                  View All Artists
-                </Button>
-              </a>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <HowItWorksSection />
+      {/* Featured Artists Carousel */}
+      <FeaturedArtistsCarousel artists={filteredArtists || []} isLoading={isLoading} />
 
       {/* Trust Badges Section */}
       <TrustBadges />
-
-      {/* FAQ Section */}
-      <FAQSection />
 
       {/* Suggested Follows Section */}
       <section className="py-8 sm:py-16">

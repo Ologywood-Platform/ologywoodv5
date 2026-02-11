@@ -3488,3 +3488,20 @@ The Ologywood platform is production-ready with:
 - [x] Add meta tags to ArtistProfile.tsx page
 - [x] Add meta tags to VenueProfile.tsx page
 - [x] Test all pages to verify meta tags are set correctly
+
+## Homepage Restructuring
+- [ ] Remove How It Works section from homepage
+- [ ] Remove FAQ section from homepage
+- [ ] Create Featured Artists carousel component
+- [ ] Replace Featured Artists grid with carousel
+- [ ] Verify footer has How It Works and FAQ links
+- [ ] Test homepage layout on desktop and mobile
+
+
+## Homepage Restructuring - Completed
+- [x] Remove How It Works section from homepage
+- [x] Remove FAQ section from homepage  
+- [x] Create Featured Artists carousel component (responsive, 1-3 items per view)
+- [x] Replace Featured Artists grid with carousel in Home.tsx
+- [x] Add FAQ link to footer Platform section
+- [x] Test homepage layout on desktop and mobile (verified rendering)

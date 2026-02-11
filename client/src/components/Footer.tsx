@@ -27,6 +27,7 @@ const Footer = () => {
       links: [
         { label: 'Browse Artists', path: '/browse' },
         { label: 'How It Works', path: '/how-it-works' },
+        { label: 'FAQ', path: '/faq' },
         { label: 'Contact Us', path: '/contact' },
       ],
     },
