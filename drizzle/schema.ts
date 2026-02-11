@@ -353,3 +353,20 @@ export const emailPreferences = mysqlTable("email_preferences", {
 
 export type EmailPreference = typeof emailPreferences.$inferSelect;
 export type InsertEmailPreference = typeof emailPreferences.$inferInsert;
+
+
+/**
+ * Subscriptions - tracks Stripe subscription information for users
+ */
+export const subscriptions = mysqlTable("subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  status: varchar("status", { length: 50 }).default("active").notNull(), // active, canceled, past_due, etc.
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;

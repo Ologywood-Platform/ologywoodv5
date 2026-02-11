@@ -3418,3 +3418,10 @@ The Ologywood platform is production-ready with:
 - [x] Verify no console errors or API failures
 - [x] Verify chat widget is responsive on desktop and mobile
 - [x] Chat widget is fully functional end-to-end
+
+## Bug Fixes
+- [x] Fix subscription.getStatus error - undefined subscriptions table reference in db.ts line 709
+  - Added subscriptions table to schema.ts with proper types
+  - Added subscriptions import to db.ts
+  - Created subscriptions table in database
+  - Verified subscription.getStatus endpoint works correctly

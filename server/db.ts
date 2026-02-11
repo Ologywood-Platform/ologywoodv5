@@ -16,7 +16,8 @@ import {
   bookingReminders, InsertBookingReminder, BookingReminder,
   contracts, InsertContract, Contract,
   signatures, InsertSignature, Signature,
-  emailPreferences, InsertEmailPreference, EmailPreference
+  emailPreferences, InsertEmailPreference, EmailPreference,
+  subscriptions, InsertSubscription, Subscription
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
