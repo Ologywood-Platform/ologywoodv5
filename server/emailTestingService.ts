@@ -40,10 +40,12 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 1: Password Reset
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getPasswordResetEmailTemplate({
       recipientName: 'Test User',
-      resetLink: 'https://ologywood.com/reset-password?token=test123',
+      resetLink: '/reset-password?token=test123',
       expiresIn: '24 hours',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -67,12 +69,14 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 2: Payment Failed
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getPaymentFailedEmailTemplate({
       recipientName: 'Test User',
       amount: '29.99',
       currency: 'USD',
       reason: 'Insufficient funds',
       retryDate: 'February 15, 2026',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -96,6 +100,7 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 3: Subscription Upgraded
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getSubscriptionUpgradedEmailTemplate({
       recipientName: 'Test User',
       oldPlan: 'Basic',
@@ -103,6 +108,7 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
       newPrice: '49.99',
       currency: 'USD',
       effectiveDate: 'February 11, 2026',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -126,6 +132,7 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 4: Subscription Downgraded
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getSubscriptionDowngradedEmailTemplate({
       recipientName: 'Test User',
       oldPlan: 'Premium',
@@ -133,6 +140,7 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
       newPrice: '19.99',
       currency: 'USD',
       effectiveDate: 'February 11, 2026',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -156,6 +164,7 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 5: Invoice
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getInvoiceEmailTemplate({
       recipientName: 'Test User',
       invoiceNumber: 'INV-2026-001',
@@ -166,7 +175,8 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
         { description: 'Ologywood Premium Subscription (Monthly)', amount: '29.99' },
       ],
       dueDate: 'February 18, 2026',
-      invoiceUrl: 'https://ologywood.com/invoices/INV-2026-001',
+      invoiceUrl: '/invoices/INV-2026-001',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -190,12 +200,14 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 6: Dispute Resolution
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getDisputeResolutionEmailTemplate({
       recipientName: 'Test User',
       ticketNumber: 'TKT-2026-001',
       issueDescription: 'Payment processing error',
       resolution: 'Payment has been refunded to your account. Please allow 3-5 business days for the funds to appear.',
-      ticketUrl: 'https://ologywood.com/support/tickets/TKT-2026-001',
+      ticketUrl: '/support/tickets/TKT-2026-001',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -219,9 +231,11 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 7: Welcome Email (Artist)
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getWelcomeEmailTemplate({
       recipientName: 'Test Artist',
       userType: 'artist',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -245,9 +259,11 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 8: Welcome Email (Venue)
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getWelcomeEmailTemplate({
       recipientName: 'Test Venue',
       userType: 'venue',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -271,9 +287,11 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 9: Onboarding Tips (Artist)
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getOnboardingTipsEmailTemplate({
       recipientName: 'Test Artist',
       userType: 'artist',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,
@@ -297,9 +315,11 @@ export async function testAllEmailTemplates(testEmail: string): Promise<EmailTes
 
   // Test 10: Onboarding Tips (Venue)
   try {
+    const baseUrl = process.env.BASE_URL || 'https://ologywood.com';
     const template = emailTemplates.getOnboardingTipsEmailTemplate({
       recipientName: 'Test Venue',
       userType: 'venue',
+      baseUrl,
     });
     await sendEmail({
       to: testEmail,

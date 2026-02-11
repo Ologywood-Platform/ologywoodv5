@@ -10,8 +10,9 @@ export function getPasswordResetEmailTemplate(params: {
   recipientName: string;
   resetLink: string;
   expiresIn: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, resetLink, expiresIn } = params;
+  const { recipientName, resetLink, expiresIn, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
     subject: 'Reset Your Ologywood Password',
@@ -21,7 +22,7 @@ export function getPasswordResetEmailTemplate(params: {
         <p>Hi ${recipientName},</p>
         <p>We received a request to reset your Ologywood password. Click the button below to create a new password.</p>
         
-        <a href="${resetLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold;">
+        <a href="${baseUrl}${resetLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold;">
           Reset Password
         </a>
         
@@ -46,8 +47,9 @@ export function getPaymentFailedEmailTemplate(params: {
   currency: string;
   reason: string;
   retryDate?: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, amount, currency, reason, retryDate } = params;
+  const { recipientName, amount, currency, reason, retryDate, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
     subject: 'Payment Failed - Action Required',
@@ -64,7 +66,7 @@ export function getPaymentFailedEmailTemplate(params: {
         
         <p>Please update your payment method to avoid service interruption:</p>
         
-        <a href="https://ologywood.com/billing" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}/billing" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           Update Payment Method
         </a>
         
@@ -86,8 +88,9 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
   newPrice: string;
   currency: string;
   effectiveDate: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, oldPlan, newPlan, newPrice, currency, effectiveDate } = params;
+  const { recipientName, oldPlan, newPlan, newPrice, currency, effectiveDate, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
     subject: 'Subscription Upgraded - Welcome to Premium! 🎉',
@@ -113,7 +116,7 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
           <li>24/7 priority support</li>
         </ul>
         
-        <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           Explore Premium Features
         </a>
         
@@ -135,8 +138,9 @@ export function getSubscriptionDowngradedEmailTemplate(params: {
   newPrice: string;
   currency: string;
   effectiveDate: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, oldPlan, newPlan, newPrice, currency, effectiveDate } = params;
+  const { recipientName, oldPlan, newPlan, newPrice, currency, effectiveDate, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
     subject: 'Subscription Downgraded',
@@ -155,7 +159,7 @@ export function getSubscriptionDowngradedEmailTemplate(params: {
         
         <p>Some premium features will no longer be available. You can upgrade anytime from your dashboard.</p>
         
-        <a href="https://ologywood.com/billing" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}/billing" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           Manage Subscription
         </a>
         
@@ -179,8 +183,9 @@ export function getInvoiceEmailTemplate(params: {
   items: Array<{ description: string; amount: string }>;
   dueDate?: string;
   invoiceUrl: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, invoiceNumber, invoiceDate, amount, currency, items, dueDate, invoiceUrl } = params;
+  const { recipientName, invoiceNumber, invoiceDate, amount, currency, items, dueDate, invoiceUrl, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   const itemsHtml = items
     .map(
@@ -223,7 +228,7 @@ export function getInvoiceEmailTemplate(params: {
           </tbody>
         </table>
         
-        <a href="${invoiceUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}${invoiceUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           View Full Invoice
         </a>
         
@@ -244,8 +249,9 @@ export function getDisputeResolutionEmailTemplate(params: {
   issueDescription: string;
   resolution: string;
   ticketUrl: string;
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, ticketNumber, issueDescription, resolution, ticketUrl } = params;
+  const { recipientName, ticketNumber, issueDescription, resolution, ticketUrl, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
 
   return {
     subject: `Issue Resolved - Ticket #${ticketNumber}`,
@@ -263,7 +269,7 @@ export function getDisputeResolutionEmailTemplate(params: {
         
         <p>If you have any follow-up questions or need further assistance, please don't hesitate to reach out.</p>
         
-        <a href="${ticketUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}${ticketUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           View Ticket Details
         </a>
         
@@ -281,8 +287,9 @@ export function getDisputeResolutionEmailTemplate(params: {
 export function getWelcomeEmailTemplate(params: {
   recipientName: string;
   userType: 'artist' | 'venue';
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, userType } = params;
+  const { recipientName, userType, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
   const isArtist = userType === 'artist';
 
   return {
@@ -317,7 +324,7 @@ export function getWelcomeEmailTemplate(params: {
           `}
         </div>
         
-        <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        <a href="${baseUrl}/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
           Go to Dashboard
         </a>
         
@@ -337,8 +344,9 @@ export function getWelcomeEmailTemplate(params: {
 export function getOnboardingTipsEmailTemplate(params: {
   recipientName: string;
   userType: 'artist' | 'venue';
+  baseUrl?: string;
 }): { subject: string; html: string } {
-  const { recipientName, userType } = params;
+  const { recipientName, userType, baseUrl = process.env.BASE_URL || 'https://ologywood.com' } = params;
   const isArtist = userType === 'artist';
 
   return {
@@ -373,7 +381,7 @@ export function getOnboardingTipsEmailTemplate(params: {
           `}
         </div>
         
-        <p>Questions? Check out our <a href="https://ologywood.com/help" style="color: #8b5cf6; text-decoration: none;">Help Center</a> or contact support.</p>
+        <p>Questions? Check out our <a href="${baseUrl}/help" style="color: #8b5cf6; text-decoration: none;">Help Center</a> or contact support.</p>
         
         <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
           This is an automated message from Ologywood. Please do not reply to this email.
