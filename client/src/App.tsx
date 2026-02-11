@@ -26,6 +26,7 @@ import { VenueProfileDetail } from "./pages/VenueProfileDetail";
 import Messages from "./pages/Messages";
 import MessagesDetail from "./pages/MessagesDetail";
 import Riders from "./pages/Riders";
+import HowItWorks from "./pages/HowItWorks";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 
@@ -77,6 +78,9 @@ function Router() {
           
           {/* Availability Management */}
           <Route path="/availability" component={Availability} />
+          
+          {/* How It Works */}
+          <Route path="/how-it-works" component={HowItWorks} />
           
           {/* Legal Pages (compliance only) */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />
