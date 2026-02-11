@@ -8,6 +8,7 @@ import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import * as email from "./email";
 import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } from "./email";
+import * as emailService from "./services/emailService";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 // ===== MVP ROUTERS ONLY =====
@@ -986,26 +987,34 @@ export const appRouter = router({
             : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           
           if (input.status === 'confirmed') {
-            // Send confirmation emails to both parties
-            if (artistUser?.email) {
-              await email.sendBookingConfirmationEmail({
-                recipientEmail: artistUser.email,
-                recipientName: artistProfile.artistName,
-                otherPartyName: venueProfile.organizationName,
-                eventDate: eventDateStr,
-                venueName: booking.venueName,
-                venueAddress: booking.venueAddress || undefined,
-              });
+            // Send confirmation emails using new email service with preference checking
+            if (artistUser?.email && artistProfile.userId) {
+              await emailService.sendBookingConfirmationEmail(
+                artistProfile.userId,
+                artistUser.email,
+                {
+                  artistName: artistProfile.artistName,
+                  venueName: booking.venueName || venueProfile.organizationName,
+                  eventDate: eventDateStr,
+                  eventTime: booking.eventTime || 'TBD',
+                  eventLocation: booking.venueAddress || 'TBD',
+                  bookingId: booking.id,
+                }
+              );
             }
-            if (venueUser?.email) {
-              await email.sendBookingConfirmationEmail({
-                recipientEmail: venueUser.email,
-                recipientName: venueProfile.organizationName,
-                otherPartyName: artistProfile.artistName,
-                eventDate: eventDateStr,
-                venueName: booking.venueName,
-                venueAddress: booking.venueAddress || undefined,
-              });
+            if (venueUser?.email && venueProfile.userId) {
+              await emailService.sendBookingConfirmationEmail(
+                venueProfile.userId,
+                venueUser.email,
+                {
+                  artistName: artistProfile.artistName,
+                  venueName: booking.venueName || venueProfile.organizationName,
+                  eventDate: eventDateStr,
+                  eventTime: booking.eventTime || 'TBD',
+                  eventLocation: booking.venueAddress || 'TBD',
+                  bookingId: booking.id,
+                }
+              );
             }
           } else if (input.status === 'cancelled') {
             // Send cancellation emails to both parties
