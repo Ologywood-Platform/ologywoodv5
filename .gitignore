@@ -105,3 +105,10 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Manus artifacts (should never ship)
+.manus/
+.manus-logs/
+
+# Archive (knowledge exhaust)
+archive/

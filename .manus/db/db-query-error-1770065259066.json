@@ -1,8 +1,0 @@
-{
-  "query": "SELECT id, artistName, stageName, profileImage, bio FROM artist_profiles WHERE artistName LIKE '%Ologywood%' OR stageName LIKE '%Ologywood%';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user KrGaEuKwKPW5NAp.root --database mP6FLm6cHUyVdEMNViNuZS --execute SELECT id, artistName, stageName, profileImage, bio FROM artist_profiles WHERE artistName LIKE '%Ologywood%' OR stageName LIKE '%Ologywood%';",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'stagename' in 'where clause'"
-  ]
-}

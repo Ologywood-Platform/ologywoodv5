@@ -27,8 +27,8 @@ import { messagingRouter } from "./routers/messaging";
 // import { supportRouter } from "./routers/support";
 // import { adminSeedRouter } from "./routers/admin-seed";
 // import { supportSeederRouter } from "./routers/support-seeder";
-import { aiChatRouter } from "./routers/ai-chat";
-import { depositPaymentsRouter } from "./routers/deposit-payments";
+// import { aiChatRouter } from "./routers/ai-chat";
+// import { depositPaymentsRouter } from "./routers/deposit-payments";
 import { simpleRyderRouter } from "./routers/simpleRyderRouter";
 // import { analyticsRouter } from "./routers/analyticsRouter";
 // import { contractManagementRouter } from "./routers/contract-management";
@@ -104,8 +104,8 @@ export const appRouter = router({
   // support: supportRouter,
   // adminSeed: adminSeedRouter,
   // supportSeeder: supportSeederRouter,
-  aiChat: aiChatRouter,
-  depositPayments: depositPaymentsRouter,
+  // aiChat: aiChatRouter,
+  // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
@@ -136,23 +136,23 @@ export const appRouter = router({
   // browseFilters: browseFiltersRouter,
   // artistOnboarding: artistOnboardingRouter,
   // bookingAnalyticsExport: bookingAnalyticsExportRouter,
-  paymentTesting: router({
-    success: publicProcedure
-      .input(z.object({ bookingId: z.number() }))
-      .query(async ({ input }) => {
-        return { success: true, bookingId: input.bookingId, message: 'Payment success test' };
-      }),
-    failure: publicProcedure
-      .input(z.object({ bookingId: z.number() }))
-      .query(async ({ input }) => {
-        return { success: true, bookingId: input.bookingId, message: 'Payment failure test' };
-      }),
-    retry: publicProcedure
-      .input(z.object({ bookingId: z.number() }))
-      .query(async ({ input }) => {
-        return { success: true, bookingId: input.bookingId, message: 'Payment retry test' };
-      }),
-  }),
+  // paymentTesting: router({
+  //   success: publicProcedure
+  //     .input(z.object({ bookingId: z.number() }))
+  //     .query(async ({ input }) => {
+  //       return { success: true, bookingId: input.bookingId, message: 'Payment success test' };
+  //     }),
+  //   failure: publicProcedure
+  //     .input(z.object({ bookingId: z.number() }))
+  //     .query(async ({ input }) => {
+  //       return { success: true, bookingId: input.bookingId, message: 'Payment failure test' };
+  //     }),
+  //   retry: publicProcedure
+  //     .input(z.object({ bookingId: z.number() }))
+  //     .query(async ({ input }) => {
+  //       return { success: true, bookingId: input.bookingId, message: 'Payment retry test' };
+  //     }),
+  // }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
