@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -30,6 +30,7 @@ import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { EmailPreferencesCenter } from './EmailPreferencesCenter';
 import { PhotoManagement } from './PhotoManagement';
+import { EmailVerificationModal } from './EmailVerificationModal';
 
 export function VenueAccountSettings() {
   const { user, logout } = useAuth();
@@ -45,6 +46,7 @@ export function VenueAccountSettings() {
   const [editingCapacity, setEditingCapacity] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
   const [editingWebsite, setEditingWebsite] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   
   const [newName, setNewName] = useState(user?.name || '');
   const [newEmail, setNewEmail] = useState(user?.email || '');
@@ -103,13 +105,17 @@ export function VenueAccountSettings() {
       toast.error('Email cannot be empty');
       return;
     }
-    try {
-      await updateProfileMutation.mutateAsync({ email: newEmail });
-      setEditingEmail(false);
-      toast.success('Email updated successfully');
-    } catch (error) {
-      toast.error('Failed to update email');
-    }
+    // Use email verification modal instead of direct update
+    setShowEmailVerification(true);
+  };
+
+  const handleEmailVerificationSuccess = (newEmail: string) => {
+    setEditingEmail(false);
+    toast.success('Email updated and verified successfully');
+  };
+
+  const handleChangeEmail = () => {
+    setShowEmailVerification(true);
   };
 
   const handleSaveVenueProfile = async () => {
@@ -158,7 +164,14 @@ export function VenueAccountSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <EmailVerificationModal
+        isOpen={showEmailVerification}
+        currentEmail={user?.email || ''}
+        onClose={() => setShowEmailVerification(false)}
+        onSuccess={handleEmailVerificationSuccess}
+      />
+      <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -216,7 +229,7 @@ export function VenueAccountSettings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setEditingEmail(true)}
+                        onClick={() => setShowEmailVerification(true)}
                       >
                         <Mail className="h-4 w-4 mr-2" />
                         Change
@@ -806,6 +819,7 @@ export function VenueAccountSettings() {
         </TabsContent>
       </Tabs>
     </div>
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { EmailPreferencesCenter } from './EmailPreferencesCenter';
 import { PhotoManagement } from './PhotoManagement';
 import { MediaGalleryManager } from './MediaGalleryManager';
+import { EmailVerificationModal } from './EmailVerificationModal';
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
@@ -41,6 +42,7 @@ export function AccountSettings() {
   const [newName, setNewName] = useState(user?.name || '');
   const [newEmail, setNewEmail] = useState(user?.email || '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -89,13 +91,13 @@ export function AccountSettings() {
       toast.error('Email cannot be empty');
       return;
     }
-    try {
-      await updateProfileMutation.mutateAsync({ email: newEmail });
-      setEditingEmail(false);
-      toast.success('Email updated successfully');
-    } catch (error) {
-      toast.error('Failed to update email');
-    }
+    // Use email verification modal instead of direct update
+    setShowEmailVerification(true);
+  };
+
+  const handleEmailVerificationSuccess = (newEmail: string) => {
+    setEditingEmail(false);
+    toast.success('Email updated and verified successfully');
   };
 
   const handleSaveNotifications = async () => {
@@ -131,7 +133,14 @@ export function AccountSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <EmailVerificationModal
+        isOpen={showEmailVerification}
+        currentEmail={user?.email || ''}
+        onClose={() => setShowEmailVerification(false)}
+        onSuccess={handleEmailVerificationSuccess}
+      />
+      <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -189,7 +198,7 @@ export function AccountSettings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setEditingEmail(true)}
+                        onClick={() => setShowEmailVerification(true)}
                       >
                         <Mail className="h-4 w-4 mr-2" />
                         Change
@@ -694,5 +703,6 @@ export function AccountSettings() {
         </TabsContent>
       </Tabs>
     </div>
+    </>
   );
 }
