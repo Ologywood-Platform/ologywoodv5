@@ -1,4 +1,4 @@
-import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -412,3 +412,88 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+
+/**
+ * Artist Payouts - tracks payout requests and payments to artists
+ */
+export const artistPayouts = mysqlTable("artist_payouts", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["pending", "processing", "completed", "failed", "cancelled"]).default("pending").notNull(),
+  payoutMethod: mysqlEnum("payoutMethod", ["bank_transfer", "stripe_connect", "manual"]).default("bank_transfer").notNull(),
+  stripeTransferId: varchar("stripeTransferId", { length: 255 }),
+  bankAccountId: int("bankAccountId"),
+  requestedAt: timestamp("requestedAt").defaultNow().notNull(),
+  processedAt: timestamp("processedAt"),
+  completedAt: timestamp("completedAt"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ArtistPayout = typeof artistPayouts.$inferSelect;
+export type InsertArtistPayout = typeof artistPayouts.$inferInsert;
+
+/**
+ * Stripe Connect Accounts - stores Stripe Connect account info for artists
+ */
+export const stripeConnectAccounts = mysqlTable("stripe_connect_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull().unique(),
+  stripeAccountId: varchar("stripeAccountId", { length: 255 }).notNull().unique(),
+  status: mysqlEnum("status", ["pending", "active", "inactive"]).default("pending").notNull(),
+  chargesEnabled: boolean("chargesEnabled").default(false).notNull(),
+  payoutsEnabled: boolean("payoutsEnabled").default(false).notNull(),
+  bankAccountVerified: boolean("bankAccountVerified").default(false).notNull(),
+  verificationStatus: varchar("verificationStatus", { length: 50 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type StripeConnectAccount = typeof stripeConnectAccounts.$inferSelect;
+export type InsertStripeConnectAccount = typeof stripeConnectAccounts.$inferInsert;
+
+/**
+ * Artist Earnings - tracks earnings per booking for quick calculations
+ */
+export const artistEarnings = mysqlTable("artist_earnings", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  bookingId: int("bookingId").notNull().unique(),
+  grossAmount: decimal("grossAmount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: decimal("platformFee", { precision: 10, scale: 2 }).notNull(),
+  netAmount: decimal("netAmount", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["pending", "completed", "paid_out"]).default("pending").notNull(),
+  payoutId: int("payoutId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ArtistEarning = typeof artistEarnings.$inferSelect;
+export type InsertArtistEarning = typeof artistEarnings.$inferInsert;
+
+/**
+ * Invoices - tracks generated invoices for bookings
+ */
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull().unique(),
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId").notNull(),
+  invoiceNumber: varchar("invoiceNumber", { length: 50 }).unique().notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default(0),
+  platformFee: decimal("platformFee", { precision: 10, scale: 2 }).default(0),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["draft", "sent", "viewed", "paid", "overdue", "cancelled"]).default("draft").notNull(),
+  pdfUrl: text("pdfUrl"),
+  sentAt: timestamp("sentAt"),
+  viewedAt: timestamp("viewedAt"),
+  paidAt: timestamp("paidAt"),
+  dueDate: date("dueDate"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
