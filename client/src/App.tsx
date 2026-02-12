@@ -32,6 +32,8 @@ import FAQ from "./pages/FAQ";
 import { Unsubscribe } from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
 import RevertEmail from "./pages/RevertEmail";
+import ArtistEarnings from "./pages/ArtistEarnings";
+import AdminPayouts from "./pages/AdminPayouts";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 
@@ -60,6 +62,8 @@ function Router() {
           <Route path="/venue-dashboard" component={VenueDashboard} />
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/revert-email" component={RevertEmail} />
+          <Route path="/earnings" component={ArtistEarnings} />
+          <Route path="/admin/payouts" component={AdminPayouts} />
           
           {/* Discovery */}
           <Route path="/browse" component={Browse} />
