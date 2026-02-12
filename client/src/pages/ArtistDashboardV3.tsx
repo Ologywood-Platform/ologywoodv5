@@ -14,7 +14,7 @@ export function ArtistDashboardV3() {
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
-  const { data: messages } = trpc.message.getMyMessages.useQuery({ limit: 3 });
+  // Messages are accessed from the Messages page, not dashboard
 
   // Verify user is an artist
   if (user?.role !== 'artist') {
@@ -204,41 +204,10 @@ export function ArtistDashboardV3() {
               </Card>
             )}
 
-            {/* Recent Messages */}
-            {messages && messages.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Recent Messages</CardTitle>
-                  <CardDescription>{messages.length} unread message(s)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {messages.slice(0, 3).map((msg) => (
-                      <div
-                        key={msg.id}
-                        className="flex items-start justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 cursor-pointer"
-                        onClick={() => navigate('/messages')}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">{msg.senderName}</p>
-                          <p className="text-xs text-slate-600 truncate">{msg.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4"
-                    onClick={() => navigate('/messages')}
-                  >
-                    View All Messages
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            {/* Messages are accessed from the Messages page */}
 
             {/* Empty State */}
-            {upcomingBookings.length === 0 && (!messages || messages.length === 0) && (
+            {upcomingBookings.length === 0 && (
               <Card>
                 <CardContent className="pt-12 pb-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-30" />
