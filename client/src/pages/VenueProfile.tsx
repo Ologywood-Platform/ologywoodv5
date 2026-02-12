@@ -2,13 +2,14 @@ import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
+import { ShareVenueModal } from '@/components/ShareVenueModal';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ export default function VenueProfile() {
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');
+  const [shareVenueOpen, setShareVenueOpen] = useState(false);
 
   const respondMutation = trpc.venueReview.respondToReview.useMutation({
     onSuccess: () => {
@@ -104,10 +106,16 @@ export default function VenueProfile() {
             <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-8 w-8 rounded" />
             Ologywood
           </a>
-          <Button variant="ghost" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setShareVenueOpen(true)} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button variant="ghost" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -355,6 +363,20 @@ export default function VenueProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Share Venue Modal */}
+      {venueProfile && (
+        <ShareVenueModal
+          isOpen={shareVenueOpen}
+          onClose={() => setShareVenueOpen(false)}
+          venueId={venueId}
+          venueName={venueProfile.organizationName}
+          venueDescription={venueProfile.description}
+          venueProfileImage={venueProfile.profilePhotoUrl}
+          venueLocation={venueProfile.city}
+          venueCapacity={venueProfile.capacity}
+        />
+      )}
     </div>
   );
 }
