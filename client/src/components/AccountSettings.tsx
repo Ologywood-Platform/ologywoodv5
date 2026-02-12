@@ -18,6 +18,7 @@ import {
   ExternalLink,
   CheckCircle,
   Clock,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
@@ -33,9 +34,28 @@ export function AccountSettings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
   const [mediaPhotos, setMediaPhotos] = useState<string[]>([]);
+  
+  // Edit states
+  const [editingName, setEditingName] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newName, setNewName] = useState(user?.name || '');
+  const [newEmail, setNewEmail] = useState(user?.email || '');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Notification preferences state
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    bookingNotifications: true,
+    messageNotifications: true,
+    bookingReminders: true,
+    marketingUpdates: false,
+  });
 
   const { data: subscription } = trpc.subscription.getStatus.useQuery();
+  const { data: notificationSettings } = trpc.notificationPreference.get.useQuery();
+  
   const logoutMutation = trpc.auth.logout.useMutation();
+  const updateProfileMutation = trpc.user.updateProfile.useMutation();
+  const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
 
   const handleLogout = async () => {
     try {
@@ -46,6 +66,49 @@ export function AccountSettings() {
     } catch (error) {
       toast.error('Failed to logout');
     }
+  };
+
+  const handleSaveName = async () => {
+    if (!newName.trim()) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+    try {
+      await updateProfileMutation.mutateAsync({ name: newName });
+      setEditingName(false);
+      toast.success('Name updated successfully');
+    } catch (error) {
+      toast.error('Failed to update name');
+    }
+  };
+
+  const handleSaveEmail = async () => {
+    if (!newEmail.trim()) {
+      toast.error('Email cannot be empty');
+      return;
+    }
+    try {
+      await updateProfileMutation.mutateAsync({ email: newEmail });
+      setEditingEmail(false);
+      toast.success('Email updated successfully');
+    } catch (error) {
+      toast.error('Failed to update email');
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      await updateNotificationsMutation.mutateAsync(notificationPrefs);
+      toast.success('Notification preferences saved');
+    } catch (error) {
+      toast.error('Failed to save notification preferences');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // This would require a delete account endpoint
+    toast.info('Account deletion is not yet available. Please contact support.');
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -73,13 +136,47 @@ export function AccountSettings() {
               <div className="space-y-2">
                 <Label className="text-base font-semibold">Email Address</Label>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 p-3 bg-gray-50 rounded-lg border">
-                    <p className="text-sm">{user?.email}</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Change
-                  </Button>
+                  {editingEmail ? (
+                    <>
+                      <Input
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        type="email"
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveEmail}
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingEmail(false);
+                          setNewEmail(user?.email || '');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex-1 p-3 bg-gray-50 rounded-lg border">
+                        <p className="text-sm">{user?.email}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingEmail(true)}
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Change
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -87,15 +184,48 @@ export function AccountSettings() {
               <div className="space-y-2">
                 <Label className="text-base font-semibold">Full Name</Label>
                 <div className="flex items-center gap-3">
-                  <Input
-                    value={user?.name || ''}
-                    readOnly
-                    className="flex-1 bg-gray-50"
-                  />
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
+                  {editingName ? (
+                    <>
+                      <Input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveName}
+                        disabled={updateProfileMutation.isPending}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingName(false);
+                          setNewName(user?.name || '');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Input
+                        value={user?.name || ''}
+                        readOnly
+                        className="flex-1 bg-gray-50"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingName(true)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -149,15 +279,24 @@ export function AccountSettings() {
                 <Lock className="h-5 w-5" />
                 Security
               </CardTitle>
+              <CardDescription>
+                Your account uses OAuth authentication (Google, Apple, or Email)
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-700">
+                  Password management is not available because your account uses OAuth authentication. 
+                  To change your login method, please contact support.
+                </p>
+              </div>
+              <Button variant="outline" className="w-full justify-start" disabled>
                 <Shield className="h-4 w-4 mr-2" />
-                Change Password
+                Change Password (Not Available)
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" disabled>
                 <Lock className="h-4 w-4 mr-2" />
-                Two-Factor Authentication
+                Two-Factor Authentication (Not Available)
               </Button>
             </CardContent>
           </Card>
@@ -229,7 +368,11 @@ export function AccountSettings() {
                         <CreditCard className="h-4 w-4 text-gray-600" />
                         <span className="text-sm">Visa ending in 4242</span>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toast.info('Payment method management coming soon')}
+                      >
                         Update
                       </Button>
                     </div>
@@ -237,11 +380,18 @@ export function AccountSettings() {
 
                   {/* Actions */}
                   <div className="flex gap-3 pt-4 border-t">
-                    <Button className="flex-1 bg-purple-600 hover:bg-purple-700">
+                    <Button
+                      className="flex-1 bg-purple-600 hover:bg-purple-700"
+                      onClick={() => toast.info('Invoice viewer coming soon')}
+                    >
                       <CreditCard className="h-4 w-4 mr-2" />
                       View Invoice
                     </Button>
-                    <Button variant="outline" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => toast.info('Plan upgrade coming soon')}
+                    >
                       Upgrade Plan
                     </Button>
                   </div>
@@ -252,7 +402,10 @@ export function AccountSettings() {
                   <p className="text-gray-600 mb-4">
                     No active subscription found
                   </p>
-                  <Button className="bg-purple-600 hover:bg-purple-700">
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={() => navigate('/pricing')}
+                  >
                     <CreditCard className="h-4 w-4 mr-2" />
                     Choose a Plan
                   </Button>
@@ -275,7 +428,7 @@ export function AccountSettings() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">$29.00</p>
-                    <p className="text-xs text-green-600">Paid</p>
+                    <p className="text-xs text-gray-600">Paid</p>
                   </div>
                 </div>
               </div>
@@ -307,7 +460,17 @@ export function AccountSettings() {
                       Get notified when venues request bookings
                     </p>
                   </div>
-                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={notificationPrefs.bookingNotifications}
+                    onChange={(e) =>
+                      setNotificationPrefs({
+                        ...notificationPrefs,
+                        bookingNotifications: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -317,7 +480,17 @@ export function AccountSettings() {
                       Get notified of new messages from venues
                     </p>
                   </div>
-                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={notificationPrefs.messageNotifications}
+                    onChange={(e) =>
+                      setNotificationPrefs({
+                        ...notificationPrefs,
+                        messageNotifications: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -327,7 +500,17 @@ export function AccountSettings() {
                       Reminders before upcoming performances
                     </p>
                   </div>
-                  <input type="checkbox" defaultChecked className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={notificationPrefs.bookingReminders}
+                    onChange={(e) =>
+                      setNotificationPrefs({
+                        ...notificationPrefs,
+                        bookingReminders: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -337,12 +520,26 @@ export function AccountSettings() {
                       News about new features and opportunities
                     </p>
                   </div>
-                  <input type="checkbox" className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={notificationPrefs.marketingUpdates}
+                    onChange={(e) =>
+                      setNotificationPrefs({
+                        ...notificationPrefs,
+                        marketingUpdates: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4"
+                  />
                 </div>
               </div>
 
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                Save Preferences
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                onClick={handleSaveNotifications}
+                disabled={updateNotificationsMutation.isPending}
+              >
+                {updateNotificationsMutation.isPending ? 'Saving...' : 'Save Preferences'}
               </Button>
             </CardContent>
           </Card>
@@ -366,17 +563,29 @@ export function AccountSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate('/help')}
+              >
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Help Center
                 <ExternalLink className="h-4 w-4 ml-auto" />
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate('/contact')}
+              >
                 <Mail className="h-4 w-4 mr-2" />
                 Contact Support
                 <ExternalLink className="h-4 w-4 ml-auto" />
               </Button>
-              <Button variant="outline" className="w-full justify-start">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                disabled
+              >
                 <Phone className="h-4 w-4 mr-2" />
                 Call Us: +1 (800) 654-9963
               </Button>
@@ -401,12 +610,54 @@ export function AccountSettings() {
                 <LogOut className="h-4 w-4 mr-2" />
                 {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
               </Button>
-              <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-red-600 hover:text-red-700"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 Delete Account
               </Button>
             </CardContent>
           </Card>
+
+          {/* Delete Account Confirmation */}
+          {showDeleteConfirm && (
+            <Card className="border-red-300 bg-red-50">
+              <CardHeader>
+                <CardTitle className="text-red-700 flex items-center justify-between">
+                  Confirm Account Deletion
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-red-700">
+                  This action cannot be undone. All your data will be permanently deleted.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={handleDeleteAccount}
+                  >
+                    Delete My Account
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

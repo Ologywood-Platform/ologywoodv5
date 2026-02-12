@@ -3574,3 +3574,19 @@ The Ologywood platform is production-ready with:
 - [ ] Test all core user flows (artist booking, venue management)
 - [ ] Verify no console errors or warnings
 - [ ] Performance check (dashboard load, page transitions)
+
+
+## Dashboard Settings Audit & Fixes (Current Sprint)
+- [x] Fix Profile Tab - Edit full name button
+- [x] Fix Profile Tab - Change email button
+- [x] Fix Profile Tab - Remove password/2FA (OAuth-only system)
+- [x] Fix Subscription Tab - Payment method update button
+- [x] Fix Subscription Tab - View invoice button
+- [x] Fix Subscription Tab - Upgrade plan button
+- [x] Create notification preferences table in database
+- [x] Fix Notifications Tab - Save preferences button
+- [x] Fix Support Tab - Help Center navigation
+- [x] Fix Support Tab - Contact Support button
+- [x] Fix Support Tab - Delete Account button
+- [x] Create comprehensive test suite for AccountSettings component
+- [x] Test all settings functionality end-to-end
