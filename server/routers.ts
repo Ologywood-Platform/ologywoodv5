@@ -35,6 +35,7 @@ import { emailTestingRouter } from "./routers/emailTesting";
 // import { aiChatRouter } from "./routers/ai-chat";
 // import { depositPaymentsRouter } from "./routers/deposit-payments";
 import { simpleRyderRouter } from "./routers/simpleRyderRouter";
+import { accountRouter } from "./routers/accountRouter";
 // import { analyticsRouter } from "./routers/analyticsRouter";
 // import { contractManagementRouter } from "./routers/contract-management";
 // import { helpAndSupportRouter } from "./routers/helpAndSupport";
@@ -126,6 +127,7 @@ export const appRouter = router({
   // aiChat: aiChatRouter,
   // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
+  account: accountRouter,
   emailPreferences: emailPreferencesRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,

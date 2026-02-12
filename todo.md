@@ -3590,3 +3590,12 @@ The Ologywood platform is production-ready with:
 - [x] Fix Support Tab - Delete Account button
 - [x] Create comprehensive test suite for AccountSettings component
 - [x] Test all settings functionality end-to-end
+
+
+## Account Deletion Feature (Current Sprint)
+- [x] Create account deletion service with data cleanup
+- [x] Create TRPC mutation for account deletion
+- [x] Create confirmation email template
+- [x] Integrate deletion mutation into AccountSettings
+- [x] Write tests for account deletion
+- [ ] Test end-to-end account deletion flow

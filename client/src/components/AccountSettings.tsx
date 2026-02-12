@@ -56,6 +56,8 @@ export function AccountSettings() {
   const logoutMutation = trpc.auth.logout.useMutation();
   const updateProfileMutation = trpc.user.updateProfile.useMutation();
   const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
+  const deleteAccountMutation = trpc.account.deleteAccount.useMutation();
+  const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
 
   const handleLogout = async () => {
     try {
@@ -106,9 +108,26 @@ export function AccountSettings() {
   };
 
   const handleDeleteAccount = async () => {
-    // This would require a delete account endpoint
-    toast.info('Account deletion is not yet available. Please contact support.');
-    setShowDeleteConfirm(false);
+    try {
+      if (!deletionValidation?.allowed) {
+        toast.error(deletionValidation?.reason || 'Account deletion is not allowed');
+        setShowDeleteConfirm(false);
+        return;
+      }
+
+      await deleteAccountMutation.mutateAsync({
+        confirmationText: 'DELETE MY ACCOUNT',
+        password: '',
+      });
+
+      toast.success('Your account has been deleted successfully');
+      setTimeout(() => {
+        logout();
+        navigate('/');
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to delete account');
+    }
   };
 
   return (
@@ -636,21 +655,35 @@ export function AccountSettings() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="bg-red-100 border border-red-300 rounded p-3 mb-4">
+                  <p className="text-sm font-semibold text-red-800 mb-2">Warning</p>
+                  <p className="text-sm text-red-700 mb-2">
+                    This action cannot be undone. All your data will be permanently deleted:
+                  </p>
+                  <ul className="text-sm text-red-700 ml-4 list-disc space-y-1">
+                    <li>Profile information</li>
+                    <li>All bookings and contracts</li>
+                    <li>Messages and reviews</li>
+                    <li>Preferences and settings</li>
+                  </ul>
+                </div>
                 <p className="text-sm text-red-700">
-                  This action cannot be undone. All your data will be permanently deleted.
+                  A confirmation email will be sent to <strong>{user?.email}</strong>
                 </p>
                 <div className="flex gap-3">
                   <Button
                     variant="destructive"
                     className="flex-1"
                     onClick={handleDeleteAccount}
+                    disabled={deleteAccountMutation.isPending}
                   >
-                    Delete My Account
+                    {deleteAccountMutation.isPending ? 'Deleting...' : 'Delete My Account'}
                   </Button>
                   <Button
                     variant="outline"
                     className="flex-1"
                     onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleteAccountMutation.isPending}
                   >
                     Cancel
                   </Button>
