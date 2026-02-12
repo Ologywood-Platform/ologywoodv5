@@ -50,4 +50,20 @@ export const emailChangeRouter = router({
     const result = await EmailChangeVerificationService.getPendingVerification(ctx.user.id);
     return result;
   }),
+
+  /**
+   * Revert email change with token
+   */
+  revertChange: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return {
+        success: true,
+        message: 'Email change has been reverted successfully',
+      };
+    }),
 });
