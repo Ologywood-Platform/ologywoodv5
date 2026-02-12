@@ -164,14 +164,14 @@ export const invoicingService = {
   async getInvoiceHistory(userId: number): Promise<any[]> {
     // Get all bookings for the user (as artist or venue)
     const userBookings = await db.query.bookings.findMany({
-      where: (bookings, { or, eq }) =>
+      where: (bookings: any, { or, eq }: any) =>
         or(
           eq(bookings.artistId, userId),
           eq(bookings.venueId, userId)
         ),
     });
 
-    return userBookings.map((booking) => ({
+    return userBookings.map((booking: any) => ({
       id: booking.id,
       date: booking.createdAt,
       amount: booking.budget,
