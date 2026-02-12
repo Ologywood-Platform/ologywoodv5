@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 interface EmailVerificationModalProps {
   isOpen: boolean;
@@ -17,6 +19,7 @@ export function EmailVerificationModal({
   onClose,
   onSuccess,
 }: EmailVerificationModalProps) {
+  const [, navigate] = useLocation();
   const [step, setStep] = useState<'request' | 'verify'>('request');
   const [newEmail, setNewEmail] = useState('');
   const [verificationToken, setVerificationToken] = useState('');
@@ -44,9 +47,10 @@ export function EmailVerificationModal({
       });
 
       if (result.success) {
-        setStep('verify');
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
+        toast.success('Verification code sent to your email!');
+        // Redirect to verify-email page with email parameter
+        onClose();
+        navigate(`/verify-email?email=${encodeURIComponent(newEmail)}`);
       } else {
         setError(result.message || 'Failed to send verification email');
       }

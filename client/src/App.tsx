@@ -30,6 +30,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import { Unsubscribe } from "./pages/Unsubscribe";
+import VerifyEmail from "./pages/VerifyEmail";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 
@@ -56,6 +57,7 @@ function Router() {
           <Route path="/onboarding/venue" component={VenueOnboarding} />
           <Route path="/dashboard" component={ArtistDashboardV3} />
           <Route path="/venue-dashboard" component={VenueDashboard} />
+          <Route path="/verify-email" component={VerifyEmail} />
           
           {/* Discovery */}
           <Route path="/browse" component={Browse} />
