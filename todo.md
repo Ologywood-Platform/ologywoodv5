@@ -3534,3 +3534,43 @@ The Ologywood platform is production-ready with:
 - [x] Add Open Graph meta tags for venue sharing
 - [x] Write and run tests for venue sharing (16 tests passing)
 - [x] Test venue sharing functionality end-to-end
+
+
+## Code Cleanup & Architecture Tightening - In Progress
+
+### Phase 1: Audit & Silence Deprecated Code
+- [ ] Grep for all imports from _deprecated folders
+- [ ] Check appRouter for mounted but unused routers
+- [ ] Remove stale nav links pointing to deprecated pages
+- [ ] Kill background jobs/webhooks referencing old features
+- [ ] Verify no orphaned database queries to removed tables
+- [ ] Test that removed features don't break on navigation
+
+### Phase 2: Ruthlessly Simplify Dashboards
+- [ ] Audit ArtistDashboard component for unused widgets
+- [ ] Remove analytics/stats widgets from artist dashboard
+- [ ] Reduce artist dashboard to: Quick actions, active bookings, messages (3-4 cards max)
+- [ ] Audit VenueDashboard component for unused widgets
+- [ ] Remove analytics/stats widgets from venue dashboard
+- [ ] Reduce venue dashboard to: Incoming bookings, quick actions, messages (3-4 cards max)
+- [ ] Test dashboard load time improvements
+
+### Phase 3: Trim Rider Builder to Checklist Model
+- [ ] Remove advanced document formatting options
+- [ ] Remove drag-drop reorder functionality
+- [ ] Simplify to basic form + preview layout
+- [ ] Remove nested sections and optional metadata
+- [ ] Test rider creation flow end-to-end
+
+### Phase 4: Document Clean Architecture
+- [ ] Create ARCHITECTURE.md with folder structure explanation
+- [ ] Document data flow direction (client → server → DB)
+- [ ] Define where new features should be added
+- [ ] List what's off-limits/deprecated
+- [ ] Add code organization best practices
+
+### Phase 5: Verify & Test
+- [ ] Run full test suite
+- [ ] Test all core user flows (artist booking, venue management)
+- [ ] Verify no console errors or warnings
+- [ ] Performance check (dashboard load, page transitions)

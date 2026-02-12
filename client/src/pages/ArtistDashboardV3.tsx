@@ -1,24 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Calendar,
-  Settings,
-  Music,
-  MessageSquare,
-  Bell,
-  Headphones,
-  TrendingUp,
-  Heart,
-  FileText,
-  ArrowLeft,
-  Menu,
-  X,
-  BarChart3,
-  Clock,
-  Image,
-  Star,
-} from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -26,65 +9,34 @@ import { AccountSettings } from '@/components/AccountSettings';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
-  const [activeSection, setActiveSection] = useState('overview');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
+  const { data: messages } = trpc.message.getMyMessages.useQuery({ limit: 3 });
 
-  // Navigation sections with logical grouping
-  const navigationSections = [
-    {
-      id: 'overview',
-      label: 'Overview',
-      icon: BarChart3,
-      description: 'Dashboard & quick stats',
-      action: () => setActiveSection('overview'),
-    },
-    {
-      id: 'bookings',
-      label: 'Bookings',
-      icon: Calendar,
-      description: 'Manage bookings & events',
-      action: () => navigate('/bookings'),
-    },
-    {
-      id: 'profile',
-      label: 'Profile',
-      icon: Music,
-      description: 'Edit profile & media',
-      action: () => navigate('/onboarding/artist'),
-    },
-    {
-      id: 'availability',
-      label: 'Availability',
-      icon: Clock,
-      description: 'Manage your availability',
-      action: () => navigate('/availability'),
-    },
-    {
-      id: 'riders',
-      label: 'Riders',
-      icon: FileText,
-      description: 'Performance riders',
-      action: () => navigate('/riders'),
-    },
-    {
-      id: 'communication',
-      label: 'Communication',
-      icon: MessageSquare,
-      description: 'Messages & notifications',
-      action: () => navigate('/messages'),
-    },
-    {
-      id: 'account',
-      label: 'Account',
-      icon: Settings,
-      description: 'Settings & support',
-      action: () => setActiveSection('account'),
-    },
-  ];
+  // Verify user is an artist
+  if (user?.role !== 'artist') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>This dashboard is only for artists.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/')} className="w-full">
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
+  const completionScore = artistProfile?.profileCompletionScore || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -103,244 +55,202 @@ export function ArtistDashboardV3() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Artist Dashboard</h1>
-              <p className="text-sm text-slate-600">{artistProfile?.stageName || 'Artist'}</p>
+              <p className="text-sm text-slate-600">{artistProfile?.stageName || 'Welcome'}</p>
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden"
+            onClick={() => setShowSettings(!showSettings)}
+            className="gap-2"
           >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Settings</span>
           </Button>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Sidebar Navigation */}
-          <aside
-            className={`md:col-span-1 ${
-              mobileMenuOpen ? 'block' : 'hidden md:block'
-            }`}
-          >
-            <div className="space-y-2 sticky top-24">
-              {navigationSections.map((section) => {
-                const Icon = section.icon;
-                const isActive = activeSection === section.id;
-
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => {
-                      section.action();
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-start gap-3 ${
-                      isActive
-                        ? 'bg-primary text-white shadow-md'
-                        : 'bg-white text-slate-900 hover:bg-slate-50 border border-slate-200'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                    <div className="text-left">
-                      <div className="font-semibold text-sm">{section.label}</div>
-                      <div
-                        className={`text-xs ${
-                          isActive
-                            ? 'text-white/80'
-                            : 'text-slate-600'
-                        }`}
-                      >
-                        {section.description}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="md:col-span-3">
-            {activeSection === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-slate-600">
-                        Total Bookings
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">
-                        {bookings?.length || 0}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-slate-600">
-                        Profile Completion
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">
-                        {artistProfile?.profileCompletionScore || 0}%
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm font-medium text-slate-600">
-                        Artist Rating
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">
-                        {artistProfile?.averageRating?.toFixed(1) || 'N/A'}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate('/bookings')}
-                    >
-                      View Bookings
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate('/onboarding/artist')}
-                    >
-                      Edit Profile
-                    </Button>
-                    {user?.role === 'artist' && (
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => navigate('/availability')}
-                      >
-                        Availability
-                      </Button>
+        {showSettings ? (
+          <AccountSettings />
+        ) : (
+          <div className="space-y-6">
+            {/* Profile Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    {artistProfile?.profilePhotoUrl && (
+                      <img
+                        src={artistProfile.profilePhotoUrl}
+                        alt={artistProfile.stageName}
+                        className="w-16 h-16 rounded-lg object-cover"
+                      />
                     )}
+                    <div>
+                      <CardTitle className="text-2xl">{artistProfile?.stageName || 'Artist'}</CardTitle>
+                      <CardDescription>{artistProfile?.genre || 'Genre not specified'}</CardDescription>
+                      {artistProfile?.averageRating && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-semibold">{artistProfile.averageRating.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-600">Profile Completion</span>
+                    <span className="text-sm font-bold">{completionScore}%</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${completionScore}%` }}
+                    />
+                  </div>
+                  {completionScore < 100 && (
                     <Button
                       variant="outline"
-                      className="w-full"
-                      onClick={() => navigate('/messages')}
+                      size="sm"
+                      onClick={() => navigate('/onboarding/artist')}
+                      className="mt-4 w-full"
                     >
-                      Messages
+                      Complete Your Profile
                     </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-            {activeSection === 'bookings' && (
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/bookings')}
+                  >
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-xs">Bookings</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/availability')}
+                  >
+                    <Clock className="h-5 w-5" />
+                    <span className="text-xs">Availability</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/riders')}
+                  >
+                    <Music className="h-5 w-5" />
+                    <span className="text-xs">Riders</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/messages')}
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    <span className="text-xs">Messages</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Bookings */}
+            {upcomingBookings.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Bookings & Events</CardTitle>
-                  <CardDescription>
-                    Manage your event bookings and calendar
-                  </CardDescription>
+                  <CardTitle className="text-lg">Upcoming Bookings</CardTitle>
+                  <CardDescription>{upcomingBookings.length} event(s) scheduled</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Booking management interface</p>
+                  <div className="space-y-3">
+                    {upcomingBookings.slice(0, 3).map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+                      >
+                        <div>
+                          <p className="font-semibold text-sm">{booking.venueName}</p>
+                          <p className="text-xs text-slate-600">
+                            {new Date(booking.eventDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/bookings/${booking.id}`)}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {activeSection === 'profile' && (
+            {/* Recent Messages */}
+            {messages && messages.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Artist Profile</CardTitle>
-                  <CardDescription>
-                    Edit your profile information and media
-                  </CardDescription>
+                  <CardTitle className="text-lg">Recent Messages</CardTitle>
+                  <CardDescription>{messages.length} unread message(s)</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Profile editing interface</p>
+                  <div className="space-y-2">
+                    {messages.slice(0, 3).map((msg) => (
+                      <div
+                        key={msg.id}
+                        className="flex items-start justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 cursor-pointer"
+                        onClick={() => navigate('/messages')}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{msg.senderName}</p>
+                          <p className="text-xs text-slate-600 truncate">{msg.content}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => navigate('/messages')}
+                  >
+                    View All Messages
+                  </Button>
                 </CardContent>
               </Card>
             )}
 
-            {activeSection === 'availability' && (
+            {/* Empty State */}
+            {upcomingBookings.length === 0 && (!messages || messages.length === 0) && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Availability</CardTitle>
-                  <CardDescription>
-                    Manage your availability and calendar
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Availability management interface</p>
-                  </div>
+                <CardContent className="pt-12 pb-12 text-center">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  <p className="text-slate-600 mb-4">No upcoming bookings yet</p>
+                  <Button onClick={() => navigate('/browse')}>
+                    Browse Venues
+                  </Button>
                 </CardContent>
               </Card>
             )}
-
-            {activeSection === 'riders' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Riders</CardTitle>
-                  <CardDescription>
-                    Manage your performance requirements and riders
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Rider management interface</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'communication' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Messages & Notifications</CardTitle>
-                  <CardDescription>
-                    Stay connected with venues and manage alerts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-slate-600">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Communication interface</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {activeSection === 'account' && <AccountSettings />}
-          </main>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

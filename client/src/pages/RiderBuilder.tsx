@@ -1,343 +1,264 @@
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Plus, Trash2, Save, Share2, GripVertical, Eye, Copy } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Download, Plus, Trash2, Save, Eye, Check } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
-interface RiderSection {
+interface RiderItem {
   id: string;
   title: string;
-  content: string;
+  checked: boolean;
 }
 
-export default function RiderBuilder() {
-  const [riderName, setRiderName] = useState("My Rider");
-  const [sections, setSections] = useState<RiderSection[]>([
-    {
-      id: "1",
-      title: "Technical Requirements",
-      content: "- Sound system with at least 2 main speakers\n- Microphone and stand\n- Monitor speakers for stage\n- Lighting setup",
-    },
-    {
-      id: "2",
-      title: "Hospitality Requirements",
-      content: "- Green room with seating\n- Complimentary beverages (water, coffee, tea)\n- Light snacks\n- Parking for band members",
-    },
-    {
-      id: "3",
-      title: "Payment Terms",
-      content: "- 50% deposit required to confirm booking\n- Remaining balance due 7 days before event\n- Payment method: Bank transfer or credit card",
-    },
-  ]);
+const DEFAULT_ITEMS = [
+  { title: "Sound system with main speakers", category: "Technical" },
+  { title: "Microphone and stand", category: "Technical" },
+  { title: "Monitor speakers for stage", category: "Technical" },
+  { title: "Lighting setup", category: "Technical" },
+  { title: "Green room with seating", category: "Hospitality" },
+  { title: "Complimentary beverages", category: "Hospitality" },
+  { title: "Light snacks", category: "Hospitality" },
+  { title: "Parking for band members", category: "Hospitality" },
+  { title: "50% deposit to confirm", category: "Payment" },
+  { title: "Balance due 7 days before event", category: "Payment" },
+];
 
-  const [templateName, setTemplateName] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
-  const [showSaveModal, setShowSaveModal] = useState(false);
+export default function RiderBuilder() {
+  const [, navigate] = useLocation();
+  const [riderName, setRiderName] = useState("My Rider");
+  const [items, setItems] = useState<RiderItem[]>(
+    DEFAULT_ITEMS.map((item, i) => ({
+      id: i.toString(),
+      title: item.title,
+      checked: false,
+    }))
+  );
+  const [newItemTitle, setNewItemTitle] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
-  const saveTemplateMutation = trpc.riderManagement.saveTemplate.useMutation();
 
-  const addSection = () => {
-    const newId = Math.max(...sections.map((s) => parseInt(s.id)), 0) + 1;
-    setSections([
-      ...sections,
+  const saveTemplateMutation = trpc.rider.saveTemplate.useMutation();
+
+  const toggleItem = (id: string) => {
+    setItems(items.map((item) =>
+      item.id === id ? { ...item, checked: !item.checked } : item
+    ));
+  };
+
+  const addItem = () => {
+    if (!newItemTitle.trim()) return;
+    const newId = Math.max(...items.map((i) => parseInt(i.id)), -1) + 1;
+    setItems([
+      ...items,
       {
         id: newId.toString(),
-        title: "New Section",
-        content: "Add your requirements here",
+        title: newItemTitle,
+        checked: false,
       },
     ]);
+    setNewItemTitle("");
   };
 
-  const updateSection = (id: string, field: "title" | "content", value: string) => {
-    setSections(
-      sections.map((s) => (s.id === id ? { ...s, [field]: value } : s))
-    );
-  };
-
-  const deleteSection = (id: string) => {
-    setSections(sections.filter((s) => s.id !== id));
-  };
-
-  const reorderSections = (fromIndex: number, toIndex: number) => {
-    const newSections = [...sections];
-    const [movedSection] = newSections.splice(fromIndex, 1);
-    newSections.splice(toIndex, 0, movedSection);
-    setSections(newSections);
-    setDraggedId(null);
-  };
-
-  const duplicateSection = (id: string) => {
-    const sectionToDuplicate = sections.find((s) => s.id === id);
-    if (sectionToDuplicate) {
-      const newId = Math.max(...sections.map((s) => parseInt(s.id)), 0) + 1;
-      const newSection = {
-        ...sectionToDuplicate,
-        id: newId.toString(),
-        title: `${sectionToDuplicate.title} (Copy)`,
-      };
-      setSections([...sections, newSection]);
-    }
+  const deleteItem = (id: string) => {
+    setItems(items.filter((item) => item.id !== id));
   };
 
   const saveAsTemplate = async () => {
-    if (!templateName.trim()) {
-      alert("Please enter a template name");
+    if (!riderName.trim()) {
+      alert("Please enter a rider name");
       return;
     }
 
     setIsSaving(true);
     try {
-      const cleanedSections = sections.map((s) => ({
-        title: s.title,
-        content: s.content,
-        isRequired: true,
-      }));
-
+      const checkedItems = items.filter((item) => item.checked);
       await saveTemplateMutation.mutateAsync({
-        templateName,
-        description: `Rider template created on ${new Date().toLocaleDateString()}`,
-        sections: cleanedSections,
-        isPublic,
+        name: riderName,
+        description: `Rider template with ${checkedItems.length} selected requirements`,
+        content: JSON.stringify(checkedItems),
       });
-
       alert("Rider template saved successfully!");
-      setShowSaveModal(false);
-      setTemplateName("");
+      navigate("/riders");
     } catch (error) {
+      console.error("Error saving template:", error);
       alert("Failed to save template. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const downloadRider = () => {
-    let content = `RIDER FOR: ${riderName}\n`;
-    content += `Date Created: ${new Date().toLocaleDateString()}\n`;
-    content += `${"=".repeat(50)}\n\n`;
-
-    sections.forEach((section) => {
-      content += `${section.title.toUpperCase()}\n`;
-      content += `${"-".repeat(section.title.length)}\n`;
-      content += `${section.content}\n\n`;
-    });
-
-    const element = document.createElement("a");
-    element.setAttribute(
-      "href",
-      "data:text/plain;charset=utf-8," + encodeURIComponent(content)
-    );
-    element.setAttribute("download", `${riderName.replace(/\s+/g, "_")}_rider.txt`);
-    element.style.display = "none";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
+  const checkedCount = items.filter((item) => item.checked).length;
+  const completionPercent = Math.round((checkedCount / items.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-lg sm:text-2xl font-bold text-primary">
-            <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
-            <span className="hidden sm:inline">Ologywood</span>
-            <span className="sm:hidden">OW</span>
-          </Link>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/riders")}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
             </Button>
-          </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">Rider Builder</h1>
+              <p className="text-sm text-slate-600">Select your performance requirements</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+              className="gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">{showPreview ? "Edit" : "Preview"}</span>
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Rider Contract Template Builder
-            </h1>
-            <Button
-              onClick={() => setShowSaveModal(true)}
-              className="gap-2 bg-green-600 hover:bg-green-700"
-            >
-              <Save className="h-4 w-4" />
-              Save Template
-            </Button>
-          </div>
-
-          {/* Save Modal */}
-          {showSaveModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h2 className="text-2xl font-bold mb-4">Save Rider Template</h2>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Rider Name */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Rider Name</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <input
                   type="text"
-                  placeholder="Template name (e.g., 'Standard Rider')"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  className="w-full border rounded px-3 py-2 mb-4"
+                  value={riderName}
+                  onChange={(e) => setRiderName(e.target.value)}
+                  placeholder="e.g., My Standard Rider"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <label className="flex items-center gap-2 mb-4">
-                  <input
-                    type="checkbox"
-                    checked={isPublic}
-                    onChange={(e) => setIsPublic(e.target.checked)}
-                  />
-                  <span>Make this template public (shareable)</span>
-                </label>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={saveAsTemplate}
-                    disabled={isSaving}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+              </CardContent>
+            </Card>
+
+            {/* Requirements Checklist */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Requirements</CardTitle>
+                <CardDescription>
+                  Select the requirements that apply to your performances
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition"
                   >
-                    {isSaving ? "Saving..." : "Save Template"}
-                  </Button>
-                  <Button
-                    onClick={() => setShowSaveModal(false)}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <p className="text-muted-foreground mb-8">
-            Create a professional rider template for your bookings. Customize technical requirements, hospitality needs, and payment terms. Drag sections to reorder, or copy sections to reuse them.
-          </p>
-
-          {/* Rider Name */}
-          <div className="mb-8">
-            <label className="block text-sm font-semibold mb-2">Rider Name</label>
-            <input
-              type="text"
-              value={riderName}
-              onChange={(e) => setRiderName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="e.g., Jazz Quartet Standard Rider"
-            />
-          </div>
-
-          {/* Sections */}
-          <div className="space-y-4 mb-8">
-            {sections.map((section, index) => (
-              <div
-                key={section.id}
-                draggable
-                onDragStart={() => setDraggedId(section.id)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => {
-                  const draggedIndex = sections.findIndex((s) => s.id === draggedId);
-                  if (draggedIndex !== index && draggedIndex !== -1) {
-                    reorderSections(draggedIndex, index);
-                  }
-                }}
-                className={`border rounded-lg p-6 bg-gray-50 transition ${
-                  draggedId === section.id ? "opacity-50" : ""
-                }`}
-              >
-                <div className="flex justify-between items-start mb-4 gap-3">
-                  <div className="flex items-center gap-2 flex-1">
-                    <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
                     <input
-                      type="text"
-                      value={section.title}
-                      onChange={(e) => updateSection(section.id, "title", e.target.value)}
-                      className="flex-1 text-lg font-semibold px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={() => toggleItem(item.id)}
+                      className="w-5 h-5 rounded cursor-pointer accent-primary"
                     />
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => duplicateSection(section.id)}
-                      className="p-2 text-blue-500 hover:bg-blue-50 rounded"
-                      title="Duplicate section"
+                    <span className="flex-1 text-sm">{item.title}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteItem(item.id)}
+                      className="text-red-500 hover:text-red-700"
                     >
-                      <Copy className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => deleteSection(section.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded"
-                      title="Delete section"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-                <textarea
-                  value={section.content}
-                  onChange={(e) => updateSection(section.id, "content", e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  rows={5}
-                  placeholder="Enter your requirements here..."
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={addSection}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition"
-            >
-              <Plus className="h-5 w-5" />
-              Add Section
-            </button>
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
-            >
-              <Eye className="h-5 w-5" />
-              {showPreview ? "Hide" : "Preview"}
-            </button>
-            <button
-              onClick={downloadRider}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-              <Download className="h-5 w-5" />
-              Download Rider
-            </button>
-            <Link href="/saved-riders">
-              <Button variant="outline" className="w-full sm:w-auto gap-2">
-                <Share2 className="h-4 w-4" />
-                My Templates
-              </Button>
-            </Link>
-          </div>
-
-          {/* Preview Section */}
-          {showPreview && (
-            <div className="mt-8 p-6 bg-gray-100 border-2 border-gray-300 rounded-lg">
-              <h2 className="text-2xl font-bold mb-4">Preview: {riderName}</h2>
-              <div className="bg-white p-6 rounded-lg space-y-6">
-                {sections.map((section) => (
-                  <div key={section.id}>
-                    <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
-                    <div className="text-gray-700 whitespace-pre-wrap text-sm">
-                      {section.content}
-                    </div>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
+              </CardContent>
+            </Card>
 
-          {/* Info Box */}
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900">
-              <strong>💡 Tip:</strong> Click "Save Template" to store your rider in your profile. You can reuse, edit, and share saved templates with venues when making booking inquiries. Drag sections to reorder them, or use the copy icon to duplicate sections.
-            </p>
+            {/* Add Custom Item */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Add Custom Requirement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <input
+                  type="text"
+                  value={newItemTitle}
+                  onChange={(e) => setNewItemTitle(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && addItem()}
+                  placeholder="e.g., Specific equipment or hospitality need"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button
+                  onClick={addItem}
+                  disabled={!newItemTitle.trim()}
+                  className="w-full gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Requirement
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar - Preview & Actions */}
+          <div className="lg:col-span-1">
+            {/* Progress Card */}
+            <Card className="mb-6 sticky top-24">
+              <CardHeader>
+                <CardTitle className="text-lg">Progress</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Requirements Selected</span>
+                    <span className="text-sm font-bold">{checkedCount}/{items.length}</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${completionPercent}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-600 mt-2">{completionPercent}% complete</p>
+                </div>
+
+                {showPreview && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h4 className="font-semibold text-sm text-blue-900 mb-2">Preview</h4>
+                    <div className="text-xs text-blue-800 space-y-1">
+                      <p><strong>Name:</strong> {riderName}</p>
+                      <p><strong>Requirements:</strong> {checkedCount} selected</p>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={saveAsTemplate}
+                  disabled={isSaving || checkedCount === 0}
+                  className="w-full gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {isSaving ? "Saving..." : "Save Rider"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/riders")}
+                  className="w-full"
+                >
+                  View Saved Riders
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
