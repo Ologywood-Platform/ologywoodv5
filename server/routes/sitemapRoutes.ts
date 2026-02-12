@@ -19,6 +19,8 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       { url: '/how-it-works', changefreq: 'monthly', priority: 0.7 },
       { url: '/pricing', changefreq: 'monthly', priority: 0.8 },
       { url: '/contact', changefreq: 'monthly', priority: 0.6 },
+      { url: '/verify-email', changefreq: 'never', priority: 0.3 },
+      { url: '/revert-email', changefreq: 'never', priority: 0.3 },
       { url: '/terms-of-service', changefreq: 'yearly', priority: 0.5 },
       { url: '/privacy-policy', changefreq: 'yearly', priority: 0.5 },
     ];
@@ -123,6 +125,8 @@ Allow: /venue/
 Allow: /about
 Allow: /how-it-works
 Allow: /pricing
+Allow: /verify-email
+Allow: /revert-email
 
 Disallow: /admin
 Disallow: /dashboard
