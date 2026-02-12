@@ -127,7 +127,18 @@ export const appRouter = router({
   // aiChat: aiChatRouter,
   // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
-  account: accountRouter,
+  account: router({
+    ...accountRouter,
+    validateDeletion: protectedProcedure
+      .query(async ({ ctx }) => {
+        // Check if user has any active bookings or contracts
+        // For now, allow deletion for all users
+        return {
+          allowed: true,
+          reason: null,
+        };
+      }),
+  }),
   emailPreferences: emailPreferencesRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
@@ -484,7 +495,13 @@ export const appRouter = router({
         organizationName: z.string().optional(),
         contactName: z.string().optional(),
         contactPhone: z.string().optional(),
+        phone: z.string().optional(),
         websiteUrl: z.string().optional(),
+        website: z.string().optional(),
+        location: z.string().optional(),
+        capacity: z.number().optional(),
+        bio: z.string().optional(),
+        email: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -492,7 +509,7 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
         }
         await db.updateVenueProfile(profile.id, input);
-        return { success: true };
+        return { success: true, profile: await db.getVenueProfileByUserId(ctx.user.id) };
       }),
     
     // Upload and set profile photo
