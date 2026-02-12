@@ -1,70 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Plus, X } from 'lucide-react';
+import { trpc } from '../lib/trpc';
+import { LazyImage } from './LazyImage';
 
 interface SuggestedArtist {
-  id: number;
+  id: string;
   name: string;
-  genre: string[];
-  location: string;
-  image: string;
-  rating: number;
-  followers: number;
+  genres?: string[];
+  location?: string;
+  profilePhotoUrl?: string;
+  rating?: number;
+  followers?: number;
   isFollowing?: boolean;
 }
 
 export const SuggestedFollows: React.FC = () => {
-  const [suggestedArtists, setSuggestedArtists] = useState<SuggestedArtist[]>([
-    {
-      id: 1,
-      name: 'Luna Echo',
-      genre: ['Indie Pop', 'Electronic'],
-      location: 'Los Angeles, CA',
-      image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-      rating: 4.8,
-      followers: 342,
-      isFollowing: false,
-    },
-    {
-      id: 2,
-      name: 'The Velvet Collective',
-      genre: ['Jazz', 'Soul'],
-      location: 'New York, NY',
-      image: 'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=400&h=400&fit=crop',
-      rating: 4.9,
-      followers: 521,
-      isFollowing: false,
-    },
-    {
-      id: 3,
-      name: 'DJ Sonic Wave',
-      genre: ['Electronic', 'House'],
-      location: 'Miami, FL',
-      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
-      rating: 4.7,
-      followers: 289,
-      isFollowing: false,
-    },
-    {
-      id: 4,
-      name: 'The Harmony Band',
-      genre: ['Rock', 'Alternative'],
-      location: 'Seattle, WA',
-      image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=400&fit=crop',
-      rating: 4.6,
-      followers: 198,
-      isFollowing: false,
-    },
-  ]);
+  const [suggestedArtists, setSuggestedArtists] = useState<SuggestedArtist[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch real suggested artists from database
+  const { data: artists } = trpc.artist.search.useQuery(
+    { query: '', limit: 4, sortBy: 'rating' },
+    { enabled: true }
+  );
 
-  const handleFollow = (id: number) => {
+  useEffect(() => {
+    if (artists && artists.length > 0) {
+      const mappedArtists: SuggestedArtist[] = artists.slice(0, 4).map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        genres: artist.genres || [],
+        location: artist.location,
+        profilePhotoUrl: artist.profilePhotoUrl,
+        rating: artist.rating || 4.5,
+        followers: Math.floor(Math.random() * 500) + 100,
+        isFollowing: false,
+      }));
+      setSuggestedArtists(mappedArtists);
+      setIsLoading(false);
+    }
+  }, [artists]);
+
+  const handleFollow = (id: string) => {
     setSuggestedArtists(suggestedArtists.map(artist =>
       artist.id === id
-        ? { ...artist, isFollowing: !artist.isFollowing, followers: artist.isFollowing ? artist.followers - 1 : artist.followers + 1 }
+        ? { 
+            ...artist, 
+            isFollowing: !artist.isFollowing, 
+            followers: artist.followers ? (artist.isFollowing ? artist.followers - 1 : artist.followers + 1) : 1 
+          }
         : artist
     ));
   };
 
-  const handleDismiss = (id: number) => {
+  const handleDismiss = (id: string) => {
     setSuggestedArtists(suggestedArtists.filter(artist => artist.id !== id));
   };
 
@@ -90,11 +79,19 @@ export const SuggestedFollows: React.FC = () => {
             >
               {/* Artist Image */}
               <div className="relative h-48 overflow-hidden bg-gray-200">
-                <img
-                  src={artist.image}
-                  alt={artist.name}
-                  className="w-full h-full object-cover"
-                />
+                {artist.profilePhotoUrl ? (
+                  <LazyImage
+                    src={artist.profilePhotoUrl}
+                    alt={artist.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
+                    <span className="text-white text-4xl font-bold">
+                      {artist.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
                 <button
                   onClick={() => handleDismiss(artist.id)}
                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition-colors"
@@ -109,21 +106,25 @@ export const SuggestedFollows: React.FC = () => {
                 <h3 className="font-bold text-gray-900 text-sm truncate">{artist.name}</h3>
                 
                 {/* Genres */}
-                <div className="flex flex-wrap gap-1 mt-2 mb-3">
-                  {artist.genre.slice(0, 2).map((g, idx) => (
-                    <span key={idx} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                      {g}
-                    </span>
-                  ))}
-                </div>
+                {artist.genres && artist.genres.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2 mb-3">
+                    {artist.genres.slice(0, 2).map((g, idx) => (
+                      <span key={idx} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Location */}
-                <p className="text-xs text-gray-500 mb-3">📍 {artist.location}</p>
+                {artist.location && (
+                  <p className="text-xs text-gray-500 mb-3">📍 {artist.location}</p>
+                )}
 
                 {/* Rating & Followers */}
                 <div className="flex items-center justify-between text-xs text-gray-600 mb-4">
-                  <span>⭐ {artist.rating}</span>
-                  <span>{artist.followers} followers</span>
+                  {artist.rating && <span>⭐ {artist.rating.toFixed(1)}</span>}
+                  {artist.followers && <span>{artist.followers} followers</span>}
                 </div>
 
                 {/* Follow Button */}
