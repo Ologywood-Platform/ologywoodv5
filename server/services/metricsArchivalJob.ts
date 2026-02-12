@@ -3,7 +3,7 @@
  */
 
 export class MetricsArchivalJob {
-  private archivalInterval: NodeJS.Timer | null = null;
+  private archivalInterval: ReturnType<typeof setInterval> | null = null;
   private archivalIntervalMs = 60000; // 1 minute
   private retentionDays = 30;
 

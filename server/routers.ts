@@ -18,6 +18,7 @@ import { authRouter } from "./routers/auth";
 import { messagingRouter } from "./routers/messaging";
 import { emailPreferencesRouter } from "./routers/emailPreferences";
 import { emailTestingRouter } from "./routers/emailTesting";
+import { emailChangeRouter } from "./routers/emailChangeRouter";
 
 // ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
 // import { contractsRouter } from "./routers/contracts";
@@ -127,6 +128,7 @@ export const appRouter = router({
   // aiChat: aiChatRouter,
   // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
+  emailChange: emailChangeRouter,
   account: router({
     ...accountRouter,
     validateDeletion: protectedProcedure
