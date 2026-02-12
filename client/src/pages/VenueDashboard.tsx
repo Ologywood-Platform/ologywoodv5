@@ -5,7 +5,7 @@ import { ArrowLeft, MessageSquare, Search, Settings, Calendar, MapPin, Users } f
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { AccountSettings } from '@/components/AccountSettings';
+import { VenueAccountSettings } from '@/components/VenueAccountSettings';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -73,7 +73,7 @@ export function VenueDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         {showSettings ? (
-          <AccountSettings />
+          <VenueAccountSettings />
         ) : (
           <div className="space-y-6">
             {/* Venue Info Card */}
