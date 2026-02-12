@@ -14,7 +14,8 @@ export interface FooterAnalyticsEvent {
 export class FooterAnalyticsService {
   static async trackEvent(event: FooterAnalyticsEvent) {
     try {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) return;
       
       await db.insert(footerAnalytics).values({
         eventType: event.eventType,
@@ -33,7 +34,8 @@ export class FooterAnalyticsService {
 
   static async getSocialClickStats(platform?: string) {
     try {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) return [];
       
       const query = db
         .select()
@@ -53,7 +55,8 @@ export class FooterAnalyticsService {
 
   static async getNewsletterSignupStats() {
     try {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) return [];
       
       const results = await db
         .select()
@@ -69,7 +72,8 @@ export class FooterAnalyticsService {
 
   static async getAnalyticsSummary(days: number = 30) {
     try {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) return { totalEvents: 0, socialClicks: 0, newsletterSignups: 0 };
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 

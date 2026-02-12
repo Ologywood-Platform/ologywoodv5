@@ -3679,3 +3679,28 @@ The Ologywood platform is production-ready with:
 - [ ] Fix remaining TypeScript errors surgically
 - [ ] Add pnpm typecheck to CI pipeline
 - [ ] Verify typecheck passes with zero errors
+
+
+## TypeScript Cleanup Phase 2-5 (Current Sprint)
+- [ ] Fix invoicingService import errors (db and schema exports)
+- [ ] Fix footerAnalyticsService async/await handling
+- [ ] Remove duplicate BookingStatus type definitions
+- [ ] Remove duplicate UserRole type definitions
+- [ ] Update TRPC context to use centralized AuthUser type
+- [ ] Eliminate 'as any' casts in booking service
+- [ ] Eliminate 'as any' casts in auth layer
+- [ ] Re-enable strict TypeScript flags
+- [ ] Verify zero critical errors
+- [ ] Test build passes with strict mode
+
+## Artist Payout System (Next Sprint)
+- [ ] Create artist_payouts database table
+- [ ] Create stripe_connect_accounts table
+- [ ] Build artist earnings dashboard page
+- [ ] Create earnings calculation service
+- [ ] Build request payout endpoint
+- [ ] Build payout history display
+- [ ] Create admin payout processing endpoint
+- [ ] Integrate Stripe transfer API
+- [ ] Send payout confirmation emails
+- [ ] Test payout flow end-to-end

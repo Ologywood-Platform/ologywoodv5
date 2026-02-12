@@ -11,6 +11,8 @@ export interface AuthUser {
   role: UserRole;
   name?: string;
   profileComplete: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AuthContext {

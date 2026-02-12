@@ -1,15 +1,12 @@
 /**
  * Centralized Booking Domain Types
  * Single source of truth for all booking-related types across client, server, and shared layers
+ * 
+ * Note: BookingStatus is defined in server/types/enums.ts
+ * This file uses the canonical enum values: pending, confirmed, cancelled, completed
  */
 
-export type BookingStatus = 
-  | "PENDING" 
-  | "ACCEPTED" 
-  | "DECLINED" 
-  | "CANCELLED" 
-  | "COMPLETED"
-  | "NO_SHOW";
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
 export type PaymentStatus = 
   | "NOT_REQUIRED" 
