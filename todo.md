@@ -3660,3 +3660,22 @@ The Ologywood platform is production-ready with:
 - [x] Add revert link to confirmation email
 - [x] Test confirmation email delivery
 - [x] Test email revert functionality
+
+
+## TypeScript Cleanup & Architecture (Post-Publish)
+- [ ] Create /shared/domain/types.ts with centralized domain types
+- [ ] Create /shared/domain/auth.ts with AuthUser and UserRole types
+- [ ] Create /shared/domain/booking.ts with Booking and BookingStatus types
+- [ ] Temporarily relax tsconfig strict flags for stabilization pass
+- [ ] Search and remove duplicate type definitions across codebase
+- [ ] Update auth context to use centralized AuthUser type
+- [ ] Update TRPC context to strongly type ctx.user
+- [ ] Align DB schema with domain types using .$type<>()
+- [ ] Eliminate all 'as any' casts in booking service
+- [ ] Eliminate all 'as any' casts in auth layer
+- [ ] Eliminate all 'as any' casts in routers
+- [ ] Narrow undefined properly (use if checks instead of !)
+- [ ] Re-enable noImplicitAny and exactOptionalPropertyTypes
+- [ ] Fix remaining TypeScript errors surgically
+- [ ] Add pnpm typecheck to CI pipeline
+- [ ] Verify typecheck passes with zero errors
