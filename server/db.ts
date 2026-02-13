@@ -102,7 +102,7 @@ export async function getSignatureByContractAndSigner(contractId: number, signer
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(signatures).where(
-    and(eq(signatures.contractId, contractId), eq(signatures.signerId, signerId))
+    and(eq(signatures.contractId, contractId), eq(signatures.userId, signerId))
   ).limit(1);
   return result[0];
 }
@@ -518,8 +518,9 @@ export async function setAvailability(avail: InsertAvailability) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
+  // Note: availability table doesn't have notes field
   await db.insert(availability).values(avail).onDuplicateKeyUpdate({
-    set: { status: avail.status, notes: avail.notes }
+    set: { status: avail.status }
   });
 }
 

@@ -451,8 +451,8 @@ export const appRouter = router({
       }),
   }),
 
-  // Venue Profile Management
-  venue: router({
+  // Venue Profile Management - DUPLICATE REMOVED (using venueRouter import instead)
+  // venue: router({
   /**
    * Search venues with filters
    * Public endpoint - anyone can search venues
@@ -717,7 +717,7 @@ export const appRouter = router({
         
         return { success: true, message: 'Email verified successfully' };
       }),
-  }),
+  // }),
 
   // Rider Template Management
   rider: router({

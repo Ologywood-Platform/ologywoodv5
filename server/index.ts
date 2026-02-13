@@ -12,8 +12,8 @@ import { createExternalLoggingService } from './services/externalLoggingService'
 import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
-import paymentRoutes from './routes/paymentRoutes';
-import sitemapRoutes from './routes/sitemapRoutes';
+// import paymentRoutes from './routes/paymentRoutes'; // Disabled
+// import sitemapRoutes from './routes/sitemapRoutes'; // Disabled
 import path from 'path';
 import http from 'http';
 
@@ -44,7 +44,7 @@ async function initializeServer(): Promise<void> {
   });
 
   // Mount sitemap and SEO routes FIRST (before static files)
-  app.use('/', sitemapRoutes);
+  // app.use('/', sitemapRoutes); // Disabled
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');
@@ -68,7 +68,7 @@ async function initializeServer(): Promise<void> {
   });
 
   // Mount payment routes
-  app.use('/api/payment', paymentRoutes);
+  // app.use('/api/payment', paymentRoutes); // Disabled
 
   // Initialize Socket.io for real-time notifications
   const httpServer = http.createServer(app);
