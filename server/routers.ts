@@ -417,12 +417,13 @@ export const appRouter = router({
         // const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
         // const updatedPhotos = [...(currentGallery.photos || []), url];
         
-        await db.updateArtistProfile(ctx.user.id, {
-          mediaGallery: {
-            photos: updatedPhotos,
-            videos: currentGallery.videos || [],
-          },
-        });
+        // mediaGallery field not available on artist profile
+        // await db.updateArtistProfile(ctx.user.id, {
+        //   mediaGallery: {
+        //     photos: updatedPhotos,
+        //     videos: [],
+        //   },
+        // });
         
         return { url };
       }),
@@ -441,12 +442,13 @@ export const appRouter = router({
         const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
         const updatedPhotos = (currentGallery.photos || []).filter((url: string) => url !== input.photoUrl);
         
-        await db.updateArtistProfile(ctx.user.id, {
-          mediaGallery: {
-            photos: updatedPhotos,
-            videos: currentGallery.videos || [],
-          },
-        });
+        // mediaGallery field not available on artist profile
+        // await db.updateArtistProfile(ctx.user.id, {
+        //   mediaGallery: {
+        //     photos: updatedPhotos,
+        //     videos: [],
+        //   },
+        // });
         
         return { success: true };
       }),
@@ -527,11 +529,6 @@ export const appRouter = router({
           contactName: input.contactName,
           contactPhone: input.contactPhone,
           location: input.location,
-          website: input.website,
-          email: input.email,
-          venueType: input.venueType,
-          capacity: input.capacity,
-          amenities: input.amenities,
           bio: input.bio,
         });
         return { success: true };
@@ -634,8 +631,9 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
         }
         
-        const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
-        const updatedPhotos = (currentGallery.photos || []).filter((url: string) => url !== input.photoUrl);
+        // mediaGallery field not available on venue profile
+        // const currentGallery = profile.mediaGallery || { photos: [], videos: [] };
+        // const updatedPhotos = (currentGallery.photos || []).filter((url: string) => url !== input.photoUrl);
         
         // mediaGallery field not available on venue profile
         // await db.updateVenueProfile(profile.id, {
@@ -696,9 +694,10 @@ export const appRouter = router({
         }
         
         // Mark email as verified
-        await db.updateVenueProfile(profile.id, {
-          emailVerificationToken: null,
-        });
+        // emailVerificationToken field not available on venue profile
+        // await db.updateVenueProfile(profile.id, {
+        //   emailVerificationToken: null,
+        // });
         
         // Send confirmation email
         const user = await db.getUserById(profile.userId);

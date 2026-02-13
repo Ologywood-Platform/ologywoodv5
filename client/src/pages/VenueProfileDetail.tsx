@@ -207,7 +207,7 @@ export default function VenueProfileDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {venue.amenities.map(amenity => (
+                  {venue.amenities.map((amenity: any) => (
                     <Badge key={amenity} variant="outline" className="justify-center py-2">
                       {amenity}
                     </Badge>
@@ -223,7 +223,7 @@ export default function VenueProfileDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {venue.mediaGallery.map((photo, idx) => (
+                  {venue.mediaGallery.map((photo: any, idx: number) => (
                     <div key={idx} className="aspect-square overflow-hidden rounded-lg">
                       <img
                         src={photo}
@@ -242,7 +242,7 @@ export default function VenueProfileDetail() {
                 <CardTitle>Reviews</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {venue.reviews.map(review => (
+                {venue.reviews.map((review: any) => (
                   <div key={review.id} className="border-b pb-6 last:border-0">
                     <div className="flex items-start justify-between mb-2">
                       <div>

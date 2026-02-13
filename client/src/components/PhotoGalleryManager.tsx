@@ -120,7 +120,7 @@ export function PhotoGalleryManager({ role }: PhotoGalleryManagerProps) {
           {/* Photo Grid */}
           {photos.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {photos.map((photoUrl, index) => (
+              {photos.map((photoUrl: any, index: number) => (
                 <div key={index} className="relative group">
                   <img
                     src={photoUrl}

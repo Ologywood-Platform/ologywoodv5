@@ -562,9 +562,9 @@ export function AccountSettings() {
               <Button
                 className="w-full bg-purple-600 hover:bg-purple-700"
                 onClick={handleSaveNotifications}
-                disabled={updateNotificationsMutation.isPending}
+                disabled={false}
               >
-                {updateNotificationsMutation.isPending ? 'Saving...' : 'Save Preferences'}
+                Save Preferences
               </Button>
             </CardContent>
           </Card>

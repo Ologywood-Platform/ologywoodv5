@@ -26,13 +26,13 @@ export function PhotoManagement({
   const [isUploading, setIsUploading] = useState(false);
 
   const uploadPhotoMutation = trpc.photo.upload.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success("Profile photo updated successfully");
       setSelectedFile(null);
       setPreviewUrl(null);
       onPhotoUpdate?.(data.url);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to upload photo");
       setIsUploading(false);
     },
@@ -44,7 +44,7 @@ export function PhotoManagement({
       setPreviewUrl(null);
       onPhotoUpdate?.(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to delete photo");
     },
   });

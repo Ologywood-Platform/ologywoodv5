@@ -163,7 +163,7 @@ export function validateForm<T>(schema: z.ZodSchema<T>, data: unknown): { valid:
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors: Record<string, string> = {};
-      error.errors.forEach((err) => {
+      error.errors.forEach((err: any) => {
         const path = err.path.join('.');
         errors[path] = err.message;
       });

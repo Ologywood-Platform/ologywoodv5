@@ -14,7 +14,7 @@ export default function RoleSelection() {
   const [, navigate] = useLocation();
 
   const updateRole = trpc.auth.updateRole.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success(`Account set up as ${data.role}`);
       // Navigate to appropriate onboarding
       if (data.role === 'artist') {
@@ -23,7 +23,7 @@ export default function RoleSelection() {
         navigate("/onboarding/venue");
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to update role");
     },
   });

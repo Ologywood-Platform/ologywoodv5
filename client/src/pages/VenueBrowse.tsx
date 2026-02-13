@@ -199,7 +199,7 @@ export default function VenueBrowse() {
                     )}
                     {venue.amenities && venue.amenities.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {venue.amenities.slice(0, 3).map((amenity) => (
+                        {venue.amenities.slice(0, 3).map((amenity: any) => (
                           <Badge key={amenity} variant="secondary" className="text-xs">
                             {amenity}
                           </Badge>

@@ -42,7 +42,7 @@ export default function VenueOnboarding() {
       toast.success("Profile created successfully!");
       navigate("/dashboard");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to create profile");
     },
   });

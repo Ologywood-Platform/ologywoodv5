@@ -27,24 +27,24 @@ export function MediaGalleryManager({
   const [isUploading, setIsUploading] = useState(false);
 
   const uploadPhotosMutation = trpc.photo.uploadMultiple.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success("Photos uploaded successfully");
       setSelectedFiles([]);
       setPreviewUrls([]);
       onPhotosUpdate?.(data.urls);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to upload photos");
       setIsUploading(false);
     },
   });
 
   const deletePhotoMutation = trpc.photo.deleteFromGallery.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success("Photo removed from gallery");
       onPhotosUpdate?.(data.remainingPhotos);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to delete photo");
     },
   });

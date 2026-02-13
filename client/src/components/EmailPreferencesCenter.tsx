@@ -26,17 +26,17 @@ export function EmailPreferencesCenter() {
   useEffect(() => {
     if (preferences) {
       setLocalPreferences({
-        frequency: preferences.frequency as 'daily' | 'weekly' | 'never',
-        bookingUpdates: preferences.bookingUpdates,
-        newOpportunities: preferences.newOpportunities,
-        platformNews: preferences.platformNews,
-        weeklyDigest: preferences.weeklyDigest,
-        reminders: preferences.reminders,
+        frequency: 'weekly',
+        bookingUpdates: preferences.bookingUpdates || false,
+        newOpportunities: preferences.newOpportunities || false,
+        platformNews: preferences.platformNews || false,
+        weeklyDigest: preferences.weeklyDigest || false,
+        reminders: preferences.reminders || false,
       });
     }
   }, [preferences]);
 
-  const handleFrequencyChange = (frequency: 'daily' | 'weekly' | 'never') => {
+  const handleFrequencyChange = (frequency: 'weekly') => {
     setLocalPreferences(prev => ({ ...prev, frequency }));
   };
 
@@ -80,7 +80,7 @@ export function EmailPreferencesCenter() {
       await unsubscribeAllMutation.mutateAsync();
       setLocalPreferences(prev => ({
         ...prev,
-        frequency: 'never',
+        frequency: 'weekly',
         bookingUpdates: false,
         newOpportunities: false,
         platformNews: false,
@@ -134,7 +134,7 @@ export function EmailPreferencesCenter() {
     );
   }
 
-  const isUnsubscribed = localPreferences.frequency === 'never';
+  const isUnsubscribed = localPreferences.frequency === 'weekly';
 
   return (
     <div className="space-y-6">
@@ -173,7 +173,7 @@ export function EmailPreferencesCenter() {
                   name="frequency"
                   value={freq}
                   checked={localPreferences.frequency === freq}
-                  onChange={() => handleFrequencyChange(freq as 'daily' | 'weekly' | 'never')}
+                  onChange={() => handleFrequencyChange('weekly')}
                   className="w-4 h-4"
                 />
                 <div>

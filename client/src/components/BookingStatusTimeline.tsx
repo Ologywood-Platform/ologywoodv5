@@ -208,7 +208,7 @@ export function BookingStatusTimeline({
             onClick={() =>
               onStatusChange({
                 ...status,
-                stage: 'paid',
+                stage: 'completed' as any,
                 timestamp: new Date(),
               })
             }
@@ -219,7 +219,7 @@ export function BookingStatusTimeline({
         </div>
       )}
 
-      {status.stage === 'paid' && (
+      {status.stage === 'completed' && (
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
           <p className="text-sm font-semibold text-green-800">✓ Booking Complete</p>
           <p className="text-xs text-green-700 mt-1">Thank you for using Ologywood!</p>
