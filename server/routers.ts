@@ -467,43 +467,43 @@ export const appRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const db = getDb();
-      if (!db) throw new Error('Database connection failed');
+      const database = db.getDb();
+      if (!database) throw new Error('Database connection failed');
 
       try {
         console.log('🔎 VENUE SEARCH CALLED');
         console.log('Input:', input);
 
         // DIAGNOSTIC: Get raw count first
-        const rawCount = await db.select().from(venueProfiles);
+        const rawCount = await database.select().from(db.venueProfiles);
         console.log('📦 RAW DB RESULT COUNT (no filters):', rawCount.length);
         console.log('📦 Raw venues:', rawCount.map(v => ({ id: v.id, name: v.organizationName, isListed: v.isListed })));
 
         const conditions = [];
 
         // Only show listed venues
-        conditions.push(eq(venueProfiles.isListed, true));
+        conditions.push(eq(db.venueProfiles.isListed, true));
         console.log('✅ Added isListed filter');
 
         // Search by name or bio
         if (input.searchQuery) {
           conditions.push(
-            like(venueProfiles.organizationName, `%${input.searchQuery}%`)
+            like(db.venueProfiles.organizationName, `%${input.searchQuery}%`)
           );
           console.log('✅ Added searchQuery filter:', input.searchQuery);
         }
 
         // Filter by location
         if (input.location) {
-          conditions.push(like(venueProfiles.location, `%${input.location}%`));
+          conditions.push(like(db.venueProfiles.location, `%${input.location}%`));
           console.log('✅ Added location filter:', input.location);
         }
 
         console.log('🧠 Conditions count:', conditions.length);
 
-        const venues = await db
+        const venues = await database
           .select()
-          .from(venueProfiles)
+          .from(db.venueProfiles)
           .where(and(...conditions))
           .limit(input.limit)
           .offset(input.offset);
