@@ -116,12 +116,12 @@ export function VenueInvoiceDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Recent Invoices</CardTitle>
-              <CardDescription>{invoices?.length || 0} invoice(s)</CardDescription>
+              <CardDescription>{((invoices as any)?.success ? invoices.data : invoices)?.length || 0} invoice(s)</CardDescription>
             </CardHeader>
             <CardContent>
-              {invoices && invoices.length > 0 ? (
+              {((invoices as any)?.success ? invoices.data : invoices) && ((invoices as any)?.success ? invoices.data : invoices)?.length > 0 ? (
                 <div className="space-y-2">
-                  {invoices.map((invoice: any) => (
+                  {((invoices as any)?.success ? invoices.data : invoices)?.map?.((invoice: any) => (
                     <div
                       key={invoice.id}
                       className="flex items-center justify-between p-3 border border-slate-200 rounded-lg"

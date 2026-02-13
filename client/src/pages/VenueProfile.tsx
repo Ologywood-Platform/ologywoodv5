@@ -95,7 +95,7 @@ export default function VenueProfile() {
     );
   }
 
-  const isVenueOwner = user?.role === 'venue' && venueProfile.userId === user.id;
+  const isVenueOwner = user?.role === 'venue' && (venueProfile as any)?.userId === user.id;
 
   return (
     <div className="min-h-screen bg-background">
