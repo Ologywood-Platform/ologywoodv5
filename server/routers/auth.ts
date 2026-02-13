@@ -70,7 +70,7 @@ export const authRouter = router({
         const user = userResult[0];
 
         // Check if already verified
-        if ((user as any).emailVerified) {
+        if (user?.emailVerified) {
           return {
             success: false,
             message: 'Email is already verified',
@@ -128,7 +128,7 @@ export const authRouter = router({
           emailVerified: false,
         });
 
-        const newUserId = (result as any).insertId;
+        const newUserId = (result as any).insertId; // TODO: Fix Drizzle insert return type
         const newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
 
         if (!newUser || newUser.length === 0) {
@@ -199,7 +199,7 @@ export const authRouter = router({
             email: user.email,
             name: user.name,
             role: user.role,
-            emailVerified: (user as any).emailVerified,
+            emailVerified: user?.emailVerified ?? false,
           },
           message: 'Logged in successfully',
         };

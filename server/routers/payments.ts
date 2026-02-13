@@ -117,7 +117,7 @@ export const paymentsRouter = router({
         return {
           success: true,
           bookingId: input.bookingId,
-          status: (booking[0] as any).status,
+          status: booking[0]?.status,
           message: 'Payment status retrieved',
         };
       } catch (error) {
@@ -188,9 +188,9 @@ export const paymentsRouter = router({
           success: true,
           payments: userBookings.map(b => ({
             id: b.id,
-            status: (b as any).status,
-            amount: (b as any).budget,
-            date: (b as any).eventDate,
+            status: b.status,
+            amount: b.totalFee,
+            date: b.eventDate,
             description: `Booking #${b.id}`,
           })),
         };
