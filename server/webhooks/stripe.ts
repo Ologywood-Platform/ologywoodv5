@@ -71,6 +71,36 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         break;
       }
 
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentSucceeded(paymentIntent);
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentIntentFailed(paymentIntent);
+        break;
+      }
+
+      case 'charge.refunded': {
+        const charge = event.data.object as Stripe.Charge;
+        await handleChargeRefunded(charge);
+        break;
+      }
+
+      case 'payout.paid': {
+        const payout = event.data.object as Stripe.Payout;
+        await handlePayoutPaid(payout);
+        break;
+      }
+
+      case 'payout.failed': {
+        const payout = event.data.object as Stripe.Payout;
+        await handlePayoutFailed(payout);
+        break;
+      }
+
       default:
         console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
     }
@@ -198,6 +228,113 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       await db.updateSubscriptionStatus(parseInt(userId), 'past_due');
     }
   }
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  const bookingId = paymentIntent.metadata?.bookingId;
+  if (!bookingId) return;
+
+  console.log(`[Stripe Webhook] Payment succeeded for booking ${bookingId}`);
+  // Update booking payment status
+  const database = await db.getDb();
+  if (!database) return;
+  
+  const { bookings } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  await database
+    .update(bookings)
+    .set({
+      paymentStatus: 'fully_paid',
+      stripePaymentIntentId: paymentIntent.id,
+    })
+    .where(eq(bookings.id, parseInt(bookingId)));
+}
+
+async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+  const bookingId = paymentIntent.metadata?.bookingId;
+  if (!bookingId) return;
+
+  console.log(`[Stripe Webhook] Payment failed for booking ${bookingId}`);
+  const database = await db.getDb();
+  if (!database) return;
+  
+  const { bookings } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  await database
+    .update(bookings)
+    .set({ paymentStatus: 'unpaid' })
+    .where(eq(bookings.id, parseInt(bookingId)));
+}
+
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  const paymentIntentId = charge.payment_intent as string | null;
+  if (!paymentIntentId) return;
+
+  console.log(`[Stripe Webhook] Charge refunded: ${charge.id}`);
+  const database = await db.getDb();
+  if (!database) return;
+  
+  const { bookings } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  const bookingResults = await database
+    .select()
+    .from(bookings)
+    .where(eq(bookings.stripePaymentIntentId, paymentIntentId))
+    .limit(1);
+  
+  if (bookingResults.length > 0) {
+    await database
+      .update(bookings)
+      .set({
+        paymentStatus: 'refunded',
+        stripeRefundId: charge.id,
+      })
+      .where(eq(bookings.id, bookingResults[0].id));
+  }
+}
+
+async function handlePayoutPaid(payout: Stripe.Payout) {
+  const artistId = payout.metadata?.artistId;
+  if (!artistId) return;
+
+  console.log(`[Stripe Webhook] Payout paid for artist ${artistId}`);
+  const database = await db.getDb();
+  if (!database) return;
+  
+  const { artistPayouts } = await import('../../drizzle/schema');
+  
+  await database.insert(artistPayouts).values({
+    artistId: parseInt(artistId),
+    stripeTransferId: payout.id,
+    amount: (payout.amount / 100).toString(),
+    status: 'completed',
+    payoutMethod: 'stripe_connect',
+    completedAt: new Date(payout.arrival_date * 1000),
+  });
+}
+
+async function handlePayoutFailed(payout: Stripe.Payout) {
+  const artistId = payout.metadata?.artistId;
+  if (!artistId) return;
+
+  console.log(`[Stripe Webhook] Payout failed for artist ${artistId}`);
+  const database = await db.getDb();
+  if (!database) return;
+  
+  const { artistPayouts } = await import('../../drizzle/schema');
+  const payoutData = payout as any;
+  
+  await database.insert(artistPayouts).values({
+    artistId: parseInt(artistId),
+    stripeTransferId: payout.id,
+    amount: (payout.amount / 100).toString(),
+    status: 'failed',
+    payoutMethod: 'stripe_connect',
+    notes: payoutData.failure_reason || 'Unknown failure',
+  });
 }
 
 function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due' {
