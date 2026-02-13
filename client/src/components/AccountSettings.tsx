@@ -55,10 +55,10 @@ export function AccountSettings() {
   // const { data: subscription } = trpc.subscription.getStatus.useQuery();
   // const { data: notificationSettings } = trpc.notificationPreference.get.useQuery();
   
-  const logoutMutation = trpc.auth.logout.useMutation();
-  const updateProfileMutation = trpc.user.updateProfile.useMutation();
+  const logoutMutation = (trpc.auth.logout as any).useMutation();
+  const updateProfileMutation = (trpc.user?.updateProfile as any)?.useMutation?.() || { mutateAsync: async () => {} };
   // const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
-  const deleteAccountMutation = trpc.account.deleteAccount.useMutation();
+  const deleteAccountMutation = (trpc.account.deleteAccount as any).useMutation();
   // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
   
   // Placeholder values

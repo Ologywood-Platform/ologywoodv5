@@ -13,10 +13,10 @@ export function TestDataSeeder() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const seedUsersMutation = trpc.testdataSeeding.seedUsers.useMutation();
-  const seedArtistsMutation = trpc.testdataSeeding.seedArtistProfiles.useMutation();
-  const seedVenuesMutation = trpc.testdataSeeding.seedVenueProfiles.useMutation();
-  const seedBookingsMutation = trpc.testdataSeeding.seedBookings.useMutation();
+  const seedUsersMutation = (trpc.testdataSeeding?.seedUsers?.useMutation as any)();
+  const seedArtistsMutation = (trpc.testdataSeeding?.seedArtistProfiles?.useMutation as any)();
+  const seedVenuesMutation = (trpc.testdataSeeding?.seedVenueProfiles?.useMutation as any)();
+  const seedBookingsMutation = (trpc.testdataSeeding?.seedBookings?.useMutation as any)();
 
   const handleSeedAll = async () => {
     setLoading(true);

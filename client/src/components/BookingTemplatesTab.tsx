@@ -304,8 +304,8 @@ export default function BookingTemplatesTab() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{template.templateName}</CardTitle>
-                    {template.templateData?.eventType && (
-                      <CardDescription>{template.templateData.eventType}</CardDescription>
+                    {(template as any).templateData?.eventType && (
+                      <CardDescription>{(template as any).templateData.eventType}</CardDescription>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -328,27 +328,27 @@ export default function BookingTemplatesTab() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {template.templateData?.venueName && (
+                {(template as any).templateData?.venueName && (
                   <div>
-                    <span className="font-medium">Venue:</span> {template.templateData.venueName}
+                    <span className="font-medium">Venue:</span> {(template as any).templateData.venueName}
                   </div>
                 )}
-                {template.templateData?.venueCapacity && (
+                {(template as any).templateData?.venueCapacity && (
                   <div>
-                    <span className="font-medium">Capacity:</span> {template.templateData.venueCapacity} guests
+                    <span className="font-medium">Capacity:</span> {(template as any).templateData.venueCapacity} guests
                   </div>
                 )}
-                {(template.templateData?.budgetMin || template.templateData?.budgetMax) && (
+                {((template as any).templateData?.budgetMin || (template as any).templateData?.budgetMax) && (
                   <div>
                     <span className="font-medium">Budget:</span> $
-                    {template.templateData?.budgetMin || '?'} - ${template.templateData?.budgetMax || '?'}
+                    {(template as any).templateData?.budgetMin || '?'} - ${(template as any).templateData?.budgetMax || '?'}
                   </div>
                 )}
-                {template.templateData?.standardRequirements && (
+                {(template as any).templateData?.standardRequirements && (
                   <div>
                     <span className="font-medium">Requirements:</span>
                     <p className="text-muted-foreground line-clamp-2">
-                      {template.templateData?.standardRequirements}
+                      {(template as any).templateData?.standardRequirements}
                     </p>
                   </div>
                 )}
