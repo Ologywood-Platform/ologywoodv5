@@ -146,7 +146,7 @@ export const appRouter = router({
           reason: null,
         };
       }),
-  }),
+  } as any),
   emailPreferences: emailPreferencesRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
@@ -210,7 +210,7 @@ export const appRouter = router({
         return { role: input.role };
       }),
     ...authRouter,
-  }),
+  } as any),
 
   // Artist Profile Management
   artist: router({
