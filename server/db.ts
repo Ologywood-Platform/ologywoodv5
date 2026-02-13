@@ -547,8 +547,13 @@ export async function createRiderTemplate(template: InsertRiderTemplate) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(riderTemplates).values(template);
-  return result;
+  await db.insert(riderTemplates).values(template);
+  // Get the last inserted template
+  const result = await db.select().from(riderTemplates)
+    .where(eq(riderTemplates.artistId, template.artistId))
+    .orderBy(desc(riderTemplates.createdAt))
+    .limit(1);
+  return result[0];
 }
 
 export async function getRiderTemplatesByArtistId(artistId: number) {
@@ -571,6 +576,9 @@ export async function updateRiderTemplate(id: number, updates: Partial<RiderTemp
   if (!db) throw new Error("Database not available");
   
   await db.update(riderTemplates).set(updates).where(eq(riderTemplates.id, id));
+  // Return the updated template
+  const result = await db.select().from(riderTemplates).where(eq(riderTemplates.id, id)).limit(1);
+  return result[0];
 }
 
 export async function deleteRiderTemplate(id: number) {
