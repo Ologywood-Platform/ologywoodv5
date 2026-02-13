@@ -14,16 +14,8 @@ interface Venue {
   id: number;
   organizationName: string;
   location: string;
-  venueType?: string;
-  capacity?: number;
-  amenities?: string[];
-  profilePhotoUrl?: string;
-  averageRating: number;
-  reviewCount: number;
   bio?: string;
-  website?: string;
   contactPhone?: string;
-  email?: string;
 }
 
 export default function VenueBrowse() {
@@ -31,20 +23,12 @@ export default function VenueBrowse() {
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [minCapacity, setMinCapacity] = useState<number | undefined>();
-  const [maxCapacity, setMaxCapacity] = useState<number | undefined>();
-  const [minRating, setMinRating] = useState<number | undefined>();
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showSignupModal, setShowSignupModal] = useState(false);
 
   // Fetch venues from database
   const { data: venues = [], isLoading } = trpc.venue.search.useQuery({
     location: selectedLocation || undefined,
-    venueType: selectedType || undefined,
-    minCapacity: minCapacity,
-    maxCapacity: maxCapacity,
-    minRating: minRating,
     searchQuery: searchQuery || undefined,
     limit: 50,
   });
@@ -71,10 +55,6 @@ export default function VenueBrowse() {
   };
 
   const handleViewProfile = (venueId: number) => {
-    // Track view
-    trpc.venue.incrementViews.mutate({ venueId }).catch(() => {
-      // Silently fail - just analytics
-    });
     navigate(`/venue/${venueId}`);
   };
 
@@ -133,7 +113,7 @@ export default function VenueBrowse() {
             </div>
 
             {/* Filters Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Location Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2">Location</label>
@@ -144,51 +124,6 @@ export default function VenueBrowse() {
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
-              </div>
-
-              {/* Venue Type Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Venue Type</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">All Types</option>
-                  {venueTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Min Capacity */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Min Capacity</label>
-                <input
-                  type="number"
-                  placeholder="Minimum"
-                  value={minCapacity || ''}
-                  onChange={(e) => setMinCapacity(e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              {/* Min Rating */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Min Rating</label>
-                <select
-                  value={minRating || ''}
-                  onChange={(e) => setMinRating(e.target.value ? parseFloat(e.target.value) : undefined)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Any Rating</option>
-                  <option value="3">3+ Stars</option>
-                  <option value="3.5">3.5+ Stars</option>
-                  <option value="4">4+ Stars</option>
-                  <option value="4.5">4.5+ Stars</option>
-                </select>
               </div>
             </div>
           </CardContent>
@@ -215,9 +150,6 @@ export default function VenueBrowse() {
               onClick={() => {
                 setSearchQuery('');
                 setSelectedLocation('');
-                setSelectedType('');
-                setMinCapacity(undefined);
-                setMinRating(undefined);
               }}
               className="mt-4"
             >
@@ -229,16 +161,7 @@ export default function VenueBrowse() {
             {filteredVenues.map((venue) => (
               <Card key={venue.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 {/* Venue Image */}
-                {venue.profilePhotoUrl && (
-                  <div className="relative h-48 bg-gray-200 overflow-hidden">
-                    <LazyImage
-                      src={venue.profilePhotoUrl}
-                      alt={venue.organizationName}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      onClick={() => handleViewProfile(venue.id)}
-                    />
-                  </div>
-                )}
+
 
                 <CardHeader>
                   <div className="flex justify-between items-start gap-2">
@@ -254,21 +177,12 @@ export default function VenueBrowse() {
                         {venue.location}
                       </div>
                     </div>
-                    {venue.averageRating > 0 && (
-                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{venue.averageRating.toFixed(1)}</span>
-                        <span className="text-xs text-gray-600">({venue.reviewCount})</span>
-                      </div>
-                    )}
+
                   </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  {/* Venue Details */}
-                  {venue.venueType && (
-                    <Badge variant="outline">{venue.venueType}</Badge>
-                  )}
+
 
                   {/* Bio */}
                   {venue.bio && (

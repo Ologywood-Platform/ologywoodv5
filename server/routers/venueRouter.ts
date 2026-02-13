@@ -14,10 +14,6 @@ export const venueRouter = router({
     .input(
       z.object({
         location: z.string().optional(),
-        venueType: z.string().optional(),
-        minCapacity: z.number().optional(),
-        maxCapacity: z.number().optional(),
-        minRating: z.number().optional(),
         searchQuery: z.string().optional(),
         limit: z.number().default(20),
         offset: z.number().default(0),
@@ -45,29 +41,12 @@ export const venueRouter = router({
           conditions.push(like(venueProfiles.location, `%${input.location}%`));
         }
 
-        // Filter by venue type
-        if (input.venueType) {
-          conditions.push(eq(venueProfiles.venueType, input.venueType));
-        }
 
-        // Filter by capacity
-        if (input.minCapacity) {
-          conditions.push(gte(venueProfiles.capacity, input.minCapacity));
-        }
-        if (input.maxCapacity) {
-          conditions.push(lte(venueProfiles.capacity, input.maxCapacity));
-        }
-
-        // Filter by rating
-        if (input.minRating) {
-          conditions.push(gte(venueProfiles.averageRating, input.minRating));
-        }
 
         const venues = await db
           .select()
           .from(venueProfiles)
           .where(and(...conditions))
-          .orderBy(desc(venueProfiles.averageRating))
           .limit(input.limit)
           .offset(input.offset);
 
@@ -75,16 +54,8 @@ export const venueRouter = router({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,
-          venueType: venue.venueType,
-          capacity: venue.capacity,
-          amenities: venue.amenities || [],
-          profilePhotoUrl: venue.profilePhotoUrl,
-          averageRating: Number(venue.averageRating) || 0,
-          reviewCount: venue.reviewCount || 0,
           bio: venue.bio,
-          website: venue.website,
           contactPhone: venue.contactPhone,
-          email: venue.email,
         }));
       } catch (error) {
         console.error('[Venue Search] Error searching venues:', error);
@@ -125,17 +96,8 @@ export const venueRouter = router({
           id: venueData.id,
           organizationName: venueData.organizationName,
           location: venueData.location,
-          venueType: venueData.venueType,
-          capacity: venueData.capacity,
-          amenities: venueData.amenities || [],
-          profilePhotoUrl: venueData.profilePhotoUrl,
-          mediaGallery: venueData.mediaGallery,
-          averageRating: Number(venueData.averageRating) || 0,
-          reviewCount: venueData.reviewCount || 0,
           bio: venueData.bio,
-          website: venueData.website,
           contactPhone: venueData.contactPhone,
-          email: venueData.email,
           reviews: reviews.map((r) => ({
             id: r.id,
             rating: r.rating,
@@ -171,16 +133,8 @@ export const venueRouter = router({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,
-          venueType: venue.venueType,
-          capacity: venue.capacity,
-          amenities: venue.amenities || [],
-          profilePhotoUrl: venue.profilePhotoUrl,
-          averageRating: Number(venue.averageRating) || 0,
-          reviewCount: venue.reviewCount || 0,
           bio: venue.bio,
-          website: venue.website,
           contactPhone: venue.contactPhone,
-          email: venue.email,
         }));
       } catch (error) {
         console.error('[Featured Venues] Error fetching featured venues:', error);
@@ -208,23 +162,14 @@ export const venueRouter = router({
               like(venueProfiles.location, `%${input.location}%`)
             )
           )
-          .orderBy(desc(venueProfiles.averageRating))
           .limit(input.limit);
 
         return venues.map((venue) => ({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,
-          venueType: venue.venueType,
-          capacity: venue.capacity,
-          amenities: venue.amenities || [],
-          profilePhotoUrl: venue.profilePhotoUrl,
-          averageRating: Number(venue.averageRating) || 0,
-          reviewCount: venue.reviewCount || 0,
           bio: venue.bio,
-          website: venue.website,
           contactPhone: venue.contactPhone,
-          email: venue.email,
         }));
       } catch (error) {
         console.error('[Venues by Location] Error fetching venues:', error);
@@ -251,39 +196,5 @@ export const venueRouter = router({
     ];
   }),
 
-  /**
-   * Increment venue listing views
-   * Public endpoint - tracks analytics
-   */
-  incrementViews: publicProcedure
-    .input(z.object({ venueId: z.number() }))
-    .mutation(async ({ input }) => {
-      const db = getDb();
-      if (!db) throw new Error('Database connection failed');
 
-      try {
-        const venue = await db
-          .select()
-          .from(venueProfiles)
-          .where(eq(venueProfiles.id, input.venueId))
-          .limit(1);
-
-        if (!venue.length) {
-          throw new Error('Venue not found');
-        }
-
-        const currentViews = venue[0].listingViews || 0;
-
-        await db
-          .update(venueProfiles)
-          .set({ listingViews: currentViews + 1 })
-          .where(eq(venueProfiles.id, input.venueId));
-
-        return { success: true };
-      } catch (error) {
-        console.error('[Increment Views] Error:', error);
-        // Don't throw - this is just analytics
-        return { success: false };
-      }
-    }),
 });
