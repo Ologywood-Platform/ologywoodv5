@@ -117,20 +117,20 @@ export default function ArtistProfile() {
     const template = templates.find(t => t.id === parseInt(templateId));
     if (template) {
       setSelectedTemplate(template.id);
-      setVenueName(template.templateData?.venueName || "");
-      setVenueAddress(template.templateData?.venueAddress || "");
+      setVenueName((template as any).templateData?.venueName || "");
+      setVenueAddress((template as any).templateData?.venueAddress || "");
       
       // Build event details from template
       let details = "";
-      if (template.templateData?.eventType) details += `Event Type: ${template.templateData.eventType}\n`;
-      if (template.templateData?.venueCapacity) details += `Capacity: ${template.templateData.venueCapacity} guests\n`;
-      if (template.templateData?.standardRequirements) details += `\nRequirements:\n${template.templateData.standardRequirements}\n`;
-      if (template.templateData?.additionalNotes) details += `\nAdditional Notes:\n${template.templateData.additionalNotes}`;
+      if ((template as any).templateData?.eventType) details += `Event Type: ${(template as any).templateData.eventType}\n`;
+      if ((template as any).templateData?.venueCapacity) details += `Capacity: ${(template as any).templateData.venueCapacity} guests\n`;
+      if ((template as any).templateData?.standardRequirements) details += `\nRequirements:\n${(template as any).templateData.standardRequirements}\n`;
+      if ((template as any).templateData?.additionalNotes) details += `\nAdditional Notes:\n${(template as any).templateData.additionalNotes}`;
       setEventDetails(details);
       
       // Set budget if available
-      if (template.templateData?.budgetMax) {
-        setTotalFee(template.templateData.budgetMax.toString());
+      if ((template as any).templateData?.budgetMax) {
+        setTotalFee((template as any).templateData.budgetMax.toString());
       }
     }
   };

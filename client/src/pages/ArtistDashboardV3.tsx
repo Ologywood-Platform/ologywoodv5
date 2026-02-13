@@ -55,7 +55,7 @@ export function ArtistDashboardV3() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Artist Dashboard</h1>
-              <p className="text-sm text-slate-600">{artistProfile?.stageName || 'Welcome'}</p>
+              <p className="text-sm text-slate-600">{artistProfile?.artistName || artistProfile?.stageName || 'Welcome'}</p>
             </div>
           </div>
 
@@ -89,9 +89,9 @@ export function ArtistDashboardV3() {
                       />
                     )}
                     <div>
-                      <CardTitle className="text-2xl">{artistProfile?.stageName || 'Artist'}</CardTitle>
+                      <CardTitle className="text-2xl">{artistProfile?.artistName || artistProfile?.stageName || 'Artist'}</CardTitle>
                       <CardDescription>{artistProfile?.genre || 'Genre not specified'}</CardDescription>
-                      {artistProfile?.averageRating && (
+                      {(artistProfile as any)?.averageRating && (
                         <div className="flex items-center gap-1 mt-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm font-semibold">{artistProfile.averageRating.toFixed(1)}</span>
