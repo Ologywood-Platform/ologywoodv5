@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import { reviews, venueReviews } from "@/drizzle/schema";
+import { reviews, venueReviews } from "../drizzle/schema";
 import { eq, avg } from "drizzle-orm";
 
 /**

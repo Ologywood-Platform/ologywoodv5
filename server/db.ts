@@ -27,84 +27,8 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// ============= CALENDAR EVENT FUNCTIONS =============
-
-export async function createCalendarEvent(data: InsertCalendarEvent): Promise<CalendarEvent> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-  
-  const result = await db.insert(calendarEvents).values(data);
-  const eventId = (result as any).insertId;
-  const event = await db.select().from(calendarEvents).where(eq(calendarEvents.id as any, eventId)).limit(1);
-  return event[0] as CalendarEvent;
-}
-
-export async function getCalendarEventById(id: number): Promise<CalendarEvent | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(calendarEvents).where(eq(calendarEvents.id as any, id)).limit(1);
-  return result[0];
-}
-
-export async function getCalendarEventsByUserId(userId: number, startDate?: string, endDate?: string): Promise<CalendarEvent[]> {
-  const db = await getDb();
-  if (!db) return [];
-  
-  let conditions = [eq(calendarEvents.userId as any, userId)];
-  
-  if (startDate) {
-    conditions.push(gte(calendarEvents.startDate as any, startDate));
-  }
-  if (endDate) {
-    conditions.push(lte(calendarEvents.endDate as any, endDate));
-  }
-  
-  return await db.select().from(calendarEvents)
-    .where(and(...conditions))
-    .orderBy(asc(calendarEvents.startDate as any));
-}
-
-export async function updateCalendarEvent(id: number, data: Partial<InsertCalendarEvent>): Promise<CalendarEvent | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  
-  await db.update(calendarEvents)
-    .set(data)
-    .where(eq(calendarEvents.id as any, id));
-  
-  return getCalendarEventById(id);
-}
-
-export async function deleteCalendarEvent(id: number): Promise<boolean> {
-  const db = await getDb();
-  if (!db) return false;
-  
-  const result = await db.delete(calendarEvents)
-    .where(eq(calendarEvents.id as any, id));
-  
-  return (result as any).affectedRows > 0;
-}
-
-export async function createCalendarSyncToken(data: InsertCalendarSyncToken): Promise<CalendarSyncToken> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-  
-  const result = await db.insert(calendarSyncTokens).values(data);
-  const tokenId = (result as any).insertId;
-  const token = await db.select().from(calendarSyncTokens).where(eq(calendarSyncTokens.id as any, tokenId)).limit(1);
-  return token[0] as CalendarSyncToken;
-}
-
-export async function getCalendarSyncTokenByUserId(userId: number): Promise<CalendarSyncToken | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(calendarSyncTokens).where(eq(calendarSyncTokens.userId as any, userId)).limit(1);
-  return result[0];
-}
+// ============= CALENDAR EVENT FUNCTIONS (DEPRECATED) =============
+// Calendar functions removed - calendarRouter is deprecated and commented out in routers.ts
 
 // ============= CONTRACT FUNCTIONS =============
 

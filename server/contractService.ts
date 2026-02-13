@@ -221,8 +221,8 @@ class ContractService {
         },
       };
 
-      // Update booking with contract data
-      await db.updateBooking(bookingId, { riderData: riderData as any });
+      // Note: riderData is stored in contract, not booking
+      // Bookings table doesn't have riderData field
       console.log(`[ContractService] Contract attached to booking ${bookingId}`);
     } catch (error) {
       console.error('[ContractService] Error attaching contract to booking:', error);
@@ -261,13 +261,16 @@ class ContractService {
         ? bookingData.eventDate.toISOString().split('T')[0]
         : String(bookingData.eventDate);
 
+      // Fetch venue data
+      const venueData = await db.getVenueProfileById(bookingData.venueId);
+      
       const contractData: ContractData = {
         artistName: 'Artist Name',
-        venueName: bookingData.venueName,
-        venueContactName: 'Contact Name',
+        venueName: venueData?.organizationName || 'Venue Name',
+        venueContactName: venueData?.contactName || 'Contact Name',
         venueEmail: 'venue@example.com',
-        venuePhone: '(555) 123-4567',
-        venueAddress: bookingData.venueAddress || '',
+        venuePhone: venueData?.contactPhone || '(555) 123-4567',
+        venueAddress: venueData?.location || '',
         artistEmail: 'artist@example.com',
         artistPhone: '(555) 987-6543',
         eventDate: eventDate,
