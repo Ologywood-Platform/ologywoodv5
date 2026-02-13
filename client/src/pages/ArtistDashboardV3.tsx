@@ -193,7 +193,7 @@ export function ArtistDashboardV3() {
                         className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
                       >
                         <div>
-                          <p className="font-semibold text-sm">{booking.venueName}</p>
+                          <p className="font-semibold text-sm">Booking #{booking.id}</p>
                           <p className="text-xs text-slate-600">
                             {new Date(booking.eventDate).toLocaleDateString()}
                           </p>

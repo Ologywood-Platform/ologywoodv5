@@ -101,10 +101,10 @@ export default function Messages() {
         const conversation: Conversation = {
           id: booking.id,
           participantId: isArtist ? booking.venueId : booking.artistId,
-          participantName: isArtist ? booking.venueName : 'Artist',
+          participantName: isArtist ? `Venue #${booking.venueId}` : 'Artist',
           participantRole: isArtist ? 'venue' : 'artist',
           bookingId: booking.id,
-          bookingTitle: `${(booking as any).eventDetails || 'Booking'} - ${new Date(booking.eventDate).toLocaleDateString()}`,
+          bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
           unreadCount: 0,
         };
         convos.push(conversation);

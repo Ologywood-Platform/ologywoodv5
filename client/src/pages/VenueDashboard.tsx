@@ -35,8 +35,8 @@ export function VenueDashboard() {
     );
   }
 
-  const pendingBookings = bookings?.filter(b => b.status === 'pending') || [];
-  const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
+  const pendingBookings = bookings?.filter((b: any) => b.status === 'pending') || [];
+  const upcomingBookings = bookings?.filter((b: any) => new Date(b.eventDate) > new Date()) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -165,7 +165,7 @@ export function VenueDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {pendingBookings.slice(0, 3).map((booking) => (
+                    {pendingBookings.slice(0, 3).map((booking: any) => (
                       <div
                         key={booking.id}
                         className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200"
@@ -198,7 +198,7 @@ export function VenueDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {upcomingBookings.slice(0, 3).map((booking) => (
+                    {upcomingBookings.slice(0, 3).map((booking: any) => (
                       <div
                         key={booking.id}
                         className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"

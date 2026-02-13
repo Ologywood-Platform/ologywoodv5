@@ -79,8 +79,6 @@ export default function BookingMessagesEnhanced({ bookingId, currentUserId }: Bo
       bookingId,
       receiverId,
       messageText: messageText.trim(),
-      attachmentType: selectedFile ? fileType : undefined,
-      attachmentName: selectedFile ? selectedFile.name : undefined,
     });
 
     if (selectedFile) {
