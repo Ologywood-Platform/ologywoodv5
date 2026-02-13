@@ -220,7 +220,7 @@ export function ArtistDashboardV3() {
                 <CardContent className="pt-12 pb-12 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-4 opacity-30" />
                   <p className="text-slate-600 mb-4">No upcoming bookings yet</p>
-                  <Button onClick={() => navigate('/browse')}>
+                  <Button onClick={() => navigate('/venues')}>
                     Browse Venues
                   </Button>
                 </CardContent>
