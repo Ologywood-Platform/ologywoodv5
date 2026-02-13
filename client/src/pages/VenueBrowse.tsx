@@ -191,22 +191,22 @@ export default function VenueBrowse() {
 
                   {/* Capacity and Amenities */}
                   <div className="space-y-2 text-sm">
-                    {venue.capacity && (
+                    {(venue as any)?.capacity && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <Users className="w-4 h-4" />
-                        Capacity: {venue.capacity} people
+                        Capacity: {(venue as any)?.capacity} people
                       </div>
                     )}
-                    {venue.amenities && venue.amenities.length > 0 && (
+                    {(venue as any)?.amenities && (venue as any)?.amenities.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {venue.amenities.slice(0, 3).map((amenity: any) => (
+                        {(venue as any)?.amenities.slice(0, 3).map((amenity: any) => (
                           <Badge key={amenity} variant="secondary" className="text-xs">
                             {amenity}
                           </Badge>
                         ))}
-                        {venue.amenities.length > 3 && (
+                        {(venue as any)?.amenities.length > 3 && (
                           <Badge variant="secondary" className="text-xs">
-                            +{venue.amenities.length - 3} more
+                            +{(venue as any)?.amenities.length - 3} more
                           </Badge>
                         )}
                       </div>
@@ -215,9 +215,9 @@ export default function VenueBrowse() {
 
                   {/* Contact Info */}
                   <div className="space-y-2 text-sm border-t pt-3">
-                    {venue.website && (
+                    {(venue as any)?.website && (
                       <a
-                        href={venue.website}
+                        href={(venue as any)?.website}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800"

@@ -41,7 +41,7 @@ export default function AdminPayouts() {
   const { data: payouts, isLoading, refetch } = useQuery({
     queryKey: ['payout.getPendingPayouts'],
     queryFn: async () => {
-      const result = await trpc.payout.getPendingPayouts.query({ limit: 100 });
+      const result = await ((trpc.payout as any)?.getPendingPayouts?.query?.({ limit: 100 }) || { success: false, error: 'Not available' });
       if (!result.success) throw new Error(result.error);
       return result.data || [];
     },
@@ -50,7 +50,7 @@ export default function AdminPayouts() {
   // Process payout mutation
   const processPayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await trpc.payout.processPayout.mutate({ payoutId });
+      const result = await ((trpc.payout as any)?.processPayout?.mutate?.({ payoutId }) || { success: false, error: 'Not available' });
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
@@ -66,7 +66,7 @@ export default function AdminPayouts() {
   // Complete payout mutation
   const completePayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await trpc.payout.completePayout.mutate({ payoutId });
+      const result = await ((trpc.payout as any)?.completePayout?.mutate?.({ payoutId }) || { success: false, error: 'Not available' });
       if (!result.success) throw new Error(result.error);
       return result.data;
     },

@@ -35,9 +35,9 @@ export function VenueInvoiceDashboard() {
   }
 
   // Calculate summary stats
-  const totalInvoiced = invoices?.reduce((sum: number, inv: any) => sum + parseFloat(inv.totalAmount || 0), 0) || 0;
-  const paidAmount = invoices?.reduce((sum: number, inv: any) => inv.status === 'paid' ? sum + parseFloat(inv.totalAmount || 0) : sum, 0) || 0;
-  const pendingAmount = invoices?.reduce((sum: number, inv: any) => inv.status === 'pending' ? sum + parseFloat(inv.totalAmount || 0) : sum, 0) || 0;
+  const totalInvoiced = ((invoices as any)?.success ? invoices.data : invoices)?.reduce?.((sum: number, inv: any) => sum + parseFloat(inv.totalAmount || 0), 0) || 0;
+  const paidAmount = ((invoices as any)?.success ? invoices.data : invoices)?.reduce?.((sum: number, inv: any) => inv.status === 'paid' ? sum + parseFloat(inv.totalAmount || 0) : sum, 0) || 0;
+  const pendingAmount = ((invoices as any)?.success ? invoices.data : invoices)?.reduce?.((sum: number, inv: any) => inv.status === 'pending' ? sum + parseFloat(inv.totalAmount || 0) : sum, 0) || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

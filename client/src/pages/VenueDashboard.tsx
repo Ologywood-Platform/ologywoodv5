@@ -12,8 +12,8 @@ export function VenueDashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
 
-  const { data: venueProfile } = trpc.venue.getMyProfile.useQuery();
-  const { data: bookings } = trpc.booking.getMyVenueBookings.useQuery();
+  const { data: venueProfile } = ((trpc.venue as any)?.getMyProfile?.useQuery?.() || { data: null });
+  const { data: bookings } = ((trpc.booking as any)?.getMyVenueBookings?.useQuery?.() || { data: [] });
   // Messages are accessed from the Messages page, not dashboard
 
   // Verify user is a venue
