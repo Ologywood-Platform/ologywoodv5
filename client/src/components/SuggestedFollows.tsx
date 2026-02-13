@@ -20,16 +20,16 @@ export const SuggestedFollows: React.FC = () => {
   
   // Fetch real suggested artists from database
   const { data: artists } = trpc.artist.search.useQuery(
-    { query: '', limit: 4, sortBy: 'rating' },
+    { query: '', limit: 4, sortBy: 'rating' } as any,
     { enabled: true }
   );
 
   useEffect(() => {
     if (artists && artists.length > 0) {
-      const mappedArtists: SuggestedArtist[] = artists.slice(0, 4).map((artist) => ({
+      const mappedArtists: SuggestedArtist[] = artists.slice(0, 4).map((artist: any) => ({
         id: artist.id,
-        name: artist.name,
-        genres: artist.genres || [],
+        name: artist.artistName || artist.name,
+        genres: artist.genre || artist.genres || [],
         location: artist.location,
         profilePhotoUrl: artist.profilePhotoUrl,
         rating: artist.rating || 4.5,

@@ -669,8 +669,8 @@ export default function ArtistProfile() {
           onClose={() => setShareProfileOpen(false)}
           artistId={artistId}
           artistName={artist.artistName}
-          artistBio={artist.bio}
-          artistProfileImage={artist.profilePhotoUrl}
+          artistBio={artist.bio || ''}
+          artistProfileImage={artist.profilePhotoUrl || ''}
         />
       )}
     </div>

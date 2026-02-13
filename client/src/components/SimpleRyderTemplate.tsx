@@ -599,7 +599,7 @@ function RyderPreview({ data, onEdit }: RyderPreviewProps) {
           <h3 className="font-semibold text-lg mb-3">Technical Requirements</h3>
           <div className="space-y-2">
             <div className="flex items-center">
-              <span className={data.paSystemRequired ? '✓' : '○'} className="mr-2 font-bold">
+              <span className={`${data.paSystemRequired ? '✓' : '○'} mr-2 font-bold`}>
                 {data.paSystemRequired ? '✓' : '○'}
               </span>
               <span>PA System Required</span>

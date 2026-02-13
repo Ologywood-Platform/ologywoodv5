@@ -42,7 +42,7 @@ export function PhotoManagement({
     onSuccess: () => {
       toast.success("Profile photo removed");
       setPreviewUrl(null);
-      onPhotoUpdate?.(null);
+      onPhotoUpdate?.('' as any);
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to delete photo");

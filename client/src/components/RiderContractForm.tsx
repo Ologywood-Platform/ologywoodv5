@@ -115,7 +115,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     id="eventName"
                     name="eventName"
                     value={formData.eventName}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="e.g., Summer Concert Series"
                   />
                 </div>
@@ -126,7 +126,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="eventDate"
                     type="date"
                     value={formData.eventDate}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                   />
                 </div>
               </div>
@@ -139,7 +139,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="eventTime"
                     type="time"
                     value={formData.eventTime}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                   />
                 </div>
                 <div>
@@ -149,7 +149,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="performanceDuration"
                     type="number"
                     value={formData.performanceDuration}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="e.g., 60"
                   />
                 </div>
@@ -162,7 +162,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     id="venueName"
                     name="venueName"
                     value={formData.venueName}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="Venue name"
                   />
                 </div>
@@ -172,7 +172,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     id="venueAddress"
                     name="venueAddress"
                     value={formData.venueAddress}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="Full address"
                   />
                 </div>
@@ -185,7 +185,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     id="contactPerson"
                     name="contactPerson"
                     value={formData.contactPerson}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="Name"
                   />
                 </div>
@@ -196,7 +196,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="contactPhone"
                     type="tel"
                     value={formData.contactPhone}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="Phone number"
                   />
                 </div>
@@ -207,7 +207,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="contactEmail"
                     type="email"
                     value={formData.contactEmail}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="Email address"
                   />
                 </div>
@@ -221,7 +221,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="loadInTime"
                     type="time"
                     value={formData.loadInTime}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                   />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="soundCheckTime"
                     type="time"
                     value={formData.soundCheckTime}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                   />
                 </div>
               </div>
@@ -342,7 +342,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     name="performanceFee"
                     type="number"
                     value={formData.performanceFee}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     placeholder="e.g., 500"
                   />
                 </div>
@@ -352,7 +352,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                     id="paymentMethod"
                     name="paymentMethod"
                     value={formData.paymentMethod}
-                    onChange={handleInputChange}
+                    onChange={handleInputChange as any}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   >
                     <option value="bank-transfer">Bank Transfer</option>
@@ -384,7 +384,7 @@ export function RiderContractForm({ onSave, initialData, isLoading }: RiderContr
                       name="depositAmount"
                       type="number"
                       value={formData.depositAmount}
-                      onChange={handleInputChange}
+                      onChange={handleInputChange as any}
                       placeholder="e.g., 125 (25% of total)"
                     />
                   </div>

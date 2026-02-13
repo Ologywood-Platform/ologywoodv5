@@ -37,7 +37,6 @@ export const SocialMediaVerificationBadge: React.FC<VerificationBadgeProps> = ({
       <CheckCircle2
         size={size === 'sm' ? 16 : size === 'md' ? 20 : 24}
         className={`${platformColors[platform]} fill-current`}
-        title={`Verified ${platform} account`}
       />
       {username && size === 'lg' && (
         <span className="text-xs text-gray-600 ml-1">Verified</span>

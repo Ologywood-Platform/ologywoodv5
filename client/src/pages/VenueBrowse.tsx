@@ -267,21 +267,21 @@ export default function VenueBrowse() {
                       )}
                     </button>
                     <button
-                      onClick={() => shareOnSocial('facebook', venue)}
+                      onClick={() => shareOnSocial('facebook', venue as any)}
                       className="p-2 hover:bg-gray-100 rounded transition-colors"
                       title="Share on Facebook"
                     >
                       <Facebook className="w-4 h-4 text-blue-600" />
                     </button>
                     <button
-                      onClick={() => shareOnSocial('twitter', venue)}
+                      onClick={() => shareOnSocial('twitter', venue as any)}
                       className="p-2 hover:bg-gray-100 rounded transition-colors"
                       title="Share on Twitter"
                     >
                       <Twitter className="w-4 h-4 text-blue-400" />
                     </button>
                     <button
-                      onClick={() => shareOnSocial('linkedin', venue)}
+                      onClick={() => shareOnSocial('linkedin', venue as any)}
                       className="p-2 hover:bg-gray-100 rounded transition-colors"
                       title="Share on LinkedIn"
                     >
@@ -298,6 +298,7 @@ export default function VenueBrowse() {
       {/* Signup Modal */}
       {showSignupModal && (
         <QuickSignupModal
+          isOpen={showSignupModal}
           onClose={() => setShowSignupModal(false)}
           actionType="message"
           targetType="venue"

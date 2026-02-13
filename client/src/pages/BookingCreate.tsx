@@ -108,7 +108,7 @@ export default function BookingCreate() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(-1 as any)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -217,7 +217,7 @@ export default function BookingCreate() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate(-1 as any)}
                   className="flex-1"
                 >
                   Cancel

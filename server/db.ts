@@ -2,7 +2,7 @@ import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "dr
 import { drizzle } from "drizzle-orm/mysql2";
 import * as schema from "../drizzle/schema";
 import { 
-  InsertUser, users, 
+  InsertUser, users, User, 
   artistProfiles, InsertArtistProfile, ArtistProfile,
   venueProfiles, InsertVenueProfile, VenueProfile,
   riderTemplates, InsertRiderTemplate, RiderTemplate,

@@ -123,7 +123,7 @@ export default function VenueProfileDetail() {
   useEffect(() => {
     const venueData = mockVenueData[venueId];
     if (venueData) {
-      setMetaTags(pageMetaTags.venueProfile(venueData.organizationName));
+      setMetaTags(pageMetaTags.venueProfile(venue.organizationName));
     }
   }, [venueId]);
   const [isContacting, setIsContacting] = useState(false);
@@ -159,27 +159,27 @@ export default function VenueProfileDetail() {
       {/* Hero Section */}
       <div className="relative h-96 bg-gray-300 overflow-hidden">
         <img
-          src={venueData.profilePhotoUrl}
-          alt={venueData.organizationName}
+          src={venue.profilePhotoUrl}
+          alt={venue.organizationName}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{venueData.organizationName}</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">{venue.organizationName}</h1>
           <div className="flex items-center gap-2 text-white mb-4">
             <MapPin className="h-5 w-5" />
-            {venueData.location}
+            {venue.location}
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-semibold">{venueData.averageRating}</span>
-              <span className="text-sm">({venueData.reviewCount} reviews)</span>
+              <span className="font-semibold">{venue.averageRating}</span>
+              <span className="text-sm">({venue.reviewCount} reviews)</span>
             </div>
-            <Badge variant="secondary">{venueData.venueType}</Badge>
+            <Badge variant="secondary">{venue.venueType}</Badge>
             <Badge variant="outline" className="bg-white/20 text-white border-white">
               <Users className="h-3 w-3 mr-1" />
-              {venueData.capacity} capacity
+              {venue.capacity} capacity
             </Badge>
           </div>
         </div>
@@ -196,7 +196,7 @@ export default function VenueProfileDetail() {
                 <CardTitle>About</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 leading-relaxed">{venueData.bio}</p>
+                <p className="text-gray-700 leading-relaxed">{venue.bio}</p>
               </CardContent>
             </Card>
 

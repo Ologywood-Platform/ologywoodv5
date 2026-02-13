@@ -30,7 +30,7 @@ export async function initializeRedis(): Promise<boolean> {
 
   try {
     // Dynamic import to avoid hard dependency
-    const redis = await import('redis');
+    const redis = await import('redis') as any;
     redisClient = redis.createClient({ url: redisUrl });
     
     redisClient.on('error', (err: any) => {
