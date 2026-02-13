@@ -37,7 +37,7 @@ export const invoicingService = {
     if (!artist || !venue) throw new Error('Artist or venue not found');
 
     // Calculate invoice amounts
-    const subtotal = booking.budget || 0;
+    const subtotal = parseFloat(booking.totalFee as any) || 0;
     const platformFee = subtotal * 0.05; // 5% platform fee
     const tax = (subtotal + platformFee) * 0.08; // 8% tax
     const total = subtotal + platformFee + tax;
@@ -67,7 +67,7 @@ export const invoicingService = {
 
     if (!booking) return null;
 
-    const subtotal = booking.budget || 0;
+    const subtotal = parseFloat(booking.totalFee as any) || 0;
     const platformFee = subtotal * 0.05;
     const tax = (subtotal + platformFee) * 0.08;
     const total = subtotal + platformFee + tax;

@@ -1,5 +1,6 @@
 import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import * as schema from "../drizzle/schema";
 import { 
   InsertUser, users, 
   artistProfiles, InsertArtistProfile, ArtistProfile,
@@ -17,7 +18,10 @@ import {
   contracts, InsertContract, Contract,
   signatures, InsertSignature, Signature,
   emailPreferences, InsertEmailPreference, EmailPreference,
-  subscriptions, InsertSubscription, Subscription
+  subscriptions, InsertSubscription, Subscription,
+  stripeConnectAccounts, InsertStripeConnectAccount, StripeConnectAccount,
+  artistPayouts, InsertArtistPayout, ArtistPayout,
+  invoices, InsertInvoice, Invoice
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -182,7 +186,7 @@ export async function getSignatureByContractAndSigner(contractId: number, signer
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;

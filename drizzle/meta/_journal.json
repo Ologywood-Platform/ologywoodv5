@@ -211,6 +211,20 @@
       "when": 1770937780490,
       "tag": "0029_curly_black_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1770943518430,
+      "tag": "0030_smart_skaar",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1770943645841,
+      "tag": "0031_greedy_colossus",
+      "breakpoints": true
     }
   ]
 }

@@ -3722,3 +3722,32 @@ The Ologywood platform is production-ready with:
 - [x] Test earnings dashboard end-to-end
 - [x] Test payout notifications end-to-end
 - [x] Test admin panel end-to-end
+
+
+## Stripe Connect Integration (Current Sprint)
+- [ ] Create stripe_connect_onboarding table for tracking onboarding status
+- [ ] Build Stripe Connect account linking flow
+- [ ] Create TRPC endpoint for initiating Connect onboarding
+- [ ] Implement webhook handler for Connect account updates
+- [ ] Create automated payout processing using Stripe transfers
+- [ ] Build Connect account management page for artists
+- [ ] Test Stripe Connect onboarding end-to-end
+
+## Booking Invoice PDF Generation (Current Sprint)
+- [ ] Create invoice PDF generation service using reportlab
+- [ ] Build invoice template with booking details and payment breakdown
+- [ ] Create TRPC endpoint for generating invoice PDFs
+- [ ] Integrate invoice generation into booking confirmation workflow
+- [ ] Create invoice email sending with PDF attachment
+- [ ] Build invoice history page showing all generated invoices
+- [ ] Test PDF generation and email delivery end-to-end
+
+## Artist Tax Reporting Dashboard (Current Sprint)
+- [ ] Create tax_reports table for tracking annual tax summaries
+- [ ] Build tax reporting calculation service (earnings, payouts, fees)
+- [ ] Create tax reporting dashboard page (/tax-reports)
+- [ ] Add annual summary cards (total earnings, total payouts, net income)
+- [ ] Build monthly breakdown chart showing earnings trends
+- [ ] Create downloadable tax summary PDF
+- [ ] Add 1099 information display and tracking
+- [ ] Test tax reporting dashboard end-to-end

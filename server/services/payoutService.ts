@@ -54,7 +54,7 @@ export const payoutService = {
 
     const recentEarnings = recentBookings.map(booking => ({
       bookingId: booking.id,
-      amount: parseFloat(booking.estimatedBudget?.toString() || '0'),
+      amount: parseFloat(booking.totalFee?.toString() || '0'),
       status: booking.status,
       eventDate: booking.eventDate,
     }));
