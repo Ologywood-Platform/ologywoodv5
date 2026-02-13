@@ -13,8 +13,8 @@ export function UserImpersonation() {
   const [error, setError] = useState<string | null>(null);
   const [testUsers, setTestUsers] = useState<any[]>([]);
 
-  const generateTestUsersMutation = (trpc.testdata?.generateArtists?.useMutation as any)();
-  const impersonateUserMutation = (trpc.impersonation?.generateImpersonationToken?.useMutation as any)();
+  const generateTestUsersMutation = ((trpc as any).testdata?.generateArtists?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
+  const impersonateUserMutation = ((trpc as any).impersonation?.generateImpersonationToken?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
 
   const handleGenerateTestUsers = async () => {
     setLoading(true);

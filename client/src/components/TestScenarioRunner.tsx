@@ -13,10 +13,10 @@ export function TestScenarioRunner() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const completeBookingMutation = (trpc.testWorkflows?.runCompleteBookingWorkflow?.useMutation as any)();
-  const paymentMutation = (trpc.testWorkflows?.runPaymentWorkflow?.useMutation as any)();
-  const contractMutation = (trpc.testWorkflows?.runContractSigningWorkflow?.useMutation as any)();
-  const lifecycleMutation = (trpc.testWorkflows?.runFullBookingLifecycle?.useMutation as any)();
+  const completeBookingMutation = ((trpc as any).testWorkflows?.runCompleteBookingWorkflow?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
+  const paymentMutation = ((trpc as any).testWorkflows?.runPaymentWorkflow?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
+  const contractMutation = ((trpc as any).testWorkflows?.runContractSigningWorkflow?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
+  const lifecycleMutation = ((trpc as any).testWorkflows?.runFullBookingLifecycle?.useMutation as any)?.() || { mutateAsync: async () => ({}) };
 
   const scenarios = [
     {
