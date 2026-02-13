@@ -128,7 +128,7 @@ export default function VenueProfile() {
                 <CardTitle className="text-3xl mb-2">{venueProfile.organizationName}</CardTitle>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Building2 className="h-4 w-4" />
-                  <span>Contact: {venueProfile.contactName}</span>
+                  <span>Contact: {(venueProfile as any)?.contactName}</span>
                 </div>
               </div>
               {averageRating && averageRating.count > 0 && (
@@ -147,15 +147,15 @@ export default function VenueProfile() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {venueProfile.contactPhone && (
+            {(venueProfile as any)?.contactPhone && (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span>📞 {venueProfile.contactPhone}</span>
+                <span>📞 {(venueProfile as any)?.contactPhone}</span>
               </div>
             )}
             
-            {venueProfile.website && (
+            {(venueProfile as any)?.website && (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span>🌐 <a href={venueProfile.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{venueProfile.website}</a></span>
+                <span>🌐 <a href={(venueProfile as any)?.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{(venueProfile as any)?.website}</a></span>
               </div>
             )}
             

@@ -36,7 +36,7 @@ export function ArtistDashboardV3() {
   }
 
   const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
-  const completionScore = artistProfile?.profileCompletionScore || 0;
+  const completionScore = (artistProfile as any)?.profileCompletionScore || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -55,7 +55,7 @@ export function ArtistDashboardV3() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Artist Dashboard</h1>
-              <p className="text-sm text-slate-600">{artistProfile?.artistName || artistProfile?.stageName || 'Welcome'}</p>
+              <p className="text-sm text-slate-600">{artistProfile?.artistName || (artistProfile as any)?.stageName || 'Welcome'}</p>
             </div>
           </div>
 
