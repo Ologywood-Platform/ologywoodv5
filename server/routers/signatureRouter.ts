@@ -145,7 +145,7 @@ export const signatureRouter = router({
         // Create signature record
         const signature = await db.createSignature({
           contractId: input.contractId,
-          signerId: ctx.user.id,
+          userId: ctx.user.id,
           signatureData: JSON.stringify(input.signature),
           signedAt: new Date(),
         });
@@ -165,7 +165,7 @@ export const signatureRouter = router({
         const allSignatures = await db.getSignaturesByContractId(input.contractId);
         if (allSignatures.length >= 2) {
           await db.updateContract(input.contractId, {
-            status: 'signed',
+            status: 'fully_signed',
           });
         }
 
@@ -174,7 +174,7 @@ export const signatureRouter = router({
           signature: {
             id: signature.id,
             contractId: signature.contractId,
-            signerId: signature.signerId,
+            userId: signature.userId,
             signedAt: signature.signedAt,
           },
           auditEntry,
@@ -227,7 +227,7 @@ export const signatureRouter = router({
           signatures: signatures.map((sig) => ({
             id: sig.id,
             contractId: sig.contractId,
-            signerId: sig.signerId,
+            userId: sig.userId,
             signedAt: sig.signedAt,
           })),
           summary: {
@@ -272,7 +272,7 @@ export const signatureRouter = router({
           signatureCount: signatures.length,
           signatures: signatures.map((sig) => ({
             id: sig.id,
-            signerId: sig.signerId,
+            userId: sig.userId,
             signedAt: sig.signedAt,
           })),
           report: SignatureService.generateStatusReport([]),
