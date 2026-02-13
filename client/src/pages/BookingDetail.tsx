@@ -115,7 +115,7 @@ export default function BookingDetail() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <a href={`/venue/${booking.venueId}`} className="hover:underline cursor-pointer">
-                  <h1 className="text-3xl font-bold mb-2">{booking.venueName}</h1>
+                  <h1 className="text-3xl font-bold mb-2">Event Booking</h1>
                 </a>
                 <Badge className={getStatusColor(booking.status)}>
                   {booking.status.toUpperCase()}
@@ -148,12 +148,12 @@ export default function BookingDetail() {
                 </div>
               )}
 
-              {booking.venueAddress && (
+              {booking.eventDetails && (
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Venue Address</p>
-                    <p className="font-medium">{booking.venueAddress}</p>
+                    <p className="text-sm text-muted-foreground">Event Details</p>
+                    <p className="font-medium">{booking.eventDetails}</p>
                   </div>
                 </div>
               )}
@@ -252,7 +252,7 @@ export default function BookingDetail() {
                 <VenueReviewForm
                   bookingId={bookingId}
                   venueId={booking.venueId}
-                  venueName={booking.venueName}
+                  venueName="Venue"
                   onReviewSubmitted={() => refetch()}
                 />
               )}
@@ -300,10 +300,10 @@ export default function BookingDetail() {
           )}
 
           {/* Rider Negotiation Section */}
-          {booking.riderTemplateId && (
+          {false && (
             <div>
               <RiderModificationNegotiationUI
-                riderTemplateId={booking.riderTemplateId}
+                riderTemplateId={0}
                 bookingId={bookingId}
                 acknowledgmentId={0}
                 currentUserRole={user.role as 'artist' | 'venue'}
