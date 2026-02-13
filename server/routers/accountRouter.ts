@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { protectedProcedure, router } from '../_core/trpc';
-import { AccountDeletionService } from '../services/accountDeletionService';
+// import { AccountDeletionService } from '../services/accountDeletionService'; // Disabled
 import { TRPCError } from '@trpc/server';
 
 /**
