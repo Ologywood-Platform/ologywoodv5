@@ -474,7 +474,7 @@ export async function createRiderTemplate(template: InsertRiderTemplate) {
   await db.insert(riderTemplates).values(template);
   // Get the last inserted template
   const result = await db.select().from(riderTemplates)
-    .where(eq(riderTemplates.artistId, template.artistId))
+    .where(eq(riderTemplates.artistId, template.artistId as any))
     .orderBy(desc(riderTemplates.createdAt))
     .limit(1);
   return result[0];
@@ -535,7 +535,7 @@ export async function getAvailabilityByArtistId(artistId: number, startDate?: st
   
   if (startDate && endDate) {
     return results.filter(a => {
-      const dateStr = a.date instanceof Date ? a.date.toISOString().split('T')[0] : a.date;
+      const dateStr = (a.date as any) instanceof Date ? (a.date as Date).toISOString().split('T')[0] : a.date;
       return dateStr >= startDate && dateStr <= endDate;
     });
   }
@@ -1188,7 +1188,7 @@ export async function getBookingsNeedingReminders() {
     // Check if we need to send 7-day reminder
     if (daysUntil <= 7 && daysUntil > 6) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
       );
       if (!alreadySent) {
         bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
@@ -1198,7 +1198,7 @@ export async function getBookingsNeedingReminders() {
     // Check if we need to send 3-day reminder
     if (daysUntil <= 3 && daysUntil > 2) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
       );
       if (!alreadySent) {
         bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
@@ -1208,7 +1208,7 @@ export async function getBookingsNeedingReminders() {
     // Check if we need to send 1-day reminder
     if (daysUntil <= 1 && daysUntil > 0) {
       const alreadySent = sentReminders.some(
-        r => r.bookingId === booking.id && r.reminderType === 'upcoming'
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
       );
       if (!alreadySent) {
         bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
@@ -1264,8 +1264,8 @@ export async function getFavoritedArtistsAvailability(userId: number, startDate:
     .where(
       and(
         artistIds.length > 0 ? inArray(availability.artistId, artistIds.filter(id => id !== null) as number[]) : undefined,
-        gte(availability.date, startDate),
-        lte(availability.date, endDate),
+        gte(availability.date, startDate as any),
+        lte(availability.date, endDate as any),
         eq(availability.status, 'available')
       )
     );
