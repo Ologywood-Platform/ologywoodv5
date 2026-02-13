@@ -338,7 +338,7 @@ export const riderContractRouter = router({
           artistId: booking.artistId,
           venueId: booking.venueId,
           contractData: input.contractData,
-          status: 'draft',
+          status: 'pending',
         });
 
         return {
