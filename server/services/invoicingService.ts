@@ -38,7 +38,7 @@ export const invoicingService = {
 
     // Calculate invoice amounts
     const subtotal = parseFloat(booking.totalFee as any) || 0;
-    const platformFee = subtotal * 0.05; // 5% platform fee
+    const platformFee = subtotal * 0.01; // 1% platform fee
     const tax = (subtotal + platformFee) * 0.08; // 8% tax
     const total = subtotal + platformFee + tax;
 
@@ -68,7 +68,7 @@ export const invoicingService = {
     if (!booking) return null;
 
     const subtotal = parseFloat(booking.totalFee as any) || 0;
-    const platformFee = subtotal * 0.05;
+    const platformFee = subtotal * 0.01;
     const tax = (subtotal + platformFee) * 0.08;
     const total = subtotal + platformFee + tax;
 

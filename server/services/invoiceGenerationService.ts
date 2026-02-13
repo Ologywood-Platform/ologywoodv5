@@ -37,9 +37,9 @@ export const invoiceGenerationService = {
 
     if (!booking) throw new Error('Booking not found');
 
-    // Calculate amounts (5% platform fee, 8% tax)
+    // Calculate amounts (1% platform fee, 8% tax)
     const amount = 1000; // Default amount - should be from booking
-    const platformFee = (amount * 5) / 100;
+    const platformFee = (amount * 1) / 100;
     const subtotal = amount + platformFee;
     const tax = (subtotal * 8) / 100;
     const total = subtotal + tax;
