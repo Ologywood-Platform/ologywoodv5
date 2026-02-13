@@ -19,10 +19,10 @@ export function TestDataGenerator() {
   const [bookingCount, setBookingCount] = useState(5);
 
   // Move hooks outside of async functions to follow React rules
-  const generateTestScenarioMutation = trpc.testdata.generateTestScenario.useMutation();
-  const generateArtistsMutation = trpc.testdata.generateArtists.useMutation();
-  const generateVenuesMutation = trpc.testdata.generateVenues.useMutation();
-  const generateBookingsMutation = trpc.testdata.generateBookings.useMutation();
+  const generateTestScenarioMutation = (trpc.testdata?.generateTestScenario?.useMutation as any)();
+  const generateArtistsMutation = (trpc.testdata?.generateArtists?.useMutation as any)();
+  const generateVenuesMutation = (trpc.testdata?.generateVenues?.useMutation as any)();
+  const generateBookingsMutation = (trpc.testdata?.generateBookings?.useMutation as any)();
 
   const generateScenario = async () => {
     setLoading(true);

@@ -27,8 +27,8 @@ export function QuickSignupModal({
   const [activeTab, setActiveTab] = useState<'signup' | 'login'>('signup');
   
   // API mutations
-  const signupMutation = trpc.auth.signup.useMutation();
-  const loginMutation = trpc.auth.login.useMutation();
+  const signupMutation = trpc.auth.signup.useMutation() as any;
+  const loginMutation = trpc.auth.login.useMutation() as any;
   
   // Signup form state
   const [signupData, setSignupData] = useState({

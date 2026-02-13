@@ -291,7 +291,7 @@ export function SocketMetricsDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="timestamp" />
                 <YAxis />
-                <Tooltip formatter={(value) => `${value.toFixed(2)}ms`} />
+                <Tooltip formatter={(value: any) => `${(typeof value === 'number' ? value : 0).toFixed(2)}ms`} />
                 <Legend />
                 <Line
                   type="monotone"

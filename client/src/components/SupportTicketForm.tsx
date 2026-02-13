@@ -51,7 +51,7 @@ export function SupportTicketForm({ onSubmit, onCancel }: SupportTicketFormProps
   const [showFAQSuggestion, setShowFAQSuggestion] = useState(false);
 
   // Fetch FAQ suggestions from TRPC
-  const { data: suggestions } = trpc.supportTickets.getSuggestions.useQuery(
+  const { data: suggestions } = (trpc.supportTickets?.getSuggestions?.useQuery as any)(
     { category: formData.category, description: formData.description },
     { enabled: formData.description.length > 50 }
   );
