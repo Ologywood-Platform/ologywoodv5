@@ -162,26 +162,26 @@ export function ShareVenueModal({
 
         <div className="space-y-6">
           {/* Venue Preview Section */}
-          <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
             {venueProfileImage && (
               <img
                 src={venueProfileImage}
                 alt={venueName}
-                className="w-16 h-16 rounded-lg object-cover border-2 border-amber-300"
+                className="w-16 h-16 rounded-lg object-cover border-2 border-amber-300 flex-shrink-0"
               />
             )}
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-gray-900">{venueName}</h3>
-              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg text-gray-900 truncate">{venueName}</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600 mt-1">
                 {venueLocation && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {venueLocation}
+                  <span className="flex items-center gap-1 truncate">
+                    <MapPin className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{venueLocation}</span>
                   </span>
                 )}
                 {venueCapacity && (
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
+                  <span className="flex items-center gap-1 whitespace-nowrap">
+                    <Users className="w-3 h-3 flex-shrink-0" />
                     {venueCapacity} capacity
                   </span>
                 )}
@@ -226,7 +226,7 @@ export function ShareVenueModal({
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Share on Social Media</Label>
             <p className="text-xs text-gray-500">Your venue image and details will be included in the preview</p>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
               <Button
                 onClick={() => handleSocialShare('facebook')}
                 variant="outline"
@@ -273,35 +273,39 @@ export function ShareVenueModal({
           {/* QR Code Section */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">QR Code</Label>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-600">
                 Generate a QR code for your venue. Great for event promotions and marketing materials!
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 {venueProfileImage && (
-                  <span className="text-xs text-green-600 flex items-center gap-1">
-                    <Image className="w-3 h-3" />
-                    Venue image included
+                  <span className="text-xs text-green-600 flex items-center gap-1 whitespace-nowrap">
+                    <Image className="w-3 h-3 flex-shrink-0" />
+                    <span className="hidden sm:inline">Venue image included</span>
+                    <span className="sm:hidden">Image included</span>
                   </span>
                 )}
                 <Button
                   onClick={() => setShowQR(!showQR)}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
-                  <QrCode className="w-4 h-4" />
-                  {showQR ? 'Hide' : 'Show'} QR Code
+                  <QrCode className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{showQR ? 'Hide' : 'Show'} QR Code</span>
+                  <span className="sm:hidden">{showQR ? 'Hide' : 'Show'}</span>
                 </Button>
               </div>
             </div>
             {showQR && (
-              <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                <QRCode.QRCodeSVG
-                  value={profileUrl}
-                  size={200}
-                  level="H"
-                  includeMargin={true}
-                />
+              <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg overflow-x-auto">
+                <div className="flex justify-center w-full">
+                  <QRCode.QRCodeSVG
+                    value={profileUrl}
+                    size={Math.min(window.innerWidth - 80, 250)}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
                 <Button
                   onClick={() => {
                     const canvas = document.querySelector('canvas');
@@ -314,10 +318,11 @@ export function ShareVenueModal({
                     }
                   }}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
                   <Copy className="w-4 h-4" />
-                  Download QR Code
+                  <span className="hidden sm:inline">Download QR Code</span>
+                  <span className="sm:hidden">Download</span>
                 </Button>
               </div>
             )}
