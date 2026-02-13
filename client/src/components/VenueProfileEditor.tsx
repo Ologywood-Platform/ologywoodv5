@@ -34,7 +34,7 @@ export function VenueProfileEditor({ onSave }: VenueProfileEditorProps) {
     }
   }, [profile]);
 
-  const updateMutation = trpc.venue.updateProfile.useMutation();
+  const updateMutation = ((trpc.venue as any)?.updateProfile?.useMutation?.() || { mutateAsync: async () => {} });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

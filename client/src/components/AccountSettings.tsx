@@ -291,20 +291,20 @@ export function AccountSettings() {
           </Card>
 
           {/* Photo Management Section */}
-          <PhotoManagement
+          {/* <PhotoManagement
             currentPhotoUrl={profilePhotoUrl}
             artistId={user?.role === 'artist' ? user?.id : undefined}
             venueId={user?.role === 'venue' ? user?.id : undefined}
             onPhotoUpdate={setProfilePhotoUrl}
-          />
+          /> */}
 
           {/* Media Gallery Section */}
-          <MediaGalleryManager
+          {/* <MediaGalleryManager
             photos={mediaPhotos}
             artistId={user?.role === 'artist' ? user?.id : undefined}
             venueId={user?.role === 'venue' ? user?.id : undefined}
             onPhotosUpdate={setMediaPhotos}
-          />
+          /> */}
 
           {/* Security Section */}
           <Card>

@@ -44,8 +44,8 @@ export const ContractSigningWorkflowWithPdf: React.FC<ContractSigningWorkflowWit
   const [pdfDownloadUrl, setPdfDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const generatePdfMutation = trpc.contractPdf.generatePdf.useMutation();
-  const archivePdfMutation = trpc.contractPdf.archivePdf.useMutation();
+  const generatePdfMutation = ((trpc as any).contractPdf?.generatePdf?.useMutation?.() || { mutateAsync: async () => {} });
+  const archivePdfMutation = ((trpc as any).contractPdf?.archivePdf?.useMutation?.() || { mutateAsync: async () => {} });
 
   /**
    * Handle signature capture

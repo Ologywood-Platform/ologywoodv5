@@ -87,7 +87,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                       {artist.profilePhotoUrl ? (
                         <LazyImage
                           src={artist.profilePhotoUrl}
-                          alt={artist.name}
+                          alt={artist.artistName || artist.name}
                           containerClassName="w-full h-full"
                           imageClassName="w-full h-full object-cover"
                         />
@@ -100,7 +100,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                     </div>
                     <div className="space-y-2">
                       <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                        {artist.name}
+                        {artist.artistName || artist.name}
                       </h3>
                       {artist.genre && (
                         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">

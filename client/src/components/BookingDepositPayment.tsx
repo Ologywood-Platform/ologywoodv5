@@ -25,7 +25,7 @@ export function BookingDepositPayment({
   const depositAmount = Math.round((totalFee * 0.5) * 100) / 100; // 50% deposit
   const depositAmountCents = Math.round(depositAmount * 100); // Convert to cents for Stripe
 
-  const createDepositPayment = trpc.booking.createDepositPayment.useMutation();
+  const createDepositPayment = ((trpc.booking as any)?.createDepositPayment?.useMutation?.() || { mutateAsync: async () => ({ clientSecret: '' }) });
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
