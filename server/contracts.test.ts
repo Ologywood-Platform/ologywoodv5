@@ -98,7 +98,7 @@ describe('Contract Management', () => {
       const signatureData = {
         id: 1,
         contractId: 1,
-        signerId: 1,
+        userId: 1,
         signerRole: 'artist' as const,
         signatureData: 'data:image/png;base64,...',
         signatureType: 'canvas' as const,
@@ -119,19 +119,19 @@ describe('Contract Management', () => {
         {
           id: 1,
           contractId: 1,
-          signerId: 1,
+          userId: 1,
           signerRole: 'artist' as const,
         },
       ];
 
       const newSignature = {
         contractId: 1,
-        signerId: 1,
+        userId: 1,
         signerRole: 'artist' as const,
       };
 
       const isDuplicate = signatures.some(
-        (sig) => sig.contractId === newSignature.contractId && sig.signerId === newSignature.signerId
+        (sig) => sig.contractId === newSignature.contractId && sig.userId === newSignature.signerId
       );
 
       expect(isDuplicate).toBe(true);
@@ -358,7 +358,7 @@ describe('Contract Lifecycle Integration Tests', () => {
       const artistSignature = {
         id: 1,
         contractId: contract.id,
-        signerId: contract.artistId,
+        userId: contract.artistId,
         signerRole: 'artist' as const,
         signatureData: 'data:image/png;base64,...',
         signedAt: new Date(),
@@ -370,7 +370,7 @@ describe('Contract Lifecycle Integration Tests', () => {
       const venueSignature = {
         id: 2,
         contractId: contract.id,
-        signerId: contract.venueId,
+        userId: contract.venueId,
         signerRole: 'venue' as const,
         signatureData: 'data:image/png;base64,...',
         signedAt: new Date(),
@@ -441,7 +441,7 @@ describe('Contract Lifecycle Integration Tests', () => {
     it('should verify signatures during contract execution', () => {
       const artistSignature = {
         contractId: 1,
-        signerId: 1,
+        userId: 1,
         signatureHash: 'hash123',
         verificationHash: 'vhash123',
         isValid: true,
@@ -450,7 +450,7 @@ describe('Contract Lifecycle Integration Tests', () => {
 
       const venueSignature = {
         contractId: 1,
-        signerId: 2,
+        userId: 2,
         signatureHash: 'hash456',
         verificationHash: 'vhash456',
         isValid: true,

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../_core/trpc';
-import { db } from '../db';
 import { TRPCError } from '@trpc/server';
 
 // Validation schemas

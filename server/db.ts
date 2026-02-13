@@ -98,7 +98,7 @@ export async function getSignaturesByContractId(contractId: number): Promise<Sig
   return await db.select().from(signatures).where(eq(signatures.contractId, contractId));
 }
 
-export async function getSignatureByContractAndSigner(contractId: number, signerId: number): Promise<Signature | undefined> {
+export async function getSignatureByContractAndSigner(contractId: number, userId: number): Promise<Signature | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(signatures).where(

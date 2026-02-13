@@ -186,7 +186,7 @@ export const contractsRouter = router({
       const verificationToken = uuidv4();
       const signature = await db.createSignature({
         contractId: input.contractId,
-        signerId: ctx.user.id,
+        userId: ctx.user.id,
         signatureData: input.signatureData,
       });
 
