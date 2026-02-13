@@ -38,6 +38,7 @@ import { emailChangeRouter } from "./routers/emailChangeRouter";
 import { simpleRyderRouter } from "./routers/simpleRyderRouter";
 import { accountRouter } from "./routers/accountRouter";
 import { payoutRouter } from "./routers/payoutRouter";
+import { earningsRouter } from "./routers/earningsRouter";
 // import { analyticsRouter } from "./routers/analyticsRouter";
 // import { contractManagementRouter } from "./routers/contract-management";
 // import { helpAndSupportRouter } from "./routers/helpAndSupport";
@@ -2037,5 +2038,6 @@ export const appRouter = router({
       }),
   }),
   payout: payoutRouter,
+  earnings: earningsRouter,
 });
 export type AppRouter = typeof appRouter;

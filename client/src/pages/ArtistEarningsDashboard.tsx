@@ -28,7 +28,7 @@ export function ArtistEarningsDashboard() {
   // Fetch earnings data
   const { data: earnings, isLoading: earningsLoading } = trpc.earnings.getArtistEarnings.useQuery();
   const { data: recentTransactions } = trpc.earnings.getRecentTransactions.useQuery();
-  const { data: connectStatus } = trpc.stripe.getConnectStatus.useQuery();
+  const { data: connectStatus } = trpc.earnings.getConnectStatus.useQuery();
 
   // Verify user is an artist
   if (user?.role !== 'artist') {
@@ -298,7 +298,7 @@ export function ArtistEarningsDashboard() {
 
 // Payout Settings Component
 function PayoutSettings({ connectStatus, onBack }: any) {
-  const { data: onboardingLink, isLoading } = trpc.stripe.getOnboardingLink.useQuery();
+  const { data: onboardingLink, isLoading } = trpc.earnings.getOnboardingLink.useQuery();
 
   const handleConnect = () => {
     if (onboardingLink) {
