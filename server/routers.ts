@@ -474,50 +474,15 @@ export const appRouter = router({
         console.log('🔎 VENUE SEARCH CALLED');
         console.log('Input:', input);
 
-        // DIAGNOSTIC: Get raw count first
-        const rawCount = await database.select().from(db.venueProfiles);
-        console.log('📦 RAW DB RESULT COUNT (no filters):', rawCount.length);
-        console.log('📦 Raw venues:', rawCount.map(v => ({ id: v.id, name: v.organizationName, isListed: v.isListed })));
+        const venues = await db.searchVenues({
+          searchQuery: input.searchQuery,
+          location: input.location,
+          limit: input.limit || 20,
+          offset: input.offset || 0,
+        });
 
-        const conditions = [];
-
-        // Only show listed venues
-        conditions.push(eq(db.venueProfiles.isListed, true));
-        console.log('✅ Added isListed filter');
-
-        // Search by name or bio
-        if (input.searchQuery) {
-          conditions.push(
-            like(db.venueProfiles.organizationName, `%${input.searchQuery}%`)
-          );
-          console.log('✅ Added searchQuery filter:', input.searchQuery);
-        }
-
-        // Filter by location
-        if (input.location) {
-          conditions.push(like(db.venueProfiles.location, `%${input.location}%`));
-          console.log('✅ Added location filter:', input.location);
-        }
-
-        console.log('🧠 Conditions count:', conditions.length);
-
-        const venues = await database
-          .select()
-          .from(db.venueProfiles)
-          .where(and(...conditions))
-          .limit(input.limit)
-          .offset(input.offset);
-
-        console.log('🔎 VENUE SEARCH RESULT COUNT:', venues.length);
-        console.log('🔎 Filtered venues:', venues.map(v => ({ id: v.id, name: v.organizationName })));
-
-        return venues.map((venue) => ({
-          id: venue.id,
-          organizationName: venue.organizationName,
-          location: venue.location,
-          bio: venue.bio,
-          contactPhone: venue.contactPhone,
-        }));
+        console.log('✅ Venues found:', venues.length);
+        return venues;
       } catch (error) {
         console.error('[Venue Search] Error searching venues:', error);
         throw error;

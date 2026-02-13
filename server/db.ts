@@ -520,6 +520,27 @@ export async function updateVenueProfile(id: number, updates: Partial<VenueProfi
   await db.update(venueProfiles).set(updates).where(eq(venueProfiles.id, id));
 }
 
+export async function searchVenues(options: { searchQuery?: string; location?: string; limit?: number; offset?: number } = {}) {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    const { searchQuery, location, limit = 20, offset = 0 } = options;
+    const conditions = [];
+    conditions.push(eq(venueProfiles.isListed, true));
+    if (searchQuery) {
+      conditions.push(like(venueProfiles.organizationName, `%${searchQuery}%`));
+    }
+    if (location) {
+      conditions.push(like(venueProfiles.location, `%${location}%`));
+    }
+    const venues = await db.select().from(venueProfiles).where(and(...conditions)).limit(limit).offset(offset);
+    return venues;
+  } catch (error) {
+    console.error('Error searching venues:', error);
+    return [];
+  }
+}
+
 // ============= RIDER TEMPLATE FUNCTIONS =============
 
 export async function createRiderTemplate(template: InsertRiderTemplate) {
