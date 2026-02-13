@@ -2,7 +2,7 @@ import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "dr
 import { drizzle } from "drizzle-orm/mysql2";
 import * as schema from "../drizzle/schema";
 import { 
-  InsertUser, users, User, 
+  User, InsertUser, users, 
   artistProfiles, InsertArtistProfile, ArtistProfile,
   venueProfiles, InsertVenueProfile, VenueProfile,
   riderTemplates, InsertRiderTemplate, RiderTemplate,
@@ -24,6 +24,9 @@ import {
   invoices, InsertInvoice, Invoice
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+
+// Re-export User type for use in other modules
+export type { User, InsertUser };
 
 let _db: ReturnType<typeof drizzle> | null = null;
 

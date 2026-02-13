@@ -78,7 +78,6 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
-      transformer: superjson,
     })
   );
   // Apply rate limiting to public endpoints
