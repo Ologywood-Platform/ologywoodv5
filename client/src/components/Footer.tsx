@@ -35,6 +35,7 @@ const Footer = () => {
       title: 'For Artists',
       links: [
         { label: 'Artist Dashboard', path: '/dashboard' },
+        { label: 'Browse Venues', path: '/venues' },
         { label: 'Create Rider', path: '/rider-builder' },
         { label: 'My Bookings', path: '/bookings' },
       ],
@@ -42,8 +43,8 @@ const Footer = () => {
     {
       title: 'For Venues',
       links: [
+        { label: 'Venue Dashboard', path: '/venue-dashboard' },
         { label: 'Browse Artists', path: '/browse' },
-        { label: 'Find Talent', path: '/browse' },
         { label: 'My Bookings', path: '/bookings' },
       ],
     },
