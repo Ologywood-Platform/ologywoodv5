@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, MapPin, Users, Phone, Globe, Mail, Clock, AlertCircle } from 'lucide-react';
 import { useParams, useLocation } from 'wouter';
 import { VenueShareButtons } from '@/components/VenueShareButtons';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 const mockVenueData: Record<number, any> = {
@@ -152,7 +152,7 @@ export default function VenueProfileDetail() {
     ],
   };
   
-  const venueData = mockVenueData[venueId] ? { ...defaultVenue, ...mockVenueData[venueId], mediaGallery: [mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl] } : defaultVenue;
+  const venue = mockVenueData[venueId] ? { ...defaultVenue, ...mockVenueData[venueId], mediaGallery: [mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl] } : defaultVenue;
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -46,19 +46,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const handleNotificationsLoaded = (notifications: any[]) => {
-    console.log('[DashboardLayout] Loaded notifications:', notifications);
-  };
-
-  const handleNotificationReceived = (notification: any) => {
-    console.log('[DashboardLayout] Received notification:', notification);
-  };
-
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
-  const { loading, user } = useCustomAuth();
+  const { loading, user } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -118,8 +110,16 @@ function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
-  const { user, logout } = useCustomAuth();
+  const { user, logout } = useAuth();
   const authUser = useAuth();
+  
+  const handleNotificationsLoaded = (notifications: any[]) => {
+    console.log('[DashboardLayout] Loaded notifications:', notifications);
+  };
+
+  const handleNotificationReceived = (notification: any) => {
+    console.log('[DashboardLayout] Received notification:', notification);
+  };
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
