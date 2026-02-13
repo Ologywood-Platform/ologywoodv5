@@ -53,7 +53,6 @@ export function VerifyEmail() {
     setIsSubmitting(true);
     try {
       await verifyMutation.mutateAsync({
-        email,
         token: verificationCode,
       });
 

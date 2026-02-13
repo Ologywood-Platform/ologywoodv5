@@ -239,14 +239,14 @@ export default function VenueProfile() {
         </Card>
 
         {/* Photo Gallery */}
-        {venueProfile.mediaGallery && venueProfile.mediaGallery.photos && venueProfile.mediaGallery.photos.length > 0 && (
+        {(venueProfile as any)?.mediaGallery && (venueProfile as any)?.mediaGallery.photos && (venueProfile as any)?.mediaGallery.photos.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Photo Gallery</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {venueProfile.mediaGallery.photos.map((photo: string, idx: number) => (
+                {(venueProfile as any)?.mediaGallery.photos.map((photo: string, idx: number) => (
                   <img
                     key={idx}
                     src={photo}
@@ -371,10 +371,10 @@ export default function VenueProfile() {
           onClose={() => setShareVenueOpen(false)}
           venueId={venueId}
           venueName={venueProfile.organizationName}
-          venueDescription={venueProfile.description}
-          venueProfileImage={venueProfile.profilePhotoUrl}
-          venueLocation={venueProfile.city}
-          venueCapacity={venueProfile.capacity}
+          venueDescription={(venueProfile as any)?.description}
+          venueProfileImage={(venueProfile as any)?.profilePhotoUrl}
+          venueLocation={(venueProfile as any)?.city}
+          venueCapacity={(venueProfile as any)?.capacity}
         />
       )}
     </div>

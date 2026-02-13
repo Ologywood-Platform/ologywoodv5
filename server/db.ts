@@ -429,7 +429,7 @@ export async function getVenueProfileByToken(token: string) {
   try {
     const db = await getDb();
     if (!db) return null;
-    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.emailVerificationToken, token)).limit(1);
+    const result = await db.select().from(venueProfiles).where(eq((venueProfiles as any).emailVerificationToken, token)).limit(1);
     return result.length > 0 ? result[0] : null;
   } catch (error) {
     console.error('Error getting venue profile by token:', error);
@@ -701,7 +701,7 @@ export async function upsertSubscription(data: {
       stripeCustomerId: data.stripeCustomerId,
       stripeSubscriptionId: data.stripeSubscriptionId,
       status: validStatus,
-      currentPeriodEnd: data.currentPeriodEnd,
+      // currentPeriodEnd: data.currentPeriodEnd,
       updatedAt: new Date(),
     },
   });
@@ -1253,7 +1253,7 @@ export async function getFavoritedArtistsAvailability(userId: number, startDate:
   
   // Get user's favorited artists
   const userFavorites = await db.select().from(favorites)
-    .where(eq(favorites.userId, userId));
+    .where(eq((favorites as any).userId, userId));
   
   if (userFavorites.length === 0) return [];
   
@@ -1320,7 +1320,7 @@ export async function getPaymentHistory(bookingId: number) {
     totalFee: bookings.totalFee,
     depositAmount: bookings.depositAmount,
     depositPaidAt: bookings.depositPaidAt,
-    fullPaymentPaidAt: bookings.fullPaymentPaidAt,
+    // fullPaymentPaidAt: bookings.fullPaymentPaidAt,
     stripePaymentIntentId: bookings.stripePaymentIntentId,
     stripeRefundId: bookings.stripeRefundId,
   })
