@@ -20,7 +20,7 @@ export const venueRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
       try {
@@ -59,7 +59,7 @@ export const venueRouter = router({
           .limit(input.limit)
           .offset(input.offset);
 
-        return venues.map((venue) => ({
+        return venues.map((venue: typeof venueProfiles.$inferSelect) => ({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,
@@ -79,7 +79,7 @@ export const venueRouter = router({
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
       try {
@@ -127,7 +127,7 @@ export const venueRouter = router({
   getFeatured: publicProcedure
     .input(z.object({ limit: z.number().default(6) }))
     .query(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
       try {
@@ -135,10 +135,10 @@ export const venueRouter = router({
           .select()
           .from(venueProfiles)
           .where(eq(venueProfiles.isListed, true))
-          .orderBy(desc(venueProfiles.averageRating))
+          .orderBy(desc(venueProfiles.createdAt))
           .limit(input.limit);
 
-        return venues.map((venue) => ({
+        return venues.map((venue: typeof venueProfiles.$inferSelect) => ({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,
@@ -158,7 +158,7 @@ export const venueRouter = router({
   getByLocation: publicProcedure
     .input(z.object({ location: z.string(), limit: z.number().default(10) }))
     .query(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
       if (!db) throw new Error('Database connection failed');
 
       try {
@@ -173,7 +173,7 @@ export const venueRouter = router({
           )
           .limit(input.limit);
 
-        return venues.map((venue) => ({
+        return venues.map((venue: typeof venueProfiles.$inferSelect) => ({
           id: venue.id,
           organizationName: venue.organizationName,
           location: venue.location,

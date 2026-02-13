@@ -1,6 +1,6 @@
-import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
-import { db } from '../db';
+import { getDb } from '../db';
+import { publicProcedure, router } from '../_core/trpc';
 
 export const unsubscribeRouter = router({
   /**
