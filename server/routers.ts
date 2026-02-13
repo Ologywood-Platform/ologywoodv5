@@ -39,6 +39,7 @@ import { simpleRyderRouter } from "./routers/simpleRyderRouter";
 import { accountRouter } from "./routers/accountRouter";
 import { payoutRouter } from "./routers/payoutRouter";
 import { earningsRouter } from "./routers/earningsRouter";
+import { venueRouter } from "./routers/venueRouter";
 // import { analyticsRouter } from "./routers/analyticsRouter";
 // import { contractManagementRouter } from "./routers/contract-management";
 // import { helpAndSupportRouter } from "./routers/helpAndSupport";
@@ -131,6 +132,8 @@ export const appRouter = router({
   // depositPayments: depositPaymentsRouter,
   simpleRyder: simpleRyderRouter,
   emailChange: emailChangeRouter,
+  earnings: earningsRouter,
+  venue: venueRouter,
   account: router({
     ...accountRouter,
     validateDeletion: protectedProcedure
