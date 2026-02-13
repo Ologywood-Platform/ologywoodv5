@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -165,6 +165,14 @@ export function ArtistDashboardV3() {
                   >
                     <MessageSquare className="h-5 w-5" />
                     <span className="text-xs">Messages</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/earnings')}
+                  >
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-xs">Earnings</span>
                   </Button>
                 </div>
               </CardContent>
