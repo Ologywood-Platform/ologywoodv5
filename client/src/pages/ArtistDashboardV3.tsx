@@ -84,14 +84,14 @@ export function ArtistDashboardV3() {
                     {artistProfile?.profilePhotoUrl && (
                       <img
                         src={artistProfile.profilePhotoUrl}
-                        alt={artistProfile.stageName}
+                        alt={artistProfile.artistName || 'Artist'}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                     )}
                     <div>
-                      <CardTitle className="text-2xl">{artistProfile?.artistName || artistProfile?.stageName || 'Artist'}</CardTitle>
+                      <CardTitle className="text-2xl">{artistProfile?.artistName || 'Artist'}</CardTitle>
                       <CardDescription>{artistProfile?.genre || 'Genre not specified'}</CardDescription>
-                      {(artistProfile as any)?.averageRating && (
+                      {artistProfile && (artistProfile as any)?.averageRating && (
                         <div className="flex items-center gap-1 mt-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm font-semibold">{artistProfile.averageRating.toFixed(1)}</span>

@@ -14,7 +14,7 @@ export function VenueProfileEditor({ onSave }: VenueProfileEditorProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const { data: profile } = (trpc.venue?.getMyProfile?.useQuery as any)?.() || { data: undefined };
+  const { data: profile } = ((trpc.venue as any)?.getMyProfile?.useQuery as any)?.() || { data: undefined };
 
   const [formData, setFormData] = useState({
     organizationName: '',
