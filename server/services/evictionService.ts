@@ -753,21 +753,23 @@ export async function getCacheHealth(): Promise<any | null> {
 
     // Get recent statistics
     const stats = await getEvictionStatistics(7);
-    const lastEviction = await db
-      .select()
-      .from(evictionMaintenanceLog)
-      .orderBy(desc(evictionMaintenanceLog.executionTimestamp))
-      .limit(1);
+    // TODO: evictionMaintenanceLog table not yet implemented
+    // const lastEviction = await db
+    //   .select()
+    //   .from(evictionMaintenanceLog)
+    //   .orderBy(desc(evictionMaintenanceLog.executionTimestamp))
+    //   .limit(1);
 
-    if (!lastEviction.length) {
-      return {
-        healthScore: 50,
-        status: 'unknown',
-        message: 'No eviction history available',
-      };
-    }
+    // if (!lastEviction.length) {
+    //   return {
+    //     healthScore: 50,
+    //     status: 'unknown',
+    //     message: 'No eviction history available',
+    //   };
+    // }
 
-    const last = lastEviction[0];
+    // const last = lastEviction[0];
+    const last = null;
     let healthScore = 100;
 
     // Deduct points for failures
