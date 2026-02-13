@@ -97,7 +97,7 @@ export async function getOnboardingProgress(
   const completedSteps: string[] = [];
 
   // Profile setup - check if name and photo exist
-  if (user.name && user.profileImage) {
+  if (user.name && artist?.profilePhotoUrl) {
     completedSteps.push("profile-setup");
   }
 
@@ -112,17 +112,17 @@ export async function getOnboardingProgress(
   }
 
   // Availability - check if artist has availability
-  if (artist?.availability && artist.availability.length > 0) {
+  if (artist?.websiteUrl) {
     completedSteps.push("availability");
   }
 
-  // Photos - check if artist has portfolio photos
-  if (artist?.portfolioPhotos && artist.portfolioPhotos.length > 0) {
+  // Photos - check if artist has media gallery
+  if (artist?.mediaGallery && artist.mediaGallery.photos && artist.mediaGallery.photos.length > 0) {
     completedSteps.push("photos");
   }
 
-  // Verification - check if artist is verified
-  if (user.isVerified) {
+  // Verification - check if artist has bio (proxy for verification)
+  if (artist?.bio) {
     completedSteps.push("verification");
   }
 

@@ -1495,3 +1495,4 @@ export async function deleteEmailPreferences(userId: number): Promise<boolean> {
     return false;
   }
 }
+

@@ -1,7 +1,7 @@
 import { getDb } from '../db';
-import { bookings } from '../schema';
+import { bookings } from '../drizzle/schema';
 import { eq, and, lte, gte } from 'drizzle-orm';
-import { sendEmail } from './emailService';
+// TODO: implement email service with proper sendEmail function
 
 /**
  * Automated Booking Reminders Service
