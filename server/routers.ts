@@ -660,13 +660,15 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Venue email not set' });
         }
         
-        if (profile.emailVerified) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Email already verified' });
+        // Get user email from context
+        const userEmail = ctx.user.email;
+        if (!userEmail) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'User email not found' });
         }
         
         // Generate verification token
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const verificationLink = `${ENV.appUrl}/verify-venue-email?token=${verificationToken}`;
+        const verificationToken = crypto.getRandomValues(new Uint8Array(32)).toString();
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-venue-email?token=${verificationToken}`;
         
         // Update profile with token and timestamp
         await db.updateVenueProfile(profile.id, {
@@ -676,7 +678,7 @@ export const appRouter = router({
         
         // Send verification email
         const emailSent = await sendVenueVerificationEmail({
-          venueEmail: profile.email,
+          venueEmail: userEmail,
           venueName: profile.organizationName,
           verificationToken,
           verificationLink,
@@ -698,20 +700,16 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Invalid or expired verification token' });
         }
         
-        if (profile.emailVerified) {
-          return { success: true, message: 'Email already verified' };
-        }
-        
         // Mark email as verified
         await db.updateVenueProfile(profile.id, {
-          emailVerified: true,
           emailVerificationToken: null,
         });
         
         // Send confirmation email
-        if (profile.email) {
+        const user = await db.getUserById(profile.userId);
+        if (user?.email) {
           await sendVenueVerificationConfirmationEmail({
-            venueEmail: profile.email,
+            venueEmail: user.email,
             venueName: profile.organizationName,
           });
         }
@@ -847,7 +845,7 @@ export const appRouter = router({
           // Group riders by templateName to find duplicates
           const grouped = new Map<string, any[]>();
           for (const rider of riders) {
-            const name = rider.templateName;
+            const name = rider.templateName || 'default';
             if (!grouped.has(name)) {
               grouped.set(name, []);
             }
@@ -901,15 +899,12 @@ export const appRouter = router({
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
-        // CRITICAL: Parse date string as local date, not UTC
-        // "2026-02-10" should be Feb 10 in user's timezone, not UTC midnight
-        const [year, month, day] = input.date.split('-').map(Number);
-        const localDate = new Date(year, month - 1, day);
+        // Date is stored as YYYY-MM-DD string in database
+        const dateStr = input.date; // Already in YYYY-MM-DD format
         await db.setAvailability({
           artistId: profile.id,
-          date: localDate,
+          date: dateStr,
           status: input.status,
-          notes: input.notes,
         });
         
         // Send notifications to venues who favorited this artist (only for new availability)
@@ -971,8 +966,6 @@ export const appRouter = router({
           venueId: venueProfile.id,
           eventDate: new Date(input.eventDate),
           eventTime: input.eventTime,
-          venueName: input.venueName,
-          venueAddress: input.venueAddress,
           eventDetails: input.eventDetails,
           totalFee: input.totalFee?.toString(),
           depositAmount: input.depositAmount?.toString(),
@@ -1040,7 +1033,7 @@ export const appRouter = router({
             : booking.eventDate;
           await db.setAvailability({
             artistId: booking.artistId,
-            date: new Date(dateStr),
+            date: dateStr,
             status: 'booked',
           });
         }
@@ -1052,7 +1045,7 @@ export const appRouter = router({
             : booking.eventDate;
           await db.setAvailability({
             artistId: booking.artistId,
-            date: new Date(dateStr),
+            date: dateStr,
             status: 'available',
           });
         }
@@ -1299,8 +1292,8 @@ export const appRouter = router({
         
         // Create a pending booking for this conversation
         const booking = await db.createBooking({
-          artistId: ctx.user.id,
-          venueId: input.venueId,
+          artistId: input.artistId,
+          venueId: venueProfile.id,
           eventDate: new Date(), // Placeholder date
           eventTime: null,
           totalFee: null,
