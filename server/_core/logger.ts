@@ -72,7 +72,7 @@ class Logger {
     this.info(`TRPC Call: ${endpoint}`, {
       endpoint,
       userId,
-      duration: duration ? `${duration}ms` : undefined,
+      duration: duration as any,
     });
   }
 
@@ -92,7 +92,7 @@ class Logger {
    */
   dbQuery(query: string, duration?: number, context?: LogContext) {
     this.debug(`DB Query: ${query}`, {
-      duration: duration ? `${duration}ms` : undefined,
+      duration: duration as any,
       ...context,
     });
   }
@@ -111,7 +111,7 @@ class Logger {
     this.info(`API Response: ${endpoint}`, {
       endpoint,
       statusCode,
-      duration: duration ? `${duration}ms` : undefined,
+      duration: duration as any,
       userId,
     });
   }

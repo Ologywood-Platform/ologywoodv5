@@ -102,7 +102,7 @@ export async function getSignatureByContractAndSigner(contractId: number, userId
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(signatures).where(
-    and(eq(signatures.contractId, contractId), eq(signatures.userId, signerId))
+    and(eq(signatures.contractId, contractId), eq(signatures.userId, userId))
   ).limit(1);
   return result[0];
 }
