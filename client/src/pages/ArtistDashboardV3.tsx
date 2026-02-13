@@ -94,7 +94,7 @@ export function ArtistDashboardV3() {
                       {artistProfile && (artistProfile as any)?.averageRating && (
                         <div className="flex items-center gap-1 mt-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold">{artistProfile.averageRating.toFixed(1)}</span>
+                          <span className="text-sm font-semibold">{((artistProfile as any).averageRating || 0).toFixed(1)}</span>
                         </div>
                       )}
                     </div>

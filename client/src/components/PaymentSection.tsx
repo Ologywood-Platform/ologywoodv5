@@ -127,11 +127,11 @@ export default function PaymentSection({
                   </span>
                 </div>
               )}
-              {paymentHistory.fullPaymentPaidAt && (
+              {(paymentHistory as any).fullPaymentPaidAt && (
                 <div className="flex items-center justify-between p-2 bg-green-50 rounded">
                   <span>Full Payment Paid</span>
                   <span className="text-green-700 font-medium">
-                    {new Date(paymentHistory.fullPaymentPaidAt).toLocaleDateString()}
+                    {new Date((paymentHistory as any).fullPaymentPaidAt).toLocaleDateString()}
                   </span>
                 </div>
               )}
