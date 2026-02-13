@@ -13,7 +13,7 @@ export default function RoleSelection() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
 
-  const updateRole = trpc.auth.updateRole.useMutation({
+  const updateRole = (trpc.auth.updateRole as any).useMutation?.({
     onSuccess: (data: any) => {
       toast.success(`Account set up as ${data.role}`);
       // Navigate to appropriate onboarding

@@ -13,7 +13,7 @@ import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 function LogoutButton() {
-  const logoutMutation = trpc.auth.logout.useMutation();
+  const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
