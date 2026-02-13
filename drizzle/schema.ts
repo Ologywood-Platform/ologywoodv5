@@ -73,6 +73,7 @@ export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId"),
   templateName: varchar("templateName", { length: 255 }),
+  templateData: json("templateData").$type<Record<string, any>>(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
 });

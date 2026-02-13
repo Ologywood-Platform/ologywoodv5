@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
+import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import * as db from '../db';
 
@@ -24,48 +24,47 @@ const SimpleRyderDataSchema = z.object({
 });
 
 export const simpleRyderRouter = router({
-  // Create a new ryder template
+  // Create a new rider template
   create: protectedProcedure
     .input(SimpleRyderDataSchema)
     .mutation(async ({ input, ctx }) => {
       try {
         const result = await db.createRiderTemplate({
           artistId: ctx.user.id,
-          name: input.templateName,
-          description: `${input.performanceType} - ${input.performanceDuration} minutes`,
-          performanceType: input.performanceType,
-          performanceDuration: input.performanceDuration,
-          setupTimeRequired: input.setupTimeRequired,
-          paSystemRequired: input.paSystemRequired,
-          lightingRequired: input.lightingRequired,
-          monitorMixRequired: input.monitorMixRequired,
-          bringingOwnEquipment: input.bringingOwnEquipment,
-          equipmentList: input.equipmentList,
-          powerRequirements: input.powerRequirements,
-          dressingRoomRequired: input.dressingRoomRequired,
-          cateringProvided: input.cateringProvided,
-          dietaryRestrictions: input.dietaryRestrictions,
-          parkingRequired: input.parkingRequired,
-          numberOfPerformers: input.numberOfPerformers,
-          specialRequests: input.specialRequests,
-          cancellationPolicy: input.cancellationPolicy,
-          emergencyContact: input.emergencyContact,
-          isPublished: true,
-          version: 1,
+          templateName: input.templateName,
+          templateData: {
+            performanceType: input.performanceType,
+            performanceDuration: input.performanceDuration,
+            setupTimeRequired: input.setupTimeRequired,
+            paSystemRequired: input.paSystemRequired,
+            lightingRequired: input.lightingRequired,
+            monitorMixRequired: input.monitorMixRequired,
+            bringingOwnEquipment: input.bringingOwnEquipment,
+            equipmentList: input.equipmentList,
+            powerRequirements: input.powerRequirements,
+            dressingRoomRequired: input.dressingRoomRequired,
+            cateringProvided: input.cateringProvided,
+            dietaryRestrictions: input.dietaryRestrictions,
+            parkingRequired: input.parkingRequired,
+            numberOfPerformers: input.numberOfPerformers,
+            specialRequests: input.specialRequests,
+            cancellationPolicy: input.cancellationPolicy,
+            emergencyContact: input.emergencyContact,
+          },
         });
 
         return {
           success: true,
           templateId: result.id,
-          message: 'Ryder template created successfully',
+          message: 'Rider template created successfully',
         };
       } catch (error) {
-        console.error('Error creating ryder template:', error);
-        throw new Error('Failed to create ryder template');
+        console.error('Error creating rider template:', error);
+        throw new Error('Failed to create rider template');
       }
     }),
 
-  // Get a specific ryder template
+  // Get a specific rider template
   get: protectedProcedure
     .input(z.object({ templateId: z.number() }))
     .query(async ({ input, ctx }) => {
@@ -76,25 +75,38 @@ export const simpleRyderRouter = router({
           throw new Error('Template not found or unauthorized');
         }
 
-        return template;
+        return {
+          id: template.id,
+          templateName: template.templateName,
+          templateData: template.templateData,
+          createdAt: template.createdAt,
+          updatedAt: template.updatedAt,
+        };
       } catch (error) {
-        console.error('Error fetching ryder template:', error);
-        throw new Error('Failed to fetch ryder template');
+        console.error('Error fetching rider template:', error);
+        throw new Error('Failed to fetch rider template');
       }
     }),
 
-  // List all ryder templates for current artist
+  // List all rider templates for the artist
   list: protectedProcedure.query(async ({ ctx }) => {
     try {
       const templates = await db.getRiderTemplatesByArtistId(ctx.user.id);
-      return templates;
+
+      return templates.map((template) => ({
+        id: template.id,
+        templateName: template.templateName,
+        templateData: template.templateData,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt,
+      }));
     } catch (error) {
-      console.error('Error listing ryder templates:', error);
-      throw new Error('Failed to list ryder templates');
+      console.error('Error listing rider templates:', error);
+      throw new Error('Failed to list rider templates');
     }
   }),
 
-  // Update a ryder template
+  // Update a rider template
   update: protectedProcedure
     .input(
       z.object({
@@ -112,48 +124,47 @@ export const simpleRyderRouter = router({
         }
 
         const result = await db.updateRiderTemplate(input.templateId, {
-          name: input.data.templateName,
-          description: `${input.data.performanceType} - ${input.data.performanceDuration} minutes`,
-          performanceType: input.data.performanceType,
-          performanceDuration: input.data.performanceDuration,
-          setupTimeRequired: input.data.setupTimeRequired,
-          paSystemRequired: input.data.paSystemRequired,
-          lightingRequired: input.data.lightingRequired,
-          monitorMixRequired: input.data.monitorMixRequired,
-          bringingOwnEquipment: input.data.bringingOwnEquipment,
-          equipmentList: input.data.equipmentList,
-          powerRequirements: input.data.powerRequirements,
-          dressingRoomRequired: input.data.dressingRoomRequired,
-          cateringProvided: input.data.cateringProvided,
-          dietaryRestrictions: input.data.dietaryRestrictions,
-          parkingRequired: input.data.parkingRequired,
-          numberOfPerformers: input.data.numberOfPerformers,
-          specialRequests: input.data.specialRequests,
-          cancellationPolicy: input.data.cancellationPolicy,
-          emergencyContact: input.data.emergencyContact,
-          version: (existing.version || 1) + 1,
+          templateName: input.data.templateName,
+          templateData: {
+            performanceType: input.data.performanceType,
+            performanceDuration: input.data.performanceDuration,
+            setupTimeRequired: input.data.setupTimeRequired,
+            paSystemRequired: input.data.paSystemRequired,
+            lightingRequired: input.data.lightingRequired,
+            monitorMixRequired: input.data.monitorMixRequired,
+            bringingOwnEquipment: input.data.bringingOwnEquipment,
+            equipmentList: input.data.equipmentList,
+            powerRequirements: input.data.powerRequirements,
+            dressingRoomRequired: input.data.dressingRoomRequired,
+            cateringProvided: input.data.cateringProvided,
+            dietaryRestrictions: input.data.dietaryRestrictions,
+            parkingRequired: input.data.parkingRequired,
+            numberOfPerformers: input.data.numberOfPerformers,
+            specialRequests: input.data.specialRequests,
+            cancellationPolicy: input.data.cancellationPolicy,
+            emergencyContact: input.data.emergencyContact,
+          },
         });
 
         return {
           success: true,
           templateId: result.id,
-          message: 'Ryder template updated successfully',
+          message: 'Rider template updated successfully',
         };
       } catch (error) {
-        console.error('Error updating ryder template:', error);
-        throw new Error('Failed to update ryder template');
+        console.error('Error updating rider template:', error);
+        throw new Error('Failed to update rider template');
       }
     }),
 
-  // Delete a ryder template
+  // Delete a rider template
   delete: protectedProcedure
     .input(z.object({ templateId: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        // Verify ownership
-        const existing = await db.getRiderTemplateById(input.templateId);
+        const template = await db.getRiderTemplateById(input.templateId);
 
-        if (!existing || existing.artistId !== ctx.user.id) {
+        if (!template || template.artistId !== ctx.user.id) {
           throw new Error('Template not found or unauthorized');
         }
 
@@ -161,29 +172,11 @@ export const simpleRyderRouter = router({
 
         return {
           success: true,
-          message: 'Ryder template deleted successfully',
+          message: 'Rider template deleted successfully',
         };
       } catch (error) {
-        console.error('Error deleting ryder template:', error);
-        throw new Error('Failed to delete ryder template');
-      }
-    }),
-
-  // Get template for use in booking (public view)
-  getPublic: publicProcedure
-    .input(z.object({ templateId: z.number() }))
-    .query(async ({ input }) => {
-      try {
-        const template = await db.getRiderTemplateById(input.templateId);
-
-        if (!template || !template.isPublished) {
-          throw new Error('Template not found');
-        }
-
-        return template;
-      } catch (error) {
-        console.error('Error fetching public ryder template:', error);
-        throw new Error('Failed to fetch ryder template');
+        console.error('Error deleting rider template:', error);
+        throw new Error('Failed to delete rider template');
       }
     }),
 });
