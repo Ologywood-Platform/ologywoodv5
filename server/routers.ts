@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import * as email from "./email";
@@ -1077,10 +1078,10 @@ export const appRouter = router({
                 artistUser.email,
                 {
                   artistName: artistProfile.artistName,
-                  venueName: booking.venueName || venueProfile.organizationName,
+                  venueName: venueProfile.organizationName,
                   eventDate: eventDateStr,
                   eventTime: booking.eventTime || 'TBD',
-                  eventLocation: booking.venueAddress || 'TBD',
+                  eventLocation: venueProfile.location || 'TBD',
                   bookingId: booking.id,
                 }
               );
@@ -1091,10 +1092,10 @@ export const appRouter = router({
                 venueUser.email,
                 {
                   artistName: artistProfile.artistName,
-                  venueName: booking.venueName || venueProfile.organizationName,
+                  venueName: venueProfile.organizationName,
                   eventDate: eventDateStr,
                   eventTime: booking.eventTime || 'TBD',
-                  eventLocation: booking.venueAddress || 'TBD',
+                  eventLocation: venueProfile.location || 'TBD',
                   bookingId: booking.id,
                 }
               );
@@ -1107,7 +1108,6 @@ export const appRouter = router({
                 recipientName: artistProfile.artistName,
                 otherPartyName: venueProfile.organizationName,
                 eventDate: eventDateStr,
-                venueName: booking.venueName,
               });
             }
             if (venueUser?.email) {
@@ -1116,7 +1116,6 @@ export const appRouter = router({
                 recipientName: venueProfile.organizationName,
                 otherPartyName: artistProfile.artistName,
                 eventDate: eventDateStr,
-                venueName: booking.venueName,
               });
             }
           }
@@ -1299,17 +1298,16 @@ export const appRouter = router({
         }
         
         // Create a pending booking for this conversation
-        const bookingId = await db.createBooking({
-          artistId: input.artistId,
-          venueId: venueProfile.id,
-          status: 'pending',
+        const booking = await db.createBooking({
+          artistId: ctx.user.id,
+          venueId: input.venueId,
           eventDate: new Date(), // Placeholder date
           eventTime: null,
-          venueName: venueProfile.organizationName,
-          venueAddress: null,
           totalFee: null,
           eventDetails: 'Quick inquiry from calendar',
+          status: 'pending',
         });
+        const bookingId = booking.id;
         
         // Send the message
         await db.createMessage({
@@ -1645,7 +1643,7 @@ export const appRouter = router({
     
     getMyFavorites: venueProcedure
       .query(async ({ ctx }) => {
-        return await db.getFavoritesByUser(ctx.user.id);
+        return await db.getFavoritesByVenue(ctx.user.id);
       }),
     
     isFavorited: venueProcedure
@@ -1881,7 +1879,7 @@ export const appRouter = router({
             price_data: {
               currency: 'usd',
               product_data: {
-                name: `Booking Deposit - ${booking.venueName}`,
+                name: `Booking Deposit - ${booking.eventDetails || 'Event'}`,
                 description: booking.eventDetails || 'Event booking deposit',
               },
               unit_amount: Math.round(Number(booking.depositAmount) * 100),
@@ -1927,7 +1925,7 @@ export const appRouter = router({
             price_data: {
               currency: 'usd',
               product_data: {
-                name: `Booking Payment - ${booking.venueName}`,
+                name: `Booking Payment - ${booking.eventDetails || 'Event'}`,
                 description: booking.eventDetails || 'Event booking payment',
               },
               unit_amount: Math.round(remainingAmount * 100),
@@ -2081,6 +2079,5 @@ export const appRouter = router({
       }),
   }),
   payout: payoutRouter,
-  earnings: earningsRouter,
 });
 export type AppRouter = typeof appRouter;

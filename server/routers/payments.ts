@@ -6,9 +6,7 @@ import { getDb } from '../db';
 import { bookings } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
-const stripe = new Stripe(ENV.stripeSecretKey || '', {
-  apiVersion: '2024-12-18.acacia',
-});
+const stripe = new Stripe(ENV.stripeSecretKey || '');
 
 // Validation schemas
 const createCheckoutSessionSchema = z.object({
@@ -68,7 +66,6 @@ export const paymentsRouter = router({
             },
           ],
           mode: 'payment',
-          customer_email: ctx.user.email,
           client_reference_id: input.bookingId.toString(),
           metadata: {
             bookingId: input.bookingId.toString(),
@@ -76,6 +73,7 @@ export const paymentsRouter = router({
             artistName: input.artistName,
             venueName: input.venueName,
             eventDate: input.eventDate,
+            userEmail: ctx.user.email,
           },
           success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?success=true&bookingId=${input.bookingId}`,
           cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?cancelled=true`,

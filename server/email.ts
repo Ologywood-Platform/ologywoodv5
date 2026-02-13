@@ -189,9 +189,9 @@ export async function sendBookingCancellationEmail(params: {
   recipientName: string;
   otherPartyName: string;
   eventDate: string;
-  venueName: string;
+  venueName?: string;
 }) {
-  const { recipientEmail, recipientName, otherPartyName, eventDate, venueName } = params;
+  const { recipientEmail, recipientName, otherPartyName, eventDate, venueName = 'Event' } = params;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

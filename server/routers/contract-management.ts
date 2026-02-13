@@ -253,7 +253,7 @@ export const contractManagementRouter = router({
 
         return {
           success: true,
-          contract: booking.riderData || null,
+          contract: null, // Contracts are stored in contracts table, not bookings
         };
       } catch (error) {
         console.error('[contractManagementRouter] Error getting booking contract:', error);

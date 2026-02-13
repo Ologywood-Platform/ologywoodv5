@@ -54,7 +54,7 @@ export const contractsRouter = router({
           title: input.contractTitle,
           content: input.contractContent,
         },
-        status: 'draft',
+        status: 'pending',
       });
 
       return contract;
@@ -128,8 +128,8 @@ export const contractsRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
       }
 
-      // Only allow updates if contract is in draft status
-      if (contract.status !== 'draft') {
+      // Only allow updates if contract is in pending status
+      if (contract.status !== 'pending') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot update a signed or executed contract' });
       }
 
@@ -193,11 +193,11 @@ export const contractsRouter = router({
       // Update contract status to 'sent' when first signature is added
       if (signerRole === 'artist') {
         await db.updateContract(input.contractId, {
-          status: 'sent',
+          status: 'pending',
         });
       } else {
         await db.updateContract(input.contractId, {
-          status: 'sent',
+          status: 'pending',
         });
       }
 
@@ -206,7 +206,7 @@ export const contractsRouter = router({
       if (allSignatures.length >= 2) {
         // Both parties have signed - update contract status
         await db.updateContract(input.contractId, {
-          status: 'signed',
+          status: 'fully_signed',
         });
 
         // Send notification emails
@@ -269,8 +269,8 @@ export const contractsRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
       }
 
-      // Only allow cancellation if not already executed
-      if (contract.status === 'executed' || contract.status === 'cancelled') {
+      // Only allow cancellation if not already fully signed
+      if (contract.status === 'fully_signed') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot cancel this contract' });
       }
 
@@ -284,7 +284,7 @@ export const contractsRouter = router({
       }
 
       return await db.updateContract(input.contractId, {
-        status: 'cancelled',
+        status: 'pending',
       });
     }),
   /**

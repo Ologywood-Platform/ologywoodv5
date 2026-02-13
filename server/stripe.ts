@@ -5,9 +5,7 @@ import { SUBSCRIPTION_PRODUCTS } from '../shared/products';
 let stripe: Stripe | null = null;
 
 if (process.env.STRIPE_SECRET_KEY) {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-12-15.clover',
-  });
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 } else {
   console.warn('[Stripe] WARNING: STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
 }
@@ -113,7 +111,7 @@ export async function createSubscriptionCheckoutSession(params: {
     },
     metadata: {
       userId: params.userId,
-      customer_email: params.userEmail,
+      userEmail: params.userEmail,
       customer_name: params.userName || '',
     },
     success_url: params.successUrl,

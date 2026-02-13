@@ -566,7 +566,7 @@ export async function deleteAvailability(id: number) {
 
 // ============= BOOKING FUNCTIONS =============
 
-export async function createBooking(booking: InsertBooking) {
+export async function createBooking(booking: InsertBooking): Promise<Booking> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
@@ -575,7 +575,7 @@ export async function createBooking(booking: InsertBooking) {
   const newBooking = await db.select().from(bookings)
     .where(eq(bookings.id, sql`LAST_INSERT_ID()`))
     .limit(1);
-  return newBooking[0]?.id || 0;
+  return newBooking[0] as Booking;
 }
 
 export async function getBookingById(id: number) {

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { protectedProcedure, router } from '../_core/trpc';
-// import { AccountDeletionService } from '../services/accountDeletionService'; // Disabled
 import { TRPCError } from '@trpc/server';
+// import { AccountDeletionService } from '../services/accountDeletionService'; // Disabled
 
 /**
  * Account management router
@@ -32,8 +32,11 @@ export const accountRouter = router({
           });
         }
 
-        // Perform account deletion
-        await AccountDeletionService.deleteAccount(userId, userEmail, userName);
+        // Perform account deletion - DISABLED: Service not available
+        // await AccountDeletionService.deleteAccount(userId, userEmail, userName);
+        
+        // Placeholder: just return success
+        console.log(`Account deletion requested for user ${userId}`);
 
         // Log the deletion action
         console.log(

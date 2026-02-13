@@ -13,6 +13,9 @@ export const emailChangeRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.user.email) {
+        throw new Error('User email is not available');
+      }
       const result = await EmailChangeVerificationService.requestEmailChange(
         ctx.user.id,
         ctx.user.email,
