@@ -9,11 +9,10 @@
 export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
 export type PaymentStatus = 
-  | "NOT_REQUIRED" 
-  | "PENDING" 
-  | "DEPOSIT_PAID" 
-  | "PAID" 
-  | "REFUNDED";
+  | "unpaid" 
+  | "deposit_paid" 
+  | "fully_paid" 
+  | "refunded";
 
 export interface Booking {
   id: number;

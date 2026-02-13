@@ -54,13 +54,13 @@ export const invoiceGenerationService = {
       artistId: booking.artistId,
       venueId: booking.venueId,
       invoiceNumber,
-      amount: amount.toString(),
-      tax: tax.toString(),
-      platformFee: platformFee.toString(),
-      total: total.toString(),
+      amount,
+      tax,
+      platformFee,
+      total,
       status: 'draft',
-      dueDate: dueDate.toISOString().split('T')[0],
-    });
+      dueDate,
+    } as any);
 
     return {
       success: true,
