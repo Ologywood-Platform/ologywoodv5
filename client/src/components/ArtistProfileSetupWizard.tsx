@@ -89,13 +89,22 @@ export function ArtistProfileSetupWizard() {
 
   const handlePhotoUpload = async (file: File) => {
     try {
-      const result = await uploadPhotoMutation.mutateAsync({ file });
-      setFormData(prev => ({ ...prev, profilePhoto: file }));
-      // Update profile with photo URL
-      await updateProfileMutation.mutateAsync({
-        profilePhotoUrl: result.url
-      });
-      handleNextStep();
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const fileData = e.target?.result as string;
+        const result = await uploadPhotoMutation.mutateAsync({ 
+          fileData,
+          fileName: file.name,
+          mimeType: file.type
+        });
+        setFormData(prev => ({ ...prev, profilePhoto: file }));
+        await updateProfileMutation.mutateAsync({
+          profilePhotoUrl: result.url
+        });
+        handleNextStep();
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Failed to upload photo:', error);
     }
@@ -127,7 +136,6 @@ export function ArtistProfileSetupWizard() {
       });
     } else if (currentStep === 4) { // Social links step
       await updateProfileMutation.mutateAsync({
-        websiteUrl: formData.websiteUrl,
         socialLinks: formData.socialLinks
       });
     }

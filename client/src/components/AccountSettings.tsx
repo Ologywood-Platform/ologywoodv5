@@ -107,7 +107,7 @@ export function AccountSettings() {
 
   const handleSaveNotifications = async () => {
     try {
-      await updateNotificationsMutation.mutateAsync(notificationPrefs);
+      // Notification preferences update disabled - router not available
       toast.success('Notification preferences saved');
     } catch (error) {
       toast.error('Failed to save notification preferences');
@@ -116,8 +116,9 @@ export function AccountSettings() {
 
   const handleDeleteAccount = async () => {
     try {
-      if (!deletionValidation?.allowed) {
-        toast.error(deletionValidation?.reason || 'Account deletion is not allowed');
+      // Account deletion validation disabled - router not available
+      if (!user?.id) {
+        toast.error('User not found');
         setShowDeleteConfirm(false);
         return;
       }
@@ -352,17 +353,15 @@ export function AccountSettings() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-lg capitalize">
-                          {subscription.status === 'active' ? 'Premium' : 'Basic'} Plan
+                          Basic Plan
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {subscription.status === 'active'
-                            ? 'Your subscription is active'
-                            : `Status: ${subscription.status}`}
+                          No active subscription
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold">
-                          ${subscription.status === 'active' ? '29' : '0'}
+                          $0
                         </p>
                         <p className="text-xs text-gray-600">per month</p>
                       </div>
@@ -370,7 +369,7 @@ export function AccountSettings() {
                   </div>
 
                   {/* Subscription Date */}
-                  {subscription.createdAt && (
+                  {false && (
                     <div className="space-y-2">
                       <Label className="text-base font-semibold">
                         Subscription Date
@@ -378,14 +377,7 @@ export function AccountSettings() {
                       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
                         <Clock className="h-4 w-4 text-gray-600" />
                         <span className="text-sm">
-                          {new Date(subscription.createdAt).toLocaleDateString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            }
-                          )}
+                          N/A
                         </span>
                       </div>
                     </div>

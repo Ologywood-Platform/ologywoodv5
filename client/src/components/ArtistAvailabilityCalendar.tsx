@@ -177,7 +177,7 @@ export function ArtistAvailabilityCalendar({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    status: e.target.value as 'available' | 'blocked' | 'tentative',
+                    status: e.target.value as 'available' | 'booked' | 'unavailable',
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
