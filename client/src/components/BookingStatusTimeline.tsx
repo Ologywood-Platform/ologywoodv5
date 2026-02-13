@@ -1,9 +1,10 @@
 import React from 'react';
 import { Check, Clock, AlertCircle, DollarSign, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import type { BookingStatus as BookingStatusType } from '@shared/domain';
 
 export interface BookingStatus {
-  stage: 'pending' | 'confirmed' | 'completed' | 'paid' | 'cancelled';
+  stage: BookingStatusType;
   timestamp?: Date;
   notes?: string;
 }
