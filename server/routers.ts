@@ -453,6 +453,81 @@ export const appRouter = router({
 
   // Venue Profile Management
   venue: router({
+  /**
+   * Search venues with filters
+   * Public endpoint - anyone can search venues
+   */
+  search: publicProcedure
+    .input(
+      z.object({
+        location: z.string().optional(),
+        searchQuery: z.string().optional(),
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      const db = getDb();
+      if (!db) throw new Error('Database connection failed');
+
+      try {
+        console.log('🔎 VENUE SEARCH CALLED');
+        console.log('Input:', input);
+
+        // DIAGNOSTIC: Get raw count first
+        const rawCount = await db.select().from(venueProfiles);
+        console.log('📦 RAW DB RESULT COUNT (no filters):', rawCount.length);
+        console.log('📦 Raw venues:', rawCount.map(v => ({ id: v.id, name: v.organizationName, isListed: v.isListed })));
+
+        const conditions = [];
+
+        // Only show listed venues
+        conditions.push(eq(venueProfiles.isListed, true));
+        console.log('✅ Added isListed filter');
+
+        // Search by name or bio
+        if (input.searchQuery) {
+          conditions.push(
+            like(venueProfiles.organizationName, `%${input.searchQuery}%`)
+          );
+          console.log('✅ Added searchQuery filter:', input.searchQuery);
+        }
+
+        // Filter by location
+        if (input.location) {
+          conditions.push(like(venueProfiles.location, `%${input.location}%`));
+          console.log('✅ Added location filter:', input.location);
+        }
+
+        console.log('🧠 Conditions count:', conditions.length);
+
+        const venues = await db
+          .select()
+          .from(venueProfiles)
+          .where(and(...conditions))
+          .limit(input.limit)
+          .offset(input.offset);
+
+        console.log('🔎 VENUE SEARCH RESULT COUNT:', venues.length);
+        console.log('🔎 Filtered venues:', venues.map(v => ({ id: v.id, name: v.organizationName })));
+
+        return venues.map((venue) => ({
+          id: venue.id,
+          organizationName: venue.organizationName,
+          location: venue.location,
+          bio: venue.bio,
+          contactPhone: venue.contactPhone,
+        }));
+      } catch (error) {
+        console.error('[Venue Search] Error searching venues:', error);
+        throw error;
+      }
+    }),
+
+  getVenueTypes: publicProcedure.query(async () => {
+    return ['Concert Hall', 'Bar', 'Club', 'Theater', 'Festival', 'Other'];
+  }),
+
     // Get current venue's profile
     getMyProfile: venueProcedure.query(async ({ ctx }) => {
       return await db.getVenueProfileByUserId(ctx.user.id);

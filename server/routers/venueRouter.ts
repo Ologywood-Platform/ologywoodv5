@@ -24,10 +24,19 @@ export const venueRouter = router({
       if (!db) throw new Error('Database connection failed');
 
       try {
+        console.log('🔎 VENUE SEARCH CALLED');
+        console.log('Input:', input);
+
+        // DIAGNOSTIC: Get raw count first
+        const rawCount = await db.select().from(venueProfiles);
+        console.log('📦 RAW DB RESULT COUNT (no filters):', rawCount.length);
+        console.log('📦 Raw venues:', rawCount.map(v => ({ id: v.id, name: v.organizationName, isListed: v.isListed })));
+
         const conditions = [];
 
         // Only show listed venues
         conditions.push(eq(venueProfiles.isListed, true));
+        console.log('✅ Added isListed filter');
 
         // Search by name or bio
         if (input.searchQuery) {
