@@ -347,7 +347,7 @@ export function AccountSettings() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-lg capitalize">
-                          {subscription.planName || 'Basic'} Plan
+                          {subscription.status === 'active' ? 'Premium' : 'Basic'} Plan
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {subscription.status === 'active'
@@ -357,23 +357,23 @@ export function AccountSettings() {
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold">
-                          ${subscription.amount || '29'}
+                          ${subscription.status === 'active' ? '29' : '0'}
                         </p>
                         <p className="text-xs text-gray-600">per month</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Renewal Date */}
-                  {subscription.renewalDate && (
+                  {/* Subscription Date */}
+                  {subscription.createdAt && (
                     <div className="space-y-2">
                       <Label className="text-base font-semibold">
-                        Renewal Date
+                        Subscription Date
                       </Label>
                       <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
                         <Clock className="h-4 w-4 text-gray-600" />
                         <span className="text-sm">
-                          {new Date(subscription.renewalDate).toLocaleDateString(
+                          {new Date(subscription.createdAt).toLocaleDateString(
                             'en-US',
                             {
                               year: 'numeric',
