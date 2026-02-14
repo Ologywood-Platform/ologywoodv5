@@ -101,40 +101,40 @@ export default function Riders() {
   });
 
   // Create template mutation
-  const createMutation = trpc.rider.create.useMutation({
+  const createMutation = trpc.rider.createTemplate.useMutation({
     onSuccess: () => {
       toast.success("Rider template created");
       refetch();
       resetForm();
       setDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to create template");
     },
   });
 
   // Update template mutation
-  const updateMutation = trpc.rider.update.useMutation({
+  const updateMutation = trpc.rider.updateTemplate.useMutation({
     onSuccess: () => {
       toast.success("Rider template updated");
       refetch();
       resetForm();
       setDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to update template");
     },
   });
 
   // Delete template mutation
-  const deleteMutation = trpc.rider.delete.useMutation({
+  const deleteMutation = trpc.rider.deleteTemplate.useMutation({
     onSuccess: () => {
       toast.success("Rider template deleted");
       refetch();
       setDeleteDialogOpen(false);
       setDeleteId(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to delete template");
     },
   });
@@ -230,11 +230,23 @@ export default function Riders() {
 
     if (isEditing && selectedTemplate) {
       updateMutation.mutate({
-        id: selectedTemplate.id,
-        ...templateData,
+        templateId: selectedTemplate.id,
+        templateName: templateData.templateName,
+        templateData: {
+          ...templateData.technicalRequirements,
+          ...templateData.hospitalityRequirements,
+          ...templateData.financialTerms,
+        },
       });
     } else {
-      createMutation.mutate(templateData);
+      createMutation.mutate({
+        templateName: templateData.templateName,
+        templateData: {
+          ...templateData.technicalRequirements,
+          ...templateData.hospitalityRequirements,
+          ...templateData.financialTerms,
+        },
+      });
     }
   };
 
@@ -245,7 +257,7 @@ export default function Riders() {
 
   const confirmDelete = () => {
     if (deleteId) {
-      deleteMutation.mutate({ id: deleteId });
+      deleteMutation.mutate({ templateId: deleteId });
     }
   };
 

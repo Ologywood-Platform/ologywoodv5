@@ -21,6 +21,7 @@ import { emailPreferencesRouter } from "./routers/emailPreferences";
 import { emailTestingRouter } from "./routers/emailTesting";
 import { emailChangeRouter } from "./routers/emailChangeRouter";
 import { pricingRouter } from "./routers/pricing";
+import { riderRouter } from "./routers/rider";
 
 // ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
 // import { contractsRouter } from "./routers/contracts";
@@ -150,6 +151,7 @@ export const appRouter = router({
   } as any),
   emailPreferences: emailPreferencesRouter,
   pricing: pricingRouter,
+  rider: riderRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
   // supportTickets: supportTicketsRouter,
@@ -715,160 +717,7 @@ export const appRouter = router({
   // }),
 
   // Rider Template Management
-  rider: router({
-    // Get all templates for current artist
-    getMyTemplates: artistProcedure.query(async ({ ctx }) => {
-      const profile = await db.getArtistProfileByUserId(ctx.user.id);
-      if (!profile) return [];
-      try {
-        return await db.getRiderTemplatesByArtistId(profile.id);
-      } catch (error) {
-        console.error('Error getting rider templates:', error);
-        return [];
-      }
-    }),
-    
-    // Get single template
-    getTemplate: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getRiderTemplateById(input.id);
-      }),
-    
-    // Get templates for a specific artist (public)
-    getForArtist: publicProcedure
-      .input(z.object({ artistId: z.number() }))
-      .query(async ({ input }) => {
-        try {
-          return await db.getRiderTemplatesByArtistId(input.artistId);
-        } catch (error) {
-          console.error('Error getting rider templates:', error);
-          return [];
-        }
-      }),
-    
-    // Create template
-    create: artistProcedure
-      .input(z.object({
-        templateName: z.string().min(1),
-        technicalRequirements: z.object({
-          stageWidth: z.string().optional(),
-          stageDepth: z.string().optional(),
-          soundSystem: z.string().optional(),
-          lighting: z.string().optional(),
-          backline: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        hospitalityRequirements: z.object({
-          dressingRooms: z.string().optional(),
-          catering: z.string().optional(),
-          beverages: z.string().optional(),
-          accommodation: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        financialTerms: z.object({
-          depositAmount: z.string().optional(),
-          paymentMethod: z.string().optional(),
-          cancellationPolicy: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const profile = await db.getArtistProfileByUserId(ctx.user.id);
-        if (!profile) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
-        }
-        await db.createRiderTemplate({
-          artistId: profile.id,
-          ...input,
-        });
-        return { success: true };
-      }),
-    
-    // Update template
-    update: artistProcedure
-      .input(z.object({
-        id: z.number(),
-        templateName: z.string().optional(),
-        technicalRequirements: z.object({
-          stageWidth: z.string().optional(),
-          stageDepth: z.string().optional(),
-          soundSystem: z.string().optional(),
-          lighting: z.string().optional(),
-          backline: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        hospitalityRequirements: z.object({
-          dressingRooms: z.string().optional(),
-          catering: z.string().optional(),
-          beverages: z.string().optional(),
-          accommodation: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-        financialTerms: z.object({
-          depositAmount: z.string().optional(),
-          paymentMethod: z.string().optional(),
-          cancellationPolicy: z.string().optional(),
-          other: z.string().optional(),
-        }).optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const { id, ...updates } = input;
-        await db.updateRiderTemplate(id, updates);
-        return { success: true };
-      }),
-    
-    // Delete template
-    delete: artistProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await db.deleteRiderTemplate(input.id);
-        return { success: true };
-      }),
-    
-    // Admin: Clean up duplicate riders for an artist
-    cleanupDuplicates: protectedProcedure
-      .input(z.object({ artistId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        // Only admins can clean up duplicates
-        if (ctx.user.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
-        }
-        
-        try {
-          const riders = await db.getRiderTemplatesByArtistId(input.artistId);
-          
-          // Group riders by templateName to find duplicates
-          const grouped = new Map<string, any[]>();
-          for (const rider of riders) {
-            const name = rider.templateName || 'default';
-            if (!grouped.has(name)) {
-              grouped.set(name, []);
-            }
-            grouped.get(name)!.push(rider);
-          }
-          
-          // Delete duplicates, keeping only the first one of each name
-          let deletedCount = 0;
-          for (const [name, group] of grouped.entries()) {
-            if (group.length > 1) {
-              // Sort by ID to keep the first one
-              group.sort((a, b) => a.id - b.id);
-              // Delete all except the first
-              for (let i = 1; i < group.length; i++) {
-                await db.deleteRiderTemplate(group[i].id);
-                deletedCount++;
-              }
-            }
-          }
-          
-          return { success: true, deletedCount, message: `Deleted ${deletedCount} duplicate riders` };
-        } catch (error) {
-          console.error('Error cleaning up duplicates:', error);
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to clean up duplicates' });
-        }
-      }),
-  }),
+  // Rider router is now imported from ./routers/rider
 
   // Availability Management
   availability: router({
