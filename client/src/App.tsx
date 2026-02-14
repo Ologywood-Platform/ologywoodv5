@@ -46,7 +46,7 @@ import Accessibility from "./pages/Accessibility";
 
 function Router() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
       <div className="flex-1">
         <Switch>
           {/* ============================================

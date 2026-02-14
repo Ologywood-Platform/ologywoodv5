@@ -45,10 +45,11 @@ export default function DashboardHeader() {
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left side - Logo/Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">OW</span>
-          </div>
-          <h1 className="text-lg font-semibold text-gray-900">Ologywood</h1>
+          <img 
+            src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" 
+            alt="Ologywood" 
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         {/* Right side - Notifications and User Menu */}
