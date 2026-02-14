@@ -9,6 +9,7 @@ import { sdk } from '../_core/sdk';
 import { getSessionCookieOptions } from '../_core/cookies';
 import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
+import { getUserSubscription, setTrialForBetaUser } from '../services/pricingTierService';
 
 // Validation schemas
 const signupSchema = z.object({
@@ -162,8 +163,16 @@ export const authRouter = router({
           { name: newUser[0].name || '' }
         );
 
-        // Check if user is eligible for free trial
+        // Create default FREE subscription for new user
+        const subscription = await getUserSubscription(newUser[0].id);
+
+        // Check if user is eligible for free trial (first 20 users)
         const trialStatus = await FreeTrialService.assignFreeTrialIfEligible(newUser[0].id);
+        
+        // If eligible for trial, upgrade to PROFESSIONAL tier
+        if (trialStatus.isTrialUser) {
+          await setTrialForBetaUser(newUser[0].id);
+        }
 
         return {
           success: true,
