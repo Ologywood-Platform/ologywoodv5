@@ -5,6 +5,10 @@ import { users } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { emailConfirmationService } from '../services/emailConfirmationService';
+import { sdk } from '../_core/sdk';
+import { getSessionCookieOptions } from '../_core/cookies';
+import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
+import { FreeTrialService } from '../services/freeTrialService';
 
 // Validation schemas
 const signupSchema = z.object({
@@ -152,6 +156,15 @@ export const authRouter = router({
           // Don't fail signup if email fails, but log it
         }
 
+        // Create session token for the new user
+        const sessionToken = await sdk.createSessionToken(
+          newUser[0].openId || '',
+          { name: newUser[0].name || '' }
+        );
+
+        // Check if user is eligible for free trial
+        const trialStatus = await FreeTrialService.assignFreeTrialIfEligible(newUser[0].id);
+
         return {
           success: true,
           user: {
@@ -163,6 +176,8 @@ export const authRouter = router({
           },
           message: 'Account created successfully. Please check your email to confirm your address.',
           requiresEmailVerification: true,
+          sessionToken,
+          trial: trialStatus,
         };
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Signup failed');

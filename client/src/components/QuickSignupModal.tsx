@@ -73,9 +73,23 @@ export function QuickSignupModal({
       
       toast.success(result.message || 'Account created successfully!');
       
+      // Set session cookie if provided
+      if (result.sessionToken) {
+        const maxAge = 365 * 24 * 60 * 60;
+        document.cookie = `app_session_id=${result.sessionToken}; path=/; max-age=${maxAge}; samesite=none; secure`;
+      }
+      
+      // Display trial information if user is a beta tester
+      if (result.trial?.isTrialUser) {
+        toast.success(`Welcome! You've got 3 months of premium access free! 🎉`);
+      }
+      
       // Store user data in localStorage temporarily
       localStorage.setItem('user_email', signupData.email);
       localStorage.setItem('user_name', signupData.name);
+      if (result.trial) {
+        localStorage.setItem('user_trial', JSON.stringify(result.trial));
+      }
       
       // Call success callback
       if (onSignupSuccess) {

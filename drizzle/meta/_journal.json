@@ -225,6 +225,27 @@
       "when": 1770943645841,
       "tag": "0031_greedy_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1771091330224,
+      "tag": "0032_volatile_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1771091335467,
+      "tag": "0033_lowly_the_fallen",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1771091700678,
+      "tag": "0034_empty_satana",
+      "breakpoints": true
     }
   ]
 }
