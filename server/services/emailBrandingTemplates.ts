@@ -32,7 +32,7 @@ function getEmailFooter(unsubscribeUrl?: string): string {
       </p>
       <p style="color: #6b7280; font-size: 12px; margin: 0;">
         ${unsubscribeUrl ? `<a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | ` : ''}
-        <a href="https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+        <a href="https://www.ologywood.com/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -51,7 +51,7 @@ export function getBookingConfirmationTemplate(params: {
   bookingId: number;
   dashboardUrl?: string;
 }): BrandedEmailTemplate {
-  const { recipientName, artistName, venueName, eventDate, eventTime, eventLocation, bookingId, dashboardUrl = 'https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/bookings' } = params;
+  const { recipientName, artistName, venueName, eventDate, eventTime, eventLocation, bookingId, dashboardUrl = 'https://www.ologywood.com/bookings' } = params;
 
   return {
     subject: `🎉 Booking Confirmed: ${artistName} at ${venueName}`,
@@ -111,7 +111,7 @@ export function getNewOpportunityTemplate(params: {
   location: string;
   opportunityUrl?: string;
 }): BrandedEmailTemplate {
-  const { recipientName, venueName, eventType, eventDate, budget, location, opportunityUrl = 'https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/browse' } = params;
+  const { recipientName, venueName, eventType, eventDate, budget, location, opportunityUrl = 'https://www.ologywood.com/browse' } = params;
 
   return {
     subject: `✨ New Opportunity: ${eventType} at ${venueName}`,
@@ -147,9 +147,7 @@ export function getNewOpportunityTemplate(params: {
           <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0;">
             Don't miss this chance! Respond quickly to increase your chances of being selected.
           </p>
-          <p style="color: #6b7280; font-size: 12px; line-height: 1.4; margin: 15px 0 0 0;">
-            <strong>Note:</strong> This is a test email. Links point to the development server for testing purposes.
-          </p>
+
         </div>
         
         ${getEmailFooter()}
@@ -215,7 +213,7 @@ export function getWelcomeTemplate(params: {
   userType: 'artist' | 'venue';
   onboardingUrl?: string;
 }): BrandedEmailTemplate {
-  const { recipientName, userType, onboardingUrl = 'https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/dashboard' } = params;
+  const { recipientName, userType, onboardingUrl = 'https://www.ologywood.com/dashboard' } = params;
   const welcomeMessage = userType === 'artist' 
     ? 'Welcome to Ologywood! Start booking gigs and grow your career.'
     : 'Welcome to Ologywood! Find talented artists for your events.';
@@ -253,7 +251,7 @@ export function getWelcomeTemplate(params: {
           </div>
           
           <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0;">
-            Have questions? Check out our <a href="https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/how-it-works" style="color: #6D28D9; text-decoration: none;">How It Works</a> guide or contact our support team.
+            Have questions? Check out our <a href="https://www.ologywood.com/how-it-works" style="color: #6D28D9; text-decoration: none;">How It Works</a> guide or contact our support team.
           </p>
         </div>
         
@@ -274,7 +272,7 @@ export function getPaymentConfirmationTemplate(params: {
   transactionId: string;
   invoiceUrl?: string;
 }): BrandedEmailTemplate {
-  const { recipientName, amount, currency, description, transactionId, invoiceUrl = 'https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/billing' } = params;
+  const { recipientName, amount, currency, description, transactionId, invoiceUrl = 'https://www.ologywood.com/billing' } = params;
 
   return {
     subject: `💳 Payment Received - ${currency} ${amount}`,
@@ -326,7 +324,7 @@ export function getSupportTicketResponseTemplate(params: {
   message: string;
   ticketUrl?: string;
 }): BrandedEmailTemplate {
-  const { recipientName, ticketId, subject, message, ticketUrl = 'https://3000-i7q0363p6cphwbtz6s7ou-5cf12549.us2.manus.computer/support' } = params;
+  const { recipientName, ticketId, subject, message, ticketUrl = 'https://www.ologywood.com/support' } = params;
 
   return {
     subject: `📧 Response to Your Support Ticket #${ticketId}`,
