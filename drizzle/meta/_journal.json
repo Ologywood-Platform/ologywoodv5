@@ -225,6 +225,20 @@
       "when": 1770943645841,
       "tag": "0031_greedy_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1771109902526,
+      "tag": "0032_spotty_meteorite",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1771110134707,
+      "tag": "0033_gifted_texas_twister",
+      "breakpoints": true
     }
   ]
 }

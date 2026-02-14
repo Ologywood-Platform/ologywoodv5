@@ -42,7 +42,7 @@ export const PRICING_TIERS = {
       advancedProfile: false,
       prioritySupport: false,
       analytics: false,
-      riderBuilder: false,
+      riderBuilder: true,
       contractTemplates: false,
       paymentHistory: false,
       bulkMessaging: false,

@@ -151,6 +151,12 @@ export const bookings = mysqlTable("bookings", {
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "deposit_paid", "fully_paid", "refunded"]).default("unpaid").notNull(),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
   stripeRefundId: varchar("stripeRefundId", { length: 255 }),
+  
+  // Rider template linked to this booking
+  riderTemplateId: int("riderTemplateId"),
+  riderAcknowledgedAt: timestamp("riderAcknowledgedAt"),
+  riderAcknowledgedBy: int("riderAcknowledgedBy"), // venueId who acknowledged
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
