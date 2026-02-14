@@ -2,6 +2,14 @@ import sgMail from '@sendgrid/mail';
 import { getDb } from '../db';
 import { eq } from 'drizzle-orm';
 import { emailPreferences, users } from '../../drizzle/schema';
+import {
+  getBookingConfirmationTemplate,
+  getNewOpportunityTemplate,
+  getPasswordResetTemplate,
+  getWelcomeTemplate,
+  getPaymentConfirmationTemplate,
+  getSupportTicketResponseTemplate,
+} from './emailBrandingTemplates';
 
 // Initialize SendGrid
 const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@ologywood.com';
