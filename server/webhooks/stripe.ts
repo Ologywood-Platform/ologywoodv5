@@ -114,8 +114,10 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
+  const bookingId = session.metadata?.bookingId;
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
+  const platformFeeAmount = session.metadata?.platformFeeAmount ? parseInt(session.metadata.platformFeeAmount) : 0;
 
   if (!userId) {
     console.error('[Stripe Webhook] No userId in session metadata');
@@ -124,14 +126,32 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   console.log(`[Stripe Webhook] Checkout completed for user ${userId}`);
 
-  // Update or create subscription record
-  await db.upsertSubscription({
-    userId: parseInt(userId),
-    stripeCustomerId: customerId,
-    stripeSubscriptionId: subscriptionId,
-    planType: 'basic',
-    status: 'trialing', // Will be updated by subscription.created event
-  });
+  // If this is a booking payment
+  if (bookingId) {
+    console.log(`[Stripe Webhook] Processing booking payment for booking ${bookingId}`);
+    
+    try {
+      // Update booking payment status
+      await db.updateBookingPaymentStatus(parseInt(bookingId), 'fully_paid', session.id);
+      
+      // Log platform fee collection
+      if (platformFeeAmount > 0) {
+        console.log(`[Stripe Webhook] Platform fee collected: $${(platformFeeAmount / 100).toFixed(2)} for booking ${bookingId}`);
+      }
+    } catch (error) {
+      console.error('[Stripe Webhook] Error processing booking payment:', error);
+    }
+  } else if (subscriptionId) {
+    // Handle subscription checkout
+    // Update or create subscription record
+    await db.upsertSubscription({
+      userId: parseInt(userId),
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: subscriptionId,
+      planType: 'basic',
+      status: 'trialing', // Will be updated by subscription.created event
+    });
+  }
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {

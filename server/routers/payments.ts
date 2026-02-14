@@ -50,6 +50,10 @@ export const paymentsRouter = router({
         }
 
         // Create Stripe checkout session
+        // Calculate 1% platform fee
+        const platformFeeAmount = Math.round(input.amount * 0.01 * 100); // 1% in cents
+        const totalAmount = Math.round(input.amount * 100); // Total in cents
+        
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ['card'],
           line_items: [
@@ -74,6 +78,8 @@ export const paymentsRouter = router({
             venueName: input.venueName,
             eventDate: input.eventDate,
             userEmail: ctx.user.email,
+            platformFeeAmount: platformFeeAmount.toString(),
+            artistPaymentAmount: (totalAmount - platformFeeAmount).toString(),
           },
           success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?success=true&bookingId=${input.bookingId}`,
           cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?cancelled=true`,
