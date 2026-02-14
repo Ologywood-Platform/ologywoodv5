@@ -83,7 +83,6 @@ class PushNotificationService {
         badge: options.badge || '/favicon.png',
         tag: options.tag || 'ologywood-notification',
         requireInteraction: options.requireInteraction || false,
-        actions: options.actions || [],
         data: options.data || {},
       });
     } catch (error) {

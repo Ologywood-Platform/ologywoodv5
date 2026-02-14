@@ -30,8 +30,13 @@ export async function initializeRedis(): Promise<boolean> {
 
   try {
     // Dynamic import to avoid hard dependency
-    const redis = await import('redis') as any;
-    redisClient = redis.createClient({ url: redisUrl });
+    // @ts-ignore - redis module is optional
+    const redis = await import('redis').catch(() => null);
+    if (!redis) {
+      console.log('[Redis] redis module not available');
+      return false;
+    }
+    redisClient = (redis as any).createClient({ url: redisUrl });
     
     redisClient.on('error', (err: any) => {
       console.error('[Redis] Error:', err);

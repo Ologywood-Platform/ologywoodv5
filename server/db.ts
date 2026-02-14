@@ -538,7 +538,7 @@ export async function getAvailabilityByArtistId(artistId: number, startDate?: st
   
   if (startDate && endDate) {
     return results.filter(a => {
-      const dateStr = (a.date as any) instanceof Date ? (a.date as Date).toISOString().split('T')[0] : a.date;
+      const dateStr = (a.date as unknown) instanceof Date ? ((a.date as unknown) as Date).toISOString().split('T')[0] : a.date;
       return dateStr >= startDate && dateStr <= endDate;
     });
   }

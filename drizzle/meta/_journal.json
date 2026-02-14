@@ -246,6 +246,13 @@
       "when": 1771091700678,
       "tag": "0034_empty_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1771092160257,
+      "tag": "0035_absent_cyclops",
+      "breakpoints": true
     }
   ]
 }

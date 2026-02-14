@@ -64,10 +64,9 @@ export async function optimizeImage(
     // Build optimization pipeline
     let pipeline = sharp(imageBuffer);
 
-    // Strip metadata if requested
-    if (stripMetadata) {
-      pipeline = pipeline.withMetadata(false);
-    }
+    // Note: sharp's withMetadata() preserves metadata, no option to strip
+    // Metadata stripping happens automatically when converting formats
+    // stripMetadata parameter is kept for API compatibility
 
     // Resize if needed
     if (metadata.width && metadata.width > maxWidth) {
