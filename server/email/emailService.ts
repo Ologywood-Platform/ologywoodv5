@@ -5,6 +5,7 @@
 
 import sgMail from '@sendgrid/mail';
 import { EmailTemplateData, generateEmailHTML } from './emailTemplate';
+import crypto from 'crypto';
 
 // Initialize SendGrid
 const sendgridApiKey = process.env.SENDGRID_API_KEY;
@@ -18,6 +19,14 @@ export interface SendEmailOptions {
   to: string;
   templateData: EmailTemplateData;
   replyTo?: string;
+  unsubscribeToken?: string;
+}
+
+/**
+ * Generate a unique unsubscribe token for email compliance
+ */
+export function generateUnsubscribeToken(): string {
+  return crypto.randomBytes(32).toString('hex');
 }
 
 /**
@@ -28,6 +37,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     if (!sendgridApiKey) {
       console.warn('SendGrid API key not configured. Email not sent.');
       return false;
+    }
+
+    // Add unsubscribe token to template if provided
+    if (options.unsubscribeToken) {
+      options.templateData.unsubscribeToken = options.unsubscribeToken;
     }
 
     const htmlContent = generateEmailHTML(options.templateData);

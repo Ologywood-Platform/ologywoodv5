@@ -5,6 +5,7 @@
 
 import { Router } from 'express';
 import { sendTestEmail } from '../email/emailService';
+import unsubscribeRoutes from './unsubscribeRoutes';
 
 const router = Router();
 
@@ -47,5 +48,8 @@ router.post('/test', async (req, res) => {
     });
   }
 });
+
+// Mount unsubscribe routes
+router.use('/', unsubscribeRoutes);
 
 export default router;

@@ -12,6 +12,7 @@ export interface EmailTemplateData {
   ctaText?: string;
   ctaUrl?: string;
   footerText?: string;
+  unsubscribeToken?: string; // For CAN-SPAM/GDPR compliance
   emailType: 'booking-confirmation' | 'booking-request' | 'booking-cancellation' | 'payment-confirmation' | 'welcome' | 'password-reset' | 'status-update';
 }
 
@@ -235,6 +236,9 @@ export function generateEmailHTML(data: EmailTemplateData): string {
                 <a href="https://www.ologywood.com/privacy-policy" style="color: ${accentColor};">Privacy Policy</a> | 
                 <a href="https://www.ologywood.com/terms-of-service" style="color: ${accentColor};">Terms of Service</a>
             </div>
+
+            <!-- Unsubscribe Link for CAN-SPAM/GDPR Compliance -->
+            ${data.unsubscribeToken ? `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center; font-size: 12px; color: #999;"><a href="https://www.ologywood.com/api/email/unsubscribe?token=${data.unsubscribeToken}" style="color: ${accentColor}; text-decoration: none;">Unsubscribe from these emails</a></div>` : ''}
 
             ${data.footerText ? `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">${data.footerText}</div>` : ''}
         </div>

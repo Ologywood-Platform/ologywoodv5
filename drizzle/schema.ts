@@ -374,6 +374,9 @@ export const emailPreferences = mysqlTable("email_preferences", {
   platformNews: boolean("platformNews").default(false).notNull(),
   weeklyDigest: boolean("weeklyDigest").default(true).notNull(),
   reminders: boolean("reminders").default(true).notNull(),
+  // Unsubscribe tracking for CAN-SPAM/GDPR compliance
+  unsubscribeToken: varchar("unsubscribeToken", { length: 255 }).unique(),
+  unsubscribedAt: timestamp("unsubscribedAt"),
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -525,3 +528,5 @@ export const invoices = mysqlTable("invoices", {
 });
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
+
+
