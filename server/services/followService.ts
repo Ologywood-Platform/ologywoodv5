@@ -94,7 +94,24 @@ export async function unfollowUser(
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    const result = await db
+    // Check if follow exists before deleting
+    const existing = await db
+      .select()
+      .from(follows)
+      .where(
+        and(
+          eq(follows.followerId, followerId),
+          eq(follows.followingId, followingId),
+          eq(follows.followingType, followingType)
+        )
+      )
+      .limit(1);
+
+    if (existing.length === 0) {
+      return false;
+    }
+
+    await db
       .delete(follows)
       .where(
         and(
@@ -104,7 +121,7 @@ export async function unfollowUser(
         )
       );
 
-    return (result as any).rowsAffected > 0;
+    return true;
   } catch (error) {
     console.error("Error unfollowing user:", error);
     throw error;
@@ -486,11 +503,9 @@ export async function removeAllFollows(userId: number): Promise<void> {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
 
-    // Remove all follows where user is follower
+    // Remove all follows where user is follower (people they follow)
+    // Note: We do NOT remove follows where user is being followed (their followers)
     await db.delete(follows).where(eq(follows.followerId, userId));
-
-    // Remove all follows where user is being followed
-    await db.delete(follows).where(eq(follows.followingId, userId));
   } catch (error) {
     console.error("Error removing all follows:", error);
     throw error;
