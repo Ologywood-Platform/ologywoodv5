@@ -115,6 +115,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
   const bookingId = session.metadata?.bookingId;
+  const paymentType = session.metadata?.paymentType; // 'deposit', 'final_payment', or undefined for full payment
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
   const platformFeeAmount = session.metadata?.platformFeeAmount ? parseInt(session.metadata.platformFeeAmount) : 0;
@@ -128,11 +129,22 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 
   // If this is a booking payment
   if (bookingId) {
-    console.log(`[Stripe Webhook] Processing booking payment for booking ${bookingId}`);
+    console.log(`[Stripe Webhook] Processing booking payment for booking ${bookingId} (type: ${paymentType || 'full'})`);
     
     try {
+      // Determine payment status based on payment type
+      let paymentStatus = 'fully_paid'; // Default for full payment
+      
+      if (paymentType === 'deposit') {
+        paymentStatus = 'deposit_paid';
+        console.log(`[Stripe Webhook] Deposit paid for booking ${bookingId}`);
+      } else if (paymentType === 'final_payment') {
+        paymentStatus = 'fully_paid';
+        console.log(`[Stripe Webhook] Final payment completed for booking ${bookingId}`);
+      }
+      
       // Update booking payment status
-      await db.updateBookingPaymentStatus(parseInt(bookingId), 'fully_paid', session.id);
+      await db.updateBookingPaymentStatus(parseInt(bookingId), paymentStatus, session.id);
       
       // Log platform fee collection
       if (platformFeeAmount > 0) {

@@ -247,6 +247,152 @@ export const paymentsRouter = router({
       }
     }),
 
+  // Create deposit payment (50% of booking fee)
+  createDepositCheckout: protectedProcedure
+    .input(createCheckoutSessionSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        if (!ENV.stripeSecretKey) {
+          throw new Error('Stripe is not configured');
+        }
+
+        const db = await getDb();
+        if (!db) {
+          throw new Error('Database not available');
+        }
+
+        // Verify booking exists
+        const booking = await db
+          .select()
+          .from(bookings)
+          .where(eq(bookings.id, input.bookingId))
+          .limit(1);
+
+        if (booking.length === 0) {
+          throw new Error('Booking not found');
+        }
+
+        // Calculate 50% deposit
+        const depositAmount = Math.round(input.amount * 0.5 * 100); // 50% in cents
+        const platformFeeAmount = Math.round(depositAmount * 0.01); // 1% platform fee on deposit
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: input.currency,
+                product_data: {
+                  name: `Booking Deposit (50%): ${input.artistName || input.venueName}`,
+                  description: `Event on ${input.eventDate}`,
+                },
+                unit_amount: depositAmount,
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          client_reference_id: input.bookingId.toString(),
+          metadata: {
+            bookingId: input.bookingId.toString(),
+            userId: ctx.user.id.toString(),
+            paymentType: 'deposit',
+            artistName: input.artistName,
+            venueName: input.venueName,
+            eventDate: input.eventDate,
+            userEmail: ctx.user.email,
+            platformFeeAmount: platformFeeAmount.toString(),
+          },
+          success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?success=true&bookingId=${input.bookingId}&paymentType=deposit`,
+          cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?cancelled=true`,
+          allow_promotion_codes: true,
+        });
+
+        return {
+          success: true,
+          sessionId: session.id,
+          checkoutUrl: session.url,
+          message: 'Deposit checkout session created',
+          depositAmount: input.amount * 0.5,
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create deposit checkout');
+      }
+    }),
+
+  // Create final payment (remaining 50%)
+  createFinalPaymentCheckout: protectedProcedure
+    .input(createCheckoutSessionSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        if (!ENV.stripeSecretKey) {
+          throw new Error('Stripe is not configured');
+        }
+
+        const db = await getDb();
+        if (!db) {
+          throw new Error('Database not available');
+        }
+
+        // Verify booking exists
+        const booking = await db
+          .select()
+          .from(bookings)
+          .where(eq(bookings.id, input.bookingId))
+          .limit(1);
+
+        if (booking.length === 0) {
+          throw new Error('Booking not found');
+        }
+
+        // Calculate 50% final payment
+        const finalPaymentAmount = Math.round(input.amount * 0.5 * 100); // 50% in cents
+        const platformFeeAmount = Math.round(finalPaymentAmount * 0.01); // 1% platform fee on final payment
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: input.currency,
+                product_data: {
+                  name: `Booking Final Payment (50%): ${input.artistName || input.venueName}`,
+                  description: `Event on ${input.eventDate}`,
+                },
+                unit_amount: finalPaymentAmount,
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          client_reference_id: input.bookingId.toString(),
+          metadata: {
+            bookingId: input.bookingId.toString(),
+            userId: ctx.user.id.toString(),
+            paymentType: 'final_payment',
+            artistName: input.artistName,
+            venueName: input.venueName,
+            eventDate: input.eventDate,
+            userEmail: ctx.user.email,
+            platformFeeAmount: platformFeeAmount.toString(),
+          },
+          success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?success=true&bookingId=${input.bookingId}&paymentType=final`,
+          cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/booking-status?cancelled=true`,
+          allow_promotion_codes: true,
+        });
+
+        return {
+          success: true,
+          sessionId: session.id,
+          checkoutUrl: session.url,
+          message: 'Final payment checkout session created',
+          finalPaymentAmount: input.amount * 0.5,
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create final payment checkout');
+      }
+    }),
+
   // Handle Stripe webhook
   handleWebhook: publicProcedure
     .input(handleWebhookSchema)
