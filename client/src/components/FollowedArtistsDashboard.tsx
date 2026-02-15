@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Calendar, MessageSquare, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
+import { trpc } from '@/lib/trpc';
 
 interface FollowedArtist {
   id: number;
@@ -16,48 +17,22 @@ interface FollowedArtist {
 }
 
 export const FollowedArtistsDashboard: React.FC = () => {
-  const [followedArtists, setFollowedArtists] = useState<FollowedArtist[]>([
-    {
-      id: 1,
-      artistName: 'Luna Echo',
-      genre: ['Indie Pop', 'Electronic'],
-      location: 'Los Angeles, CA',
-      rating: 4.8,
-      feeRangeMin: 1500,
-      feeRangeMax: 3500,
-      profilePhotoUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-      upcomingAvailability: ['2026-02-14', '2026-02-21', '2026-03-07'],
-    },
-    {
-      id: 2,
-      artistName: 'The Velvet Collective',
-      genre: ['Jazz', 'Soul'],
-      location: 'New York, NY',
-      rating: 4.9,
-      feeRangeMin: 2000,
-      feeRangeMax: 5000,
-      profilePhotoUrl: 'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=400&h=400&fit=crop',
-      upcomingAvailability: ['2026-02-20', '2026-03-05'],
-    },
-  ]);
+  // Get current user's followed artists
+  const { data: followingList = [], isLoading } = trpc.follows.getFollowing.useQuery(
+    { userId: 0, limit: 50, offset: 0 }, // userId will be set from context
+    { enabled: false }
+  );
 
-  const [loading, setLoading] = useState(false);
+  const followedArtists: FollowedArtist[] = followingList.map((user: any) => ({
+    id: user.id,
+    artistName: user.name,
+    genre: [], // Would need to fetch from artist profile
+    location: '', // Would need to fetch from artist profile
+    rating: 0, // Would need to fetch from reviews
+    profilePhotoUrl: user.profilePhotoUrl,
+  }));
 
-  useEffect(() => {
-    // Load followed artists from backend
-    // const loadFollowedArtists = async () => {
-    //   setLoading(true);
-    //   try {
-    //     const response = await trpc.follows.getFollowedArtists.query();
-    //     // Process and set artists
-    //   } catch (error) {
-    //     console.error('Failed to load followed artists:', error);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-    // loadFollowedArtists();
-  }, []);
+  const loading = isLoading;
 
   if (followedArtists.length === 0) {
     return (
@@ -151,10 +126,12 @@ export const FollowedArtistsDashboard: React.FC = () => {
                     Message
                   </Button>
                 </Link>
-                <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  Book Now
-                </Button>
+                <Link href={`/booking/new?artistId=${artist.id}`}>
+                  <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    Book Now
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

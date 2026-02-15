@@ -13,8 +13,12 @@ export const BrowseFollowingFilter: React.FC<BrowseFollowingFilterProps> = ({
 }) => {
   const [showFollowingOnly, setShowFollowingOnly] = useState(false);
 
-  // Get following count (browseFilters router not implemented)
-  const followingCount = 0;
+  // Get following count from TRPC
+  const { data: stats } = trpc.follows.getStats.useQuery(
+    { userId: 0 }, // Will be set from context
+    { enabled: false } // Disabled until user context available
+  );
+  const followingCount = stats?.followingCount ?? 0;
 
   const handleToggle = () => {
     const newValue = !showFollowingOnly;
