@@ -44,6 +44,8 @@ export function RiderTemplateBuilderV2() {
   const { data: defaultTemplates } = trpc.rider.listDefaultTemplates.useQuery();
   const createMutation = trpc.rider.createFromDefault.useMutation();
   const updateMutation = trpc.rider.updateTemplate.useMutation();
+  const deleteMutation = trpc.rider.deleteTemplate.useMutation();
+  const duplicateMutation = trpc.rider.duplicateTemplate.useMutation();
 
 
 
@@ -150,11 +152,38 @@ export function RiderTemplateBuilderV2() {
   };
 
   const handleDelete = async (id: number) => {
-    toast.info('Delete feature coming soon');
+    if (!confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await deleteMutation.mutateAsync({ templateId: id });
+      toast.success('Template deleted successfully');
+      if (selectedTemplate?.id === id) {
+        setSelectedTemplate(null);
+        setFormData({ templateName: '', templateData: {} });
+      }
+      await refetchTemplates();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete template');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDuplicate = async (id: number) => {
-    toast.info('Duplicate feature coming soon');
+    setLoading(true);
+    try {
+      const result = await duplicateMutation.mutateAsync({ templateId: id });
+      toast.success('Template duplicated successfully');
+      await refetchTemplates();
+      setSelectedTemplate(result as unknown as RiderTemplate);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to duplicate template');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleValidate = async () => {

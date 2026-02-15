@@ -314,15 +314,25 @@ export class RiderContractGenerator {
   }
 
   private static addFooter(doc: any): void {
-    const pageCount = doc.bufferedPageRange().count;
-    for (let i = 1; i <= pageCount; i++) {
-      doc.switchToPage(i - 1);
-      doc.fontSize(8).font('Helvetica').text(
-        `Page ${i} of ${pageCount}`,
-        50,
-        doc.page.height - 30,
-        { align: 'center' }
-      );
+    try {
+      const pageCount = doc.bufferedPageRange().count;
+      if (pageCount === 0) return;
+      
+      for (let i = 0; i < pageCount; i++) {
+        try {
+          doc.switchToPage(i);
+          doc.fontSize(8).font('Helvetica').text(
+            `Page ${i + 1} of ${pageCount}`,
+            50,
+            doc.page.height - 30,
+            { align: 'center' }
+          );
+        } catch (pageError) {
+          console.warn(`Failed to add footer to page ${i + 1}`);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to add footer:', error);
     }
   }
 }
