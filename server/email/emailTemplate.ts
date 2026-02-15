@@ -155,24 +155,7 @@ export function generateEmailHTML(data: EmailTemplateData): string {
         .footer-links a:hover {
             text-decoration: underline;
         }
-        .social-links {
-            margin: 15px 0;
-        }
-        .social-links a {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            line-height: 32px;
-            text-align: center;
-            color: ${accentColor};
-            text-decoration: none;
-            margin: 0 5px;
-        }
-        .social-links a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+
         .footer-copyright {
             margin-top: 15px;
             padding-top: 15px;
@@ -245,12 +228,6 @@ export function generateEmailHTML(data: EmailTemplateData): string {
                 <a href="https://www.ologywood.com">Home</a>
                 <a href="https://www.ologywood.com/browse">Browse Artists</a>
                 <a href="https://www.ologywood.com/contact">Contact</a>
-            </div>
-
-            <div class="social-links">
-                <a href="https://www.instagram.com/ologywood" title="Instagram">f</a>
-                <a href="https://www.youtube.com/@Ologywood-Entertainment-Service" title="YouTube">▶</a>
-                <a href="https://www.twitter.com/ologywood" title="Twitter">𝕏</a>
             </div>
 
             <div class="footer-copyright">
