@@ -13,7 +13,6 @@ import emailRoutes from "../routes/emailRoutes";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
-// import { requestLogger } from "../middleware/requestLogger"; // Optional logging middleware
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {

@@ -6,13 +6,11 @@
 import express, { Express } from 'express';
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import { appRouter } from './routers';
-// import { createTRPCContext } from './_core/trpc'; // Not used in this file
 import { configureServer, printSecuritySetup } from './middleware/serverConfig';
 import { createExternalLoggingService } from './services/externalLoggingService';
 import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
-// import paymentRoutes from './routes/paymentRoutes'; // Disabled
 import sitemapRoutes from './routes/sitemapRoutes';
 import emailRoutes from './routes/emailRoutes';
 import path from 'path';

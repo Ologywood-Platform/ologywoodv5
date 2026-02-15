@@ -1,7 +1,7 @@
 /**
- * Cache Manager Service
- * Provides in-memory caching for frequently accessed endpoints
- * In production, consider using Redis for distributed caching
+ * Unified Cache Manager Service
+ * Supports Redis for distributed caching with in-memory fallback
+ * Replaces cacheManager.ts, redisCache.ts, and trpcCache.ts
  */
 
 interface CacheEntry<T> {
@@ -14,26 +14,93 @@ interface CacheStats {
   hits: number;
   misses: number;
   size: number;
+  redisEnabled: boolean;
 }
 
-export class CacheManager {
-  private cache = new Map<string, CacheEntry<any>>();
-  private stats: CacheStats = { hits: 0, misses: 0, size: 0 };
+export class UnifiedCacheManager {
+  private inMemoryCache = new Map<string, CacheEntry<any>>();
+  private stats: CacheStats = { hits: 0, misses: 0, size: 0, redisEnabled: false };
   private cleanupInterval: NodeJS.Timeout | null = null;
+  private redisClient: any = null;
+  private isRedisAvailable = false;
 
   /**
-   * Initialize cache with automatic cleanup
+   * Initialize cache with Redis support and automatic cleanup
    */
-  init(cleanupIntervalMs: number = 60000) {
+  async init(cleanupIntervalMs: number = 60000): Promise<void> {
+    // Try to initialize Redis
+    await this.initializeRedis();
+    
+    // Start cleanup
     this.startCleanup(cleanupIntervalMs);
-    console.log('[Cache] Manager initialized with cleanup interval:', cleanupIntervalMs, 'ms');
+    
+    const cacheType = this.isRedisAvailable ? 'Redis + In-Memory' : 'In-Memory';
+    console.log(`[Cache] Manager initialized (${cacheType}) with cleanup interval: ${cleanupIntervalMs}ms`);
   }
 
   /**
-   * Get value from cache
+   * Initialize Redis connection
    */
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key);
+  private async initializeRedis(): Promise<void> {
+    const redisUrl = process.env.REDIS_URL;
+    
+    if (!redisUrl) {
+      console.log('[Cache] REDIS_URL not configured, using in-memory cache only');
+      return;
+    }
+
+    try {
+      // Dynamic import to avoid hard dependency
+      // @ts-ignore - redis module is optional
+      const redis = await import('redis').catch(() => null);
+      if (!redis) {
+        console.log('[Cache] redis module not available, using in-memory cache');
+        return;
+      }
+
+      this.redisClient = (redis as any).createClient({ url: redisUrl });
+      
+      this.redisClient.on('error', (err: any) => {
+        console.error('[Cache] Redis error:', err);
+        this.isRedisAvailable = false;
+      });
+
+      this.redisClient.on('connect', () => {
+        console.log('[Cache] Redis connected successfully');
+        this.isRedisAvailable = true;
+        this.stats.redisEnabled = true;
+      });
+
+      await this.redisClient.connect();
+      this.isRedisAvailable = true;
+      this.stats.redisEnabled = true;
+      console.log('[Cache] Redis cache initialized');
+    } catch (error) {
+      console.warn('[Cache] Redis not available, using in-memory cache:', error);
+      this.isRedisAvailable = false;
+    }
+  }
+
+  /**
+   * Get value from cache (Redis or in-memory)
+   */
+  async get<T>(key: string): Promise<T | null> {
+    // Try Redis first if available
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        const value = await this.redisClient.get(key);
+        if (value) {
+          this.stats.hits++;
+          return JSON.parse(value);
+        }
+      } catch (error) {
+        console.error('[Cache] Redis get error:', error);
+        // Fall through to in-memory cache
+      }
+    }
+
+    // Fall back to in-memory cache
+    const entry = this.inMemoryCache.get(key);
 
     if (!entry) {
       this.stats.misses++;
@@ -42,7 +109,7 @@ export class CacheManager {
 
     // Check if expired
     if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
+      this.inMemoryCache.delete(key);
       this.stats.misses++;
       return null;
     }
@@ -54,50 +121,99 @@ export class CacheManager {
   /**
    * Set value in cache with TTL
    */
-  set<T>(key: string, data: T, ttlMs: number): void {
+  async set<T>(key: string, data: T, ttlMs: number): Promise<void> {
+    // Set in Redis if available
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        const ttlSeconds = Math.ceil(ttlMs / 1000);
+        await this.redisClient.setEx(key, ttlSeconds, JSON.stringify(data));
+      } catch (error) {
+        console.error('[Cache] Redis set error:', error);
+        // Fall through to in-memory cache
+      }
+    }
+
+    // Always set in in-memory cache as fallback
     const entry: CacheEntry<T> = {
       data,
       expiresAt: Date.now() + ttlMs,
       createdAt: Date.now(),
     };
 
-    this.cache.set(key, entry);
-    this.stats.size = this.cache.size;
+    this.inMemoryCache.set(key, entry);
+    this.stats.size = this.inMemoryCache.size;
   }
 
   /**
    * Delete specific cache entry
    */
-  delete(key: string): boolean {
-    const deleted = this.cache.delete(key);
-    this.stats.size = this.cache.size;
-    return deleted;
+  async delete(key: string): Promise<boolean> {
+    let deleted = false;
+
+    // Delete from Redis if available
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        const result = await this.redisClient.del(key);
+        deleted = result > 0;
+      } catch (error) {
+        console.error('[Cache] Redis delete error:', error);
+      }
+    }
+
+    // Delete from in-memory cache
+    const inMemoryDeleted = this.inMemoryCache.delete(key);
+    this.stats.size = this.inMemoryCache.size;
+
+    return deleted || inMemoryDeleted;
   }
 
   /**
    * Delete multiple cache entries by pattern
    */
-  deletePattern(pattern: string | RegExp): number {
+  async deletePattern(pattern: string | RegExp): Promise<number> {
     const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
     let deleted = 0;
 
-    for (const key of this.cache.keys()) {
+    // Delete from Redis if available
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        const keys = await this.redisClient.keys(pattern instanceof RegExp ? '*' : pattern);
+        if (keys && keys.length > 0) {
+          deleted += await this.redisClient.del(...keys);
+        }
+      } catch (error) {
+        console.error('[Cache] Redis pattern delete error:', error);
+      }
+    }
+
+    // Delete from in-memory cache
+    for (const key of this.inMemoryCache.keys()) {
       if (regex.test(key)) {
-        this.cache.delete(key);
+        this.inMemoryCache.delete(key);
         deleted++;
       }
     }
 
-    this.stats.size = this.cache.size;
+    this.stats.size = this.inMemoryCache.size;
     return deleted;
   }
 
   /**
    * Clear all cache
    */
-  clear(): void {
-    this.cache.clear();
-    this.stats = { hits: 0, misses: 0, size: 0 };
+  async clear(): Promise<void> {
+    // Clear Redis if available
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        await this.redisClient.flushDb();
+      } catch (error) {
+        console.error('[Cache] Redis clear error:', error);
+      }
+    }
+
+    // Clear in-memory cache
+    this.inMemoryCache.clear();
+    this.stats = { hits: 0, misses: 0, size: 0, redisEnabled: this.stats.redisEnabled };
     console.log('[Cache] All cache cleared');
   }
 
@@ -118,23 +234,23 @@ export class CacheManager {
    * Start automatic cleanup of expired entries
    */
   private startCleanup(intervalMs: number): void {
-    this.cleanupInterval = setInterval(() => {
+    this.cleanupInterval = setInterval(async () => {
       const now = Date.now();
       let cleaned = 0;
       const keysToDelete: string[] = [];
 
-      for (const [key, entry] of this.cache.entries()) {
+      for (const [key, entry] of this.inMemoryCache.entries()) {
         if (now > entry.expiresAt) {
           keysToDelete.push(key);
           cleaned++;
         }
       }
 
-      keysToDelete.forEach(key => this.cache.delete(key));
-      this.stats.size = this.cache.size;
+      keysToDelete.forEach(key => this.inMemoryCache.delete(key));
+      this.stats.size = this.inMemoryCache.size;
 
       if (cleaned > 0) {
-        console.log(`[Cache] Cleaned up ${cleaned} expired entries (${this.cache.size} remaining)`);
+        console.log(`[Cache] Cleaned up ${cleaned} expired entries (${this.inMemoryCache.size} remaining)`);
       }
     }, intervalMs);
   }
@@ -150,16 +266,25 @@ export class CacheManager {
   }
 
   /**
-   * Destroy cache manager
+   * Destroy cache manager and close Redis connection
    */
-  destroy(): void {
+  async destroy(): Promise<void> {
     this.stopCleanup();
-    this.clear();
+    
+    if (this.isRedisAvailable && this.redisClient) {
+      try {
+        await this.redisClient.quit();
+      } catch (error) {
+        console.error('[Cache] Error closing Redis connection:', error);
+      }
+    }
+
+    await this.clear();
   }
 }
 
 // Export singleton instance
-export const cacheManager = new CacheManager();
+export const cacheManager = new UnifiedCacheManager();
 
 /**
  * Cache middleware for Express
@@ -168,11 +293,11 @@ export const cacheManager = new CacheManager();
 export function cacheMiddleware(ttl: string = '5m') {
   const ttlMs = parseTTL(ttl);
 
-  return (req: any, res: any, next: any) => {
+  return async (req: any, res: any, next: any) => {
     const cacheKey = `${req.method}:${req.originalUrl}`;
 
     // Try to get from cache
-    const cached = cacheManager.get(res.locals.cacheKey || cacheKey);
+    const cached = await cacheManager.get(res.locals.cacheKey || cacheKey);
     if (cached) {
       res.set('X-Cache', 'HIT');
       return res.json(cached);
@@ -182,13 +307,40 @@ export function cacheMiddleware(ttl: string = '5m') {
     const originalJson = res.json.bind(res);
 
     // Override json method to cache response
-    res.json = function (data: any) {
+    res.json = async function (data: any) {
       res.set('X-Cache', 'MISS');
-      cacheManager.set(cacheKey, data, ttlMs);
+      await cacheManager.set(cacheKey, data, ttlMs);
       return originalJson(data);
     };
 
     next();
+  };
+}
+
+/**
+ * tRPC middleware for caching
+ * Usage: t.procedure.use(trpcCacheMiddleware('5m')).query(...)
+ */
+export function trpcCacheMiddleware(ttl: string = '5m') {
+  const ttlMs = parseTTL(ttl);
+
+  return async (opts: any) => {
+    const { next, path, input } = opts;
+    const cacheKey = `trpc:${path}:${JSON.stringify(input)}`;
+
+    // Try to get from cache
+    const cached = await cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Call the next middleware/resolver
+    const result = await next();
+
+    // Cache the result
+    await cacheManager.set(cacheKey, result, ttlMs);
+
+    return result;
   };
 }
 
