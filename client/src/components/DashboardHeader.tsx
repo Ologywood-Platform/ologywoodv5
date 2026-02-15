@@ -46,7 +46,7 @@ export default function DashboardHeader() {
         {/* Left side - Logo/Title */}
         <div className="flex items-center gap-3">
           <img 
-            src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/WZrFYWaFvnXVlDAr.png" 
+            src="/logo-sm.png" 
             alt="Ologywood" 
             className="h-10 w-auto object-contain"
           />

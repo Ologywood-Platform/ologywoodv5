@@ -103,7 +103,7 @@ export default function VenueProfile() {
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/wPGyxTylibVlwkYr.png" alt="Ologywood" className="h-8 w-8 rounded" />
+            <img src="/logo-sm.png" alt="Ologywood" className="h-8 w-8 rounded" />
             Ologywood
           </a>
           <div className="flex gap-2">
