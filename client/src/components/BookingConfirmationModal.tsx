@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, CheckCircle2, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { SimplePaymentOptions } from "./SimplePaymentOptions";
 
 interface BookingConfirmationModalProps {
   open: boolean;
@@ -108,33 +109,15 @@ export function BookingConfirmationModal({
             </Card>
           </TabsContent>
 
-          {/* Deposit Step */}
+          {/* Payment Options Step */}
           <TabsContent value="deposit" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Deposit Payment
-                </CardTitle>
-                <CardDescription>
-                  A 25% deposit is required to secure the booking
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-blue-900">Deposit Amount</p>
-                    <p className="text-blue-800">${depositAmount.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">
-                    This deposit will be held until the event date. After the event, the remaining balance will be due.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <SimplePaymentOptions
+              bookingId={0}
+              totalFee={artistRate}
+              artistName={artistName}
+              venueName=""
+              eventDate={eventDate}
+            />
           </TabsContent>
 
           {/* Contract Step */}
