@@ -147,6 +147,16 @@ export default function ArtistProfile() {
     },
   });
 
+  // Move follow mutation to top level - MUST NOT be inside conditionals or functions
+  const followMutation = trpc.follows.follow.useMutation({
+    onSuccess: () => {
+      toast.success('Following ' + artist?.artistName);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to follow');
+    },
+  });
+
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -277,37 +287,21 @@ export default function ArtistProfile() {
             
             <div className="flex gap-2">
               <FavoriteButton artistId={artistId} size="lg" />
-              {(() => {
-                const followMutation = trpc.follows.follow.useMutation({
-                  onSuccess: () => {
-                    toast.success('Following ' + artist.artistName);
-                  },
-                  onError: (error) => {
-                    toast.error(error.message || 'Failed to follow');
-                  },
-                });
-                return (
                   <Button
-                    onClick={() => {
-                      if (!isAuthenticated) {
-                        window.location.href = getLoginUrl();
-                        return;
-                      }
-                      followMutation.mutate({
-                        followingId: artistId,
-                        followingType: 'artist',
-                      });
-                    }}
-                    disabled={followMutation.isPending}
-                    variant="outline"
-                    size="lg"
-                    className="gap-2"
-                  >
-                    <Heart className="w-4 h-4" />
-                    {followMutation.isPending ? 'Following...' : 'Follow'}
-                  </Button>
-                );
-              })()}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    window.location.href = getLoginUrl();
+                    return;
+                  }
+                  followMutation.mutate({ followingId: artistId, followingType: 'artist' });
+                }}
+                variant="outline"
+                size="lg"
+                className="gap-2"
+              >
+                <Users className="w-5 h-5" />
+                Follow
+              </Button>
               <Button
                 onClick={() => setShareProfileOpen(true)}
                 variant="outline"
