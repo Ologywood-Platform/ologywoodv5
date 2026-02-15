@@ -22,6 +22,7 @@ import { emailTestingRouter } from "./routers/emailTesting";
 import { emailChangeRouter } from "./routers/emailChangeRouter";
 import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
+import { followsRouter } from "./routers/follows";
 
 // ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
 // import { contractsRouter } from "./routers/contracts";
@@ -152,6 +153,7 @@ export const appRouter = router({
   emailPreferences: emailPreferencesRouter,
   pricing: pricingRouter,
   rider: riderRouter,
+  follows: followsRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
   // supportTickets: supportTicketsRouter,
