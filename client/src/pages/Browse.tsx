@@ -5,7 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart } from "lucide-react";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
@@ -40,6 +40,9 @@ export default function Browse() {
     actionType: 'book',
     targetType: 'artist',
   });
+  
+  // Follow filter state
+  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
 
   const { data: artists, isLoading } = trpc.artist.search.useQuery(filters);
 
