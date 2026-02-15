@@ -24,63 +24,14 @@ import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
 import { followsRouter } from "./routers/follows";
 
-// ===== DEPRECATED ROUTERS - COMMENTED OUT FOR NOISE ELIMINATION =====
-// import { contractsRouter } from "./routers/contracts";
-// import { contractAuditRouter } from "./routers/contract-audit";
-// import { referralRouter } from "./routers/referrals";
-// import { verificationRouter } from "./routers/verification";
-// import { templatesRouter } from "./routers/templates";
-// import { testdataRouter } from "./routers/testdata";
-// import { testdataSeedingRouter } from "./routers/testdata-seeding";
-// import { impersonationRouter } from "./routers/impersonation";
-// import { testWorkflowsRouter } from "./routers/test-workflows";
-// import { supportRouter } from "./routers/support";
-// import { adminSeedRouter } from "./routers/admin-seed";
-// import { supportSeederRouter } from "./routers/support-seeder";
-// import { aiChatRouter } from "./routers/ai-chat";
-// import { depositPaymentsRouter } from "./routers/deposit-payments";
+// ===== DEPRECATED ROUTERS - REMOVED FOR CLEAN MVP =====
+// (See git history for full list of deprecated routers)
 import { simpleRyderRouter } from "./routers/simpleRyderRouter";
 import { accountRouter } from "./routers/accountRouter";
 import { payoutRouter } from "./routers/payoutRouter";
 import { earningsRouter } from "./routers/earningsRouter";
 import { venueRouter } from "./routers/venueRouter";
-// import { analyticsRouter } from "./routers/analyticsRouter";
-// import { contractManagementRouter } from "./routers/contract-management";
-// import { helpAndSupportRouter } from "./routers/helpAndSupport";
-// import { contractPdfRouter } from "./routers/contractPdf";
-// import { supportTicketsRouter } from "./routers/supportTickets";
-// import { riderManagementRouter } from "./routers/riderManagement";
-// import { semanticSearchRouter } from "./routers/semanticSearchRouter";
-// import { evictionRouter } from "./routers/evictionRouter";
-// import { helpCenterRouter } from "./routers/helpCenterRouter";
-// import { riderContractRouter } from "./routers/riderContractRouter";
-// import { signatureRouter } from "./routers/signatureRouter";
-// import { contractTemplateRouter } from "./routers/contractTemplateRouter";
-// import { contractHistoryRouter } from "./routers/contractHistoryRouter";
-// import { webhookRouter } from "./routers/webhookRouter";
-// import { bulkContractRouter } from "./routers/bulkContractRouter";
-// import { realtimeNotificationsRouter } from "./routers/realtimeNotifications";
-// import { bookingEscrowRouter } from "./routers/bookingEscrow";
-// import { paymentAnalyticsRouter } from "./routers/paymentAnalyticsRouter";
-// import { artistVerificationRouter } from "./routers/artistVerificationRouter";
-// import { emailVerificationRouter } from "./routers/emailVerificationRouter";
-// import { smsNotificationsRouter } from "./routers/smsNotificationsRouter";
-// import { userRouter } from "./routers/userRouter";
-// import { calendarRouter } from "./routers/calendarRouter";
-// import { venueDirectoryRouter } from "./routers/venueDirectoryRouter";
-// import { contactRouter } from "./routers/contact";
-// import { privacyRouter } from "./routers/privacy";
-// import { paymentsRouter } from "./routers/payments";
-// import { followsRouter } from "./routers/follows";
-// import { availabilityAlertsRouter } from "./routers/availabilityAlerts";
-// import { referralRewardsRouter } from "./routers/referralRewards";
-// import { browseFiltersRouter } from "./routers/browseFilters";
-// import { artistOnboardingRouter } from "./routers/artistOnboarding";
-// import { bookingAnalyticsExportRouter } from "./routers/bookingAnalyticsExport";
-// Deprecated services - commented out for noise elimination
-// import * as contractPdfService from "./contractPdfService";
-// import * as contractArchiveService from "./contractArchiveService";
-// import paymentTestingRoutes from "./routes/paymentTestingRoutes";
+// All other routers removed for MVP - see git history for full list
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -142,12 +93,24 @@ export const appRouter = router({
     ...accountRouter,
     validateDeletion: protectedProcedure
       .query(async ({ ctx }) => {
-        // Check if user has any active bookings or contracts
-        // For now, allow deletion for all users
-        return {
-          allowed: true,
-          reason: null,
-        };
+        try {
+          const activeBookings = await db.getActiveBookingsByUser(ctx.user.id);
+          if (activeBookings && activeBookings.length > 0) {
+            return { allowed: false, reason: `${activeBookings.length} active bookings` };
+          }
+          const pendingPayments = await db.getPendingPaymentsByUser(ctx.user.id);
+          if (pendingPayments && pendingPayments.length > 0) {
+            return { allowed: false, reason: `${pendingPayments.length} pending payments` };
+          }
+          const unsignedContracts = await db.getUnsignedContractsByUser(ctx.user.id);
+          if (unsignedContracts && unsignedContracts.length > 0) {
+            return { allowed: false, reason: `${unsignedContracts.length} unsigned contracts` };
+          }
+          return { allowed: true, reason: null };
+        } catch (error) {
+          console.error('[Account] Validation error:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Validation failed' });
+        }
       }),
   } as any),
   emailPreferences: emailPreferencesRouter,
