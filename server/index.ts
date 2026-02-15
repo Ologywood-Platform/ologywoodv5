@@ -13,7 +13,7 @@ import { DatabaseOptimizationService } from './services/databaseOptimization';
 import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
 // import paymentRoutes from './routes/paymentRoutes'; // Disabled
-// import sitemapRoutes from './routes/sitemapRoutes'; // Disabled
+import sitemapRoutes from './routes/sitemapRoutes';
 import path from 'path';
 import http from 'http';
 
@@ -44,7 +44,7 @@ async function initializeServer(): Promise<void> {
   });
 
   // Mount sitemap and SEO routes FIRST (before static files)
-  // app.use('/', sitemapRoutes); // Disabled
+  app.use('/', sitemapRoutes);
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');

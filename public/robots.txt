@@ -1,37 +1,45 @@
-# Ologywood Artist Booking Platform - robots.txt
-# Allow search engines to crawl public content
-
+# Robots.txt for Ologywood Artist Booking Platform
 User-agent: *
 Allow: /
 Allow: /browse
 Allow: /artist/
 Allow: /venue/
 Allow: /how-it-works
+Allow: /contact
 Allow: /faq
-Allow: /login
-Allow: /signup
-Allow: /terms
-Allow: /privacy
-Allow: /cookies
+Allow: /terms-of-service
+Allow: /privacy-policy
 
-# Disallow private/user-specific pages
+# Disallow private/protected pages
+Disallow: /admin
 Disallow: /dashboard
-Disallow: /account
+Disallow: /venue-dashboard
 Disallow: /settings
+Disallow: /account
 Disallow: /messages
 Disallow: /bookings
-Disallow: /admin
+Disallow: /earnings
+Disallow: /rider-builder
+Disallow: /saved-riders
+Disallow: /availability
+Disallow: /verify-email
+Disallow: /revert-email
+Disallow: /onboarding
+Disallow: /get-started
+
+# Disallow API endpoints
+Disallow: /api/
+Disallow: /trpc/
+Disallow: /auth/
 
 # Disallow deprecated pages
 Disallow: /_deprecated/
-Disallow: /api/
-Disallow: /admin/
 
-# Sitemap location
-Sitemap: https://ologywood.com/sitemap.xml
-
-# Crawl delay (in seconds) - be respectful to server
+# Crawl delay (be respectful)
 Crawl-delay: 1
 
 # Request rate (pages per 10 seconds)
 Request-rate: 10/10s
+
+# Sitemaps
+Sitemap: https://www.ologywood.com/sitemap.xml
