@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import superjson from "superjson";
 import { serveStatic, setupVite } from "./vite";
 import sitemapRoutes from "../routes/sitemapRoutes";
+import emailRoutes from "../routes/emailRoutes";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -66,6 +67,9 @@ async function startServer() {
 
   // Sitemap and robots.txt routes (BEFORE Vite setup)
   app.use('/', sitemapRoutes);
+  
+  // Email routes (BEFORE Vite setup)
+  app.use('/api/email', emailRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

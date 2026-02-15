@@ -14,6 +14,7 @@ import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
 // import paymentRoutes from './routes/paymentRoutes'; // Disabled
 import sitemapRoutes from './routes/sitemapRoutes';
+import emailRoutes from './routes/emailRoutes';
 import path from 'path';
 import http from 'http';
 
@@ -46,6 +47,9 @@ async function initializeServer(): Promise<void> {
   // Mount sitemap and SEO routes FIRST (before static files)
   app.use('/', sitemapRoutes);
 
+  // Mount API routes BEFORE static files (important: API routes must come before static middleware)
+  app.use('/api/email', emailRoutes);
+
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');
   console.log(`Serving static files from: ${publicPath}`);
@@ -68,7 +72,7 @@ async function initializeServer(): Promise<void> {
   });
 
   // Mount payment routes
-  // app.use('/api/payment', paymentRoutes); // Disabled
+  // app.use('/api/payment', paymentRoutes); // Disabled (email routes already mounted at /api/email)
 
   // Initialize Socket.io for real-time notifications
   const httpServer = http.createServer(app);
