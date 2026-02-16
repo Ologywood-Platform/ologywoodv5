@@ -530,3 +530,93 @@ export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
 
 
+
+/**
+ * Events - public event postings for artists' availability and bookings
+ * Artists can post events they're available for, venues can discover and book
+ */
+export const events = mysqlTable("events", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  eventTitle: varchar("eventTitle", { length: 255 }).notNull(),
+  eventType: mysqlEnum("eventType", ["wedding", "corporate", "festival", "bar_gig", "private_party", "concert", "other"]).notNull(),
+  eventDate: date("eventDate").notNull(),
+  eventTime: varchar("eventTime", { length: 5 }), // HH:MM format
+  eventEndTime: varchar("eventEndTime", { length: 5 }), // HH:MM format
+  location: varchar("location", { length: 255 }),
+  capacity: int("capacity"), // Expected audience size
+  audienceType: varchar("audienceType", { length: 100 }), // 'corporate', 'wedding', 'general_public', 'private'
+  rate: decimal("rate", { precision: 10, scale: 2 }), // Event rate in USD
+  description: text("description"),
+  isPublic: boolean("isPublic").default(false).notNull(), // false = private booking only, true = public calendar
+  status: mysqlEnum("status", ["available", "booked", "completed", "cancelled"]).default("available").notNull(),
+  bookingId: int("bookingId"), // Link to booking if booked
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = typeof events.$inferInsert;
+
+/**
+ * Event Recurrence - for recurring events (weekly gigs, monthly residencies, etc.)
+ */
+export const eventRecurrence = mysqlTable("event_recurrence", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  frequency: mysqlEnum("frequency", ["daily", "weekly", "biweekly", "monthly"]).notNull(),
+  daysOfWeek: varchar("daysOfWeek", { length: 50 }), // 'MON,WED,FRI' for weekly
+  endDate: date("endDate"), // When recurrence ends
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EventRecurrence = typeof eventRecurrence.$inferSelect;
+export type InsertEventRecurrence = typeof eventRecurrence.$inferInsert;
+
+/**
+ * Event History - tracks past events with attendance and details
+ * Used for artist portfolio and event recap
+ */
+export const eventHistory = mysqlTable("event_history", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId"),
+  bookingId: int("bookingId"), // Link to booking
+  artistId: int("artistId").notNull(),
+  venueId: int("venueId"),
+  eventDate: date("eventDate").notNull(),
+  attendeeCount: int("attendeeCount"), // Actual attendance
+  notes: text("notes"), // Event recap/summary
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EventHistory = typeof eventHistory.$inferSelect;
+export type InsertEventHistory = typeof eventHistory.$inferInsert;
+
+/**
+ * Event Photos - media from events (post-event photos/videos)
+ */
+export const eventPhotos = mysqlTable("event_photos", {
+  id: int("id").autoincrement().primaryKey(),
+  eventHistoryId: int("eventHistoryId").notNull(),
+  photoUrl: text("photoUrl").notNull(),
+  caption: text("caption"),
+  uploadedBy: int("uploadedBy"), // User ID who uploaded
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EventPhoto = typeof eventPhotos.$inferSelect;
+export type InsertEventPhoto = typeof eventPhotos.$inferInsert;
+
+/**
+ * Saved Events - allows venues to save events for later booking
+ */
+export const savedEvents = mysqlTable("saved_events", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(), // Venue user saving the event
+  eventId: int("eventId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SavedEvent = typeof savedEvents.$inferSelect;
+export type InsertSavedEvent = typeof savedEvents.$inferInsert;

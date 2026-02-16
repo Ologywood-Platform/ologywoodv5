@@ -10,6 +10,7 @@ import superjson from "superjson";
 import { serveStatic, setupVite } from "./vite";
 import sitemapRoutes from "../routes/sitemapRoutes";
 import emailRoutes from "../routes/emailRoutes";
+import eventRoutes from "../routes/events";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -77,6 +78,9 @@ async function startServer() {
   
   // Email routes (BEFORE Vite setup)
   app.use('/api/email', emailRoutes);
+  
+  // Event routes (BEFORE Vite setup)
+  app.use('/', eventRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

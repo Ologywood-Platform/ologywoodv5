@@ -239,6 +239,27 @@
       "when": 1771110134707,
       "tag": "0033_gifted_texas_twister",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1771263637578,
+      "tag": "0034_simple_scalphunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1771263642420,
+      "tag": "0035_secret_maximus",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1771263797997,
+      "tag": "0036_public_magma",
+      "breakpoints": true
     }
   ]
 }

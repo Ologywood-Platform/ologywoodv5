@@ -21,7 +21,12 @@ import {
   subscriptions, InsertSubscription, Subscription,
   stripeConnectAccounts, InsertStripeConnectAccount, StripeConnectAccount,
   artistPayouts, InsertArtistPayout, ArtistPayout,
-  invoices, InsertInvoice, Invoice
+  invoices, InsertInvoice, Invoice,
+  events, InsertEvent, Event,
+  eventRecurrence, InsertEventRecurrence, EventRecurrence,
+  eventHistory, InsertEventHistory, EventHistory,
+  eventPhotos, InsertEventPhoto, EventPhoto,
+  savedEvents, InsertSavedEvent, SavedEvent
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1432,3 +1437,339 @@ export async function deleteEmailPreferences(userId: number): Promise<boolean> {
   }
 }
 
+
+
+// ============= EVENT FUNCTIONS =============
+
+/**
+ * Create a new event for an artist
+ */
+export async function createEvent(data: InsertEvent): Promise<Event> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(events).values(data);
+  const eventId = (result as any).insertId;
+  const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  return event[0] as Event;
+}
+
+/**
+ * Get event by ID
+ */
+export async function getEventById(id: number): Promise<Event | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(events).where(eq(events.id, id)).limit(1);
+  return result[0] as Event | undefined;
+}
+
+/**
+ * Get all events for an artist
+ */
+export async function getArtistEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(events)
+    .where(eq(events.artistId, artistId))
+    .orderBy(desc(events.eventDate));
+}
+
+/**
+ * Get public events for an artist (for discovery)
+ */
+export async function getArtistPublicEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(events)
+    .where(and(
+      eq(events.artistId, artistId),
+      eq(events.isPublic, true),
+      eq(events.status, 'available')
+    ))
+    .orderBy(asc(events.eventDate));
+}
+
+/**
+ * Get upcoming events for an artist (for calendar view)
+ */
+export async function getArtistUpcomingEvents(artistId: number, daysAhead: number = 90): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + daysAhead);
+
+  return await db.select().from(events)
+    .where(and(
+      eq(events.artistId, artistId),
+      gte(events.eventDate, new Date()),
+      lte(events.eventDate, futureDate)
+    ))
+    .orderBy(asc(events.eventDate));
+}
+
+/**
+ * Search for public events with filters
+ */
+export async function searchPublicEvents(filters: {
+  eventType?: string;
+  location?: string;
+  minRate?: number;
+  maxRate?: number;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Build where conditions dynamically
+  const conditions: any[] = [
+    eq(events.isPublic, true),
+    eq(events.status, 'available')
+  ];
+
+  if (filters.eventType) {
+    conditions.push(eq(events.eventType, filters.eventType as any));
+  }
+
+  if (filters.location) {
+    conditions.push(like(events.location, `%${filters.location}%`));
+  }
+
+  if (filters.minRate) {
+    conditions.push(gte(events.rate, filters.minRate.toString()));
+  }
+
+  if (filters.maxRate) {
+    conditions.push(lte(events.rate, filters.maxRate.toString()));
+  }
+
+  if (filters.startDate) {
+    conditions.push(gte(events.eventDate, filters.startDate));
+  }
+
+  if (filters.endDate) {
+    conditions.push(lte(events.eventDate, filters.endDate));
+  }
+
+  let query: any = db.select().from(events).where(and(...conditions)).orderBy(asc(events.eventDate));
+
+  if (filters.limit) {
+    query = query.limit(filters.limit);
+  }
+
+  if (filters.offset) {
+    query = query.offset(filters.offset);
+  }
+
+  return await query;
+}
+
+/**
+ * Update an event
+ */
+export async function updateEvent(id: number, data: Partial<InsertEvent>): Promise<Event | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  await db.update(events).set(data).where(eq(events.id, id));
+  return await getEventById(id);
+}
+
+/**
+ * Delete an event
+ */
+export async function deleteEvent(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.delete(events).where(eq(events.id, id));
+  return (result as any).affectedRows > 0;
+}
+
+/**
+ * Create event recurrence
+ */
+export async function createEventRecurrence(data: InsertEventRecurrence): Promise<EventRecurrence> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(eventRecurrence).values(data);
+  const recurrenceId = (result as any).insertId;
+  const recurrence = await db.select().from(eventRecurrence).where(eq(eventRecurrence.id, recurrenceId)).limit(1);
+  return recurrence[0] as EventRecurrence;
+}
+
+/**
+ * Get recurrence for an event
+ */
+export async function getEventRecurrence(eventId: number): Promise<EventRecurrence | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(eventRecurrence).where(eq(eventRecurrence.eventId, eventId)).limit(1);
+  return result[0] as EventRecurrence | undefined;
+}
+
+/**
+ * Delete event recurrence
+ */
+export async function deleteEventRecurrence(eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.delete(eventRecurrence).where(eq(eventRecurrence.eventId, eventId));
+  return (result as any).affectedRows > 0;
+}
+
+/**
+ * Create event history (post-event recap)
+ */
+export async function createEventHistory(data: InsertEventHistory): Promise<EventHistory> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(eventHistory).values(data);
+  const historyId = (result as any).insertId;
+  const history = await db.select().from(eventHistory).where(eq(eventHistory.id, historyId)).limit(1);
+  return history[0] as EventHistory;
+}
+
+/**
+ * Get event history by ID
+ */
+export async function getEventHistoryById(id: number): Promise<EventHistory | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(eventHistory).where(eq(eventHistory.id, id)).limit(1);
+  return result[0] as EventHistory | undefined;
+}
+
+/**
+ * Get event history for an artist (portfolio)
+ */
+export async function getArtistEventHistory(artistId: number): Promise<EventHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(eventHistory)
+    .where(eq(eventHistory.artistId, artistId))
+    .orderBy(desc(eventHistory.eventDate));
+}
+
+/**
+ * Add photo to event history
+ */
+export async function addEventPhoto(data: InsertEventPhoto): Promise<EventPhoto> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(eventPhotos).values(data);
+  const photoId = (result as any).insertId;
+  const photo = await db.select().from(eventPhotos).where(eq(eventPhotos.id, photoId)).limit(1);
+  return photo[0] as EventPhoto;
+}
+
+/**
+ * Get photos for event history
+ */
+export async function getEventPhotos(eventHistoryId: number): Promise<EventPhoto[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(eventPhotos)
+    .where(eq(eventPhotos.eventHistoryId, eventHistoryId))
+    .orderBy(asc(eventPhotos.createdAt));
+}
+
+/**
+ * Delete event photo
+ */
+export async function deleteEventPhoto(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.delete(eventPhotos).where(eq(eventPhotos.id, id));
+  return (result as any).affectedRows > 0;
+}
+
+/**
+ * Save event for later (venue saves artist's event)
+ */
+export async function saveEvent(userId: number, eventId: number): Promise<SavedEvent> {
+  const db = await getDb();
+  if (!db) {
+    throw new Error('Database not available');
+  }
+
+  const result = await db.insert(savedEvents).values({ userId, eventId });
+  const savedId = (result as any).insertId;
+  const saved = await db.select().from(savedEvents).where(eq(savedEvents.id, savedId)).limit(1);
+  return saved[0] as SavedEvent;
+}
+
+/**
+ * Get saved events for a user
+ */
+export async function getUserSavedEvents(userId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const saved = await db.select().from(savedEvents)
+    .where(eq(savedEvents.userId, userId));
+
+  if (saved.length === 0) return [];
+
+  const eventIds = saved.map(s => s.eventId);
+  return await db.select().from(events)
+    .where(inArray(events.id, eventIds))
+    .orderBy(asc(events.eventDate));
+}
+
+/**
+ * Check if user has saved an event
+ */
+export async function isEventSaved(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.select().from(savedEvents)
+    .where(and(
+      eq(savedEvents.userId, userId),
+      eq(savedEvents.eventId, eventId)
+    ))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+/**
+ * Remove saved event
+ */
+export async function removeSavedEvent(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.delete(savedEvents)
+    .where(and(
+      eq(savedEvents.userId, userId),
+      eq(savedEvents.eventId, eventId)
+    ));
+
+  return (result as any).affectedRows > 0;
+}
