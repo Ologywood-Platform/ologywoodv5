@@ -31,6 +31,7 @@ import { accountRouter } from "./routers/accountRouter";
 import { payoutRouter } from "./routers/payoutRouter";
 import { earningsRouter } from "./routers/earningsRouter";
 import { venueRouter } from "./routers/venueRouter";
+import { eventsRouter } from "./routers/events";
 // All other routers removed for MVP - see git history for full list
 
 // Helper to check if user is an artist
@@ -89,6 +90,7 @@ export const appRouter = router({
   emailChange: emailChangeRouter,
   earnings: earningsRouter,
   venue: venueRouter,
+  events: eventsRouter,
   account: router({
     ...accountRouter,
     validateDeletion: protectedProcedure

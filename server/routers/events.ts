@@ -1,0 +1,259 @@
+import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
+import { z } from 'zod';
+import * as db from '../db';
+
+// Input validation schemas
+const createEventSchema = z.object({
+  eventTitle: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  eventType: z.enum(['concert', 'wedding', 'corporate', 'festival', 'other', 'bar_gig', 'private_party']),
+  location: z.string().optional(),
+  eventDate: z.date(),
+  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  capacity: z.number().int().optional(),
+  audienceType: z.string().optional(),
+  rate: z.string().optional(), // Stored as decimal string
+  isPublic: z.boolean().default(false),
+  status: z.enum(['available', 'booked', 'completed', 'cancelled']).default('available'),
+});
+
+const updateEventSchema = createEventSchema.partial().extend({
+  id: z.number().int().positive(),
+});
+
+const searchEventsSchema = z.object({
+  eventType: z.string().optional(),
+  location: z.string().optional(),
+  minRate: z.number().optional(),
+  maxRate: z.number().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  artistId: z.number().int().optional(),
+  limit: z.number().int().default(20),
+  offset: z.number().int().default(0),
+});
+
+export const eventsRouter = router({
+  // Create new event
+  create: protectedProcedure
+    .input(createEventSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const event = await db.createEvent({
+          ...input,
+          artistId: ctx.user.id,
+        });
+        return {
+          success: true,
+          event,
+          message: 'Event created successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create event');
+      }
+    }),
+
+  // Get event by ID
+  getById: publicProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        const event = await db.getEventById(input.id);
+        if (!event) {
+          throw new Error('Event not found');
+        }
+        return event;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch event');
+      }
+    }),
+
+  // Get all events for an artist
+  getByArtistId: publicProcedure
+    .input(z.object({ artistId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        const events = await db.getArtistEvents(input.artistId);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch events');
+      }
+    }),
+
+  // Update event
+  update: protectedProcedure
+    .input(updateEventSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const event = await db.updateEvent(input.id, input);
+        return {
+          success: true,
+          event,
+          message: 'Event updated successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to update event');
+      }
+    }),
+
+  // Delete event
+  delete: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        await db.deleteEvent(input.id);
+        return {
+          success: true,
+          message: 'Event deleted successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to delete event');
+      }
+    }),
+
+  // Search public events with filters
+  search: publicProcedure
+    .input(searchEventsSchema)
+    .query(async ({ input }) => {
+      try {
+        const events = await db.searchPublicEvents(input);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to search events');
+      }
+    }),
+
+  // Get event recurrence details
+  getRecurrence: publicProcedure
+    .input(z.object({ eventId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        const recurrence = await db.getEventRecurrence(input.eventId);
+        return recurrence;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch recurrence');
+      }
+    }),
+
+  // Create event recurrence
+  createRecurrence: protectedProcedure
+    .input(z.object({
+      eventId: z.number().int().positive(),
+      frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly']),
+      endDate: z.date().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const recurrence = await db.createEventRecurrence(input);
+        return {
+          success: true,
+          recurrence,
+          message: 'Recurrence created successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create recurrence');
+      }
+    }),
+
+  // Get event history (past events)
+  getHistory: publicProcedure
+    .input(z.object({ 
+      artistId: z.number().int().positive(),
+    }))
+    .query(async ({ input }) => {
+      try {
+        const history = await db.getArtistEventHistory(input.artistId);
+        return history;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch history');
+      }
+    }),
+
+  // Add photo to event
+  addPhoto: protectedProcedure
+    .input(z.object({
+      eventHistoryId: z.number().int().positive(),
+      photoUrl: z.string().url(),
+      caption: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const photo = await db.addEventPhoto(input);
+        return {
+          success: true,
+          photo,
+          message: 'Photo added successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to add photo');
+      }
+    }),
+
+  // Get event photos
+  getPhotos: publicProcedure
+    .input(z.object({ eventHistoryId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        const photos = await db.getEventPhotos(input.eventHistoryId);
+        return photos;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch photos');
+      }
+    }),
+
+  // Save event (bookmark/wishlist)
+  saveEvent: protectedProcedure
+    .input(z.object({ eventId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const saved = await db.saveEvent(input.eventId, ctx.user.id);
+        return {
+          success: true,
+          saved,
+          message: 'Event saved successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to save event');
+      }
+    }),
+
+  // Check if event is saved
+  isEventSaved: protectedProcedure
+    .input(z.object({ eventId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      try {
+        const saved = await db.isEventSaved(ctx.user.id, input.eventId);
+        return saved;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to unsave event');
+      }
+    }),
+
+  // Get saved events for user
+  getSavedEvents: protectedProcedure
+    .input(z.object({}))
+    .query(async ({ input, ctx }) => {
+      try {
+        const events = await db.getUserSavedEvents(ctx.user.id);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch saved events');
+      }
+    }),
+
+  // Get upcoming events for an artist
+  getUpcomingEvents: publicProcedure
+    .input(z.object({
+      artistId: z.number().int().positive(),
+      daysAhead: z.number().int().default(90),
+    }))
+    .query(async ({ input }) => {
+      try {
+        const events = await db.getArtistUpcomingEvents(input.artistId, input.daysAhead);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch events');
+      }
+    }),
+});
