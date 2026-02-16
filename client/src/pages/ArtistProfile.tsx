@@ -668,6 +668,46 @@ export default function ArtistProfile() {
             </div>
 
             {/* Review System */}
+            {/* Events Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Events & Gigs</CardTitle>
+                <CardDescription>Events this artist has posted</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600 mb-4">
+                  Upcoming events and gigs from this artist. Click an event to view details or inquire about booking.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate(`/events?artistId=${artistId}`)}
+                >
+                  View All Events
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Event History/Portfolio */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Event History & Portfolio</CardTitle>
+                <CardDescription>Past events and performance photos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600 mb-4">
+                  See photos and details from previous events this artist has performed at.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate(`/artists/${artistId}/history`)}
+                >
+                  View Portfolio
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Reviews & Feedback</CardTitle>
@@ -700,3 +740,6 @@ export default function ArtistProfile() {
     </div>
   );
 }
+
+// Events section added in Phase 2
+// TODO: Add Events and Event History sections before Reviews

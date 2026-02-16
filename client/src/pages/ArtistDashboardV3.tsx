@@ -174,6 +174,14 @@ export function ArtistDashboardV3() {
                     <DollarSign className="h-5 w-5" />
                     <span className="text-xs">Earnings</span>
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/events')}
+                  >
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-xs">Events</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -211,6 +219,36 @@ export function ArtistDashboardV3() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Events Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Your Events</CardTitle>
+                    <CardDescription>Manage your posted events and gigs</CardDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => navigate('/events/create')}
+                  >
+                    Create Event
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600 mb-4">
+                  Post events to attract venues and bookings. Your events appear in the public discovery page.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/events')}
+                >
+                  Manage Events
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Messages are accessed from the Messages page */}
 
