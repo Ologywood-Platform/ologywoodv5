@@ -44,6 +44,14 @@ async function startServer() {
   // Initialize cache manager
   cacheManager.init(60000); // Cleanup every 60 seconds
   
+  // Redirect non-www to www for consistent social media sharing
+  app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production' && req.hostname && !req.hostname.startsWith('www.') && req.hostname !== 'localhost') {
+      return res.redirect(301, `https://www.${req.hostname}${req.originalUrl}`);
+    }
+    next();
+  });
+  
   // Stripe webhook MUST be registered before express.json() for signature verification
   const { handleStripeWebhook } = await import('../webhooks/stripe');
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
