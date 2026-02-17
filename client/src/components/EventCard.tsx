@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, MapPin, Users, DollarSign, Heart, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
-
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
+import { EventBookingFlow } from '@/components/EventBookingFlow';
 
 interface EventCardProps {
   id: number;
@@ -49,6 +50,7 @@ export function EventCard({
 }: EventCardProps) {
   const [, navigate] = useLocation();
   const [saved, setSaved] = useState(isSaved);
+  const [showBookingFlow, setShowBookingFlow] = useState(false);
 
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -84,22 +86,25 @@ export function EventCard({
     }
   };
 
-  const handleBook = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onBook && status === 'available') {
-      onBook(id, {
-        eventId: id,
-        eventTitle,
-        eventDate,
-        eventTime,
-        location,
-        capacity,
-        rate,
-        artistId,
-        artistName,
-      });
-    } else if (status !== 'available') {
-      toast.error('This event is no longer available');
+  const handleBookingComplete = async (bookingData: any) => {
+    try {
+      if (onBook) {
+        await onBook(id, {
+          eventId: id,
+          eventTitle,
+          eventDate,
+          eventTime,
+          location,
+          capacity,
+          rate,
+          artistId,
+          artistName,
+          ...bookingData,
+        });
+      }
+      setShowBookingFlow(false);
+    } catch (error) {
+      console.error('Booking failed:', error);
     }
   };
 
@@ -171,19 +176,39 @@ export function EventCard({
         {/* Actions */}
         {showActions && (
           <div className="flex gap-2 mt-auto pt-2">
-            {status === 'available' && onBook && (
-              <Button
-                size="sm"
-                className="flex-1"
-                onClick={handleBook}
-              >
-                Book Now
-              </Button>
+            {status === 'available' && (
+              <Dialog open={showBookingFlow} onOpenChange={setShowBookingFlow}>
+                <DialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Book Now
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md p-0 border-0">
+                  <EventBookingFlow
+                    eventData={{
+                      eventId: id,
+                      eventTitle,
+                      eventDate,
+                      eventTime,
+                      location,
+                      capacity,
+                      rate,
+                      artistId,
+                      artistName,
+                    }}
+                    onBookingComplete={handleBookingComplete}
+                  />
+                </DialogContent>
+              </Dialog>
             )}
             <Button
               size="sm"
               variant="outline"
-              className={onBook && status === 'available' ? '' : 'flex-1'}
+              className={status === 'available' ? '' : 'flex-1'}
               onClick={handleMessage}
             >
               <MessageSquare className="h-4 w-4 mr-1" />

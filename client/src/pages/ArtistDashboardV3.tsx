@@ -6,6 +6,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { AccountSettings } from '@/components/AccountSettings';
+import { EventStatusManager } from '@/components/EventStatusManager';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -14,6 +15,8 @@ export function ArtistDashboardV3() {
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
+  const { data: myEvents = [] } = trpc.events.search.useQuery({ artistId: user?.id || 0 });
+  const updateEventStatus = trpc.events.update.useMutation();
   // Messages are accessed from the Messages page, not dashboard
 
   // Verify user is an artist
@@ -236,17 +239,53 @@ export function ArtistDashboardV3() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 mb-4">
-                  Post events to attract venues and bookings. Your events appear in the public discovery page.
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/events')}
-                >
-                  Manage Events
-                </Button>
+              <CardContent className="space-y-4">
+                {myEvents && myEvents.length > 0 ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-slate-600">
+                      You have {myEvents.length} posted event{myEvents.length !== 1 ? 's' : ''}. Update their status below.
+                    </p>
+                    {myEvents.slice(0, 3).map((event: any) => (
+                      <EventStatusManager
+                        key={event.id}
+                        eventId={event.id}
+                        eventTitle={event.eventTitle}
+                        currentStatus={event.status as 'available' | 'booked' | 'completed' | 'cancelled'}
+                        onStatusChange={async (eventId, newStatus) => {
+                          try {
+                            await updateEventStatus.mutateAsync({
+                              id: eventId,
+                              status: newStatus as 'available' | 'booked' | 'completed' | 'cancelled',
+                            });
+                          } catch (error) {
+                            console.error('Failed to update event status:', error);
+                          }
+                        }}
+                      />
+                    ))}
+                    {myEvents.length > 3 && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => navigate('/events')}
+                      >
+                        View All Events
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-sm text-slate-600 mb-4">
+                      You haven't posted any events yet. Create your first event to attract venues!
+                    </p>
+                    <Button
+                      onClick={() => navigate('/events/create')}
+                      className="w-full"
+                    >
+                      Create Your First Event
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
