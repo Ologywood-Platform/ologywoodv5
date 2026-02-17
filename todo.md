@@ -388,6 +388,19 @@
 ## Phase 5: VenueCalendar Events Integration - SKIPPED
 **Reason:** EventDiscovery page already provides comprehensive event discovery UI with search and filters. VenueCalendar is for artist availability/bookings visualization, not event discovery. No additional integration needed.
 
+## Event Creation & Booking Integration - IN PROGRESS
+- [x] Create EventCreate page (/events/create)
+- [x] Integrate EventForm into EventCreate page
+- [x] Connect TRPC events.create mutation
+- [x] Add Book button to EventCard component
+- [x] Implement event booking handler with event details (date, capacity, rate, location)
+- [ ] Test event creation flow from ArtistDashboardV3
+- [ ] Test event appearance in Browse Events tab
+- [ ] Test event booking integration
+- [ ] Test end-to-end flow (create event → browse → book)
+
+**Status:** Components built. Ready for end-to-end testing.
+
 ## Rider Contract Template - In Progress
 - [x] Create rider contract template component with essential booking fields
 - [x] Design rider template form with technical requirements section

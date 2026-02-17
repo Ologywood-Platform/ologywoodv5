@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, DollarSign, Heart, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
+
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 
@@ -22,6 +23,7 @@ interface EventCardProps {
   status: 'available' | 'booked' | 'cancelled';
   onSave?: (eventId: number) => void;
   onMessage?: (artistId: number, artistName: string) => void;
+  onBook?: (eventId: number, eventData: any) => void;
   isSaved?: boolean;
   showActions?: boolean;
 }
@@ -41,6 +43,7 @@ export function EventCard({
   status,
   onSave,
   onMessage,
+  onBook,
   isSaved = false,
   showActions = true,
 }: EventCardProps) {
@@ -78,6 +81,25 @@ export function EventCard({
     e.stopPropagation();
     if (onMessage) {
       onMessage(artistId, artistName);
+    }
+  };
+
+  const handleBook = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onBook && status === 'available') {
+      onBook(id, {
+        eventId: id,
+        eventTitle,
+        eventDate,
+        eventTime,
+        location,
+        capacity,
+        rate,
+        artistId,
+        artistName,
+      });
+    } else if (status !== 'available') {
+      toast.error('This event is no longer available');
     }
   };
 
@@ -149,10 +171,19 @@ export function EventCard({
         {/* Actions */}
         {showActions && (
           <div className="flex gap-2 mt-auto pt-2">
+            {status === 'available' && onBook && (
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={handleBook}
+              >
+                Book Now
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
-              className="flex-1"
+              className={onBook && status === 'available' ? '' : 'flex-1'}
               onClick={handleMessage}
             >
               <MessageSquare className="h-4 w-4 mr-1" />
