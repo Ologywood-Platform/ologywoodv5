@@ -22,6 +22,7 @@ import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
 import { followsRouter } from "./routers/follows";
 import { eventsRouter } from "./routers/events";
+import { adminRouter } from "./routers/admin";
 
 
 // Helper to check if user is an artist
@@ -1883,5 +1884,7 @@ export const appRouter = router({
         }
       }),
   }),
+  
+  admin: adminRouter,
 });
 export type AppRouter = typeof appRouter;
