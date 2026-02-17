@@ -12,7 +12,8 @@ export function VenueDashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
 
-  const { data: venueProfile } = ((trpc.venue as any)?.getMyProfile?.useQuery?.() || { data: null });
+  // NOTE: venue router was removed during cleanup
+  const { data: venueProfile } = { data: null };
   const { data: bookings } = ((trpc.booking as any)?.getMyVenueBookings?.useQuery?.() || { data: [] });
   // Messages are accessed from the Messages page, not dashboard
 
@@ -55,7 +56,7 @@ export function VenueDashboard() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Venue Dashboard</h1>
-              <p className="text-sm text-gray-600">{venueProfile?.organizationName || 'Welcome'}</p>
+              <p className="text-sm text-gray-600">{(venueProfile as any)?.organizationName || 'Welcome'}</p>
             </div>
           </div>
 
@@ -82,26 +83,26 @@ export function VenueDashboard() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    {venueProfile?.profilePhotoUrl && (
+                    {(venueProfile as any)?.profilePhotoUrl && (
                       <img
-                        src={venueProfile.profilePhotoUrl}
-                        alt={venueProfile.organizationName}
+                        src={(venueProfile as any).profilePhotoUrl}
+                        alt={(venueProfile as any).organizationName}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                     )}
                     <div>
-                      <CardTitle className="text-2xl">{venueProfile?.organizationName || 'Venue'}</CardTitle>
+                      <CardTitle className="text-2xl">{(venueProfile as any)?.organizationName || 'Venue'}</CardTitle>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                        {venueProfile?.city && (
+                        {(venueProfile as any)?.city && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
-                            {venueProfile.city}
+                            {(venueProfile as any).city}
                           </span>
                         )}
-                        {venueProfile?.capacity && (
+                        {(venueProfile as any)?.capacity && (
                           <span className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            {venueProfile.capacity} capacity
+                            {(venueProfile as any).capacity} capacity
                           </span>
                         )}
                       </div>

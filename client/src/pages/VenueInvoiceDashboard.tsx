@@ -11,9 +11,8 @@ export function VenueInvoiceDashboard() {
   const { user } = useAuth();
 
   // Fetch venue invoices
-  const { data: invoices, isLoading: invoicesLoading } = trpc.payout.getVenueInvoices.useQuery({
-    limit: 20,
-  });
+  // NOTE: payout router was removed during cleanup
+  const { data: invoices, isLoading: invoicesLoading } = { data: [], isLoading: false };
 
   // Verify user is a venue
   if (user?.role !== 'venue') {

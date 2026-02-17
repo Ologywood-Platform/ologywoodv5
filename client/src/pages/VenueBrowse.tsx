@@ -27,26 +27,24 @@ export default function VenueBrowse() {
   const [showSignupModal, setShowSignupModal] = useState(false);
 
   // Fetch venues from database
-  const { data: venues = [], isLoading } = trpc.venue.search.useQuery({
-    location: selectedLocation || undefined,
-    searchQuery: searchQuery || undefined,
-    limit: 50,
-  });
+  // NOTE: venue router was removed during cleanup - using empty data for now
+  const { data: venues = [], isLoading } = { data: [], isLoading: false };
 
   // Get venue types for filter dropdown
-  const { data: venueTypes = [] } = trpc.venue.getVenueTypes.useQuery();
+  const { data: venueTypes = [] } = { data: [] };
 
   // Filter venues by search query
   const filteredVenues = useMemo(() => {
     if (!searchQuery) return venues;
     
-    return venues.filter(venue =>
+    return venues.filter((venue: any) =>
       venue.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (venue.bio && venue.bio.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   }, [venues, searchQuery]);
 
   const handleMessageClick = (venueId: number) => {
+    // NOTE: venue router was removed during cleanup
     if (!isAuthenticated) {
       setShowSignupModal(true);
     } else {
@@ -158,7 +156,7 @@ export default function VenueBrowse() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVenues.map((venue) => (
+            {filteredVenues.map((venue: any) => (
               <Card key={venue.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 {/* Venue Image */}
 

@@ -13,7 +13,8 @@ export default function RevertEmail() {
   const [error, setError] = useState('');
   const [step, setStep] = useState<'confirm' | 'processing' | 'success'>('confirm');
 
-  const revertMutation = trpc.emailChange.revertChange.useMutation();
+  // NOTE: emailChange router was removed during cleanup
+  const revertMutation = { mutate: () => {}, mutateAsync: async (data: any) => ({ success: false, message: 'Router disabled' }), isPending: false };
 
   // Extract token from URL
   useEffect(() => {

@@ -11,8 +11,9 @@ export function ArtistEarningsDashboard() {
   const { user } = useAuth();
 
   // Fetch earnings data
-  const { data: earnings, isLoading: earningsLoading } = trpc.earnings.getArtistEarnings.useQuery();
-  const { data: recentTransactions } = trpc.earnings.getRecentTransactions.useQuery({ limit: 10 });
+  // NOTE: earnings router was removed during cleanup
+  const { data: earnings, isLoading: earningsLoading } = { data: null, isLoading: false };
+  const { data: recentTransactions } = { data: [] };
 
   // Verify user is an artist
   if (user?.role !== 'artist') {
@@ -67,7 +68,7 @@ export function ArtistEarningsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {earningsLoading ? '...' : formatCurrency(earnings?.totalEarnings || 0)}
+                  {earningsLoading ? '...' : formatCurrency((earnings as any)?.totalEarnings || 0)}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">After 1% platform fee</p>
               </CardContent>
@@ -83,7 +84,7 @@ export function ArtistEarningsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-amber-600">
-                  {earningsLoading ? '...' : formatCurrency(earnings?.pendingEarnings || 0)}
+                  {earningsLoading ? '...' : formatCurrency((earnings as any)?.pendingEarnings || 0)}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Awaiting completion</p>
               </CardContent>
@@ -99,7 +100,7 @@ export function ArtistEarningsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
-                  {earningsLoading ? '...' : formatCurrency(earnings?.paidOutEarnings || 0)}
+                  {earningsLoading ? '...' : formatCurrency((earnings as any)?.paidOutEarnings || 0)}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Transferred to account</p>
               </CardContent>

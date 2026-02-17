@@ -32,7 +32,8 @@ export default function ArtistEarnings() {
   const { data: earningsData, isLoading: earningsLoading, refetch: refetchEarnings } = useQuery({
     queryKey: ['payout.getEarnings'],
     queryFn: async () => {
-      const result = await ((trpc.payout as any)?.getEarnings?.query?.() || { success: false, error: 'Not available' });
+      // NOTE: payout router was removed during cleanup
+      const result = { success: false, error: 'Payout router disabled', data: { completedEarnings: 0, recentEarnings: [], pendingEarnings: 0, paidOutEarnings: 0, totalEarnings: 0 } };
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
@@ -42,7 +43,8 @@ export default function ArtistEarnings() {
   const { data: payoutHistory, isLoading: historyLoading, refetch: refetchHistory } = useQuery({
     queryKey: ['payout.getPayoutHistory'],
     queryFn: async () => {
-      const result = await ((trpc.payout as any)?.getPayoutHistory?.query?.({ limit: 20 }) || { success: false, error: 'Not available' });
+      // NOTE: payout router was removed during cleanup
+      const result = { success: false, error: 'Payout router disabled', data: [] };
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
@@ -59,7 +61,8 @@ export default function ArtistEarnings() {
         throw new Error('Insufficient balance for this payout amount');
       }
 
-      const result = await ((trpc.payout as any)?.requestPayout?.mutate?.({ amount, payoutMethod }) || { success: false, error: 'Not available' });
+      // NOTE: payout router was removed during cleanup
+      const result = { success: false, error: 'Payout router disabled', data: null };
       if (!result.success) throw new Error(result.error);
       return result.data;
     },

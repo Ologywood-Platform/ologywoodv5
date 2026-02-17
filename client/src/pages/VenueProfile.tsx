@@ -18,7 +18,7 @@ export default function VenueProfile() {
   const venueId = id ? parseInt(id, 10) : 0;
 
   // Venue router was removed during cleanup - this page needs migration
-  const { data: venueProfile, isLoading } = { data: null, isLoading: false };
+  const { data: venueProfile, isLoading } = { data: null as any, isLoading: false };
   const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
   const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
 
@@ -196,7 +196,7 @@ export default function VenueProfile() {
                   <MapPin className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-sm font-semibold">Location</p>
-                    <p className="text-sm text-muted-foreground">{venueProfile.location || 'Not specified'}</p>
+                    <p className="text-sm text-muted-foreground">{(venueProfile as any)?.location || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export default function VenueProfile() {
                   <img
                     key={idx}
                     src={photo}
-                    alt={`${venueProfile.organizationName} photo ${idx + 1}`}
+                    alt={`${(venueProfile as any)?.organizationName} photo ${idx + 1}`}
                     className="w-full h-40 object-cover rounded-lg"
                   />
                 ))}
@@ -303,7 +303,7 @@ export default function VenueProfile() {
                     {/* Venue Response */}
                     {false ? (
                       <div className="bg-muted p-4 rounded-lg mt-3">
-                        <p className="text-sm font-semibold mb-1">Response from {venueProfile?.organizationName}</p>
+                        <p className="text-sm font-semibold mb-1">Response from {(venueProfile as any)?.organizationName}</p>
                         <p className="text-sm text-muted-foreground">Venue response not available</p>
                         {false && (
                           <p className="text-xs text-muted-foreground mt-2">
@@ -371,7 +371,7 @@ export default function VenueProfile() {
           isOpen={shareVenueOpen}
           onClose={() => setShareVenueOpen(false)}
           venueId={venueId}
-          venueName={venueProfile.organizationName}
+          venueName={(venueProfile as any)?.organizationName}
           venueDescription={(venueProfile as any)?.description}
           venueProfileImage={(venueProfile as any)?.profilePhotoUrl}
           venueLocation={(venueProfile as any)?.city}
