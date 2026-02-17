@@ -201,7 +201,7 @@ export default function EventDiscovery() {
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="Concert">Concert</SelectItem>
                     <SelectItem value="Wedding">Wedding</SelectItem>
                     <SelectItem value="Corporate Event">Corporate Event</SelectItem>
