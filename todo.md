@@ -370,18 +370,23 @@
 - [ ] Enhance Browse.tsx with Events discovery tab (paused)
 - [ ] Extend SearchFilters for event-specific filters (paused)
 - [ ] Integrate events into VenueCalendar display (paused)
-
-## Phase 3: Event TRPC Integration - COMPLETED
+## Phase 3: Event TRPC Integration - COMPLETED ✅
 - [x] Create TRPC events router with 15+ procedures
 - [x] Register events router in main appRouter
 - [x] Implement full type safety with Zod validation
 - [x] Add authentication checks on protected procedures
-- [ ] Add Tabs to Browse page (future)
-- [ ] Create Events tab in Browse (future)
-- [ ] Extend SearchFilters for event filters (future)
-- [ ] Integrate events into VenueCalendar (future)
 
-**Status:** TRPC complete. Awaiting OAuth fix from Manus Support.
+## Phase 4: Event Frontend Integration - COMPLETED ✅
+- [x] Add Tabs to Browse page (Artists/Events)
+- [x] Extend SearchFilters with event-specific filters (eventType, capacity, rate)
+- [x] Integrate EventDiscovery into Browse Events tab
+- [x] Fix property references (feeRangeMin)
+- [x] Zero TypeScript errors
+- [x] Dev server running and compiling
+
+**Status:** Phase 4 complete. Event discovery fully integrated into Browse page with dual-mode SearchFilters.
+## Phase 5: VenueCalendar Events Integration - SKIPPED
+**Reason:** EventDiscovery page already provides comprehensive event discovery UI with search and filters. VenueCalendar is for artist availability/bookings visualization, not event discovery. No additional integration needed.
 
 ## Rider Contract Template - In Progress
 - [x] Create rider contract template component with essential booking fields

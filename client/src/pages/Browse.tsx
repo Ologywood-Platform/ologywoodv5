@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -10,7 +10,8 @@ import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import { LazyImage } from "@/components/LazyImage";
-import { useEffect } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import EventDiscovery from "@/pages/EventDiscovery";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 export default function Browse() {
@@ -21,6 +22,7 @@ export default function Browse() {
   useEffect(() => {
     setMetaTags(pageMetaTags.browse);
   }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     location?: string;
@@ -41,10 +43,10 @@ export default function Browse() {
     targetType: 'artist',
   });
   
-  // Follow filter state
-  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
+  // Tab state for Artists/Events
+  const [activeTab, setActiveTab] = useState<'artists' | 'events'>('artists');
 
-  const { data: artists, isLoading } = trpc.artist.search.useQuery(filters);
+  const { data: artists, isLoading: artistsLoading } = trpc.artist.search.useQuery(filters);
 
   const filteredArtists = artists?.filter(artist => {
     const matchesSearch = searchQuery === "" || 
@@ -115,7 +117,7 @@ export default function Browse() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search artists by name or genre..."
+                placeholder="Search by name or genre..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 text-xs sm:text-sm"
@@ -124,140 +126,115 @@ export default function Browse() {
           </div>
         </div>
 
-        {/* Filters */}
-        <SearchFilters onFilterChange={setFilters} />
+        {/* Tabs for Artists/Events */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'artists' | 'events')} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-xs mb-6">
+            <TabsTrigger value="artists">Artists</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+          </TabsList>
+          
+          {/* Artists Tab */}
+          <TabsContent value="artists" className="mt-0">
+            {/* Filters */}
+            <SearchFilters filterType="artists" onFilterChange={setFilters} />
 
-        {/* Artists Grid */}
-        {filteredArtists && filteredArtists.length > 0 ? (
-          <>
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground">
-                Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredArtists.map(artist => (
-                <Link key={artist.id} href={`/artist/${artist.id}`}>
-                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-                    {artist.profilePhotoUrl && (
-                      <div className="h-40 sm:h-48 overflow-hidden bg-gray-200">
-                        <LazyImage
-                          src={artist.profilePhotoUrl}
-                          alt={artist.artistName}
-                          containerClassName="w-full h-full"
-                          imageClassName="w-full h-full object-cover hover:scale-105 transition-transform"
-                        />
-                      </div>
-                    )}
-                    <CardHeader className="pb-2 sm:pb-3">
-                      <CardTitle className="text-base sm:text-lg line-clamp-1">{artist.artistName}</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm line-clamp-1">
-                        {Array.isArray(artist.genre) && artist.genre.length > 0 
-                          ? artist.genre.join(", ") 
-                          : "Various Genres"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1 flex flex-col pb-3 sm:pb-4">
-                      <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-1">
-                        {artist.location && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="line-clamp-1">{artist.location}</span>
+            {/* Artists Grid */}
+            {filteredArtists && filteredArtists.length > 0 ? (
+              <>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {filteredArtists.map(artist => (
+                    <Link key={artist.id} href={`/artist/${artist.id}`}>
+                      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                        {artist.profilePhotoUrl && (
+                          <div className="h-40 sm:h-48 overflow-hidden bg-gray-200">
+                            <LazyImage
+                              src={artist.profilePhotoUrl}
+                              alt={artist.artistName}
+                              containerClassName="w-full h-full"
+                              imageClassName="w-full h-full object-cover hover:scale-105 transition-transform"
+                            />
                           </div>
                         )}
-                        {artist.feeRangeMin && artist.feeRangeMax && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="line-clamp-1">${artist.feeRangeMin} - ${artist.feeRangeMax}</span>
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
+                                {Array.isArray(artist.genre) && artist.genre.length > 0 && (
+                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist.genre.join(", ")}</p>
+                                )}
+                              </div>
+                              <FavoriteButton artistId={artist.id} size="sm" />
+                            </div>
+                            
+                            {artist.location && (
+                              <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{artist.location}</span>
+                              </div>
+                            )}
+                            
+                            {artist.feeRangeMin && (
+                              <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                                <DollarSign className="h-3 w-3 flex-shrink-0" />
+                                <span>From ${artist.feeRangeMin}</span>
+                              </div>
+                            )}
+                            
+                            <div className="flex gap-2 pt-2">
+                              <Button
+                              size="sm"
+                              className="text-xs sm:text-sm h-8 sm:h-9 gap-1 flex-1"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleBookClick(artist.id);
+                              }}
+                            >
+                              <Calendar className="h-3 w-3" />
+                              <span className="hidden sm:inline">Book</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs sm:text-sm h-8 sm:h-9 gap-1 flex-1"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleMessageClick(artist.id);
+                              }}
+                            >
+                              <MessageSquare className="h-3 w-3" />
+                              <span className="hidden sm:inline">Message</span>
+                            </Button>
+                            </div>
                           </div>
-                        )}
-                        {artist.bio && (
-                          <p className="text-muted-foreground line-clamp-2 mt-1 sm:mt-2 text-xs sm:text-sm">
-                            {artist.bio}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 mt-3 sm:mt-4">
-                        <FavoriteButton artistId={artist.id} size="sm" showText={false} />
-                        <Button 
-                          className="flex-1 text-xs sm:text-sm h-8 sm:h-9" 
-                          variant="outline" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            navigate(`/artist/${artist.id}`);
-                          }}
-                        >
-                          View Profile
-                        </Button>
-                        {isAuthenticated && user?.role === 'venue' && (
-                          <Button
-                            size="sm"
-                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleBookClick(artist.id);
-                            }}
-                          >
-                            <Calendar className="h-3 w-3" />
-                            <span className="hidden sm:inline">Book</span>
-                          </Button>
-                        )}
-                        {!isAuthenticated && (
-                          <Button
-                            size="sm"
-                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleBookClick(artist.id);
-                            }}
-                          >
-                            <Calendar className="h-3 w-3" />
-                            <span className="hidden sm:inline">Book</span>
-                          </Button>
-                        )}
-                        {isAuthenticated && user?.role !== 'artist' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleMessageClick(artist.id);
-                            }}
-                          >
-                            <MessageSquare className="h-3 w-3" />
-                            <span className="hidden sm:inline">Message</span>
-                          </Button>
-                        )}
-                        {!isAuthenticated && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs sm:text-sm h-8 sm:h-9 gap-1"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleMessageClick(artist.id);
-                            }}
-                          >
-                            <MessageSquare className="h-3 w-3" />
-                            <span className="hidden sm:inline">Message</span>
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-base sm:text-lg">
+                  No artists found matching your criteria.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          {/* Events Tab */}
+          <TabsContent value="events" className="mt-0">
+            <div className="space-y-6">
+              <SearchFilters filterType="events" onFilterChange={setFilters} />
+              <EventDiscovery />
             </div>
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-base sm:text-lg">
-              No artists found matching your criteria.
-            </p>
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Quick Signup Modal */}

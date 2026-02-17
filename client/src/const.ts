@@ -18,7 +18,10 @@ export const getLoginUrl = () => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = import.meta.env.VITE_APP_ID || "";
-    const redirectUri = `${window.location.origin}/api/oauth/callback`;
+    // Use manus.space domain for OAuth redirects (working with OAuth server)
+    // while keeping custom domain as user-facing URL
+    const oauthRedirectBase = import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || "https://ologywood-mp6flm6c.manus.space";
+    const redirectUri = `${oauthRedirectBase}/api/oauth/callback`;
     const state = btoa(redirectUri);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
