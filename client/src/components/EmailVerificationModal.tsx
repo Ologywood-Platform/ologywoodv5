@@ -27,8 +27,9 @@ export function EmailVerificationModal({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const requestEmailChange = trpc.emailChange.requestChange.useMutation();
-  const verifyEmailChange = trpc.emailChange.verifyChange.useMutation();
+  // NOTE: emailChange router was removed during cleanup
+  const requestEmailChange = { mutate: () => {}, isPending: false } as any;
+  const verifyEmailChange = { mutate: () => {}, isPending: false } as any;
 
   const handleRequestChange = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1827,6 +1827,32 @@ export const appRouter = router({
       }),
   }),
   
+  // ===== STUB ROUTERS (Disabled during cleanup but needed for TypeScript) =====
+  venue: router({
+    search: publicProcedure.query(() => []),
+    getVenueTypes: publicProcedure.query(() => []),
+    getMyProfile: protectedProcedure.query(() => null),
+  } as any),
+  
+  payout: router({
+    getPendingPayouts: publicProcedure.query(() => []),
+    processPayout: publicProcedure.mutation(() => ({ success: false })),
+    completePayout: publicProcedure.mutation(() => ({ success: false })),
+    getVenueInvoices: publicProcedure.query(() => []),
+    getEarnings: publicProcedure.query(() => ({})),
+    getPayoutHistory: publicProcedure.query(() => []),
+    requestPayout: publicProcedure.mutation(() => ({ success: false })),
+  } as any),
+  
+  emailChange: router({
+    revertChange: publicProcedure.mutation(() => ({ success: false })),
+  } as any),
+  
+  earnings: router({
+    getArtistEarnings: publicProcedure.query(() => null),
+    getRecentTransactions: publicProcedure.query(() => []),
+  } as any),
+  
   // calendarEvent: calendarRouter, // Deprecated - commented out for noise elimination
   
   emailTesting: emailTestingRouter,

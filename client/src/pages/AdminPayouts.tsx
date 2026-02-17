@@ -191,7 +191,7 @@ export default function AdminPayouts() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-gray-900">
-                {formatCurrency((payouts?.length || 0) > 0 ? totalAmount / payouts.length : 0)}
+                {formatCurrency((payouts?.length || 0) > 0 ? totalAmount / (payouts?.length || 1) : 0)}
               </p>
               <p className="text-xs text-gray-500 mt-1">Per request</p>
             </CardContent>
