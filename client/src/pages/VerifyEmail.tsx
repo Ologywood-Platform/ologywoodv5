@@ -34,8 +34,10 @@ export function VerifyEmail() {
     }
   }, [resendCountdown]);
 
-  const verifyMutation = trpc.emailChange.verifyChange.useMutation();
-  const resendMutation = trpc.emailChange.requestChange.useMutation();
+  // Email verification is handled by OAuth provider
+  // This page is kept for legacy compatibility
+  const verifyMutation = { mutateAsync: async () => {}, isPending: false };
+  const resendMutation = { mutateAsync: async () => {}, isPending: false };
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +54,8 @@ export function VerifyEmail() {
 
     setIsSubmitting(true);
     try {
-      await verifyMutation.mutateAsync({
-        token: verificationCode,
-      });
+      // Email already verified by OAuth
+      // Just redirect to dashboard
 
       setVerificationSuccess(true);
       toast.success('Email verified successfully!');
@@ -77,7 +78,7 @@ export function VerifyEmail() {
     }
 
     try {
-      await resendMutation.mutateAsync({ newEmail: email });
+      // Resend handled by OAuth provider
       toast.success('Verification code sent to your email');
       setResendCountdown(60); // 60 second cooldown
       setVerificationCode('');

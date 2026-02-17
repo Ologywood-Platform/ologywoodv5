@@ -160,7 +160,6 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       userId: parseInt(userId),
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscriptionId,
-      planType: 'basic',
       status: 'trialing', // Will be updated by subscription.created event
     });
   }
@@ -185,7 +184,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     userId: parseInt(userId),
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscription.id,
-    planType: 'basic',
     status,
     currentPeriodEnd,
   });

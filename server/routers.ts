@@ -16,23 +16,13 @@ import * as imageOptimization from "./imageOptimization";
 import { handlePhotoUpload } from "./handlers/imageUploadHandler";
 // ===== MVP ROUTERS ONLY =====
 import { authRouter } from "./routers/auth";
-import { messagingRouter } from "./routers/messaging";
 import { emailPreferencesRouter } from "./routers/emailPreferences";
 import { emailTestingRouter } from "./routers/emailTesting";
-import { emailChangeRouter } from "./routers/emailChangeRouter";
 import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
 import { followsRouter } from "./routers/follows";
-
-// ===== DEPRECATED ROUTERS - REMOVED FOR CLEAN MVP =====
-// (See git history for full list of deprecated routers)
-import { simpleRyderRouter } from "./routers/simpleRyderRouter";
-import { accountRouter } from "./routers/accountRouter";
-import { payoutRouter } from "./routers/payoutRouter";
-import { earningsRouter } from "./routers/earningsRouter";
-import { venueRouter } from "./routers/venueRouter";
 import { eventsRouter } from "./routers/events";
-// All other routers removed for MVP - see git history for full list
+
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -86,24 +76,18 @@ export const appRouter = router({
   // supportSeeder: supportSeederRouter,
   // aiChat: aiChatRouter,
   // depositPayments: depositPaymentsRouter,
-  simpleRyder: simpleRyderRouter,
-  emailChange: emailChangeRouter,
-  earnings: earningsRouter,
-  venue: venueRouter,
   events: eventsRouter,
   account: router({
-    ...accountRouter,
-    validateDeletion: protectedProcedure
-      .query(async ({ ctx }) => {
-        try {
-          // For now, allow account deletion
-          // In production, you would check for active bookings, pending payments, and unsigned contracts
-          return { allowed: true, reason: null };
-        } catch (error) {
-          console.error('[Account] Validation error:', error);
-          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Validation failed' });
-        }
-      }),
+    validateDeletion: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        // For now, allow account deletion
+        // In production, you would check for active bookings, pending payments, and unsigned contracts
+        return { allowed: true, reason: null };
+      } catch (error) {
+        console.error('[Account] Validation error:', error);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Validation failed' });
+      }
+    }),
   } as any),
   emailPreferences: emailPreferencesRouter,
   pricing: pricingRouter,
@@ -415,7 +399,7 @@ export const appRouter = router({
       }),
   }),
 
-  // Venue Profile Management - DUPLICATE REMOVED (using venueRouter import instead)
+  // Venue Profile Management
   // venue: router({
   /**
    * Search venues with filters
@@ -1873,6 +1857,5 @@ export const appRouter = router({
         }
       }),
   }),
-  payout: payoutRouter,
 });
 export type AppRouter = typeof appRouter;

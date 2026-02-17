@@ -18,7 +18,7 @@ import {
   contracts, InsertContract, Contract,
   signatures, InsertSignature, Signature,
   emailPreferences, InsertEmailPreference, EmailPreference,
-  subscriptions, InsertSubscription, Subscription,
+  userSubscriptions, InsertUserSubscription, UserSubscription,
   stripeConnectAccounts, InsertStripeConnectAccount, StripeConnectAccount,
   artistPayouts, InsertArtistPayout, ArtistPayout,
   invoices, InsertInvoice, Invoice,
@@ -659,57 +659,56 @@ export async function markMessageAsRead(id: number) {
 
 // ============= SUBSCRIPTION FUNCTIONS =============
 
-export async function createSubscription(subscription: InsertSubscription) {
+export async function createSubscription(subscription: InsertUserSubscription) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(subscriptions).values(subscription);
+  const result = await db.insert(userSubscriptions).values(subscription);
   return result;
 }
 
 export async function getSubscriptionByUserId(userId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  
-  // Select only columns that exist in the actual database
+  if (!db) throw new Error("Database not available");
   const result = await db.select({
-    id: subscriptions.id,
-    userId: subscriptions.userId,
-    stripeCustomerId: subscriptions.stripeCustomerId,
-    stripeSubscriptionId: subscriptions.stripeSubscriptionId,
-    status: subscriptions.status,
-    createdAt: subscriptions.createdAt,
-    updatedAt: subscriptions.updatedAt,
-  }).from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+    id: userSubscriptions.id,
+    userId: userSubscriptions.userId,
+    tier: userSubscriptions.tier,
+    stripeCustomerId: userSubscriptions.stripeCustomerId,
+    stripeSubscriptionId: userSubscriptions.stripeSubscriptionId,
+    status: userSubscriptions.status,
+    createdAt: userSubscriptions.createdAt,
+    updatedAt: userSubscriptions.updatedAt,
+  }).from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function updateSubscription(userId: number, updates: Partial<Subscription>) {
+export async function updateSubscription(userId: number, updates: Partial<UserSubscription>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  await db.update(subscriptions).set(updates).where(eq(subscriptions.userId, userId));
+  await db.update(userSubscriptions).set(updates).where(eq(userSubscriptions.userId, userId));
 }
 
 export async function upsertSubscription(data: {
   userId: number;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
-  planType: string;
+  tier?: string;
   status: 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due';
   currentPeriodEnd?: Date;
 }) {
   const db = await getDb();
   if (!db) return;
 
-  const validStatus: 'active' | 'cancelled' | 'past_due' = (data.status === 'active' || data.status === 'canceled' || data.status === 'past_due') ? (data.status === 'canceled' ? 'cancelled' : data.status) : 'active';
-  const insertData = { ...data, status: validStatus };
-  await db.insert(subscriptions).values(insertData as any).onDuplicateKeyUpdate({
+  const validStatus: 'active' | 'cancelled' | 'past_due' | 'trialing' = (data.status === 'active' || data.status === 'canceled' || data.status === 'past_due' || data.status === 'trialing') ? (data.status === 'canceled' ? 'cancelled' : data.status) : 'active';
+  const tier = (data.tier as 'free' | 'starter' | 'professional') || 'free';
+  const insertData = { userId: data.userId, tier, status: validStatus, stripeCustomerId: data.stripeCustomerId, stripeSubscriptionId: data.stripeSubscriptionId };
+  await db.insert(userSubscriptions).values(insertData).onDuplicateKeyUpdate({
     set: {
       stripeCustomerId: data.stripeCustomerId,
       stripeSubscriptionId: data.stripeSubscriptionId,
       status: validStatus,
-      // currentPeriodEnd: data.currentPeriodEnd,
       updatedAt: new Date(),
     },
   });
@@ -717,14 +716,14 @@ export async function upsertSubscription(data: {
 
 export async function updateSubscriptionStatus(
   userId: number,
-  status: 'active' | 'cancelled' | 'past_due'
+  status: 'active' | 'cancelled' | 'past_due' | 'trialing'
 ) {
   const db = await getDb();
   if (!db) return;
 
-  await db.update(subscriptions)
+  await db.update(userSubscriptions)
     .set({ status, updatedAt: new Date() })
-    .where(eq(subscriptions.userId, userId));
+    .where(eq(userSubscriptions.userId, userId));
 }
 
 // ============= REVIEW FUNCTIONS =============

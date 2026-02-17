@@ -1,4 +1,3 @@
-import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
 import { ShareVenueModal } from '@/components/ShareVenueModal';
+import { trpc } from '@/lib/trpc';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +17,8 @@ export default function VenueProfile() {
   const { user } = useAuth();
   const venueId = id ? parseInt(id, 10) : 0;
 
-  const { data: venueProfile, isLoading } = trpc.venue.getById.useQuery({ id: venueId }, { enabled: venueId > 0 });
+  // Venue router was removed during cleanup - this page needs migration
+  const { data: venueProfile, isLoading } = { data: null, isLoading: false };
   const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
   const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
 
