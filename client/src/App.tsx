@@ -32,6 +32,7 @@ import EventDetail from "./pages/EventDetail";
 import HowItWorks from "./pages/HowItWorks";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
+import Pricing from "./pages/Pricing";
 import { Unsubscribe } from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
 import RevertEmail from "./pages/RevertEmail";
@@ -110,6 +111,7 @@ function Router() {
           
           {/* How It Works */}
           <Route path="/how-it-works" component={HowItWorks} />
+          <Route path="/pricing" component={Pricing} />
           <Route path="/contact" component={Contact} />
           <Route path="/faq" component={FAQ} />
           <Route path="/unsubscribe" component={Unsubscribe} />
