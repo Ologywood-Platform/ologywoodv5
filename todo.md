@@ -3935,9 +3935,19 @@ The Ologywood platform is production-ready with:
 - [ ] Compliance handbook & documentation
 
 
+## Event Management Feature
+- [x] Create EventCreate page for artists to post new events
+- [x] Create EventDiscovery page for browsing available events
+- [x] Create EventDetail page to view event details
+- [x] Integrate event routes into App.tsx
+- [x] Connect to existing events API endpoints
+- [ ] Add event posting capability to artist dashboard
+- [ ] Add event discovery link to main navigation
+
 ## Codebase Cleanup (2026-02-19)
 - [x] Audit all pages and identify unused files (9 unused pages found)
 - [x] Delete unused page files: EventCreate, EventDetail, EventDiscovery, Help, ArtistEarningsDashboard
+- [x] Restore event pages from scratch with proper integration
 - [x] Keep active dashboard pages: ArtistDashboardV3, VenueDashboard, NotFound
 - [x] Remove EventDiscovery component from Browse.tsx
 - [x] Create DEPRECATED_PAGES.md documentation explaining removed pages

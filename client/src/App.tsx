@@ -26,6 +26,9 @@ import VenueProfileDetail from "./pages/VenueProfileDetail";
 import Messages from "./pages/Messages";
 import MessagesDetail from "./pages/MessagesDetail";
 import Riders from "./pages/Riders";
+import EventCreate from "./pages/EventCreate";
+import EventDiscovery from "./pages/EventDiscovery";
+import EventDetail from "./pages/EventDetail";
 import HowItWorks from "./pages/HowItWorks";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
@@ -81,6 +84,11 @@ function Router() {
           <Route path="/bookings" component={BookingsList} />
           <Route path="/booking/:id" component={BookingDetail} />
           <Route path="/bookings/:id" component={BookingDetail} />
+          
+          {/* Event Management */}
+          <Route path="/events" component={EventDiscovery} />
+          <Route path="/events/create" component={EventCreate} />
+          <Route path="/events/:id" component={EventDetail} />
           
           {/* Rider System */}
           <Route path="/rider-builder" component={RiderBuilder} />
