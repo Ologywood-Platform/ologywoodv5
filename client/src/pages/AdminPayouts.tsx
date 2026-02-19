@@ -41,7 +41,7 @@ export default function AdminPayouts() {
   const { data: payouts, isLoading, refetch } = useQuery({
     queryKey: ['admin.getPayouts'],
     queryFn: async () => {
-      const result = await trpc.admin.getPayouts.query({
+      const result = await (trpc.admin.getPayouts as any)({
         status: 'pending',
         limit: 100,
         offset: 0,
@@ -53,7 +53,7 @@ export default function AdminPayouts() {
   // Process payout mutation
   const processPayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await trpc.admin.processPayout.mutate({
+      const result = await (trpc.admin.processPayout as any)({
         payoutId,
         action: 'approve',
         notes: 'Approved by admin',
@@ -72,7 +72,7 @@ export default function AdminPayouts() {
   // Complete payout mutation
   const completePayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await trpc.admin.processPayout.mutate({
+      const result = await (trpc.admin.processPayout as any)({
         payoutId,
         action: 'approve',
         notes: 'Completed by admin',
