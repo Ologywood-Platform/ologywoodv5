@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'wouter';
-import { HelpCircle, MessageSquare, FileText, Home, LogOut } from 'lucide-react';
+import { HelpCircle, MessageSquare, FileText, Home, LogOut, Calendar, Plus } from 'lucide-react';
 
 interface MainNavigationProps {
   userRole?: 'artist' | 'venue' | 'admin';
@@ -58,6 +58,51 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({ userRole, userNa
               Dashboard
             </a>
           </Link>
+
+          {/* Events - For Artists and Venues */}
+          {userRole && userRole !== 'admin' && (
+            <>
+              <Link href="/events">
+                <a style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#6b7280',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#7c3aed')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
+                >
+                  <Calendar size={18} />
+                  Events
+                </a>
+              </Link>
+
+              {userRole === 'artist' && (
+                <Link href="/events/create">
+                  <a style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: '#6b7280',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#7c3aed')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#6b7280')}
+                  >
+                    <Plus size={18} />
+                    Post Event
+                  </a>
+                </Link>
+              )}
+            </>
+          )}
 
           {/* Contract Management */}
           {userRole && (

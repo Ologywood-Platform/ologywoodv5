@@ -343,8 +343,9 @@
 
 ## Next Steps - Phase 2 (2026-02-19)
 - [x] Fix Rider Builder tier restriction - remove "feature not available in your tier" error
-- [ ] Implement Admin Payout Processing UI - add interface for reviewing and processing payouts
-- [ ] Connect Event Pages to Navigation - add event links to main nav and artist dashboard
+- [x] Add Event Navigation Links - add "Post Event" and "Browse Events" to main nav and dashboards
+- [ ] Verify Admin Payout Processing UI - ensure full functionality for processing payouts
+- [ ] Connect Earnings to Real Bookings - replace mock data with actual booking calculations
 
 ## Phase 1: Event Data Model - COMPLETED ✅
 - [x] Add event tables to schema (events, eventRecurrence, eventHistory, eventPhotos, savedEvents)
