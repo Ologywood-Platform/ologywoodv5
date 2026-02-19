@@ -63,11 +63,31 @@ export function serveStatic(app: Express) {
     );
   }
   
-  // Serve static files
-  app.use(express.static(distPath));
+  // Serve static files with proper MIME types
+  app.use(express.static(distPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.json')) {
+        res.setHeader('Content-Type', 'application/json');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
+    }
+  }));
   
-  // Fall through to index.html for SPA routing
-  app.use("*", (_req, res) => {
+  // Fall through to index.html for SPA routing (but exclude static files)
+  app.use("*", (req, res) => {
+    // Don't serve index.html for static assets or special files
+    const pathname = req.path;
+    if (
+      pathname.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/i) ||
+      pathname === '/sw.js' ||
+      pathname === '/manifest.json'
+    ) {
+      return res.status(404).send('Not Found');
+    }
+    
     const indexPath = path.resolve(distPath, "index.html");
     console.log(`[SPA Fallback] Serving: ${indexPath}`);
     res.sendFile(indexPath);

@@ -144,8 +144,28 @@ export const appRouter = router({
   //     }),
   // }),
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
+    setUserRole: publicProcedure.input(z.object({ userId: z.number(), role: z.enum(['artist', 'venue']) })).mutation(async ({ input }) => {
+      await db.updateUserRole(input.userId, input.role);
+      return { success: true };
+    }),
+    me: publicProcedure.query(async (opts) => {
+      if (!opts.ctx.user) return null;
+      try {
+        if (opts.ctx.user.openId) {
+          console.log('[Auth.me] Session user openId:', opts.ctx.user.openId, 'Role:', opts.ctx.user.role);
+          const freshUser = await db.getUserByOpenId(opts.ctx.user.openId);
+          console.log('[Auth.me] Fresh user role:', freshUser?.role);
+          const result = freshUser || opts.ctx.user;
+          console.log('[Auth.me] Returning role:', result?.role);
+          return result;
+        }
+        return opts.ctx.user;
+      } catch (error) {
+        console.error('[Auth.me] Error:', error);
+        return opts.ctx.user;
+      }
+    }),
+    logout: protectedProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {

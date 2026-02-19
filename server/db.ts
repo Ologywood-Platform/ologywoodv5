@@ -170,6 +170,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = 'admin';
       updateSet.role = 'admin';
     }
+    // NOTE: If role is not provided and user is not owner, we don't update the role field
+    // This preserves the existing role when updating an existing user via OAuth
 
     if (!values.lastSignedIn) {
       values.lastSignedIn = new Date();
