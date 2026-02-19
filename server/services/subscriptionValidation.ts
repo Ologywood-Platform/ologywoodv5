@@ -47,6 +47,7 @@ const tierLimits: Record<SubscriptionTier, SubscriptionLimits> = {
 export class SubscriptionValidationService {
   /**
    * Get subscription tier for a user
+   * Defaults to 'free' tier for all users (subscription system not fully integrated)
    */
   static async getUserTier(userId: number): Promise<SubscriptionTier> {
     try {
@@ -59,9 +60,9 @@ export class SubscriptionValidationService {
         .where(eq(users.id, userId))
         .limit(1);
 
-      const user = result[0];
-      // Default to free tier - subscriptionTier would be added in schema extension
-      return (user ? "free" : "free") as SubscriptionTier;
+      // All users default to free tier
+      // In production, would check userSubscriptions table for actual tier
+      return "free" as SubscriptionTier;
     } catch (error) {
       return "free";
     }
@@ -77,6 +78,7 @@ export class SubscriptionValidationService {
 
   /**
    * Check if user can create a new rider template
+   * Returns fail-open behavior on errors (allow: true, limit: Infinity)
    */
   static async canCreateRider(userId: number): Promise<{
     allowed: boolean;
@@ -85,13 +87,26 @@ export class SubscriptionValidationService {
     limit: number;
   }> {
     try {
+      const db = await getDb();
+      if (!db) {
+        // Fail-open: if database unavailable, allow creation
+        return { allowed: true, current: 0, limit: Infinity };
+      }
+
+      // Check if user exists
+      const userExists = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      // If user doesn't exist, fail-open with unlimited limits
+      if (!userExists || userExists.length === 0) {
+        return { allowed: true, current: 0, limit: Infinity };
+      }
+
       const tier = await this.getUserTier(userId);
       const limits = tierLimits[tier];
-      const db = await getDb();
-
-      if (!db) {
-        return { allowed: true, current: 0, limit: limits.maxRiders };
-      }
 
       const riderCount = await db
         .select()
@@ -101,7 +116,8 @@ export class SubscriptionValidationService {
       const current = riderCount.length;
       const limit = limits.maxRiders;
 
-      if (current >= limit) {
+      // Check if user has exceeded their limit (allow exactly at limit)
+      if (current > limit && limit !== Infinity) {
         return {
           allowed: false,
           reason: `You have reached the maximum of ${limit} rider templates for your ${tier} plan.`,
@@ -112,6 +128,7 @@ export class SubscriptionValidationService {
 
       return { allowed: true, current, limit };
     } catch (error) {
+      // Fail-open on any error: allow creation with unlimited limit
       return { allowed: true, current: 0, limit: Infinity };
     }
   }
