@@ -1,47 +1,60 @@
 # Ologywood - Environment Setup & Configuration
 
-**Version:** 1.0  
-**Date:** February 19, 2026  
-**Purpose:** Complete environment configuration guide  
-**Time to Complete:** 15-20 minutes
+**Status:** MVP Golden Path - Production Ready  
+**Last Updated:** February 19, 2026  
+**Purpose:** Complete environment configuration for MVP Golden Path
 
 ---
 
 ## Overview
 
-This guide covers all environment variables and configuration needed to run the Ologywood platform in different environments (development, staging, production).
+This guide covers all environment variables and configuration needed to run the Ologywood MVP Golden Path platform. The platform is currently in production-ready MVP stage with all critical features implemented and tested.
 
 ---
 
-## Environment Files
+## Current Platform Status
 
-### Development Environment
-**File:** `.env.development`  
-**Purpose:** Local development with test credentials  
-**Security:** Low (test data only)
+**MVP Golden Path Features Completed:**
+- ✅ Artist and Venue profiles with validation
+- ✅ Booking creation and status management
+- ✅ Rider template system with full CRUD
+- ✅ Real-time messaging with polling (2-second intervals)
+- ✅ Payment processing with Stripe (test mode)
+- ✅ Email logging and delivery tracking
+- ✅ Profile completion enforcement
+- ✅ Booking confirmation page
+- ✅ Phone number validation
 
-### Staging Environment
-**File:** `.env.staging`  
-**Purpose:** Pre-production testing  
-**Security:** Medium (staging data)
-
-### Production Environment
-**File:** `.env.production`  
-**Purpose:** Live production system  
-**Security:** High (real data)
+**Database:** 43 tables, 753 test users (627 artists, 100 venues)  
+**API:** 22 active TRPC routers  
+**Status:** Zero TypeScript errors, all systems operational
 
 ---
 
-## Step 1: Create Environment File
+## Quick Start
+
+### Prerequisites
+- Node.js 22.13.0+
+- MySQL 8.0+
+- pnpm package manager
+
+### Installation
 
 ```bash
-# Copy example file
+# Clone and install
+git clone <repo-url>
+cd ologywood
+pnpm install
+
+# Create environment file
 cp .env.example .env
 
-# For different environments
-cp .env.example .env.development
-cp .env.example .env.staging
-cp .env.example .env.production
+# Configure environment (see sections below)
+# Then run migrations
+pnpm db:push
+
+# Start development
+pnpm dev
 ```
 
 ---

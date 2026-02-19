@@ -1,18 +1,19 @@
-# Ologywood Architecture Guide
+# Ologywood Architecture Documentation
 
-**Last Updated:** February 12, 2026  
-**Status:** MVP Production-Ready
+**Current Status:** MVP Golden Path - Production Ready  
+**Last Updated:** February 19, 2026  
+**Version:** 1.0 (MVP)
 
 ---
 
 ## Overview
 
-Ologywood is a **booking platform for performing artists and venues**. This document explains the codebase structure, data flow, and where to add new features.
+Ologywood is a **booking platform for performing artists and venues**. This document explains the codebase structure, data flow, and architecture decisions for the MVP Golden Path.
 
 ### Core Purpose
-- **Artists** create profiles, set availability, define riders, and receive booking requests
-- **Venues** browse artists, send booking requests, manage events, and communicate with artists
-- **Platform** handles payments, contracts, messaging, and dispute resolution
+- **Artists** create profiles, manage rider templates, and accept/decline booking requests
+- **Venues** browse artists, create booking requests, and manage confirmations
+- **Platform** handles payments, messaging, and booking lifecycle management
 
 ---
 
@@ -20,441 +21,276 @@ Ologywood is a **booking platform for performing artists and venues**. This docu
 
 ```
 ologywood/
-├── client/                    # React frontend (Vite)
+├── client/                           # React frontend (Vite + TypeScript)
 │   ├── src/
-│   │   ├── pages/            # Page components (one per route)
-│   │   ├── components/       # Reusable UI components
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── lib/              # Utilities (TRPC client, etc.)
-│   │   ├── _core/            # Core infrastructure (auth, context)
-│   │   └── App.tsx           # Main routing
+│   │   ├── pages/                   # Page components (one per route)
+│   │   │   ├── Home.tsx             # Landing page with role-based routing
+│   │   │   ├── ArtistDashboardV3.tsx # Artist dashboard with profile check
+│   │   │   ├── VenueDashboard.tsx   # Venue dashboard with artist discovery
+│   │   │   ├── BookingCreate.tsx    # Booking request creation
+│   │   │   ├── BookingDetail.tsx    # Booking details with rider viewing
+│   │   │   ├── BookingConfirmation.tsx # Post-booking confirmation
+│   │   │   ├── BookingsList.tsx     # Bookings list with Accept/Decline
+│   │   │   ├── RiderTemplates.tsx   # Rider template management
+│   │   │   ├── Messages.tsx         # Messaging with 2-second polling
+│   │   │   └── [other pages]
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── RyderContractForm.tsx # Rider template form
+│   │   │   ├── ui/                  # Shadcn UI components
+│   │   │   └── [other components]
+│   │   ├── _core/                   # Core infrastructure
+│   │   │   ├── hooks/
+│   │   │   │   └── useAuth.ts       # Authentication hook with refresh
+│   │   │   └── contexts/
+│   │   ├── lib/
+│   │   │   └── trpc.ts              # TRPC client setup
+│   │   └── App.tsx                  # Main routing (wouter-based)
 │   └── package.json
 │
-├── server/                    # Node.js backend (Express + TRPC)
-│   ├── _core/                # Core infrastructure (TRPC, auth, middleware)
-│   ├── routers/              # TRPC router definitions
-│   ├── handlers/             # Business logic handlers
-│   ├── email.ts              # Email service
-│   ├── db.ts                 # Database queries
-│   ├── imageOptimization.ts  # Image processing
-│   └── index.ts              # Server entry point
+├── server/                          # Node.js backend (Express + TRPC)
+│   ├── _core/                       # Core infrastructure
+│   │   ├── middleware/
+│   │   │   └── rateLimiter.ts       # Rate limiting (cleared on restart)
+│   │   └── auth.ts                  # Authentication logic
+│   ├── routers/                     # TRPC route handlers
+│   │   ├── artist.ts                # Artist profile endpoints
+│   │   ├── venue.ts                 # Venue profile endpoints
+│   │   ├── booking.ts               # Booking CRUD + status updates
+│   │   ├── rider.ts                 # Rider template endpoints
+│   │   ├── message.ts               # Messaging endpoints
+│   │   ├── payment.ts               # Payment/subscription endpoints
+│   │   ├── auth.ts                  # Authentication endpoints
+│   │   └── [other routers]
+│   ├── routers.ts                   # Main TRPC router mounting
+│   ├── middleware/                  # Express middleware
+│   ├── email.ts                     # Email service (SendGrid)
+│   ├── db.ts                        # Database query utilities
+│   └── index.ts                     # Server entry point
 │
-├── drizzle/                  # Database schema & migrations
-│   └── schema.ts             # Zod + Drizzle ORM schema
+├── drizzle/                         # Database schema & migrations
+│   ├── schema.ts                    # 43 tables with relationships
+│   └── migrations/                  # Auto-generated migrations
 │
-├── shared/                   # Shared types & utilities
-│   └── types.ts              # TypeScript interfaces
-│
-└── ARCHITECTURE.md           # This file
+└── ARCHITECTURE.md                  # This file
 ```
 
 ---
 
 ## Data Flow
 
-### User Authentication
+### Authentication Flow
 ```
 Browser → Login Form → authRouter.register/login → JWT Token → Stored in Cookie
          ↓
     useAuth() hook → User context available throughout app
+         ↓
+    Home page → Role-based redirect (artist → /dashboard, venue → /venue-dashboard)
 ```
 
-### Booking Flow
+### Booking Creation Flow
 ```
-Venue browses artists
-    ↓
-Clicks "Request Booking"
-    ↓
-booking.create mutation → Server validates → Saves to DB → Sends email to artist
-    ↓
-Artist receives notification
-    ↓
-Artist accepts/rejects/proposes modifications
-    ↓
-booking.update mutation → Updates DB → Sends confirmation email
-    ↓
-Payment processed → Contract generated → Booking confirmed
+Venue → Browse Artists → Select Artist → /booking/create?artistId=X
+         ↓
+    BookingCreate form → Create booking via trpc.booking.create
+         ↓
+    Booking created (status: pending) → Redirect to /booking-confirmation/:id
+         ↓
+    Artist receives notification → Sees pending booking in BookingsList
+         ↓
+    Artist clicks Accept/Decline → updateStatus mutation → Status updated
+         ↓
+    Venue sees status change → Booking confirmed
 ```
 
-### Data Fetching
+### Messaging Flow
 ```
-React Component
-    ↓
-trpc.artist.getProfile.useQuery() → TRPC client
-    ↓
-Server router → Database query → Response
-    ↓
-Component re-renders with data
-```
-
----
-
-## Key Routers (Server-Side)
-
-All routers are defined in `/server/routers.ts` and mounted in `appRouter`.
-
-| Router | Purpose | Key Endpoints |
-|--------|---------|---------------|
-| `auth` | Authentication | register, login, logout, updateRole |
-| `artist` | Artist profiles | getMyProfile, getProfile, updateProfile, uploadPhoto |
-| `venue` | Venue profiles | getMyProfile, getProfile, updateProfile, uploadPhoto |
-| `booking` | Booking management | create, getMyBookings, update, cancel |
-| `rider` | Performance riders | saveTemplate, getTemplates, getById |
-| `message` | Messaging | getMyMessages, send, markAsRead |
-| `review` | Reviews & ratings | create, getByArtist, getByVenue |
-| `payment` | Payments | createCheckoutSession, webhook |
-| `subscription` | Subscriptions | create, cancel, update |
-| `availability` | Artist availability | set, get, block |
-| `calendar` | Calendar sync | sync, disconnect |
-| `newsletter` | Email subscriptions | subscribe |
-
----
-
-## Authentication & Authorization
-
-### Procedures (Middleware)
-```typescript
-publicProcedure       // No auth required
-protectedProcedure    // User must be logged in
-artistProcedure       // User must be logged in + role === 'artist'
-venueProcedure        // User must be logged in + role === 'venue'
-adminProcedure        // User must be logged in + role === 'admin'
+User opens Messages page → useEffect sets up 2-second polling
+         ↓
+    Poll trpc.message.getByBooking every 2 seconds
+         ↓
+    New messages fetched automatically
+         ↓
+    User sends message → trpc.message.create → Message appears immediately
 ```
 
-### Usage
-```typescript
-// Public endpoint
-export const getArtists = publicProcedure.query(async () => {
-  return await db.getAllArtists();
-});
-
-// Protected endpoint (artists only)
-export const updateProfile = artistProcedure
-  .input(artistProfileSchema)
-  .mutation(async ({ ctx, input }) => {
-    return await db.updateArtistProfile(ctx.user.id, input);
-  });
+### Rider Template Flow
+```
+Artist → /rider-templates → Create/Edit rider template
+         ↓
+    RyderContractForm component → Save to database
+         ↓
+    Rider linked to artist profile
+         ↓
+    Venue views booking → BookingDetail shows rider section
+         ↓
+    Rider data fetched from database → Displayed to venue
 ```
 
 ---
 
-## Database Schema
+## Database Schema (43 Tables)
 
 ### Core Tables
-- **users** — Authentication & basic profile
-- **artists** — Artist-specific data (stage name, genre, bio, photos, availability)
-- **venues** — Venue-specific data (organization name, capacity, location, photos)
-- **bookings** — Booking requests and confirmations
-- **contracts** — Signed contracts and riders
-- **messages** — Direct messaging between artists and venues
-- **reviews** — Ratings and reviews
-- **payments** — Payment records (Stripe integration)
-- **subscriptions** — Subscription plans and billing
+- **users** - All platform users (753 total: 627 artists, 100 venues, 26 admins)
+- **artistProfiles** - Artist profile information
+- **venueProfiles** - Venue profile information
+- **bookings** - Booking records with status tracking
+- **rider_templates** - Rider template storage
+- **messages** - Direct messaging between users
+- **email_logs** - Email delivery tracking
 
-### Key Relationships
-```
-users → artists (one-to-one)
-users → venues (one-to-one)
-artists ← bookings → venues
-artists ← reviews → venues
-artists ← contracts → venues
-users ← messages → users
-```
+### Payment Tables
+- **subscriptions** - User subscription records
+- **payments** - Payment transaction records
+- **invoices** - Invoice records
+
+### Supporting Tables
+- **favorites** - Artist favorites for venues
+- **follows** - Artist follows for venues
+- **reviews** - Booking reviews and ratings
+- **reminders** - Event reminders
+- **calendar_events** - Event calendar entries
+- **[and 26 more supporting tables]**
 
 ---
 
-## Frontend Architecture
+## API Endpoints (22 TRPC Routers)
 
-### Pages (Routes)
-Each page in `/client/src/pages/` corresponds to a route in `App.tsx`.
+### Artist Router
+- `artist.getProfile()` - Get artist profile
+- `artist.updateProfile()` - Update artist profile
+- `artist.getAll()` - Browse all artists
+- `artist.search()` - Search artists
 
-**Core Pages:**
-- `Home.tsx` — Landing page
-- `Browse.tsx` — Browse artists
-- `ArtistProfile.tsx` — Artist profile (public)
-- `VenueBrowse.tsx` — Browse venues
-- `VenueProfile.tsx` — Venue profile (public)
-- `ArtistDashboardV3.tsx` — Artist dashboard (protected)
-- `VenueDashboard.tsx` — Venue dashboard (protected)
-- `BookingsList.tsx` — Booking management
-- `Messages.tsx` — Messaging interface
-- `Riders.tsx` — Rider management
-- `Help.tsx` — Help center & FAQs
+### Venue Router
+- `venue.getMyProfile()` - Get venue profile
+- `venue.updateProfile()` - Update venue profile
+- `venue.getAll()` - Browse all venues
 
-**Settings Pages:**
-- `AccountSettings.tsx` — Profile, photos, preferences
+### Booking Router
+- `booking.create()` - Create booking request
+- `booking.getById()` - Get booking details
+- `booking.getMyArtistBookings()` - Artist's bookings
+- `booking.getMyVenueBookings()` - Venue's bookings
+- `booking.updateStatus()` - Update booking status (pending → confirmed → completed)
+- `booking.cancel()` - Cancel booking
 
-### Component Hierarchy
-```
-App.tsx (routing)
-  ├── Layout (header, footer)
-  ├── Pages
-  │   ├── ArtistDashboardV3
-  │   │   ├── ProfileCard
-  │   │   ├── QuickActions
-  │   │   ├── BookingsList
-  │   │   └── MessagePreview
-  │   └── Browse
-  │       ├── SearchBar
-  │       ├── FilterPanel
-  │       └── ArtistGrid
-  └── Modals
-      ├── ShareProfileModal
-      ├── BookingRequestModal
-      └── etc.
-```
+### Rider Router
+- `rider.create()` - Create rider template
+- `rider.getByArtist()` - Get artist's riders
+- `rider.getById()` - Get rider details
+- `rider.update()` - Update rider
+- `rider.delete()` - Delete rider
+
+### Message Router
+- `message.create()` - Send message
+- `message.getByBooking()` - Get messages for booking
+- `message.markAsRead()` - Mark message as read
+
+### Payment Router
+- `payment.createCheckoutSession()` - Create Stripe checkout
+- `payment.getPaymentStatus()` - Get payment status
+
+### Auth Router
+- `auth.me()` - Get current user (fresh from DB)
+- `auth.logout()` - Logout user
+
+---
+
+## Key Architectural Decisions
+
+### 1. Role-Based Routing
+- Home page checks user role and redirects to appropriate dashboard
+- Artist → `/dashboard` (ArtistDashboardV3)
+- Venue → `/venue-dashboard` (VenueDashboard)
+- Admin → `/admin` (AdminDashboard)
+
+### 2. Real-Time Messaging (MVP Approach)
+- Uses 2-second polling instead of WebSocket
+- Simple, reliable, and works across all environments
+- Can be upgraded to WebSocket in Phase 2
+
+### 3. Profile Completion Enforcement
+- Incomplete profiles redirect to onboarding
+- Prevents incomplete data from affecting bookings
+
+### 4. Booking Status Workflow
+- Pending → Confirmed → Completed → Archived
+- Cancel option available at any stage
+- Email notifications at each stage
+
+### 5. Rider Template Integration
+- Riders attached to bookings via artistId
+- Fetched on-demand in BookingDetail
+- Displayed to venues for transparency
+
+### 6. Email Logging
+- All emails logged in email_logs table
+- Tracks delivery status and timestamps
+- Enables audit trail for compliance
 
 ---
 
 ## Adding New Features
 
-### Step 1: Plan the Data
-Ask yourself:
-- What data needs to be stored?
-- Which tables does it belong in?
-- What relationships exist?
+### To Add a New Page
+1. Create component in `client/src/pages/[FeatureName].tsx`
+2. Add route in `client/src/App.tsx`
+3. Add navigation link in appropriate component
+4. Test with both artist and venue roles
 
-### Step 2: Update Database Schema
-1. Edit `/drizzle/schema.ts`
-2. Add new table or columns
-3. Run migration: `pnpm db:push`
+### To Add a New API Endpoint
+1. Create or update router in `server/routers/[feature].ts`
+2. Add mutation/query to `routers.ts`
+3. Use in component via `trpc.[router].[endpoint].useMutation/useQuery()`
+4. Add tests in `server/[feature].test.ts`
 
-### Step 3: Create Server Endpoint
-1. Add procedure to appropriate router in `/server/routers.ts`
-2. Use `publicProcedure`, `protectedProcedure`, or role-specific procedure
-3. Define input schema with Zod
-4. Implement business logic
-
-Example:
-```typescript
-export const myNewFeature = artistProcedure
-  .input(z.object({ name: z.string() }))
-  .mutation(async ({ ctx, input }) => {
-    // Your logic here
-    return await db.saveData(ctx.user.id, input);
-  });
-```
-
-### Step 4: Create Frontend Component
-1. Create component in `/client/src/components/`
-2. Use `trpc.myRouter.myNewFeature.useMutation()` or `.useQuery()`
-3. Handle loading and error states
-
-Example:
-```typescript
-const mutation = trpc.myRouter.myNewFeature.useMutation();
-
-const handleSubmit = async () => {
-  await mutation.mutateAsync({ name: "test" });
-};
-
-return (
-  <button onClick={handleSubmit} disabled={mutation.isPending}>
-    {mutation.isPending ? "Loading..." : "Submit"}
-  </button>
-);
-```
-
-### Step 5: Add Route (if needed)
-1. Create page in `/client/src/pages/MyFeature.tsx`
-2. Add route to `App.tsx`:
-```typescript
-<Route path="/my-feature" component={MyFeature} />
-```
-
-### Step 6: Write Tests
-1. Create test file in `/server/` for backend logic
-2. Use Vitest for unit tests
-3. Run: `pnpm test`
-
----
-
-## Common Patterns
-
-### Fetching Data
-```typescript
-const { data, isLoading, error } = trpc.artist.getProfile.useQuery({ id: 123 });
-
-if (isLoading) return <Spinner />;
-if (error) return <ErrorMessage error={error} />;
-
-return <div>{data.stageName}</div>;
-```
-
-### Mutations (Create/Update/Delete)
-```typescript
-const mutation = trpc.artist.updateProfile.useMutation();
-
-const handleUpdate = async (data) => {
-  try {
-    await mutation.mutateAsync(data);
-    toast.success("Profile updated!");
-  } catch (error) {
-    toast.error("Failed to update profile");
-  }
-};
-```
-
-### Authentication Check
-```typescript
-const { user } = useAuth();
-
-if (!user) {
-  return <Navigate to="/login" />;
-}
-
-if (user.role !== 'artist') {
-  return <AccessDenied />;
-}
-```
-
----
-
-## Email System
-
-### Email Templates
-Located in `/server/email.ts` and `/server/email-templates.ts`.
-
-**Available Templates:**
-- `sendBookingRequestEmail` — Notify artist of new booking request
-- `sendBookingConfirmationEmail` — Confirm booking to both parties
-- `sendContractForSignatureEmail` — Send contract to sign
-- `sendPaymentReceiptEmail` — Payment confirmation
-- `sendReviewNotificationEmail` — Notify of new review
-- And 9+ more...
-
-### Sending Emails
-```typescript
-await email.sendBookingRequestEmail({
-  artistEmail: artist.email,
-  artistName: artist.stageName,
-  venueName: booking.venueName,
-  eventDate: booking.eventDate,
-});
-```
-
----
-
-## Image Handling
-
-### Upload & Optimization
-Images are automatically optimized on upload:
-- Compressed to WebP format
-- Reduced file size by 40-60%
-- Stored in S3
-- Lazy-loaded on frontend
-
-### Usage
-```typescript
-const { data } = trpc.artist.uploadPhoto.useMutation();
-
-const handleUpload = async (file) => {
-  const result = await data.mutateAsync({ file });
-  console.log(result.url); // S3 URL
-};
-```
+### To Add a New Database Table
+1. Add table definition to `drizzle/schema.ts`
+2. Run `pnpm db:push` to migrate
+3. Add query utilities to `server/db.ts`
+4. Create TRPC endpoint to access data
 
 ---
 
 ## Performance Considerations
 
-### Lazy Loading
-Images use Intersection Observer API to load only when visible.
+### Current Optimizations
+- TRPC for type-safe API calls
+- Automatic query refetching on mutations
+- Lazy loading of components
+- Image optimization for profile photos
 
-### Database Queries
-- Use `.select()` to fetch only needed columns
-- Paginate large result sets
-- Use indexes on frequently queried fields
-
-### Caching
-- TRPC caches queries automatically
-- Invalidate cache after mutations with `utils.invalidate()`
+### Future Optimizations
+- WebSocket for real-time messaging
+- Caching layer for artist/venue browsing
+- Pagination for large datasets
+- Database query optimization
 
 ---
 
-## What NOT to Do
+## Security Considerations
 
-❌ **Don't:**
-- Add complex UI components to dashboards (keep them minimal)
-- Create new routers without consulting the team
-- Store sensitive data in the database (use Stripe, etc.)
-- Hardcode URLs (use BASE_URL environment variable)
-- Create new pages without updating routing
-- Add features without tests
+### Current Implementation
+- JWT-based authentication
+- Rate limiting on login (cleared on server restart)
+- Email verification for new accounts
+- Role-based access control
 
-✅ **Do:**
-- Keep components small and focused
-- Use existing patterns and components
-- Follow the data flow (client → TRPC → server → DB)
-- Write tests before shipping
-- Update this documentation when adding major features
-- Ask for code review before merging
+### Best Practices
+- Never store sensitive data in localStorage
+- Always validate input on backend
+- Use HTTPS in production
+- Regular security audits
 
 ---
 
 ## Deployment
 
-### Environment Variables
-Required secrets (set in Settings → Secrets):
-- `DATABASE_URL` — PostgreSQL connection
-- `JWT_SECRET` — Session signing key
-- `STRIPE_SECRET_KEY` — Stripe API key
-- `SENDGRID_API_KEY` — Email service
-- `AWS_ACCESS_KEY_ID` — S3 storage
-- `BASE_URL` — Production domain
-
-### Build & Deploy
-```bash
-# Build
-pnpm build
-
-# Deploy (via Manus UI)
-Click "Publish" button in Management UI
-```
+The platform is deployed on Manus with automatic deployments from checkpoints. See DEPLOYMENT_GUIDE.md for detailed instructions.
 
 ---
 
-## Getting Help
+## Support & Questions
 
-### Documentation
-- This file (ARCHITECTURE.md)
-- `/RIDER_CONTRACT_TEMPLATE.md` — Rider system docs
-- `/EMAIL_SYSTEM_DOCUMENTATION.md` — Email system docs
-
-### Code Examples
-- Look at existing routers in `/server/routers.ts`
-- Look at existing pages in `/client/src/pages/`
-- Look at existing components in `/client/src/components/`
-
-### Testing
-```bash
-# Run all tests
-pnpm test
-
-# Run specific test
-pnpm test server/myFeature.test.ts
-
-# Watch mode
-pnpm test --watch
-```
-
----
-
-## Summary
-
-**Ologywood is structured as:**
-1. **Clean separation** — Client, server, database are isolated
-2. **Type-safe** — TypeScript + Zod validation everywhere
-3. **Minimal** — MVP features only, no bloat
-4. **Testable** — All business logic is unit tested
-5. **Scalable** — Easy to add new features following patterns
-
-**To add a feature:**
-1. Update schema
-2. Create server endpoint
-3. Create frontend component
-4. Add route
-5. Write tests
-6. Deploy
-
-That's it. Keep it simple.
+For architectural questions or design decisions, refer to the relevant documentation or contact the development team.
