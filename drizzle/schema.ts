@@ -638,3 +638,29 @@ export const savedEvents = mysqlTable("saved_events", {
 
 export type SavedEvent = typeof savedEvents.$inferSelect;
 export type InsertSavedEvent = typeof savedEvents.$inferInsert;
+
+
+/**
+ * Email Logs - tracks all outgoing emails for delivery verification
+ */
+export const emailLogs = mysqlTable("email_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  recipientName: varchar("recipientName", { length: 255 }),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  emailType: varchar("emailType", { length: 64 }).notNull(), // 'booking_request', 'booking_confirmation', etc.
+  bookingId: int("bookingId"), // Link to booking if applicable
+  userId: int("userId"), // Recipient user ID if applicable
+  status: mysqlEnum("status", ["sent", "failed", "bounced", "opened", "clicked"]).default("sent").notNull(),
+  messageId: varchar("messageId", { length: 255 }), // SendGrid message ID for tracking
+  failureReason: text("failureReason"), // Error message if failed
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  deliveredAt: timestamp("deliveredAt"),
+  openedAt: timestamp("openedAt"),
+  clickedAt: timestamp("clickedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EmailLog = typeof emailLogs.$inferSelect;
+export type InsertEmailLog = typeof emailLogs.$inferInsert;

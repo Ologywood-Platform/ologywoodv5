@@ -295,6 +295,13 @@
       "when": 1771525310181,
       "tag": "0041_amusing_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1771538017492,
+      "tag": "0042_handy_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

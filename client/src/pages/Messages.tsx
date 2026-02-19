@@ -133,6 +133,15 @@ export default function Messages() {
     }
   }, [selectedMessages, user?.id]);
 
+  // Add polling for real-time message updates
+  useEffect(() => {
+    if (!selectedConversation?.bookingId) return;
+    const pollInterval = setInterval(() => {
+      refetchMessages();
+    }, 2000);
+    return () => clearInterval(pollInterval);
+  }, [selectedConversation?.bookingId, refetchMessages]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

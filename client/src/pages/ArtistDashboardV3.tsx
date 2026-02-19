@@ -38,6 +38,25 @@ export function ArtistDashboardV3() {
     );
   }
 
+  // Check if profile is complete
+  if (!artistProfile || !artistProfile.artistName || !artistProfile.genre) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Complete Your Profile</CardTitle>
+            <CardDescription>You need to complete your artist profile before accessing the dashboard.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/onboarding/artist')} className="w-full">
+              Complete Profile
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
   const completionScore = (artistProfile as any)?.profileCompletionScore || 0;
 

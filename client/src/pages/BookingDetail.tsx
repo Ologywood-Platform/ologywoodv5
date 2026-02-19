@@ -300,14 +300,14 @@ export default function BookingDetail() {
           )}
 
           {/* Rider Negotiation Section */}
-          {false && (
+          {booking?.artistId && (
             <div>
               <RiderModificationNegotiationUI
-                riderTemplateId={0}
+                riderTemplateId={booking.riderTemplateId || 0}
                 bookingId={bookingId}
                 acknowledgmentId={0}
                 currentUserRole={user.role as 'artist' | 'venue'}
-                currentStatus="pending"
+                currentStatus={'pending'}
                 riderData={{}}
                 modificationHistory={[]}
               />
