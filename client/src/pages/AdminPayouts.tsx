@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
@@ -37,28 +37,25 @@ export default function AdminPayouts() {
   const [showDetails, setShowDetails] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
 
-  // Fetch pending payouts
-  const { data: payouts, isLoading, refetch } = useQuery({
-    queryKey: ['admin.getPayouts'],
-    queryFn: async () => {
-      const result = await (trpc.admin.getPayouts as any)({
-        status: 'pending',
-        limit: 100,
-        offset: 0,
-      });
-      return result.payouts || [];
-    },
+  // Fetch pending payouts using tRPC hook
+  const payoutsQuery = trpc.admin.getPayouts.useQuery({
+    status: 'pending',
+    limit: 100,
+    offset: 0,
   });
+  const payouts = payoutsQuery.data?.payouts || [];
+  const isLoading = payoutsQuery.isLoading;
+  const refetch = payoutsQuery.refetch;
 
   // Process payout mutation
+  const processMutation = trpc.admin.processPayout.useMutation();
   const processPayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await (trpc.admin.processPayout as any)({
+      return processMutation.mutateAsync({
         payoutId,
         action: 'approve',
         notes: 'Approved by admin',
       });
-      return result;
     },
     onSuccess: () => {
       toast.success('Payout marked as processing');
@@ -70,14 +67,14 @@ export default function AdminPayouts() {
   });
 
   // Complete payout mutation
+  const completeMutation = trpc.admin.processPayout.useMutation();
   const completePayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      const result = await (trpc.admin.processPayout as any)({
+      return completeMutation.mutateAsync({
         payoutId,
         action: 'approve',
         notes: 'Completed by admin',
       });
-      return result;
     },
     onSuccess: () => {
       toast.success('Payout marked as completed');
