@@ -67,10 +67,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       );
     }
 
-    // Redirect to login or dashboard
+    // Redirect to login or appropriate dashboard based on role
     React.useEffect(() => {
-      navigate(isAuthenticated ? '/dashboard' : '/login');
-    }, [isAuthenticated, navigate]);
+      if (!isAuthenticated) {
+        navigate('/login');
+      } else if (userRole === 'venue') {
+        navigate('/venue-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }, [isAuthenticated, userRole, navigate]);
     return null;
   }
 
