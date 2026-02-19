@@ -3960,3 +3960,27 @@ The Ologywood platform is production-ready with:
 - [x] Fix import statements in App.tsx and Browse.tsx
 - [ ] Verify all tests pass after cleanup
 - [ ] Create ARCHITECTURE.md file documenting folder structure and data flow
+
+
+## Bug Fixes & Enhancements (2026-02-19)
+- [x] Fix Favorites page "Venue access required" error for non-venue users
+- [x] Add graceful error handling to Favorites page
+- [x] Create marketing enhancement plan for homepage and landing pages
+- [x] Add Pricing page to platform (/pricing route)
+- [x] Implement Favorites feature (Phase 1) with save/remove functionality
+- [x] Add Favorites link to footer navigation
+- [x] Add Favorites quick-access button to artist dashboard
+
+## Marketing & Landing Pages (Planned)
+- [ ] Enhance homepage hero section with segment-specific messaging
+- [ ] Add social proof section with platform statistics
+- [ ] Create `/for-venues` landing page
+- [ ] Create `/for-artists` landing page
+- [ ] Create `/how-it-works` educational page
+- [ ] Add testimonials and case studies section
+- [ ] Add FAQ section to homepage
+- [ ] Implement blog section (future)
+
+## Known Issues Resolved
+- [x] Favorites page throwing "Venue access required" error when accessed by artists
+- [x] Missing error handling for role-based feature access
