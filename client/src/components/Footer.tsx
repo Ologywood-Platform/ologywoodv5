@@ -38,6 +38,7 @@ const Footer = () => {
         { label: 'Browse Venues', path: '/venues' },
         { label: 'Create Rider', path: '/rider-builder' },
         { label: 'My Bookings', path: '/bookings' },
+        { label: 'My Favorites', path: '/favorites' },
       ],
     },
     {
@@ -45,6 +46,7 @@ const Footer = () => {
       links: [
         { label: 'Venue Dashboard', path: '/venue-dashboard' },
         { label: 'Browse Artists', path: '/browse' },
+        { label: 'My Favorites', path: '/favorites' },
         { label: 'My Bookings', path: '/bookings' },
       ],
     },
