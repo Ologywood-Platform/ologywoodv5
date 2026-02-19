@@ -45,6 +45,14 @@ export default function Home() {
     setMetaTags(pageMetaTags.home);
   }, []);
 
+  // Get the correct dashboard URL based on user role
+  const getDashboardUrl = () => {
+    if (!user) return '/dashboard';
+    if (user.role === 'venue') return '/venue-dashboard';
+    if (user.role === 'admin') return '/admin';
+    return '/dashboard'; // Default to artist dashboard
+  };
+
   // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
 
   const filteredArtists = artists?.filter(artist => 
@@ -67,7 +75,7 @@ export default function Home() {
           <nav className="flex items-center gap-2 sm:gap-4">
             {isAuthenticated ? (
               <>
-                <a href="/dashboard" className="no-underline">
+                <a href={getDashboardUrl()} className="no-underline">
                   <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
                     Dashboard
                   </Button>
