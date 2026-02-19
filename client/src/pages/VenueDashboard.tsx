@@ -5,33 +5,74 @@ import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye } from 'lucide-react';
 
 export function VenueDashboard() {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    organizationName: '',
+    location: '',
+    contactName: '',
+    contactPhone: '',
+    bio: '',
+  });
 
   // Fetch venue profile
-  const { data: profile, isLoading: profileLoading, error: profileError } = trpc.venue.getMyProfile.useQuery(
+  const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = trpc.venue.getMyProfile.useQuery(
     undefined,
     { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
   );
 
   // Fetch venue bookings
-  const { data: bookings, isLoading: bookingsLoading } = trpc.booking.getMyVenueBookings.useQuery(
+  const { data: bookings, isLoading: bookingsLoading, refetch: refetchBookings } = trpc.booking.getMyVenueBookings.useQuery(
     undefined,
     { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
   );
 
+  // Fetch artists for discovery
+  const { data: artists, isLoading: artistsLoading } = trpc.artist.getAll.useQuery(
+    undefined,
+    { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
+  );
+
+  // Update profile form when profile data loads
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        organizationName: profile.organizationName || '',
+        location: profile.location || '',
+        contactName: profile.contactName || '',
+        contactPhone: profile.contactPhone || '',
+        bio: profile.bio || '',
+      });
+    }
+  }, [profile]);
+
   // Role check
   useEffect(() => {
-    if (!isLoading && user && user.role !== 'venue' && user.role !== 'admin') {
+    if (!loading && user && user.role !== 'venue' && user.role !== 'admin') {
       navigate('/');
     }
-  }, [user, isLoading, navigate]);
+  }, [user, loading, navigate]);
 
-  if (isLoading || profileLoading) {
+  const handleProfileUpdate = async () => {
+    try {
+      // TODO: Implement profile update mutation
+      setEditingProfile(false);
+      refetchProfile();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  const handleViewArtist = (artistId: number) => {
+    navigate(`/artist/${artistId}`);
+  };
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -92,7 +133,7 @@ export function VenueDashboard() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Overview
@@ -100,6 +141,10 @@ export function VenueDashboard() {
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Bookings
+            </TabsTrigger>
+            <TabsTrigger value="artists" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Artists
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -195,16 +240,50 @@ export function VenueDashboard() {
                 {bookings.map(booking => (
                   <Card key={booking.id}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{booking.artistName || 'Artist'}</CardTitle>
+                      <CardTitle className="text-lg">Artist #{booking.artistId}</CardTitle>
                       <CardDescription>
-                        {new Date(booking.eventDate).toLocaleDateString()} • {booking.status}
+                        {new Date(booking.eventDate).toLocaleDateString()} at {booking.eventTime || 'TBA'} • {booking.status}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
-                        <p className="text-sm"><span className="font-medium">Event:</span> {booking.eventName}</p>
-                        <p className="text-sm"><span className="font-medium">Rate:</span> ${booking.rate}</p>
-                        <p className="text-sm"><span className="font-medium">Notes:</span> {booking.notes || 'None'}</p>
+                      <div className="space-y-3">
+                        {booking.eventDetails && (
+                          <div>
+                            <p className="text-sm text-gray-600">Event Details</p>
+                            <p className="font-medium">{booking.eventDetails}</p>
+                          </div>
+                        )}
+                        {booking.totalFee && (
+                          <div>
+                            <p className="text-sm text-gray-600">Total Fee</p>
+                            <p className="font-medium">${booking.totalFee}</p>
+                          </div>
+                        )}
+                        {booking.depositAmount && (
+                          <div>
+                            <p className="text-sm text-gray-600">Deposit</p>
+                            <p className="font-medium">${booking.depositAmount}</p>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm text-gray-600">Payment Status</p>
+                          <p className="font-medium capitalize">{booking.paymentStatus}</p>
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <Button variant="outline" size="sm">
+                            View Details
+                          </Button>
+                          {booking.status === 'pending' && (
+                            <>
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                Accept
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-red-600">
+                                Decline
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -219,9 +298,128 @@ export function VenueDashboard() {
             )}
           </TabsContent>
 
+          {/* Artists Tab */}
+          <TabsContent value="artists" className="space-y-4">
+            {artistsLoading ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-gray-600">Loading artists...</p>
+                </CardContent>
+              </Card>
+            ) : artists && artists.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {artists.map(artist => (
+                  <Card key={artist.id}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{artist.artistName || 'Artist'}</CardTitle>
+                      <CardDescription>
+                        {artist.genre || 'Genre not specified'} • {artist.location || 'Location not specified'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {artist.bio && (
+                          <p className="text-sm text-gray-600">{artist.bio}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewArtist(artist.id)}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Profile
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Book Artist
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-gray-600">No artists available</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-4">
-            {profile ? (
+            {editingProfile ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Edit Venue Profile</CardTitle>
+                  <CardDescription>Update your venue information</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Organization Name</label>
+                      <input
+                        type="text"
+                        value={profileForm.organizationName}
+                        onChange={(e) => setProfileForm({ ...profileForm, organizationName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={profileForm.location}
+                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Name</label>
+                      <input
+                        type="text"
+                        value={profileForm.contactName}
+                        onChange={(e) => setProfileForm({ ...profileForm, contactName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Phone</label>
+                      <input
+                        type="tel"
+                        value={profileForm.contactPhone}
+                        onChange={(e) => setProfileForm({ ...profileForm, contactPhone: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">About</label>
+                      <textarea
+                        value={profileForm.bio}
+                        onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={handleProfileUpdate} className="flex-1 bg-purple-600 hover:bg-purple-700">
+                        Save Changes
+                      </Button>
+                      <Button onClick={() => setEditingProfile(false)} variant="outline" className="flex-1">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : profile ? (
               <Card>
                 <CardHeader>
                   <CardTitle>Venue Profile</CardTitle>
@@ -249,7 +447,13 @@ export function VenueDashboard() {
                       <label className="text-sm font-medium">About</label>
                       <p className="text-gray-700 mt-1">{profile.bio || 'Not set'}</p>
                     </div>
-                    <Button className="w-full mt-4">Edit Profile</Button>
+                    <Button
+                      onClick={() => setEditingProfile(true)}
+                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Edit Profile
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -260,7 +464,61 @@ export function VenueDashboard() {
                   <CardDescription>Set up your venue to start receiving bookings</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full">Create Profile</Button>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Organization Name</label>
+                      <input
+                        type="text"
+                        value={profileForm.organizationName}
+                        onChange={(e) => setProfileForm({ ...profileForm, organizationName: e.target.value })}
+                        placeholder="Enter your venue name"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={profileForm.location}
+                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                        placeholder="City, State"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Name</label>
+                      <input
+                        type="text"
+                        value={profileForm.contactName}
+                        onChange={(e) => setProfileForm({ ...profileForm, contactName: e.target.value })}
+                        placeholder="Your name"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Phone</label>
+                      <input
+                        type="tel"
+                        value={profileForm.contactPhone}
+                        onChange={(e) => setProfileForm({ ...profileForm, contactPhone: e.target.value })}
+                        placeholder="(555) 123-4567"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">About Your Venue</label>
+                      <textarea
+                        value={profileForm.bio}
+                        onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                        placeholder="Describe your venue, capacity, amenities, etc."
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <Button onClick={handleProfileUpdate} className="w-full bg-purple-600 hover:bg-purple-700">
+                      Create Profile
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
