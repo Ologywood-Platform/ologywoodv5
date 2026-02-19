@@ -341,6 +341,11 @@
 - [x] Integrate photo and media management into AccountSettings
 - [x] Test photo upload and gallery management functionality
 
+## Next Steps - Phase 2 (2026-02-19)
+- [x] Fix Rider Builder tier restriction - remove "feature not available in your tier" error
+- [ ] Implement Admin Payout Processing UI - add interface for reviewing and processing payouts
+- [ ] Connect Event Pages to Navigation - add event links to main nav and artist dashboard
+
 ## Phase 1: Event Data Model - COMPLETED ✅
 - [x] Add event tables to schema (events, eventRecurrence, eventHistory, eventPhotos, savedEvents)
 - [x] Create database migrations (APPLIED - all 5 tables now exist in database)

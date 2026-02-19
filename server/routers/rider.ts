@@ -19,7 +19,6 @@ import {
   getRiderTemplateStats,
   getDefaultTemplate,
 } from "../services/riderTemplateService";
-import { hasFeatureAccess } from "../services/pricingTierService";
 
 export const riderRouter = router({
   /**
@@ -28,12 +27,6 @@ export const riderRouter = router({
   getMyTemplates: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) throw new Error("Unauthorized");
-
-    // Check if user has access to rider feature
-    const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-    if (!hasAccess) {
-      throw new Error("Rider builder feature not available in your tier");
-    }
 
     return await getArtistRiderTemplates(userId);
   }),
@@ -46,11 +39,6 @@ export const riderRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
 
       const template = await getRiderTemplate(input.templateId);
       if (!template || template.artistId !== userId) {
@@ -74,11 +62,6 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
-
       return await createRiderTemplate(
         userId,
         input.templateName,
@@ -99,11 +82,6 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
 
       return await createFromDefaultTemplate(
         userId,
@@ -127,11 +105,6 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
-
       return await updateRiderTemplate(
         input.templateId,
         userId,
@@ -149,11 +122,6 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
-
       return await deleteRiderTemplate(input.templateId, userId);
     }),
 
@@ -170,11 +138,6 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
 
       return await duplicateRiderTemplate(
         input.templateId,
@@ -206,11 +169,6 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
-
       return await generateRiderPreview(input.templateId, userId);
     }),
 
@@ -223,11 +181,6 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
-      const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Rider builder feature not available in your tier");
-      }
-
       return await exportRiderAsJSON(input.templateId, userId);
     }),
 
@@ -237,11 +190,6 @@ export const riderRouter = router({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) throw new Error("Unauthorized");
-
-    const hasAccess = await hasFeatureAccess(userId, "riderBuilder");
-    if (!hasAccess) {
-      throw new Error("Rider builder feature not available in your tier");
-    }
 
     return await getRiderTemplateStats(userId);
   }),
