@@ -11,7 +11,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import { LazyImage } from "@/components/LazyImage";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import EventDiscovery from "@/pages/EventDiscovery";
+// EventDiscovery removed - not part of current MVP
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 export default function Browse() {
@@ -227,13 +227,7 @@ export default function Browse() {
             )}
           </TabsContent>
           
-          {/* Events Tab */}
-          <TabsContent value="events" className="mt-0">
-            <div className="space-y-6">
-              <SearchFilters filterType="events" onFilterChange={setFilters} />
-              <EventDiscovery />
-            </div>
-          </TabsContent>
+          {/* Events Tab - Removed (not part of current MVP) */}
         </Tabs>
       </div>
 

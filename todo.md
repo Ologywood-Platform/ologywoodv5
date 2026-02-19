@@ -3933,3 +3933,14 @@ The Ologywood platform is production-ready with:
 - [ ] Accessibility compliance (WCAG 2.1 AA standards)
 - [ ] Compliance admin dashboard (monitoring, reporting, enforcement)
 - [ ] Compliance handbook & documentation
+
+
+## Codebase Cleanup (2026-02-19)
+- [x] Audit all pages and identify unused files (9 unused pages found)
+- [x] Delete unused page files: EventCreate, EventDetail, EventDiscovery, Help, ArtistEarningsDashboard
+- [x] Keep active dashboard pages: ArtistDashboardV3, VenueDashboard, NotFound
+- [x] Remove EventDiscovery component from Browse.tsx
+- [x] Create DEPRECATED_PAGES.md documentation explaining removed pages
+- [x] Fix import statements in App.tsx and Browse.tsx
+- [ ] Verify all tests pass after cleanup
+- [ ] Create ARCHITECTURE.md file documenting folder structure and data flow
