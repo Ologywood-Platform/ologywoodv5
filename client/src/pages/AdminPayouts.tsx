@@ -39,22 +39,26 @@ export default function AdminPayouts() {
 
   // Fetch pending payouts
   const { data: payouts, isLoading, refetch } = useQuery({
-    queryKey: ['payout.getPendingPayouts'],
+    queryKey: ['admin.getPayouts'],
     queryFn: async () => {
-      // NOTE: payout router was removed during cleanup
-      const result = { success: false, error: 'Payout router disabled', data: [] };
-      if (!result.success) throw new Error(result.error);
-      return result.data || [];
+      const result = await trpc.admin.getPayouts.query({
+        status: 'pending',
+        limit: 100,
+        offset: 0,
+      });
+      return result.payouts || [];
     },
   });
 
   // Process payout mutation
   const processPayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      // NOTE: payout router was removed during cleanup
-      const result = { success: false, error: 'Payout router disabled', data: null };
-      if (!result.success) throw new Error(result.error);
-      return result.data;
+      const result = await trpc.admin.processPayout.mutate({
+        payoutId,
+        action: 'approve',
+        notes: 'Approved by admin',
+      });
+      return result;
     },
     onSuccess: () => {
       toast.success('Payout marked as processing');
@@ -68,10 +72,12 @@ export default function AdminPayouts() {
   // Complete payout mutation
   const completePayoutMutation = useMutation({
     mutationFn: async (payoutId: number) => {
-      // NOTE: payout router was removed during cleanup
-      const result = { success: false, error: 'Payout router disabled', data: null };
-      if (!result.success) throw new Error(result.error);
-      return result.data;
+      const result = await trpc.admin.processPayout.mutate({
+        payoutId,
+        action: 'approve',
+        notes: 'Completed by admin',
+      });
+      return result;
     },
     onSuccess: () => {
       toast.success('Payout marked as completed');
