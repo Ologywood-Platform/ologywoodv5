@@ -24,8 +24,8 @@ interface SearchFiltersProps {
 }
 
 const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Blues', 'Hip-Hop', 'Electronic', 'Country',
-  'R&B', 'Soul', 'Reggae', 'Latin', 'Classical', 'Folk', 'Indie'
+  'Blues', 'Classical', 'Country', 'Electronic', 'Folk', 'Gospel', 'Hip-Hop',
+  'Indie', 'Jazz', 'Latin', 'Pop', 'R&B', 'Reggae', 'Rock', 'Soul'
 ];
 
 const EVENT_TYPES = [

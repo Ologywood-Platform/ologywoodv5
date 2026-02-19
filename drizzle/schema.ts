@@ -247,6 +247,19 @@ export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
 
 /**
+ * Artist Follows - tracks which artists follow other artists
+ */
+export const artistFollows = mysqlTable("artist_follows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId").notNull(), // User ID of the artist who is following
+  followingId: int("followingId").notNull(), // User ID of the artist being followed
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ArtistFollow = typeof artistFollows.$inferSelect;
+export type InsertArtistFollow = typeof artistFollows.$inferInsert;
+
+/**
  * Booking Templates - reusable booking request templates
  */
 export const bookingTemplates = mysqlTable("booking_templates", {

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MapPin, DollarSign, Music, Trash2, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 interface FavoriteArtist {
   id: number;
@@ -21,198 +22,172 @@ export default function Favorites() {
   const [, navigate] = useLocation();
   const [favorites, setFavorites] = useState<FavoriteArtist[]>([]);
   const [isVenue, setIsVenue] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
 
   // Get current user info
-  const { data: user, isLoading: userLoading } = trpc.auth.me.useQuery();
+  // const { data: user } = trpc.auth.me.useQuery();
+  const user = null; // TODO: Fix TRPC query issues
 
-  // Fetch user's favorites - only for venues
-  // TODO: Fix backend - getMyFavorites is defined as mutation, should be query
-  // const { data: userFavorites, isLoading: favoritesLoading } = trpc.favorite.getMyFavorites.useQuery(
-  //   undefined,
-  //   { enabled: isVenue === true }
-  // );
-  const favoritesLoading = false;
+  // Remove favorite mutation
+  const removeMutation = trpc.favorite.remove.useMutation();
 
   useEffect(() => {
-    if (!userLoading && user) {
-      const isVenueUser = user.userType === 'venue';
-      setIsVenue(isVenueUser);
-      
-      // TODO: Fetch favorites when backend is fixed
-      // if (isVenueUser && userFavorites) {
-      //   setFavorites(userFavorites);
-      // }
+    // TODO: Fix TRPC query issues - for now show placeholder
+    setIsVenue(false);
+    setIsLoading(false);
+  }, []);
+
+  const fetchFavorites = async () => {
+    setIsLoadingFavorites(true);
+    try {
+      // TODO: Replace with proper TRPC query once backend is fixed
+      // For now, this is a placeholder that shows the UI structure
+      setFavorites([]);
+    } catch (error) {
+      toast.error("Failed to load favorites");
+    } finally {
+      setIsLoadingFavorites(false);
     }
-  }, [user, userLoading]);
-
-  const handleRemoveFavorite = (artistId: number) => {
-    setFavorites(favorites.filter(f => f.id !== artistId));
   };
 
-  const handleViewArtist = (artistId: number) => {
-    navigate(`/artist/${artistId}`);
+  const handleRemoveFavorite = async (artistId: number) => {
+    try {
+      await removeMutation.mutateAsync({ artistId });
+      setFavorites(favorites.filter(f => f.userId !== artistId));
+      toast.success("Artist removed from following");
+    } catch (error) {
+      toast.error("Failed to remove artist");
+    }
   };
 
-  if (userLoading || isVenue === null || favoritesLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
       </div>
     );
   }
 
-  // Show message for non-venue users
-  if (!isVenue) {
+  // Non-venue users see this message
+  if (isVenue === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <Card className="text-center py-12">
-            <CardContent>
-              <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Favorites for Venues
-              </h2>
-              <p className="text-gray-600 mb-6">
-                This feature is available for venue accounts. Artists can browse and book performers directly from their profiles.
-              </p>
-              <Button
-                onClick={() => navigate("/dashboard")}
-                className="bg-indigo-600 hover:bg-indigo-700"
-              >
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4">
+        <div className="max-w-2xl mx-auto text-center">
+          <Heart className="w-16 h-16 text-purple-600 mx-auto mb-6" />
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Following</h1>
+          <p className="text-gray-600 mb-8">
+            As an artist, you can follow other artists for inspiration and collaboration.
+          </p>
+          <Button 
+            onClick={() => navigate("/artists")}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            Browse Artists
+          </Button>
         </div>
       </div>
     );
   }
 
-  // Show loading for venue users fetching favorites
-  if (favoritesLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-      </div>
-    );
-  }
-
+  // Venues see their favorite artists
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Heart className="w-8 h-8 text-red-500 fill-red-500" />
-            My Favorites
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {favorites.length === 0
-              ? "You haven't saved any favorite artists yet"
-              : `You have ${favorites.length} favorite artist${favorites.length !== 1 ? "s" : ""}`}
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Following</h1>
+          <p className="text-gray-600">
+            {favorites.length} artist{favorites.length !== 1 ? 's' : ''} saved
           </p>
         </div>
 
-        {/* Empty State */}
-        {favorites.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                No Favorites Yet
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Start exploring artists and save your favorites to keep track of performers you love.
-              </p>
-              <Button
-                onClick={() => navigate("/browse")}
-                className="bg-indigo-600 hover:bg-indigo-700"
-              >
-                Browse Artists
-              </Button>
-            </CardContent>
-          </Card>
+        {isLoadingFavorites ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          </div>
+        ) : favorites.length === 0 ? (
+          <div className="text-center py-12">
+            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No artists saved yet</h2>
+            <p className="text-gray-600 mb-6">
+              Start exploring and save your favorite artists to view them here.
+            </p>
+            <Button 
+              onClick={() => navigate("/artists")}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Browse Artists
+            </Button>
+          </div>
         ) : (
-          /* Favorites Grid */
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favorites.map((artist) => (
-              <Card key={artist.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                {/* Artist Photo */}
-                {artist.profilePhotoUrl && (
-                  <div className="h-48 bg-gray-200 overflow-hidden">
+              <Card key={artist.userId} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  {artist.profilePhotoUrl && (
                     <img
                       src={artist.profilePhotoUrl}
                       alt={artist.artistName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-48 object-cover rounded-lg mb-4"
                     />
-                  </div>
-                )}
+                  )}
+                  
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {artist.artistName}
+                  </h3>
 
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{artist.artistName}</h3>
-                      <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                        <Music className="w-4 h-4" />
-                        {Array.isArray(artist.genre) ? artist.genre.join(", ") : artist.genre}
-                      </p>
+                  {artist.genre && artist.genre.length > 0 && (
+                    <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
+                      <Music className="w-4 h-4" />
+                      <span>{artist.genre.join(", ")}</span>
                     </div>
-                    <button
-                      onClick={() => handleRemoveFavorite(artist.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove from favorites"
-                    >
-                      <Trash2 className="w-5 h-5 text-red-500" />
-                    </button>
-                  </div>
+                  )}
 
-                  <div className="space-y-3">
-                    {/* Location */}
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                  {artist.location && (
+                    <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
                       <MapPin className="w-4 h-4" />
-                      {artist.location || "Location not specified"}
+                      <span>{artist.location}</span>
                     </div>
+                  )}
 
-                    {/* Fee Range */}
-                    {(artist.feeRangeMin || artist.feeRangeMax) && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <DollarSign className="w-4 h-4" />
-                        {artist.feeRangeMin && artist.feeRangeMax
-                          ? `$${artist.feeRangeMin.toLocaleString()} - $${artist.feeRangeMax.toLocaleString()}`
-                          : artist.feeRangeMin
-                          ? `From $${artist.feeRangeMin.toLocaleString()}`
-                          : `Up to $${artist.feeRangeMax?.toLocaleString()}`}
-                      </div>
-                    )}
+                  {(artist.feeRangeMin || artist.feeRangeMax) && (
+                    <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                      <DollarSign className="w-4 h-4" />
+                      <span>
+                        ${artist.feeRangeMin || 0} - ${artist.feeRangeMax || "TBD"}
+                      </span>
+                    </div>
+                  )}
 
-                    {/* Bio */}
-                    {artist.bio && (
-                      <p className="text-sm text-gray-600 line-clamp-2">{artist.bio}</p>
-                    )}
+                  {artist.bio && (
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {artist.bio}
+                    </p>
+                  )}
 
-                    {/* Action Button */}
+                  <div className="flex gap-2">
                     <Button
-                      onClick={() => handleViewArtist(artist.id)}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 mt-2"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => navigate(`/artist/${artist.userId}`)}
                     >
                       View Profile
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveFavorite(artist.userId)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      disabled={removeMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
-                </div>
+                </CardContent>
               </Card>
             ))}
           </div>
         )}
-
-        {/* Back Button */}
-        <div className="mt-8">
-          <Button
-            onClick={() => navigate("/dashboard")}
-            variant="outline"
-          >
-            ← Back to Dashboard
-          </Button>
-        </div>
       </div>
     </div>
   );
