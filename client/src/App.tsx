@@ -17,6 +17,7 @@ import VenueOnboarding from "./pages/VenueOnboarding";
 import Availability from "./pages/Availability";
 import RiderBuilder from "./pages/RiderBuilder";
 import SavedRiders from "./pages/SavedRiders";
+import Favorites from "./pages/Favorites";
 import BookingDetail from "./pages/BookingDetail";
 import BookingCreate from "./pages/BookingCreate";
 import BookingsList from "./pages/BookingsList";
@@ -100,6 +101,7 @@ function Router() {
           {/* Rider System */}
           <Route path="/rider-builder" component={RiderBuilder} />
           <Route path="/saved-riders" component={SavedRiders} />
+          <Route path="/favorites" component={Favorites} />
           <Route path="/riders" component={Riders} />
           
           {/* Communication */}
