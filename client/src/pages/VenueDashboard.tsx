@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye } from 'lucide-react';
 
 export function VenueDashboard() {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [editingProfile, setEditingProfile] = useState(false);
@@ -56,7 +56,7 @@ export function VenueDashboard() {
     if (!loading && user && user.role !== 'venue' && user.role !== 'admin') {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   const handleProfileUpdate = async () => {
     try {
