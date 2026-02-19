@@ -27,6 +27,7 @@ import VenueProfileDetail from "./pages/VenueProfileDetail";
 import Messages from "./pages/Messages";
 import MessagesDetail from "./pages/MessagesDetail";
 import Riders from "./pages/Riders";
+import { RiderTemplates } from "./pages/RiderTemplates";
 import EventCreate from "./pages/EventCreate";
 import EventDiscovery from "./pages/EventDiscovery";
 import EventDetail from "./pages/EventDetail";
@@ -100,6 +101,7 @@ function Router() {
           
           {/* Rider System */}
           <Route path="/rider-builder" component={RiderBuilder} />
+          <Route path="/rider-templates" component={RiderTemplates} />
           <Route path="/saved-riders" component={SavedRiders} />
           <Route path="/favorites" component={Favorites} />
           <Route path="/riders" component={Riders} />

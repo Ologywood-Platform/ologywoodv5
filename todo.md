@@ -7,7 +7,7 @@
 ## Artist Features
 - [x] Artist profile creation and editing (bio, photos, genre, location, social links)
 - [ ] Media upload system for photos, videos, and press kit materials
-- [ ] Rider template CRUD (create, read, update, delete) with technical and hospitality requirements
+- [x] Rider template CRUD (create, read, update, delete) with technical and hospitality requirements
 - [x] Artist dashboard showing bookings and profile stats
 
 ## Availability & Calendar
