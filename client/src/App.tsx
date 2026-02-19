@@ -36,6 +36,9 @@ import { Unsubscribe } from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
 import RevertEmail from "./pages/RevertEmail";
 import ArtistEarnings from "./pages/ArtistEarnings";
+import ArtistEarningsDashboard from "./pages/ArtistEarningsDashboard";
+import VenueInvoiceDashboard from "./pages/VenueInvoiceDashboard";
+import Help from "./pages/Help";
 import AdminPayouts from "./pages/AdminPayouts";
 import ArtistTaxReporting from "./pages/ArtistTaxReporting";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -68,6 +71,9 @@ function Router() {
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/revert-email" component={RevertEmail} />
           <Route path="/earnings" component={ArtistEarnings} />
+          <Route path="/earnings-dashboard" component={ArtistEarningsDashboard} />
+          <Route path="/venue-invoices" component={VenueInvoiceDashboard} />
+          <Route path="/help" component={Help} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/payouts" component={AdminPayouts} />
           <Route path="/artist-tax-reporting" component={ArtistTaxReporting} />
