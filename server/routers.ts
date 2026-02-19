@@ -23,6 +23,7 @@ import { riderRouter } from "./routers/rider";
 import { followsRouter } from "./routers/follows";
 import { eventsRouter } from "./routers/events";
 import { adminRouter } from "./routers/admin";
+import { payoutRouter } from "./routers/payout";
 
 
 // Helper to check if user is an artist
@@ -94,6 +95,7 @@ export const appRouter = router({
   pricing: pricingRouter,
   rider: riderRouter,
   follows: followsRouter,
+  payout: payoutRouter,
   // helpAndSupport: helpAndSupportRouter,
   // contractPdf: contractPdfRouter,
   // supportTickets: supportTicketsRouter,
@@ -1834,16 +1836,7 @@ export const appRouter = router({
     getVenueTypes: publicProcedure.query(() => []),
     getMyProfile: protectedProcedure.query(() => null),
   } as any),
-  
-  payout: router({
-    getPendingPayouts: publicProcedure.query(() => []),
-    processPayout: publicProcedure.mutation(() => ({ success: false })),
-    completePayout: publicProcedure.mutation(() => ({ success: false })),
-    getVenueInvoices: publicProcedure.query(() => []),
-    getEarnings: publicProcedure.query(() => ({})),
-    getPayoutHistory: publicProcedure.query(() => []),
-    requestPayout: publicProcedure.mutation(() => ({ success: false })),
-  } as any),
+
   
   emailChange: router({
     revertChange: publicProcedure.mutation(() => ({ success: false })),
