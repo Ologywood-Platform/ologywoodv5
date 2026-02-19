@@ -4,6 +4,7 @@
  */
 
 import express, { Express, Request, Response, NextFunction } from 'express';
+import { Request as ExpressRequest } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { createRateLimiter, RATE_LIMIT_CONFIGS } from './rateLimiter';
@@ -20,6 +21,21 @@ export function configureServer(app: Express): void {
 
   // Disable powered by header
   app.disable('x-powered-by');
+
+  // HTTPS redirect middleware - redirect all HTTP requests to HTTPS
+  // This ensures browsers default to https:// even on first visit
+  if (process.env.NODE_ENV === 'production') {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      // Check if request came through HTTP (not HTTPS)
+      const isSecure = req.secure || req.get('x-forwarded-proto') === 'https';
+      if (!isSecure && req.method === 'GET') {
+        // Redirect to HTTPS version of the same URL
+        const httpsUrl = `https://${req.get('host')}${req.originalUrl}`;
+        return res.redirect(301, httpsUrl);
+      }
+      next();
+    });
+  }
 
   // CORS configuration
   const corsOptions = {
