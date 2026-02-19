@@ -260,6 +260,27 @@
       "when": 1771263797997,
       "tag": "0036_public_magma",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1771507385059,
+      "tag": "0037_typical_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1771508063384,
+      "tag": "0038_tiny_phil_sheldon",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1771509176461,
+      "tag": "0039_bright_blacklash",
+      "breakpoints": true
     }
   ]
 }
