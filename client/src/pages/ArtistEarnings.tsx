@@ -46,9 +46,9 @@ export default function ArtistEarnings() {
 
   // Mock payout history (payout router disabled)
   const payoutHistory = [
-    { id: 1, amount: 2000, date: new Date('2026-02-01'), method: 'bank_transfer', status: 'completed' },
-    { id: 2, amount: 1500, date: new Date('2026-01-15'), method: 'stripe_connect', status: 'completed' },
-    { id: 3, amount: 1700, date: new Date('2026-01-01'), method: 'bank_transfer', status: 'completed' },
+    { id: 1, amount: 2000, requestedAt: new Date('2026-02-01'), payoutMethod: 'bank_transfer', status: 'completed', completedAt: new Date('2026-02-02') },
+    { id: 2, amount: 1500, requestedAt: new Date('2026-01-15'), payoutMethod: 'stripe_connect', status: 'completed', completedAt: new Date('2026-01-16') },
+    { id: 3, amount: 1700, requestedAt: new Date('2026-01-01'), payoutMethod: 'bank_transfer', status: 'completed', completedAt: new Date('2026-01-02') },
   ];
   const historyLoading = false;
   const refetchHistory = () => {};
