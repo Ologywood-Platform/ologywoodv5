@@ -93,8 +93,13 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   contactName: varchar("contactName", { length: 255 }),
   contactPhone: varchar("contactPhone", { length: 50 }),
   location: varchar("location", { length: 255 }),
+  city: varchar("city", { length: 255 }),
+  capacity: int("capacity"),
   bio: text("bio"),
+  profilePhotoUrl: text("profilePhotoUrl"),
   isListed: boolean("isListed").default(true).notNull(),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  emailVerificationSentAt: timestamp("emailVerificationSentAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
 });

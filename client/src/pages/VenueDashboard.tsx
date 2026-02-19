@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MessageSquare, Search, Settings, Calendar, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Search, Settings, Calendar, MapPin, Users, Loader } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-// import { VenueAccountSettings } from '@/components/VenueAccountSettings';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
 
-  const { data: venueProfile } = ((trpc.venue as any)?.getMyProfile?.useQuery?.() || { data: null });
-  const { data: bookings } = ((trpc.booking as any)?.getMyVenueBookings?.useQuery?.() || { data: [] });
-  // Messages are accessed from the Messages page, not dashboard
+  // Proper TRPC calls with correct types
+  const { data: venueProfile, isLoading: profileLoading } = trpc.venue.getMyProfile.useQuery();
+  const { data: bookings = [], isLoading: bookingsLoading } = trpc.booking.getMyVenueBookings.useQuery();
 
   // Verify user is a venue
   if (user?.role !== 'venue') {
@@ -55,7 +54,9 @@ export function VenueDashboard() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Venue Dashboard</h1>
-              <p className="text-sm text-gray-600">{venueProfile?.organizationName || 'Welcome'}</p>
+              <p className="text-sm text-gray-600">
+                {profileLoading ? 'Loading...' : venueProfile?.organizationName || 'Welcome'}
+              </p>
             </div>
           </div>
 
@@ -73,24 +74,109 @@ export function VenueDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         {showSettings ? (
-          <div>Settings component disabled</div>
-          // <VenueAccountSettings />
+          // Settings View
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Venue Settings</CardTitle>
+                <CardDescription>Manage your venue profile and preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {profileLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader className="h-6 w-6 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Organization Name
+                      </label>
+                      <p className="text-gray-900 font-medium">
+                        {venueProfile?.organizationName || 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Name
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.contactName || 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Phone
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.contactPhone || 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.location || 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.city || 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Capacity
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.capacity ? `${venueProfile.capacity} people` : 'Not set'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Bio
+                      </label>
+                      <p className="text-gray-900">
+                        {venueProfile?.bio || 'Not set'}
+                      </p>
+                    </div>
+                    <Button onClick={() => navigate('/venue-profile')} className="w-full">
+                      Edit Profile
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         ) : (
+          // Main Dashboard View
           <div className="space-y-6">
             {/* Venue Info Card */}
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    {venueProfile?.profilePhotoUrl && (
+                  <div className="flex items-center gap-4 flex-1">
+                    {profileLoading ? (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg animate-pulse" />
+                    ) : venueProfile?.profilePhotoUrl ? (
                       <img
                         src={venueProfile.profilePhotoUrl}
                         alt={venueProfile.organizationName}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-200 to-blue-200 rounded-lg flex items-center justify-center">
+                        <Users className="h-8 w-8 text-purple-600" />
+                      </div>
                     )}
                     <div>
-                      <CardTitle className="text-2xl">{venueProfile?.organizationName || 'Venue'}</CardTitle>
+                      <CardTitle className="text-2xl">
+                        {profileLoading ? 'Loading...' : venueProfile?.organizationName || 'Venue'}
+                      </CardTitle>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                         {venueProfile?.city && (
                           <span className="flex items-center gap-1">
@@ -154,8 +240,18 @@ export function VenueDashboard() {
               </CardContent>
             </Card>
 
+            {/* Loading State */}
+            {bookingsLoading && (
+              <Card>
+                <CardContent className="pt-12 pb-12 text-center">
+                  <Loader className="h-8 w-8 mx-auto mb-4 animate-spin text-gray-400" />
+                  <p className="text-gray-600">Loading bookings...</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Pending Booking Requests */}
-            {pendingBookings.length > 0 && (
+            {!bookingsLoading && pendingBookings.length > 0 && (
               <Card className="border-orange-200 bg-orange-50">
                 <CardHeader>
                   <CardTitle className="text-lg text-orange-900">Pending Requests</CardTitle>
@@ -171,7 +267,7 @@ export function VenueDashboard() {
                         className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200"
                       >
                         <div>
-                          <p className="font-semibold text-sm">{booking.artistName}</p>
+                          <p className="font-semibold text-sm">{booking.artistName || 'Artist'}</p>
                           <p className="text-xs text-gray-600">
                             {new Date(booking.eventDate).toLocaleDateString()}
                           </p>
@@ -190,7 +286,7 @@ export function VenueDashboard() {
             )}
 
             {/* Upcoming Events */}
-            {upcomingBookings.length > 0 && (
+            {!bookingsLoading && upcomingBookings.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Upcoming Events</CardTitle>
@@ -204,7 +300,7 @@ export function VenueDashboard() {
                         className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
                       >
                         <div>
-                          <p className="font-semibold text-sm">{booking.artistName}</p>
+                          <p className="font-semibold text-sm">{booking.artistName || 'Artist'}</p>
                           <p className="text-xs text-slate-600">
                             {new Date(booking.eventDate).toLocaleDateString()}
                           </p>
@@ -223,10 +319,8 @@ export function VenueDashboard() {
               </Card>
             )}
 
-            {/* Messages are accessed from the Messages page */}
-
             {/* Empty State */}
-            {pendingBookings.length === 0 && upcomingBookings.length === 0 && (
+            {!bookingsLoading && pendingBookings.length === 0 && upcomingBookings.length === 0 && (
               <Card>
                 <CardContent className="pt-12 pb-12 text-center">
                   <Search className="h-12 w-12 mx-auto mb-4 opacity-30" />
