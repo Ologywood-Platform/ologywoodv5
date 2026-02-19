@@ -21,6 +21,7 @@ import Favorites from "./pages/Favorites";
 import BookingDetail from "./pages/BookingDetail";
 import BookingCreate from "./pages/BookingCreate";
 import BookingsList from "./pages/BookingsList";
+import BookingConfirmation from "./pages/BookingConfirmation";
 import VenueProfile from "./pages/VenueProfile";
 import VenueBrowse from "./pages/VenueBrowse";
 import VenueProfileDetail from "./pages/VenueProfileDetail";
@@ -89,10 +90,10 @@ function Router() {
           <Route path="/venues/:id" component={VenueProfileDetail} />
           
           {/* Core Booking Flow */}
-          <Route path="/bookings/create" component={BookingCreate} />
-          <Route path="/bookings" component={BookingsList} />
           <Route path="/booking/:id" component={BookingDetail} />
-          <Route path="/bookings/:id" component={BookingDetail} />
+          <Route path="/booking/create" component={BookingCreate} />
+          <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
+          <Route path="/bookings" component={BookingsList} />
           
           {/* Event Management */}
           <Route path="/events" component={EventDiscovery} />

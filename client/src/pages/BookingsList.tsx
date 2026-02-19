@@ -31,15 +31,23 @@ export default function BookingsList() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const updateStatusMutation = trpc.booking.updateStatus.useMutation({
+    onSuccess: () => {
+      artistBookingsQuery.refetch();
+      venueBookingsQuery.refetch();
+    },
+  });
 
   // Fetch bookings based on user role
-  const { data: artistBookings, isLoading: artistLoading } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
+  const artistBookingsQuery = trpc.booking.getMyArtistBookings.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "artist",
   });
+  const { data: artistBookings, isLoading: artistLoading } = artistBookingsQuery;
 
-  const { data: venueBookings, isLoading: venueLoading } = trpc.booking.getMyVenueBookings.useQuery(undefined, {
+  const venueBookingsQuery = trpc.booking.getMyVenueBookings.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "venue",
   });
+  const { data: venueBookings, isLoading: venueLoading } = venueBookingsQuery;
 
   if (!isAuthenticated || !user) {
     return null;
@@ -239,7 +247,38 @@ export default function BookingsList() {
                           )}
                         </div>
 
-                        <ChevronRight className="h-5 w-5 text-gray-400 ml-4 flex-shrink-0" />
+                        <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                          {booking.status === "pending" && isArtist && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  updateStatusMutation.mutate({ id: booking.id, status: "confirmed" });
+                                }}
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  updateStatusMutation.mutate({ id: booking.id, status: "cancelled" });
+                                }}
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                Decline
+                              </Button>
+                            </>
+                          )}
+                          {booking.status !== "pending" && (
+                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>

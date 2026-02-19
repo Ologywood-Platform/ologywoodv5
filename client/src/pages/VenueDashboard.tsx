@@ -58,8 +58,20 @@ export function VenueDashboard() {
     }
   }, [user, loading]);
 
+  const validatePhoneNumber = (phone: string) => {
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+    // Check if it's a valid length (10-15 digits for international)
+    return cleaned.length >= 10 && cleaned.length <= 15;
+  };
+
   const handleProfileUpdate = async () => {
     try {
+      // Validate phone number
+      if (profileForm.contactPhone && !validatePhoneNumber(profileForm.contactPhone)) {
+        alert('Please enter a valid phone number (10-15 digits)');
+        return;
+      }
       // TODO: Implement profile update mutation
       setEditingProfile(false);
       refetchProfile();
