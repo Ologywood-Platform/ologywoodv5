@@ -201,12 +201,11 @@ export default function EventDiscovery() {
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
-                    <SelectItem value="Concert">Concert</SelectItem>
-                    <SelectItem value="Wedding">Wedding</SelectItem>
-                    <SelectItem value="Corporate Event">Corporate Event</SelectItem>
-                    <SelectItem value="Festival">Festival</SelectItem>
-                    <SelectItem value="Club Performance">Club Performance</SelectItem>
+                    <SelectItem value="concert">Concert</SelectItem>
+                    <SelectItem value="wedding">Wedding</SelectItem>
+                    <SelectItem value="corporate">Corporate Event</SelectItem>
+                    <SelectItem value="festival">Festival</SelectItem>
+                    <SelectItem value="club">Club Performance</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
