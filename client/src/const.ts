@@ -22,6 +22,7 @@ export const getLoginUrl = () => {
     // Use manus.space domain for OAuth redirects (working with OAuth server)
     // while keeping custom domain as user-facing URL
     // Use BASE_URL for OAuth redirects - ensures redirect URI matches OAuth server configuration
+    // Fixed: Using Manus default domain with valid SSL certificate
     const baseUrl = import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || import.meta.env.BASE_URL || window.location.origin;
     const redirectUri = `${baseUrl}/api/oauth/callback`;
     const state = btoa(redirectUri);
