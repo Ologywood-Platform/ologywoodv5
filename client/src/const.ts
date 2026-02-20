@@ -14,6 +14,7 @@ function safeUrl(value?: string): URL | null {
 }
 
 // Generate login URL at runtime so redirect URI reflects the current origin.
+// Updated: OAuth redirect now uses Manus default domain with valid SSL certificate
 export const getLoginUrl = () => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
