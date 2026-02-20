@@ -3982,3 +3982,11 @@ The Ologywood platform is production-ready with:
 - [ ] Add Booking Status management (accept/decline/cancel)
 - [ ] Add Rider Template viewing for bookings
 - [ ] Test complete Venue workflow
+
+
+## OAuth Redirect URL Fix (2026-02-20) - Manus Support Issue
+- [x] Identify OAuth redirect URL construction issue - Manus OAuth server using req.headers.origin/host
+- [x] Verify Ologywood implementation is correct - using explicit VITE_OAUTH_REDIRECT_BASE_URL
+- [x] Document the issue and workarounds - created OAUTH_FIX_DOCUMENTATION.md
+- [ ] Await Manus OAuth server fix - issue is on Manus side, not Ologywood
+- [ ] Test OAuth flow after Manus deploys fix
