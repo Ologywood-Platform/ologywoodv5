@@ -135,15 +135,7 @@ export async function getDb() {
       });
       _db = drizzle(pool, { schema, mode: 'default' });
       console.log("[Database] Connected successfully to TiDB");
-      
-      // Test the connection
-      try {
-        await _db.select().from(users).limit(1);
-        console.log("[Database] Connection verified");
-      } catch (testError) {
-        console.error("[Database] Connection test failed:", testError);
-        _db = null;
-      }
+      // Connection is lazy - will be tested on first query
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
@@ -382,11 +374,12 @@ export async function getAllArtists() {
   
   try {
     console.log("[getAllArtists] Fetching all artists...");
-    const artists = await db.select().from(artistProfiles);
-    console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
+    // Use raw SQL query since Drizzle ORM has issues with TiDB
+    const [artists] = await (db as any).pool.query('SELECT * FROM artist_profiles');
+    console.log(`[getAllArtists] Successfully fetched ${(artists as any[]).length} artists`);
     
     // Ensure all JSON fields are properly parsed and serializable
-    return artists.map(artist => ({
+    return (artists as any[]).map(artist => ({
       ...artist,
       genre: Array.isArray(artist.genre) ? artist.genre : [],
       mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
