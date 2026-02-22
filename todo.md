@@ -3991,3 +3991,10 @@ The Ologywood platform is production-ready with:
 - [x] Fix dev server OAuth - updated VITE_OAUTH_REDIRECT_BASE_URL to https://www.ologywood.com
 - [x] Test OAuth flow with production URL - dev server running with updated configuration
 - [ ] Await Manus OAuth server fix - issue is on Manus side, not Ologywood
+
+
+## Current Production Issues (2026-02-22)
+- [ ] Production database connectivity - artist search showing empty results despite seeding 627 artists in dev database
+- [ ] OAuth login redirect still failing with SSL certificate errors (waiting on Manus support fix)
+- [ ] Verify DATABASE_URL is correctly set in production environment
+- [ ] Ensure seed script runs automatically on production deployment
