@@ -279,93 +279,95 @@ export async function searchArtists(filters: {
   availableFrom?: string;
   availableTo?: string;
 }) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  let query = db.select().from(artistProfiles);
-  
-  // Note: Genre filtering with JSON arrays requires custom SQL or post-processing
-  // For MVP, we'll return all and filter in application code if needed
-  
-  const results = await query;
-  
-  // Apply filters in application code for MVP
-  let filtered = results;
-  
-  // Filter by genre
-  if (filters.genre && filters.genre.length > 0) {
-    filtered = filtered.filter(a => {
-      const artistGenres = Array.isArray(a.genre) ? a.genre : [];
-      return filters.genre!.some(selectedGenre => 
-        artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
-      );
-    });
-  }
-  
-  if (filters.location) {
-    filtered = filtered.filter(a => 
-      a.location?.toLowerCase().includes(filters.location!.toLowerCase())
-    );
-  }
-  
-  if (filters.minFee !== undefined) {
-    filtered = filtered.filter(a => 
-      a.feeRangeMin !== null && a.feeRangeMin >= filters.minFee!
-    );
-  }
-  
-  if (filters.maxFee !== undefined) {
-    filtered = filtered.filter(a => 
-      a.feeRangeMax !== null && a.feeRangeMax <= filters.maxFee!
-    );
-  }
-  
-  // Filter by availability dates if provided
-  if (filters.availableFrom || filters.availableTo) {
-    // Get availability for all artists
-    const artistIds = filtered.map(a => a.id);
-    const availabilities = await db.select().from(availability).where(
-      sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
-    );
+  try {
+    const db = await getDb();
+    if (!db) return [];
     
-    // Filter artists who have availability in the requested date range
-    filtered = filtered.filter(artist => {
-      const artistAvailability = availabilities.filter(av => av.artistId === artist.id);
-      if (artistAvailability.length === 0) return false;
-      
-      return artistAvailability.some(av => {
-        const avDate = new Date(av.date);
-        const fromDate = filters.availableFrom ? new Date(filters.availableFrom) : null;
-        const toDate = filters.availableTo ? new Date(filters.availableTo) : null;
-        
-        if (fromDate && avDate < fromDate) return false;
-        if (toDate && avDate > toDate) return false;
-        return true;
+    let query = db.select().from(artistProfiles);
+    
+    const results = await query;
+    
+    let filtered = results;
+    
+    if (filters.genre && filters.genre.length > 0) {
+      filtered = filtered.filter(a => {
+        const artistGenres = Array.isArray(a.genre) ? a.genre : [];
+        return filters.genre!.some(selectedGenre => 
+          artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
+        );
       });
-    });
+    }
+    
+    if (filters.location) {
+      filtered = filtered.filter(a => 
+        a.location?.toLowerCase().includes(filters.location!.toLowerCase())
+      );
+    }
+    
+    if (filters.minFee !== undefined) {
+      filtered = filtered.filter(a => 
+        a.feeRangeMin !== null && a.feeRangeMin >= filters.minFee!
+      );
+    }
+    
+    if (filters.maxFee !== undefined) {
+      filtered = filtered.filter(a => 
+        a.feeRangeMax !== null && a.feeRangeMax <= filters.maxFee!
+      );
+    }
+    
+    if (filters.availableFrom || filters.availableTo) {
+      const artistIds = filtered.map(a => a.id);
+      const availabilities = await db.select().from(availability).where(
+        sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
+      );
+      
+      filtered = filtered.filter(artist => {
+        const artistAvailability = availabilities.filter(av => av.artistId === artist.id);
+        if (artistAvailability.length === 0) return false;
+        
+        return artistAvailability.some(av => {
+          const avDate = new Date(av.date);
+          const fromDate = filters.availableFrom ? new Date(filters.availableFrom) : null;
+          const toDate = filters.availableTo ? new Date(filters.availableTo) : null;
+          
+          if (fromDate && avDate < fromDate) return false;
+          if (toDate && avDate > toDate) return false;
+          return true;
+        });
+      });
+    }
+    
+    return filtered;
+  } catch (error) {
+    console.error('[Search Artists] Database query error:', error);
+    return [];
   }
-  
-  return filtered;
 }
 
 export async function getAllArtists() {
-  const db = await getDb();
-  if (!db) return [];
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    const artists = await db.select().from(artistProfiles);
   
-  const artists = await db.select().from(artistProfiles);
-  
-  // Ensure all JSON fields are properly parsed and serializable
-  return artists.map(artist => ({
-    ...artist,
-    genre: Array.isArray(artist.genre) ? artist.genre : [],
-    mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
-    socialLinks: artist.socialLinks || {},
-    // Ensure all fields are serializable
-    profilePhotoUrl: artist.profilePhotoUrl || null,
-    websiteUrl: artist.websiteUrl || null,
-    bio: artist.bio || null,
-    location: artist.location || null,
-  }));
+    // Ensure all JSON fields are properly parsed and serializable
+    return artists.map(artist => ({
+      ...artist,
+      genre: Array.isArray(artist.genre) ? artist.genre : [],
+      mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
+      socialLinks: artist.socialLinks || {},
+      // Ensure all fields are serializable
+      profilePhotoUrl: artist.profilePhotoUrl || null,
+      websiteUrl: artist.websiteUrl || null,
+      bio: artist.bio || null,
+      location: artist.location || null,
+    }));
+  } catch (error) {
+    console.error('[Get All Artists] Database query error:', error);
+    return [];
+  }
 }
 
 // ============= VENUE PROFILE FUNCTIONS =============
