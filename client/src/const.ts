@@ -20,10 +20,22 @@ export const getLoginUrl = () => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = import.meta.env.VITE_APP_ID || "";
-    // FIXED: Use BASE_URL (set by Manus) for OAuth redirect
-    // BASE_URL is automatically configured to the correct deployment domain
-    // This avoids the bug where Manus OAuth server uses req.headers.origin
-    const baseUrl = import.meta.env.BASE_URL || window.location.origin;
+    
+    // FIXED: Ensure baseUrl always has a valid scheme
+    // BASE_URL may be empty in some environments, so we need proper fallback
+    let baseUrl = import.meta.env.BASE_URL;
+    
+    // If BASE_URL is empty or missing scheme, use window.location.origin
+    if (!baseUrl || !baseUrl.match(/^https?:\/\/|^manus:\/\//)) {
+      baseUrl = window.location.origin;
+    }
+    
+    // Final validation: ensure baseUrl has a scheme
+    if (!baseUrl.match(/^https?:\/\/|^manus:\/\//)) {
+      console.error("Invalid baseUrl:", baseUrl);
+      return "";
+    }
+    
     const redirectUri = `${baseUrl}/api/oauth/callback`;
     const state = btoa(redirectUri);
 
