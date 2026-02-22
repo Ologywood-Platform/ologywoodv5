@@ -3998,3 +3998,9 @@ The Ologywood platform is production-ready with:
 - [ ] OAuth login redirect still failing with SSL certificate errors (waiting on Manus support fix)
 - [ ] Verify DATABASE_URL is correctly set in production environment
 - [ ] Ensure seed script runs automatically on production deployment
+
+## Current Production Issues (2026-02-22)
+- [x] Fixed: Database initialization now skips old TiDB connection and waits for Manus built-in database
+- [ ] Need to populate database with 627 artists and 100 venues using seed script (requires production deployment)
+- [ ] OAuth login still redirecting to wrong domain (waiting on Manus support)
+- [x] DATABASE_URL configuration issue resolved - will use Manus built-in database in production

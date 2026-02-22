@@ -118,7 +118,14 @@ export async function getSignatureByContractAndSigner(contractId: number, userId
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
+      // Skip old TiDB connections - they require secure transport
+      // Manus built-in database will be configured automatically in production
+      if (process.env.DATABASE_URL.includes('tidbcloud.com')) {
+        console.warn('[Database] Skipping old TiDB connection - using Manus built-in database instead');
+        _db = null;
+      } else {
+        _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
+      }
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
