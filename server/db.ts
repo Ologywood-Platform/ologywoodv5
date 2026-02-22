@@ -118,14 +118,7 @@ export async function getSignatureByContractAndSigner(contractId: number, userId
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      // Skip old TiDB connections - they require secure transport
-      // Manus built-in database will be configured automatically in production
-      if (process.env.DATABASE_URL.includes('tidbcloud.com')) {
-        console.warn('[Database] Skipping old TiDB connection - using Manus built-in database instead');
-        _db = null;
-      } else {
-        _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
-      }
+      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -288,8 +281,8 @@ export async function searchArtists(filters: {
 }) {
   const db = await getDb();
   if (!db) {
-    console.warn('[Artist Search] Database not available - returning empty results. This is expected in development before production deployment.');
-    return [];
+    console.error('[Artist Search] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for artist search');
   }
   
   let query = db.select().from(artistProfiles);
@@ -361,8 +354,8 @@ export async function searchArtists(filters: {
 export async function getAllArtists() {
   const db = await getDb();
   if (!db) {
-    console.warn('[Artist GetAll] Database not available - returning empty results. This is expected in development before production deployment.');
-    return [];
+    console.error('[Artist GetAll] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for getting all artists');
   }
   
   const artists = await db.select().from(artistProfiles);
