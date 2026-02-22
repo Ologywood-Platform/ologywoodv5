@@ -13,48 +13,30 @@ function safeUrl(value?: string): URL | null {
   }
 }
 
-// Cache for OAuth config to avoid repeated API calls
-let cachedOAuthConfig: any = null;
-let configPromise: Promise<any> | null = null;
-
-// Fetch OAuth config from server
-async function fetchOAuthConfig() {
-  if (cachedOAuthConfig) {
-    return cachedOAuthConfig;
-  }
-  
-  if (configPromise) {
-    return configPromise;
-  }
-  
-  configPromise = (async () => {
-    try {
-      const response = await fetch('/api/trpc/auth.getOAuthConfig');
-      if (!response.ok) {
-        throw new Error('Failed to fetch OAuth config');
-      }
-      const data = await response.json();
-      cachedOAuthConfig = data.result?.data || {};
-      return cachedOAuthConfig;
-    } catch (error) {
-      console.error("Error fetching OAuth config:", error);
-      return {};
-    }
-  })();
-  
-  return configPromise;
-}
-
-// Generate login URL at runtime using OAuth config from server
-export const getLoginUrl = async () => {
+// Generate login URL at runtime so redirect URI reflects the current origin.
+// CRITICAL: Do NOT use req.headers.origin - it can be empty or incorrect
+// Use BASE_URL which is automatically set by Manus to the correct deployment domain
+export const getLoginUrl = () => {
   try {
-    const config = await fetchOAuthConfig();
+    const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
+    const appId = import.meta.env.VITE_APP_ID || "";
     
-    const oauthPortalUrl = config.oauthPortalUrl || import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
-    const appId = config.appId || import.meta.env.VITE_APP_ID || "";
-    const oauthRedirectBase = config.oauthRedirectBase || import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || window.location.origin;
+    // FIXED: Ensure baseUrl always has a valid scheme
+    // BASE_URL may be empty in some environments, so we need proper fallback
+    let baseUrl = import.meta.env.BASE_URL;
     
-    const redirectUri = `${oauthRedirectBase}/api/oauth/callback`;
+    // If BASE_URL is empty or missing scheme, use window.location.origin
+    if (!baseUrl || !baseUrl.match(/^https?:\/\/|^manus:\/\//)) {
+      baseUrl = window.location.origin;
+    }
+    
+    // Final validation: ensure baseUrl has a scheme
+    if (!baseUrl.match(/^https?:\/\/|^manus:\/\//)) {
+      console.error("Invalid baseUrl:", baseUrl);
+      return "";
+    }
+    
+    const redirectUri = `${baseUrl}/api/oauth/callback`;
     const state = btoa(redirectUri);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {

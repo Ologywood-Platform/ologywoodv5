@@ -38,35 +38,12 @@ function LogoutButton() {
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [loginUrl, setLoginUrl] = useState("");
-  // Use artist.search with empty filters to get all artists (same as Browse page)
-  const { data: artists, isLoading } = trpc.artist.search.useQuery({});
-  
-  // Fetch login URL on component mount
-  useEffect(() => {
-    const fetchLoginUrl = async () => {
-      const url = await getLoginUrl();
-      setLoginUrl(url);
-    };
-    fetchLoginUrl();
-  }, []);
+  const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
 
   // Set SEO meta tags
   useEffect(() => {
     setMetaTags(pageMetaTags.home);
   }, []);
-  
-  const handleSignIn = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!loginUrl) {
-      const url = await getLoginUrl();
-      if (url) {
-        window.location.href = url;
-      }
-    } else {
-      window.location.href = loginUrl;
-    }
-  };
 
   // Get the correct dashboard URL based on user role
   const getDashboardUrl = () => {
@@ -115,9 +92,9 @@ export default function Home() {
                     Browse
                   </Button>
                 </a>
-                <Button size="sm" className="text-xs sm:text-sm px-2 sm:px-4" onClick={handleSignIn}>
-                  Sign In
-                </Button>
+                <a href={getLoginUrl()}>
+                  <Button size="sm" className="text-xs sm:text-sm px-2 sm:px-4">Sign In</Button>
+                </a>
               </>
             )}
           </nav>
@@ -136,9 +113,9 @@ export default function Home() {
           
           {!isAuthenticated && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={handleSignIn}>
-                  Sign In
-                </Button>
+              <a href={getLoginUrl()}>
+                <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">Sign In</Button>
+              </a>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
                   Browse Artists
@@ -189,9 +166,9 @@ export default function Home() {
             Join thousands of venues and event organizers who trust Ologywood to find and book amazing artists.
           </p>
           {!isAuthenticated && (
-            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={handleSignIn}>
-              Sign In
-            </Button>
+            <a href={getLoginUrl()}>
+              <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8">Get Started Today</Button>
+            </a>
           )}
         </div>
       </section>

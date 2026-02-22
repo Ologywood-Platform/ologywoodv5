@@ -26,26 +26,16 @@ export const SuggestedFollows: React.FC = () => {
 
   useEffect(() => {
     if (artists && artists.length > 0) {
-      const mappedArtists: SuggestedArtist[] = artists.slice(0, 4).map((artist: any) => {
-        let genres: string[] = [];
-        if (Array.isArray(artist.genre)) {
-          genres = artist.genre.filter((g: any) => g && typeof g === 'string');
-        } else if (typeof artist.genre === 'string' && artist.genre) {
-          genres = artist.genre.split(',').map((g: string) => g.trim()).filter((g: string) => g);
-        } else if (Array.isArray(artist.genres)) {
-          genres = artist.genres.filter((g: any) => g && typeof g === 'string');
-        }
-        return {
-          id: artist.id,
-          name: artist.artistName || artist.name || 'Unknown',
-          genres,
-          location: artist.location,
-          profilePhotoUrl: artist.profilePhotoUrl,
-          rating: artist.rating || 4.5,
-          followers: Math.floor(Math.random() * 500) + 100,
-          isFollowing: false,
-        };
-      });
+      const mappedArtists: SuggestedArtist[] = artists.slice(0, 4).map((artist: any) => ({
+        id: artist.id,
+        name: artist.artistName || artist.name,
+        genres: artist.genre || artist.genres || [],
+        location: artist.location,
+        profilePhotoUrl: artist.profilePhotoUrl,
+        rating: artist.rating || 4.5,
+        followers: Math.floor(Math.random() * 500) + 100,
+        isFollowing: false,
+      }));
       setSuggestedArtists(mappedArtists);
       setIsLoading(false);
     }
@@ -118,14 +108,11 @@ export const SuggestedFollows: React.FC = () => {
                 {/* Genres */}
                 {artist.genres && artist.genres.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2 mb-3">
-                    {artist.genres
-                      .filter(g => g && typeof g === 'string')
-                      .slice(0, 2)
-                      .map((g, idx) => (
-                        <span key={`${artist.id}-genre-${g}-${idx}`} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                          {g}
-                        </span>
-                      ))}
+                    {artist.genres.slice(0, 2).map((g, idx) => (
+                      <span key={idx} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                        {g}
+                      </span>
+                    ))}
                   </div>
                 )}
 
@@ -149,9 +136,17 @@ export const SuggestedFollows: React.FC = () => {
                       : 'bg-purple-600 text-white hover:bg-purple-700'
                   }`}
                 >
-                  {artist.isFollowing && <Heart className="w-4 h-4 fill-current" />}
-                  {!artist.isFollowing && <Plus className="w-4 h-4" />}
-                  <span>{artist.isFollowing ? 'Following' : 'Follow'}</span>
+                  {artist.isFollowing ? (
+                    <>
+                      <Heart className="w-4 h-4 fill-current" />
+                      Following
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Follow
+                    </>
+                  )}
                 </button>
               </div>
             </div>

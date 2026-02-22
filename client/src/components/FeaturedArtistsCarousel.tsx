@@ -32,13 +32,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
   }, []);
 
   if (!artists || artists.length === 0) {
-    return (
-      <section className="py-12 sm:py-16 bg-gradient-to-b from-background to-secondary/5">
-        <div className="container mx-auto px-3 sm:px-4">
-          <p className="text-center text-muted-foreground">No featured artists available at this time.</p>
-        </div>
-      </section>
-    );
+    return null;
   }
 
   const totalSlides = Math.ceil(artists.length / itemsPerView);
@@ -86,8 +80,8 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                   />
                 ))
             ) : (
-              visibleArtists.map((artist, index) => (
-                <Link key={`${artist.id}-${index}`} href={`/artist/${artist.id}`}>
+              visibleArtists.map((artist) => (
+                <Link key={artist.id} href={`/artist/${artist.id}`}>
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted h-64 sm:h-72 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {artist.profilePhotoUrl ? (
@@ -110,7 +104,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                       </h3>
                       {artist.genre && (
                         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-                          {Array.isArray(artist.genre) ? artist.genre.join(', ') : artist.genre}
+                          {artist.genre}
                         </p>
                       )}
                       {artist.location && (
@@ -154,7 +148,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                   .fill(0)
                   .map((_, i) => (
                     <button
-                      key={`slide-${i}`}
+                      key={i}
                       onClick={() => setCurrentIndex(i)}
                       className={`h-2 w-2 rounded-full transition-all ${
                         i === currentIndex

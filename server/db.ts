@@ -1,31 +1,6 @@
+import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
-import * as stubs from "./db-stubs";
-
-export const removeSavedEvent = stubs.removeSavedEvent;
-export const getVenueProfileByToken = stubs.getVenueProfileByToken;
-export const getUserById = stubs.getUserById;
-export const setAvailability = stubs.setAvailability;
-export const getVenuesWhoFavoritedArtist = stubs.getVenuesWhoFavoritedArtist;
-export const deleteAvailability = stubs.deleteAvailability;
-export const getUserSavedEvents = stubs.getUserSavedEvents;
-export const getArtistEventHistory = stubs.getArtistEventHistory;
-export const getEventHistoryById = stubs.getEventHistoryById;
-export const getEmailPreferences = stubs.getEmailPreferences;
-export const createEmailPreferences = stubs.createEmailPreferences;
-export const getArtistEvents = stubs.getArtistEvents;
-export const getArtistPublicEvents = stubs.getArtistPublicEvents;
-export const getArtistUpcomingEvents = stubs.getArtistUpcomingEvents;
-export const getEventPhotos = stubs.getEventPhotos;
-export const addEventPhoto = stubs.addEventPhoto;
-export const deleteEventPhoto = stubs.deleteEventPhoto;
-export const deleteEventRecurrence = stubs.deleteEventRecurrence;
-export const getEventRecurrence = stubs.getEventRecurrence;
-export const searchPublicEvents = stubs.searchPublicEvents;
-export const saveEvent = stubs.saveEvent;
-export const isEventSaved = stubs.isEventSaved;
-
 import { 
   User, InsertUser, users, 
   artistProfiles, InsertArtistProfile, ArtistProfile,
@@ -54,17 +29,11 @@ import {
   savedEvents, InsertSavedEvent, SavedEvent
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { eq, sql } from "drizzle-orm";
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _pool: ReturnType<typeof mysql.createPool> | null = null;
-
-export function getPool() {
-  return _pool;
-}
 
 // ============= CALENDAR EVENT FUNCTIONS (DEPRECATED) =============
 // Calendar functions removed - calendarRouter is deprecated and commented out in routers.ts
@@ -131,96 +100,31 @@ export async function createSignature(data: InsertSignature): Promise<Signature>
   return signature[0] as Signature;
 }
 
-export async function getSignatureById(id: number): Promise<Signature | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(signatures).where(eq(signatures.id, id)).limit(1);
-  return result[0];
-}
-
 export async function getSignaturesByContractId(contractId: number): Promise<Signature[]> {
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(signatures).where(eq(signatures.contractId, contractId));
 }
 
-export async function updateSignature(id: number, data: Partial<InsertSignature>): Promise<Signature | undefined> {
+export async function getSignatureByContractAndSigner(contractId: number, userId: number): Promise<Signature | undefined> {
   const db = await getDb();
   if (!db) return undefined;
-  
-  await db.update(signatures).set(data).where(eq(signatures.id, id));
-  return await getSignatureById(id);
+  const result = await db.select().from(signatures).where(
+    and(eq(signatures.contractId, contractId), eq(signatures.userId, userId))
+  ).limit(1);
+  return result[0];
 }
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      // Parse DATABASE_URL to extract connection parameters
-      const url = new URL(process.env.DATABASE_URL);
-      const pool = mysql.createPool({
-        host: url.hostname,
-        port: parseInt(url.port || '3306'),
-        user: url.username,
-        password: url.password,
-        database: url.pathname.slice(1),
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-        enableKeepAlive: true,
-        ssl: {} // Enable SSL for TiDB with default settings
-      });
-      _pool = pool;
-      _db = drizzle(pool, { schema, mode: 'default' });
-      console.log("[Database] Connected successfully to TiDB");
-      // Connection is lazy - will be tested on first query
+      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
     } catch (error) {
-      console.error("[Database] Failed to connect:", error);
+      console.warn("[Database] Failed to connect:", error);
       _db = null;
     }
   }
   return _db;
-}
-
-// ============= HELPER FUNCTIONS =============
-
-/**
- * Parse artist profile to ensure genre is always an array
- * Handles cases where genre might be string, JSON, or already an array
- */
-function parseArtistProfile(artist: any): ArtistProfile {
-  if (!artist) return undefined;
-  
-  let genre: string[] = [];
-  if (typeof artist.genre === 'string') {
-    try {
-      genre = JSON.parse(artist.genre);
-    } catch {
-      genre = artist.genre.split(',').map((g: string) => g.trim()).filter((g: string) => g);
-    }
-  } else if (Array.isArray(artist.genre)) {
-    genre = artist.genre;
-  }
-  
-  let socialLinks = artist.socialLinks;
-  if (typeof socialLinks === 'string') {
-    try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
-  }
-  
-  let mediaGallery = artist.mediaGallery;
-  if (typeof mediaGallery === 'string') {
-    try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
-  }
-  
-  return {
-    ...artist,
-    genre: genre || [],
-    socialLinks: socialLinks || {},
-    mediaGallery: mediaGallery || { photos: [], videos: [] },
-    profilePhotoUrl: artist.profilePhotoUrl || null,
-    websiteUrl: artist.websiteUrl || null,
-    bio: artist.bio || null,
-    location: artist.location || null
-  };
 }
 
 // ============= USER FUNCTIONS =============
@@ -230,93 +134,141 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     throw new Error("User openId is required for upsert");
   }
 
-  await getDb();
-  const pool = getPool();
-  if (!pool) {
-    console.warn("[Database] Cannot upsert user: pool not available");
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot upsert user: database not available");
     return;
   }
 
   try {
-    const name = user.name ?? null;
-    const email = user.email ?? null;
-    const loginMethod = user.loginMethod ?? null;
-    const lastSignedIn = user.lastSignedIn ?? new Date();
-    const role = user.role ?? 'user';
+    const values: InsertUser = {
+      openId: user.openId,
+    };
+    const updateSet: Record<string, unknown> = {};
 
-    const sql = 'INSERT INTO users (openId, name, email, loginMethod, lastSignedIn, role, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email), loginMethod = VALUES(loginMethod), lastSignedIn = VALUES(lastSignedIn), updatedAt = NOW()';
+    const textFields = ["name", "email", "loginMethod"] as const;
+    type TextField = (typeof textFields)[number];
 
-    await pool.query(sql, [user.openId, name, email, loginMethod, lastSignedIn, role]);
-  } catch (error) {
-    console.error("[Database] Error upserting user:", error);
-  }
-}
+    const assignNullable = (field: TextField) => {
+      const value = user[field];
+      if (value === undefined) return;
+      const normalized = value ?? null;
+      values[field] = normalized;
+      updateSet[field] = normalized;
+    };
 
-export async function getUserByOpenId(openId: string): Promise<User | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result[0];
-}
+    textFields.forEach(assignNullable);
 
-export async function updateUserRole(userId: number, role: string): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db.update(users).set({ role }).where(eq(users.id, userId));
-}
-
-// ============= ARTIST PROFILE FUNCTIONS =============
-
-export async function getArtistProfileByUserId(userId: number): Promise<ArtistProfile | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : undefined;
-}
-
-export async function getArtistProfileById(id: number): Promise<ArtistProfile | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : undefined;
-}
-
-export async function createArtistProfile(data: InsertArtistProfile): Promise<ArtistProfile> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  try {
-    const result = await db.insert(artistProfiles).values(data);
-    const artistId = (result as any).insertId;
-    
-    if (!artistId) {
-      console.error('[createArtistProfile] No insertId from insert');
-      throw new Error('Failed to get insert ID');
+    if (user.lastSignedIn !== undefined) {
+      values.lastSignedIn = user.lastSignedIn;
+      updateSet.lastSignedIn = user.lastSignedIn;
     }
-    
-    const artist = await db.select().from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
-    
-    if (!artist || !artist[0]) {
-      console.error('[createArtistProfile] Failed to retrieve created artist');
-      throw new Error('Failed to retrieve created artist');
+    if (user.role !== undefined) {
+      values.role = user.role;
+      updateSet.role = user.role;
+    } else if (user.openId === ENV.ownerOpenId) {
+      values.role = 'admin';
+      updateSet.role = 'admin';
     }
-    
-    return parseArtistProfile(artist[0]);
+    // NOTE: If role is not provided and user is not owner, we don't update the role field
+    // This preserves the existing role when updating an existing user via OAuth
+
+    if (!values.lastSignedIn) {
+      values.lastSignedIn = new Date();
+    }
+
+    if (Object.keys(updateSet).length === 0) {
+      updateSet.lastSignedIn = new Date();
+    }
+
+    try {
+      await db.insert(users).values(values).onDuplicateKeyUpdate({
+        set: updateSet,
+      });
+    } catch (insertError: any) {
+      // If it's a duplicate key error, try updating instead
+      if (insertError?.code === 'ER_DUP_ENTRY') {
+        console.log("[Database] User already exists, updating instead");
+        await db.update(users).set(updateSet).where(eq(users.openId, user.openId));
+      } else {
+        throw insertError;
+      }
+    }
   } catch (error) {
-    console.error('[createArtistProfile] Error:', error);
+    console.error("[Database] Failed to upsert user:", error);
     throw error;
   }
 }
 
-export async function updateArtistProfile(id: number, data: Partial<InsertArtistProfile>): Promise<ArtistProfile | undefined> {
+export async function getUserByOpenId(openId: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user: database not available");
+    return undefined;
+  }
+
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateUserRole(userId: number, role: 'artist' | 'venue') {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function updateUser(userId: number, updates: { name?: string; email?: string }) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  await db.update(users).set(updates).where(eq(users.id, userId));
+}
+
+export async function getUserById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
   
-  await db.update(artistProfiles).set(data).where(eq(artistProfiles.id, id));
-  const updated = await getArtistProfileById(id);
-  return updated ? parseArtistProfile(updated) : undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// ============= ARTIST PROFILE FUNCTIONS =============
+
+export async function createArtistProfile(profile: InsertArtistProfile) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(artistProfiles).values(profile);
+  return result;
+}
+
+export async function getArtistProfileByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getArtistProfileById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function updateArtistProfile(id: number, updates: Partial<ArtistProfile>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(artistProfiles).set(updates).where(eq(artistProfiles.id, id));
 }
 
 export async function searchArtists(filters: {
@@ -327,25 +279,26 @@ export async function searchArtists(filters: {
   availableFrom?: string;
   availableTo?: string;
 }) {
-  let results: any[] = [];
-  try {
-    console.log('[searchArtists] Fetching artists...');
-    // Use getAllArtists which properly parses data via Drizzle ORM
-    results = await getAllArtists();
-    console.log(`[searchArtists] Fetched ${results.length} artists from database`);
-  } catch (error) {
-    console.error('[searchArtists] Query failed:', error);
-    // Fallback: return empty array
-    return [];
+  const db = await getDb();
+  if (!db) {
+    console.error('[Artist Search] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for artist search');
   }
+  
+  let query = db.select().from(artistProfiles);
+  
+  // Note: Genre filtering with JSON arrays requires custom SQL or post-processing
+  // For MVP, we'll return all and filter in application code if needed
+  
+  const results = await query;
   
   // Apply filters in application code for MVP
   let filtered = results;
   
-  // Filter by genre (genre is always an array after parseArtistProfile)
+  // Filter by genre
   if (filters.genre && filters.genre.length > 0) {
     filtered = filtered.filter(a => {
-      const artistGenres = a.genre || [];
+      const artistGenres = Array.isArray(a.genre) ? a.genre : [];
       return filters.genre!.some(selectedGenre => 
         artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
       );
@@ -401,509 +354,1103 @@ export async function searchArtists(filters: {
 export async function getAllArtists() {
   const db = await getDb();
   if (!db) {
-    console.log("[getAllArtists] Database not available");
-    return [];
+    console.error('[Artist GetAll] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for getting all artists');
   }
   
-  try {
-    console.log("[getAllArtists] Fetching all artists using Drizzle ORM...");
-    // Use Drizzle ORM to fetch all artists
-    const artists = await db.select().from(artistProfiles);
-    console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
-    
-    // Ensure all JSON fields are properly parsed and serializable
-    return artists.map(artist => parseArtistProfile(artist));
-  } catch (error) {
-    console.error("[getAllArtists] Error fetching artists:", error);
-    return [];
-  }
+  const artists = await db.select().from(artistProfiles);
+  
+  // Ensure all JSON fields are properly parsed and serializable
+  return artists.map(artist => ({
+    ...artist,
+    genre: Array.isArray(artist.genre) ? artist.genre : [],
+    mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
+    socialLinks: artist.socialLinks || {},
+    // Ensure all fields are serializable
+    profilePhotoUrl: artist.profilePhotoUrl || null,
+    websiteUrl: artist.websiteUrl || null,
+    bio: artist.bio || null,
+    location: artist.location || null,
+  }));
 }
 
 // ============= VENUE PROFILE FUNCTIONS =============
 
-export async function getVenueProfileByUserId(userId: number): Promise<VenueProfile | undefined> {
+export async function createVenueProfile(profile: InsertVenueProfile) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
-  return result[0];
-}
-
-export async function getVenueProfileById(id: number): Promise<VenueProfile | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
-  return result[0];
-}
-
-export async function createVenueProfile(data: InsertVenueProfile): Promise<VenueProfile> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(venueProfiles).values(data);
-  const venueId = (result as any).insertId;
-  const venue = await db.select().from(venueProfiles).where(eq(venueProfiles.id, venueId)).limit(1);
-  return venue[0] as VenueProfile;
-}
-
-export async function updateVenueProfile(id: number, data: Partial<InsertVenueProfile>): Promise<VenueProfile | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  
-  await db.update(venueProfiles).set(data).where(eq(venueProfiles.id, id));
-  return await getVenueProfileById(id);
-}
-
-export async function getAllVenues() {
-  const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("Database not available");
   
   try {
-    const [venues] = await (db as any).pool.query('SELECT * FROM venue_profiles');
-    return (venues as any[]).map(venue => ({
-      ...venue,
-      amenities: venue.amenities ? JSON.parse(venue.amenities) : [],
-      socialLinks: venue.socialLinks ? JSON.parse(venue.socialLinks) : {},
-    }));
+    // Check if profile already exists
+    const existing = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, profile.userId)).limit(1);
+    
+    if (existing && existing.length > 0) {
+      // Update existing profile
+      const result = await db.update(venueProfiles)
+        .set({
+          organizationName: profile.organizationName,
+          contactName: profile.contactName || null,
+          contactPhone: profile.contactPhone || null,
+          location: (profile as any).location || null,
+          bio: (profile as any).bio || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(venueProfiles.userId, profile.userId));
+      return result;
+    }
+    
+    // Create new profile
+    const result = await db.insert(venueProfiles).values({
+      userId: profile.userId,
+      organizationName: profile.organizationName,
+      contactName: profile.contactName || null,
+      contactPhone: profile.contactPhone || null,
+      location: (profile as any).location || null,
+      bio: (profile as any).bio || null,
+    });
+    return result;
   } catch (error) {
-    console.error("[getAllVenues] Error fetching venues:", error);
-    return [];
+    console.error("Error creating/updating venue profile:", error);
+    throw error;
   }
 }
 
-export async function searchVenues(filters: {
-  query?: string;
-  location?: string;
-  capacity?: number;
-  amenities?: string[];
-}) {
-  const db = await getDb();
-  if (!db) return [];
-  
+// Old function - no longer used
+
+export async function getVenueProfileByUserId(userId: number) {
   try {
-    let sql_query = 'SELECT * FROM venue_profiles WHERE 1=1';
-    const params: any[] = [];
-    
-    if (filters.query) {
-      sql_query += ' AND (venueName LIKE ? OR description LIKE ?)';
-      params.push(`%${filters.query}%`, `%${filters.query}%`);
-    }
-    
-    if (filters.location) {
-      sql_query += ' AND location LIKE ?';
-      params.push(`%${filters.location}%`);
-    }
-    
-    if (filters.capacity) {
-      sql_query += ' AND capacity >= ?';
-      params.push(filters.capacity);
-    }
-    
-    const [venues] = await (db as any).pool.query(sql_query, params);
-    
-    return (venues as any[]).map(venue => ({
-      ...venue,
-      amenities: venue.amenities ? JSON.parse(venue.amenities) : [],
-      socialLinks: venue.socialLinks ? JSON.parse(venue.socialLinks) : {},
-    }));
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
+    return result.length > 0 ? result[0] : null;
   } catch (error) {
-    console.error("[searchVenues] Error searching venues:", error);
+    console.error('Error getting venue profile by user ID:', error);
+    return null;
+  }
+}
+
+export async function getVenueProfileById(id: number) {
+  try {
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error('Error getting venue profile by ID:', error);
+    return null;
+  }
+}
+
+export async function getVenueProfileByToken(token: string) {
+  try {
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select().from(venueProfiles).where(eq((venueProfiles as any).emailVerificationToken, token)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error('Error getting venue profile by token:', error);
+    return null;
+  }
+}
+
+export async function updateVenueProfile(id: number, updates: Partial<VenueProfile>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(venueProfiles).set(updates).where(eq(venueProfiles.id, id));
+}
+
+export async function searchVenues(options: { searchQuery?: string; location?: string; limit?: number; offset?: number } = {}) {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    const { searchQuery, location, limit = 20, offset = 0 } = options;
+    const conditions = [];
+    conditions.push(eq(venueProfiles.isListed, true));
+    if (searchQuery) {
+      conditions.push(like(venueProfiles.organizationName, `%${searchQuery}%`));
+    }
+    if (location) {
+      conditions.push(like(venueProfiles.location, `%${location}%`));
+    }
+    const venues = await db.select().from(venueProfiles).where(and(...conditions)).limit(limit).offset(offset);
+    return venues;
+  } catch (error) {
+    console.error('Error searching venues:', error);
     return [];
   }
 }
 
 // ============= RIDER TEMPLATE FUNCTIONS =============
 
-export async function getRiderTemplatesByArtistId(artistId: number): Promise<RiderTemplate[]> {
+export async function createRiderTemplate(template: InsertRiderTemplate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(riderTemplates).values(template);
+  // Get the last inserted template
+  const result = await db.select().from(riderTemplates)
+    .where(eq(riderTemplates.artistId, template.artistId as any))
+    .orderBy(desc(riderTemplates.createdAt))
+    .limit(1);
+  return result[0];
+}
+
+export async function getRiderTemplatesByArtistId(artistId: number) {
   const db = await getDb();
   if (!db) return [];
+  
   return await db.select().from(riderTemplates).where(eq(riderTemplates.artistId, artistId));
 }
 
-export async function getRiderTemplateById(id: number): Promise<RiderTemplate | undefined> {
+export async function getRiderTemplateById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
+  
+  const result = await db.select().from(riderTemplates).where(eq(riderTemplates.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateRiderTemplate(id: number, updates: Partial<RiderTemplate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(riderTemplates).set(updates).where(eq(riderTemplates.id, id));
+  // Return the updated template
   const result = await db.select().from(riderTemplates).where(eq(riderTemplates.id, id)).limit(1);
   return result[0];
 }
 
-export async function createRiderTemplate(data: InsertRiderTemplate): Promise<RiderTemplate> {
+export async function deleteRiderTemplate(id: number) {
   const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(riderTemplates).values(data);
-  const riderId = (result as any).insertId;
-  const rider = await db.select().from(riderTemplates).where(eq(riderTemplates.id, riderId)).limit(1);
-  return rider[0] as RiderTemplate;
-}
-
-export async function updateRiderTemplate(id: number, data: Partial<InsertRiderTemplate>): Promise<RiderTemplate | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  
-  await db.update(riderTemplates).set(data).where(eq(riderTemplates.id, id));
-  return await getRiderTemplateById(id);
-}
-
-export async function deleteRiderTemplate(id: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
+  if (!db) throw new Error("Database not available");
   
   await db.delete(riderTemplates).where(eq(riderTemplates.id, id));
 }
 
-// ============= BOOKING FUNCTIONS =============
+// ============= AVAILABILITY FUNCTIONS =============
 
-export async function createBooking(data: InsertBooking): Promise<Booking> {
+export async function setAvailability(avail: InsertAvailability) {
   const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(bookings).values(data);
-  const bookingId = (result as any).insertId;
-  const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
-  return booking[0] as Booking;
+  if (!db) throw new Error("Database not available");
+  
+  // Note: availability table doesn't have notes field
+  await db.insert(availability).values(avail).onDuplicateKeyUpdate({
+    set: { status: avail.status }
+  });
 }
 
-export async function getBookingById(id: number): Promise<Booking | undefined> {
+export async function getAvailabilityByArtistId(artistId: number, startDate?: string, endDate?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let query = db.select().from(availability).where(eq(availability.artistId, artistId));
+  
+  // If date range provided, filter (would need to add date comparison logic)
+  const results = await query;
+  
+  if (startDate && endDate) {
+    return results.filter(a => {
+      const dateStr = (a.date as unknown) instanceof Date ? ((a.date as unknown) as Date).toISOString().split('T')[0] : a.date;
+      return dateStr >= startDate && dateStr <= endDate;
+    });
+  }
+  
+  return results;
+}
+
+export async function getAvailabilityForDate(artistId: number, date: string) {
   const db = await getDb();
   if (!db) return undefined;
+  
+  const result = await db.select().from(availability)
+    .where(and(
+      eq(availability.artistId, artistId),
+      eq(availability.date, date)
+    ))
+    .limit(1);
+    
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function deleteAvailability(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(availability).where(eq(availability.id, id));
+}
+
+// ============= BOOKING FUNCTIONS =============
+
+export async function createBooking(booking: InsertBooking): Promise<Booking> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(bookings).values(booking);
+  // Get the inserted booking
+  const newBooking = await db.select().from(bookings)
+    .where(eq(bookings.id, sql`LAST_INSERT_ID()`))
+    .limit(1);
+  return newBooking[0] as Booking;
+}
+
+export async function getBookingById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
   const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
-  return result[0];
+  return result.length > 0 ? result[0] : undefined;
 }
 
 export async function getBookingsByArtistId(artistId: number): Promise<Booking[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(bookings).where(eq(bookings.artistId, artistId));
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    // Use simple select to avoid type inference issues
+    const results = await db.select().from(bookings)
+      .where(eq(bookings.artistId as any, artistId))
+      .orderBy(desc(bookings.createdAt));
+    return results as any[];
+  } catch (error) {
+    console.error('Error fetching bookings for artist:', error);
+    return [] as Booking[];
+  }
 }
 
-export async function getBookingsByVenueId(venueId: number): Promise<Booking[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(bookings).where(eq(bookings.venueId, venueId));
+export async function getBookingsByVenueId(venueId: number) {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    return await db.select().from(bookings)
+      .where(eq(bookings.venueId, venueId))
+      .orderBy(desc(bookings.createdAt));
+  } catch (error) {
+    console.error('Error fetching bookings for venue:', error);
+    return [];
+  }
 }
 
-export async function updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined> {
+export async function updateBooking(id: number, updates: Partial<Booking>) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) throw new Error("Database not available");
   
-  await db.update(bookings).set(data).where(eq(bookings.id, id));
-  return await getBookingById(id);
-}
-
-export async function updateSubscriptionStatus(userId: number, status: string): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
-  await db.update(userSubscriptions).set({ status }).where(eq(userSubscriptions.userId, userId));
-}
-
-export async function getSubscriptionByUserId(userId: number) {
-  const db = await getDb();
-  if (!db) return null;
-  
-  const result = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).limit(1);
-  return result[0] || null;
+  await db.update(bookings).set(updates).where(eq(bookings.id, id));
 }
 
 // ============= MESSAGE FUNCTIONS =============
 
-export async function createMessage(data: InsertMessage): Promise<Message> {
+export async function createMessage(message: InsertMessage) {
   const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(messages).values(data);
-  const messageId = (result as any).insertId;
-  const message = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1);
-  return message[0] as Message;
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(messages).values(message);
+  return result;
 }
 
-export async function getMessagesByBookingId(bookingId: number): Promise<Message[]> {
+export async function getMessagesByBookingId(bookingId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(messages).where(eq(messages.bookingId, bookingId));
+  
+  return await db.select().from(messages)
+    .where(eq(messages.bookingId, bookingId))
+    .orderBy(messages.createdAt);
 }
 
-export async function getMessageById(id: number): Promise<Message | undefined> {
+export async function markMessageAsRead(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(messages).set({ isRead: true }).where(eq(messages.id, id));
+}
+
+// ============= SUBSCRIPTION FUNCTIONS =============
+
+export async function createSubscription(subscription: InsertUserSubscription) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(userSubscriptions).values(subscription);
+  return result;
+}
+
+export async function getSubscriptionByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select({
+    id: userSubscriptions.id,
+    userId: userSubscriptions.userId,
+    tier: userSubscriptions.tier,
+    stripeCustomerId: userSubscriptions.stripeCustomerId,
+    stripeSubscriptionId: userSubscriptions.stripeSubscriptionId,
+    status: userSubscriptions.status,
+    createdAt: userSubscriptions.createdAt,
+    updatedAt: userSubscriptions.updatedAt,
+  }).from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateSubscription(userId: number, updates: Partial<UserSubscription>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(userSubscriptions).set(updates).where(eq(userSubscriptions.userId, userId));
+}
+
+export async function upsertSubscription(data: {
+  userId: number;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  tier?: string;
+  status: 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due';
+  currentPeriodEnd?: Date;
+}) {
+  const db = await getDb();
+  if (!db) return;
+
+  const validStatus: 'active' | 'cancelled' | 'past_due' | 'trialing' = (data.status === 'active' || data.status === 'canceled' || data.status === 'past_due' || data.status === 'trialing') ? (data.status === 'canceled' ? 'cancelled' : data.status) : 'active';
+  const tier = (data.tier as 'free' | 'starter' | 'professional') || 'free';
+  const insertData = { userId: data.userId, tier, status: validStatus, stripeCustomerId: data.stripeCustomerId, stripeSubscriptionId: data.stripeSubscriptionId };
+  await db.insert(userSubscriptions).values(insertData).onDuplicateKeyUpdate({
+    set: {
+      stripeCustomerId: data.stripeCustomerId,
+      stripeSubscriptionId: data.stripeSubscriptionId,
+      status: validStatus,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function updateSubscriptionStatus(
+  userId: number,
+  status: 'active' | 'cancelled' | 'past_due' | 'trialing'
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(userSubscriptions)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(userSubscriptions.userId, userId));
+}
+
+// ============= REVIEW FUNCTIONS =============
+
+export async function createReview(review: InsertReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(reviews).values(review);
+  return result;
+}
+
+export async function getReviewsByArtistId(artistId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Select only core columns to avoid schema mismatch
+  return await db.select({
+    id: reviews.id,
+    bookingId: reviews.bookingId,
+    artistId: reviews.artistId,
+    venueId: reviews.venueId,
+    rating: reviews.rating,
+    createdAt: reviews.createdAt,
+    updatedAt: reviews.updatedAt,
+  }).from(reviews)
+    .where(eq(reviews.artistId, artistId))
+    .orderBy(desc(reviews.createdAt));
+}
+
+export async function getReviewByBookingId(bookingId: number) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
-  return result[0];
+  
+  // Select only core columns to avoid schema mismatch
+  const result = await db.select({
+    id: reviews.id,
+    bookingId: reviews.bookingId,
+    artistId: reviews.artistId,
+    venueId: reviews.venueId,
+    rating: reviews.rating,
+    createdAt: reviews.createdAt,
+    updatedAt: reviews.updatedAt,
+  }).from(reviews).where(eq(reviews.bookingId, bookingId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
 }
 
-// ============= AVAILABILITY FUNCTIONS =============
-
-export async function createAvailability(data: InsertAvailability): Promise<Availability> {
+export async function getReviewById(reviewId: number) {
   const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(availability).values(data);
-  const availabilityId = (result as any).insertId;
-  const avail = await db.select().from(availability).where(eq(availability.id, availabilityId)).limit(1);
-  return avail[0] as Availability;
+  if (!db) return undefined;
+  
+  // Select only core columns to avoid schema mismatch
+  const result = await db.select({
+    id: reviews.id,
+    bookingId: reviews.bookingId,
+    artistId: reviews.artistId,
+    venueId: reviews.venueId,
+    rating: reviews.rating,
+    createdAt: reviews.createdAt,
+    updatedAt: reviews.updatedAt,
+  }).from(reviews).where(eq(reviews.id, reviewId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
 }
 
-export async function getAvailabilityByArtistId(artistId: number): Promise<Availability[]> {
+export async function updateReview(reviewId: number, updates: { comment?: string, rating?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(reviews).set({ ...updates, updatedAt: new Date() }).where(eq(reviews.id, reviewId));
+}
+
+export async function getAverageRatingForArtist(artistId: number): Promise<{ average: number; count: number }> {
+  const db = await getDb();
+  if (!db) return { average: 0, count: 0 };
+  
+  const artistReviews = await getReviewsByArtistId(artistId);
+  if (!artistReviews || artistReviews.length === 0) {
+    return { average: 0, count: 0 };
+  }
+  
+  const sum = artistReviews.reduce((acc, review) => acc + (review.rating ?? 0), 0);
+  return {
+    average: sum / artistReviews.length,
+    count: artistReviews.length,
+  };
+}
+
+export async function getUnreadMessageCountByBooking(bookingId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  // Note: recipientId and isRead columns may not exist in current schema
+  // Returning 0 for now
+  return 0;
+}
+
+export async function getTotalUnreadMessageCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  // Note: recipientId and isRead columns may not exist in current schema
+  // Returning 0 for now
+  return 0;
+}
+
+export async function markMessagesAsRead(bookingId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Note: recipientId and isRead columns may not exist in current schema
+  // Skipping update for now
+}
+
+// ============= VENUE REVIEW FUNCTIONS =============
+
+export async function createVenueReview(review: InsertVenueReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(venueReviews).values(review);
+  return result;
+}
+
+export async function getVenueReviewsByVenueId(venueId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(availability).where(eq(availability.artistId, artistId));
+  
+  return await db.select().from(venueReviews)
+    .where(eq(venueReviews.venueId, venueId))
+    .orderBy(desc(venueReviews.createdAt));
 }
+
+export async function getVenueReviewByBookingId(bookingId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.bookingId, bookingId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getVenueReviewById(reviewId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.id, reviewId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateVenueReview(reviewId: number, updates: { comment?: string, rating?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(venueReviews).set({ ...updates, updatedAt: new Date() }).where(eq(venueReviews.id, reviewId));
+}
+
+export async function getAverageRatingForVenue(venueId: number): Promise<{ average: number; count: number }> {
+  const db = await getDb();
+  if (!db) return { average: 0, count: 0 };
+  
+  const reviews = await getVenueReviewsByVenueId(venueId);
+  if (!reviews || reviews.length === 0) {
+    return { average: 0, count: 0 };
+  }
+  
+  const sum = reviews.reduce((acc, review) => acc + (review.rating ?? 0), 0);
+  return {
+    average: sum / reviews.length,
+    count: reviews.length,
+  };
+}
+
+
+// ============= FAVORITES FUNCTIONS =============
+
+export async function addFavorite(venueId: number, artistId: number) {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    // Check if already favorited
+    const existing = await db.select({ id: favorites.id, venueId: favorites.venueId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    await db.insert(favorites).values({ venueId, artistId });
+    return { venueId, artistId };
+  } catch (error) {
+    console.error('Error adding favorite:', error);
+    throw error;
+  }
+}
+
+export async function removeFavorite(venueId: number, artistId: number) {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    await db.delete(favorites)
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
+  } catch (error) {
+    console.error('Error removing favorite:', error);
+    throw error;
+  }
+}
+
+export async function getFavoritesByVenue(venueId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get favorites with artist profile details
+  const venueFavorites = await db.select().from(favorites)
+    .where(eq(favorites.venueId, venueId));
+  
+  if (venueFavorites.length === 0) return [];
+  
+  const artistIds = venueFavorites.map(f => f.artistId);
+  const artists = await db.select().from(artistProfiles)
+    .where(sql`${artistProfiles.id} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`);
+  
+  return artists;
+}
+
+export async function isFavorited(venueId: number, artistId: number) {
+  try {
+    const db = await getDb();
+    if (!db) return false;
+    
+    const result = await db.select({ id: favorites.id, venueId: favorites.venueId, artistId: favorites.artistId }).from(favorites)
+      .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)));
+    
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error checking if favorited:', error);
+    return false;
+  }
+}
+
+export async function getFavoriteCount(artistId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const result = await db.select().from(favorites)
+    .where(eq(favorites.artistId, artistId));
+  
+  return result.length;
+}
+
+
+export async function getVenuesWhoFavoritedArtist(artistId: number) {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+  
+  // Get all venues that favorited this artist
+  const venueFavorites = await db.select().from(favorites)
+    .where(eq(favorites.artistId, artistId));
+  
+  if (venueFavorites.length === 0) return [];
+  
+  const venueIds = venueFavorites.map(f => f.venueId);
+  
+  // Handle empty array case - SQL IN clause fails with empty arrays
+  if (venueIds.length === 0) return [];
+  
+  // Get venue profiles for those venues
+  const venueProfilesList = await db.select().from(venueProfiles)
+    .where(sql`${venueProfiles.id} IN (${sql.join(venueIds.map(id => sql`${id}`), sql`, `)})`);
+  
+  // Get user emails for those venues
+  const venueUsers = await db.select().from(users)
+    .where(sql`${users.id} IN (${sql.join(venueProfilesList.map(p => sql`${p.userId}`), sql`, `)})`);
+  
+  // Combine user and venue profile data
+  return venueUsers.map(user => {
+    const profile = venueProfilesList.find((p: VenueProfile) => p.userId === user.id);
+    return {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      organizationName: profile?.organizationName,
+    };
+  }).filter(v => v.email); // Only return venues with email addresses
+  } catch (error) {
+    console.error('Error getting venues who favorited artist:', error);
+    return []; // Return empty array on error instead of crashing
+  }
+}
+
+
+// ============= BOOKING TEMPLATE FUNCTIONS =============
+
+export async function createBookingTemplate(template: InsertBookingTemplate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(bookingTemplates).values(template);
+  return template;
+}
+
+export async function getBookingTemplatesByUserId(userId: number): Promise<BookingTemplate[]> {
+  try {
+    const db = await getDb();
+    if (!db) return [];
+    
+    const templates = await db.select().from(bookingTemplates)
+      .where(eq(bookingTemplates.venueId, userId))
+      .orderBy(desc(bookingTemplates.updatedAt));
+    
+    return templates as BookingTemplate[];
+  } catch (error) {
+    console.error('Error getting booking templates by user ID:', error);
+    return [];
+  }
+}
+
+export async function getBookingTemplateById(id: number): Promise<BookingTemplate | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(bookingTemplates)
+    .where(eq(bookingTemplates.id, id));
+  
+  return (result[0] as BookingTemplate) || null;
+}
+
+export async function updateBookingTemplate(id: number, updates: Partial<InsertBookingTemplate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(bookingTemplates)
+    .set(updates)
+    .where(eq(bookingTemplates.id, id));
+}
+
+export async function deleteBookingTemplate(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(bookingTemplates)
+    .where(eq(bookingTemplates.id, id));
+}
+
+
+// ============= ANALYTICS FUNCTIONS =============
+
+export async function trackProfileView(artistId: number, viewerUserId?: number, ipAddress?: string) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.insert(profileViews).values({
+    artistId,
+  });
+}
+
+export async function getProfileViewCount(artistId: number, days?: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  let conditions = [eq(profileViews.artistId, artistId)];
+  
+  // Note: viewedAt tracking not implemented in current schema
+  
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(profileViews)
+    .where(and(...conditions));
+  
+  return Number(result[0]?.count) || 0;
+}
+
+export async function getBookingStats(artistId: number) {
+  const db = await getDb();
+  if (!db) return {
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    cancelled: 0,
+    totalRevenue: 0,
+  };
+  
+  const allBookings = await db.select().from(bookings)
+    .where(eq(bookings.artistId, artistId));
+  
+  const stats = {
+    total: allBookings.length,
+    pending: allBookings.filter(b => b.status === 'pending').length,
+    confirmed: allBookings.filter(b => b.status === 'confirmed').length,
+    completed: allBookings.filter(b => b.status === 'completed').length,
+    cancelled: allBookings.filter(b => b.status === 'cancelled').length,
+    totalRevenue: allBookings
+      .filter(b => b.status === 'completed' && b.totalFee)
+      .reduce((sum, b) => sum + (typeof b.totalFee === 'number' ? b.totalFee : 0), 0),
+  };
+  
+  return stats;
+}
+
+export async function getRevenueByMonth(artistId: number, months: number = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  
+  const completedBookings = await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.artistId, artistId),
+        eq(bookings.status, 'completed'),
+        gte(bookings.eventDate, startDate)
+      )
+    )
+    .orderBy(bookings.eventDate);
+  
+  // Group by month
+  const revenueByMonth: { [key: string]: number } = {};
+  completedBookings.forEach(booking => {
+    if (booking.eventDate && booking.totalFee) {
+      const monthKey = booking.eventDate.toISOString().substring(0, 7); // YYYY-MM
+      const fee = typeof booking.totalFee === 'number' ? booking.totalFee : 0;
+      revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + fee;
+    }
+  });
+  
+  return Object.entries(revenueByMonth).map(([month, revenue]) => ({
+    month,
+    revenue,
+  }));
+}
+
+
+// ============= BOOKING REMINDER FUNCTIONS =============
 
 export async function getBookingsNeedingReminders() {
   const db = await getDb();
   if (!db) return [];
   
-  // Get bookings that are within 7 days and haven't been reminded yet
-  const result = await db.select().from(bookings);
-  return result.filter(booking => {
+  const now = new Date();
+  const sevenDaysFromNow = new Date(now);
+  sevenDaysFromNow.setDate(now.getDate() + 7);
+  const threeDaysFromNow = new Date(now);
+  threeDaysFromNow.setDate(now.getDate() + 3);
+  const oneDayFromNow = new Date(now);
+  oneDayFromNow.setDate(now.getDate() + 1);
+  
+  // Get all confirmed bookings with upcoming event dates
+  const upcomingBookings = await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.status, 'confirmed'),
+        gte(bookings.eventDate, now)
+      )
+    );
+  
+  // Get all sent reminders
+  const sentReminders = await db.select().from(bookingReminders);
+  
+  const bookingsNeedingReminders: Array<{
+    booking: any;
+    reminderType: 'upcoming' | 'deposit_due' | 'final_payment_due';
+  }> = [];
+  
+  for (const booking of upcomingBookings) {
+    if (!booking.eventDate) continue;
+    
     const eventDate = new Date(booking.eventDate);
-    const daysUntilEvent = Math.ceil((eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return daysUntilEvent === 7 || daysUntilEvent === 3 || daysUntilEvent === 1;
-  });
-}
-
-// ============= REVIEW FUNCTIONS =============
-
-export async function createReview(data: InsertReview): Promise<Review> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
+    const daysUntil = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if we need to send 7-day reminder
+    if (daysUntil <= 7 && daysUntil > 6) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
+      }
+    }
+    
+    // Check if we need to send 3-day reminder
+    if (daysUntil <= 3 && daysUntil > 2) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
+      }
+    }
+    
+    // Check if we need to send 1-day reminder
+    if (daysUntil <= 1 && daysUntil > 0) {
+      const alreadySent = sentReminders.some(
+        r => r.bookingId === booking.id && (r.reminderType as any) === ('7_days' as any)
+      );
+      if (!alreadySent) {
+        bookingsNeedingReminders.push({ booking: booking as any, reminderType: 'upcoming' });
+      }
+    }
   }
-
-  const result = await db.insert(reviews).values(data);
-  const reviewId = (result as any).insertId;
-  const review = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
-  return review[0] as Review;
+  
+  return bookingsNeedingReminders;
 }
 
-export async function getReviewsByArtistId(artistId: number): Promise<Review[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(reviews).where(eq(reviews.artistId, artistId));
-}
-
-export async function createVenueReview(data: InsertVenueReview): Promise<VenueReview> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(venueReviews).values(data);
-  const reviewId = (result as any).insertId;
-  const review = await db.select().from(venueReviews).where(eq(venueReviews.id, reviewId)).limit(1);
-  return review[0] as VenueReview;
-}
-
-export async function getVenueReviewsByVenueId(venueId: number): Promise<VenueReview[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(venueReviews).where(eq(venueReviews.venueId, venueId));
-}
-
-// ============= FAVORITE FUNCTIONS =============
-
-export async function addFavorite(userId: number, artistId: number): Promise<Favorite> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(favorites).values({ userId, artistId });
-  const favoriteId = (result as any).insertId;
-  const favorite = await db.select().from(favorites).where(eq(favorites.id, favoriteId)).limit(1);
-  return favorite[0] as Favorite;
-}
-
-export async function removeFavorite(userId: number, artistId: number): Promise<void> {
+export async function markReminderSent(bookingId: number, reminderType: string) {
   const db = await getDb();
   if (!db) return;
   
-  await db.delete(favorites).where(
-    sql`${favorites.userId} = ${userId} AND ${favorites.artistId} = ${artistId}`
-  );
+  await db.insert(bookingReminders).values({
+    bookingId,
+    reminderType,
+  } as any);
 }
 
-export async function getFavoritesByUserId(userId: number): Promise<Favorite[]> {
+
+// ============= CALENDAR FUNCTIONS =============
+
+export async function getVenueBookingsByDateRange(venueId: number, startDate: Date, endDate: Date) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(favorites).where(eq(favorites.userId, userId));
-}
-
-// ============= BOOKING TEMPLATE FUNCTIONS =============
-
-export async function createBookingTemplate(data: InsertBookingTemplate): Promise<BookingTemplate> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(bookingTemplates).values(data);
-  const templateId = (result as any).insertId;
-  const template = await db.select().from(bookingTemplates).where(eq(bookingTemplates.id, templateId)).limit(1);
-  return template[0] as BookingTemplate;
-}
-
-export async function getBookingTemplatesByVenueId(venueId: number): Promise<BookingTemplate[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(bookingTemplates).where(eq(bookingTemplates.venueId, venueId));
-}
-
-export async function getBookingTemplateById(id: number): Promise<BookingTemplate | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(bookingTemplates).where(eq(bookingTemplates.id, id)).limit(1);
-  return result[0];
-}
-
-export async function updateBookingTemplate(id: number, data: Partial<InsertBookingTemplate>): Promise<BookingTemplate | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
   
-  await db.update(bookingTemplates).set(data).where(eq(bookingTemplates.id, id));
-  return await getBookingTemplateById(id);
+  return await db.select().from(bookings)
+    .where(
+      and(
+        eq(bookings.venueId, venueId),
+        gte(bookings.eventDate, startDate),
+        lte(bookings.eventDate, endDate)
+      )
+    )
+    .orderBy(bookings.eventDate);
 }
 
-export async function deleteBookingTemplate(id: number): Promise<void> {
+export async function getFavoritedArtistsAvailability(userId: number, startDate: Date, endDate: Date) {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return [];
   
-  await db.delete(bookingTemplates).where(eq(bookingTemplates.id, id));
-}
-
-// ============= PROFILE VIEW FUNCTIONS =============
-
-export async function trackProfileView(data: InsertProfileView): Promise<ProfileView> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(profileViews).values(data);
-  const viewId = (result as any).insertId;
-  const view = await db.select().from(profileViews).where(eq(profileViews.id, viewId)).limit(1);
-  return view[0] as ProfileView;
-}
-
-export async function getProfileViewsByArtistId(artistId: number): Promise<ProfileView[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(profileViews).where(eq(profileViews.artistId, artistId));
-}
-
-// ============= BOOKING REMINDER FUNCTIONS =============
-
-export async function createBookingReminder(data: InsertBookingReminder): Promise<BookingReminder> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(bookingReminders).values(data);
-  const reminderId = (result as any).insertId;
-  const reminder = await db.select().from(bookingReminders).where(eq(bookingReminders.id, reminderId)).limit(1);
-  return reminder[0] as BookingReminder;
-}
-
-export async function getBookingRemindersByBookingId(bookingId: number): Promise<BookingReminder[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(bookingReminders).where(eq(bookingReminders.bookingId, bookingId));
-}
-
-// ============= EMAIL PREFERENCE FUNCTIONS =============
-
-export async function getEmailPreferencesByUserId(userId: number): Promise<EmailPreference | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(emailPreferences).where(eq(emailPreferences.userId, userId)).limit(1);
-  return result[0];
-}
-
-export async function updateEmailPreferences(userId: number, data: Partial<InsertEmailPreference>): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
+  // Get user's favorited artists
+  const userFavorites = await db.select().from(favorites)
+    .where(eq((favorites as any).userId, userId));
   
-  const existing = await getEmailPreferencesByUserId(userId);
-  if (existing) {
-    await db.update(emailPreferences).set(data).where(eq(emailPreferences.userId, userId));
-  } else {
-    await db.insert(emailPreferences).values({ userId, ...data } as InsertEmailPreference);
+  if (userFavorites.length === 0) return [];
+  
+  const artistIds = userFavorites.map(f => f.artistId);
+  
+  // Get availability for those artists in the date range
+  const availabilityRecords = await db.select().from(availability)
+    .where(
+      and(
+        artistIds.length > 0 ? inArray(availability.artistId, artistIds.filter(id => id !== null) as number[]) : undefined,
+        gte(availability.date, startDate as any),
+        lte(availability.date, endDate as any),
+        eq(availability.status, 'available')
+      )
+    );
+  
+  // Enrich with artist details
+  const enrichedAvailability = [];
+  for (const avail of availabilityRecords) {
+    const artist = await getArtistProfileById(avail.artistId);
+    if (artist) {
+      enrichedAvailability.push({
+        ...avail,
+        artistName: artist.artistName,
+      });
+    }
+  }
+  
+  return enrichedAvailability;
+}
+
+// ============= PAYMENT FUNCTIONS =============
+
+export async function updateBookingPaymentStatus(bookingId: number, paymentStatus: string, stripePaymentIntentId?: string, depositPaidAt?: Date, fullPaymentPaidAt?: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { paymentStatus };
+  if (stripePaymentIntentId) updates.stripePaymentIntentId = stripePaymentIntentId;
+  if (depositPaidAt) updates.depositPaidAt = depositPaidAt;
+  if (fullPaymentPaidAt) updates.fullPaymentPaidAt = fullPaymentPaidAt;
+  
+  await db.update(bookings)
+    .set(updates)
+    .where(eq(bookings.id, bookingId));
+}
+
+export async function recordRefund(bookingId: number, stripeRefundId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(bookings)
+    .set({ paymentStatus: "refunded", stripeRefundId })
+    .where(eq(bookings.id, bookingId));
+}
+
+export async function getPaymentHistory(bookingId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const booking = await db.select({
+    id: bookings.id,
+    paymentStatus: bookings.paymentStatus,
+    totalFee: bookings.totalFee,
+    depositAmount: bookings.depositAmount,
+    depositPaidAt: bookings.depositPaidAt,
+    // fullPaymentPaidAt: bookings.fullPaymentPaidAt,
+    stripePaymentIntentId: bookings.stripePaymentIntentId,
+    stripeRefundId: bookings.stripeRefundId,
+  })
+  .from(bookings)
+  .where(eq(bookings.id, bookingId))
+  .limit(1);
+  
+  return booking[0] || null;
+}
+
+
+// ============= EMAIL PREFERENCES FUNCTIONS =============
+
+export async function getEmailPreferences(userId: number): Promise<EmailPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select()
+    .from(emailPreferences)
+    .where(eq(emailPreferences.userId, userId))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function createEmailPreferences(userId: number): Promise<EmailPreference> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const data: InsertEmailPreference = {
+    userId,
+    frequency: 'weekly',
+    bookingUpdates: true,
+    newOpportunities: true,
+    platformNews: false,
+    weeklyDigest: true,
+    reminders: true,
+  };
+  
+  try {
+    const result = await db.insert(emailPreferences).values(data);
+    const prefId = (result as any).insertId;
+    
+    if (!prefId) {
+      // If insertId is not available, fetch by userId
+      const prefs = await db.select()
+        .from(emailPreferences)
+        .where(eq(emailPreferences.userId, userId))
+        .limit(1);
+      
+      if (prefs.length === 0) {
+        throw new Error("Failed to create email preferences");
+      }
+      return prefs[0] as EmailPreference;
+    }
+    
+    const prefs = await db.select()
+      .from(emailPreferences)
+      .where(eq(emailPreferences.id, prefId))
+      .limit(1);
+    
+    if (prefs.length === 0) {
+      throw new Error("Failed to retrieve created email preferences");
+    }
+    
+    return prefs[0] as EmailPreference;
+  } catch (error) {
+    console.error('Error creating email preferences:', error);
+    throw error;
   }
 }
 
-// ============= STRIPE FUNCTIONS =============
-
-export async function createStripeConnectAccount(data: InsertStripeConnectAccount): Promise<StripeConnectAccount> {
+export async function updateEmailPreferences(userId: number, updates: Partial<InsertEmailPreference>): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
+  if (!db) return null;
+  
+  // First check if preferences exist
+  let prefs = await getEmailPreferences(userId);
+  
+  // If not, create them
+  if (!prefs) {
+    prefs = await createEmailPreferences(userId);
   }
-
-  const result = await db.insert(stripeConnectAccounts).values(data);
-  const accountId = (result as any).insertId;
-  const account = await db.select().from(stripeConnectAccounts).where(eq(stripeConnectAccounts.id, accountId)).limit(1);
-  return account[0] as StripeConnectAccount;
+  
+  // Update the preferences
+  await db.update(emailPreferences)
+    .set(updates)
+    .where(eq(emailPreferences.userId, userId));
+  
+  // Return updated preferences
+  return getEmailPreferences(userId);
 }
 
-export async function getStripeConnectAccountByUserId(userId: number): Promise<StripeConnectAccount | undefined> {
+export async function deleteEmailPreferences(userId: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(stripeConnectAccounts).where(eq(stripeConnectAccounts.userId, userId)).limit(1);
-  return result[0];
-}
-
-// ============= PAYOUT FUNCTIONS =============
-
-export async function createArtistPayout(data: InsertArtistPayout): Promise<ArtistPayout> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
+  if (!db) return false;
+  
+  try {
+    const result = await db.delete(emailPreferences)
+      .where(eq(emailPreferences.userId, userId));
+    
+    return (result as any).affectedRows > 0;
+  } catch (error) {
+    console.error('Error deleting email preferences:', error);
+    return false;
   }
-
-  const result = await db.insert(artistPayouts).values(data);
-  const payoutId = (result as any).insertId;
-  const payout = await db.select().from(artistPayouts).where(eq(artistPayouts.id, payoutId)).limit(1);
-  return payout[0] as ArtistPayout;
 }
 
-export async function getArtistPayoutsByArtistId(artistId: number): Promise<ArtistPayout[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(artistPayouts).where(eq(artistPayouts.artistId, artistId));
-}
 
-// ============= INVOICE FUNCTIONS =============
-
-export async function createInvoice(data: InsertInvoice): Promise<Invoice> {
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(invoices).values(data);
-  const invoiceId = (result as any).insertId;
-  const invoice = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
-  return invoice[0] as Invoice;
-}
-
-export async function getInvoicesByBookingId(bookingId: number): Promise<Invoice[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(invoices).where(eq(invoices.bookingId, bookingId));
-}
 
 // ============= EVENT FUNCTIONS =============
 
+/**
+ * Create a new event for an artist
+ */
 export async function createEvent(data: InsertEvent): Promise<Event> {
   const db = await getDb();
   if (!db) {
@@ -916,36 +1463,148 @@ export async function createEvent(data: InsertEvent): Promise<Event> {
   return event[0] as Event;
 }
 
-export async function getEventsByVenueId(venueId: number): Promise<Event[]> {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(events).where(eq(events.venueId, venueId));
-}
-
+/**
+ * Get event by ID
+ */
 export async function getEventById(id: number): Promise<Event | undefined> {
   const db = await getDb();
   if (!db) return undefined;
+
   const result = await db.select().from(events).where(eq(events.id, id)).limit(1);
-  return result[0];
+  return result[0] as Event | undefined;
 }
 
+/**
+ * Get all events for an artist
+ */
+export async function getArtistEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(events)
+    .where(eq(events.artistId, artistId))
+    .orderBy(desc(events.eventDate));
+}
+
+/**
+ * Get public events for an artist (for discovery)
+ */
+export async function getArtistPublicEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(events)
+    .where(and(
+      eq(events.artistId, artistId),
+      eq(events.isPublic, true),
+      eq(events.status, 'available')
+    ))
+    .orderBy(asc(events.eventDate));
+}
+
+/**
+ * Get upcoming events for an artist (for calendar view)
+ */
+export async function getArtistUpcomingEvents(artistId: number, daysAhead: number = 90): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + daysAhead);
+
+  return await db.select().from(events)
+    .where(and(
+      eq(events.artistId, artistId),
+      gte(events.eventDate, new Date()),
+      lte(events.eventDate, futureDate)
+    ))
+    .orderBy(asc(events.eventDate));
+}
+
+/**
+ * Search for public events with filters
+ */
+export async function searchPublicEvents(filters: {
+  eventType?: string;
+  location?: string;
+  minRate?: number;
+  maxRate?: number;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Build where conditions dynamically
+  const conditions: any[] = [
+    eq(events.isPublic, true),
+    eq(events.status, 'available')
+  ];
+
+  if (filters.eventType) {
+    conditions.push(eq(events.eventType, filters.eventType as any));
+  }
+
+  if (filters.location) {
+    conditions.push(like(events.location, `%${filters.location}%`));
+  }
+
+  if (filters.minRate) {
+    conditions.push(gte(events.rate, filters.minRate.toString()));
+  }
+
+  if (filters.maxRate) {
+    conditions.push(lte(events.rate, filters.maxRate.toString()));
+  }
+
+  if (filters.startDate) {
+    conditions.push(gte(events.eventDate, filters.startDate));
+  }
+
+  if (filters.endDate) {
+    conditions.push(lte(events.eventDate, filters.endDate));
+  }
+
+  let query: any = db.select().from(events).where(and(...conditions)).orderBy(asc(events.eventDate));
+
+  if (filters.limit) {
+    query = query.limit(filters.limit);
+  }
+
+  if (filters.offset) {
+    query = query.offset(filters.offset);
+  }
+
+  return await query;
+}
+
+/**
+ * Update an event
+ */
 export async function updateEvent(id: number, data: Partial<InsertEvent>): Promise<Event | undefined> {
   const db = await getDb();
   if (!db) return undefined;
-  
+
   await db.update(events).set(data).where(eq(events.id, id));
   return await getEventById(id);
 }
 
-export async function deleteEvent(id: number): Promise<void> {
+/**
+ * Delete an event
+ */
+export async function deleteEvent(id: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) return;
-  
-  await db.delete(events).where(eq(events.id, id));
+  if (!db) return false;
+
+  const result = await db.delete(events).where(eq(events.id, id));
+  return (result as any).affectedRows > 0;
 }
 
-// ============= EVENT RECURRENCE FUNCTIONS =============
-
+/**
+ * Create event recurrence
+ */
 export async function createEventRecurrence(data: InsertEventRecurrence): Promise<EventRecurrence> {
   const db = await getDb();
   if (!db) {
@@ -958,14 +1617,31 @@ export async function createEventRecurrence(data: InsertEventRecurrence): Promis
   return recurrence[0] as EventRecurrence;
 }
 
-export async function getEventRecurrencesByEventId(eventId: number): Promise<EventRecurrence[]> {
+/**
+ * Get recurrence for an event
+ */
+export async function getEventRecurrence(eventId: number): Promise<EventRecurrence | undefined> {
   const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(eventRecurrence).where(eq(eventRecurrence.eventId, eventId));
+  if (!db) return undefined;
+
+  const result = await db.select().from(eventRecurrence).where(eq(eventRecurrence.eventId, eventId)).limit(1);
+  return result[0] as EventRecurrence | undefined;
 }
 
-// ============= EVENT HISTORY FUNCTIONS =============
+/**
+ * Delete event recurrence
+ */
+export async function deleteEventRecurrence(eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
 
+  const result = await db.delete(eventRecurrence).where(eq(eventRecurrence.eventId, eventId));
+  return (result as any).affectedRows > 0;
+}
+
+/**
+ * Create event history (post-event recap)
+ */
 export async function createEventHistory(data: InsertEventHistory): Promise<EventHistory> {
   const db = await getDb();
   if (!db) {
@@ -978,15 +1654,33 @@ export async function createEventHistory(data: InsertEventHistory): Promise<Even
   return history[0] as EventHistory;
 }
 
-export async function getEventHistoryByEventId(eventId: number): Promise<EventHistory[]> {
+/**
+ * Get event history by ID
+ */
+export async function getEventHistoryById(id: number): Promise<EventHistory | undefined> {
   const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(eventHistory).where(eq(eventHistory.eventId, eventId));
+  if (!db) return undefined;
+
+  const result = await db.select().from(eventHistory).where(eq(eventHistory.id, id)).limit(1);
+  return result[0] as EventHistory | undefined;
 }
 
-// ============= EVENT PHOTO FUNCTIONS =============
+/**
+ * Get event history for an artist (portfolio)
+ */
+export async function getArtistEventHistory(artistId: number): Promise<EventHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
 
-export async function createEventPhoto(data: InsertEventPhoto): Promise<EventPhoto> {
+  return await db.select().from(eventHistory)
+    .where(eq(eventHistory.artistId, artistId))
+    .orderBy(desc(eventHistory.eventDate));
+}
+
+/**
+ * Add photo to event history
+ */
+export async function addEventPhoto(data: InsertEventPhoto): Promise<EventPhoto> {
   const db = await getDb();
   if (!db) {
     throw new Error('Database not available');
@@ -998,40 +1692,91 @@ export async function createEventPhoto(data: InsertEventPhoto): Promise<EventPho
   return photo[0] as EventPhoto;
 }
 
-export async function getEventPhotosByEventId(eventId: number): Promise<EventPhoto[]> {
+/**
+ * Get photos for event history
+ */
+export async function getEventPhotos(eventHistoryId: number): Promise<EventPhoto[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(eventPhotos).where(eq(eventPhotos.eventId, eventId));
+
+  return await db.select().from(eventPhotos)
+    .where(eq(eventPhotos.eventHistoryId, eventHistoryId))
+    .orderBy(asc(eventPhotos.createdAt));
 }
 
-// ============= SAVED EVENT FUNCTIONS =============
+/**
+ * Delete event photo
+ */
+export async function deleteEventPhoto(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
 
-export async function createSavedEvent(data: InsertSavedEvent): Promise<SavedEvent> {
+  const result = await db.delete(eventPhotos).where(eq(eventPhotos.id, id));
+  return (result as any).affectedRows > 0;
+}
+
+/**
+ * Save event for later (venue saves artist's event)
+ */
+export async function saveEvent(userId: number, eventId: number): Promise<SavedEvent> {
   const db = await getDb();
   if (!db) {
     throw new Error('Database not available');
   }
 
-  const result = await db.insert(savedEvents).values(data);
+  const result = await db.insert(savedEvents).values({ userId, eventId });
   const savedId = (result as any).insertId;
   const saved = await db.select().from(savedEvents).where(eq(savedEvents.id, savedId)).limit(1);
   return saved[0] as SavedEvent;
 }
 
-export async function getSavedEventsByUserId(userId: number): Promise<SavedEvent[]> {
+/**
+ * Get saved events for a user
+ */
+export async function getUserSavedEvents(userId: number): Promise<Event[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(savedEvents).where(eq(savedEvents.userId, userId));
+
+  const saved = await db.select().from(savedEvents)
+    .where(eq(savedEvents.userId, userId));
+
+  if (saved.length === 0) return [];
+
+  const eventIds = saved.map(s => s.eventId);
+  return await db.select().from(events)
+    .where(inArray(events.id, eventIds))
+    .orderBy(asc(events.eventDate));
 }
 
+/**
+ * Check if user has saved an event
+ */
+export async function isEventSaved(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
 
-// ============= STUB FUNCTIONS FOR NON-MVP ROUTERS =============
-// These are placeholders for functions used by commented-out routers
+  const result = await db.select().from(savedEvents)
+    .where(and(
+      eq(savedEvents.userId, userId),
+      eq(savedEvents.eventId, eventId)
+    ))
+    .limit(1);
 
+  return result.length > 0;
+}
 
+/**
+ * Remove saved event
+ */
+export async function removeSavedEvent(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
 
+  const result = await db.delete(savedEvents)
+    .where(and(
+      eq(savedEvents.userId, userId),
+      eq(savedEvents.eventId, eventId)
+    ));
 
-
-
-
-
+  return (result as any).affectedRows > 0;
+}
