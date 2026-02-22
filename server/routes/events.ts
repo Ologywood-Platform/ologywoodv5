@@ -198,8 +198,8 @@ router.delete('/api/events/:id', requireAuth, async (req: Request, res: Response
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const success = await deleteEvent(parseInt(id));
-    if (success) {
+    const result = await deleteEvent(parseInt(id));
+    if (result) {
       res.json({ success: true });
     } else {
       res.status(500).json({ error: 'Failed to delete event' });

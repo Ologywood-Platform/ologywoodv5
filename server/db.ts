@@ -747,6 +747,8 @@ export async function getAverageRatingForArtist(artistId: number): Promise<{ ave
   };
 }
 
+
+
 export async function createVenueReview(data: InsertVenueReview): Promise<VenueReview> {
   const db = await getDb();
   if (!db) {
