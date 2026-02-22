@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Calendar, MapPin, Users, DollarSign, Heart, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
@@ -188,6 +188,8 @@ export function EventCard({
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md p-0 border-0">
+                  <DialogTitle className="sr-only">Book Event</DialogTitle>
+                  <DialogDescription className="sr-only">Complete your booking for this event</DialogDescription>
                   <EventBookingFlow
                     eventData={{
                       eventId: id,
