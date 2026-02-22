@@ -181,6 +181,48 @@ export async function getDb() {
   return _db;
 }
 
+// ============= HELPER FUNCTIONS =============
+
+/**
+ * Parse artist profile to ensure genre is always an array
+ * Handles cases where genre might be string, JSON, or already an array
+ */
+function parseArtistProfile(artist: any): ArtistProfile {
+  if (!artist) return undefined;
+  
+  let genre: string[] = [];
+  if (typeof artist.genre === 'string') {
+    try {
+      genre = JSON.parse(artist.genre);
+    } catch {
+      genre = artist.genre.split(',').map((g: string) => g.trim()).filter((g: string) => g);
+    }
+  } else if (Array.isArray(artist.genre)) {
+    genre = artist.genre;
+  }
+  
+  let socialLinks = artist.socialLinks;
+  if (typeof socialLinks === 'string') {
+    try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
+  }
+  
+  let mediaGallery = artist.mediaGallery;
+  if (typeof mediaGallery === 'string') {
+    try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
+  }
+  
+  return {
+    ...artist,
+    genre: genre || [],
+    socialLinks: socialLinks || {},
+    mediaGallery: mediaGallery || { photos: [], videos: [] },
+    profilePhotoUrl: artist.profilePhotoUrl || null,
+    websiteUrl: artist.websiteUrl || null,
+    bio: artist.bio || null,
+    location: artist.location || null
+  };
+}
+
 // ============= USER FUNCTIONS =============
 
 export async function upsertUser(user: InsertUser): Promise<void> {
@@ -229,14 +271,14 @@ export async function getArtistProfileByUserId(userId: number): Promise<ArtistPr
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
-  return result[0];
+  return result[0] ? parseArtistProfile(result[0]) : undefined;
 }
 
 export async function getArtistProfileById(id: number): Promise<ArtistProfile | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
-  return result[0];
+  return result[0] ? parseArtistProfile(result[0]) : undefined;
 }
 
 export async function createArtistProfile(data: InsertArtistProfile): Promise<ArtistProfile> {
@@ -245,10 +287,27 @@ export async function createArtistProfile(data: InsertArtistProfile): Promise<Ar
     throw new Error('Database not available');
   }
 
-  const result = await db.insert(artistProfiles).values(data);
-  const artistId = (result as any).insertId;
-  const artist = await db.select().from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
-  return artist[0] as ArtistProfile;
+  try {
+    const result = await db.insert(artistProfiles).values(data);
+    const artistId = (result as any).insertId;
+    
+    if (!artistId) {
+      console.error('[createArtistProfile] No insertId from insert');
+      throw new Error('Failed to get insert ID');
+    }
+    
+    const artist = await db.select().from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
+    
+    if (!artist || !artist[0]) {
+      console.error('[createArtistProfile] Failed to retrieve created artist');
+      throw new Error('Failed to retrieve created artist');
+    }
+    
+    return parseArtistProfile(artist[0]);
+  } catch (error) {
+    console.error('[createArtistProfile] Error:', error);
+    throw error;
+  }
 }
 
 export async function updateArtistProfile(id: number, data: Partial<InsertArtistProfile>): Promise<ArtistProfile | undefined> {
@@ -256,7 +315,8 @@ export async function updateArtistProfile(id: number, data: Partial<InsertArtist
   if (!db) return undefined;
   
   await db.update(artistProfiles).set(data).where(eq(artistProfiles.id, id));
-  return await getArtistProfileById(id);
+  const updated = await getArtistProfileById(id);
+  return updated ? parseArtistProfile(updated) : undefined;
 }
 
 export async function searchArtists(filters: {
@@ -267,71 +327,12 @@ export async function searchArtists(filters: {
   availableFrom?: string;
   availableTo?: string;
 }) {
-  const db = await getDb();
-  if (!db) return [];
-  
   let results: any[] = [];
   try {
-    console.log('[searchArtists] Fetching artists using raw SQL...');
-    const pool = getPool();
-    if (!pool) {
-      console.error('[searchArtists] Pool not available');
-      return [];
-    }
-    
-    // Use util.promisify to wrap the callback-based query
-    const query = (sql: string) => {
-      return new Promise<any[]>((resolve, reject) => {
-        (pool as any).query(sql, (error: any, rows: any) => {
-          if (error) reject(error);
-          else resolve(Array.isArray(rows) ? rows : []);
-        });
-      });
-    };
-    
-    results = await query('SELECT * FROM artist_profiles');
+    console.log('[searchArtists] Fetching artists...');
+    // Use getAllArtists which properly parses data via Drizzle ORM
+    results = await getAllArtists();
     console.log(`[searchArtists] Fetched ${results.length} artists from database`);
-    
-    // Parse JSON fields and ensure all required fields are present
-    results = (results as any[]).map((row: any) => {
-      // Ensure artistName is present
-      const artistName = row.artistName || row.name || 'Unknown Artist';
-      
-      // Parse genre if it's a string
-      let genres: string[] = [];
-      if (typeof row.genre === 'string') {
-        try {
-          genres = JSON.parse(row.genre);
-        } catch {
-          genres = row.genre.split(',').map((g: string) => g.trim()).filter((g: string) => g);
-        }
-      } else if (Array.isArray(row.genre)) {
-        genres = row.genre;
-      }
-      
-      // Parse socialLinks
-      let socialLinks = row.socialLinks;
-      if (typeof socialLinks === 'string') {
-        try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
-      }
-      
-      // Parse mediaGallery
-      let mediaGallery = row.mediaGallery;
-      if (typeof mediaGallery === 'string') {
-        try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
-      }
-      
-      return {
-        ...row,
-        artistName,
-        genre: genres,
-        socialLinks: socialLinks || {},
-        mediaGallery: mediaGallery || { photos: [], videos: [] },
-        profilePhotoUrl: row.profilePhotoUrl || null,
-        location: row.location || null,
-        bio: row.bio || null
-      };
-    });
   } catch (error) {
     console.error('[searchArtists] Query failed:', error);
     // Fallback: return empty array
@@ -341,10 +342,10 @@ export async function searchArtists(filters: {
   // Apply filters in application code for MVP
   let filtered = results;
   
-  // Filter by genre
+  // Filter by genre (genre is always an array after parseArtistProfile)
   if (filters.genre && filters.genre.length > 0) {
     filtered = filtered.filter(a => {
-      const artistGenres = Array.isArray(a.genre) ? a.genre : [];
+      const artistGenres = a.genre || [];
       return filters.genre!.some(selectedGenre => 
         artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
       );
@@ -411,34 +412,7 @@ export async function getAllArtists() {
     console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
     
     // Ensure all JSON fields are properly parsed and serializable
-    return artists.map(artist => {
-      // Parse JSON fields if they're strings
-      let genre = artist.genre;
-      let socialLinks = artist.socialLinks;
-      let mediaGallery = artist.mediaGallery;
-      
-      if (typeof genre === 'string') {
-        try { genre = JSON.parse(genre); } catch { genre = []; }
-      }
-      if (typeof socialLinks === 'string') {
-        try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
-      }
-      if (typeof mediaGallery === 'string') {
-        try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
-      }
-      
-      return {
-        ...artist,
-        genre: Array.isArray(genre) ? genre : [],
-        mediaGallery: mediaGallery || { photos: [], videos: [] },
-        socialLinks: socialLinks || {},
-        // Ensure all fields are serializable
-        profilePhotoUrl: artist.profilePhotoUrl || null,
-        websiteUrl: artist.websiteUrl || null,
-        bio: artist.bio || null,
-        location: artist.location || null,
-      };
-    });
+    return artists.map(artist => parseArtistProfile(artist));
   } catch (error) {
     console.error("[getAllArtists] Error fetching artists:", error);
     return [];

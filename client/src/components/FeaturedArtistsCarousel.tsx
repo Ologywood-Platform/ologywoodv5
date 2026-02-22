@@ -32,7 +32,13 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
   }, []);
 
   if (!artists || artists.length === 0) {
-    return null;
+    return (
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-background to-secondary/5">
+        <div className="container mx-auto px-3 sm:px-4">
+          <p className="text-center text-muted-foreground">No featured artists available at this time.</p>
+        </div>
+      </section>
+    );
   }
 
   const totalSlides = Math.ceil(artists.length / itemsPerView);
@@ -104,7 +110,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                       </h3>
                       {artist.genre && (
                         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-                          {artist.genre}
+                          {Array.isArray(artist.genre) ? artist.genre.join(', ') : artist.genre}
                         </p>
                       )}
                       {artist.location && (
