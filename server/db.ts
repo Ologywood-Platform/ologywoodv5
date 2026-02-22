@@ -611,6 +611,30 @@ export async function getSubscriptionByUserId(userId: number) {
   return result[0] || null;
 }
 
+export async function upsertSubscription(data: any): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const existing = await getSubscriptionByUserId(data.userId);
+  if (existing) {
+    await db.update(userSubscriptions).set(data).where(eq(userSubscriptions.userId, data.userId));
+  } else {
+    await db.insert(userSubscriptions).values(data);
+  }
+}
+
+export async function updateBookingPaymentStatus(bookingId: number, paymentStatus: string, stripePaymentIntentId?: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const updateData: any = { paymentStatus };
+  if (stripePaymentIntentId) {
+    updateData.stripePaymentIntentId = stripePaymentIntentId;
+  }
+  
+  await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
+}
+
 // ============= MESSAGE FUNCTIONS =============
 
 export async function createMessage(data: InsertMessage): Promise<Message> {
@@ -937,11 +961,17 @@ export async function updateEvent(id: number, data: Partial<InsertEvent>): Promi
   return await getEventById(id);
 }
 
-export async function deleteEvent(id: number): Promise<void> {
+export async function deleteEvent(id: number): Promise<boolean> {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return false;
   
-  await db.delete(events).where(eq(events.id, id));
+  try {
+    await db.delete(events).where(eq(events.id, id));
+    return true;
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    return false;
+  }
 }
 
 // ============= EVENT RECURRENCE FUNCTIONS =============

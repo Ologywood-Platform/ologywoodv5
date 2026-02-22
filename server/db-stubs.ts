@@ -12,7 +12,7 @@ export async function getVenueProfileByToken(token: string) {
   return null;
 }
 
-export async function getUserById(userId: number) {
+export async function getUserById(userId: number): Promise<any | null> {
   return null;
 }
 
@@ -64,7 +64,7 @@ export async function getEventPhotos(eventHistoryId: number) {
   return [];
 }
 
-export async function addEventPhoto(eventId: number, photoUrl: string) {
+export async function addEventPhoto(data: any) {
   return null;
 }
 

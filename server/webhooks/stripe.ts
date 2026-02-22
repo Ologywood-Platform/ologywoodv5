@@ -190,7 +190,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   
   // Send email for new subscriptions
   if (subscription.status === 'trialing' || subscription.status === 'active') {
-    const user = await db.getUserById(parseInt(userId));
+    const user = await db.getUserById(parseInt(userId)) as any;
     if (user?.email) {
       const subData = subscription as any;
       const trialEndDate = subData.trial_end 
@@ -218,7 +218,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   await db.updateSubscriptionStatus(parseInt(userId), 'cancelled');
   
   // Send cancellation email
-  const user = await db.getUserById(parseInt(userId));
+  const user = await db.getUserById(parseInt(userId)) as any;
   if (user?.email) {
     const subData = subscription as any;
     const endDate = subData.current_period_end 
