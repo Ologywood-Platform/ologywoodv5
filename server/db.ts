@@ -272,29 +272,61 @@ export async function searchArtists(filters: {
   
   let results: any[] = [];
   try {
-    console.log('[searchArtists] Fetching artists from database using Drizzle raw SQL...');
-    // Use Drizzle ORM's raw SQL functionality
-    const rawResults = await db.execute(sql`SELECT * FROM artist_profiles`);
-    
-    // Handle Drizzle's result structure - it returns an array directly
-    results = Array.isArray(rawResults) ? rawResults : [];
-    console.log(`[searchArtists] Fetched ${results.length} artists from database`);
-    
-    if (results.length === 0) {
-      console.log('[searchArtists] No artists found, rawResults type:', typeof rawResults, 'keys:', Object.keys(rawResults || {}));
+    console.log('[searchArtists] Fetching artists using raw SQL...');
+    const pool = getPool();
+    if (!pool) {
+      console.error('[searchArtists] Pool not available');
+      return [];
     }
     
+    // Use util.promisify to wrap the callback-based query
+    const query = (sql: string) => {
+      return new Promise<any[]>((resolve, reject) => {
+        (pool as any).query(sql, (error: any, rows: any) => {
+          if (error) reject(error);
+          else resolve(Array.isArray(rows) ? rows : []);
+        });
+      });
+    };
+    
+    results = await query('SELECT * FROM artist_profiles');
+    console.log(`[searchArtists] Fetched ${results.length} artists from database`);
+    
     // Parse JSON fields and ensure all required fields are present
-    results = (results as any[]).map(row => {
+    results = (results as any[]).map((row: any) => {
       // Ensure artistName is present
       const artistName = row.artistName || row.name || 'Unknown Artist';
+      
+      // Parse genre if it's a string
+      let genres: string[] = [];
+      if (typeof row.genre === 'string') {
+        try {
+          genres = JSON.parse(row.genre);
+        } catch {
+          genres = row.genre.split(',').map((g: string) => g.trim()).filter((g: string) => g);
+        }
+      } else if (Array.isArray(row.genre)) {
+        genres = row.genre;
+      }
+      
+      // Parse socialLinks
+      let socialLinks = row.socialLinks;
+      if (typeof socialLinks === 'string') {
+        try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
+      }
+      
+      // Parse mediaGallery
+      let mediaGallery = row.mediaGallery;
+      if (typeof mediaGallery === 'string') {
+        try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
+      }
       
       return {
         ...row,
         artistName,
-        genre: Array.isArray(row.genre) ? row.genre : [],
-        socialLinks: row.socialLinks || {},
-        mediaGallery: row.mediaGallery || { photos: [], videos: [] },
+        genre: genres,
+        socialLinks: socialLinks || {},
+        mediaGallery: mediaGallery || { photos: [], videos: [] },
         profilePhotoUrl: row.profilePhotoUrl || null,
         location: row.location || null,
         bio: row.bio || null
