@@ -679,7 +679,14 @@ export async function createAvailability(data: InsertAvailability): Promise<Avai
 export async function getAvailabilityByArtistId(artistId: number): Promise<Availability[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(availability).where(eq(availability.artistId, artistId));
+  
+  try {
+    return await db.select().from(availability).where(eq(availability.artistId, artistId));
+  } catch (error) {
+    console.error('Error getting availability:', error);
+    // Return empty array if query fails
+    return [];
+  }
 }
 
 export async function getBookingsNeedingReminders() {
@@ -712,7 +719,32 @@ export async function createReview(data: InsertReview): Promise<Review> {
 export async function getReviewsByArtistId(artistId: number): Promise<Review[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(reviews).where(eq(reviews.artistId, artistId));
+  
+  try {
+    return await db.select().from(reviews).where(eq(reviews.artistId, artistId));
+  } catch (error) {
+    console.error('Error getting reviews:', error);
+    // Return empty array if query fails (table might not have all columns)
+    return [];
+  }
+}
+
+export async function getAverageRatingForArtist(artistId: number): Promise<{ averageRating: number; reviewCount: number }> {
+  const db = await getDb();
+  if (!db) return { averageRating: 0, reviewCount: 0 };
+  
+  const artistReviews = await getReviewsByArtistId(artistId);
+  if (artistReviews.length === 0) {
+    return { averageRating: 0, reviewCount: 0 };
+  }
+  
+  const totalRating = artistReviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = totalRating / artistReviews.length;
+  
+  return {
+    averageRating: Math.round(averageRating * 10) / 10,
+    reviewCount: artistReviews.length,
+  };
 }
 
 export async function createVenueReview(data: InsertVenueReview): Promise<VenueReview> {
