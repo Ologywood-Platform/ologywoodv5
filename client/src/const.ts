@@ -13,14 +13,47 @@ function safeUrl(value?: string): URL | null {
   }
 }
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
-export const getLoginUrl = () => {
+// Cache for OAuth config to avoid repeated API calls
+let cachedOAuthConfig: any = null;
+let configPromise: Promise<any> | null = null;
+
+// Fetch OAuth config from server
+async function fetchOAuthConfig() {
+  if (cachedOAuthConfig) {
+    return cachedOAuthConfig;
+  }
+  
+  if (configPromise) {
+    return configPromise;
+  }
+  
+  configPromise = (async () => {
+    try {
+      const response = await fetch('/api/trpc/auth.getOAuthConfig');
+      if (!response.ok) {
+        throw new Error('Failed to fetch OAuth config');
+      }
+      const data = await response.json();
+      cachedOAuthConfig = data.result?.data || {};
+      return cachedOAuthConfig;
+    } catch (error) {
+      console.error("Error fetching OAuth config:", error);
+      return {};
+    }
+  })();
+  
+  return configPromise;
+}
+
+// Generate login URL at runtime using OAuth config from server
+export const getLoginUrl = async () => {
   try {
-    const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
-    const appId = import.meta.env.VITE_APP_ID || "";
-    // Use manus.space domain for OAuth redirects (working with OAuth server)
-    // while keeping custom domain as user-facing URL
-    const oauthRedirectBase = import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || "https://ologywood-mp6flm6c.manus.space";
+    const config = await fetchOAuthConfig();
+    
+    const oauthPortalUrl = config.oauthPortalUrl || import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
+    const appId = config.appId || import.meta.env.VITE_APP_ID || "";
+    const oauthRedirectBase = config.oauthRedirectBase || import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || window.location.origin;
+    
     const redirectUri = `${oauthRedirectBase}/api/oauth/callback`;
     const state = btoa(redirectUri);
 

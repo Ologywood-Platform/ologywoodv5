@@ -281,4 +281,16 @@ export const authRouter = router({
         return null;
       }
     }),
+  // Get OAuth configuration for frontend
+  getOAuthConfig: publicProcedure
+    .query(() => {
+      const oauthPortalUrl = process.env.VITE_OAUTH_PORTAL_URL || process.env.OAUTH_SERVER_URL || 'https://manus.im';
+      const appId = process.env.VITE_APP_ID || '';
+      const oauthRedirectBase = process.env.VITE_OAUTH_REDIRECT_BASE_URL || '';
+      return {
+        oauthPortalUrl,
+        appId,
+        oauthRedirectBase,
+      };
+    }),
 });
