@@ -15,15 +15,16 @@ function safeUrl(value?: string): URL | null {
 
 // Generate login URL at runtime so redirect URI reflects the current origin.
 // CRITICAL: Do NOT use req.headers.origin - it can be empty or incorrect
-// Always use the hardcoded Manus default domain for OAuth redirects
+// Use BASE_URL which is automatically set by Manus to the correct deployment domain
 export const getLoginUrl = () => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = import.meta.env.VITE_APP_ID || "";
-    // FIXED: Use hardcoded Manus default domain for OAuth redirect
+    // FIXED: Use BASE_URL (set by Manus) for OAuth redirect
+    // BASE_URL is automatically configured to the correct deployment domain
     // This avoids the bug where Manus OAuth server uses req.headers.origin
-    // which can be empty or incorrect in certain deployment environments
-    const redirectUri = "https://ologywood-mp6flm6c.manus.space/api/oauth/callback";
+    const baseUrl = import.meta.env.BASE_URL || window.location.origin;
+    const redirectUri = `${baseUrl}/api/oauth/callback`;
     const state = btoa(redirectUri);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
