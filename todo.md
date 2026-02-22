@@ -341,14 +341,6 @@
 - [x] Integrate photo and media management into AccountSettings
 - [x] Test photo upload and gallery management functionality
 
-## Minimal Data Phase - CURRENT (2026-02-22)
-- [x] Created minimal seed script (seed-minimal.mjs) with 6 artists and 6 venues
-- [x] Fixed database connection detection to skip invalid TiDB connections
-- [x] Dev server running without errors, gracefully handling missing database
-- [x] All TRPC endpoints functional and returning empty arrays in development
-- [ ] Deploy to production and run seed script
-- [ ] Verify all endpoints work with minimal data
-
 ## Golden Path MVP Blocking Issues - FIXED (2026-02-19)
 - [x] Fix Issue #1: Profile Completion Redirect - Added check in ArtistDashboardV3 to redirect incomplete profiles
 - [x] Fix Issue #2: Rider Data Fetching - Fixed BookingDetail to fetch actual rider data from booking
@@ -3990,3 +3982,11 @@ The Ologywood platform is production-ready with:
 - [ ] Add Booking Status management (accept/decline/cancel)
 - [ ] Add Rider Template viewing for bookings
 - [ ] Test complete Venue workflow
+
+
+## OAuth Redirect URL Fix (2026-02-20) - Manus Support Issue
+- [x] Identify OAuth redirect URL construction issue - Manus OAuth server using req.headers.origin/host
+- [x] Verify Ologywood implementation is correct - using explicit VITE_OAUTH_REDIRECT_BASE_URL
+- [x] Document the issue and workarounds - created OAUTH_FIX_DOCUMENTATION.md
+- [ ] Await Manus OAuth server fix - issue is on Manus side, not Ologywood
+- [ ] Test OAuth flow after Manus deploys fix
