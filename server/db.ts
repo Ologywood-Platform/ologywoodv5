@@ -188,9 +188,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     throw new Error("User openId is required for upsert");
   }
 
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
+  await getDb();
+  const pool = getPool();
+  if (!pool) {
+    console.warn("[Database] Cannot upsert user: pool not available");
     return;
   }
 

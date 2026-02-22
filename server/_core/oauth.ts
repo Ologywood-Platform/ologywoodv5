@@ -11,23 +11,37 @@ function getQueryParam(req: Request, key: string): string | undefined {
 
 export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
+    console.log("[OAuth] Callback received with query:", req.query);
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
+    const error = getQueryParam(req, "error");
+    const errorDescription = getQueryParam(req, "error_description");
+
+    if (error) {
+      console.error("[OAuth] OAuth server returned error:", error, errorDescription);
+      return res.redirect(302, `/?error=${encodeURIComponent(error)}&description=${encodeURIComponent(errorDescription || '')}`);
+    }
 
     if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
-      return;
+      console.error("[OAuth] Missing code or state", { code, state });
+      return res.redirect(302, "/?error=missing_code_or_state");
     }
 
     try {
+      console.log("[OAuth] Exchanging code for token...");
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
+      console.log("[OAuth] Token exchange successful");
+      
+      console.log("[OAuth] Getting user info...");
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
+      console.log("[OAuth] User info received:", { openId: userInfo.openId, email: userInfo.email });
 
       if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
+        console.error("[OAuth] openId missing from user info");
+        return res.redirect(302, "/?error=no_openid");
       }
 
+      console.log("[OAuth] Upserting user...");
       await db.upsertUser({
         openId: userInfo.openId,
         name: userInfo.name || null,
@@ -35,24 +49,28 @@ export function registerOAuthRoutes(app: Express) {
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
       });
+      console.log("[OAuth] User upserted successfully");
 
+      console.log("[OAuth] Creating session token...");
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
         expiresInMs: ONE_YEAR_MS,
       });
+      console.log("[OAuth] Session token created");
 
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      console.log("[OAuth] Cookie set, redirecting to /home");
 
-      // Redirect to dashboard for authenticated users, not marketing page
       res.redirect(302, "/home");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
+      console.error("[OAuth] Callback failed:", error);
       if (error instanceof Error) {
         console.error("[OAuth] Error message:", error.message);
         console.error("[OAuth] Error stack:", error.stack);
       }
-      res.status(500).json({ error: "OAuth callback failed", details: error instanceof Error ? error.message : String(error) });
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      res.redirect(302, `/?error=oauth_failed&details=${encodeURIComponent(errorMsg)}`);
     }
   });
 }
