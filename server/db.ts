@@ -280,7 +280,10 @@ export async function searchArtists(filters: {
   availableTo?: string;
 }) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    console.error('[Artist Search] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for artist search');
+  }
   
   let query = db.select().from(artistProfiles);
   
@@ -350,7 +353,10 @@ export async function searchArtists(filters: {
 
 export async function getAllArtists() {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    console.error('[Artist GetAll] Database not available - DATABASE_URL may not be set');
+    throw new Error('Database not available for getting all artists');
+  }
   
   const artists = await db.select().from(artistProfiles);
   
