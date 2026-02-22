@@ -80,8 +80,8 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                   />
                 ))
             ) : (
-              visibleArtists.map((artist) => (
-                <Link key={artist.id} href={`/artist/${artist.id}`}>
+              visibleArtists.map((artist, index) => (
+                <Link key={`${artist.id}-${index}`} href={`/artist/${artist.id}`}>
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted h-64 sm:h-72 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {artist.profilePhotoUrl ? (
@@ -148,7 +148,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                   .fill(0)
                   .map((_, i) => (
                     <button
-                      key={i}
+                      key={`slide-${i}`}
                       onClick={() => setCurrentIndex(i)}
                       className={`h-2 w-2 rounded-full transition-all ${
                         i === currentIndex

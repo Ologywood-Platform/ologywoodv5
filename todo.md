@@ -3988,6 +3988,5 @@ The Ologywood platform is production-ready with:
 - [x] Identify OAuth redirect URL construction issue - Manus OAuth server using req.headers.origin/host
 - [x] Verify Ologywood implementation is correct - using explicit VITE_OAUTH_REDIRECT_BASE_URL
 - [x] Document the issue and workarounds - created OAUTH_FIX_DOCUMENTATION.md
-- [x] Fix dev server OAuth - updated VITE_OAUTH_REDIRECT_BASE_URL to https://www.ologywood.com
-- [x] Test OAuth flow with production URL - dev server running with updated configuration
 - [ ] Await Manus OAuth server fix - issue is on Manus side, not Ologywood
+- [ ] Test OAuth flow after Manus deploys fix
