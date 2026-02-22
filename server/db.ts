@@ -131,10 +131,19 @@ export async function getDb() {
         connectionLimit: 10,
         queueLimit: 0,
         enableKeepAlive: true,
-        ssl: true // Enable SSL for TiDB
+        ssl: {} // Enable SSL for TiDB with default settings
       });
       _db = drizzle(pool, { schema, mode: 'default' });
       console.log("[Database] Connected successfully to TiDB");
+      
+      // Test the connection
+      try {
+        await _db.select().from(users).limit(1);
+        console.log("[Database] Connection verified");
+      } catch (testError) {
+        console.error("[Database] Connection test failed:", testError);
+        _db = null;
+      }
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
