@@ -1,5 +1,6 @@
 import { eq, and, gte, lte, inArray, like, or, desc, asc, sql, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
 import { 
   User, InsertUser, users, 
@@ -118,9 +119,24 @@ export async function getSignatureByContractAndSigner(contractId: number, userId
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
+      // Parse DATABASE_URL to extract connection parameters
+      const url = new URL(process.env.DATABASE_URL);
+      const pool = mysql.createPool({
+        host: url.hostname,
+        port: parseInt(url.port || '3306'),
+        user: url.username,
+        password: url.password,
+        database: url.pathname.slice(1),
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        enableKeepAlive: true,
+        ssl: true // Enable SSL for TiDB
+      });
+      _db = drizzle(pool, { schema, mode: 'default' });
+      console.log("[Database] Connected successfully to TiDB");
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.error("[Database] Failed to connect:", error);
       _db = null;
     }
   }
@@ -350,22 +366,32 @@ export async function searchArtists(filters: {
 
 export async function getAllArtists() {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    console.log("[getAllArtists] Database not available");
+    return [];
+  }
   
-  const artists = await db.select().from(artistProfiles);
-  
-  // Ensure all JSON fields are properly parsed and serializable
-  return artists.map(artist => ({
-    ...artist,
-    genre: Array.isArray(artist.genre) ? artist.genre : [],
-    mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
-    socialLinks: artist.socialLinks || {},
-    // Ensure all fields are serializable
-    profilePhotoUrl: artist.profilePhotoUrl || null,
-    websiteUrl: artist.websiteUrl || null,
-    bio: artist.bio || null,
-    location: artist.location || null,
-  }));
+  try {
+    console.log("[getAllArtists] Fetching all artists...");
+    const artists = await db.select().from(artistProfiles);
+    console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
+    
+    // Ensure all JSON fields are properly parsed and serializable
+    return artists.map(artist => ({
+      ...artist,
+      genre: Array.isArray(artist.genre) ? artist.genre : [],
+      mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
+      socialLinks: artist.socialLinks || {},
+      // Ensure all fields are serializable
+      profilePhotoUrl: artist.profilePhotoUrl || null,
+      websiteUrl: artist.websiteUrl || null,
+      bio: artist.bio || null,
+      location: artist.location || null,
+    }));
+  } catch (error) {
+    console.error("[getAllArtists] Error fetching artists:", error);
+    return [];
+  }
 }
 
 // ============= VENUE PROFILE FUNCTIONS =============
