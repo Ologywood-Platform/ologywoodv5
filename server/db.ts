@@ -274,8 +274,15 @@ export async function searchArtists(filters: {
   try {
     console.log('[searchArtists] Fetching artists from database using Drizzle raw SQL...');
     // Use Drizzle ORM's raw SQL functionality
-    results = await db.execute(sql`SELECT * FROM artist_profiles`);
-    console.log(`[searchArtists] Fetched ${(results as any[]).length} artists from database`);
+    const rawResults = await db.execute(sql`SELECT * FROM artist_profiles`);
+    
+    // Handle Drizzle's result structure - it returns an array directly
+    results = Array.isArray(rawResults) ? rawResults : [];
+    console.log(`[searchArtists] Fetched ${results.length} artists from database`);
+    
+    if (results.length === 0) {
+      console.log('[searchArtists] No artists found, rawResults type:', typeof rawResults, 'keys:', Object.keys(rawResults || {}));
+    }
     
     // Parse JSON fields and ensure all required fields are present
     results = (results as any[]).map(row => {
