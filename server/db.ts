@@ -196,7 +196,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
-    throw error;
+    // Don't throw - allow OAuth flow to continue even if user upsert fails
+    // This prevents database connection issues from blocking login
+    console.warn("[Database] User upsert failed but OAuth flow will continue");
   }
 }
 
