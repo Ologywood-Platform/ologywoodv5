@@ -286,23 +286,35 @@ export async function searchArtists(filters: {
   availableFrom?: string;
   availableTo?: string;
 }) {
-  const pool = getPool();
-  if (!pool) return [];
+  const db = await getDb();
+  if (!db) return [];
   
-  // Use raw SQL via the existing connection pool instead of Drizzle ORM
   let results: any[] = [];
   try {
-    const [rows] = await pool.query(
-      'SELECT `id`, `userId`, `artistName`, `genre`, `bio`, `location`, `feeRangeMin`, `feeRangeMax`, `touringPartySize`, `profilePhotoUrl`, `mediaGallery`, `websiteUrl`, `socialLinks`, `createdAt`, `updatedAt` FROM `artist_profiles`'
-    );
-    results = (rows as any[]).map(row => ({
-      ...row,
-      genre: typeof row.genre === 'string' ? JSON.parse(row.genre) : row.genre,
-      socialLinks: typeof row.socialLinks === 'string' ? JSON.parse(row.socialLinks) : row.socialLinks,
-      mediaGallery: typeof row.mediaGallery === 'string' ? JSON.parse(row.mediaGallery) : row.mediaGallery
-    }));
+    console.log('[searchArtists] Fetching artists from database using Drizzle raw SQL...');
+    // Use Drizzle ORM's raw SQL functionality
+    results = await db.execute(sql`SELECT * FROM artist_profiles`);
+    console.log(`[searchArtists] Fetched ${(results as any[]).length} artists from database`);
+    
+    // Parse JSON fields and ensure all required fields are present
+    results = (results as any[]).map(row => {
+      // Ensure artistName is present
+      const artistName = row.artistName || row.name || 'Unknown Artist';
+      
+      return {
+        ...row,
+        artistName,
+        genre: Array.isArray(row.genre) ? row.genre : [],
+        socialLinks: row.socialLinks || {},
+        mediaGallery: row.mediaGallery || { photos: [], videos: [] },
+        profilePhotoUrl: row.profilePhotoUrl || null,
+        location: row.location || null,
+        bio: row.bio || null
+      };
+    });
   } catch (error) {
-    console.error('[searchArtists] Raw SQL query failed:', error);
+    console.error('[searchArtists] Query failed:', error);
+    // Fallback: return empty array
     return [];
   }
   
@@ -373,23 +385,40 @@ export async function getAllArtists() {
   }
   
   try {
-    console.log("[getAllArtists] Fetching all artists...");
-    // Use raw SQL query since Drizzle ORM has issues with TiDB
-    const [artists] = await (db as any).pool.query('SELECT * FROM artist_profiles');
-    console.log(`[getAllArtists] Successfully fetched ${(artists as any[]).length} artists`);
+    console.log("[getAllArtists] Fetching all artists using Drizzle ORM...");
+    // Use Drizzle ORM to fetch all artists
+    const artists = await db.select().from(artistProfiles);
+    console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
     
     // Ensure all JSON fields are properly parsed and serializable
-    return (artists as any[]).map(artist => ({
-      ...artist,
-      genre: Array.isArray(artist.genre) ? artist.genre : [],
-      mediaGallery: artist.mediaGallery || { photos: [], videos: [] },
-      socialLinks: artist.socialLinks || {},
-      // Ensure all fields are serializable
-      profilePhotoUrl: artist.profilePhotoUrl || null,
-      websiteUrl: artist.websiteUrl || null,
-      bio: artist.bio || null,
-      location: artist.location || null,
-    }));
+    return artists.map(artist => {
+      // Parse JSON fields if they're strings
+      let genre = artist.genre;
+      let socialLinks = artist.socialLinks;
+      let mediaGallery = artist.mediaGallery;
+      
+      if (typeof genre === 'string') {
+        try { genre = JSON.parse(genre); } catch { genre = []; }
+      }
+      if (typeof socialLinks === 'string') {
+        try { socialLinks = JSON.parse(socialLinks); } catch { socialLinks = {}; }
+      }
+      if (typeof mediaGallery === 'string') {
+        try { mediaGallery = JSON.parse(mediaGallery); } catch { mediaGallery = { photos: [], videos: [] }; }
+      }
+      
+      return {
+        ...artist,
+        genre: Array.isArray(genre) ? genre : [],
+        mediaGallery: mediaGallery || { photos: [], videos: [] },
+        socialLinks: socialLinks || {},
+        // Ensure all fields are serializable
+        profilePhotoUrl: artist.profilePhotoUrl || null,
+        websiteUrl: artist.websiteUrl || null,
+        bio: artist.bio || null,
+        location: artist.location || null,
+      };
+    });
   } catch (error) {
     console.error("[getAllArtists] Error fetching artists:", error);
     return [];

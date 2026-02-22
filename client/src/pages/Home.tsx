@@ -38,7 +38,8 @@ function LogoutButton() {
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: artists, isLoading } = trpc.artist.getAll.useQuery();
+  // Use artist.search with empty filters to get all artists (same as Browse page)
+  const { data: artists, isLoading } = trpc.artist.search.useQuery({});
 
   // Set SEO meta tags
   useEffect(() => {
