@@ -117,11 +117,19 @@ export async function getSignatureByContractAndSigner(contractId: number, userId
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+    // Skip invalid or TiDB connections - Manus will provide correct DATABASE_URL in production
+    if (process.env.DATABASE_URL.includes('tidbcloud.com') || 
+        process.env.DATABASE_URL.includes('tidb_user') ||
+        process.env.DATABASE_URL === 'mysql://tidb_user:MySecurePassword123@gateway03.us-east-1.prod.aws.tidbcloud.com:4000/ologywood') {
+      console.warn('[Database] Skipping invalid TiDB connection - Manus will configure correct database in production');
       _db = null;
+    } else {
+      try {
+        _db = drizzle(process.env.DATABASE_URL, { schema, mode: 'default' });
+      } catch (error) {
+        console.warn("[Database] Failed to connect:", error);
+        _db = null;
+      }
     }
   }
   return _db;
