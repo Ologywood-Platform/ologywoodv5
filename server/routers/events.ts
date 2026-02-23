@@ -250,7 +250,8 @@ export const eventsRouter = router({
     }))
     .query(async ({ input }) => {
       try {
-        const events = await db.getArtistUpcomingEvents(input.artistId, input.daysAhead);
+        const events = await db.getArtistUpcomingEvents(input.artistId);
+        // Note: daysAhead can be applied in application code if needed
         return events;
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to fetch events');

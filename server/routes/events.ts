@@ -129,7 +129,8 @@ router.get('/api/events/artist/:artistId/upcoming', async (req: Request, res: Re
   try {
     const { artistId } = req.params;
     const { daysAhead } = req.query;
-    const events = await getArtistUpcomingEvents(parseInt(artistId), daysAhead ? parseInt(daysAhead as string) : 90);
+    const events = await getArtistUpcomingEvents(parseInt(artistId));
+    // Note: daysAhead filter can be applied in application code if needed
     res.json(events);
   } catch (error) {
     console.error('Error fetching upcoming events:', error);

@@ -287,10 +287,10 @@ export const venueRouter = router({
 
         // Send confirmation email
         const user = await db.getUserById(profile.userId);
-        if (user?.email) {
+        if (user && 'email' in user && user.email) {
           await sendVenueVerificationConfirmationEmail({
             venueEmail: user.email,
-            venueName: profile.organizationName,
+            venueName: profile.organizationName || 'Venue',
           });
         }
 
