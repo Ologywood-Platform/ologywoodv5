@@ -52,9 +52,7 @@ export const getLoginUrl = async () => {
     
     const oauthPortalUrl = config.oauthPortalUrl || import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = config.appId || import.meta.env.VITE_APP_ID || "";
-    // Use window.location.origin as the primary source for OAuth redirect URL
-    // This ensures the OAuth callback redirects to the correct domain (dev or production)
-    const oauthRedirectBase = window.location.origin || config.oauthRedirectBase || import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL;
+    const oauthRedirectBase = config.oauthRedirectBase || import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || window.location.origin;
     
     const redirectUri = `${oauthRedirectBase}/api/oauth/callback`;
     const state = btoa(redirectUri);
