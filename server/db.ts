@@ -242,7 +242,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const email = user.email ?? null;
     const loginMethod = user.loginMethod ?? null;
     const lastSignedIn = user.lastSignedIn ?? new Date();
-    const role = user.role ?? 'user';
+    // Default to 'venue' role so users can create bookings immediately
+    const role = user.role ?? 'venue';
 
     const sql = 'INSERT INTO users (openId, name, email, loginMethod, lastSignedIn, role, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email), loginMethod = VALUES(loginMethod), lastSignedIn = VALUES(lastSignedIn), updatedAt = NOW()';
 

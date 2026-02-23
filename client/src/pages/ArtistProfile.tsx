@@ -24,7 +24,20 @@ import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
-  const artistId = idParam ? parseInt(idParam) : 0;
+  // Ensure idParam is a string and parse it safely
+  const artistId = idParam && typeof idParam === 'string' ? parseInt(idParam, 10) : 0;
+  
+  // Validate that artistId is a valid number
+  if (isNaN(artistId) || artistId <= 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-muted-foreground mb-4">Invalid artist ID</p>
+        <Link href="/browse">
+          <Button>Browse Artists</Button>
+        </Link>
+      </div>
+    );
+  }
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
   
