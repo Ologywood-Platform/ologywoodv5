@@ -1,4 +1,5 @@
 import { defineConfig } from "drizzle-kit";
+import { createConnection } from "mysql2/promise";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -13,6 +14,7 @@ export default defineConfig({
     url: connectionString,
     ssl: {
       rejectUnauthorized: false,
+      minVersion: "TLSv1.2",
     },
   },
 });

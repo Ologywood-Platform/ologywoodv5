@@ -175,3 +175,12 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fixed SSL configuration for TiDB compatibility
 - [x] Verified dev server database connection working
 - [ ] Deploy to production and verify artists display
+
+
+## PRODUCTION DATABASE SETUP
+
+- [ ] Run database migrations on production TiDB cluster
+- [ ] Seed 6 production artists with complete data
+- [ ] Verify all tables created successfully
+- [ ] Verify artist data in production database
+- [ ] Test production site displays artists
