@@ -62,7 +62,7 @@ export function registerOAuthRoutes(app: Express) {
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
       console.log("[OAuth] Cookie set, redirecting to /home");
 
-      res.redirect(302, "/home");
+      res.redirect(302, "/");
     } catch (error) {
       console.error("[OAuth] Callback failed:", error);
       if (error instanceof Error) {
