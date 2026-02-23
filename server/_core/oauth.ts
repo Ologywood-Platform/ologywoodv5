@@ -9,6 +9,17 @@ function getQueryParam(req: Request, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+function parseState(state: string): string {
+  try {
+    const decoded = Buffer.from(state, "base64").toString("utf-8");
+    // State contains: origin + returnPath (e.g., "https://example.com/dashboard")
+    return decoded;
+  } catch (error) {
+    console.error("[OAuth] Failed to parse state:", error);
+    return "/";
+  }
+}
+
 export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     console.log("[OAuth] Callback received with query:", req.query);
@@ -60,9 +71,13 @@ export function registerOAuthRoutes(app: Express) {
 
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-      console.log("[OAuth] Cookie set, redirecting to /home");
+      console.log("[OAuth] Cookie set");
 
-      res.redirect(302, "/");
+      // Parse state to get the redirect URL (origin + path)
+      const redirectUrl = parseState(state);
+      console.log("[OAuth] Redirecting to:", redirectUrl);
+      
+      res.redirect(302, redirectUrl);
     } catch (error) {
       console.error("[OAuth] Callback failed:", error);
       if (error instanceof Error) {

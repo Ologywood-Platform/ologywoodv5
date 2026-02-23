@@ -13,49 +13,16 @@ function safeUrl(value?: string): URL | null {
   }
 }
 
-// Cache for OAuth config to avoid repeated API calls
-let cachedOAuthConfig: any = null;
-let configPromise: Promise<any> | null = null;
-
-// Fetch OAuth config from server
-async function fetchOAuthConfig() {
-  if (cachedOAuthConfig) {
-    return cachedOAuthConfig;
-  }
-  
-  if (configPromise) {
-    return configPromise;
-  }
-  
-  configPromise = (async () => {
-    try {
-      const response = await fetch('/api/trpc/auth.getOAuthConfig');
-      if (!response.ok) {
-        throw new Error('Failed to fetch OAuth config');
-      }
-      const data = await response.json();
-      cachedOAuthConfig = data.result?.data || {};
-      return cachedOAuthConfig;
-    } catch (error) {
-      console.error("Error fetching OAuth config:", error);
-      return {};
-    }
-  })();
-  
-  return configPromise;
-}
-
-// Generate login URL at runtime using OAuth config from server
-export const getLoginUrl = async () => {
+// Generate login URL using window.location.origin encoded in state
+export const getLoginUrl = (returnPath?: string) => {
   try {
-    const config = await fetchOAuthConfig();
+    const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
+    const appId = import.meta.env.VITE_APP_ID || "";
     
-    const oauthPortalUrl = config.oauthPortalUrl || import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
-    const appId = config.appId || import.meta.env.VITE_APP_ID || "";
-    const oauthRedirectBase = config.oauthRedirectBase || import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || window.location.origin;
-    
-    const redirectUri = `${oauthRedirectBase}/api/oauth/callback`;
-    const state = btoa(redirectUri);
+    // Encode origin + returnPath in state so backend can redirect to correct domain
+    const redirectPath = returnPath || "/";
+    const stateData = `${window.location.origin}${redirectPath}`;
+    const state = btoa(stateData);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
       console.warn("Missing OAuth configuration. VITE_OAUTH_PORTAL_URL or VITE_APP_ID not set.");
@@ -69,7 +36,6 @@ export const getLoginUrl = async () => {
     }
 
     url.searchParams.set("appId", appId);
-    url.searchParams.set("redirectUri", redirectUri);
     url.searchParams.set("state", state);
     url.searchParams.set("type", "signIn");
 
