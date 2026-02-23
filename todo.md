@@ -150,3 +150,8 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Remove four test artists from production database (Retrieval Test Artist, Update Test Artist, etc.)
 - [x] Verify follow functionality works for remaining artists
 - [x] Test homepage displays only production artists (will show clean data on production)
+
+
+## ARTIST PROFILE IMAGES
+
+- [x] Add profile image for The Rhythm Kings from S3
