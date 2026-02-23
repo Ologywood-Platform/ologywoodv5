@@ -155,3 +155,5 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 ## ARTIST PROFILE IMAGES
 
 - [x] Add profile image for The Rhythm Kings from S3
+- [x] Generate professional reggae band image for The Rhythm Kings
+- [x] Upload to S3 and update database with CDN URL
