@@ -56,6 +56,33 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return { received: input, type: typeof input };
       }),
+    testDatabase: publicProcedure.query(async () => {
+      try {
+        const database = await db.getDb();
+        if (!database) {
+          return { 
+            status: "error", 
+            message: "Database not initialized",
+            databaseUrlSet: !!process.env.DATABASE_URL
+          };
+        }
+        
+        const artists = await db.getAllArtists();
+        return { 
+          status: "success", 
+          message: "Database connection working",
+          artistCount: artists.length,
+          databaseUrlSet: !!process.env.DATABASE_URL
+        };
+      } catch (error: any) {
+        return { 
+          status: "error", 
+          message: error.message,
+          code: error.code,
+          databaseUrlSet: !!process.env.DATABASE_URL
+        };
+      }
+    }),
   }),
   
   // ===== MVP CORE ROUTERS ONLY =====

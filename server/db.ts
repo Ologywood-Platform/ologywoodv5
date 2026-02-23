@@ -159,8 +159,15 @@ export async function updateSignature(id: number, data: Partial<InsertSignature>
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
+      console.log("[Database] Attempting to connect to TiDB Cloud...");
+      console.log("[Database] DATABASE_URL exists:", !!process.env.DATABASE_URL);
+      
       // Parse DATABASE_URL to extract connection parameters
       const url = new URL(process.env.DATABASE_URL);
+      console.log("[Database] Parsed connection - Host:", url.hostname);
+      console.log("[Database] Parsed connection - Port:", url.port);
+      console.log("[Database] Parsed connection - Database:", url.pathname.slice(1));
+      
       const pool = mysql.createPool({
         host: url.hostname,
         port: parseInt(url.port || '3306'),
@@ -173,13 +180,39 @@ export async function getDb() {
         enableKeepAlive: true,
         ssl: {} // Enable SSL for TiDB with default settings
       });
+      
+      // Test connection immediately
+      try {
+        const connection = await pool.getConnection();
+        console.log("[Database] Got connection from pool");
+        const result = await connection.query('SELECT 1 as test');
+        console.log("[Database] Connection test query successful");
+        connection.release();
+      } catch (testError: any) {
+        console.error("[Database] Connection test failed:", {
+          message: testError.message,
+          code: testError.code,
+          errno: testError.errno,
+          sqlState: testError.sqlState
+        });
+        throw testError;
+      }
+      
       _pool = pool;
       _db = drizzle(pool, { schema, mode: 'default' });
+      console.log("[Database] Drizzle ORM initialized successfully");
       console.log("[Database] Connected successfully to TiDB");
-      // Connection is lazy - will be tested on first query
-    } catch (error) {
-      console.error("[Database] Failed to connect:", error);
+    } catch (error: any) {
+      console.error("[Database] Failed to connect:", {
+        message: error.message,
+        code: error.code,
+        errno: error.errno,
+        sqlState: error.sqlState,
+        host: error.host,
+        port: error.port
+      });
       _db = null;
+      _pool = null;
     }
   }
   return _db;
