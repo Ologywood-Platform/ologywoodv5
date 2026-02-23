@@ -20,8 +20,10 @@ export const getLoginUrl = (returnPath?: string) => {
     const appId = import.meta.env.VITE_APP_ID || "";
     
     // Encode origin + returnPath in state so backend can redirect to correct domain
-    const redirectPath = returnPath || "/";
-    const stateData = `${window.location.origin}${redirectPath}`;
+    const stateData = JSON.stringify({
+      origin: window.location.origin,
+      returnPath: returnPath || "/",
+    });
     const state = btoa(stateData);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
