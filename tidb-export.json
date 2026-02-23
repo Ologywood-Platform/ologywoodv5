@@ -1,0 +1,196 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "openId": "artist_luna_moonlight",
+      "name": "Luna Moonlight",
+      "email": "luna.moonlight@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 2,
+      "openId": "artist_the_velvet_collective",
+      "name": "The Velvet Collective",
+      "email": "the.velvet.collective@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 3,
+      "openId": "artist_g.chizo",
+      "name": "G.Chizo",
+      "email": "g.chizo@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 4,
+      "openId": "artist_sofia_strings",
+      "name": "Sofia Strings",
+      "email": "sofia.strings@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 5,
+      "openId": "artist_the_rhythm_kings",
+      "name": "The Rhythm Kings",
+      "email": "the.rhythm.kings@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 6,
+      "openId": "artist_aurora_electronica",
+      "name": "Aurora Electronica",
+      "email": "aurora.electronica@ologywood.com",
+      "loginMethod": "oauth",
+      "role": "artist",
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z",
+      "lastSignedIn": "2026-02-24T02:13:24.000Z"
+    }
+  ],
+  "artists": [
+    {
+      "id": 1,
+      "userId": 1,
+      "artistName": "Luna Moonlight",
+      "genre": [
+        "Indie Folk",
+        "Acoustic"
+      ],
+      "bio": "Ethereal indie folk artist from Los Angeles with a dreamy, atmospheric sound. Specializes in intimate acoustic performances and emotional storytelling through music.",
+      "location": "Los Angeles, CA",
+      "feeRangeMin": 500,
+      "feeRangeMax": 1500,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "artistName": "The Velvet Collective",
+      "genre": [
+        "Jazz",
+        "Funk",
+        "Soul"
+      ],
+      "bio": "A sophisticated ensemble blending jazz, funk, and soul. Known for smooth grooves, intricate arrangements, and captivating live performances in New York.",
+      "location": "New York, NY",
+      "feeRangeMin": 800,
+      "feeRangeMax": 2500,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=500&h=500&fit=crop",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "artistName": "G.Chizo",
+      "genre": [
+        "Hip-Hop",
+        "Rap",
+        "Electronic"
+      ],
+      "bio": "Dynamic hip-hop and rap artist from Miami with electronic production influences. Known for high-energy performances and innovative beats.",
+      "location": "Miami, FL",
+      "feeRangeMin": 600,
+      "feeRangeMax": 1800,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&h=500&fit=crop",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 4,
+      "userId": 4,
+      "artistName": "Sofia Strings",
+      "genre": [
+        "Classical",
+        "Contemporary"
+      ],
+      "bio": "Virtuoso classical musician from Nashville performing contemporary classical pieces. Combines traditional classical training with modern compositions.",
+      "location": "Nashville, TN",
+      "feeRangeMin": 700,
+      "feeRangeMax": 2000,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=500&h=500&fit=crop",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 5,
+      "userId": 5,
+      "artistName": "The Rhythm Kings",
+      "genre": [
+        "Reggae",
+        "World Music"
+      ],
+      "bio": "Vibrant reggae and world music ensemble from Miami. Brings infectious rhythms, positive vibes, and cultural fusion to every performance.",
+      "location": "Miami, FL",
+      "feeRangeMin": 900,
+      "feeRangeMax": 1800,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/AJErdIfRnZIimfZO.jpg",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    },
+    {
+      "id": 6,
+      "userId": 6,
+      "artistName": "Aurora Electronica",
+      "genre": [
+        "Electronic",
+        "Ambient"
+      ],
+      "bio": "Electronic and ambient music producer from San Francisco. Creates immersive soundscapes and atmospheric electronic experiences.",
+      "location": "San Francisco, CA",
+      "feeRangeMin": 400,
+      "feeRangeMax": 1200,
+      "touringPartySize": 1,
+      "profilePhotoUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop",
+      "mediaGallery": null,
+      "websiteUrl": null,
+      "socialLinks": null,
+      "createdAt": "2026-02-24T02:13:24.000Z",
+      "updatedAt": "2026-02-24T02:13:24.000Z"
+    }
+  ],
+  "availability": [],
+  "exportDate": "2026-02-23T22:50:29.248Z"
+}

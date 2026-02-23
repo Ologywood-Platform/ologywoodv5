@@ -168,7 +168,11 @@ export async function getDb() {
       console.log("[Database] Parsed connection - Port:", url.port);
       console.log("[Database] Parsed connection - Database:", url.pathname.slice(1));
       
-      const pool = mysql.createPool({
+      // Determine if this is TiDB Cloud or AWS RDS based on hostname
+      const isTiDB = url.hostname.includes('tidbcloud.com');
+      const isAWSRDS = url.hostname.includes('rds.amazonaws.com');
+      
+      const poolConfig: any = {
         host: url.hostname,
         port: parseInt(url.port || '3306'),
         user: url.username,
@@ -177,9 +181,19 @@ export async function getDb() {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        enableKeepAlive: true,
-        ssl: {} // Enable SSL for TiDB with default settings
-      });
+        enableKeepAlive: true
+      };
+      
+      // TiDB Cloud requires SSL, AWS RDS doesn't (unless explicitly enabled)
+      if (isTiDB) {
+        poolConfig.ssl = {}; // Enable SSL for TiDB with default settings
+        console.log('[Database] Detected TiDB Cloud - SSL enabled');
+      } else if (isAWSRDS) {
+        poolConfig.ssl = false; // AWS RDS doesn't require SSL by default
+        console.log('[Database] Detected AWS RDS - SSL disabled');
+      }
+      
+      const pool = mysql.createPool(poolConfig);
       
       // Test connection immediately
       try {
