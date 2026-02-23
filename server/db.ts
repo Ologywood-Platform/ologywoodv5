@@ -329,7 +329,8 @@ export async function searchArtists(filters: {
 }) {
   let results: any[] = [];
   try {
-    console.log('[searchArtists] Fetching artists...');
+    console.log('[searchArtists] Called with filters:', JSON.stringify(filters));
+  console.log('[searchArtists] Fetching artists...');
     // Use getAllArtists which properly parses data via Drizzle ORM
     results = await getAllArtists();
     console.log(`[searchArtists] Fetched ${results.length} artists from database`);
@@ -381,6 +382,8 @@ export async function searchArtists(filters: {
     // Filter artists who have availability in the requested date range
     filtered = filtered.filter(artist => {
       const artistAvailability = availabilities.filter(av => av.artistId === artist.id);
+      // Only exclude if no availability records AND user requested availability filtering
+      // This prevents filtering out artists who just haven't set availability yet
       if (artistAvailability.length === 0) return false;
       
       return artistAvailability.some(av => {

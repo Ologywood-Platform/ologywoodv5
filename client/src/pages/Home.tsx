@@ -83,6 +83,20 @@ export default function Home() {
     artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     artist.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Debug logging
+  useEffect(() => {
+    if (artists && artists.length > 0) {
+      const names = artists.map(a => a.artistName).join(', ');
+      console.log('[Home] Raw artists from API:', artists.length);
+      console.log('[Home] Artist names:', names);
+      console.log('[Home] Filtered artists:', filteredArtists?.length);
+      // Show alert on first load only
+      if (artists.length !== 10) {
+        console.warn('[Home] WARNING: Expected 10 artists but got', artists.length);
+      }
+    }
+  }, [artists, filteredArtists]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -168,8 +182,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Artists Carousel */}
-      <FeaturedArtistsCarousel artists={filteredArtists || []} isLoading={isLoading} />
+      {/* Featured Artists Carousel - Show all artists, not filtered by search */}
+      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
 
       {/* Trust Badges Section */}
       <TrustBadges />
@@ -261,5 +275,3 @@ export default function Home() {
     </div>
   );
 }
-
-
