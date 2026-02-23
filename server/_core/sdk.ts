@@ -47,11 +47,16 @@ class OAuthService {
     code: string,
     state: string
   ): Promise<ExchangeTokenResponse> {
+    // Always use the complete callback URL registered in Manus OAuth app settings
+    // The state parameter contains the origin + path for post-login redirect, not for OAuth exchange
+    const baseUrl = this.client.defaults.baseURL || 'https://api.manus.im';
+    const redirectUri = `${ENV.oAuthRedirectBaseUrl}/api/oauth/callback`;
+    
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
       code,
-      redirectUri: this.decodeState(state),
+      redirectUri,
     };
 
     const { data } = await this.client.post<ExchangeTokenResponse>(
