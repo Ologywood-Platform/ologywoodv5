@@ -91,10 +91,8 @@ export default function Home() {
       console.log('[Home] Raw artists from API:', artists.length);
       console.log('[Home] Artist names:', names);
       console.log('[Home] Filtered artists:', filteredArtists?.length);
-      // Show alert on first load only
-      if (artists.length !== 10) {
-        console.warn('[Home] WARNING: Expected 10 artists but got', artists.length);
-      }
+      // Log the actual number of artists fetched
+      console.log('[Home] Successfully loaded', artists.length, 'artists');
     }
   }, [artists, filteredArtists]);
 
