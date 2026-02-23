@@ -370,11 +370,11 @@ export const appRouter = router({
         location: z.string().optional(),
         minFee: z.number().optional(),
         maxFee: z.number().optional(),
-        availableFrom: z.string().optional(), // ISO date string
-        availableTo: z.string().optional(), // ISO date string
-      }))
+        availableFrom: z.string().optional(),
+        availableTo: z.string().optional(),
+      }).optional().default({}))
       .query(async ({ input }) => {
-        return await db.searchArtists(input);
+        return await db.searchArtists(input || {});
       }),
     
     // Get all artists
