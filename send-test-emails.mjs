@@ -8,6 +8,7 @@ dotenv.config();
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDER_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@ologywood.com';
 const TEST_EMAIL = 'garychisolm30@gmail.com';
+const BASE_URL = process.env.BASE_URL || 'https://ologywood.com';
 
 if (!SENDGRID_API_KEY) {
   console.error('❌ SENDGRID_API_KEY not configured');
@@ -27,7 +28,7 @@ const emailTemplates = [
       <p><strong>Event Date:</strong> March 15, 2026</p>
       <p><strong>Event Details:</strong> Live jazz performance for private event</p>
       <p><strong>Total Fee:</strong> $500</p>
-      <p><a href="https://ologywood.com/bookings">View Booking Request</a></p>
+      <p><a href="${BASE_URL}/bookings">View Booking Request</a></p>
     `,
   },
   {
@@ -39,7 +40,7 @@ const emailTemplates = [
       <p><strong>Event Date:</strong> April 20, 2026</p>
       <p><strong>Venue:</strong> The Riverside Theater</p>
       <p><strong>Status:</strong> Confirmed</p>
-      <p><a href="https://ologywood.com/bookings">View Booking Details</a></p>
+      <p><a href="${BASE_URL}/bookings">View Booking Details</a></p>
     `,
   },
   {
@@ -51,7 +52,7 @@ const emailTemplates = [
       <p><strong>Event Date:</strong> May 10, 2026</p>
       <p><strong>Reason:</strong> Artist unavailable</p>
       <p>We apologize for any inconvenience. Please browse other artists or contact support.</p>
-      <p><a href="https://ologywood.com/browse">Browse Artists</a></p>
+      <p><a href="${BASE_URL}/browse">Browse Artists</a></p>
     `,
   },
   {
@@ -63,7 +64,7 @@ const emailTemplates = [
       <p><strong>Event Date:</strong> June 5, 2026 at 7:00 PM</p>
       <p><strong>Venue:</strong> The Grand Ballroom</p>
       <p>Your event is coming up in 7 days. Please confirm all details and ensure the artist has access to the venue.</p>
-      <p><a href="https://ologywood.com/bookings">View Booking</a></p>
+      <p><a href="${BASE_URL}/bookings">View Booking</a></p>
     `,
   },
   {
