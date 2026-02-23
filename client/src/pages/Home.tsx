@@ -76,6 +76,13 @@ export default function Home() {
     return '/dashboard'; // Default to artist dashboard
   };
 
+  // Redirect authenticated users without a role to role selection
+  useEffect(() => {
+    if (isAuthenticated && user && !user.role) {
+      window.location.href = '/get-started';
+    }
+  }, [isAuthenticated, user]);
+
   // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
 
   const filteredArtists = artists?.filter(artist => 
