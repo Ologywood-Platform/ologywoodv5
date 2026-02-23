@@ -7,7 +7,7 @@ export const removeSavedEvent = stubs.removeSavedEvent;
 export const getVenueProfileByToken = stubs.getVenueProfileByToken;
 export const getUserById = stubs.getUserById;
 export const setAvailability = stubs.setAvailability;
-export const getVenuesWhoFavoritedArtist = stubs.getVenuesWhoFavoritedArtist;
+// Replaced with real implementation below
 export const deleteAvailability = stubs.deleteAvailability;
 export const getUserSavedEvents = stubs.getUserSavedEvents;
 export const getArtistEventHistory = stubs.getArtistEventHistory;
@@ -58,7 +58,7 @@ import {
   savedEvents, InsertSavedEvent, SavedEvent
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -1152,5 +1152,202 @@ export async function getSavedEventsByUserId(userId: number): Promise<SavedEvent
 
 
 
+
+
+// ============= MISSING FUNCTIONS - ADDED IN AUDIT FIX =============
+
+// Availability Functions
+export async function getAvailabilityForDate(artistId: number, date: Date): Promise<Availability | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const dateStr = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
+  const result = await db.select().from(availability)
+    .where(and(eq(availability.artistId, artistId), eq(availability.date, dateStr)))
+    .limit(1);
+  return result[0];
+}
+
+// Booking Functions
+export async function getBookingStats(artistId: number): Promise<{ total: number; confirmed: number; pending: number; completed: number }> {
+  const db = await getDb();
+  if (!db) return { total: 0, confirmed: 0, pending: 0, completed: 0 };
+  
+  const allBookings = await db.select().from(bookings).where(eq(bookings.artistId, artistId));
+  return {
+    total: allBookings.length,
+    confirmed: allBookings.filter(b => b.status === 'confirmed').length,
+    pending: allBookings.filter(b => b.status === 'pending').length,
+    completed: allBookings.filter(b => b.status === 'completed').length
+  };
+}
+
+export async function getBookingTemplatesByUserId(userId: number): Promise<BookingTemplate[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(bookingTemplates).where(eq(bookingTemplates.userId, userId));
+}
+
+// Favorite Functions
+export async function getFavoriteCount(artistId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(favorites).where(eq(favorites.artistId, artistId));
+  return result.length;
+}
+
+export async function getFavoritesByVenue(venueId: number): Promise<Favorite[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(favorites).where(eq(favorites.venueId, venueId));
+}
+
+export async function isFavorited(venueId: number, artistId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(favorites)
+    .where(and(eq(favorites.venueId, venueId), eq(favorites.artistId, artistId)))
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function getVenuesWhoFavoritedArtist(artistId: number): Promise<VenueProfile[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const favs = await db.select().from(favorites).where(eq(favorites.artistId, artistId));
+  const venueIds = favs.map(f => f.venueId);
+  if (venueIds.length === 0) return [];
+  const venues = await db.select().from(venueProfiles).where(sql`${venueProfiles.id} IN (${sql.join(venueIds)})`);
+  return venues;
+}
+
+// Message Functions
+export async function markMessageAsRead(messageId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(messages).set({ isRead: true }).where(eq(messages.id, messageId));
+}
+
+export async function markMessagesAsRead(bookingId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(messages).set({ isRead: true }).where(eq(messages.bookingId, bookingId));
+}
+
+export async function getTotalUnreadMessageCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(messages)
+    .where(and(eq(messages.recipientId, userId), eq(messages.isRead, false)));
+  return result.length;
+}
+
+export async function getUnreadMessageCountByBooking(bookingId: number, userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(messages)
+    .where(and(eq(messages.bookingId, bookingId), eq(messages.recipientId, userId), eq(messages.isRead, false)));
+  return result.length;
+}
+
+// Review Functions
+export async function getReviewByBookingId(bookingId: number): Promise<Review | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(reviews).where(eq(reviews.bookingId, bookingId)).limit(1);
+  return result[0];
+}
+
+export async function getReviewById(reviewId: number): Promise<Review | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
+  return result[0];
+}
+
+export async function getAverageRatingForVenue(venueId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const venueReviewsList = await db.select().from(venueReviews).where(eq(venueReviews.venueId, venueId));
+  if (venueReviewsList.length === 0) return 0;
+  const sum = venueReviewsList.reduce((acc, r) => acc + (r.rating || 0), 0);
+  return sum / venueReviewsList.length;
+}
+
+export async function updateReview(id: number, data: Partial<InsertReview>): Promise<Review | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(reviews).set({ ...data, updatedAt: new Date() }).where(eq(reviews.id, id));
+  const result = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getVenueReviewByBookingId(bookingId: number): Promise<VenueReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.bookingId, bookingId)).limit(1);
+  return result[0];
+}
+
+export async function getVenueReviewById(reviewId: number): Promise<VenueReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.id, reviewId)).limit(1);
+  return result[0];
+}
+
+export async function updateVenueReview(id: number, data: Partial<InsertVenueReview>): Promise<VenueReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(venueReviews).set({ ...data, updatedAt: new Date() }).where(eq(venueReviews.id, id));
+  const result = await db.select().from(venueReviews).where(eq(venueReviews.id, id)).limit(1);
+  return result[0];
+}
+
+// Analytics Functions
+export async function getRevenueByMonth(artistId: number, months: number = 12): Promise<Array<{ month: string; revenue: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const artistBookings = await db.select().from(bookings)
+    .where(eq(bookings.artistId, artistId));
+  
+  const monthlyRevenue: Record<string, number> = {};
+  const now = new Date();
+  
+  for (let i = 0; i < months; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
+    monthlyRevenue[monthKey] = 0;
+  }
+  
+  // Calculate revenue from confirmed/completed bookings
+  for (const booking of artistBookings) {
+    if (booking.status === 'confirmed' || booking.status === 'completed') {
+      const monthKey = booking.eventDate.toISOString().slice(0, 7);
+      if (monthKey in monthlyRevenue) {
+        monthlyRevenue[monthKey] += Number(booking.totalFee) || 0;
+      }
+    }
+  }
+  
+  return Object.entries(monthlyRevenue)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([month, revenue]) => ({ month, revenue }));
+}
+
+// Profile View Functions
+export async function getProfileViewCount(artistId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(profileViews).where(eq(profileViews.profileId, artistId));
+  return result.length;
+}
+
+// Reminder Functions
+export async function markReminderSent(reminderId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(bookingReminders).set({ sentAt: new Date() }).where(eq(bookingReminders.id, reminderId));
+}
 
 

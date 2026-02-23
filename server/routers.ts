@@ -465,7 +465,7 @@ export const appRouter = router({
         endDate: z.string().optional(),
       }))
       .query(async ({ input }) => {
-        return await db.getAvailabilityByArtistId(input.artistId, input.startDate, input.endDate);
+        return await db.getAvailabilityByArtistId(input.artistId);
       }),
     
     // Set availability (artist only)
@@ -492,10 +492,11 @@ export const appRouter = router({
         if (input.status === 'available') {
           const venues = await db.getVenuesWhoFavoritedArtist(profile.id);
           for (const venue of venues) {
-            if (venue.email) {
+            const venueUser = await db.getUserById(venue.userId);
+            if (venueUser && venueUser.email) {
               await email.sendAvailabilityUpdateNotification(
-                venue.email,
-                venue.organizationName || venue.name || 'Venue',
+                venueUser.email,
+                venue.organizationName || 'Venue',
                 profile.artistName,
                 profile.id,
                 [input.date]
@@ -537,7 +538,7 @@ export const appRouter = router({
         }
         
         // Check if artist is available on this date
-        const avail = await db.getAvailabilityForDate(input.artistId, input.eventDate);
+        const avail = await db.getAvailabilityForDate(input.artistId, new Date(input.eventDate));
         if (avail && avail.status !== 'available') {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
         }
@@ -833,7 +834,7 @@ export const appRouter = router({
     markBookingAsRead: protectedProcedure
       .input(z.object({ bookingId: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        await db.markMessagesAsRead(input.bookingId, ctx.user.id);
+        await db.markMessagesAsRead(input.bookingId);
         return { success: true };
       }),
     
@@ -1301,11 +1302,10 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         try {
-          await db.trackProfileView(
-            input.artistId,
-            ctx.user?.id,
-            input.ipAddress
-          );
+          await db.trackProfileView({
+            artistId: input.artistId,
+            viewedAt: new Date()
+          });
         } catch (error) {
           console.error('Error tracking profile view:', error);
         }
@@ -1319,7 +1319,7 @@ export const appRouter = router({
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
-        return await db.getProfileViewCount(profile.id, input.days);
+        return await db.getProfileViewCount(profile.id);
       }),
     
     getBookingStats: artistProcedure
@@ -1349,8 +1349,10 @@ export const appRouter = router({
         // This endpoint can be called manually or by a cron job
         const bookingsNeedingReminders = await db.getBookingsNeedingReminders();
         
-        for (const { booking, reminderType } of bookingsNeedingReminders) {
-          const daysUntil = reminderType === 'upcoming' ? 7 : reminderType === 'deposit_due' ? 3 : 1;
+        for (const booking of bookingsNeedingReminders) {
+          const eventDate = new Date(booking.eventDate);
+          const today = new Date();
+          const daysUntil = Math.floor((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
           const artist = await db.getArtistProfileById(booking.artistId);
           const venue = await db.getVenueProfileById(booking.venueId);
@@ -1367,7 +1369,7 @@ export const appRouter = router({
             venueName: venue.organizationName,
             eventDate: booking.eventDate!,
             eventTime: booking.eventTime || undefined,
-            venueAddress: booking.venueAddress || undefined,
+            // venueAddress removed - not in booking schema
             totalFee: typeof booking.totalFee === 'number' ? booking.totalFee : undefined,
             eventDetails: booking.eventDetails || undefined,
           };
@@ -1389,7 +1391,7 @@ export const appRouter = router({
             false
           );
           
-          await db.markReminderSent(booking.id, reminderType);
+          await db.markReminderSent(booking.id);
         }
         
         return { sent: bookingsNeedingReminders.length };
