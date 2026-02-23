@@ -38,6 +38,7 @@ export const getLoginUrl = (returnPath?: string) => {
     url.searchParams.set("appId", appId);
     url.searchParams.set("state", state);
     url.searchParams.set("type", "signIn");
+    url.searchParams.set("errorRedirect", `${window.location.origin}/?oauth_error=true`);
 
     return url.toString();
   } catch (error) {

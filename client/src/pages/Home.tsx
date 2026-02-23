@@ -55,6 +55,15 @@ export default function Home() {
   useEffect(() => {
     setMetaTags(pageMetaTags.home);
   }, []);
+
+  // Handle OAuth errors by clearing the error param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('oauth_error')) {
+      // Remove the error parameter from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
   
   const handleSignIn = async (e: React.MouseEvent) => {
     e.preventDefault();
