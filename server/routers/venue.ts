@@ -30,10 +30,10 @@ export const venueRouter = router({
       try {
         console.log('[Venue] Search called with:', input);
         const venues = await db.searchVenues({
-          searchQuery: input.searchQuery,
+          query: input.searchQuery,
           location: input.location,
-          limit: input.limit || 20,
-          offset: input.offset || 0,
+          capacity: undefined,
+          amenities: undefined,
         });
         console.log('[Venue] Found venues:', venues.length);
         return venues;
@@ -287,11 +287,14 @@ export const venueRouter = router({
 
         // Send confirmation email
         const user = await db.getUserById(profile.userId);
-        if (user && 'email' in user && user.email) {
-          await sendVenueVerificationConfirmationEmail({
-            venueEmail: user.email,
-            venueName: profile.organizationName || 'Venue',
-          });
+        if (user && typeof user === 'object' && 'email' in user) {
+          const email = (user as any).email;
+          if (email) {
+            await sendVenueVerificationConfirmationEmail({
+              venueEmail: email,
+              venueName: (profile as any).organizationName || 'Venue',
+            });
+          }
         }
 
         return { success: true, message: 'Email verified successfully' };

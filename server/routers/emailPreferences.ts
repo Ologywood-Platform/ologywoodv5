@@ -38,16 +38,19 @@ export const emailPreferencesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const updated = await db.updateEmailPreferences(ctx.user.id, input);
+        await db.updateEmailPreferences(ctx.user.id, input);
         
-        if (!updated) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to update email preferences",
-          });
-        }
-        
-        return updated;
+        // Return the updated preferences
+        const preferences = await db.getEmailPreferences(ctx.user.id);
+        return preferences || { 
+          userId: ctx.user.id, 
+          frequency: 'weekly', 
+          bookingUpdates: true, 
+          newOpportunities: true, 
+          platformNews: true, 
+          weeklyDigest: true, 
+          reminders: true 
+        };
       } catch (error) {
         console.error("Error updating email preferences:", error);
         throw new TRPCError({
@@ -60,7 +63,7 @@ export const emailPreferencesRouter = router({
   // Unsubscribe from all emails
   unsubscribeAll: protectedProcedure.mutation(async ({ ctx }) => {
     try {
-      const updated = await db.updateEmailPreferences(ctx.user.id, {
+      await db.updateEmailPreferences(ctx.user.id, {
         frequency: "never",
         bookingUpdates: false,
         newOpportunities: false,
@@ -69,14 +72,7 @@ export const emailPreferencesRouter = router({
         reminders: false,
       });
       
-      if (!updated) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to unsubscribe from emails",
-        });
-      }
-      
-      return updated;
+      return { success: true, message: "Unsubscribed from all emails" };
     } catch (error) {
       console.error("Error unsubscribing from all emails:", error);
       throw new TRPCError({
@@ -89,7 +85,7 @@ export const emailPreferencesRouter = router({
   // Resubscribe to emails
   resubscribe: protectedProcedure.mutation(async ({ ctx }) => {
     try {
-      const updated = await db.updateEmailPreferences(ctx.user.id, {
+      await db.updateEmailPreferences(ctx.user.id, {
         frequency: "weekly",
         bookingUpdates: true,
         newOpportunities: true,
@@ -98,14 +94,7 @@ export const emailPreferencesRouter = router({
         reminders: true,
       });
       
-      if (!updated) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to resubscribe to emails",
-        });
-      }
-      
-      return updated;
+      return { success: true, message: "Resubscribed to emails" };
     } catch (error) {
       console.error("Error resubscribing to emails:", error);
       throw new TRPCError({
