@@ -98,10 +98,12 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                           imageClassName="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full bg-gradient-to-br from-primary/20 to-accent/20">
-                          <Music className="h-12 w-12 sm:h-16 sm:w-16 text-primary/50 mb-2" />
-                          <span className="text-xs sm:text-sm text-muted-foreground">No image</span>
-                        </div>
+                        <LazyImage
+                          src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
+                          alt={artist.artistName || 'Artist'}
+                          containerClassName="w-full h-full"
+                          imageClassName="w-full h-full object-cover opacity-60"
+                        />
                       )}
                     </div>
                     <div className="space-y-2">

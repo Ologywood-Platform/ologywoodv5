@@ -136,3 +136,10 @@
 ## Archive
 
 See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
+
+
+## URGENT ISSUES
+
+- [x] Fix missing artist images on homepage - featured artists showing "No image" placeholder
+- [x] Verify artist profilePhotoUrl is being populated in database
+- [x] Check if images are being loaded correctly for public/unauthenticated users
