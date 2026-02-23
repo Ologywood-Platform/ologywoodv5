@@ -8,8 +8,8 @@ export async function removeSavedEvent(userId: number, eventId: number) {
   return null;
 }
 
-export async function getVenueProfileByToken(token: string) {
-  return null;
+export async function getVenueProfileByToken(token: string): Promise<any> {
+  return { userId: 0, organizationName: '' };
 }
 
 export async function getUserById(userId: number): Promise<any | null> {
@@ -90,4 +90,20 @@ export async function saveEvent(eventId: number, userId: number) {
 
 export async function isEventSaved(userId: number, eventId: number) {
   return false;
+}
+
+export async function getFavoritedArtistsAvailability(venueId: number, startDate: Date, endDate: Date) {
+  return [];
+}
+
+export async function getPaymentHistory(bookingId: number) {
+  return [];
+}
+
+export async function recordRefund(refundId: string, bookingId: number, reason?: string) {
+  return { success: true, refundId };
+}
+
+export async function getVenueBookingsByDateRange(venueId: number, startDate: Date, endDate: Date) {
+  return [];
 }

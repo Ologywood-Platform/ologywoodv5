@@ -1397,8 +1397,8 @@ export const appRouter = router({
         const startDate = new Date(input.startDate);
         const endDate = new Date(input.endDate);
         
-        // Return empty availability for now (stub)
-        return [];
+        // Get availability for favorited artists
+        return await db.getFavoritedArtistsAvailability(ctx.user.id, startDate, endDate);
       }),
   }),
   

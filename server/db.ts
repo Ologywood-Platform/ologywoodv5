@@ -25,6 +25,10 @@ export const getEventRecurrence = stubs.getEventRecurrence;
 export const searchPublicEvents = stubs.searchPublicEvents;
 export const saveEvent = stubs.saveEvent;
 export const isEventSaved = stubs.isEventSaved;
+export const getFavoritedArtistsAvailability = stubs.getFavoritedArtistsAvailability;
+export const getPaymentHistory = stubs.getPaymentHistory;
+export const recordRefund = stubs.recordRefund;
+export const getVenueBookingsByDateRange = stubs.getVenueBookingsByDateRange;
 
 import { 
   User, InsertUser, users, 
