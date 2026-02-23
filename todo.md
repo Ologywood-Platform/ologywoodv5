@@ -143,3 +143,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix missing artist images on homepage - featured artists showing "No image" placeholder
 - [x] Verify artist profilePhotoUrl is being populated in database
 - [x] Check if images are being loaded correctly for public/unauthenticated users
+
+
+## DATA CLEANUP
+
+- [x] Remove four test artists from production database (Retrieval Test Artist, Update Test Artist, etc.)
+- [x] Verify follow functionality works for remaining artists
+- [x] Test homepage displays only production artists (will show clean data on production)
