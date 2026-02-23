@@ -63,13 +63,13 @@ const venues = [
 for (const venue of venues) {
   try {
     await connection.execute(
-      `INSERT INTO venue_profiles (userId, venueName, bio, location, capacity, profilePhotoUrl, createdAt, updatedAt)
+      `INSERT INTO venue_profiles (userId, organizationName, bio, location, capacity, profilePhotoUrl, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [venue.userId, venue.venueName, venue.bio, venue.location, venue.capacity, venue.profilePhotoUrl]
     );
-    console.log(`✅ Seeded: ${venue.venueName}`);
+    console.log(`✅ Seeded venue: ${venue.venueName}`);
   } catch (error) {
-    console.error(`❌ Error seeding ${venue.venueName}:`, error.message);
+    console.error(`❌ Error seeding venue ${venue.venueName}:`, error.message);
   }
 }
 
