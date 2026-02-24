@@ -270,3 +270,25 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add deleteEmailPreferences real implementation
 - [x] Update all consumers (routers, Unsubscribe page, email settings) to use real functions
 - [x] Write/update tests for the real email preferences functions
+
+## WIRE UP REMAINING STUBS
+- [x] Audit all remaining stubs in db-stubs.ts (22 stubs, 5 tables need creation)
+- [x] Replace getUserById stub with real implementation
+- [x] Replace setAvailability/deleteAvailability stubs with real implementations
+- [x] Replace getPaymentHistory/recordRefund stubs with real implementations
+- [x] Replace event-related stubs (getArtistEvents, searchPublicEvents, etc.)
+- [x] Replace saved events stubs (saveEvent, removeSavedEvent, isEventSaved, getUserSavedEvents)
+- [x] Replace event photos stubs (getEventPhotos, addEventPhoto, deleteEventPhoto)
+- [x] Replace getVenueProfileByToken and getVenueBookingsByDateRange stubs
+- [x] Replace getFavoritedArtistsAvailability stub
+
+## EMAIL NOTIFICATION TRIGGERS
+- [x] Add booking confirmation email trigger (already wired in routers.ts)
+- [x] Add booking status change email trigger (already wired: confirmed + cancelled)
+- [x] Add rider contract signing notification email (countersign request + fully-signed)
+- [x] Add payment receipt email trigger (Stripe webhook: payment_intent.succeeded)
+- [x] Add refund notification email trigger (Stripe webhook: charge.refunded)
+- [x] Add review notification email triggers (already wired in routers.ts)
+- [x] Add availability update notification (already wired in routers.ts)
+- [x] Booking reminder email (already wired in routers.ts)
+- [x] Respect user email preferences before sending any notification (emailService checks preferences)

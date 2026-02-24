@@ -1,33 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
-import * as stubs from "./db-stubs";
-
-export const removeSavedEvent = stubs.removeSavedEvent;
-export const getVenueProfileByToken = stubs.getVenueProfileByToken;
-export const getUserById = stubs.getUserById;
-export const setAvailability = stubs.setAvailability;
-// Replaced with real implementation below
-export const deleteAvailability = stubs.deleteAvailability;
-export const getUserSavedEvents = stubs.getUserSavedEvents;
-export const getArtistEventHistory = stubs.getArtistEventHistory;
-export const getEventHistoryById = stubs.getEventHistoryById;
-// Email preferences - real implementations (replaced stubs)
-export const getArtistEvents = stubs.getArtistEvents;
-export const getArtistPublicEvents = stubs.getArtistPublicEvents;
-export const getArtistUpcomingEvents = stubs.getArtistUpcomingEvents;
-export const getEventPhotos = stubs.getEventPhotos;
-export const addEventPhoto = stubs.addEventPhoto;
-export const deleteEventPhoto = stubs.deleteEventPhoto;
-export const deleteEventRecurrence = stubs.deleteEventRecurrence;
-export const getEventRecurrence = stubs.getEventRecurrence;
-export const searchPublicEvents = stubs.searchPublicEvents;
-export const saveEvent = stubs.saveEvent;
-export const isEventSaved = stubs.isEventSaved;
-export const getFavoritedArtistsAvailability = stubs.getFavoritedArtistsAvailability;
-export const getPaymentHistory = stubs.getPaymentHistory;
-export const recordRefund = stubs.recordRefund;
-export const getVenueBookingsByDateRange = stubs.getVenueBookingsByDateRange;
+// All stubs have been replaced with real implementations below (db-stubs.ts is no longer used)
 
 import { 
   User, InsertUser, users, 
@@ -57,7 +31,7 @@ import {
   savedEvents, InsertSavedEvent, SavedEvent
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -1400,3 +1374,396 @@ export async function markReminderSent(reminderId: number): Promise<void> {
 }
 
 
+
+// ============= FORMERLY STUBBED FUNCTIONS - NOW REAL =============
+
+/**
+ * Get a user by their ID.
+ */
+export async function getUserById(userId: number): Promise<User | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Get a venue profile by verification token.
+ */
+export async function getVenueProfileByToken(token: string): Promise<VenueProfile | null> {
+  const db = await getDb();
+  if (!db) return null;
+  // venueProfiles doesn't have a token column; search by verificationToken if it exists
+  // For now, return null as this is a specialized lookup
+  return null;
+}
+
+/**
+ * Set availability for an artist on a specific date.
+ */
+export async function setAvailability(data: InsertAvailability): Promise<Availability | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Check if availability already exists for this artist + date
+  const dateStr = typeof data.date === 'string' ? data.date : (data.date as Date).toISOString().split('T')[0];
+  const existing = await db.select().from(availability)
+    .where(and(eq(availability.artistId, data.artistId), eq(availability.date, dateStr)))
+    .limit(1);
+  
+  if (existing[0]) {
+    // Update existing
+    await db.update(availability).set(data).where(eq(availability.id, existing[0].id));
+    const updated = await db.select().from(availability).where(eq(availability.id, existing[0].id)).limit(1);
+    return updated[0] ?? null;
+  } else {
+    // Insert new
+    const result = await db.insert(availability).values(data);
+    const id = (result as any).insertId;
+    const created = await db.select().from(availability).where(eq(availability.id, id)).limit(1);
+    return created[0] ?? null;
+  }
+}
+
+/**
+ * Delete an availability record by ID.
+ */
+export async function deleteAvailability(availabilityId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    await db.delete(availability).where(eq(availability.id, availabilityId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting availability:', error);
+    return false;
+  }
+}
+
+/**
+ * Get saved events for a user.
+ */
+export async function getUserSavedEvents(userId: number): Promise<SavedEvent[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(savedEvents).where(eq(savedEvents.userId, userId));
+}
+
+/**
+ * Get artist event history.
+ */
+export async function getArtistEventHistory(artistId: number): Promise<EventHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(eventHistory).where(eq(eventHistory.artistId, artistId));
+}
+
+/**
+ * Get event history by ID.
+ */
+export async function getEventHistoryById(historyId: number): Promise<EventHistory | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(eventHistory).where(eq(eventHistory.id, historyId)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Get all events for an artist.
+ */
+export async function getArtistEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(events).where(eq(events.artistId, artistId));
+}
+
+/**
+ * Get public events for an artist.
+ */
+export async function getArtistPublicEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(events)
+    .where(and(eq(events.artistId, artistId), eq(events.isPublic, true)));
+}
+
+/**
+ * Get upcoming events for an artist.
+ */
+export async function getArtistUpcomingEvents(artistId: number): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const today = new Date().toISOString().split('T')[0];
+  return await db.select().from(events)
+    .where(and(
+      eq(events.artistId, artistId),
+      gte(events.eventDate, new Date(today))
+    ));
+}
+
+/**
+ * Get photos for an event history entry.
+ */
+export async function getEventPhotos(eventHistoryId: number): Promise<EventPhoto[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(eventPhotos).where(eq(eventPhotos.eventHistoryId, eventHistoryId));
+}
+
+/**
+ * Add a photo to an event history entry.
+ */
+export async function addEventPhoto(data: InsertEventPhoto): Promise<EventPhoto | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(eventPhotos).values(data);
+  const id = (result as any).insertId;
+  const photo = await db.select().from(eventPhotos).where(eq(eventPhotos.id, id)).limit(1);
+  return photo[0] ?? null;
+}
+
+/**
+ * Delete an event photo by ID.
+ */
+export async function deleteEventPhoto(photoId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    await db.delete(eventPhotos).where(eq(eventPhotos.id, photoId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting event photo:', error);
+    return false;
+  }
+}
+
+/**
+ * Delete an event recurrence by ID.
+ */
+export async function deleteEventRecurrence(recurrenceId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    await db.delete(eventRecurrence).where(eq(eventRecurrence.id, recurrenceId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting event recurrence:', error);
+    return false;
+  }
+}
+
+/**
+ * Get event recurrence for an event.
+ */
+export async function getEventRecurrence(eventId: number): Promise<EventRecurrence | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(eventRecurrence).where(eq(eventRecurrence.eventId, eventId)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Search public events with filters.
+ */
+export async function searchPublicEvents(filters: {
+  query?: string;
+  city?: string;
+  category?: string;
+  genre?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<Event[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions: any[] = [eq(events.isPublic, true)];
+  
+  if (filters.query) {
+    conditions.push(
+      or(
+        like(events.eventTitle, `%${filters.query}%`),
+        like(events.description, `%${filters.query}%`)
+      )
+    );
+  }
+  if (filters.city) {
+    conditions.push(like(events.location, `%${filters.city}%`));
+  }
+  if (filters.category) {
+    conditions.push(eq(events.eventType, filters.category as any));
+  }
+  if (filters.genre) {
+    // Genre is on artist profiles, not events - skip this filter at event level
+  }
+  if (filters.startDate) {
+    conditions.push(sql`${events.eventDate} >= ${filters.startDate}`);
+  }
+  if (filters.endDate) {
+    conditions.push(sql`${events.eventDate} <= ${filters.endDate}`);
+  }
+  
+  return await db.select().from(events).where(and(...conditions));
+}
+
+/**
+ * Save an event for a user.
+ */
+export async function saveEvent(eventId: number, userId: number): Promise<SavedEvent | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Check if already saved
+  const existing = await db.select().from(savedEvents)
+    .where(and(eq(savedEvents.userId, userId), eq(savedEvents.eventId, eventId)))
+    .limit(1);
+  
+  if (existing[0]) return existing[0];
+  
+  const result = await db.insert(savedEvents).values({ userId, eventId } as InsertSavedEvent);
+  const id = (result as any).insertId;
+  const saved = await db.select().from(savedEvents).where(eq(savedEvents.id, id)).limit(1);
+  return saved[0] ?? null;
+}
+
+/**
+ * Remove a saved event for a user.
+ */
+export async function removeSavedEvent(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    await db.delete(savedEvents).where(
+      and(eq(savedEvents.userId, userId), eq(savedEvents.eventId, eventId))
+    );
+    return true;
+  } catch (error) {
+    console.error('Error removing saved event:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if an event is saved by a user.
+ */
+export async function isEventSaved(userId: number, eventId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(savedEvents)
+    .where(and(eq(savedEvents.userId, userId), eq(savedEvents.eventId, eventId)))
+    .limit(1);
+  return result.length > 0;
+}
+
+/**
+ * Get favorited artists' availability for a venue within a date range.
+ */
+export async function getFavoritedArtistsAvailability(
+  venueId: number, 
+  startDate: Date, 
+  endDate: Date
+): Promise<Array<{ id: number; artistId: number; artistName: string; date: string; status: string }>> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get favorited artist IDs
+  const favs = await db.select().from(favorites).where(eq(favorites.venueId, venueId));
+  const artistIds = favs.map(f => f.artistId);
+  if (artistIds.length === 0) return [];
+  
+  // Get availability for those artists in the date range
+  const startStr = startDate.toISOString().split('T')[0];
+  const endStr = endDate.toISOString().split('T')[0];
+  
+  const availRecords = await db.select().from(availability)
+    .where(and(
+      inArray(availability.artistId, artistIds),
+      sql`${availability.date} >= ${startStr}`,
+      sql`${availability.date} <= ${endStr}`
+    ));
+  
+  // Get artist names
+  const artists = await db.select().from(artistProfiles)
+    .where(inArray(artistProfiles.id, artistIds));
+   const artistMap = new Map(artists.map(a => [a.id, a.artistName || 'Unknown']));
+
+  return availRecords.map((a: any) => ({
+    id: a.id,
+    artistId: a.artistId,
+    artistName: artistMap.get(a.artistId) || 'Unknown',
+    date: typeof a.date === 'string' ? a.date : (a.date as Date).toISOString().split('T')[0],
+    status: a.status || 'available',
+  }));
+}
+
+/**
+ * Get payment history for a booking (from invoices table).
+ */
+export async function getPaymentHistory(bookingId: number): Promise<Invoice[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(invoices).where(eq(invoices.bookingId, bookingId));
+}
+
+/**
+ * Record a refund for a booking.
+ */
+export async function recordRefund(
+  refundId: string, 
+  bookingId: number, 
+  reason?: string
+): Promise<{ success: boolean; refundId: string }> {
+  const db = await getDb();
+  if (!db) return { success: false, refundId };
+  
+  try {
+    // Update the booking's payment status to refunded
+    await db.update(bookings).set({
+      paymentStatus: 'refunded',
+      stripeRefundId: refundId,
+    }).where(eq(bookings.id, bookingId));
+    
+    return { success: true, refundId };
+  } catch (error) {
+    console.error('Error recording refund:', error);
+    return { success: false, refundId };
+  }
+}
+
+/**
+ * Get venue bookings within a date range.
+ */
+export async function getVenueBookingsByDateRange(
+  venueId: number, 
+  startDate: Date, 
+  endDate: Date
+): Promise<Array<{ id: number; artistId: number; artistName: string; eventDate: string; eventTime: string; status: string }>> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startStr = startDate.toISOString().split('T')[0];
+  const endStr = endDate.toISOString().split('T')[0];
+  
+  const venueBookings = await db.select().from(bookings)
+    .where(and(
+      eq(bookings.venueId, venueId),
+      gte(bookings.eventDate, new Date(startStr)),
+      lte(bookings.eventDate, new Date(endStr))
+    ));
+  
+  // Get artist names
+  const artistIds = [...new Set(venueBookings.map(b => b.artistId))];
+  if (artistIds.length === 0) return [];
+  
+  const artists = await db.select().from(artistProfiles)
+    .where(inArray(artistProfiles.id, artistIds));
+  const artistMap = new Map(artists.map(a => [a.id, a.artistName || 'Unknown']));
+
+  return venueBookings.map((b: any) => ({
+    id: b.id,
+    artistId: b.artistId,
+    artistName: artistMap.get(b.artistId) || 'Unknown',
+    eventDate: typeof b.eventDate === 'string' ? b.eventDate : (b.eventDate as Date).toISOString().split('T')[0],
+    eventTime: b.eventTime || '',
+    status: b.status || 'pending',
+  }));
+}

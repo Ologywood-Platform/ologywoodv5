@@ -117,7 +117,13 @@ export const eventsRouter = router({
     .input(searchEventsSchema)
     .query(async ({ input }) => {
       try {
-        const events = await db.searchPublicEvents(input);
+        const events = await db.searchPublicEvents({
+          query: input.eventType || input.location,
+          city: input.location,
+          category: input.eventType,
+          startDate: input.startDate?.toISOString().split('T')[0],
+          endDate: input.endDate?.toISOString().split('T')[0],
+        });
         return events;
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to search events');

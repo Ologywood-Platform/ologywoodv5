@@ -146,14 +146,10 @@ router.get('/api/events/search', async (req: Request, res: Response) => {
     const { eventType, location, minRate, maxRate, startDate, endDate, limit, offset } = req.query;
 
     const events = await searchPublicEvents({
-      eventType: eventType as string,
-      location: location as string,
-      minRate: minRate ? parseFloat(minRate as string) : undefined,
-      maxRate: maxRate ? parseFloat(maxRate as string) : undefined,
-      startDate: startDate ? new Date(startDate as string) : undefined,
-      endDate: endDate ? new Date(endDate as string) : undefined,
-      limit: limit ? parseInt(limit as string) : undefined,
-      offset: offset ? parseInt(offset as string) : undefined,
+      category: eventType as string | undefined,
+      city: location as string | undefined,
+      startDate: startDate as string | undefined,
+      endDate: endDate as string | undefined,
     });
 
     res.json(events);

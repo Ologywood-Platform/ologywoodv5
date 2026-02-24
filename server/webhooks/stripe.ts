@@ -279,6 +279,50 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       stripePaymentIntentId: paymentIntent.id,
     })
     .where(eq(bookings.id, parseInt(bookingId)));
+
+  // Send payment receipt email
+  try {
+    const booking = await db.getBookingById(parseInt(bookingId));
+    if (booking) {
+      const artistProfile = await db.getArtistProfileById(booking.artistId);
+      const venueProfile = await db.getVenueProfileById(booking.venueId);
+      if (artistProfile && venueProfile) {
+        const venueUser = await db.getUserById(venueProfile.userId);
+        const eventDateStr = booking.eventDate instanceof Date
+          ? booking.eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const amount = paymentIntent.amount / 100;
+        const paymentType = paymentIntent.metadata?.paymentType === 'deposit' ? 'deposit' as const : 'full_payment' as const;
+        
+        if (venueUser?.email) {
+          await email.sendPaymentReceipt(
+            venueUser.email,
+            venueProfile.organizationName,
+            artistProfile.artistName,
+            amount,
+            paymentType,
+            eventDateStr,
+            paymentIntent.id
+          );
+        }
+        // Also notify artist that payment was received
+        const artistUser = await db.getUserById(artistProfile.userId);
+        if (artistUser?.email) {
+          await email.sendPaymentReceipt(
+            artistUser.email,
+            venueProfile.organizationName,
+            artistProfile.artistName,
+            amount,
+            paymentType,
+            eventDateStr,
+            paymentIntent.id
+          );
+        }
+      }
+    }
+  } catch (emailErr) {
+    console.error('[Stripe Webhook] Error sending payment receipt email:', emailErr);
+  }
 }
 
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
@@ -316,13 +360,45 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     .limit(1);
   
   if (bookingResults.length > 0) {
+    const booking = bookingResults[0];
     await database
       .update(bookings)
       .set({
         paymentStatus: 'refunded',
         stripeRefundId: charge.id,
       })
-      .where(eq(bookings.id, bookingResults[0].id));
+      .where(eq(bookings.id, booking.id));
+
+    // Send refund notification email
+    try {
+      const artistProfile = await db.getArtistProfileById(booking.artistId);
+      const venueProfile = await db.getVenueProfileById(booking.venueId);
+      if (artistProfile && venueProfile) {
+        const venueUser = await db.getUserById(venueProfile.userId);
+        const refundAmount = (charge.amount_refunded || charge.amount) / 100;
+        if (venueUser?.email) {
+          await email.sendRefundNotification(
+            venueUser.email,
+            venueProfile.organizationName,
+            artistProfile.artistName,
+            refundAmount,
+            'Booking refund processed'
+          );
+        }
+        const artistUser = await db.getUserById(artistProfile.userId);
+        if (artistUser?.email) {
+          await email.sendRefundNotification(
+            artistUser.email,
+            venueProfile.organizationName,
+            artistProfile.artistName,
+            refundAmount,
+            'Booking refund processed'
+          );
+        }
+      }
+    } catch (emailErr) {
+      console.error('[Stripe Webhook] Error sending refund notification email:', emailErr);
+    }
   }
 }
 

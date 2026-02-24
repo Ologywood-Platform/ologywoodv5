@@ -4,6 +4,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { getRiderTemplate } from "../services/riderTemplateService";
 import { generateRiderHTML, getRiderTemplateById } from "../services/riderContractTemplate";
+import { sendContractSigned, sendContractForSignature } from "../email";
 import crypto from "crypto";
 
 export const riderContractRouter = router({
@@ -224,6 +225,68 @@ export const riderContractRouter = router({
         await db.updateBooking(input.bookingId, {
           riderStatus: "signed",
         });
+
+        // Send "fully signed" notification to both parties
+        try {
+          const artistProf = await db.getArtistProfileById(booking.artistId);
+          const venueProf = await db.getVenueProfileById(booking.venueId);
+          if (artistProf && venueProf) {
+            const artistUser = await db.getUserById(artistProf.userId);
+            const venueUser = await db.getUserById(venueProf.userId);
+            const contractTitle = `Rider Contract - Booking #${booking.id}`;
+            if (artistUser?.email) {
+              await sendContractSigned({
+                to: artistUser.email,
+                artistName: artistProf.artistName,
+                venueName: venueProf.organizationName,
+                contractTitle,
+              });
+            }
+            if (venueUser?.email) {
+              await sendContractSigned({
+                to: venueUser.email,
+                artistName: artistProf.artistName,
+                venueName: venueProf.organizationName,
+                contractTitle,
+              });
+            }
+          }
+        } catch (emailErr) {
+          console.error('[RiderContract] Error sending fully-signed emails:', emailErr);
+        }
+      } else {
+        // One party signed — notify the other party to countersign
+        try {
+          const artistProf = await db.getArtistProfileById(booking.artistId);
+          const venueProf = await db.getVenueProfileById(booking.venueId);
+          if (artistProf && venueProf) {
+            const artistUser = await db.getUserById(artistProf.userId);
+            const venueUser = await db.getUserById(venueProf.userId);
+            const contractTitle = `Rider Contract - Booking #${booking.id}`;
+            const baseUrl = ctx.req?.headers?.origin || 'https://ologywood.com';
+            const contractUrl = `${baseUrl}/bookings/${booking.id}`;
+
+            if (signerRole === 'artist' && venueUser?.email) {
+              await sendContractForSignature({
+                to: venueUser.email,
+                recipientName: venueProf.organizationName,
+                senderName: artistProf.artistName,
+                contractTitle,
+                contractUrl,
+              });
+            } else if (signerRole === 'venue' && artistUser?.email) {
+              await sendContractForSignature({
+                to: artistUser.email,
+                recipientName: artistProf.artistName,
+                senderName: venueProf.organizationName,
+                contractTitle,
+                contractUrl,
+              });
+            }
+          }
+        } catch (emailErr) {
+          console.error('[RiderContract] Error sending countersign email:', emailErr);
+        }
       }
 
       return {
