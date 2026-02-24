@@ -1,45 +1,53 @@
 import React, { useEffect, useState } from 'react';
+import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 export function Unsubscribe() {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'idle'>('loading');
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
-  const [manualEmail, setManualEmail] = useState('');
+  const { isAuthenticated } = useAuth();
+
+  const unsubscribeAllMutation = trpc.emailPreferences.unsubscribeAll.useMutation();
 
   useEffect(() => {
-    // Parse URL parameters using native URLSearchParams
+    // Parse URL parameters
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
 
     if (emailParam) {
       setEmail(emailParam);
-      // Simulate unsubscribe process
-      setTimeout(() => {
-        setStatus('success');
-        setMessage('You have been successfully unsubscribed from our mailing list.');
-      }, 1500);
+    }
+
+    // If user is authenticated, auto-unsubscribe
+    if (isAuthenticated) {
+      handleUnsubscribe();
+    } else if (emailParam) {
+      // Show confirmation for unauthenticated users with email param
+      setStatus('idle');
+      setMessage('Click the button below to confirm your unsubscription.');
     } else {
       setStatus('error');
-      setMessage('No email address provided. Please enter your email below to unsubscribe.');
+      setMessage('Please log in to manage your email preferences, or use the unsubscribe link from your email.');
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  const handleManualUnsubscribe = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!manualEmail) {
-      setMessage('Please enter your email address.');
-      return;
-    }
-
+  const handleUnsubscribe = async () => {
     setStatus('loading');
-    setEmail(manualEmail);
-
-    // Simulate unsubscribe process
-    setTimeout(() => {
+    try {
+      await unsubscribeAllMutation.mutateAsync();
       setStatus('success');
       setMessage('You have been successfully unsubscribed from our mailing list.');
-    }, 1500);
+    } catch (error: any) {
+      // If not authenticated, show login prompt
+      if (error?.data?.code === 'UNAUTHORIZED') {
+        setStatus('error');
+        setMessage('Please log in to manage your email preferences, or use the unsubscribe link from your email.');
+      } else {
+        setStatus('error');
+        setMessage('Something went wrong. Please try again or contact support.');
+      }
+    }
   };
 
   return (
@@ -59,6 +67,30 @@ export function Unsubscribe() {
           </div>
         )}
 
+        {/* Idle State - Confirm unsubscribe */}
+        {status === 'idle' && (
+          <div className="text-center">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-amber-800 font-medium">{message}</p>
+              {email && (
+                <p className="text-amber-700 text-sm mt-2">Email: {email}</p>
+              )}
+            </div>
+            <button
+              onClick={handleUnsubscribe}
+              className="w-full px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium mb-4"
+            >
+              Confirm Unsubscribe
+            </button>
+            <a
+              href="/"
+              className="inline-block text-sm text-slate-600 hover:text-slate-800"
+            >
+              Cancel and return home
+            </a>
+          </div>
+        )}
+
         {/* Success State */}
         {status === 'success' && (
           <div className="text-center">
@@ -72,12 +104,22 @@ export function Unsubscribe() {
             <p className="text-slate-600 text-sm mb-6">
               You will no longer receive marketing emails from Ologywood. You may still receive transactional emails related to your account.
             </p>
-            <a
-              href="/"
-              className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Return to Home
-            </a>
+            <div className="space-y-3">
+              <a
+                href="/"
+                className="inline-block w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
+              >
+                Return to Home
+              </a>
+              {isAuthenticated && (
+                <a
+                  href="/settings"
+                  className="inline-block w-full px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-center"
+                >
+                  Manage Email Settings
+                </a>
+              )}
+            </div>
           </div>
         )}
 
@@ -88,31 +130,20 @@ export function Unsubscribe() {
               <p className="text-red-800 font-medium">{message}</p>
             </div>
 
-            {/* Manual Unsubscribe Form */}
-            <form onSubmit={handleManualUnsubscribe} className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="your@email.com"
-                  value={manualEmail}
-                  onChange={(e) => setManualEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            <div className="space-y-3">
+              <a
+                href="/api/login"
+                className="inline-block w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center font-medium"
               >
-                Unsubscribe
-              </button>
-            </form>
+                Log In to Manage Preferences
+              </a>
+              <a
+                href="/"
+                className="inline-block w-full px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-center"
+              >
+                Return to Home
+              </a>
+            </div>
 
             <p className="text-slate-600 text-sm mt-4 text-center">
               Having trouble? Contact us at{' '}

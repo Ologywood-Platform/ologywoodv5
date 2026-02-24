@@ -15,7 +15,7 @@ export function EmailPreferencesCenter() {
   const resubscribeMutation = trpc.emailPreferences.resubscribe.useMutation();
 
   const [localPreferences, setLocalPreferences] = useState({
-    frequency: 'weekly' as const,
+    frequency: 'weekly' as 'daily' | 'weekly' | 'never',
     bookingUpdates: true,
     newOpportunities: true,
     platformNews: false,
@@ -26,17 +26,17 @@ export function EmailPreferencesCenter() {
   useEffect(() => {
     if (preferences) {
       setLocalPreferences({
-        frequency: 'weekly',
-        bookingUpdates: preferences.bookingUpdates || false,
-        newOpportunities: preferences.newOpportunities || false,
-        platformNews: preferences.platformNews || false,
-        weeklyDigest: preferences.weeklyDigest || false,
-        reminders: preferences.reminders || false,
+        frequency: (preferences.frequency as 'daily' | 'weekly' | 'never') || 'weekly',
+        bookingUpdates: preferences.bookingUpdates ?? true,
+        newOpportunities: preferences.newOpportunities ?? true,
+        platformNews: preferences.platformNews ?? false,
+        weeklyDigest: preferences.weeklyDigest ?? true,
+        reminders: preferences.reminders ?? true,
       });
     }
   }, [preferences]);
 
-  const handleFrequencyChange = (frequency: 'weekly') => {
+  const handleFrequencyChange = (frequency: 'daily' | 'weekly' | 'never') => {
     setLocalPreferences(prev => ({ ...prev, frequency }));
   };
 
@@ -134,7 +134,7 @@ export function EmailPreferencesCenter() {
     );
   }
 
-  const isUnsubscribed = localPreferences.frequency === 'weekly';
+  const isUnsubscribed = localPreferences.frequency === 'never';
 
   return (
     <div className="space-y-6">
@@ -173,7 +173,7 @@ export function EmailPreferencesCenter() {
                   name="frequency"
                   value={freq}
                   checked={localPreferences.frequency === freq}
-                  onChange={() => handleFrequencyChange('weekly')}
+                  onChange={() => handleFrequencyChange(freq as 'daily' | 'weekly' | 'never')}
                   className="w-4 h-4"
                 />
                 <div>

@@ -264,3 +264,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 ## STALE TEST CLEANUP
 - [x] Delete redundant riderTemplateService.test.ts (covered by rider.test.ts)
 - [x] Rewrite emailPreferences.test.ts to match current implementation
+
+## WIRE UP REAL EMAIL PREFERENCES
+- [x] Replace getEmailPreferences and createEmailPreferences stubs with real DB implementations
+- [x] Add deleteEmailPreferences real implementation
+- [x] Update all consumers (routers, Unsubscribe page, email settings) to use real functions
+- [x] Write/update tests for the real email preferences functions

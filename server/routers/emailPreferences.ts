@@ -14,7 +14,16 @@ export const emailPreferencesRouter = router({
         prefs = await db.createEmailPreferences(ctx.user.id);
       }
       
-      return prefs;
+      // Always return a valid object (never null/undefined for React Query)
+      return prefs || {
+        userId: ctx.user.id,
+        frequency: 'weekly' as const,
+        bookingUpdates: true,
+        newOpportunities: true,
+        platformNews: false,
+        weeklyDigest: true,
+        reminders: true,
+      };
     } catch (error) {
       console.error("Error fetching email preferences:", error);
       throw new TRPCError({
@@ -38,18 +47,17 @@ export const emailPreferencesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        await db.updateEmailPreferences(ctx.user.id, input);
+        // updateEmailPreferences now returns the updated preferences
+        const updated = await db.updateEmailPreferences(ctx.user.id, input);
         
-        // Return the updated preferences
-        const preferences = await db.getEmailPreferences(ctx.user.id);
-        return preferences || { 
-          userId: ctx.user.id, 
-          frequency: 'weekly', 
-          bookingUpdates: true, 
-          newOpportunities: true, 
-          platformNews: true, 
-          weeklyDigest: true, 
-          reminders: true 
+        return updated || {
+          userId: ctx.user.id,
+          frequency: 'weekly' as const,
+          bookingUpdates: true,
+          newOpportunities: true,
+          platformNews: false,
+          weeklyDigest: true,
+          reminders: true,
         };
       } catch (error) {
         console.error("Error updating email preferences:", error);
@@ -100,6 +108,20 @@ export const emailPreferencesRouter = router({
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to resubscribe to emails",
+      });
+    }
+  }),
+
+  // Delete email preferences (for account cleanup)
+  deletePreferences: protectedProcedure.mutation(async ({ ctx }) => {
+    try {
+      await db.deleteEmailPreferences(ctx.user.id);
+      return { success: true, message: "Email preferences deleted" };
+    } catch (error) {
+      console.error("Error deleting email preferences:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to delete email preferences",
       });
     }
   }),

@@ -12,8 +12,7 @@ export const deleteAvailability = stubs.deleteAvailability;
 export const getUserSavedEvents = stubs.getUserSavedEvents;
 export const getArtistEventHistory = stubs.getArtistEventHistory;
 export const getEventHistoryById = stubs.getEventHistoryById;
-export const getEmailPreferences = stubs.getEmailPreferences;
-export const createEmailPreferences = stubs.createEmailPreferences;
+// Email preferences - real implementations (replaced stubs)
 export const getArtistEvents = stubs.getArtistEvents;
 export const getArtistPublicEvents = stubs.getArtistPublicEvents;
 export const getArtistUpcomingEvents = stubs.getArtistUpcomingEvents;
@@ -924,23 +923,71 @@ export async function getBookingRemindersByBookingId(bookingId: number): Promise
 
 // ============= EMAIL PREFERENCE FUNCTIONS =============
 
-export async function getEmailPreferencesByUserId(userId: number): Promise<EmailPreference | undefined> {
+/**
+ * Get email preferences for a user by their ID.
+ * Returns null if no preferences exist (consistent with router expectations).
+ */
+export async function getEmailPreferences(userId: number): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(emailPreferences).where(eq(emailPreferences.userId, userId)).limit(1);
-  return result[0];
+  return result[0] ?? null;
 }
 
-export async function updateEmailPreferences(userId: number, data: Partial<InsertEmailPreference>): Promise<void> {
+// Alias for backward compatibility
+export const getEmailPreferencesByUserId = getEmailPreferences;
+
+/**
+ * Create default email preferences for a user.
+ * Returns the created preferences or null if DB is unavailable.
+ */
+export async function createEmailPreferences(userId: number): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) return;
+  if (!db) return null;
   
-  const existing = await getEmailPreferencesByUserId(userId);
+  // Check if preferences already exist
+  const existing = await getEmailPreferences(userId);
+  if (existing) return existing;
+  
+  await db.insert(emailPreferences).values({
+    userId,
+    frequency: 'weekly',
+    bookingUpdates: true,
+    newOpportunities: true,
+    platformNews: false,
+    weeklyDigest: true,
+    reminders: true,
+  } as InsertEmailPreference);
+  
+  // Return the newly created preferences
+  return await getEmailPreferences(userId);
+}
+
+/**
+ * Update email preferences for a user. Creates preferences if they don't exist (upsert).
+ * Returns the updated preferences or null.
+ */
+export async function updateEmailPreferences(userId: number, data: Partial<InsertEmailPreference>): Promise<EmailPreference | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const existing = await getEmailPreferences(userId);
   if (existing) {
     await db.update(emailPreferences).set(data).where(eq(emailPreferences.userId, userId));
   } else {
     await db.insert(emailPreferences).values({ userId, ...data } as InsertEmailPreference);
   }
+  
+  return await getEmailPreferences(userId);
+}
+
+/**
+ * Delete email preferences for a user.
+ */
+export async function deleteEmailPreferences(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(emailPreferences).where(eq(emailPreferences.userId, userId));
 }
 
 // ============= STRIPE FUNCTIONS =============
