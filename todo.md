@@ -299,3 +299,8 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 ## DASHBOARD ERROR FIXES (Feb 24, 2026)
 - [x] Fix events table query failure (recreated 5 tables with correct column names matching Drizzle schema)
 - [x] Fix venue user hitting artist-only endpoint on /dashboard (added role guards + auto-redirect)
+
+## OAUTH CALLBACK FIX
+- [x] Fix OAuth callback to match original reference implementation (simple redirect to /)
+- [x] Remove custom state encoding/parsing that conflicted with SDK's decodeState
+- [x] Remove role-based redirects from OAuth (handled by frontend routing instead)

@@ -18,13 +18,6 @@ export const getLoginUrl = (returnPath?: string) => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = import.meta.env.VITE_APP_ID || "";
-    
-    // Encode origin + returnPath in state so backend can redirect to correct domain
-    const stateData = JSON.stringify({
-      origin: window.location.origin,
-      returnPath: returnPath || "/",
-    });
-    const state = btoa(stateData);
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
       console.warn("Missing OAuth configuration. VITE_OAUTH_PORTAL_URL or VITE_APP_ID not set.");
@@ -38,7 +31,6 @@ export const getLoginUrl = (returnPath?: string) => {
     }
 
     url.searchParams.set("appId", appId);
-    url.searchParams.set("state", state);
     url.searchParams.set("type", "signIn");
     url.searchParams.set("errorRedirect", `${window.location.origin}/?oauth_error=true`);
 
