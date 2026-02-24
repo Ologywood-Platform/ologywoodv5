@@ -132,16 +132,16 @@ export default function VenueProfile() {
                   <span>Contact: {(venueProfile as any)?.contactName}</span>
                 </div>
               </div>
-              {averageRating && averageRating.count > 0 && (
+              {averageRating && typeof averageRating === 'object' && 'reviewCount' in averageRating && averageRating.reviewCount > 0 && (
                 <div className="text-right">
                   <div className="flex items-center gap-1 mb-1">
                     <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                     <span className="text-2xl font-bold">
-                      {averageRating.average.toFixed(1)}
+                      {(averageRating as { averageRating: number; reviewCount: number }).averageRating.toFixed(1)}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {averageRating.count} {averageRating.count === 1 ? 'review' : 'reviews'}
+                    {(averageRating as { averageRating: number; reviewCount: number }).reviewCount} {(averageRating as { averageRating: number; reviewCount: number }).reviewCount === 1 ? 'review' : 'reviews'}
                   </p>
                 </div>
               )}

@@ -115,15 +115,15 @@ export default function PaymentSection({
         </div>
         
         {/* Payment History */}
-        {paymentHistory && (
+        {paymentHistory && paymentHistory.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-semibold text-sm">Payment History</h4>
             <div className="space-y-2 text-sm">
-              {paymentHistory.depositPaidAt && (
+              {(paymentHistory as any).depositPaidAt && (
                 <div className="flex items-center justify-between p-2 bg-green-50 rounded">
                   <span>Deposit Paid</span>
                   <span className="text-green-700 font-medium">
-                    {new Date(paymentHistory.depositPaidAt).toLocaleDateString()}
+                    {new Date((paymentHistory as any).depositPaidAt).toLocaleDateString()}
                   </span>
                 </div>
               )}

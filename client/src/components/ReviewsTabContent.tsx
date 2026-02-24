@@ -39,18 +39,18 @@ export default function ReviewsTabContent({ artistId }: ReviewsTabContentProps) 
         </p>
       </div>
 
-      {avgRating && avgRating.count > 0 && (
+      {avgRating && avgRating.reviewCount > 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="text-center">
-                <div className="text-4xl font-bold">{avgRating.average.toFixed(1)}</div>
+                <div className="text-4xl font-bold">{avgRating.averageRating.toFixed(1)}</div>
                 <div className="flex items-center justify-center gap-1 mt-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
                       className={`w-5 h-5 ${
-                        star <= Math.round(avgRating.average)
+                        star <= Math.round(avgRating.averageRating)
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-gray-300"
                       }`}
@@ -58,7 +58,7 @@ export default function ReviewsTabContent({ artistId }: ReviewsTabContentProps) 
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {avgRating.count} {avgRating.count === 1 ? "review" : "reviews"}
+                  {avgRating.reviewCount} {avgRating.reviewCount === 1 ? "review" : "reviews"}
                 </p>
               </div>
             </div>

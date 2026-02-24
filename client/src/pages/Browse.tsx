@@ -51,7 +51,7 @@ export default function Browse() {
   const filteredArtists = artists?.filter(artist => {
     const matchesSearch = searchQuery === "" || 
       artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (Array.isArray(artist.genre) && artist.genre.some(g => 
+      (Array.isArray(artist.genre) && artist.genre.some((g: string) => 
         g.toLowerCase().includes(searchQuery.toLowerCase())
       ));
     

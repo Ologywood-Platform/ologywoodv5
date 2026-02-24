@@ -63,7 +63,7 @@ import { eq, sql, and } from "drizzle-orm";
 // Re-export User type for use in other modules
 export type { User, InsertUser };
 
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 let _pool: ReturnType<typeof mysql.createPool> | null = null;
 
 export function getPool() {
@@ -213,7 +213,7 @@ export async function getDb() {
       }
       
       _pool = pool;
-      _db = drizzle(pool, { schema, mode: 'default' });
+      _db = drizzle(pool, { schema, mode: 'default' }) as any;
       console.log("[Database] Drizzle ORM initialized successfully");
       console.log("[Database] Connected successfully to TiDB");
     } catch (error: any) {
@@ -238,7 +238,7 @@ export async function getDb() {
  * Parse artist profile to ensure genre is always an array
  * Handles cases where genre might be string, JSON, or already an array
  */
-function parseArtistProfile(artist: any): ArtistProfile {
+function parseArtistProfile(artist: any): ArtistProfile | undefined {
   if (!artist) return undefined;
   
   let genre: string[] = [];
@@ -311,7 +311,7 @@ export async function getUserByOpenId(openId: string): Promise<User | undefined>
   return result[0];
 }
 
-export async function updateUserRole(userId: number, role: string): Promise<void> {
+export async function updateUserRole(userId: number, role: "user" | "admin" | "artist" | "venue"): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.update(users).set({ role }).where(eq(users.id, userId));
@@ -355,7 +355,9 @@ export async function createArtistProfile(data: InsertArtistProfile): Promise<Ar
       throw new Error('Failed to retrieve created artist');
     }
     
-    return parseArtistProfile(artist[0]);
+    const parsed = parseArtistProfile(artist[0]);
+    if (!parsed) throw new Error('Failed to parse created artist profile');
+    return parsed;
   } catch (error) {
     console.error('[createArtistProfile] Error:', error);
     throw error;
@@ -400,7 +402,7 @@ export async function searchArtists(filters: {
     filtered = filtered.filter(a => {
       const artistGenres = a.genre || [];
       return filters.genre!.some(selectedGenre => 
-        artistGenres.some(g => g?.toLowerCase() === selectedGenre.toLowerCase())
+        artistGenres.some((g: string) => g?.toLowerCase() === selectedGenre.toLowerCase())
       );
     });
   }
@@ -426,19 +428,21 @@ export async function searchArtists(filters: {
   // Filter by availability dates if provided
   if (filters.availableFrom || filters.availableTo) {
     // Get availability for all artists
+    const dbInstance = await getDb();
     const artistIds = filtered.map(a => a.id);
-    const availabilities = await db.select().from(availability).where(
+    if (!dbInstance || artistIds.length === 0) return filtered;
+    const availabilities = await dbInstance.select().from(availability).where(
       sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
     );
     
     // Filter artists who have availability in the requested date range
     filtered = filtered.filter(artist => {
-      const artistAvailability = availabilities.filter(av => av.artistId === artist.id);
+      const artistAvailability = availabilities.filter((av: any) => av.artistId === artist.id);
       // Only exclude if no availability records AND user requested availability filtering
       // This prevents filtering out artists who just haven't set availability yet
       if (artistAvailability.length === 0) return false;
       
-      return artistAvailability.some(av => {
+      return artistAvailability.some((av: any) => {
         const avDate = new Date(av.date);
         const fromDate = filters.availableFrom ? new Date(filters.availableFrom) : null;
         const toDate = filters.availableTo ? new Date(filters.availableTo) : null;
@@ -573,14 +577,15 @@ export async function searchVenues(filters: {
 export async function getRiderTemplatesByArtistId(artistId: number): Promise<RiderTemplate[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(riderTemplates).where(eq(riderTemplates.artistId, artistId));
+  const results = await db.select().from(riderTemplates).where(eq(riderTemplates.artistId, artistId));
+  return results as RiderTemplate[];
 }
 
 export async function getRiderTemplateById(id: number): Promise<RiderTemplate | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(riderTemplates).where(eq(riderTemplates.id, id)).limit(1);
-  return result[0];
+  return result[0] as RiderTemplate | undefined;
 }
 
 export async function createRiderTemplate(data: InsertRiderTemplate): Promise<RiderTemplate> {
@@ -651,7 +656,7 @@ export async function updateBooking(id: number, data: Partial<InsertBooking>): P
   return await getBookingById(id);
 }
 
-export async function updateSubscriptionStatus(userId: number, status: string): Promise<void> {
+export async function updateSubscriptionStatus(userId: number, status: "active" | "cancelled" | "past_due" | "trialing"): Promise<void> {
   const db = await getDb();
   if (!db) return;
   
@@ -830,7 +835,7 @@ export async function addFavorite(userId: number, artistId: number): Promise<Fav
     throw new Error('Database not available');
   }
 
-  const result = await db.insert(favorites).values({ userId, artistId });
+  const result = await db.insert(favorites).values({ venueId: userId, artistId });
   const favoriteId = (result as any).insertId;
   const favorite = await db.select().from(favorites).where(eq(favorites.id, favoriteId)).limit(1);
   return favorite[0] as Favorite;
@@ -1200,10 +1205,19 @@ export async function getFavoriteCount(artistId: number): Promise<number> {
   return result.length;
 }
 
-export async function getFavoritesByVenue(venueId: number): Promise<Favorite[]> {
+export async function getFavoritesByVenue(venueId: number) {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(favorites).where(eq(favorites.venueId, venueId));
+  const favs = await db.select().from(favorites).where(eq(favorites.venueId, venueId));
+  // Join with artist profiles to get full artist info
+  const results = await Promise.all(
+    favs.map(async (fav) => {
+      const artist = await db.select().from(artistProfiles).where(eq(artistProfiles.id, fav.artistId)).limit(1);
+      const parsed = artist[0] ? parseArtistProfile(artist[0]) : null;
+      return parsed ? { ...fav, ...parsed, favoriteId: fav.id, id: parsed.id } : null;
+    })
+  );
+  return results.filter((r): r is NonNullable<typeof r> => r !== null);
 }
 
 export async function isFavorited(venueId: number, artistId: number): Promise<boolean> {

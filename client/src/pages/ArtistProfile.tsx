@@ -626,7 +626,7 @@ export default function ArtistProfile() {
                     Reviews ({reviews.length})
                     {avgRating && (
                       <span className="text-lg font-normal text-muted-foreground">
-                        {avgRating.average.toFixed(1)} average
+                        {avgRating.averageRating.toFixed(1)} average
                       </span>
                     )}
                   </CardTitle>

@@ -1,4 +1,4 @@
-import { User } from "@/_core/types";
+import { User } from "@/types";
 
 export const getDashboardUrl = (user?: User | null): string => {
   if (!user) return '/dashboard';

@@ -40,11 +40,11 @@ export async function getEventHistoryById(historyId: number) {
   return null;
 }
 
-export async function getEmailPreferences(userId: number) {
+export async function getEmailPreferences(userId: number): Promise<{ userId: number; frequency: string; bookingUpdates: boolean; newOpportunities: boolean; platformNews: boolean; weeklyDigest: boolean; reminders: boolean } | null> {
   return null;
 }
 
-export async function createEmailPreferences(userId: number) {
+export async function createEmailPreferences(userId: number): Promise<{ userId: number; frequency: string; bookingUpdates: boolean; newOpportunities: boolean; platformNews: boolean; weeklyDigest: boolean; reminders: boolean } | null> {
   return null;
 }
 
@@ -92,7 +92,7 @@ export async function isEventSaved(userId: number, eventId: number) {
   return false;
 }
 
-export async function getFavoritedArtistsAvailability(venueId: number, startDate: Date, endDate: Date) {
+export async function getFavoritedArtistsAvailability(venueId: number, startDate: Date, endDate: Date): Promise<{ id: number; artistId: number; artistName: string; date: string; status: string }[]> {
   return [];
 }
 
@@ -104,6 +104,6 @@ export async function recordRefund(refundId: string, bookingId: number, reason?:
   return { success: true, refundId };
 }
 
-export async function getVenueBookingsByDateRange(venueId: number, startDate: Date, endDate: Date) {
+export async function getVenueBookingsByDateRange(venueId: number, startDate: Date, endDate: Date): Promise<{ id: number; artistId: number; artistName: string; eventDate: string; eventTime: string; status: string }[]> {
   return [];
 }

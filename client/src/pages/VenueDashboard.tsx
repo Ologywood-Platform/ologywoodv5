@@ -320,7 +320,9 @@ export function VenueDashboard() {
               </Card>
             ) : artists && artists.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {artists.map(artist => (
+                {artists.map(artist => {
+                  if (!artist) return null;
+                  return (
                   <Card key={artist.id}>
                     <CardHeader>
                       <CardTitle className="text-lg">{artist.artistName || 'Artist'}</CardTitle>
@@ -354,7 +356,8 @@ export function VenueDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <Card>
