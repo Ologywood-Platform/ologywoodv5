@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Calendar, MessageSquare, Shield, Search, LogOut, AlertCircle } from "lucide-react";
+import { ClearableInput } from "@/components/ui/clearable-input";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -166,16 +167,15 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">Find Your Perfect Artist</h2>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 sm:h-5 w-4 sm:w-5" />
-              <Input
-                type="text"
-                placeholder="Search by artist name or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 py-2 sm:py-6 text-sm sm:text-base"
-              />
-            </div>
+            <ClearableInput
+              type="text"
+              placeholder="Search by artist name or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery("")}
+              leftIcon={<Search className="h-4 sm:h-5 w-4 sm:w-5" />}
+              className="py-2 sm:py-6 text-sm sm:text-base"
+            />
           </div>
         </div>
       </section>

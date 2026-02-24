@@ -86,9 +86,20 @@ export const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by artist name, venue, or skill..."
-          className="w-full px-6 py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className={`w-full px-6 ${query ? 'pr-16' : 'pr-12'} py-4 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
         />
-        <Search className="absolute right-4 top-4 text-gray-400" size={24} />
+        {query ? (
+          <button
+            type="button"
+            onClick={() => setQuery('')}
+            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-0.5 hover:bg-gray-100"
+            aria-label="Clear search"
+          >
+            <X size={24} />
+          </button>
+        ) : (
+          <Search className="absolute right-4 top-4 text-gray-400" size={24} />
+        )}
       </div>
 
       {/* Filters Grid */}

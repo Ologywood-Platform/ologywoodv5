@@ -254,3 +254,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Build signing UI in booking detail page with rider preview
 - [x] Integrate signatures into rider contract preview and PDF export
 - [x] Write unit tests for e-signature functionality
+
+## UX FIXES FROM COLLEAGUE'S OBSERVATIONS
+- [x] Fix 1: Add clear X icon to search inputs (Home, Browse, SearchFilters location, ArtistSearchFilters, AdvancedSearchFilters)
+- [x] Fix 2: Add empty state messages for blank sections (Events tab, Browse, VenueBrowse, EventDiscovery)
+- [x] Fix 3: Improve no-results message visibility on search/filter (auto-scroll + prominent styling)
+- [x] Fix 4: Scroll-to-top on route navigation changes

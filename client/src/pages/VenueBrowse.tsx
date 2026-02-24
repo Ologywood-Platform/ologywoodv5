@@ -142,14 +142,17 @@ export default function VenueBrowse() {
             ))}
           </div>
         ) : filteredVenues.length === 0 ? (
-          <Card className="text-center py-12">
-            <p className="text-gray-500 text-lg">No venues found matching your criteria.</p>
+          <Card className="text-center py-16">
+            <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Venues Found</h3>
+            <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              Sorry, there are no venues matching your criteria at this time. Try adjusting your search or check back later.
+            </p>
             <Button
               onClick={() => {
                 setSearchQuery('');
                 setSelectedLocation('');
               }}
-              className="mt-4"
             >
               Clear Filters
             </Button>

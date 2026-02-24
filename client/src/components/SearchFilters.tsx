@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { X, Search } from 'lucide-react';
+import { ClearableInput } from '@/components/ui/clearable-input';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
@@ -192,11 +193,12 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         {/* Location Filter */}
         <div className="space-y-2">
           <Label htmlFor="location">Location</Label>
-          <Input
+          <ClearableInput
             id="location"
             placeholder="Enter city or region..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+            onClear={() => setLocation('')}
           />
         </div>
 

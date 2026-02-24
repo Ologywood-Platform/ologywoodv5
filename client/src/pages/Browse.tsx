@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart } from "lucide-react";
+import { ClearableInput } from "@/components/ui/clearable-input";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
@@ -48,6 +49,8 @@ export default function Browse() {
 
   const { data: artists, isLoading: artistsLoading } = trpc.artist.search.useQuery(filters);
 
+  const noResultsRef = useRef<HTMLDivElement>(null);
+
   const filteredArtists = artists?.filter(artist => {
     const matchesSearch = searchQuery === "" || 
       artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,6 +60,13 @@ export default function Browse() {
     
     return matchesSearch;
   });
+
+  // Auto-scroll to no-results message when search yields zero results
+  useEffect(() => {
+    if (filteredArtists && filteredArtists.length === 0 && searchQuery && noResultsRef.current) {
+      noResultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [filteredArtists, searchQuery]);
 
   const handleBookClick = (artistId: number) => {
     if (!isAuthenticated) {
@@ -114,15 +124,15 @@ export default function Browse() {
         {/* Search Bar */}
         <div className="mb-6 sm:mb-8">
           <div className="flex gap-2 sm:gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or genre..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 text-xs sm:text-sm"
-              />
-            </div>
+            <ClearableInput
+              placeholder="Search by name or genre..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery("")}
+              leftIcon={<Search className="h-4 w-4" />}
+              className="text-xs sm:text-sm"
+              wrapperClassName="flex-1"
+            />
           </div>
         </div>
 
@@ -219,15 +229,31 @@ export default function Browse() {
                 </div>
               </>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-base sm:text-lg">
-                  No artists found matching your criteria.
+              <div ref={noResultsRef} className="text-center py-16">
+                <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Artists Found</h3>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
+                  No {activeTab === 'artists' ? 'artists' : 'venues'} found matching your criteria. Try adjusting your search or filters.
                 </p>
+                {searchQuery && (
+                  <Button variant="outline" size="sm" onClick={() => setSearchQuery('')}>
+                    Clear Search
+                  </Button>
+                )}
               </div>
             )}
           </TabsContent>
           
-          {/* Events Tab - Removed (not part of current MVP) */}
+          {/* Events Tab */}
+          <TabsContent value="events" className="mt-0">
+            <div className="text-center py-16">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No Events Available</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                Sorry, there are no events scheduled at this time. Check back soon for upcoming performances and shows.
+              </p>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 

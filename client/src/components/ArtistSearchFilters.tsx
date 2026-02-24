@@ -102,8 +102,22 @@ export function ArtistSearchFilters({ onFilterChange, genres }: ArtistSearchFilt
             placeholder="Search by artist name or keyword..."
             value={filters.searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+            className={`w-full pl-10 ${filters.searchQuery ? 'pr-9' : 'pr-4'} py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600`}
           />
+          {filters.searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                const newFilters = { ...filters, searchQuery: "" };
+                setFilters(newFilters);
+                onFilterChange(newFilters);
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-0.5 hover:bg-gray-100"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -141,13 +155,29 @@ export function ArtistSearchFilters({ onFilterChange, genres }: ArtistSearchFilt
           {/* Location Filter */}
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3">Location</label>
+            <div className="relative">
             <input
               type="text"
               placeholder="City or region..."
               value={filters.location}
               onChange={handleLocationChange}
-              className="w-full px-3 py-2 sm:py-3 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+              className={`w-full px-3 ${filters.location ? 'pr-9' : ''} py-2 sm:py-3 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600`}
             />
+            {filters.location && (
+              <button
+                type="button"
+                onClick={() => {
+                  const newFilters = { ...filters, location: "" };
+                  setFilters(newFilters);
+                  onFilterChange(newFilters);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors rounded-full p-0.5 hover:bg-gray-100"
+                aria-label="Clear location"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            </div>
           </div>
 
           {/* Price Range Filter */}

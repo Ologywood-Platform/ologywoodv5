@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventCard } from '@/components/EventCard';
-import { Search, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, Loader2, ArrowLeft, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 
@@ -294,8 +294,12 @@ export default function EventDiscovery() {
           </div>
         ) : (
           <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-slate-600 mb-4">No events found matching your criteria</p>
+            <CardContent className="py-16 text-center">
+              <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">No Events Found</h3>
+              <p className="text-slate-500 mb-6 max-w-md mx-auto">
+                Sorry, there are no events matching your criteria at this time. Try adjusting your filters or check back later.
+              </p>
               <Button
                 variant="outline"
                 onClick={handleResetFilters}

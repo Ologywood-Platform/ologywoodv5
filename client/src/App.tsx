@@ -48,6 +48,7 @@ import ArtistTaxReporting from "./pages/ArtistTaxReporting";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 // Legal pages (required for compliance)
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -58,6 +59,7 @@ import Accessibility from "./pages/Accessibility";
 function Router() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
+      <ScrollToTop />
       <div className="flex-1">
         <Switch>
           {/* ============================================
