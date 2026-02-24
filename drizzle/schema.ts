@@ -359,6 +359,7 @@ export const contracts = mysqlTable("contracts", {
   venueId: int("venueId").notNull(), // indexed below
   contractData: json("contractData").$type<Record<string, any>>(),
   pdfUrl: text("pdfUrl"),
+  riderTemplateId: int("riderTemplateId"),
   status: mysqlEnum("status", ["pending", "signed_by_artist", "signed_by_venue", "fully_signed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -378,7 +379,10 @@ export const signatures = mysqlTable("signatures", {
   id: int("id").autoincrement().primaryKey(),
   contractId: int("contractId").notNull(), // indexed below
   userId: int("userId").notNull(),
-  signatureData: text("signatureData").notNull(), // Base64 encoded signature
+  signerRole: mysqlEnum("signerRole", ["artist", "venue"]),
+  signerName: varchar("signerName", { length: 255 }),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  signatureData: text("signatureData").notNull(), // Base64 encoded signature image or typed name
   signedAt: timestamp("signedAt").defaultNow().notNull(),
 }, (table) => ({
   contractIdx: index("idx_signatures_contract").on(table.contractId),

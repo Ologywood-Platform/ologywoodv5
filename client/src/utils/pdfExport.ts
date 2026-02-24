@@ -26,7 +26,52 @@ interface RiderTemplate {
   } | null;
 }
 
-export const generateRiderPDF = (template: RiderTemplate) => {
+interface SignatureInfo {
+  signerRole: string;
+  signerName: string;
+  signatureData: string;
+  signedAt: string;
+}
+
+export const generateRiderPDF = (template: RiderTemplate, signatures?: SignatureInfo[]) => {
+  const signatureSection = signatures && signatures.length > 0
+    ? `
+      <div class="section" style="margin-top: 40px; border-top: 3px solid #1e40af; padding-top: 20px;">
+        <div class="section-title">Digital Signatures</div>
+        <div style="display: flex; gap: 40px; margin-top: 15px;">
+          ${signatures.map(sig => `
+            <div style="flex: 1; padding: 15px; border: 2px solid ${sig.signerRole === 'artist' ? '#6c5ce7' : '#00b894'}; border-radius: 8px;">
+              <p style="font-size: 11px; font-weight: 700; color: ${sig.signerRole === 'artist' ? '#6c5ce7' : '#00b894'}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+                ${sig.signerRole === 'artist' ? 'Artist' : 'Venue'} Signature
+              </p>
+              <img src="${sig.signatureData}" style="max-height: 60px; max-width: 200px; margin-bottom: 10px; display: block;" />
+              <p style="font-size: 14px; font-weight: 600; margin: 4px 0;">${sig.signerName}</p>
+              <p style="font-size: 11px; color: #666;">Signed: ${new Date(sig.signedAt).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `
+    : `
+      <div class="section" style="margin-top: 40px; border-top: 3px solid #1e40af; padding-top: 20px;">
+        <div class="section-title">Signatures</div>
+        <div style="display: flex; gap: 40px; margin-top: 15px;">
+          <div style="flex: 1;">
+            <p style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 40px;">Artist Signature</p>
+            <div style="border-bottom: 2px solid #333; margin-bottom: 8px;"></div>
+            <p style="font-size: 11px; color: #999;">Name: ____________________</p>
+            <p style="font-size: 11px; color: #999; margin-top: 4px;">Date: ____________________</p>
+          </div>
+          <div style="flex: 1;">
+            <p style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 40px;">Venue Signature</p>
+            <div style="border-bottom: 2px solid #333; margin-bottom: 8px;"></div>
+            <p style="font-size: 11px; color: #999;">Name: ____________________</p>
+            <p style="font-size: 11px; color: #999; margin-top: 4px;">Date: ____________________</p>
+          </div>
+        </div>
+      </div>
+    `;
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -233,6 +278,8 @@ export const generateRiderPDF = (template: RiderTemplate) => {
               </div>
             </div>
           ` : ''}
+
+          ${signatureSection}
 
           <div class="footer">
             <p>This rider is a professional specification document for event planning and coordination.</p>

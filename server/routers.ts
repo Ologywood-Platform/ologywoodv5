@@ -20,6 +20,7 @@ import { emailPreferencesRouter } from "./routers/emailPreferences";
 import { emailTestingRouter } from "./routers/emailTesting";
 import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
+import { riderContractRouter } from "./routers/riderContract";
 import { followsRouter } from "./routers/follows";
 import { eventsRouter } from "./routers/events";
 import { adminRouter } from "./routers/admin";
@@ -130,7 +131,7 @@ export const appRouter = router({
   // semanticSearch: semanticSearchRouter,
   // eviction: evictionRouter,
   // helpCenter: helpCenterRouter,
-  // riderContract: riderContractRouter,
+  riderContract: riderContractRouter,
   // signature: signatureRouter,
   // contractTemplate: contractTemplateRouter,
   // contractHistory: contractHistoryRouter,

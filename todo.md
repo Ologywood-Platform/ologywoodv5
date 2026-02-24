@@ -245,3 +245,12 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Integrate rider templates into booking workflow
 - [x] Add rider contract preview generation
 - [x] Test all rider template functionality end-to-end
+
+## E-SIGNATURE SUPPORT FOR RIDER CONTRACTS
+- [x] Audit existing contract/signature schema and booking detail page
+- [x] Design and implement rider_signatures database table
+- [x] Build backend API routes for signing, verifying, and retrieving signatures
+- [x] Build signature pad component (draw or type signature)
+- [x] Build signing UI in booking detail page with rider preview
+- [x] Integrate signatures into rider contract preview and PDF export
+- [x] Write unit tests for e-signature functionality
