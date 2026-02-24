@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart } from 'lucide-react';
@@ -13,20 +13,35 @@ export function ArtistDashboardV3() {
   const [showSettings, setShowSettings] = useState(false);
   const { user } = useAuth();
 
-  const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
-  const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery();
-  const { data: myEvents = [] } = trpc.events.search.useQuery({ artistId: user?.id || 0 });
+  const isArtist = user?.role === 'artist';
+
+  // Redirect venue users to their dashboard
+  useEffect(() => {
+    if (user && user.role === 'venue') {
+      navigate('/venue-dashboard');
+    }
+  }, [user, navigate]);
+
+  const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
+    enabled: isArtist,
+  });
+  const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
+    enabled: isArtist,
+  });
+  const { data: myEvents = [] } = trpc.events.search.useQuery({ artistId: user?.id || 0 }, {
+    enabled: isArtist && !!user?.id,
+  });
   const updateEventStatus = trpc.events.update.useMutation();
   // Messages are accessed from the Messages page, not dashboard
 
   // Verify user is an artist
-  if (user?.role !== 'artist') {
+  if (!isArtist) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>This dashboard is only for artists.</CardDescription>
+            <CardTitle>Redirecting...</CardTitle>
+            <CardDescription>Taking you to your dashboard.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => navigate('/')} className="w-full">

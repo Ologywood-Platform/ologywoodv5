@@ -292,3 +292,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add availability update notification (already wired in routers.ts)
 - [x] Booking reminder email (already wired in routers.ts)
 - [x] Respect user email preferences before sending any notification (emailService checks preferences)
+
+## TRAINING DOCUMENTATION
+- [x] Create e-signature process training document for artists and venues
+
+## DASHBOARD ERROR FIXES (Feb 24, 2026)
+- [x] Fix events table query failure (recreated 5 tables with correct column names matching Drizzle schema)
+- [x] Fix venue user hitting artist-only endpoint on /dashboard (added role guards + auto-redirect)
