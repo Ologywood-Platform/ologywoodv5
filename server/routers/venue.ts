@@ -57,7 +57,7 @@ export const venueRouter = router({
   getMyProfile: venueProcedure.query(async ({ ctx }) => {
     try {
       const profile = await db.getVenueProfileByUserId(ctx.user.id);
-      return profile;
+      return profile ?? null;
     } catch (error) {
       console.error('[Venue] Get profile error:', error);
       throw new TRPCError({

@@ -209,14 +209,14 @@ export const appRouter = router({
   artist: router({
     // Get current artist's profile
     getMyProfile: artistProcedure.query(async ({ ctx }) => {
-      return await db.getArtistProfileByUserId(ctx.user.id);
+      return (await db.getArtistProfileByUserId(ctx.user.id)) ?? null;
     }),
     
     // Get any artist profile by ID (public)
     getProfile: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        return await db.getArtistProfileById(input.id);
+        return (await db.getArtistProfileById(input.id)) ?? null;
       }),
     
        // Upload and set profile photo

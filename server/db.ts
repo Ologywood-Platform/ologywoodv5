@@ -227,8 +227,8 @@ export async function getDb() {
  * Parse artist profile to ensure genre is always an array
  * Handles cases where genre might be string, JSON, or already an array
  */
-function parseArtistProfile(artist: any): ArtistProfile | undefined {
-  if (!artist) return undefined;
+function parseArtistProfile(artist: any): ArtistProfile | null {
+  if (!artist) return null;
   
   let genre: string[] = [];
   if (typeof artist.genre === 'string') {
@@ -308,18 +308,18 @@ export async function updateUserRole(userId: number, role: "user" | "admin" | "a
 
 // ============= ARTIST PROFILE FUNCTIONS =============
 
-export async function getArtistProfileByUserId(userId: number): Promise<ArtistProfile | undefined> {
+export async function getArtistProfileByUserId(userId: number): Promise<ArtistProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : undefined;
+  return result[0] ? parseArtistProfile(result[0]) : null;
 }
 
-export async function getArtistProfileById(id: number): Promise<ArtistProfile | undefined> {
+export async function getArtistProfileById(id: number): Promise<ArtistProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : undefined;
+  return result[0] ? parseArtistProfile(result[0]) : null;
 }
 
 export async function createArtistProfile(data: InsertArtistProfile): Promise<ArtistProfile> {
@@ -353,13 +353,13 @@ export async function createArtistProfile(data: InsertArtistProfile): Promise<Ar
   }
 }
 
-export async function updateArtistProfile(id: number, data: Partial<InsertArtistProfile>): Promise<ArtistProfile | undefined> {
+export async function updateArtistProfile(id: number, data: Partial<InsertArtistProfile>): Promise<ArtistProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   
   await db.update(artistProfiles).set(data).where(eq(artistProfiles.id, id));
   const updated = await getArtistProfileById(id);
-  return updated ? parseArtistProfile(updated) : undefined;
+  return updated ? parseArtistProfile(updated) : null;
 }
 
 export async function searchArtists(filters: {
@@ -463,18 +463,18 @@ export async function getAllArtists() {
 
 // ============= VENUE PROFILE FUNCTIONS =============
 
-export async function getVenueProfileByUserId(userId: number): Promise<VenueProfile | undefined> {
+export async function getVenueProfileByUserId(userId: number): Promise<VenueProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(venueProfiles).where(eq(venueProfiles.userId, userId)).limit(1);
-  return result[0];
+  return result[0] ?? null;
 }
 
-export async function getVenueProfileById(id: number): Promise<VenueProfile | undefined> {
+export async function getVenueProfileById(id: number): Promise<VenueProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(venueProfiles).where(eq(venueProfiles.id, id)).limit(1);
-  return result[0];
+  return result[0] ?? null;
 }
 
 export async function createVenueProfile(data: InsertVenueProfile): Promise<VenueProfile> {
@@ -489,9 +489,9 @@ export async function createVenueProfile(data: InsertVenueProfile): Promise<Venu
   return venue[0] as VenueProfile;
 }
 
-export async function updateVenueProfile(id: number, data: Partial<InsertVenueProfile>): Promise<VenueProfile | undefined> {
+export async function updateVenueProfile(id: number, data: Partial<InsertVenueProfile>): Promise<VenueProfile | null> {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   
   await db.update(venueProfiles).set(data).where(eq(venueProfiles.id, id));
   return await getVenueProfileById(id);
