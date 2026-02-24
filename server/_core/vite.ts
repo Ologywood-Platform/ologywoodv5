@@ -52,15 +52,17 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // Use __dirname (where dist/index.js is) to find dist/public
-  // This works reliably on Render and other cloud platforms
+  // When running from dist/index.js, __dirname is the dist directory
+  // We need to serve files from dist/public
   const distPath = path.join(__dirname, "public");
   console.log(`[Static Files] Serving from: ${distPath}`);
   
   if (!fs.existsSync(distPath)) {
     console.error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+      `[ERROR] Could not find the build directory: ${distPath}`
     );
+    console.error(`[ERROR] Current __dirname: ${__dirname}`);
+    console.error(`[ERROR] Make sure to run 'pnpm build' before starting the server`);
   }
   
   // Serve static files with proper MIME types
