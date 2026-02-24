@@ -231,3 +231,17 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add indexes for notifications, contracts, invoices, signatures, follows, profile_views, rider_templates, booking_templates, artist_payouts, artist_earnings
 - [x] Push schema changes to database (70 total indexes created)
 - [x] Verify indexes created successfully
+
+
+## RIDER CONTRACT TEMPLATE SYSTEM (Feb 24, 2026)
+
+- [x] Audit existing rider builder page and database schema
+- [x] Design rider contract template data model with sections (technical, hospitality, stage, payment)
+- [x] Create/update database schema for rider contract templates
+- [x] Build API routes for CRUD operations on rider templates
+- [x] Create pre-built default rider templates (Solo Artist, Band, DJ, Speaker)
+- [x] Build Rider Contract Template Builder UI page
+- [x] Add template selection and customization flow
+- [x] Integrate rider templates into booking workflow
+- [x] Add rider contract preview generation
+- [x] Test all rider template functionality end-to-end

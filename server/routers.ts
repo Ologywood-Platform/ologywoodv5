@@ -527,6 +527,7 @@ export const appRouter = router({
         eventDetails: z.string().optional(),
         totalFee: z.number().optional(),
         depositAmount: z.number().optional(),
+        riderTemplateId: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -549,6 +550,8 @@ export const appRouter = router({
           totalFee: input.totalFee?.toString(),
           depositAmount: input.depositAmount?.toString(),
           status: 'pending',
+          riderTemplateId: input.riderTemplateId,
+          riderStatus: input.riderTemplateId ? 'pending' : undefined,
         });
         
         // Send email notification to artist
@@ -790,6 +793,49 @@ export const appRouter = router({
         }
         
         return { success: true };
+      }),
+    
+    // Attach rider template to an existing booking
+    attachRider: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        riderTemplateId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // Verify user is involved in this booking
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtist = artistProfile && booking.artistId === artistProfile.id;
+        const isVenue = venueProfile && booking.venueId === venueProfile.id;
+        if (!isArtist && !isVenue) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        
+        await db.updateBooking(input.bookingId, {
+          riderTemplateId: input.riderTemplateId,
+          riderStatus: 'pending',
+        });
+        
+        return { success: true };
+      }),
+    
+    // Get rider for a booking
+    getRider: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) return null;
+        
+        if (!booking.riderTemplateId) return null;
+        
+        const { getRiderTemplate } = await import('./services/riderTemplateService');
+        const template = await getRiderTemplate(booking.riderTemplateId);
+        return template || null;
       }),
   }),
 

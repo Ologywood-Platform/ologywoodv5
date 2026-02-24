@@ -1,19 +1,25 @@
 /**
  * Rider Template Service
- * Manages artist rider templates and operations
+ * Manages artist rider templates and CRUD operations
  */
 
 import { getDb } from "../db";
 import { riderTemplates } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import {
-  STANDARD_ARTIST_RIDER,
-  MINIMAL_RIDER,
+  ALL_TEMPLATES,
+  SOLO_ARTIST_RIDER,
   BAND_RIDER,
+  DJ_RIDER,
+  SPEAKER_RIDER,
   validateRiderData,
   generateRiderHTML,
+  getRiderTemplateById as getDefaultTemplateById,
   type RiderContractTemplate,
 } from "./riderContractTemplate";
+
+// Re-export types
+export type { RiderContractTemplate };
 
 /**
  * Get all rider templates for an artist
@@ -29,7 +35,7 @@ export async function getArtistRiderTemplates(artistId: number) {
 }
 
 /**
- * Get a specific rider template
+ * Get a specific rider template by ID
  */
 export async function getRiderTemplate(templateId: number) {
   const db = await getDb();
@@ -50,7 +56,8 @@ export async function getRiderTemplate(templateId: number) {
 export async function createRiderTemplate(
   artistId: number,
   templateName: string,
-  templateData: Record<string, any>
+  templateData: Record<string, any>,
+  templateType: string = "custom"
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -59,6 +66,8 @@ export async function createRiderTemplate(
     artistId,
     templateName,
     templateData,
+    templateType,
+    isDefault: false,
   });
 
   return {
@@ -66,6 +75,8 @@ export async function createRiderTemplate(
     artistId,
     templateName,
     templateData,
+    templateType,
+    isDefault: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -121,17 +132,27 @@ export async function deleteRiderTemplate(templateId: number, artistId: number) 
 }
 
 /**
- * Get default template by type
+ * Get default template by type key
  */
 export function getDefaultTemplate(
-  templateType: "standard" | "minimal" | "band"
-): RiderContractTemplate {
-  const templates = {
-    standard: STANDARD_ARTIST_RIDER,
-    minimal: MINIMAL_RIDER,
-    band: BAND_RIDER,
-  };
-  return templates[templateType];
+  templateType: string
+): RiderContractTemplate | null {
+  return getDefaultTemplateById(templateType);
+}
+
+/**
+ * List all available default template types
+ */
+export function listDefaultTemplates() {
+  return Object.entries(ALL_TEMPLATES).map(([key, template]) => ({
+    id: key,
+    title: template.title,
+    description: template.description,
+    icon: template.icon,
+    category: template.category,
+    sectionCount: template.sections.length,
+    fieldCount: template.sections.reduce((sum, s) => sum + s.fields.length, 0),
+  }));
 }
 
 /**
@@ -139,43 +160,42 @@ export function getDefaultTemplate(
  */
 export async function createFromDefaultTemplate(
   artistId: number,
-  templateType: "standard" | "minimal" | "band",
+  templateType: string,
   customName?: string
 ) {
   const defaultTemplate = getDefaultTemplate(templateType);
+  if (!defaultTemplate) {
+    throw new Error(`Unknown template type: ${templateType}`);
+  }
+
+  // Build initial data from default values
+  const initialData: Record<string, any> = {};
+  for (const section of defaultTemplate.sections) {
+    for (const field of section.fields) {
+      if (field.defaultValue !== undefined) {
+        initialData[field.id] = field.defaultValue;
+      }
+    }
+  }
+
   const templateData = {
     baseTemplate: templateType,
-    sections: defaultTemplate.sections,
-    editableFields: defaultTemplate.editableFields,
-    requiredFields: defaultTemplate.requiredFields,
+    formData: initialData,
   };
 
   const templateName = customName || `${defaultTemplate.title} - ${new Date().toLocaleDateString()}`;
 
-  return await createRiderTemplate(artistId, templateName, templateData);
+  return await createRiderTemplate(artistId, templateName, templateData, templateType);
 }
 
 /**
  * Validate rider template data
  */
 export function validateTemplate(
-  templateType: "standard" | "minimal" | "band",
+  templateType: string,
   data: Record<string, any>
 ): { valid: boolean; errors: string[] } {
-  const template = getDefaultTemplate(templateType);
-  const errors: string[] = [];
-
-  // Check required fields
-  for (const fieldId of template.requiredFields) {
-    if (!data[fieldId]) {
-      errors.push(`Required field missing: ${fieldId}`);
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+  return validateRiderData(templateType, data);
 }
 
 /**
@@ -190,12 +210,8 @@ export async function generateRiderPreview(
     throw new Error("Rider template not found or unauthorized");
   }
 
-  const baseTemplate = template.templateData?.baseTemplate || "standard";
-  const defaultTemplate = getDefaultTemplate(
-    baseTemplate as "standard" | "minimal" | "band"
-  );
-
-  return generateRiderHTML(defaultTemplate.id, template.templateData || {});
+  const baseTemplate = template.templateType || template.templateData?.baseTemplate || "solo_artist";
+  return generateRiderHTML(baseTemplate, template.templateData?.formData || template.templateData || {});
 }
 
 /**
@@ -213,6 +229,7 @@ export async function exportRiderAsJSON(
   return JSON.stringify(
     {
       templateName: template.templateName,
+      templateType: template.templateType,
       templateData: template.templateData,
       exportedAt: new Date().toISOString(),
     },
@@ -234,13 +251,13 @@ export async function duplicateRiderTemplate(
     throw new Error("Rider template not found or unauthorized");
   }
 
-  const duplicateName =
-    newName || `${template.templateName} (Copy)`;
+  const duplicateName = newName || `${template.templateName} (Copy)`;
 
   return await createRiderTemplate(
     artistId,
     duplicateName,
-    JSON.parse(JSON.stringify(template.templateData))
+    JSON.parse(JSON.stringify(template.templateData)),
+    template.templateType || "custom"
   );
 }
 
@@ -252,19 +269,13 @@ export async function getRiderTemplateStats(artistId: number) {
 
   const stats = {
     totalTemplates: templates.length,
-    templatesByType: {
-      standard: 0,
-      minimal: 0,
-      band: 0,
-    },
+    templatesByType: {} as Record<string, number>,
     lastUpdated: null as Date | null,
   };
 
   for (const template of templates) {
-    const baseType = template.templateData?.baseTemplate || "standard";
-    if (baseType in stats.templatesByType) {
-      stats.templatesByType[baseType as keyof typeof stats.templatesByType]++;
-    }
+    const type = template.templateType || "custom";
+    stats.templatesByType[type] = (stats.templatesByType[type] || 0) + 1;
 
     if (template.updatedAt && (!stats.lastUpdated || template.updatedAt > stats.lastUpdated)) {
       stats.lastUpdated = template.updatedAt;

@@ -1,5 +1,5 @@
 /**
- * Rider Template TRPC Router
+ * Rider Template tRPC Router
  * API endpoints for managing artist rider templates
  */
 
@@ -18,6 +18,7 @@ import {
   duplicateRiderTemplate,
   getRiderTemplateStats,
   getDefaultTemplate,
+  listDefaultTemplates,
 } from "../services/riderTemplateService";
 
 export const riderRouter = router({
@@ -27,7 +28,6 @@ export const riderRouter = router({
   getMyTemplates: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) throw new Error("Unauthorized");
-
     return await getArtistRiderTemplates(userId);
   }),
 
@@ -44,7 +44,6 @@ export const riderRouter = router({
       if (!template || template.artistId !== userId) {
         throw new Error("Template not found or unauthorized");
       }
-
       return template;
     }),
 
@@ -56,6 +55,7 @@ export const riderRouter = router({
       z.object({
         templateName: z.string().min(1).max(255),
         templateData: z.record(z.string(), z.any()),
+        templateType: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -65,7 +65,8 @@ export const riderRouter = router({
       return await createRiderTemplate(
         userId,
         input.templateName,
-        input.templateData || {}
+        input.templateData || {},
+        input.templateType || "custom"
       );
     }),
 
@@ -75,7 +76,7 @@ export const riderRouter = router({
   createFromDefault: protectedProcedure
     .input(
       z.object({
-        templateType: z.enum(["standard", "minimal", "band"]),
+        templateType: z.string(),
         customName: z.string().optional(),
       })
     )
@@ -121,7 +122,6 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
       return await deleteRiderTemplate(input.templateId, userId);
     }),
 
@@ -138,12 +138,7 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
-      return await duplicateRiderTemplate(
-        input.templateId,
-        userId,
-        input.newName
-      );
+      return await duplicateRiderTemplate(input.templateId, userId, input.newName);
     }),
 
   /**
@@ -152,7 +147,7 @@ export const riderRouter = router({
   validateTemplate: publicProcedure
     .input(
       z.object({
-        templateType: z.enum(["standard", "minimal", "band"]),
+        templateType: z.string(),
         data: z.record(z.string(), z.any()),
       })
     )
@@ -168,7 +163,6 @@ export const riderRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
       return await generateRiderPreview(input.templateId, userId);
     }),
 
@@ -180,7 +174,6 @@ export const riderRouter = router({
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
-
       return await exportRiderAsJSON(input.templateId, userId);
     }),
 
@@ -190,27 +183,22 @@ export const riderRouter = router({
   getStats: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) throw new Error("Unauthorized");
-
     return await getRiderTemplateStats(userId);
   }),
 
   /**
-   * Get default template structure
+   * Get default template structure by type
    */
   getDefaultTemplate: publicProcedure
-    .input(z.object({ templateType: z.enum(["standard", "minimal", "band"]) }))
+    .input(z.object({ templateType: z.string() }))
     .query(async ({ input }) => {
       return getDefaultTemplate(input.templateType);
     }),
 
   /**
-   * List all available default templates
+   * List all available default templates (summary info)
    */
   listDefaultTemplates: publicProcedure.query(async () => {
-    return {
-      standard: getDefaultTemplate("standard"),
-      minimal: getDefaultTemplate("minimal"),
-      band: getDefaultTemplate("band"),
-    };
+    return listDefaultTemplates();
   }),
 });

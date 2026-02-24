@@ -132,6 +132,8 @@ export const riderTemplates = mysqlTable("rider_templates", {
   artistId: int("artistId"), // indexed below
   templateName: varchar("templateName", { length: 255 }),
   templateData: json("templateData").$type<Record<string, any>>(),
+  templateType: varchar("templateType", { length: 50 }).default("custom"),
+  isDefault: boolean("isDefault").default(false),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
 }, (table) => ({
@@ -180,6 +182,7 @@ export const bookings = mysqlTable("bookings", {
   
   // Rider template linked to this booking
   riderTemplateId: int("riderTemplateId"),
+  riderStatus: varchar("riderStatus", { length: 50 }).default("pending"),
   riderAcknowledgedAt: timestamp("riderAcknowledgedAt"),
   riderAcknowledgedBy: int("riderAcknowledgedBy"), // venueId who acknowledged
   
