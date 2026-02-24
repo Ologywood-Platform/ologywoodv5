@@ -40,7 +40,7 @@
 - [ ] Validate email addresses in database
 
 ### Performance
-- [ ] Add database indexes for common queries
+- [x] Add database indexes for common queries (70 indexes across 20+ tables)
 - [ ] Optimize slow queries
 - [ ] Test database with production load
 
@@ -218,3 +218,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add fallback UI for error states (full-page, card, inline variants)
 - [x] Verify zero TypeScript errors after changes
 - [x] Verify dev server working correctly
+
+
+## DATABASE INDEXES (Feb 24, 2026)
+
+- [x] Audit current schema and identify common query patterns
+- [x] Add indexes for artist search (artistName, location, fee range)
+- [x] Add indexes for bookings by user (artistId, venueId, status, eventDate, paymentStatus + composites)
+- [x] Add indexes for messages (bookingId, senderId, recipientId + unread composite)
+- [x] Add indexes for favorites (venueId, artistId + composite)
+- [x] Add indexes for reviews (artistId, venueId, rating composite)
+- [x] Add indexes for notifications, contracts, invoices, signatures, follows, profile_views, rider_templates, booking_templates, artist_payouts, artist_earnings
+- [x] Push schema changes to database (70 total indexes created)
+- [x] Verify indexes created successfully

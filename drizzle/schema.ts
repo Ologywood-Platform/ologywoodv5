@@ -16,7 +16,9 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index("idx_users_role").on(table.role),
+}));
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -78,7 +80,11 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistNameIdx: index("idx_artist_profiles_name").on(table.artistName),
+  locationIdx: index("idx_artist_profiles_location").on(table.location),
+  feeRangeIdx: index("idx_artist_profiles_fee").on(table.feeRangeMin, table.feeRangeMax),
+}));
 
 export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
@@ -123,12 +129,14 @@ export type InsertVenueProfile = typeof venueProfiles.$inferInsert;
  */
 export const riderTemplates = mysqlTable("rider_templates", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId"),
+  artistId: int("artistId"), // indexed below
   templateName: varchar("templateName", { length: 255 }),
   templateData: json("templateData").$type<Record<string, any>>(),
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
-});
+}, (table) => ({
+  artistIdx: index("idx_rider_templates_artist").on(table.artistId),
+}));
 
 export type RiderTemplate = typeof riderTemplates.$inferSelect & { templateData?: Record<string, any> };
 export type InsertRiderTemplate = typeof riderTemplates.$inferInsert & { templateData?: Record<string, any> };
@@ -143,7 +151,10 @@ export const availability = mysqlTable("availability", {
   status: mysqlEnum("status", ["available", "booked", "unavailable"]).default("available").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistDateIdx: index("idx_availability_artist_date").on(table.artistId, table.date),
+  statusIdx: index("idx_availability_status").on(table.status),
+}));
 
 export type Availability = typeof availability.$inferSelect;
 export type InsertAvailability = typeof availability.$inferInsert;
@@ -174,7 +185,15 @@ export const bookings = mysqlTable("bookings", {
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  venueIdx: index("idx_bookings_venue").on(table.venueId),
+  artistIdx: index("idx_bookings_artist").on(table.artistId),
+  statusIdx: index("idx_bookings_status").on(table.status),
+  eventDateIdx: index("idx_bookings_event_date").on(table.eventDate),
+  venueStatusIdx: index("idx_bookings_venue_status").on(table.venueId, table.status),
+  artistStatusIdx: index("idx_bookings_artist_status").on(table.artistId, table.status),
+  paymentStatusIdx: index("idx_bookings_payment_status").on(table.paymentStatus),
+}));
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
@@ -193,7 +212,12 @@ export const messages = mysqlTable("messages", {
   lastReadAt: timestamp("lastReadAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  bookingIdx: index("idx_messages_booking").on(table.bookingId),
+  senderIdx: index("idx_messages_sender").on(table.senderId),
+  recipientIdx: index("idx_messages_recipient").on(table.recipientId),
+  recipientUnreadIdx: index("idx_messages_recipient_unread").on(table.recipientId, table.isRead),
+}));
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = typeof messages.$inferInsert;
@@ -212,7 +236,11 @@ export const reviews = mysqlTable("reviews", {
   respondedAt: timestamp("respondedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_reviews_artist").on(table.artistId),
+  venueIdx: index("idx_reviews_venue").on(table.venueId),
+  artistRatingIdx: index("idx_reviews_artist_rating").on(table.artistId, table.rating),
+}));
 
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = typeof reviews.$inferInsert;
@@ -231,7 +259,10 @@ export const venueReviews = mysqlTable("venue_reviews", {
   respondedAt: timestamp("respondedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  venueIdx: index("idx_venue_reviews_venue").on(table.venueId),
+  artistIdx: index("idx_venue_reviews_artist").on(table.artistId),
+}));
 
 export type VenueReview = typeof venueReviews.$inferSelect;
 export type InsertVenueReview = typeof venueReviews.$inferInsert;
@@ -243,7 +274,10 @@ export const profileViews = mysqlTable("profile_views", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId").notNull(),
   viewedAt: timestamp("viewedAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_profile_views_artist").on(table.artistId),
+  viewedAtIdx: index("idx_profile_views_date").on(table.viewedAt),
+}));
 
 export type ProfileView = typeof profileViews.$inferSelect;
 export type InsertProfileView = typeof profileViews.$inferInsert;
@@ -256,7 +290,11 @@ export const favorites = mysqlTable("favorites", {
   venueId: int("venueId").notNull(),
   artistId: int("artistId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  venueIdx: index("idx_favorites_venue").on(table.venueId),
+  artistIdx: index("idx_favorites_artist").on(table.artistId),
+  venueArtistIdx: index("idx_favorites_venue_artist").on(table.venueId, table.artistId),
+}));
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
@@ -279,14 +317,16 @@ export type InsertArtistFollow = typeof artistFollows.$inferInsert;
  */
 export const bookingTemplates = mysqlTable("booking_templates", {
   id: int("id").autoincrement().primaryKey(),
-  venueId: int("venueId").notNull(),
+  venueId: int("venueId").notNull(), // indexed below
   templateName: varchar("templateName", { length: 255 }).notNull(),
   eventDetails: text("eventDetails"),
   totalFee: decimal("totalFee", { precision: 10, scale: 2 }),
   depositAmount: decimal("depositAmount", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  venueIdx: index("idx_booking_templates_venue").on(table.venueId),
+}));
 
 export type BookingTemplate = typeof bookingTemplates.$inferSelect;
 export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
@@ -296,10 +336,12 @@ export type InsertBookingTemplate = typeof bookingTemplates.$inferInsert;
  */
 export const bookingReminders = mysqlTable("booking_reminders", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull(),
+  bookingId: int("bookingId").notNull(), // indexed below
   reminderType: mysqlEnum("reminderType", ["7_days", "3_days", "1_day"]).notNull(),
   sentAt: timestamp("sentAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  bookingIdx: index("idx_booking_reminders_booking").on(table.bookingId),
+}));
 
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
@@ -310,14 +352,18 @@ export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
 export const contracts = mysqlTable("contracts", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("bookingId").notNull().unique(),
-  artistId: int("artistId").notNull(),
-  venueId: int("venueId").notNull(),
+  artistId: int("artistId").notNull(), // indexed below
+  venueId: int("venueId").notNull(), // indexed below
   contractData: json("contractData").$type<Record<string, any>>(),
   pdfUrl: text("pdfUrl"),
   status: mysqlEnum("status", ["pending", "signed_by_artist", "signed_by_venue", "fully_signed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_contracts_artist").on(table.artistId),
+  venueIdx: index("idx_contracts_venue").on(table.venueId),
+  statusIdx: index("idx_contracts_status").on(table.status),
+}));
 
 export type Contract = typeof contracts.$inferSelect;
 export type InsertContract = typeof contracts.$inferInsert;
@@ -327,11 +373,14 @@ export type InsertContract = typeof contracts.$inferInsert;
  */
 export const signatures = mysqlTable("signatures", {
   id: int("id").autoincrement().primaryKey(),
-  contractId: int("contractId").notNull(),
+  contractId: int("contractId").notNull(), // indexed below
   userId: int("userId").notNull(),
   signatureData: text("signatureData").notNull(), // Base64 encoded signature
   signedAt: timestamp("signedAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  contractIdx: index("idx_signatures_contract").on(table.contractId),
+  userIdx: index("idx_signatures_user").on(table.userId),
+}));
 
 export type Signature = typeof signatures.$inferSelect;
 export type InsertSignature = typeof signatures.$inferInsert;
@@ -382,7 +431,10 @@ export const follows = mysqlTable("follows", {
   followingId: int("followingId").notNull(), // Artist or Venue being followed
   followingType: mysqlEnum("followingType", ["artist", "venue"]).notNull(), // Type of entity being followed
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  followerIdx: index("idx_follows_follower").on(table.followerId),
+  followingIdx: index("idx_follows_following").on(table.followingId, table.followingType),
+}));
 
 export type Follow = typeof follows.$inferSelect;
 export type InsertFollow = typeof follows.$inferInsert;
@@ -467,7 +519,10 @@ export const notifications = mysqlTable("notifications", {
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userIdx: index("idx_notifications_user").on(table.userId),
+  userUnreadIdx: index("idx_notifications_user_unread").on(table.userId, table.isRead),
+}));
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
@@ -478,7 +533,7 @@ export type InsertNotification = typeof notifications.$inferInsert;
  */
 export const artistPayouts = mysqlTable("artist_payouts", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId").notNull(),
+  artistId: int("artistId").notNull(), // indexed below
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default("USD").notNull(),
   status: mysqlEnum("status", ["pending", "processing", "completed", "failed", "cancelled"]).default("pending").notNull(),
@@ -491,7 +546,10 @@ export const artistPayouts = mysqlTable("artist_payouts", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_artist_payouts_artist").on(table.artistId),
+  statusIdx: index("idx_artist_payouts_status").on(table.status),
+}));
 export type ArtistPayout = typeof artistPayouts.$inferSelect;
 export type InsertArtistPayout = typeof artistPayouts.$inferInsert;
 
@@ -518,7 +576,7 @@ export type InsertStripeConnectAccount = typeof stripeConnectAccounts.$inferInse
  */
 export const artistEarnings = mysqlTable("artist_earnings", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId").notNull(),
+  artistId: int("artistId").notNull(), // indexed below
   bookingId: int("bookingId").notNull().unique(),
   grossAmount: decimal("grossAmount", { precision: 10, scale: 2 }).notNull(),
   platformFee: decimal("platformFee", { precision: 10, scale: 2 }).notNull(),
@@ -527,7 +585,10 @@ export const artistEarnings = mysqlTable("artist_earnings", {
   payoutId: int("payoutId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_artist_earnings_artist").on(table.artistId),
+  statusIdx: index("idx_artist_earnings_status").on(table.status),
+}));
 export type ArtistEarning = typeof artistEarnings.$inferSelect;
 export type InsertArtistEarning = typeof artistEarnings.$inferInsert;
 
@@ -537,8 +598,8 @@ export type InsertArtistEarning = typeof artistEarnings.$inferInsert;
 export const invoices = mysqlTable("invoices", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("bookingId").notNull().unique(),
-  artistId: int("artistId").notNull(),
-  venueId: int("venueId").notNull(),
+  artistId: int("artistId").notNull(), // indexed below
+  venueId: int("venueId").notNull(), // indexed below
   invoiceNumber: varchar("invoiceNumber", { length: 50 }).unique().notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   tax: decimal("tax", { precision: 10, scale: 2 }).default('0'),
@@ -553,7 +614,11 @@ export const invoices = mysqlTable("invoices", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_invoices_artist").on(table.artistId),
+  venueIdx: index("idx_invoices_venue").on(table.venueId),
+  statusIdx: index("idx_invoices_status").on(table.status),
+}));
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
 
@@ -565,7 +630,7 @@ export type InsertInvoice = typeof invoices.$inferInsert;
  */
 export const events = mysqlTable("events", {
   id: int("id").autoincrement().primaryKey(),
-  artistId: int("artistId").notNull(),
+  artistId: int("artistId").notNull(), // indexed below
   eventTitle: varchar("eventTitle", { length: 255 }).notNull(),
   eventType: mysqlEnum("eventType", ["wedding", "corporate", "festival", "bar_gig", "private_party", "concert", "other"]).notNull(),
   eventDate: date("eventDate").notNull(),
@@ -581,7 +646,12 @@ export const events = mysqlTable("events", {
   bookingId: int("bookingId"), // Link to booking if booked
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_events_artist").on(table.artistId),
+  eventDateIdx: index("idx_events_date").on(table.eventDate),
+  statusIdx: index("idx_events_status").on(table.status),
+  publicIdx: index("idx_events_public").on(table.isPublic, table.status),
+}));
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = typeof events.$inferInsert;
@@ -655,7 +725,7 @@ export type InsertSavedEvent = typeof savedEvents.$inferInsert;
  */
 export const emailLogs = mysqlTable("email_logs", {
   id: int("id").autoincrement().primaryKey(),
-  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(), // indexed below
   recipientName: varchar("recipientName", { length: 255 }),
   subject: varchar("subject", { length: 255 }).notNull(),
   emailType: varchar("emailType", { length: 64 }).notNull(), // 'booking_request', 'booking_confirmation', etc.
@@ -670,7 +740,12 @@ export const emailLogs = mysqlTable("email_logs", {
   clickedAt: timestamp("clickedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  recipientIdx: index("idx_email_logs_recipient").on(table.recipientEmail),
+  userIdx: index("idx_email_logs_user").on(table.userId),
+  bookingIdx: index("idx_email_logs_booking").on(table.bookingId),
+  statusIdx: index("idx_email_logs_status").on(table.status),
+}));
 
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type InsertEmailLog = typeof emailLogs.$inferInsert;
