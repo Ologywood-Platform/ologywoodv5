@@ -304,3 +304,8 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix OAuth callback to match original reference implementation (simple redirect to /)
 - [x] Remove custom state encoding/parsing that conflicted with SDK's decodeState
 - [x] Remove role-based redirects from OAuth (handled by frontend routing instead)
+
+## OPEN GRAPH LINK PREVIEW FIX
+- [x] Add og:image, og:title, og:description meta tags to index.html (already existed, fixed URL)
+- [x] Upload OG preview image to CDN for reliable access
+- [x] Fix Twitter Card meta tags to use same CDN image
