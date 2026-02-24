@@ -193,3 +193,4 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix service worker caching old JS bundles - changed from cache-first to network-first strategy
 - [x] Bump service worker cache version from v1 to v3 to invalidate old caches
 - [x] Add service worker force-update on page load
+- [x] Fix tRPC httpBatchLink causing 'Failed to fetch' on production - Cloudflare blocks batch=1 single query requests, switched to httpLink
