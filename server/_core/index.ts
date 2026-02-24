@@ -46,9 +46,14 @@ async function startServer() {
   cacheManager.init(60000); // Cleanup every 60 seconds
   
   // Redirect non-www to www for consistent social media sharing
+  // Only apply to the custom domain (ologywood.com), NOT to Cloud Run, manus.space, or other internal domains
   app.use((req, res, next) => {
-    if (process.env.NODE_ENV === 'production' && req.hostname && !req.hostname.startsWith('www.') && req.hostname !== 'localhost') {
-      return res.redirect(301, `https://www.${req.hostname}${req.originalUrl}`);
+    if (
+      process.env.NODE_ENV === 'production' &&
+      req.hostname &&
+      req.hostname === 'ologywood.com'
+    ) {
+      return res.redirect(301, `https://www.ologywood.com${req.originalUrl}`);
     }
     next();
   });

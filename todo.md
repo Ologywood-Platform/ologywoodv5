@@ -184,3 +184,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [ ] Verify all tables created successfully
 - [ ] Verify artist data in production database
 - [ ] Test production site displays artists
+
+
+## PRODUCTION DEPLOYMENT FIX (Feb 24, 2026)
+
+- [x] Fix www redirect causing infinite loop on Cloud Run (only redirect ologywood.com, not internal domains)
+- [x] Fix static file serving path in vite.ts serveStatic()
