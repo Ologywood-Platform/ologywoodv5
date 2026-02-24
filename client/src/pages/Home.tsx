@@ -11,6 +11,7 @@ import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
+import { getDashboardUrl } from "@/utils/dashboardUrl";
 
 function LogoutButton() {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -77,13 +78,7 @@ export default function Home() {
     }
   };
 
-  // Get the correct dashboard URL based on user role
-  const getDashboardUrl = () => {
-    if (!user) return '/dashboard';
-    if (user.role === 'venue') return '/venue-dashboard';
-    if (user.role === 'admin') return '/admin';
-    return '/dashboard'; // Default to artist dashboard
-  };
+
 
   // Redirect authenticated users without a role to role selection
   useEffect(() => {

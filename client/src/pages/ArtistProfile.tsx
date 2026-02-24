@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
+import { getDashboardUrl } from "@/utils/dashboardUrl";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -242,7 +243,7 @@ export default function ArtistProfile() {
               <Button variant="ghost">Browse Artists</Button>
             </Link>
             {isAuthenticated && (
-              <Link href="/dashboard">
+              <Link href={getDashboardUrl(user)}>
                 <Button variant="ghost">Dashboard</Button>
               </Link>
             )}
