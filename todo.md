@@ -190,3 +190,6 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 
 - [x] Fix www redirect causing infinite loop on Cloud Run (only redirect ologywood.com, not internal domains)
 - [x] Fix static file serving path in vite.ts serveStatic()
+- [x] Fix service worker caching old JS bundles - changed from cache-first to network-first strategy
+- [x] Bump service worker cache version from v1 to v3 to invalidate old caches
+- [x] Add service worker force-update on page load
