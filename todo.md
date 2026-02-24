@@ -260,3 +260,7 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix 2: Add empty state messages for blank sections (Events tab, Browse, VenueBrowse, EventDiscovery)
 - [x] Fix 3: Improve no-results message visibility on search/filter (auto-scroll + prominent styling)
 - [x] Fix 4: Scroll-to-top on route navigation changes
+
+## STALE TEST CLEANUP
+- [x] Delete redundant riderTemplateService.test.ts (covered by rider.test.ts)
+- [x] Rewrite emailPreferences.test.ts to match current implementation
