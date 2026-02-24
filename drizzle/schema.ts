@@ -92,16 +92,26 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   organizationName: varchar("organizationName", { length: 255 }).notNull(),
   contactName: varchar("contactName", { length: 255 }),
   contactPhone: varchar("contactPhone", { length: 50 }),
-  location: varchar("location", { length: 255 }),
-  city: varchar("city", { length: 255 }),
-  capacity: int("capacity"),
-  bio: text("bio"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  mediaGallery: json("mediaGallery").$type<Record<string, any>>(),
   profilePhotoUrl: text("profilePhotoUrl"),
+  location: varchar("location", { length: 255 }),
+  bio: text("bio"),
   isListed: boolean("isListed").default(true).notNull(),
+  website: text("website"),
+  email: varchar("email", { length: 320 }).unique(),
+  capacity: int("capacity"),
+  venueType: varchar("venueType", { length: 100 }),
+  amenities: json("amenities").$type<Record<string, any>>(),
+  averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default("0.00"),
+  reviewCount: int("reviewCount").default(0),
+  listingViews: int("listingViews").default(0),
+  emailVerified: boolean("emailVerified").default(false).notNull(),
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
   emailVerificationSentAt: timestamp("emailVerificationSentAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
+  profileCompletionScore: int("profileCompletionScore").default(0).notNull(),
+  profileCompletionUpdatedAt: timestamp("profileCompletionUpdatedAt").defaultNow().notNull()
 });
 
 export type VenueProfile = typeof venueProfiles.$inferSelect;
