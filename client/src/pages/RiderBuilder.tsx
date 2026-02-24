@@ -82,7 +82,6 @@ export default function RiderBuilder() {
       alert("Rider template saved successfully!");
       navigate("/riders");
     } catch (error) {
-      console.error("Error saving template:", error);
       alert("Failed to save template. Please try again.");
     } finally {
       setIsSaving(false);

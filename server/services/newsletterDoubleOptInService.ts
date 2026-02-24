@@ -15,14 +15,14 @@ export class NewsletterDoubleOptInService {
       const confirmationToken = crypto.randomBytes(32).toString('hex');
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      console.log(`[Newsletter] Initiating double opt-in for: ${subscription.email}`);
+      
 
       // In production, save token to database and send confirmation email
       // For now, we'll just log it
       const confirmationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/newsletter/confirm?token=${confirmationToken}`;
 
-      console.log(`[Newsletter] Confirmation link: ${confirmationLink}`);
-      console.log(`[Newsletter] Token expires at: ${tokenExpiry}`);
+      
+      
 
       // Send confirmation email (would use SendGrid in production)
       await this.sendConfirmationEmail(subscription.email, confirmationLink, subscription.name);
@@ -45,7 +45,7 @@ export class NewsletterDoubleOptInService {
 
   static async confirmSubscription(token: string) {
     try {
-      console.log(`[Newsletter] Confirming subscription with token: ${token.substring(0, 10)}...`);
+      
 
       // In production, verify token from database
       // Check token exists and hasn't expired
@@ -69,7 +69,7 @@ export class NewsletterDoubleOptInService {
   static async sendConfirmationEmail(email: string, confirmationLink: string, name?: string) {
     try {
       // In production, use SendGrid API
-      console.log(`[Newsletter] Sending confirmation email to: ${email}`);
+      
 
       const emailContent = `
         <h2>Confirm Your Newsletter Subscription</h2>
@@ -81,7 +81,7 @@ export class NewsletterDoubleOptInService {
         <p>Best regards,<br/>The Ologywood Team</p>
       `;
 
-      console.log('[Newsletter] Email content prepared');
+      
       // In production: await sendgridClient.send({ to: email, html: emailContent, ... });
 
       return { success: true };
@@ -93,7 +93,7 @@ export class NewsletterDoubleOptInService {
 
   static async unsubscribe(email: string) {
     try {
-      console.log(`[Newsletter] Unsubscribing: ${email}`);
+      
 
       // In production, mark user as unsubscribed in database
       // Note: newsletterSubscribed column not yet in schema

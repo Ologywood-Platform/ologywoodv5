@@ -47,7 +47,6 @@ export async function sendBookingConfirmation(booking: BookingDetails): Promise<
       );
     }
 
-    console.log(`[Booking] Confirmation sent for booking ${booking.id}`);
   } catch (error) {
     console.error('[Booking] Failed to send confirmation:', error);
     throw error;
@@ -168,7 +167,6 @@ export async function sendSMSNotification(phoneNumber: string, message: string):
       to: phoneNumber,
     });
 
-    console.log(`[SMS] Message sent to ${phoneNumber}`);
     return true;
   } catch (error) {
     console.error('[SMS] Failed to send SMS:', error);

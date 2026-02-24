@@ -82,7 +82,7 @@ export class MessagingCollaborationService {
         status: 'active',
       };
 
-      console.log(`[Messaging] Created conversation for booking ${bookingId}`);
+      
       return conversation;
     } catch (error) {
       console.error('[Messaging] Error creating conversation:', error);
@@ -112,7 +112,7 @@ export class MessagingCollaborationService {
         isRead: false,
       };
 
-      console.log(`[Messaging] Sent message in conversation ${conversationId}`);
+      
       return message;
     } catch (error) {
       console.error('[Messaging] Error sending message:', error);
@@ -141,7 +141,7 @@ export class MessagingCollaborationService {
    */
   static async markAsRead(messageId: string): Promise<void> {
     try {
-      console.log(`[Messaging] Marked message ${messageId} as read`);
+      
     } catch (error) {
       console.error('[Messaging] Error marking message as read:', error);
     }
@@ -152,7 +152,7 @@ export class MessagingCollaborationService {
    */
   static async addReaction(messageId: string, emoji: string): Promise<void> {
     try {
-      console.log(`[Messaging] Added reaction ${emoji} to message ${messageId}`);
+      
     } catch (error) {
       console.error('[Messaging] Error adding reaction:', error);
     }
@@ -179,7 +179,7 @@ export class MessagingCollaborationService {
         changes,
       };
 
-      console.log(`[Collaboration] Created contract version for ${contractId}`);
+      
       return version;
     } catch (error) {
       console.error('[Collaboration] Error creating contract version:', error);
@@ -211,7 +211,7 @@ export class MessagingCollaborationService {
     lineNumber?: number
   ): Promise<void> {
     try {
-      console.log(`[Collaboration] Added comment to contract ${contractId}`);
+      
     } catch (error) {
       console.error('[Collaboration] Error adding comment:', error);
     }
@@ -222,7 +222,7 @@ export class MessagingCollaborationService {
    */
   static async acceptContract(contractId: string, userId: number): Promise<void> {
     try {
-      console.log(`[Collaboration] User ${userId} accepted contract ${contractId}`);
+      
     } catch (error) {
       console.error('[Collaboration] Error accepting contract:', error);
     }
@@ -233,7 +233,7 @@ export class MessagingCollaborationService {
    */
   static async rejectContract(contractId: string, userId: number, reason: string): Promise<void> {
     try {
-      console.log(`[Collaboration] User ${userId} rejected contract ${contractId}: ${reason}`);
+      
     } catch (error) {
       console.error('[Collaboration] Error rejecting contract:', error);
     }
@@ -244,7 +244,7 @@ export class MessagingCollaborationService {
    */
   static async requestSignature(contractId: string, recipientId: number): Promise<void> {
     try {
-      console.log(`[Collaboration] Requested signature for contract ${contractId}`);
+      
     } catch (error) {
       console.error('[Collaboration] Error requesting signature:', error);
     }
@@ -259,7 +259,7 @@ export class MessagingCollaborationService {
     signatureData: string
   ): Promise<void> {
     try {
-      console.log(`[Collaboration] Contract ${contractId} signed by user ${userId}`);
+      
     } catch (error) {
       console.error('[Collaboration] Error signing contract:', error);
     }
@@ -296,7 +296,7 @@ export class MessagingCollaborationService {
    */
   static async archiveConversation(conversationId: string): Promise<void> {
     try {
-      console.log(`[Messaging] Archived conversation ${conversationId}`);
+      
     } catch (error) {
       console.error('[Messaging] Error archiving conversation:', error);
     }

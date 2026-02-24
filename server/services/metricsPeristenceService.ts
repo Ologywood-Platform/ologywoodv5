@@ -25,7 +25,6 @@ class MetricsPersistenceServiceClass {
         updatedAt: new Date(),
       };
 
-      console.log('[MetricsPersistenceService] Saved metrics:', storedMetrics);
       return storedMetrics;
     } catch (error) {
       console.error('[MetricsPersistenceService] Error saving metrics:', error);
@@ -43,11 +42,6 @@ class MetricsPersistenceServiceClass {
   ): Promise<StoredMetrics[]> {
     try {
       // This would be implemented with actual database queries
-      console.log('[MetricsPersistenceService] Fetching metrics for date range:', {
-        startDate,
-        endDate,
-        limit,
-      });
 
       return [];
     } catch (error) {
@@ -61,7 +55,6 @@ class MetricsPersistenceServiceClass {
    */
   async getLatestMetrics(limit: number = 10): Promise<StoredMetrics[]> {
     try {
-      console.log('[MetricsPersistenceService] Fetching latest metrics:', { limit });
       return [];
     } catch (error) {
       console.error('[MetricsPersistenceService] Error fetching latest metrics:', error);
@@ -83,11 +76,6 @@ class MetricsPersistenceServiceClass {
     totalNotifications: number;
   }> {
     try {
-      console.log('[MetricsPersistenceService] Calculating metrics summary:', {
-        startDate,
-        endDate,
-      });
-
       return {
         averageConnections: 0,
         maxConnections: 0,
@@ -106,7 +94,6 @@ class MetricsPersistenceServiceClass {
    */
   async deleteOldMetrics(beforeDate: Date): Promise<number> {
     try {
-      console.log('[MetricsPersistenceService] Deleting metrics before:', beforeDate);
       return 0;
     } catch (error) {
       console.error('[MetricsPersistenceService] Error deleting old metrics:', error);

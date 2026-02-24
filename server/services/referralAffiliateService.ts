@@ -82,8 +82,7 @@ export class ReferralAffiliateService {
         expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
       };
 
-      console.log(`[Referral] Generated referral code: ${code}`);
-      return referralCode;
+return referralCode;
     } catch (error) {
       console.error('[Referral] Error generating referral code:', error);
       throw error;
@@ -112,8 +111,7 @@ export class ReferralAffiliateService {
         createdAt: new Date(),
       };
 
-      console.log(`[Referral] Tracked referral for user ${referredUserId}`);
-      return referralRecord;
+return referralRecord;
     } catch (error) {
       console.error('[Referral] Error tracking referral:', error);
       return null;
@@ -133,10 +131,7 @@ export class ReferralAffiliateService {
       const commissionRate = 0.1; // 10% default
       const commissionAmount = bookingAmount * commissionRate;
 
-      console.log(
-        `[Referral] Completed referral ${referralRecordId} with commission $${commissionAmount}`
-      );
-      return null;
+return null;
     } catch (error) {
       console.error('[Referral] Error completing referral:', error);
       return null;
@@ -179,8 +174,7 @@ export class ReferralAffiliateService {
     payoutSchedule: 'weekly' | 'monthly' | 'quarterly'
   ): Promise<AffiliateAccount | null> {
     try {
-      console.log(`[Affiliate] Updated payout settings for user ${userId}`);
-      return null;
+return null;
     } catch (error) {
       console.error('[Affiliate] Error updating payout settings:', error);
       return null;
@@ -224,8 +218,7 @@ export class ReferralAffiliateService {
    */
   static async processAffiliatePayouts(): Promise<void> {
     try {
-      console.log('[Affiliate] Processing monthly affiliate payouts');
-      // In production, fetch all pending earnings and process payouts
+// In production, fetch all pending earnings and process payouts
     } catch (error) {
       console.error('[Affiliate] Error processing payouts:', error);
     }
@@ -283,8 +276,7 @@ export class ReferralAffiliateService {
   static async validateReferralCode(code: string): Promise<ReferralCode | null> {
     try {
       // In production, fetch from database and validate
-      console.log(`[Referral] Validating referral code: ${code}`);
-      return null;
+return null;
     } catch (error) {
       console.error('[Referral] Error validating referral code:', error);
       return null;

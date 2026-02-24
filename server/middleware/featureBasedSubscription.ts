@@ -197,7 +197,6 @@ export async function upgradeUserTier(
 ): Promise<boolean> {
   try {
     // This would update the database
-    console.log(`[FeatureSubscription] User ${userId} upgraded to ${newTier}`);
     return true;
   } catch (error) {
     console.error('[FeatureSubscription] Error upgrading user:', error);

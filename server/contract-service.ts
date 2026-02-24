@@ -146,7 +146,6 @@ export function createContract(
   };
 
   contracts.set(contract.id, contract);
-  console.log(`[Contract] Created contract #${contract.id} for booking #${bookingId}`);
 
   return contract;
 }
@@ -171,7 +170,6 @@ export function updateContractSection(
   if (section && section.editable) {
     section.content = newContent;
     contract.updatedAt = new Date();
-    console.log(`[Contract] Updated section ${sectionId} in contract #${contractId}`);
   }
 
   return contract;
@@ -204,10 +202,8 @@ export function signContract(
   if (contract.artistSignature && contract.venueSignature) {
     contract.status = 'executed';
     contract.executedAt = new Date();
-    console.log(`[Contract] Contract #${contractId} fully executed`);
   } else {
     contract.status = 'pending';
-    console.log(`[Contract] Contract #${contractId} signed by ${signerRole}`);
   }
 
   contract.updatedAt = new Date();

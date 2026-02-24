@@ -95,17 +95,6 @@ export default function Home() {
     artist.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // Debug logging
-  useEffect(() => {
-    if (artists && artists.length > 0) {
-      const names = artists.map(a => a.artistName).join(', ');
-      console.log('[Home] Raw artists from API:', artists.length);
-      console.log('[Home] Artist names:', names);
-      console.log('[Home] Filtered artists:', filteredArtists?.length);
-      // Log the actual number of artists fetched
-      console.log('[Home] Successfully loaded', artists.length, 'artists');
-    }
-  }, [artists, filteredArtists]);
 
   return (
     <div className="min-h-screen flex flex-col">

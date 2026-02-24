@@ -9,12 +9,10 @@ export class MetricsArchivalJob {
 
   start(): void {
     if (this.archivalInterval) {
-      console.log('[MetricsArchivalJob] Job already running');
-      return;
+return;
     }
 
-    console.log('[MetricsArchivalJob] Starting archival job');
-    this.archivalInterval = setInterval(() => {
+this.archivalInterval = setInterval(() => {
       this.archiveMetrics();
     }, this.archivalIntervalMs);
 
@@ -25,14 +23,12 @@ export class MetricsArchivalJob {
     if (this.archivalInterval) {
       clearInterval(this.archivalInterval);
       this.archivalInterval = null;
-      console.log('[MetricsArchivalJob] Archival job stopped');
-    }
+}
   }
 
   private async archiveMetrics(): Promise<void> {
     try {
-      console.log('[MetricsArchivalJob] Archiving metrics...');
-      await this.cleanupOldMetrics();
+await this.cleanupOldMetrics();
     } catch (error) {
       console.error('[MetricsArchivalJob] Error archiving metrics:', error);
     }
@@ -42,8 +38,7 @@ export class MetricsArchivalJob {
     try {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this.retentionDays);
-      console.log('[MetricsArchivalJob] Cleaning up metrics before:', cutoffDate);
-    } catch (error) {
+} catch (error) {
       console.error('[MetricsArchivalJob] Error cleaning up old metrics:', error);
     }
   }
@@ -69,8 +64,7 @@ export class MetricsArchivalJob {
   }
 
   async forceArchival(): Promise<void> {
-    console.log('[MetricsArchivalJob] Forcing immediate archival');
-    await this.archiveMetrics();
+await this.archiveMetrics();
   }
 }
 

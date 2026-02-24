@@ -49,7 +49,7 @@ export async function sendTicketCreatedEmail(data: TicketNotificationData) {
       html: template.html,
     });
 
-    console.log(`✅ Ticket created email sent to ${data.userEmail}`);
+    
   } catch (error) {
     console.error("Failed to send ticket created email:", error);
     throw error;
@@ -76,7 +76,7 @@ export async function sendTicketResponseEmail(data: TicketResponseNotificationDa
       html: template.html,
     });
 
-    console.log(`✅ Ticket response email sent to ${data.userEmail}`);
+    
   } catch (error) {
     console.error("Failed to send ticket response email:", error);
     throw error;
@@ -103,7 +103,7 @@ export async function sendTicketResolvedEmail(data: TicketResolvedNotificationDa
       html: template.html,
     });
 
-    console.log(`✅ Ticket resolved email sent to ${data.userEmail}`);
+    
   } catch (error) {
     console.error("Failed to send ticket resolved email:", error);
     throw error;
@@ -136,7 +136,7 @@ export async function sendTicketClosedEmail(data: TicketResolvedNotificationData
       html,
     });
 
-    console.log(`✅ Ticket closed email sent to ${data.userEmail}`);
+    
   } catch (error) {
     console.error("Failed to send ticket closed email:", error);
     throw error;

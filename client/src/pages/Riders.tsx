@@ -272,7 +272,6 @@ export default function Riders() {
       toast.success("PDF downloaded successfully!");
     } catch (error) {
       toast.error("Failed to generate PDF");
-      console.error(error);
     }
   };
 

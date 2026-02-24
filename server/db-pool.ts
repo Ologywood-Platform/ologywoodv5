@@ -40,12 +40,6 @@ export async function getConnectionPool(): Promise<Pool> {
     keepAliveInitialDelayMs: 0,
   };
 
-  console.log('[DB Pool] Creating connection pool with config:', {
-    host: config.host,
-    database: config.database,
-    connectionLimit: config.connectionLimit,
-    queueLimit: config.queueLimit,
-  });
 
   try {
     connectionPool = createPool(config);
@@ -55,7 +49,6 @@ export async function getConnectionPool(): Promise<Pool> {
     await connection.ping();
     connection.release();
 
-    console.log('[DB Pool] Connection pool created and tested successfully');
 
     // Log pool stats periodically
     setInterval(() => {
@@ -64,7 +57,6 @@ export async function getConnectionPool(): Promise<Pool> {
         queueLimit: config.queueLimit,
         timestamp: new Date().toISOString(),
       };
-      console.log('[DB Pool] Stats:', poolStats);
     }, 60000); // Log every minute
 
     return connectionPool;
@@ -81,7 +73,6 @@ export async function closeConnectionPool(): Promise<void> {
   if (connectionPool) {
     await connectionPool.end();
     connectionPool = null;
-    console.log('[DB Pool] Connection pool closed');
   }
 }
 
@@ -152,7 +143,6 @@ export async function executeTransaction(
 export async function initializePool(): Promise<void> {
   try {
     await getConnectionPool();
-    console.log('[DB] Connection pool initialized successfully');
   } catch (error) {
     console.error('[DB] Failed to initialize connection pool:', error);
     process.exit(1);
@@ -163,13 +153,11 @@ export async function initializePool(): Promise<void> {
  * Graceful shutdown
  */
 process.on('SIGINT', async () => {
-  console.log('[DB] Shutting down connection pool...');
   await closeConnectionPool();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.log('[DB] Shutting down connection pool...');
   await closeConnectionPool();
   process.exit(0);
 });

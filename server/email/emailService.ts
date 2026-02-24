@@ -60,7 +60,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     };
 
     await sgMail.send(msg);
-    console.log(`✓ Email sent to ${options.to} (${options.templateData.emailType})`);
     return true;
   } catch (error) {
     console.error(`✗ Failed to send email to ${options.to}:`, error);

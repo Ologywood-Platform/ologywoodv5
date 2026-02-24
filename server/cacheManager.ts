@@ -104,11 +104,9 @@ export function cacheable<T>(
       const cached = cacheManager.get<T>(cacheKey);
 
       if (cached !== null) {
-        console.log(`[CACHE HIT] ${cacheKey}`);
         return cached;
       }
 
-      console.log(`[CACHE MISS] ${cacheKey}`);
       const result = await originalMethod.apply(this, args);
       cacheManager.set(cacheKey, result, ttlSeconds);
       return result;

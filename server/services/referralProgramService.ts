@@ -28,7 +28,7 @@ export const referralProgramService = {
     // - timestamp
     // - status (pending until profile complete)
     
-    console.log(`[Referral] New user ${newUserId} signed up with code ${referralCode}`);
+    
   },
 
   // Award credits when referral is completed
@@ -38,7 +38,7 @@ export const referralProgramService = {
     // TODO: Add credits to referee's account
     // TODO: Send notification emails to both parties
     
-    console.log(`[Referral] Referral completed: ${referrerCredit} credits to referrer, ${refereeCredit} credits to referee`);
+    
   },
 
   // Get user's referral stats
@@ -87,7 +87,7 @@ export const referralProgramService = {
     // TODO: Mark credits as used
     
     const discountAmount = creditAmount; // 1 credit = $1 discount
-    console.log(`[Referral] Applied ${discountAmount} credits to subscription ${subscriptionId}`);
+    
     
     return {
       originalPrice: 29,
@@ -126,7 +126,7 @@ export const referralProgramService = {
     `;
     
     // TODO: Send email via emailService
-    console.log(`[Referral] Share email sent to ${userEmail}`);
+    
   },
 
   // Check if referral code is valid

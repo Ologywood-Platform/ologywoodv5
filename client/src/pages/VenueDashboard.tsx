@@ -76,7 +76,6 @@ export function VenueDashboard() {
       setEditingProfile(false);
       refetchProfile();
     } catch (error) {
-      console.error('Error updating profile:', error);
     }
   };
 

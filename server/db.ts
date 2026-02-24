@@ -159,14 +159,9 @@ export async function updateSignature(id: number, data: Partial<InsertSignature>
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      console.log("[Database] Attempting to connect to TiDB Cloud...");
-      console.log("[Database] DATABASE_URL exists:", !!process.env.DATABASE_URL);
       
       // Parse DATABASE_URL to extract connection parameters
       const url = new URL(process.env.DATABASE_URL);
-      console.log("[Database] Parsed connection - Host:", url.hostname);
-      console.log("[Database] Parsed connection - Port:", url.port);
-      console.log("[Database] Parsed connection - Database:", url.pathname.slice(1));
       
       // Determine if this is TiDB Cloud or AWS RDS based on hostname
       const isTiDB = url.hostname.includes('tidbcloud.com');
@@ -187,10 +182,8 @@ export async function getDb() {
       // TiDB Cloud requires SSL, AWS RDS doesn't (unless explicitly enabled)
       if (isTiDB) {
         poolConfig.ssl = {}; // Enable SSL for TiDB with default settings
-        console.log('[Database] Detected TiDB Cloud - SSL enabled');
       } else if (isAWSRDS) {
         poolConfig.ssl = false; // AWS RDS doesn't require SSL by default
-        console.log('[Database] Detected AWS RDS - SSL disabled');
       }
       
       const pool = mysql.createPool(poolConfig);
@@ -198,9 +191,7 @@ export async function getDb() {
       // Test connection immediately
       try {
         const connection = await pool.getConnection();
-        console.log("[Database] Got connection from pool");
         const result = await connection.query('SELECT 1 as test');
-        console.log("[Database] Connection test query successful");
         connection.release();
       } catch (testError: any) {
         console.error("[Database] Connection test failed:", {
@@ -214,8 +205,6 @@ export async function getDb() {
       
       _pool = pool;
       _db = drizzle(pool, { schema, mode: 'default' }) as any;
-      console.log("[Database] Drizzle ORM initialized successfully");
-      console.log("[Database] Connected successfully to TiDB");
     } catch (error: any) {
       console.error("[Database] Failed to connect:", {
         message: error.message,
@@ -383,11 +372,8 @@ export async function searchArtists(filters: {
 }) {
   let results: any[] = [];
   try {
-    console.log('[searchArtists] Called with filters:', JSON.stringify(filters));
-  console.log('[searchArtists] Fetching artists...');
     // Use getAllArtists which properly parses data via Drizzle ORM
     results = await getAllArtists();
-    console.log(`[searchArtists] Fetched ${results.length} artists from database`);
   } catch (error) {
     console.error('[searchArtists] Query failed:', error);
     // Fallback: return empty array
@@ -460,15 +446,12 @@ export async function searchArtists(filters: {
 export async function getAllArtists() {
   const db = await getDb();
   if (!db) {
-    console.log("[getAllArtists] Database not available");
     return [];
   }
   
   try {
-    console.log("[getAllArtists] Fetching all artists using Drizzle ORM...");
     // Use Drizzle ORM to fetch all artists
     const artists = await db.select().from(artistProfiles);
-    console.log(`[getAllArtists] Successfully fetched ${artists.length} artists`);
     
     // Ensure all JSON fields are properly parsed and serializable
     return artists.map(artist => parseArtistProfile(artist));

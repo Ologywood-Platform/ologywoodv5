@@ -59,7 +59,7 @@ export async function createSupportTicket(
     updatedAt: now,
   };
 
-  console.log('[Support Ticket] Creating ticket:', ticket);
+  
   // In a real implementation, insert into support_tickets table
   // For now, return mock response
   return {
@@ -75,7 +75,7 @@ export async function getUserTickets(userId: number): Promise<SupportTicket[]> {
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  console.log('[Support Ticket] Fetching tickets for user:', userId);
+  
   // In a real implementation, query support_tickets table
   // For now, return empty array
   return [];
@@ -88,7 +88,7 @@ export async function getTicketById(ticketId: number): Promise<SupportTicket | n
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  console.log('[Support Ticket] Fetching ticket:', ticketId);
+  
   // In a real implementation, query support_tickets table
   return null;
 }
@@ -103,7 +103,7 @@ export async function updateTicketStatus(
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  console.log('[Support Ticket] Updating ticket status:', { ticketId, status });
+  
   // In a real implementation, update support_tickets table
 }
 
@@ -128,7 +128,7 @@ export async function addTicketMessage(
     createdAt: now,
   };
 
-  console.log('[Support Ticket] Adding message:', ticketMessage);
+  
   // In a real implementation, insert into ticket_messages table
   return {
     id: Math.floor(Math.random() * 10000),
@@ -143,7 +143,7 @@ export async function getTicketMessages(ticketId: number): Promise<TicketMessage
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  console.log('[Support Ticket] Fetching messages for ticket:', ticketId);
+  
   // In a real implementation, query ticket_messages table
   return [];
 }
@@ -160,7 +160,7 @@ export async function getSupportStats(): Promise<{
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  console.log('[Support Ticket] Fetching support statistics');
+  
   // In a real implementation, calculate from support_tickets table
   return {
     totalTickets: 0,

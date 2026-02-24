@@ -80,7 +80,6 @@ export class DisputeResolutionService {
       };
 
       // In production, save to database
-      console.log(`[Escrow] Created escrow account: ${escrow.id}`);
       return escrow;
     } catch (error) {
       console.error('[Escrow] Error creating escrow account:', error);
@@ -94,7 +93,6 @@ export class DisputeResolutionService {
   static async holdFunds(escrowId: string, amount: number): Promise<EscrowAccount | null> {
     try {
       // In production, update database
-      console.log(`[Escrow] Holding $${amount} in escrow: ${escrowId}`);
       return null;
     } catch (error) {
       console.error('[Escrow] Error holding funds:', error);
@@ -120,7 +118,6 @@ export class DisputeResolutionService {
         processedAt: new Date(),
       };
 
-      console.log(`[Escrow] Released funds to artist from escrow: ${escrowId}`);
       return release;
     } catch (error) {
       console.error('[Escrow] Error releasing funds to artist:', error);
@@ -146,7 +143,6 @@ export class DisputeResolutionService {
         processedAt: new Date(),
       };
 
-      console.log(`[Escrow] Refunded funds to venue from escrow: ${escrowId}`);
       return release;
     } catch (error) {
       console.error('[Escrow] Error refunding funds to venue:', error);
@@ -179,7 +175,6 @@ export class DisputeResolutionService {
         createdAt: new Date(),
       };
 
-      console.log(`[Dispute] Created dispute: ${dispute.id}`);
       return dispute;
     } catch (error) {
       console.error('[Dispute] Error creating dispute:', error);
@@ -195,7 +190,6 @@ export class DisputeResolutionService {
     status: 'open' | 'under_review' | 'resolved' | 'closed'
   ): Promise<void> {
     try {
-      console.log(`[Dispute] Updated dispute ${disputeId} status to ${status}`);
     } catch (error) {
       console.error('[Dispute] Error updating dispute status:', error);
     }
@@ -206,7 +200,6 @@ export class DisputeResolutionService {
    */
   static async addMediatorNotes(disputeId: string, notes: string): Promise<void> {
     try {
-      console.log(`[Dispute] Added mediator notes to dispute ${disputeId}`);
     } catch (error) {
       console.error('[Dispute] Error adding mediator notes:', error);
     }
@@ -221,7 +214,6 @@ export class DisputeResolutionService {
     escrowRelease?: EscrowRelease
   ): Promise<Dispute | null> {
     try {
-      console.log(`[Dispute] Resolved dispute ${disputeId}: ${resolution}`);
       return null;
     } catch (error) {
       console.error('[Dispute] Error resolving dispute:', error);
@@ -248,7 +240,6 @@ export class DisputeResolutionService {
         scheduledDate,
       };
 
-      console.log(`[Mediation] Scheduled mediation session: ${session.id}`);
       return session;
     } catch (error) {
       console.error('[Mediation] Error scheduling session:', error);
@@ -265,7 +256,6 @@ export class DisputeResolutionService {
     notes: string
   ): Promise<MediationSession | null> {
     try {
-      console.log(`[Mediation] Completed mediation session ${sessionId} with outcome: ${outcome}`);
       return null;
     } catch (error) {
       console.error('[Mediation] Error completing mediation session:', error);

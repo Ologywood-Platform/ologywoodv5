@@ -60,7 +60,6 @@ class EmailMarketingService {
     variables: string[]
   ): Promise<EmailTemplate> {
     try {
-      console.log(`[Email] Creating template: ${name}`);
 
       const template: EmailTemplate = {
         id: `tpl_${Date.now()}`,
@@ -84,7 +83,6 @@ class EmailMarketingService {
    */
   static async sendWelcomeSequence(userId: number, email: string, name: string): Promise<void> {
     try {
-      console.log(`[Email] Sending welcome sequence to ${email}`);
 
       // Email 1: Welcome
       await this.sendEmail(email, 'Welcome to Ologywood!', `
@@ -135,7 +133,6 @@ class EmailMarketingService {
     amount: number
   ): Promise<void> {
     try {
-      console.log(`[Email] Sending booking confirmation to ${email}`);
 
       const subject = `Booking Confirmed: ${artistName} at ${venueName}`;
       const htmlContent = `
@@ -167,7 +164,6 @@ class EmailMarketingService {
     dueDate: Date
   ): Promise<void> {
     try {
-      console.log(`[Email] Sending payment reminder to ${email}`);
 
       const subject = `Payment Reminder: ${amount} due ${dueDate.toLocaleDateString()}`;
       const htmlContent = `
@@ -193,7 +189,6 @@ class EmailMarketingService {
    */
   static async sendTrialEndingReminder(email: string, daysRemaining: number): Promise<void> {
     try {
-      console.log(`[Email] Sending trial ending reminder to ${email}`);
 
       const subject = `Your Premium trial ends in ${daysRemaining} days`;
       const htmlContent = `
@@ -225,7 +220,6 @@ class EmailMarketingService {
     hoursUntil: number
   ): Promise<void> {
     try {
-      console.log(`[Email] Sending event reminder to ${email}`);
 
       const subject = `Reminder: ${eventName} in ${hoursUntil} hours`;
       const htmlContent = `
@@ -257,7 +251,6 @@ class EmailMarketingService {
     discount: number
   ): Promise<void> {
     try {
-      console.log(`[Email] Sending promo email to ${email}`);
 
       const subject = `Special Offer: ${discount}% off with code ${promoCode}`;
       const htmlContent = `
@@ -284,7 +277,6 @@ class EmailMarketingService {
     scheduledAt?: Date
   ): Promise<EmailCampaign> {
     try {
-      console.log(`[Email] Creating campaign: ${name}`);
 
       const campaign: EmailCampaign = {
         id: `camp_${Date.now()}`,
@@ -314,7 +306,6 @@ class EmailMarketingService {
     emails: Array<{ templateId: string; delayHours: number; subject: string }>
   ): Promise<EmailSequence> {
     try {
-      console.log(`[Email] Creating sequence: ${name}`);
 
       const sequence: EmailSequence = {
         id: `seq_${Date.now()}`,
@@ -336,7 +327,6 @@ class EmailMarketingService {
    */
   static async getCampaignMetrics(campaignId: string): Promise<EmailMetrics> {
     try {
-      console.log(`[Email] Fetching metrics for campaign ${campaignId}`);
 
       const metrics: EmailMetrics = {
         campaignId,
@@ -361,7 +351,6 @@ class EmailMarketingService {
    */
   private static async sendEmail(to: string, subject: string, htmlContent: string): Promise<void> {
     try {
-      console.log(`[Email] Sending email to ${to}: ${subject}`);
 
       // TODO: Integrate with SendGrid or similar service
       // const msg = {
@@ -372,7 +361,6 @@ class EmailMarketingService {
       // };
       // await sgMail.send(msg);
 
-      console.log(`[Email] Email sent successfully to ${to}`);
     } catch (error) {
       console.error('[Email] Error sending email:', error);
       throw error;

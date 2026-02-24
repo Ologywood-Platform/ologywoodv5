@@ -379,5 +379,4 @@ export function initializeErrorGrouping(): void {
     errorGroupingService.clearOldGroups(72);
   }, 60 * 60 * 1000);
 
-  console.log('[Error Grouping] Service initialized');
 }

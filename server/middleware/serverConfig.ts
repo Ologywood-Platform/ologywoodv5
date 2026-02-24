@@ -210,17 +210,4 @@ export const securityConfig = {
  * Middleware setup summary
  */
 export function printSecuritySetup(): void {
-  console.log(`
-╔════════════════════════════════════════════════════════════╗
-║         Security Middleware Configuration                  ║
-╠════════════════════════════════════════════════════════════╣
-║ ✓ CORS enabled                                             ║
-║ ✓ Helmet security headers                                  ║
-║ ✓ Rate limiting (global, auth, sensitive)                  ║
-║ ✓ Request logging and monitoring                           ║
-║ ✓ File upload validation                                   ║
-║ ✓ Error handling                                           ║
-║ ✓ Security event logging                                   ║
-╚════════════════════════════════════════════════════════════╝
-  `);
 }

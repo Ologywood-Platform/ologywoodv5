@@ -108,8 +108,8 @@ class SignatureVerificationService {
         certificateNumber: this.generateCertificateNumber(),
       };
 
-      console.log(`[SignatureVerificationService] Signature captured for ${data.signerName} (${data.signerRole})`);
-      console.log(`[SignatureVerificationService] Certificate: ${certificate.certificateNumber}`);
+      
+      
 
       return certificate;
     } catch (error) {
@@ -172,10 +172,6 @@ class SignatureVerificationService {
           ? 'Signature image does not match stored signature'
           : 'Verification hash mismatch - possible tampering detected';
       }
-
-      console.log(
-        `[SignatureVerificationService] Signature verification: ${result.isValid ? 'VALID' : 'INVALID'}`
-      );
 
       return result;
     } catch (error) {

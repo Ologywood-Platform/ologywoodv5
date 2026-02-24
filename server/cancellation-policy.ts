@@ -167,9 +167,6 @@ export function requestCancellation(
   };
 
   cancellations.set(cancellation.id, cancellation);
-  console.log(
-    `[Cancellation] Cancellation request #${cancellation.id} created for booking #${bookingId}`
-  );
 
   return cancellation;
 }
@@ -193,7 +190,6 @@ export function approveCancellation(
   cancellation.approvedBy = approvedBy;
   cancellation.approvalDate = new Date();
 
-  console.log(`[Cancellation] Cancellation #${cancellationId} approved`);
   return cancellation;
 }
 
@@ -208,7 +204,6 @@ export function rejectCancellation(
   cancellation.approvedBy = approvedBy;
   cancellation.approvalDate = new Date();
 
-  console.log(`[Cancellation] Cancellation #${cancellationId} rejected`);
   return cancellation;
 }
 
@@ -223,7 +218,6 @@ export function processCancellation(
   cancellation.status = 'processed';
   cancellation.processedDate = new Date();
 
-  console.log(`[Cancellation] Cancellation #${cancellationId} processed - Refund: $${cancellation.netRefund}`);
   return cancellation;
 }
 
@@ -235,7 +229,6 @@ export function linkDisputeTicket(
   if (!cancellation) return undefined;
 
   cancellation.disputeTicketId = ticketId;
-  console.log(`[Cancellation] Dispute ticket #${ticketId} linked to cancellation #${cancellationId}`);
 
   return cancellation;
 }

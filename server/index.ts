@@ -50,7 +50,6 @@ async function initializeServer(): Promise<void> {
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');
-  console.log(`Serving static files from: ${publicPath}`);
   app.use(express.static(publicPath, { maxAge: '1h' }));
 
   // Create TRPC HTTP server
@@ -120,7 +119,6 @@ async function initializeServer(): Promise<void> {
   // Serve index.html for all other routes (SPA fallback) - MUST be last
   app.get('*', (req, res) => {
     const indexPath = path.join(publicPath, 'index.html');
-    console.log(`Serving SPA fallback: ${indexPath}`);
     res.sendFile(indexPath, (err) => {
       if (err) {
         console.error('Error serving index.html:', err);
@@ -132,24 +130,6 @@ async function initializeServer(): Promise<void> {
   // Start server
   const PORT = process.env.PORT || 3000;
   const server = httpServer.listen(PORT, () => {
-    console.log(`
-╔════════════════════════════════════════════════════════════╗
-║         Ologywood Server Started Successfully              ║
-╠════════════════════════════════════════════════════════════╣
-║ Port: ${PORT}                                                 ║
-║ Environment: ${process.env.NODE_ENV || 'development'}                                   ║
-║ External Logging: ${externalLogger ? 'ENABLED' : 'DISABLED'}                              ║
-║ Security Middleware: ENABLED                               ║
-║ Database Optimization: ENABLED                             ║
-║                                                            ║
-║ Health Check: GET /health                                  ║
-║ Status: GET /status                                        ║
-║ Metrics: GET /metrics                                      ║
-║ TRPC: /trpc                                                ║
-║ Payment Routes: /api/payment                               ║
-║ Socket.io: Real-time notifications enabled                 ║
-╚════════════════════════════════════════════════════════════╝
-    `);
 
     logEvent({
       level: LogLevel.INFO,
@@ -165,9 +145,6 @@ async function initializeServer(): Promise<void> {
 
   // Graceful shutdown
   process.on('SIGTERM', async () => {
-    console.log('\n╔════════════════════════════════════════════════════════════╗');
-    console.log('║         Shutting Down Gracefully...                        ║');
-    console.log('╚════════════════════════════════════════════════════════════╝');
 
     logEvent({
       level: LogLevel.INFO,
@@ -177,13 +154,11 @@ async function initializeServer(): Promise<void> {
 
     // Flush logs
     if (externalLogger) {
-      console.log('Flushing external logs...');
       await externalLogger.stop();
     }
 
     // Close server
     server.close(() => {
-      console.log('Server closed');
       process.exit(0);
     });
 
@@ -195,9 +170,6 @@ async function initializeServer(): Promise<void> {
   });
 
   process.on('SIGINT', async () => {
-    console.log('\n╔════════════════════════════════════════════════════════════╗');
-    console.log('║         Received SIGINT - Shutting Down...                 ║');
-    console.log('╚════════════════════════════════════════════════════════════╝');
 
     logEvent({
       level: LogLevel.INFO,
@@ -207,13 +179,11 @@ async function initializeServer(): Promise<void> {
 
     // Flush logs
     if (externalLogger) {
-      console.log('Flushing external logs...');
       await externalLogger.stop();
     }
 
     // Close server
     server.close(() => {
-      console.log('Server closed');
       process.exit(0);
     });
   });

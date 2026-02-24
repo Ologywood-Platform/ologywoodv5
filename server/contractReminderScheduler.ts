@@ -42,13 +42,9 @@ class ContractReminderScheduler {
     }
 
     if (!this.config.enableAutoReminders) {
-      console.log('[ContractReminderScheduler] Auto reminders are disabled');
       return;
     }
 
-    console.log('[ContractReminderScheduler] Initializing scheduler...');
-    console.log(`[ContractReminderScheduler] Reminder intervals: ${this.config.reminderIntervals.join(', ')} days`);
-    console.log(`[ContractReminderScheduler] Check interval: ${this.config.checkInterval} minutes`);
 
     // Start the scheduler
     this.startScheduler();
@@ -71,7 +67,6 @@ class ContractReminderScheduler {
       this.config.checkInterval * 60 * 1000
     );
 
-    console.log('[ContractReminderScheduler] Scheduler started');
   }
 
   /**
@@ -81,7 +76,6 @@ class ContractReminderScheduler {
     if (this.schedulerInterval) {
       clearInterval(this.schedulerInterval);
       this.schedulerInterval = null;
-      console.log('[ContractReminderScheduler] Scheduler stopped');
     }
   }
 
@@ -90,7 +84,6 @@ class ContractReminderScheduler {
    */
   registerContract(reminder: ScheduledReminder): void {
     this.reminders.set(reminder.contractId, reminder);
-    console.log(`[ContractReminderScheduler] Contract registered: ${reminder.contractId}`);
   }
 
   /**
@@ -98,7 +91,6 @@ class ContractReminderScheduler {
    */
   unregisterContract(contractId: string): void {
     this.reminders.delete(contractId);
-    console.log(`[ContractReminderScheduler] Contract unregistered: ${contractId}`);
   }
 
   /**
@@ -125,7 +117,6 @@ class ContractReminderScheduler {
   private async checkAndSendReminders(): Promise<void> {
     try {
       const now = new Date();
-      console.log(`[ContractReminderScheduler] Checking reminders at ${now.toISOString()}`);
 
       for (const [contractId, reminder] of Array.from(this.reminders.entries())) {
         const daysUntilEvent = this.calculateDaysUntilEvent(reminder.eventDate);
@@ -173,9 +164,6 @@ class ContractReminderScheduler {
    */
   private async sendReminder(reminder: ScheduledReminder, daysUntilEvent: number): Promise<void> {
     try {
-      console.log(
-        `[ContractReminderScheduler] Sending ${daysUntilEvent}-day reminder for contract ${reminder.contractId}`
-      );
 
       const result = await contractNotificationService.sendContractNotificationsToBothParties({
         artistEmail: reminder.artistEmail,
@@ -190,9 +178,6 @@ class ContractReminderScheduler {
       });
 
       if (result.artist && result.venue) {
-        console.log(
-          `[ContractReminderScheduler] Reminder sent successfully for contract ${reminder.contractId}`
-        );
       } else {
         console.warn(
           `[ContractReminderScheduler] Partial failure sending reminders for contract ${reminder.contractId}`
@@ -305,7 +290,6 @@ class ContractReminderScheduler {
         }
       }
 
-      console.log(`[ContractReminderScheduler] Imported ${parsed.reminders?.length || 0} reminders`);
     } catch (error) {
       console.error('[ContractReminderScheduler] Error importing reminders:', error);
       throw new Error('Failed to import reminders');

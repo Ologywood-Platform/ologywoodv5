@@ -114,11 +114,9 @@ function DashboardLayoutContent({
   const authUser = useAuth();
   
   const handleNotificationsLoaded = (notifications: any[]) => {
-    console.log('[DashboardLayout] Loaded notifications:', notifications);
   };
 
   const handleNotificationReceived = (notification: any) => {
-    console.log('[DashboardLayout] Received notification:', notification);
   };
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
@@ -148,15 +146,15 @@ function DashboardLayoutContent({
     });
 
     socketRef.current.on('connect', () => {
-      console.log('[Socket.io] Connected to server');
+      
     });
 
     socketRef.current.on('disconnect', () => {
-      console.log('[Socket.io] Disconnected from server');
+      
     });
 
     socketRef.current.on('notification:new', (notification) => {
-      console.log('[Socket.io] New notification:', notification);
+      // Real-time notification received
     });
 
     return () => {

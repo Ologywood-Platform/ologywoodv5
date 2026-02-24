@@ -76,7 +76,6 @@ class EmailConfirmationService {
    */
   async sendConfirmationEmail(data: ConfirmationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -135,7 +134,6 @@ class EmailConfirmationService {
         subject: "Confirm Your Email - Welcome to Ologywood!",
         html: htmlContent,
       });
-      console.log(`[Email] Confirmation email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send confirmation email:", error);
       throw error;
@@ -147,7 +145,6 @@ class EmailConfirmationService {
    */
   async sendResendConfirmationEmail(data: ConfirmationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -188,7 +185,6 @@ class EmailConfirmationService {
         subject: "Confirm Your Email - Ologywood",
         html: htmlContent,
       });
-      console.log(`[Email] Resend confirmation email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send resend confirmation email:", error);
       throw error;
@@ -205,7 +201,6 @@ class EmailConfirmationService {
     revertToken: string
   ): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -271,7 +266,6 @@ class EmailConfirmationService {
         subject: 'Email Address Change Confirmed - Ologywood',
         html: htmlContent,
       });
-      console.log(`[Email] Email change confirmation sent to ${newEmail}`);
     } catch (error) {
       console.error('[Email] Failed to send email change confirmation:', error);
       throw error;
@@ -286,7 +280,6 @@ class EmailConfirmationService {
     userName: string
   ): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -327,7 +320,6 @@ class EmailConfirmationService {
         subject: 'Email Change Reverted - Ologywood',
         html: htmlContent,
       });
-      console.log(`[Email] Email revert confirmation sent to ${email}`);
     } catch (error) {
       console.error('[Email] Failed to send email revert confirmation:', error);
       throw error;
@@ -358,6 +350,5 @@ export const emailConfirmationService = new EmailConfirmationService();
 setInterval(() => {
   const cleaned = emailConfirmationService.cleanupExpiredTokens();
   if (cleaned > 0) {
-    console.log(`[Email Confirmation] Cleaned up ${cleaned} expired tokens`);
   }
 }, 60 * 60 * 1000);

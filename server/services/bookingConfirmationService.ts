@@ -1,12 +1,9 @@
 export const bookingConfirmationService = {
   async sendConfirmationEmail(email: string, bookingDetails: any): Promise<void> {
-    console.log(`[Booking] Confirmation sent to ${email}`);
   },
   async sendReminderEmail(email: string, bookingDetails: any): Promise<void> {
-    console.log(`[Booking] Reminder sent to ${email}`);
   },
   async sendCancellationEmail(email: string, bookingDetails: any): Promise<void> {
-    console.log(`[Booking] Cancellation sent to ${email}`);
   },
   async recordSignature(confirmationId: number, signatureUrl: string): Promise<void> {},
   async confirmBooking(confirmationId: number): Promise<void> {},

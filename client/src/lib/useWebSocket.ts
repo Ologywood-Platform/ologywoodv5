@@ -41,12 +41,12 @@ export function useWebSocket({
     });
 
     socket.on('connect', () => {
-      console.log('[WebSocket] Connected to server');
+      
       isConnectedRef.current = true;
     });
 
     socket.on('disconnect', () => {
-      console.log('[WebSocket] Disconnected from server');
+      
       isConnectedRef.current = false;
     });
 

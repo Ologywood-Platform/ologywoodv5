@@ -277,7 +277,7 @@ export const payoutNotificationService = {
         subject,
         html: htmlContent,
       });
-      console.log(`[Payout Notification] Sent ${data.status} email to ${artist.email}`);
+      
     } catch (error) {
       console.error(`[Payout Notification] Failed to send email to ${artist.email}:`, error);
     }

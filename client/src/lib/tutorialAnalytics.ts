@@ -95,7 +95,7 @@ class TutorialAnalyticsService {
     this.tutorialStartTimes.delete(tutorialId);
     this.sendEvent(event, { timeSpent });
 
-    console.log(`[Tutorial Analytics] Tutorial "${tutorialId}" completed in ${timeSpent}s`);
+    
   }
 
   /**
@@ -118,7 +118,7 @@ class TutorialAnalyticsService {
     this.tutorialStartTimes.delete(tutorialId);
     this.sendEvent(event, { timeSpent });
 
-    console.log(`[Tutorial Analytics] Tutorial "${tutorialId}" skipped after ${timeSpent}s`);
+    
   }
 
   /**
@@ -169,7 +169,7 @@ class TutorialAnalyticsService {
     try {
       // In production, this would send to your analytics backend
       // For now, we'll just log it and store locally
-      console.log('[Tutorial Analytics] Event:', event, metadata);
+      
 
       // Store locally for offline support
       this.storeEvent(event);
@@ -299,7 +299,7 @@ class TutorialAnalyticsService {
   clearAnalytics(): void {
     this.events = [];
     localStorage.removeItem('tutorial_analytics_events');
-    console.log('[Tutorial Analytics] All analytics cleared');
+    
   }
 
   /**
@@ -326,7 +326,7 @@ if (typeof window !== 'undefined') {
       .join(', ');
 
     if (summary) {
-      console.log('[Tutorial Analytics Summary]', summary);
+      
     }
   }, 60000); // Every minute
 }

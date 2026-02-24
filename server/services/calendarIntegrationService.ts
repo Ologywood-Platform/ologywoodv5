@@ -55,7 +55,6 @@ export class CalendarIntegrationService {
         lastSyncedAt: new Date(),
       };
 
-      console.log(`[Calendar] Connected ${provider} calendar for user ${userId}`);
       return integration;
     } catch (error) {
       console.error('[Calendar] Error connecting calendar:', error);
@@ -68,7 +67,6 @@ export class CalendarIntegrationService {
    */
   static async syncCalendar(userId: number): Promise<AvailabilityWindow[]> {
     try {
-      console.log(`[Calendar] Syncing calendar for user ${userId}`);
       // In production, fetch events from calendar provider and create availability windows
       return [];
     } catch (error) {
@@ -97,7 +95,6 @@ export class CalendarIntegrationService {
         createdAt: new Date(),
       };
 
-      console.log(`[Calendar] Added availability window for user ${userId}`);
       return window;
     } catch (error) {
       console.error('[Calendar] Error adding availability window:', error);
@@ -125,7 +122,6 @@ export class CalendarIntegrationService {
         createdAt: new Date(),
       };
 
-      console.log(`[Calendar] Blocked time for user ${userId}`);
       return block;
     } catch (error) {
       console.error('[Calendar] Error blocking time:', error);
@@ -164,7 +160,6 @@ export class CalendarIntegrationService {
       const conflicts: ConflictDetection[] = [];
 
       // In production, check against existing bookings and blocked time
-      console.log(`[Calendar] Checking conflicts for user ${userId}`);
 
       return conflicts;
     } catch (error) {
@@ -185,7 +180,6 @@ export class CalendarIntegrationService {
       const suggestions: AvailabilitySuggestion[] = [];
 
       // In production, use ML to suggest best times
-      console.log(`[Calendar] Getting availability suggestions for user ${userId}`);
 
       return suggestions;
     } catch (error) {
@@ -212,7 +206,6 @@ export class CalendarIntegrationService {
    */
   static async disconnectCalendar(userId: number, provider: string): Promise<void> {
     try {
-      console.log(`[Calendar] Disconnected ${provider} calendar for user ${userId}`);
     } catch (error) {
       console.error('[Calendar] Error disconnecting calendar:', error);
     }
@@ -237,7 +230,6 @@ export class CalendarIntegrationService {
   static async exportAsIcal(userId: number): Promise<string> {
     try {
       // In production, generate iCal format
-      console.log(`[Calendar] Exporting availability as iCal for user ${userId}`);
       return '';
     } catch (error) {
       console.error('[Calendar] Error exporting iCal:', error);

@@ -35,7 +35,6 @@ export class UnifiedCacheManager {
     this.startCleanup(cleanupIntervalMs);
     
     const cacheType = this.isRedisAvailable ? 'Redis + In-Memory' : 'In-Memory';
-    console.log(`[Cache] Manager initialized (${cacheType}) with cleanup interval: ${cleanupIntervalMs}ms`);
   }
 
   /**
@@ -45,7 +44,6 @@ export class UnifiedCacheManager {
     const redisUrl = process.env.REDIS_URL;
     
     if (!redisUrl) {
-      console.log('[Cache] REDIS_URL not configured, using in-memory cache only');
       return;
     }
 
@@ -54,7 +52,6 @@ export class UnifiedCacheManager {
       // @ts-ignore - redis module is optional
       const redis = await import('redis').catch(() => null);
       if (!redis) {
-        console.log('[Cache] redis module not available, using in-memory cache');
         return;
       }
 
@@ -66,7 +63,6 @@ export class UnifiedCacheManager {
       });
 
       this.redisClient.on('connect', () => {
-        console.log('[Cache] Redis connected successfully');
         this.isRedisAvailable = true;
         this.stats.redisEnabled = true;
       });
@@ -74,7 +70,6 @@ export class UnifiedCacheManager {
       await this.redisClient.connect();
       this.isRedisAvailable = true;
       this.stats.redisEnabled = true;
-      console.log('[Cache] Redis cache initialized');
     } catch (error) {
       console.warn('[Cache] Redis not available, using in-memory cache:', error);
       this.isRedisAvailable = false;
@@ -214,7 +209,6 @@ export class UnifiedCacheManager {
     // Clear in-memory cache
     this.inMemoryCache.clear();
     this.stats = { hits: 0, misses: 0, size: 0, redisEnabled: this.stats.redisEnabled };
-    console.log('[Cache] All cache cleared');
   }
 
   /**
@@ -250,7 +244,6 @@ export class UnifiedCacheManager {
       this.stats.size = this.inMemoryCache.size;
 
       if (cleaned > 0) {
-        console.log(`[Cache] Cleaned up ${cleaned} expired entries (${this.inMemoryCache.size} remaining)`);
       }
     }, intervalMs);
   }

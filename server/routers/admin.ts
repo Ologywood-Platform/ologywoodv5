@@ -97,10 +97,6 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      console.log(
-        `Artist ${input.userId} ${input.verified ? "verified" : "unverified"}`
-      );
-
       return { success: true, userId: input.userId };
     }),
 
@@ -125,11 +121,7 @@ export const adminRouter = router({
       if (!user) throw new Error("User not found");
       if (user.role === "admin") throw new Error("Cannot suspend admin users");
 
-      console.log(
-        `User ${input.userId} ${input.suspended ? "suspended" : "unsuspended"}: ${input.reason || "No reason provided"}`
-      );
-
-      return { success: true, userId: input.userId };
+return { success: true, userId: input.userId };
     }),
 
   // ============ BOOKING MANAGEMENT ============
@@ -210,11 +202,7 @@ export const adminRouter = router({
 
       if (!booking) throw new Error("Booking not found");
 
-      console.log(
-        `Dispute resolved for booking ${input.bookingId}: ${input.resolution} - ${input.reason}`
-      );
-
-      return { success: true, bookingId: input.bookingId };
+return { success: true, bookingId: input.bookingId };
     }),
 
   // ============ FINANCIAL MANAGEMENT ============
@@ -314,11 +302,7 @@ export const adminRouter = router({
 
       if (!payout) throw new Error("Payout not found");
 
-      console.log(
-        `Payout ${input.payoutId} ${input.action}: ${input.notes || "No notes"}`
-      );
-
-      return { success: true, payoutId: input.payoutId };
+return { success: true, payoutId: input.payoutId };
     }),
 
   // ============ ANALYTICS ============

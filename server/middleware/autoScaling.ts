@@ -81,9 +81,6 @@ export class AutoScaler {
     );
 
     if (newInstances > this.currentInstances) {
-      console.log(
-        `[AutoScaler] Scaling up: ${this.currentInstances} → ${newInstances} instances`
-      );
       this.currentInstances = newInstances;
       this.lastScalingAction = Date.now();
     }
@@ -101,9 +98,6 @@ export class AutoScaler {
     );
 
     if (newInstances < this.currentInstances) {
-      console.log(
-        `[AutoScaler] Scaling down: ${this.currentInstances} → ${newInstances} instances`
-      );
       this.currentInstances = newInstances;
       this.lastScalingAction = Date.now();
     }

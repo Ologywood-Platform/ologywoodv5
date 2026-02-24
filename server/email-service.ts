@@ -39,7 +39,6 @@ export async function sendNotificationEmail(payload: NotificationPayload): Promi
     };
 
     await sgMail.send(msg);
-    console.log(`[Email] Notification sent to ${payload.recipientEmail}`);
     return true;
   } catch (error) {
     console.error('[Email] Failed to send notification:', error);

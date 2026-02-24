@@ -26,7 +26,7 @@ class PushNotificationService {
    */
   async init(): Promise<boolean> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push notifications not supported');
+      
       return false;
     }
 
@@ -44,7 +44,7 @@ class PushNotificationService {
    */
   async requestPermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
-      console.log('Notifications not supported');
+      
       return 'denied';
     }
 
@@ -72,7 +72,7 @@ class PushNotificationService {
    */
   async notify(options: NotificationOptions): Promise<void> {
     if (!this.isEnabled() || !this.registration) {
-      console.log('Notifications not enabled or service worker not ready');
+      
       return;
     }
 

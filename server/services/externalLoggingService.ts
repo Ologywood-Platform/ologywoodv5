@@ -108,7 +108,6 @@ export class ExternalLoggingService {
           break;
       }
 
-      console.log(`[ExternalLogging] Flushed ${logs.length} logs to ${this.config.provider}`);
     } catch (error) {
       console.error('[ExternalLogging] Error flushing logs:', error);
     }
@@ -196,7 +195,7 @@ export class ExternalLoggingService {
     //   })),
     // }).promise();
 
-    console.log('[ExternalLogging] CloudWatch logging would be sent here');
+    
   }
 
   /**
@@ -211,7 +210,7 @@ export class ExternalLoggingService {
     //   severity: entry.level,
     // })));
 
-    console.log('[ExternalLogging] Stackdriver logging would be sent here');
+    
   }
 
   /**

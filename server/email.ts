@@ -18,7 +18,6 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
   // Try Forge API first
   if (ENV.forgeApiUrl && ENV.forgeApiKey) {
     try {
-      console.log('[Email] Attempting to send via Forge API to:', to);
       const response = await fetch(`${ENV.forgeApiUrl}/notification/email`, {
         method: 'POST',
         headers: {
@@ -33,7 +32,6 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
       });
 
       if (response.ok) {
-        console.log('[Email] Successfully sent via Forge API to:', to);
         return true;
       } else {
         const errorText = await response.text();
@@ -47,7 +45,6 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
   // Fallback to direct SendGrid if available
   if (ENV.sendgridApiKey && ENV.sendgridFromEmail) {
     try {
-      console.log('[Email] Attempting to send via SendGrid to:', to);
       const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
         method: 'POST',
         headers: {
@@ -78,7 +75,6 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
       });
 
       if (response.ok) {
-        console.log('[Email] Successfully sent via SendGrid to:', to);
         return true;
       } else {
         const errorText = await response.text();

@@ -185,13 +185,13 @@ export const stripeConnectService = {
 
         case 'transfer.created': {
           const transfer = event.data.object as Stripe.Transfer;
-          console.log(`Transfer created: ${transfer.id}`);
+          
           break;
         }
 
         case 'transfer.paid': {
           const transfer = event.data.object as Stripe.Transfer;
-          console.log(`Transfer paid: ${transfer.id}`);
+          
           break;
         }
 

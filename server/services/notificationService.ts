@@ -35,7 +35,7 @@ class NotificationService {
     });
 
     this.setupSocketHandlers();
-    console.log("[Socket.io] Initialized successfully");
+    
     return this.io;
   }
 
@@ -46,19 +46,19 @@ class NotificationService {
     if (!this.io) return;
 
     this.io.on("connection", (socket: Socket) => {
-      console.log(`[Socket.io] Client connected: ${socket.id}`);
+      
 
       // User joins with their ID
       socket.on("user:join", (userId: string) => {
         this.registerUserSocket(userId, socket.id);
         socket.join(`user:${userId}`);
-        console.log(`[Socket.io] User ${userId} joined (socket: ${socket.id})`);
+        
       });
 
       // User disconnects
       socket.on("disconnect", () => {
         this.unregisterUserSocket(socket.id);
-        console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+        
       });
 
       // Request notification history
@@ -69,7 +69,7 @@ class NotificationService {
 
       // Mark notification as read
       socket.on("notification:read", (notificationId: string) => {
-        console.log(`[Socket.io] Notification marked as read: ${notificationId}`);
+        
       });
     });
   }
@@ -117,7 +117,7 @@ class NotificationService {
 
     // Send to user's sockets
     this.io.to(`user:${userId}`).emit("notification", event);
-    console.log(`[Socket.io] Notification sent to user ${userId}: ${event.type}`);
+    
   }
 
   /**

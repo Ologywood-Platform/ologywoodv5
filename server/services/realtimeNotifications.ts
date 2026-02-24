@@ -25,7 +25,7 @@ class RealtimeNotificationService extends EventEmitter {
       this.userConnections.set(userId, new Set());
     }
     this.userConnections.get(userId)!.add(connectionId);
-    console.log(`[Notifications] User ${userId} connected (${connectionId})`);
+    
   }
 
   /**
@@ -39,7 +39,7 @@ class RealtimeNotificationService extends EventEmitter {
         this.userConnections.delete(userId);
       }
     }
-    console.log(`[Notifications] User ${userId} disconnected (${connectionId})`);
+    
   }
 
   /**
@@ -49,9 +49,9 @@ class RealtimeNotificationService extends EventEmitter {
     const connections = this.userConnections.get(payload.userId);
     if (connections && connections.size > 0) {
       this.emit(`user:${payload.userId}`, payload);
-      console.log(`[Notifications] Sent ${payload.type} to user ${payload.userId}`);
+      
     } else {
-      console.log(`[Notifications] User ${payload.userId} not connected, notification queued`);
+      
     }
   }
 
@@ -72,7 +72,7 @@ class RealtimeNotificationService extends EventEmitter {
    */
   broadcast(payload: Omit<NotificationPayload, 'userId'>) {
     this.emit('broadcast', payload);
-    console.log(`[Notifications] Broadcast ${payload.type} to all users`);
+    
   }
 
   /**

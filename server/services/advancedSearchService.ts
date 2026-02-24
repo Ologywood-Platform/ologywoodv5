@@ -58,7 +58,6 @@ export class AdvancedSearchService {
    */
   static async search(filters: SearchFilters): Promise<SearchResult[]> {
     try {
-      console.log('[Search] Executing search with filters:', filters);
 
       // In production, this would query the database with complex WHERE clauses
       // For now, return empty array
@@ -75,7 +74,6 @@ export class AdvancedSearchService {
   static async getSearchSuggestions(query: string, type?: 'artist' | 'venue'): Promise<string[]> {
     try {
       // In production, query autocomplete index
-      console.log(`[Search] Getting suggestions for: ${query}`);
       return [];
     } catch (error) {
       console.error('[Search] Error getting suggestions:', error);
@@ -142,7 +140,6 @@ export class AdvancedSearchService {
         lastUsed: new Date(),
       };
 
-      console.log(`[Search] Saved search: ${name}`);
       return savedSearch;
     } catch (error) {
       console.error('[Search] Error saving search:', error);
@@ -168,7 +165,6 @@ export class AdvancedSearchService {
    */
   static async deleteSavedSearch(searchId: string): Promise<void> {
     try {
-      console.log(`[Search] Deleted saved search: ${searchId}`);
     } catch (error) {
       console.error('[Search] Error deleting saved search:', error);
     }

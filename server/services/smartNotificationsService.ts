@@ -228,7 +228,7 @@ export class SmartNotificationsService {
   static async markAsRead(notificationId: string): Promise<void> {
     try {
       // In production, update database
-      console.log(`[Notifications] Marked notification ${notificationId} as read`);
+      
     } catch (error) {
       console.error('[Notifications] Error marking notification as read:', error);
     }
@@ -336,7 +336,7 @@ export class SmartNotificationsService {
    */
   static async sendEmailDigest(userId: number, digest: EmailDigest): Promise<void> {
     try {
-      console.log(`[Notifications] Sending ${digest.period} digest to user ${userId}`);
+      
       // In production, integrate with SendGrid
     } catch (error) {
       console.error('[Notifications] Error sending email digest:', error);
@@ -349,7 +349,7 @@ export class SmartNotificationsService {
   private static async storeNotification(notification: Notification): Promise<void> {
     try {
       // In production, save to database
-      console.log(`[Notifications] Stored notification: ${notification.id}`);
+      
     } catch (error) {
       console.error('[Notifications] Error storing notification:', error);
     }
@@ -361,7 +361,7 @@ export class SmartNotificationsService {
   private static async sendRealTimeNotification(userId: number, notification: Notification): Promise<void> {
     try {
       // In production, emit via Socket.io
-      console.log(`[Notifications] Real-time notification sent to user ${userId}`);
+      
     } catch (error) {
       console.error('[Notifications] Error sending real-time notification:', error);
     }

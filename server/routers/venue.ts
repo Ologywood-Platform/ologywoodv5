@@ -28,14 +28,12 @@ export const venueRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        console.log('[Venue] Search called with:', input);
         const venues = await db.searchVenues({
           query: input.searchQuery,
           location: input.location,
           capacity: undefined,
           amenities: undefined,
         });
-        console.log('[Venue] Found venues:', venues.length);
         return venues;
       } catch (error) {
         console.error('[Venue] Search error:', error);

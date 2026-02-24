@@ -2,7 +2,7 @@
 // Can be re-enabled by installing compatible version of @sentry/node
 
 export async function initializeSentry(): Promise<boolean> {
-  console.log('[Sentry] Monitoring disabled');
+  
   return false;
 }
 
@@ -12,7 +12,7 @@ export async function captureException(error: Error, context?: Record<string, an
 }
 
 export async function captureMessage(message: string, level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'info', context?: Record<string, any>): Promise<string> {
-  console.log('[Message]', message);
+  
   return '';
 }
 

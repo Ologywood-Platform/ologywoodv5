@@ -238,7 +238,6 @@ export function saveSearch(
   };
 
   savedSearches.set(search.id, search);
-  console.log(`[Search] Saved search #${search.id} for user ${userId}`);
 
   return search;
 }
@@ -263,14 +262,12 @@ export function updateSavedSearch(
   search.filters = filters;
   search.updatedAt = new Date();
 
-  console.log(`[Search] Updated saved search #${searchId}`);
   return search;
 }
 
 export function deleteSavedSearch(searchId: number): boolean {
   const deleted = savedSearches.delete(searchId);
   if (deleted) {
-    console.log(`[Search] Deleted saved search #${searchId}`);
   }
   return deleted;
 }

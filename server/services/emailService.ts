@@ -97,7 +97,6 @@ export async function sendBookingConfirmationEmail(
   try {
     const preferences = await getUserEmailPreferences(userId);
     if (!preferences || !shouldSendEmail(preferences, 'bookingUpdates')) {
-      console.log(`[Email] Skipping booking confirmation for user ${userId} - preferences disabled`);
       return false;
     }
 
@@ -128,13 +127,10 @@ export async function sendBookingConfirmationEmail(
     };
 
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('[Email] SendGrid API key not configured. Email not sent (dev mode)');
-      console.log('[Email] Would send:', message);
       return false;
     }
 
     await sgMail.send(message as any);
-    console.log(`[Email] Booking confirmation sent to ${userEmail}`);
     return true;
   } catch (error) {
     console.error('[Email] Error sending booking confirmation:', error);
@@ -160,7 +156,6 @@ export async function sendNewOpportunityEmail(
   try {
     const preferences = await getUserEmailPreferences(userId);
     if (!preferences || !shouldSendEmail(preferences, 'newOpportunities')) {
-      console.log(`[Email] Skipping new opportunity email for user ${userId} - preferences disabled`);
       return false;
     }
 
@@ -191,13 +186,10 @@ export async function sendNewOpportunityEmail(
     };
 
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('[Email] SendGrid API key not configured. Email not sent (dev mode)');
-      console.log('[Email] Would send:', message);
       return false;
     }
 
     await sgMail.send(message as any);
-    console.log(`[Email] New opportunity email sent to ${userEmail}`);
     return true;
   } catch (error) {
     console.error('[Email] Error sending new opportunity email:', error);
@@ -221,7 +213,6 @@ export async function sendWeeklyDigestEmail(
   try {
     const preferences = await getUserEmailPreferences(userId);
     if (!preferences || !shouldSendEmail(preferences, 'weeklyDigest')) {
-      console.log(`[Email] Skipping weekly digest for user ${userId} - preferences disabled`);
       return false;
     }
 
@@ -262,13 +253,10 @@ export async function sendWeeklyDigestEmail(
     };
 
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('[Email] SendGrid API key not configured. Email not sent (dev mode)');
-      console.log('[Email] Would send:', message);
       return false;
     }
 
     await sgMail.send(message as any);
-    console.log(`[Email] Weekly digest sent to ${userEmail}`);
     return true;
   } catch (error) {
     console.error('[Email] Error sending weekly digest:', error);
@@ -293,7 +281,6 @@ export async function sendBookingReminderEmail(
   try {
     const preferences = await getUserEmailPreferences(userId);
     if (!preferences || !shouldSendEmail(preferences, 'reminders')) {
-      console.log(`[Email] Skipping booking reminder for user ${userId} - preferences disabled`);
       return false;
     }
 
@@ -324,13 +311,10 @@ export async function sendBookingReminderEmail(
     };
 
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('[Email] SendGrid API key not configured. Email not sent (dev mode)');
-      console.log('[Email] Would send:', message);
       return false;
     }
 
     await sgMail.send(message as any);
-    console.log(`[Email] Booking reminder sent to ${userEmail}`);
     return true;
   } catch (error) {
     console.error('[Email] Error sending booking reminder:', error);

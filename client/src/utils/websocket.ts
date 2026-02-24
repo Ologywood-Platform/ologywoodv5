@@ -36,15 +36,12 @@ class WebSocketService {
     this.listeners.set('connection', new Set());
   }
 
-  // Simulate WebSocket connection
   connect(userId: number): Promise<void> {
     return new Promise((resolve) => {
-      // Simulate connection delay
       setTimeout(() => {
         this.connected = true;
         this.reconnectAttempts = 0;
         this.notifyConnectionListeners(true);
-        console.log('[WebSocket] Connected');
         resolve();
       }, 500);
     });
@@ -53,10 +50,8 @@ class WebSocketService {
   disconnect(): void {
     this.connected = false;
     this.notifyConnectionListeners(false);
-    console.log('[WebSocket] Disconnected');
   }
 
-  // Send a real-time message
   sendMessage(message: {
     id: number;
     senderId: number;
@@ -65,70 +60,41 @@ class WebSocketService {
     timestamp: Date;
     read: boolean;
   }): void {
-    if (!this.connected) {
-      console.warn('[WebSocket] Not connected, message queued');
-      return;
-    }
-
-    // Simulate sending message
-    console.log('[WebSocket] Sending message:', message);
-    
-    // Broadcast to listeners
+    if (!this.connected) return;
     this.notifyMessageListeners(message);
   }
 
-  // Notify typing status
   notifyTyping(userId: number, userName: string, isTyping: boolean): void {
     if (!this.connected) return;
-
-    const typingData = { userId, userName, isTyping };
-    console.log('[WebSocket] Typing notification:', typingData);
-    this.notifyTypingListeners(typingData);
+    this.notifyTypingListeners({ userId, userName, isTyping });
   }
 
-  // Subscribe to incoming messages
   onMessage(callback: MessageListener): () => void {
     const listeners = this.listeners.get('message') || new Set();
     listeners.add(callback);
     this.listeners.set('message', listeners);
-
-    // Return unsubscribe function
-    return () => {
-      listeners.delete(callback);
-    };
+    return () => { listeners.delete(callback); };
   }
 
-  // Subscribe to typing notifications
   onTyping(callback: TypingListener): () => void {
     const listeners = this.listeners.get('typing') || new Set();
     listeners.add(callback);
     this.listeners.set('typing', listeners);
-
-    return () => {
-      listeners.delete(callback);
-    };
+    return () => { listeners.delete(callback); };
   }
 
-  // Subscribe to connection status
   onConnectionChange(callback: ConnectionListener): () => void {
     const listeners = this.listeners.get('connection') || new Set();
     listeners.add(callback);
     this.listeners.set('connection', listeners);
-
-    return () => {
-      listeners.delete(callback);
-    };
+    return () => { listeners.delete(callback); };
   }
 
   private notifyMessageListeners(message: any): void {
     const listeners = this.listeners.get('message');
     if (listeners) {
       listeners.forEach((callback) => {
-        try {
-          (callback as MessageListener)(message);
-        } catch (error) {
-          console.error('[WebSocket] Error in message listener:', error);
-        }
+        try { (callback as MessageListener)(message); } catch (_) { /* silent */ }
       });
     }
   }
@@ -137,11 +103,7 @@ class WebSocketService {
     const listeners = this.listeners.get('typing');
     if (listeners) {
       listeners.forEach((callback) => {
-        try {
-          (callback as TypingListener)(data);
-        } catch (error) {
-          console.error('[WebSocket] Error in typing listener:', error);
-        }
+        try { (callback as TypingListener)(data); } catch (_) { /* silent */ }
       });
     }
   }
@@ -150,11 +112,7 @@ class WebSocketService {
     const listeners = this.listeners.get('connection');
     if (listeners) {
       listeners.forEach((callback) => {
-        try {
-          (callback as ConnectionListener)(connected);
-        } catch (error) {
-          console.error('[WebSocket] Error in connection listener:', error);
-        }
+        try { (callback as ConnectionListener)(connected); } catch (_) { /* silent */ }
       });
     }
   }
@@ -163,26 +121,18 @@ class WebSocketService {
     return this.connected;
   }
 
-  // Simulate reconnection logic
   private attemptReconnect(userId: number): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocket] Max reconnection attempts reached');
-      return;
-    }
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
-    console.log(`[WebSocket] Attempting reconnection in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
+
     setTimeout(() => {
-      this.connect(userId).catch((error) => {
-        console.error('[WebSocket] Reconnection failed:', error);
+      this.connect(userId).catch(() => {
         this.attemptReconnect(userId);
       });
     }, delay);
   }
 }
 
-// Export singleton instance
 export const websocketService = new WebSocketService();

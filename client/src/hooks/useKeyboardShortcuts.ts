@@ -19,7 +19,7 @@ export function useKeyboardShortcuts() {
       ctrl: true,
       action: () => {
         // Command palette - can be implemented later
-        console.log('Command palette opened');
+        
       },
       description: 'Open command palette'
     },
@@ -58,7 +58,7 @@ export function useKeyboardShortcuts() {
       shift: true,
       action: () => {
         // Show shortcuts help
-        console.log('Shortcuts help opened');
+        
       },
       description: 'Show keyboard shortcuts'
     }

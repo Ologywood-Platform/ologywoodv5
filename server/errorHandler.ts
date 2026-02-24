@@ -144,7 +144,6 @@ export const errorHandler = {
  */
 export const logger = {
   info(message: string, data?: Record<string, any>) {
-    console.log(`[INFO] ${new Date().toISOString()} - ${message}`, data || '');
   },
 
   warn(message: string, data?: Record<string, any>) {
@@ -160,7 +159,6 @@ export const logger = {
 
   debug(message: string, data?: Record<string, any>) {
     if (process.env.DEBUG) {
-      console.log(`[DEBUG] ${new Date().toISOString()} - ${message}`, data || '');
     }
   },
 };

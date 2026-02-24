@@ -265,19 +265,19 @@ export class StripePaymentService {
     try {
       switch (event.type) {
         case "payment_intent.succeeded":
-          console.log("Payment succeeded:", event.data.object);
+          
           break;
         case "payment_intent.payment_failed":
-          console.log("Payment failed:", event.data.object);
+          
           break;
         case "invoice.payment_succeeded":
-          console.log("Invoice paid:", event.data.object);
+          
           break;
         case "invoice.payment_failed":
-          console.log("Invoice payment failed:", event.data.object);
+          
           break;
         default:
-          console.log("Unhandled event type:", event.type);
+          
       }
     } catch (error) {
       console.error("Error handling webhook:", error);

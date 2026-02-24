@@ -409,7 +409,7 @@ export function enableAutoSync(
 ): NodeJS.Timeout {
   return setInterval(() => {
     // Trigger sync
-    console.log(`Auto-syncing with ${provider} calendar...`);
+    
   }, interval);
 }
 

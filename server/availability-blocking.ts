@@ -43,7 +43,6 @@ export function createAvailabilityBlock(
   }
 
   availabilityBlocks.get(artistId)!.push(block);
-  console.log(`[Availability] Block created for artist ${artistId}: ${startDate} - ${endDate}`);
 
   return block;
 }
@@ -60,7 +59,6 @@ export function deleteAvailabilityBlock(artistId: number, blockId: number): bool
   if (index === -1) return false;
 
   blocks.splice(index, 1);
-  console.log(`[Availability] Block deleted for artist ${artistId}`);
   return true;
 }
 
@@ -208,7 +206,6 @@ export function canBookArtist(artistId: number, eventDate: Date, eventEndDate: D
 
 export function syncBlocksWithCalendar(artistId: number, calendarEvents: any[]): void {
   // In production, sync with external calendar (Google Calendar, iCal, etc.)
-  console.log(`[Availability] Syncing ${calendarEvents.length} calendar events for artist ${artistId}`);
 
   for (const event of calendarEvents) {
     if (event.type === 'blocked' || event.title.includes('Unavailable')) {

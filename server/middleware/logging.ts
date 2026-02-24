@@ -111,7 +111,6 @@ export function logEvent(entry: Omit<LogEntry, 'timestamp'>): void {
 
   // Log to console in development
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`[${logEntry.level}] ${logEntry.eventType}: ${logEntry.message}`);
   }
 
   // Alert on critical events

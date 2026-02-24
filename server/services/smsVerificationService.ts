@@ -57,7 +57,7 @@ class SMSVerificationService {
         verified: false,
       });
 
-      console.log(`[SMS] Verification code sent to ${phoneNumber}: ${code}`);
+      
 
       // TODO: Integrate with SMS service (Twilio, AWS SNS, etc.)
       // const message = `Your Ologywood verification code is: ${code}. Valid for 10 minutes.`;
@@ -81,33 +81,33 @@ class SMSVerificationService {
       const verification = this.verificationStore.get(phoneNumber);
 
       if (!verification) {
-        console.log(`[SMS] No verification found for ${phoneNumber}`);
+        
         return false;
       }
 
       // Check if code has expired
       if (new Date() > verification.expiresAt) {
         this.verificationStore.delete(phoneNumber);
-        console.log(`[SMS] Verification code expired for ${phoneNumber}`);
+        
         return false;
       }
 
       // Check attempt limit
       if (verification.attempts >= 3) {
         this.verificationStore.delete(phoneNumber);
-        console.log(`[SMS] Too many attempts for ${phoneNumber}`);
+        
         return false;
       }
 
       // Verify code
       if (verification.code === code) {
         verification.verified = true;
-        console.log(`[SMS] Code verified for ${phoneNumber}`);
+        
         return true;
       }
 
       verification.attempts++;
-      console.log(`[SMS] Invalid code for ${phoneNumber}. Attempts: ${verification.attempts}`);
+      
       return false;
     } catch (error) {
       console.error('[SMS] Error verifying code:', error);
@@ -135,7 +135,7 @@ class SMSVerificationService {
 
       this.twoFactorStore.set(userId, settings);
 
-      console.log(`[2FA] Two-factor authentication enabled for user ${userId}`);
+      
 
       return { backupCodes };
     } catch (error) {
@@ -150,7 +150,7 @@ class SMSVerificationService {
   static async disableTwoFactor(userId: number): Promise<void> {
     try {
       this.twoFactorStore.delete(userId);
-      console.log(`[2FA] Two-factor authentication disabled for user ${userId}`);
+      
     } catch (error) {
       console.error('[2FA] Error disabling 2FA:', error);
       throw error;
@@ -177,7 +177,7 @@ class SMSVerificationService {
       const settings = this.twoFactorStore.get(userId);
 
       if (!settings || !settings.enabled) {
-        console.log(`[2FA] 2FA not enabled for user ${userId}`);
+        
         return false;
       }
 
@@ -185,7 +185,7 @@ class SMSVerificationService {
       if (settings.backupCodes && settings.backupCodes.includes(code)) {
         // Remove used backup code
         settings.backupCodes = settings.backupCodes.filter((c) => c !== code);
-        console.log(`[2FA] Backup code used for user ${userId}`);
+        
         return true;
       }
 
@@ -211,7 +211,7 @@ class SMSVerificationService {
    */
   static async sendSMSNotification(phoneNumber: string, message: string): Promise<void> {
     try {
-      console.log(`[SMS] Notification sent to ${phoneNumber}: ${message}`);
+      
 
       // TODO: Integrate with SMS service
       // const smsClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -283,7 +283,7 @@ class SMSVerificationService {
       settings.phoneNumber = newPhoneNumber;
       this.twoFactorStore.set(userId, settings);
 
-      console.log(`[2FA] Phone number updated for user ${userId}`);
+      
     } catch (error) {
       console.error('[2FA] Error updating phone number:', error);
       throw error;

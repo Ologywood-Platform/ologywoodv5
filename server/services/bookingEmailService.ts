@@ -72,7 +72,6 @@ export class BookingEmailService {
 
       emails.push(artistEmail_obj, venueEmail_obj);
 
-      console.log(`[Email] Sending booking confirmation emails for booking ${bookingId}`);
       // In production, send via SendGrid or similar
       // await sendEmail(artistEmail, artistEmail_obj.subject, artistEmail_obj.htmlContent);
       // await sendEmail(venueEmail, venueEmail_obj.subject, venueEmail_obj.htmlContent);
@@ -103,7 +102,6 @@ export class BookingEmailService {
         status: 'pending',
       };
 
-      console.log(`[Email] Sending payment receipt for booking ${bookingId}`);
       // In production, send via SendGrid or similar
       // await sendEmail(email, emailRecord.subject, emailRecord.htmlContent);
 
@@ -133,7 +131,6 @@ export class BookingEmailService {
         status: 'pending',
       };
 
-      console.log(`[Email] Sending contract signing reminder for booking ${bookingId}`);
       // In production, send via SendGrid or similar
 
       return emailRecord;
@@ -162,7 +159,6 @@ export class BookingEmailService {
         status: 'pending',
       };
 
-      console.log(`[Email] Sending event day reminder for booking ${bookingId}`);
       // In production, send via SendGrid or similar
 
       return emailRecord;
@@ -206,7 +202,6 @@ export class BookingEmailService {
 
       emails.push(artistEmail_obj, venueEmail_obj);
 
-      console.log(`[Email] Sending cancellation emails for booking ${bookingId}`);
 
       return emails;
     } catch (error) {
@@ -246,7 +241,6 @@ export class BookingEmailService {
         sent: false,
       });
 
-      console.log(`[Email] Scheduled ${schedules.length} reminders for booking ${bookingId}`);
       return schedules;
     } catch (error) {
       console.error('[Email] Error scheduling reminders:', error);

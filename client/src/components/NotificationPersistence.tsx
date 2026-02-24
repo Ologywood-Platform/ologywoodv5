@@ -61,10 +61,7 @@ export function NotificationPersistence({
           onNotificationsLoaded(loadedNotifications);
         }
 
-        // Log loaded notifications
-        console.log(
-          `[NotificationPersistence] Loaded ${loadedNotifications.length} unread notifications`
-        );
+
       } catch (error) {
         console.error('[NotificationPersistence] Error loading notifications:', error);
       } finally {
@@ -95,7 +92,6 @@ export function NotificationPersistence({
         )
       );
 
-      console.log(`[NotificationPersistence] Marked notification ${notificationId} as read`);
     } catch (error) {
       console.error('[NotificationPersistence] Error marking notification as read:', error);
     }
@@ -117,7 +113,6 @@ export function NotificationPersistence({
         prev.map(n => ({ ...n, isRead: true }))
       );
 
-      console.log('[NotificationPersistence] Marked all notifications as read');
     } catch (error) {
       console.error('[NotificationPersistence] Error marking all as read:', error);
     }
@@ -139,7 +134,6 @@ export function NotificationPersistence({
         prev.filter(n => n.id !== notificationId)
       );
 
-      console.log(`[NotificationPersistence] Deleted notification ${notificationId}`);
     } catch (error) {
       console.error('[NotificationPersistence] Error deleting notification:', error);
     }
@@ -159,7 +153,6 @@ export function NotificationPersistence({
       // Update local state
       setNotifications([]);
 
-      console.log('[NotificationPersistence] Deleted all notifications');
     } catch (error) {
       console.error('[NotificationPersistence] Error deleting all notifications:', error);
     }

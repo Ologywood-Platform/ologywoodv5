@@ -54,7 +54,7 @@ class PaymentProcessingService {
     description: string
   ): Promise<PaymentIntent> {
     try {
-      console.log(`[Payment] Creating payment intent for user ${userId}: $${amount}`);
+      
 
       // TODO: Integrate with Stripe
       // const intent = await stripe.paymentIntents.create({
@@ -88,7 +88,7 @@ class PaymentProcessingService {
     paymentMethodId?: string
   ): Promise<Subscription> {
     try {
-      console.log(`[Payment] Creating ${tier} subscription for user ${userId}`);
+      
 
       const priceIds = {
         basic: 'price_basic_monthly',
@@ -136,7 +136,7 @@ class PaymentProcessingService {
     newTier: 'basic' | 'premium'
   ): Promise<Subscription> {
     try {
-      console.log(`[Payment] Updating subscription ${subscriptionId} to ${newTier}`);
+      
 
       // TODO: Integrate with Stripe
       // const subscription = await stripe.subscriptions.update(subscriptionId, {
@@ -171,7 +171,7 @@ class PaymentProcessingService {
    */
   static async cancelSubscription(subscriptionId: string): Promise<Subscription> {
     try {
-      console.log(`[Payment] Canceling subscription ${subscriptionId}`);
+      
 
       // TODO: Integrate with Stripe
       // const subscription = await stripe.subscriptions.del(subscriptionId);
@@ -198,7 +198,7 @@ class PaymentProcessingService {
    */
   static async getSubscription(subscriptionId: string): Promise<Subscription | null> {
     try {
-      console.log(`[Payment] Fetching subscription ${subscriptionId}`);
+      
 
       // TODO: Integrate with Stripe
       // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -215,7 +215,7 @@ class PaymentProcessingService {
    */
   static async getInvoices(customerId: string): Promise<Invoice[]> {
     try {
-      console.log(`[Payment] Fetching invoices for customer ${customerId}`);
+      
 
       // TODO: Integrate with Stripe
       // const invoices = await stripe.invoices.list({ customer: customerId });
@@ -244,7 +244,7 @@ class PaymentProcessingService {
    */
   static async createCustomer(userId: number, email: string, name: string): Promise<Customer> {
     try {
-      console.log(`[Payment] Creating customer for user ${userId}`);
+      
 
       // TODO: Integrate with Stripe
       // const customer = await stripe.customers.create({
@@ -272,7 +272,7 @@ class PaymentProcessingService {
    */
   static async getPaymentMethods(customerId: string): Promise<any[]> {
     try {
-      console.log(`[Payment] Fetching payment methods for customer ${customerId}`);
+      
 
       // TODO: Integrate with Stripe
       // const methods = await stripe.paymentMethods.list({
@@ -292,41 +292,41 @@ class PaymentProcessingService {
    */
   static async handleWebhookEvent(event: any): Promise<void> {
     try {
-      console.log(`[Payment] Processing webhook event: ${event.type}`);
+      
 
       switch (event.type) {
         case 'payment_intent.succeeded':
-          console.log(`[Payment] Payment succeeded: ${event.data.object.id}`);
+          
           // Update booking payment status
           break;
 
         case 'customer.subscription.created':
-          console.log(`[Payment] Subscription created: ${event.data.object.id}`);
+          
           // Log subscription creation
           break;
 
         case 'customer.subscription.updated':
-          console.log(`[Payment] Subscription updated: ${event.data.object.id}`);
+          
           // Update subscription status
           break;
 
         case 'customer.subscription.deleted':
-          console.log(`[Payment] Subscription canceled: ${event.data.object.id}`);
+          
           // Handle subscription cancellation
           break;
 
         case 'invoice.paid':
-          console.log(`[Payment] Invoice paid: ${event.data.object.id}`);
+          
           // Send receipt email
           break;
 
         case 'invoice.payment_failed':
-          console.log(`[Payment] Invoice payment failed: ${event.data.object.id}`);
+          
           // Send payment failure notification
           break;
 
         default:
-          console.log(`[Payment] Unhandled webhook event: ${event.type}`);
+          
       }
     } catch (error) {
       console.error('[Payment] Error handling webhook:', error);
@@ -339,7 +339,7 @@ class PaymentProcessingService {
    */
   static async applyPromoCode(customerId: string, promoCode: string): Promise<{ discountPercent: number; valid: boolean }> {
     try {
-      console.log(`[Payment] Applying promo code ${promoCode} to customer ${customerId}`);
+      
 
       // TODO: Integrate with Stripe
       // const coupon = await stripe.coupons.retrieve(promoCode);
@@ -359,7 +359,7 @@ class PaymentProcessingService {
    */
   static async getBillingPortalLink(customerId: string, returnUrl: string): Promise<string> {
     try {
-      console.log(`[Payment] Creating billing portal link for customer ${customerId}`);
+      
 
       // TODO: Integrate with Stripe
       // const session = await stripe.billingPortal.sessions.create({

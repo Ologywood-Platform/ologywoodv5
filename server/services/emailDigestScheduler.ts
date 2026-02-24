@@ -12,7 +12,6 @@ import * as emailService from './emailService';
  * Send weekly digest emails to all users with weekly digest preference enabled
  */
 export async function sendWeeklyDigests() {
-  console.log('[EmailDigest] Starting weekly digest send...');
   
   const db = await getDb();
   if (!db) {
@@ -33,7 +32,6 @@ export async function sendWeeklyDigests() {
         sql`${emailPreferences.frequency} = 'weekly' AND ${emailPreferences.weeklyDigest} = true`
       );
 
-    console.log(`[EmailDigest] Found ${usersWithDigest.length} users for weekly digest`);
 
     for (const pref of usersWithDigest) {
       const user = await db
@@ -54,10 +52,8 @@ export async function sendWeeklyDigests() {
         digestContent
       );
 
-      console.log(`[EmailDigest] Sent weekly digest to user ${pref.userId}`);
     }
 
-    console.log('[EmailDigest] Weekly digest send completed');
   } catch (error) {
     console.error('[EmailDigest] Error sending weekly digests:', error);
   }
@@ -67,7 +63,6 @@ export async function sendWeeklyDigests() {
  * Send daily digest emails to all users with daily digest preference enabled
  */
 export async function sendDailyDigests() {
-  console.log('[EmailDigest] Starting daily digest send...');
   
   const db = await getDb();
   if (!db) {
@@ -88,7 +83,6 @@ export async function sendDailyDigests() {
         sql`${emailPreferences.frequency} = 'daily' AND ${emailPreferences.weeklyDigest} = true`
       );
 
-    console.log(`[EmailDigest] Found ${usersWithDigest.length} users for daily digest`);
 
     for (const pref of usersWithDigest) {
       const user = await db
@@ -109,10 +103,8 @@ export async function sendDailyDigests() {
         digestContent
       );
 
-      console.log(`[EmailDigest] Sent daily digest to user ${pref.userId}`);
     }
 
-    console.log('[EmailDigest] Daily digest send completed');
   } catch (error) {
     console.error('[EmailDigest] Error sending daily digests:', error);
   }

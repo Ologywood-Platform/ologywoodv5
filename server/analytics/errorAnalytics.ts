@@ -287,7 +287,6 @@ export function startErrorAnalyticsCleanup(intervalMs: number = 3600000) {
   setInterval(() => {
     const cleaned = errorAnalytics.clearOldErrors(72); // Keep 72 hours
     if (cleaned > 0) {
-      console.log(`[Error Analytics] Cleaned up ${cleaned} old error records`);
     }
   }, intervalMs);
 }

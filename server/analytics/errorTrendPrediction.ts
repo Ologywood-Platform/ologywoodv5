@@ -419,5 +419,4 @@ export function initializeErrorTrendPrediction(): void {
     errorTrendPredictionService.clearOldData(72);
   }, 6 * 60 * 60 * 1000);
 
-  console.log('[Error Trend Prediction] Service initialized');
 }

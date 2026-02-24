@@ -2,7 +2,7 @@ import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Redirect } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // MVP CORE ROUTES ONLY
@@ -70,8 +70,8 @@ function Router() {
           <Route path="/get-started" component={RoleSelection} />
           <Route path="/onboarding/artist" component={ArtistOnboarding} />
           <Route path="/onboarding/venue" component={VenueOnboarding} />
-          <Route path="/dashboard" component={ArtistDashboardV3} />
-          <Route path="/venue-dashboard" component={VenueDashboard} />
+          <Route path="/dashboard">{() => <PageErrorBoundary><ArtistDashboardV3 /></PageErrorBoundary>}</Route>
+          <Route path="/venue-dashboard">{() => <PageErrorBoundary><VenueDashboard /></PageErrorBoundary>}</Route>
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/revert-email" component={RevertEmail} />
           <Route path="/earnings" component={ArtistEarnings} />
@@ -83,15 +83,15 @@ function Router() {
           <Route path="/artist-tax-reporting" component={ArtistTaxReporting} />
           
           {/* Discovery */}
-          <Route path="/browse" component={Browse} />
-          <Route path="/artist/:id" component={ArtistProfile} />
+          <Route path="/browse">{() => <PageErrorBoundary><Browse /></PageErrorBoundary>}</Route>
+          <Route path="/artist/:id">{(params: any) => <PageErrorBoundary><ArtistProfile {...params} /></PageErrorBoundary>}</Route>
           <Route path="/venues" component={VenueBrowse} />
           <Route path="/venue/:id" component={VenueProfile} />
           <Route path="/venues/:id" component={VenueProfileDetail} />
           
           {/* Core Booking Flow */}
-          <Route path="/booking/:id" component={BookingDetail} />
-          <Route path="/booking/create" component={BookingCreate} />
+          <Route path="/booking/:id">{(params: any) => <PageErrorBoundary><BookingDetail {...params} /></PageErrorBoundary>}</Route>
+          <Route path="/booking/create">{() => <PageErrorBoundary><BookingCreate /></PageErrorBoundary>}</Route>
           <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
           <Route path="/bookings" component={BookingsList} />
           
@@ -101,15 +101,15 @@ function Router() {
           <Route path="/events/:id" component={EventDetail} />
           
           {/* Rider System */}
-          <Route path="/rider-builder" component={RiderBuilder} />
+          <Route path="/rider-builder">{() => <PageErrorBoundary><RiderBuilder /></PageErrorBoundary>}</Route>
           <Route path="/rider-templates" component={RiderTemplates} />
           <Route path="/saved-riders" component={SavedRiders} />
           <Route path="/favorites" component={Favorites} />
           <Route path="/riders" component={Riders} />
           
           {/* Communication */}
-          <Route path="/messages" component={Messages} />
-          <Route path="/messages/:id" component={MessagesDetail} />
+          <Route path="/messages">{() => <PageErrorBoundary><Messages /></PageErrorBoundary>}</Route>
+          <Route path="/messages/:id">{(params: any) => <PageErrorBoundary><MessagesDetail {...params} /></PageErrorBoundary>}</Route>
           
           {/* Availability Management */}
           <Route path="/availability" component={Availability} />

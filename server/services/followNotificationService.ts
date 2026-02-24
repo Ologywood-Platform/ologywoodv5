@@ -126,9 +126,6 @@ export async function sendUnfollowNotification(
 
     // For now, we don't send unfollow notifications
     // as they can be annoying. But the infrastructure is here if needed.
-    console.log(
-      `User ${follower.name} unfollowed ${following.name} (${followingType})`
-    );
 
     return true;
   } catch (error) {

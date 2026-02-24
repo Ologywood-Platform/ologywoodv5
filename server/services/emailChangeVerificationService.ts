@@ -47,7 +47,6 @@ export class EmailChangeVerificationService {
         createdAt: new Date(),
       });
 
-      console.log(`[EmailChangeVerification] Token generated for user ${userId} to email ${newEmail}`);
 
       return {
         success: true,
@@ -80,7 +79,6 @@ export class EmailChangeVerificationService {
       // Delete used token
       this.tokenStore.delete(token);
 
-      console.log(`[EmailChangeVerification] Email verified for user ${verification.userId} to ${verification.newEmail}`);
 
       return {
         success: true,

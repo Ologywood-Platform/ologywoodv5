@@ -237,9 +237,6 @@ function scheduleReminder(reminder: PaymentReminder): void {
     },
   });
 
-  console.log(
-    `[Invoice] Scheduled ${reminderType} reminder for ${reminder.recipientEmail} - Due ${formatDate(reminder.dueDate)}`
-  );
 }
 
 export async function sendPaymentReminder(reminder: PaymentReminder): Promise<void> {

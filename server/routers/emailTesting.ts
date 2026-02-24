@@ -14,13 +14,11 @@ export const emailTestingRouter = router({
       try {
         const { testEmail } = input;
 
-        console.log(`[Email Testing] Starting test suite for ${testEmail}`);
 
         // Run all email tests
         const results = await testAllEmailTemplates(testEmail);
         const summary = getSummary(results);
 
-        console.log(`[Email Testing] Completed. Success rate: ${summary.successRate}%`);
 
         return {
           success: true,
@@ -46,7 +44,6 @@ export const emailTestingRouter = router({
       try {
         const { templateName, testEmail } = input;
 
-        console.log(`[Email Testing] Testing template: ${templateName} for ${testEmail}`);
 
         // This would be expanded to test individual templates
         return {

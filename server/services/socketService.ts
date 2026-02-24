@@ -49,7 +49,7 @@ class SocketService {
     this.setupMiddleware();
     this.setupEventHandlers();
 
-    console.log('[Socket.io] Initialized successfully');
+    
     return this.io;
   }
 
@@ -82,7 +82,7 @@ class SocketService {
     this.io.on('connection', (socket: Socket) => {
       const userId = socket.data.userId as number;
 
-      console.log(`[Socket.io] User ${userId} connected: ${socket.id}`);
+      
 
       // Track user socket
       if (!this.userSockets.has(userId)) {
@@ -155,7 +155,7 @@ class SocketService {
         read: false,
       });
 
-      console.log(`[Socket.io] Notification sent to user ${payload.userId}`);
+      
     } catch (error) {
       console.error('[Socket.io] Error sending notification:', error);
     }
@@ -189,7 +189,7 @@ class SocketService {
       timestamp: new Date(),
     });
 
-    console.log(`[Socket.io] Message from ${userId} to ${recipientId}`);
+    
   }
 
   /**
@@ -205,7 +205,7 @@ class SocketService {
       timestamp: new Date(),
     });
 
-    console.log(`[Socket.io] Message ${messageId} read by ${userId}`);
+    
   }
 
   /**
@@ -246,7 +246,7 @@ class SocketService {
       //   .set({ read: true })
       //   .where(eq(notifications.id, notificationId))
 
-      console.log(`[Socket.io] Notification ${notificationId} marked as read`);
+      
     } catch (error) {
       console.error('[Socket.io] Error marking notification as read:', error);
     }
@@ -267,7 +267,7 @@ class SocketService {
       }
     }
 
-    console.log(`[Socket.io] User ${userId} disconnected: ${socketId}`);
+    
   }
 
   /**

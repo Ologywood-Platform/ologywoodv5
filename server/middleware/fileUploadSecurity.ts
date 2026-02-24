@@ -138,7 +138,6 @@ export const virusScanConfig = {
  */
 export async function scanFileForViruses(filePath: string): Promise<boolean> {
   if (!virusScanConfig.enabled) {
-    console.log('[FileUploadSecurity] Virus scanning disabled');
     return true;
   }
 
@@ -149,7 +148,6 @@ export async function scanFileForViruses(filePath: string): Promise<boolean> {
     // const { isInfected } = await clamscan.scanFile(filePath);
     // return !isInfected;
 
-    console.log('[FileUploadSecurity] Virus scan would run here for:', filePath);
     return true;
   } catch (error) {
     console.error('[FileUploadSecurity] Virus scan error:', error);

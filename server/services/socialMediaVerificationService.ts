@@ -12,13 +12,13 @@ interface SocialMediaAccount {
 export class SocialMediaVerificationService {
   static async verifySocialAccount(account: SocialMediaAccount) {
     try {
-      console.log(`[Social Verification] Verifying ${account.platform}: ${account.username}`);
+      
 
       // Simulate verification (in production, would check actual social media API)
       const isValid = await this.validateSocialMediaLink(account.url);
 
       if (isValid) {
-        console.log(`[Social Verification] ✓ Verified ${account.platform}: ${account.username}`);
+        
         return {
           success: true,
           isVerified: true,
@@ -27,7 +27,7 @@ export class SocialMediaVerificationService {
           verifiedAt: new Date(),
         };
       } else {
-        console.log(`[Social Verification] ✗ Failed to verify ${account.platform}: ${account.username}`);
+        
         return {
           success: false,
           isVerified: false,

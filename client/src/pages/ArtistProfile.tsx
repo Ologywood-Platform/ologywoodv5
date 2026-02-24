@@ -196,7 +196,7 @@ export default function ArtistProfile() {
     
     // Note: selectedRiderId is stored in state for future use in rider acknowledgment workflow
     if (selectedRiderId) {
-      console.log(`Booking created with selected rider: ${selectedRiderId}`);
+      // Rider selection tracked for booking workflow
     }
   };
 

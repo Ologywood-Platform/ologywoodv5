@@ -285,7 +285,7 @@ export function ArtistDashboardV3() {
                               status: newStatus as 'available' | 'booked' | 'completed' | 'cancelled',
                             });
                           } catch (error) {
-                            console.error('Failed to update event status:', error);
+                            // Error handled by tRPC mutation
                           }
                         }}
                       />

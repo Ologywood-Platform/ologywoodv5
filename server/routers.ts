@@ -179,11 +179,8 @@ export const appRouter = router({
       if (!opts.ctx.user) return null;
       try {
         if (opts.ctx.user.openId) {
-          console.log('[Auth.me] Session user openId:', opts.ctx.user.openId, 'Role:', opts.ctx.user.role);
           const freshUser = await db.getUserByOpenId(opts.ctx.user.openId);
-          console.log('[Auth.me] Fresh user role:', freshUser?.role);
           const result = freshUser || opts.ctx.user;
-          console.log('[Auth.me] Returning role:', result?.role);
           return result;
         }
         return opts.ctx.user;
@@ -1556,7 +1553,6 @@ export const appRouter = router({
         });
         
         // Record refund in database (stub for now)
-        console.log(`[Refund] Recorded refund ${refund.id} for booking ${input.bookingId}`);
         
         return { refundId: refund.id, success: true };
        }),
@@ -1653,13 +1649,11 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         try {
-          console.log('[Newsletter] Subscription attempt for:', input.email);
           const emailSent = await email.sendNewsletterSubscriptionEmail(input.email);
           if (!emailSent) {
             console.error('[Newsletter] Email sending failed for:', input.email);
             throw new Error('Email service failed');
           }
-          console.log('[Newsletter] Successfully subscribed:', input.email);
           return { success: true, message: 'Successfully subscribed to newsletter! Check your email for confirmation.' };
         } catch (error) {
           console.error('[Newsletter] Subscription error:', error);

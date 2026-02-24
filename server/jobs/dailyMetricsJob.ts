@@ -12,7 +12,6 @@ import analyticsMetricsService from '../analyticsMetricsService';
  */
 export async function executeDailyMetricsJob() {
   try {
-    console.log('[Daily Metrics Job] Starting daily metrics calculation');
     const startTime = Date.now();
 
     // Calculate metrics for today
@@ -26,7 +25,6 @@ export async function executeDailyMetricsJob() {
 
     if (stored) {
       const duration = Date.now() - startTime;
-      console.log(`[Daily Metrics Job] Completed successfully in ${duration}ms`);
       return {
         success: true,
         date: date.toISOString().split('T')[0],
@@ -55,7 +53,6 @@ export async function executeDailyMetricsJob() {
  */
 export function setupDailyMetricsJob() {
   try {
-    console.log('[Daily Metrics Job] Setting up daily metrics calculation job');
 
     // Using node-cron for scheduling
     // Install: npm install node-cron
@@ -66,11 +63,9 @@ export function setupDailyMetricsJob() {
 
     // Run daily at 00:00 UTC
     cron.schedule('0 0 * * *', async () => {
-      console.log('[Daily Metrics Job] Executing scheduled daily metrics calculation');
       await executeDailyMetricsJob();
     });
 
-    console.log('[Daily Metrics Job] Daily metrics calculation job scheduled (00:00 UTC)');
     */
 
     // Alternative: Using node-schedule
@@ -81,18 +76,15 @@ export function setupDailyMetricsJob() {
     import schedule from 'node-schedule';
 
     const job = schedule.scheduleJob('0 0 * * *', async () => {
-      console.log('[Daily Metrics Job] Executing scheduled daily metrics calculation');
       await executeDailyMetricsJob();
     });
 
-    console.log('[Daily Metrics Job] Daily metrics calculation job scheduled');
     */
 
     // For development/testing: Run every 5 minutes
     // Uncomment below to test:
     /*
     setInterval(async () => {
-      console.log('[Daily Metrics Job] Executing metrics calculation (development mode)');
       await executeDailyMetricsJob();
     }, 5 * 60 * 1000); // 5 minutes
     */
@@ -109,7 +101,6 @@ export function setupDailyMetricsJob() {
  */
 export async function triggerMetricsCalculation(date?: Date) {
   const targetDate = date || new Date();
-  console.log(`[Daily Metrics Job] Manual trigger for ${targetDate.toISOString().split('T')[0]}`);
   return executeDailyMetricsJob();
 }
 

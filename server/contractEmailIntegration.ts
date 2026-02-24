@@ -54,7 +54,6 @@ export async function sendContractCreatedNotification(params: ContractNotificati
       contractUrl: `https://ologywood.com/contracts/${contractId}`,
     });
 
-    console.log(`[Contract Email] Contract creation notifications sent for contract ${contractId}`);
     return true;
   } catch (error) {
     console.error('[Contract Email] Error sending contract creation notifications:', error);
@@ -98,7 +97,6 @@ export async function sendSignatureRequestNotification(params: {
       signDeadline: signingDeadline || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
     });
 
-    console.log(`[Contract Email] Signature request sent to ${recipientEmail} for contract ${contractId}`);
     return true;
   } catch (error) {
     console.error('[Contract Email] Error sending signature request:', error);
@@ -142,7 +140,6 @@ export async function sendSignatureCompletionNotification(params: {
       signedAt: new Date().toLocaleDateString(),
     });
 
-    console.log(`[Contract Email] Signature completion notification sent for contract ${contractId}`);
     return true;
   } catch (error) {
     console.error('[Contract Email] Error sending signature completion notification:', error);
@@ -198,7 +195,6 @@ export async function sendContractReminderNotification(params: {
       ? `Urgent: Contract Expiring Soon - ${contractTitle}`
       : `Reminder: Unsigned Contract - ${contractTitle}`;
 
-    console.log(`[Contract Email] Reminder notification sent for contract ${contractId} (${status})`);
     return true;
   } catch (error) {
     console.error('[Contract Email] Error sending contract reminder:', error);
@@ -261,7 +257,6 @@ export async function sendBatchContractReminders(contracts: Array<{
     else failureCount++;
   }
 
-  console.log(`[Contract Email] Batch reminders completed: ${successCount} sent, ${failureCount} failed`);
   return { successCount, failureCount };
 }
 
@@ -295,7 +290,6 @@ export async function integrateContractNotificationIntoBooking(bookingData: {
 
     // Only schedule reminders if event is more than 1 day away
     if (daysUntilEvent > 1) {
-      console.log(`[Contract Email] Reminders scheduled for contract ${bookingData.contractId}`);
     }
 
     return true;

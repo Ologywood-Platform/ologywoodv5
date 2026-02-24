@@ -55,7 +55,7 @@ export function MobileAppShell({ onDismiss }: MobileAppShellProps) {
     const { outcome } = await deferredPrompt.userChoice;
 
     if (outcome === 'accepted') {
-      console.log('PWA installed');
+      
       setIsInstalled(true);
       setShowPrompt(false);
     }
@@ -139,7 +139,7 @@ export function useServiceWorker() {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('[ServiceWorker] Registered:', registration);
+
 
           // Check for updates periodically
           setInterval(() => {
@@ -152,7 +152,7 @@ export function useServiceWorker() {
 
       // Listen for controller change (new SW activated)
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[ServiceWorker] Controller changed - app updated');
+        
         // Optionally show update notification
       });
     }
@@ -178,7 +178,7 @@ export function useOfflineSync() {
     setIsSyncing(true);
     try {
       for (const item of syncQueue) {
-        console.log(`[OfflineSync] Processing: ${item.action}`, item.data);
+
         // TODO: Send to server
         // await fetch('/api/sync', { method: 'POST', body: JSON.stringify(item) });
       }

@@ -158,7 +158,7 @@ export class PerformanceMonitor {
     }
 
     const duration = (end || performance.now()) - start;
-    console.log(`[Performance] ${name}: ${duration.toFixed(2)}ms`);
+    
     return duration;
   }
 
@@ -182,7 +182,6 @@ export class PerformanceMonitor {
   logMetrics() {
     const metrics = this.getMetrics();
     if (metrics) {
-      console.table(metrics);
     }
   }
 }
@@ -199,7 +198,7 @@ export function lazyLoadRoute(importFunc: () => Promise<any>) {
  */
 export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) {
-    console.log('Service Workers not supported');
+    
     return;
   }
 
@@ -207,7 +206,7 @@ export async function registerServiceWorker() {
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/'
     });
-    console.log('Service Worker registered:', registration);
+    
   } catch (error) {
     console.error('Service Worker registration failed:', error);
   }
@@ -218,19 +217,13 @@ export async function registerServiceWorker() {
  */
 export function monitorNetworkStatus() {
   if (!('connection' in navigator)) {
-    console.log('Network Information API not supported');
+    
     return;
   }
 
   const connection = (navigator as any).connection;
 
   const logNetworkStatus = () => {
-    console.log({
-      effectiveType: connection.effectiveType,
-      downlink: connection.downlink,
-      rtt: connection.rtt,
-      saveData: connection.saveData
-    });
   };
 
   connection.addEventListener('change', logNetworkStatus);

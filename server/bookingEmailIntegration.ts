@@ -26,7 +26,6 @@ interface BookingCreatedData {
  */
 export async function handleBookingCreated(booking: BookingCreatedData) {
   try {
-    console.log(`[Booking Email] Processing booking ${booking.bookingId}`);
 
     // Send initial contract notifications to both parties
     const notificationSent = await contractEmailIntegration.sendContractCreatedNotification({
@@ -43,7 +42,6 @@ export async function handleBookingCreated(booking: BookingCreatedData) {
     if (!notificationSent) {
       console.warn(`[Booking Email] Failed to send contract creation notification for booking ${booking.bookingId}`);
     } else {
-      console.log(`[Booking Email] Contract creation notification sent for booking ${booking.bookingId}`);
     }
 
     // Schedule reminder emails
@@ -59,7 +57,6 @@ export async function handleBookingCreated(booking: BookingCreatedData) {
         const reminderDate = new Date(eventDate);
         reminderDate.setDate(reminderDate.getDate() - daysBeforeEvent);
 
-        console.log(`[Booking Email] Scheduled reminder for ${daysBeforeEvent} days before event (${reminderDate.toISOString()})`);
       }
     }
 
@@ -83,7 +80,6 @@ export async function handleBookingCreated(booking: BookingCreatedData) {
  */
 export async function handleBookingConfirmed(booking: BookingCreatedData) {
   try {
-    console.log(`[Booking Email] Processing booking confirmation ${booking.bookingId}`);
 
     // Send confirmation emails
     const confirmationSent = await contractEmailIntegration.sendSignatureRequestNotification({
@@ -100,7 +96,6 @@ export async function handleBookingConfirmed(booking: BookingCreatedData) {
     if (!confirmationSent) {
       console.warn(`[Booking Email] Failed to send confirmation for booking ${booking.bookingId}`);
     } else {
-      console.log(`[Booking Email] Confirmation email sent for booking ${booking.bookingId}`);
     }
 
     return {
@@ -123,7 +118,6 @@ export async function handleBookingConfirmed(booking: BookingCreatedData) {
  */
 export async function handleBookingCancelled(booking: BookingCreatedData, reason: string) {
   try {
-    console.log(`[Booking Email] Processing booking cancellation ${booking.bookingId}`);
 
     // Send cancellation emails to both parties
     const cancellationTemplate = `
@@ -167,7 +161,6 @@ export async function handleBookingCancelled(booking: BookingCreatedData, reason
       .replace('{{contractTitle}}', booking.contractTitle)
       .replace('{{reason}}', reason);
 
-    console.log(`[Booking Email] Cancellation emails prepared for booking ${booking.bookingId}`);
 
     return {
       success: true,
@@ -189,13 +182,11 @@ export async function handleBookingCancelled(booking: BookingCreatedData, reason
  */
 export async function sendUpcomingEventReminders() {
   try {
-    console.log('[Booking Email] Sending upcoming event reminders');
 
     // This would be called by a cron job
     // Query all bookings with events in the next 7 days
     // Send reminders based on the schedule (7 days, 3 days, 1 day)
 
-    console.log('[Booking Email] Upcoming event reminders sent');
     return { success: true };
   } catch (error) {
     console.error('[Booking Email] Error sending upcoming event reminders:', error);

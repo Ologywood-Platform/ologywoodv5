@@ -76,7 +76,6 @@ export default function BookingCreate() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create booking';
       toast.error(errorMessage);
-      console.error('Booking error:', error);
     } finally {
       setIsSubmitting(false);
     }

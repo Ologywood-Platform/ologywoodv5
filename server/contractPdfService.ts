@@ -32,7 +32,6 @@ interface ContractPdfData {
  */
 export async function generateContractPdf(contractData: ContractPdfData): Promise<Buffer> {
   try {
-    console.log(`[PDF Service] Generating PDF for contract ${contractData.contractId}`);
 
     // Create PDF document
     const pdfDoc = await PDFDocument.create();
@@ -171,7 +170,6 @@ export async function generateContractPdf(contractData: ContractPdfData): Promis
 
     // Save PDF to buffer
     const pdfBytes = await pdfDoc.save();
-    console.log(`[PDF Service] PDF generated successfully for contract ${contractData.contractId}`);
 
     return Buffer.from(pdfBytes);
   } catch (error) {
@@ -187,7 +185,6 @@ export async function generateAndSaveContractPdf(contractData: ContractPdfData, 
   try {
     const pdfBuffer = await generateContractPdf(contractData);
     writeFileSync(outputPath, pdfBuffer);
-    console.log(`[PDF Service] PDF saved to ${outputPath}`);
     return outputPath;
   } catch (error) {
     console.error('[PDF Service] Error saving PDF:', error);
@@ -200,7 +197,6 @@ export async function generateAndSaveContractPdf(contractData: ContractPdfData, 
  */
 export async function generateContractPdfFromHtml(htmlContent: string, contractData: ContractPdfData): Promise<Buffer> {
   try {
-    console.log(`[PDF Service] Generating PDF from HTML for contract ${contractData.contractId}`);
 
     // This would use a library like puppeteer or weasyprint to convert HTML to PDF
     // For now, we'll use the basic PDF generation above

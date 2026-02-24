@@ -16,11 +16,9 @@ redisClient.on('error', (err) => {
 });
 
 redisClient.on('connect', () => {
-  console.log('[Redis] Connected successfully');
 });
 
 redisClient.on('ready', () => {
-  console.log('[Redis] Ready to accept commands');
 });
 
 // Connect to Redis
@@ -116,12 +114,10 @@ export const cacheService = {
       // Try to get from cache
       const cached = await this.get<T>(key);
       if (cached) {
-        console.log(`[Cache] Hit: ${key}`);
         return cached;
       }
 
       // Cache miss - fetch data
-      console.log(`[Cache] Miss: ${key}`);
       const data = await fetchFn();
 
       // Store in cache

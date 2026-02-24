@@ -39,8 +39,7 @@ class PushNotificationsService {
   ): Promise<void> {
     try {
       this.subscriptionStore.set(userId, subscription);
-      console.log(`[PushNotifications] Registered subscription for user ${userId}`);
-    } catch (error) {
+} catch (error) {
       console.error('[PushNotifications] Error registering subscription:', error);
       throw error;
     }
@@ -52,8 +51,7 @@ class PushNotificationsService {
   static async unregisterPushSubscription(userId: number): Promise<void> {
     try {
       this.subscriptionStore.delete(userId);
-      console.log(`[PushNotifications] Unregistered subscription for user ${userId}`);
-    } catch (error) {
+} catch (error) {
       console.error('[PushNotifications] Error unregistering subscription:', error);
       throw error;
     }
@@ -70,13 +68,10 @@ class PushNotificationsService {
       const subscription = this.subscriptionStore.get(userId);
 
       if (!subscription) {
-        console.log(`[PushNotifications] No subscription found for user ${userId}`);
-        return;
+return;
       }
 
-      console.log(`[PushNotifications] Sending notification to user ${userId}:`, payload);
-
-      // TODO: Integrate with web-push library to send actual notifications
+// TODO: Integrate with web-push library to send actual notifications
       // const webpush = require('web-push');
       // await webpush.sendNotification(subscription, JSON.stringify(payload));
     } catch (error) {
@@ -243,8 +238,7 @@ class PushNotificationsService {
       const current = this.notificationStore.get(userId) || this.getDefaultPreferences();
       const updated = { ...current, ...preferences };
       this.notificationStore.set(userId, updated);
-      console.log(`[PushNotifications] Updated preferences for user ${userId}`);
-    } catch (error) {
+} catch (error) {
       console.error('[PushNotifications] Error updating preferences:', error);
       throw error;
     }
@@ -288,11 +282,7 @@ class PushNotificationsService {
     }>
   ): Promise<void> {
     try {
-      console.log(
-        `[PushNotifications] Sending email digest to user ${userId} with ${notifications.length} notifications`
-      );
-
-      // TODO: Integrate with email service (SendGrid, etc.)
+// TODO: Integrate with email service (SendGrid, etc.)
       // Generate HTML email with notification summary
       // Send via email service
     } catch (error) {

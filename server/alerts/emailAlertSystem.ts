@@ -51,16 +51,13 @@ class EmailAlertSystem {
    */
   start(): void {
     if (!this.config.enabled) {
-      console.log('[Email Alert System] Disabled');
       return;
     }
 
     if (this.checkInterval) {
-      console.log('[Email Alert System] Already running');
       return;
     }
 
-    console.log('[Email Alert System] Started monitoring');
 
     this.checkInterval = setInterval(() => {
       this.checkErrorThresholds();
@@ -74,7 +71,6 @@ class EmailAlertSystem {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      console.log('[Email Alert System] Stopped');
     }
   }
 
@@ -191,9 +187,6 @@ you can adjust alert thresholds in the admin settings.
         });
     });
 
-    console.log(
-      `[Email Alert] Alert sent to ${this.config.adminEmails.length} admins`
-    );
   }
 
   /**
@@ -201,7 +194,6 @@ you can adjust alert thresholds in the admin settings.
    */
   updateConfig(config: Partial<AlertConfig>): void {
     this.config = { ...this.config, ...config };
-    console.log('[Email Alert System] Configuration updated', this.config);
   }
 
   /**
@@ -217,7 +209,6 @@ you can adjust alert thresholds in the admin settings.
   addAdminEmail(email: string): void {
     if (!this.config.adminEmails.includes(email)) {
       this.config.adminEmails.push(email);
-      console.log(`[Email Alert] Added admin email: ${email}`);
     }
   }
 
@@ -226,7 +217,6 @@ you can adjust alert thresholds in the admin settings.
    */
   removeAdminEmail(email: string): void {
     this.config.adminEmails = this.config.adminEmails.filter((e) => e !== email);
-    console.log(`[Email Alert] Removed admin email: ${email}`);
   }
 
   /**

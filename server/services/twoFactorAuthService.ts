@@ -79,7 +79,7 @@ export class TwoFactorAuthService {
         createdAt: new Date(),
       };
 
-      console.log(`[2FA] Added ${type} method for user ${userId}`);
+      
       return method;
     } catch (error) {
       console.error('[2FA] Error adding 2FA method:', error);
@@ -111,10 +111,10 @@ export class TwoFactorAuthService {
 
       // In production, send via SMS or Email
       if (method.type === 'sms') {
-        console.log(`[2FA] Sending SMS code to ${method.value}: ${code}`);
+        
         // await sendSMS(method.value, `Your Ologywood verification code is: ${code}`);
       } else {
-        console.log(`[2FA] Sending email code to ${method.value}: ${code}`);
+        
         // await sendEmail(method.value, 'Your Ologywood Verification Code', `Code: ${code}`);
       }
 
@@ -135,25 +135,25 @@ export class TwoFactorAuthService {
     try {
       // Check expiry
       if (new Date() > session.expiresAt) {
-        console.log('[2FA] Code expired');
+        
         return false;
       }
 
       // Check attempts
       if (session.attempts >= session.maxAttempts) {
-        console.log('[2FA] Max attempts exceeded');
+        
         return false;
       }
 
       // Verify code
       if (session.code === userCode) {
-        console.log('[2FA] Code verified successfully');
+        
         session.isVerified = true;
         return true;
       }
 
       session.attempts++;
-      console.log(`[2FA] Invalid code. Attempts: ${session.attempts}/${session.maxAttempts}`);
+      
       return false;
     } catch (error) {
       console.error('[2FA] Error verifying code:', error);
@@ -167,7 +167,7 @@ export class TwoFactorAuthService {
   static async verifyBackupCode(userId: number, code: string): Promise<boolean> {
     try {
       // In production, check against stored backup codes
-      console.log(`[2FA] Verifying backup code for user ${userId}`);
+      
       return false;
     } catch (error) {
       console.error('[2FA] Error verifying backup code:', error);
@@ -190,7 +190,7 @@ export class TwoFactorAuthService {
         lastVerifiedAt: new Date(),
       };
 
-      console.log(`[2FA] Enabled 2FA for user ${userId}`);
+      
       return settings;
     } catch (error) {
       console.error('[2FA] Error enabling 2FA:', error);
@@ -203,7 +203,7 @@ export class TwoFactorAuthService {
    */
   static async disableTwoFactor(userId: number): Promise<void> {
     try {
-      console.log(`[2FA] Disabled 2FA for user ${userId}`);
+      
     } catch (error) {
       console.error('[2FA] Error disabling 2FA:', error);
     }
@@ -227,7 +227,7 @@ export class TwoFactorAuthService {
    */
   static async removeTwoFactorMethod(userId: number, methodId: string): Promise<void> {
     try {
-      console.log(`[2FA] Removed 2FA method ${methodId} for user ${userId}`);
+      
     } catch (error) {
       console.error('[2FA] Error removing 2FA method:', error);
     }
@@ -238,7 +238,7 @@ export class TwoFactorAuthService {
    */
   static async setPrimaryMethod(userId: number, methodId: string): Promise<void> {
     try {
-      console.log(`[2FA] Set primary 2FA method ${methodId} for user ${userId}`);
+      
     } catch (error) {
       console.error('[2FA] Error setting primary method:', error);
     }

@@ -66,7 +66,6 @@ export function createTicket(
   tickets.set(ticket.id, ticket);
   ticketMessages.set(ticket.id, []);
 
-  console.log(`[Support] Ticket #${ticket.id} created: ${title}`);
   scheduleEscalation(ticket.id);
 
   return ticket;
@@ -100,7 +99,6 @@ export function updateTicketStatus(
     ticket.resolvedAt = new Date();
   }
 
-  console.log(`[Support] Ticket #${ticketId} status updated to ${status}`);
   return ticket;
 }
 
@@ -112,7 +110,6 @@ export function assignTicket(ticketId: number, adminId: number): SupportTicket |
   ticket.status = 'in-progress';
   ticket.updatedAt = new Date();
 
-  console.log(`[Support] Ticket #${ticketId} assigned to admin ${adminId}`);
   return ticket;
 }
 
@@ -143,7 +140,6 @@ export function addTicketMessage(
   ticketMessages.get(ticketId)!.push(ticketMessage);
   ticket.updatedAt = new Date();
 
-  console.log(`[Support] Message added to ticket #${ticketId}`);
   return ticketMessage;
 }
 
@@ -161,7 +157,6 @@ export function escalateTicket(ticketId: number, reason: string): SupportTicket 
 
   addTicketMessage(ticketId, 0, 'admin', `Ticket escalated: ${reason}`);
 
-  console.log(`[Support] Ticket #${ticketId} escalated to admin team`);
   return ticket;
 }
 
@@ -182,9 +177,6 @@ function scheduleEscalation(ticketId: number): void {
 }
 
 function notifyEscalation(ticket: SupportTicket): void {
-  console.log(
-    `[Support] Escalation notification sent for ticket #${ticket.id} (${ticket.title})`
-  );
   // In production, send email notifications
 }
 

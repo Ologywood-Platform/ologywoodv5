@@ -26,7 +26,6 @@ class EmailVerificationService {
    */
   async sendVerificationSubmittedEmail(data: VerificationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -57,7 +56,6 @@ class EmailVerificationService {
         subject: "Artist Verification Submitted",
         html: htmlContent,
       });
-      console.log(`[Email] Verification submitted email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send verification submitted email:", error);
     }
@@ -68,7 +66,6 @@ class EmailVerificationService {
    */
   async sendVerificationApprovedEmail(data: VerificationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -103,7 +100,6 @@ class EmailVerificationService {
         subject: "🎉 Your Artist Verification is Approved!",
         html: htmlContent,
       });
-      console.log(`[Email] Verification approved email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send verification approved email:", error);
     }
@@ -114,7 +110,6 @@ class EmailVerificationService {
    */
   async sendVerificationRejectedEmail(data: VerificationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -149,7 +144,6 @@ class EmailVerificationService {
         subject: "Verification Status Update",
         html: htmlContent,
       });
-      console.log(`[Email] Verification rejected email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send verification rejected email:", error);
     }
@@ -160,7 +154,6 @@ class EmailVerificationService {
    */
   async sendVerificationAppealEmail(data: VerificationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -187,7 +180,6 @@ class EmailVerificationService {
         subject: "Appeal Received - Verification Review",
         html: htmlContent,
       });
-      console.log(`[Email] Verification appeal email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send verification appeal email:", error);
     }
@@ -198,7 +190,6 @@ class EmailVerificationService {
    */
   async sendVerificationReminderEmail(data: VerificationEmailData): Promise<void> {
     if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
-      console.log("[Email] SendGrid not configured, skipping email");
       return;
     }
 
@@ -234,7 +225,6 @@ class EmailVerificationService {
         subject: "Complete Your Artist Verification Today",
         html: htmlContent,
       });
-      console.log(`[Email] Verification reminder email sent to ${data.recipientEmail}`);
     } catch (error) {
       console.error("[Email] Failed to send verification reminder email:", error);
     }
@@ -267,7 +257,6 @@ class EmailVerificationService {
     const successful = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
-    console.log(`[Email] Batch verification emails: ${successful} sent, ${failed} failed`);
   }
 }
 

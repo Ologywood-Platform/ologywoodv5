@@ -24,7 +24,6 @@ router.post('/test', async (req, res) => {
       });
     }
 
-    console.log(`[Email] Sending test email to ${email}`);
     const success = await sendTestEmail(email);
 
     if (success) {

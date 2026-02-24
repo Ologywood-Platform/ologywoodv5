@@ -52,7 +52,6 @@ class ContractNotificationService {
         html: htmlContent,
       });
 
-      console.log(`[ContractNotificationService] Contract sent notification sent to ${data.recipientEmail}`);
       return true;
     } catch (error) {
       console.error('[ContractNotificationService] Error sending contract sent notification:', error);
@@ -88,7 +87,6 @@ class ContractNotificationService {
         html: htmlContent,
       });
 
-      console.log(`[ContractNotificationService] Signature request notification sent to ${data.recipientEmail}`);
       return true;
     } catch (error) {
       console.error('[ContractNotificationService] Error sending signature request notification:', error);
@@ -124,7 +122,6 @@ class ContractNotificationService {
         html: htmlContent,
       });
 
-      console.log(`[ContractNotificationService] Signature received notification sent to ${data.recipientEmail}`);
       return true;
     } catch (error) {
       console.error('[ContractNotificationService] Error sending signature received notification:', error);
@@ -159,7 +156,6 @@ class ContractNotificationService {
         html: htmlContent,
       });
 
-      console.log(`[ContractNotificationService] Contract reminder notification sent to ${data.recipientEmail}`);
       return true;
     } catch (error) {
       console.error('[ContractNotificationService] Error sending contract reminder notification:', error);

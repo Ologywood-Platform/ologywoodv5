@@ -7,7 +7,6 @@ import { getDb } from './db';
  */
 
 export async function optimizeDatabase() {
-  console.log('Starting database optimization...');
 
   try {
     // Artist Profiles Indexes
@@ -59,7 +58,6 @@ export async function optimizeDatabase() {
     await createIndex('bookings_venueId_status_idx', 'bookings', ['venueId', 'status']);
     await createIndex('bookings_eventDate_status_idx', 'bookings', ['eventDate', 'status']);
 
-    console.log('Database optimization completed successfully!');
   } catch (error) {
     console.error('Database optimization failed:', error);
     throw error;
@@ -77,11 +75,9 @@ async function createIndex(
     const db = await getDb();
     if (db) {
       await db.execute(sql.raw(query));
-      console.log(`✓ Created index: ${indexName}`);
     }
   } catch (error: any) {
     if (error.message?.includes('already exists')) {
-      console.log(`✓ Index already exists: ${indexName}`);
     } else {
       console.error(`✗ Failed to create index ${indexName}:`, error.message);
     }
@@ -96,49 +92,42 @@ async function createIndex(
 export const optimizedQueries = {
   // Search artists with pagination - uses indexes on genre, location, rating
   searchArtists: async (criteria: any, page: number = 1, limit: number = 20) => {
-    console.log('Optimized search query with indexes:', criteria);
     // Query uses: artist_profiles_genre_idx, artist_profiles_location_idx, artist_profiles_rating_idx
     return [];
   },
 
   // Get artist bookings with status - uses indexes on artistId and status
   getArtistBookings: async (artistId: number, status?: string) => {
-    console.log('Optimized booking query with indexes:', artistId, status);
     // Query uses: bookings_artistId_status_idx
     return [];
   },
 
   // Get available dates for artist - uses composite index on artistId and date
   getAvailableDates: async (artistId: number, startDate: Date, endDate: Date) => {
-    console.log('Optimized availability query with indexes:', artistId, startDate, endDate);
     // Query uses: availability_artistId_date_idx
     return [];
   },
 
   // Get recent messages for booking - uses indexes on bookingId and createdAt
   getMessages: async (bookingId: number, limit: number = 50) => {
-    console.log('Optimized messages query with indexes:', bookingId, limit);
     // Query uses: messages_bookingId_idx, messages_createdAt_idx
     return [];
   },
 
   // Get artist reviews with pagination - uses indexes on artistId and rating
   getArtistReviews: async (artistId: number, page: number = 1, limit: number = 10) => {
-    console.log('Optimized reviews query with indexes:', artistId, page, limit);
     // Query uses: reviews_artistId_idx, reviews_rating_idx
     return [];
   },
 
   // Get pending invoices - uses indexes on status and dueDate
   getPendingInvoices: async (limit: number = 100) => {
-    console.log('Optimized invoices query with indexes:', limit);
     // Query uses: invoices_status_idx, invoices_dueDate_idx
     return [];
   },
 
   // Get bookings by date range - uses indexes on eventDate and status
   getBookingsByDateRange: async (startDate: Date, endDate: Date, status?: string) => {
-    console.log('Optimized date range query with indexes:', startDate, endDate, status);
     // Query uses: bookings_eventDate_status_idx
     return [];
   },

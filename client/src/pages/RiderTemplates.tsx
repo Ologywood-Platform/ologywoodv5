@@ -91,7 +91,6 @@ export function RiderTemplates() {
       setShowForm(false);
       refetch();
     } catch (error) {
-      console.error('Error creating rider:', error);
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +109,6 @@ export function RiderTemplates() {
       setShowForm(false);
       refetch();
     } catch (error) {
-      console.error('Error updating rider:', error);
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +122,6 @@ export function RiderTemplates() {
       await deleteRiderMutation.mutateAsync({ templateId: id });
       refetch();
     } catch (error) {
-      console.error('Error deleting rider:', error);
     }
   };
 

@@ -45,9 +45,6 @@ export async function checkAndSendPaymentReminders(
     const endOfDay = new Date(reminderDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log(
-      `[Payment Reminder] Checking for bookings with events between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`
-    );
 
     // Find bookings that:
     // 1. Have events in exactly 7 days
@@ -64,9 +61,6 @@ export async function checkAndSendPaymentReminders(
       )
       .limit(batchSize);
 
-    console.log(
-      `[Payment Reminder] Found ${bookingsNeedingReminder.length} bookings needing reminders`
-    );
 
     // Process each booking
     for (const booking of bookingsNeedingReminder) {
@@ -138,9 +132,6 @@ export async function checkAndSendPaymentReminders(
           })
           .where(eq(bookings.id, booking.id));
 
-        console.log(
-          `[Payment Reminder] Sent reminder for booking ${booking.id} to ${venue.email}`
-        );
         sent++;
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -149,9 +140,6 @@ export async function checkAndSendPaymentReminders(
       }
     }
 
-    console.log(
-      `[Payment Reminder] Completed: ${sent} sent, ${failed} failed, ${errors.length} errors`
-    );
 
     return { sent, failed, errors };
   } catch (error) {

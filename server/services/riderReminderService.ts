@@ -121,7 +121,7 @@ export async function getDefaultReminderPreferences(): Promise<ReminderPreferenc
 //     );
 //
 //     // Send email (integrate with your email service)
-//     console.log(`[Rider Reminder] Sending venue reminder to ${venueUser[0].email}`);
+//     
 //     // await sendEmail({
 //     //   to: venueUser[0].email,
 //     //   subject: `Reminder: ${booking[0].artistName}'s Rider Awaiting Your Response`,
@@ -233,7 +233,7 @@ export async function getDefaultReminderPreferences(): Promise<ReminderPreferenc
 //     );
 //
 //     // Send email (integrate with your email service)
-//     console.log(`[Rider Reminder] Sending artist reminder to ${artist[0].email}`);
+//     
 //     // await sendEmail({
 //     //   to: artist[0].email,
 //     //   subject: `Reminder: ${pendingMods.length} Modification${pendingMods.length > 1 ? 's' : ''} Awaiting Your Response`,
@@ -257,7 +257,7 @@ export async function processPendingReminders(preferences?: ReminderPreferences)
 
   try {
     // TODO: Implement riderAcknowledgments table and re-enable this functionality
-    console.log('[Rider Reminder] Service is currently disabled. Requires riderAcknowledgments table.');
+    
   } catch (error) {
     console.error('[Rider Reminder] Error processing pending reminders:', error);
   }
@@ -280,5 +280,5 @@ export async function updateUserReminderPreferences(
   preferences: Partial<ReminderPreferences>
 ): Promise<void> {
   // In a real implementation, update user preferences table
-  console.log(`[Rider Reminder] Updated preferences for user ${userId}:`, preferences);
+  
 }

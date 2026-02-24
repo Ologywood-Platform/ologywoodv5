@@ -95,7 +95,6 @@ class EmailService {
         ],
       });
 
-      console.log(`[EmailService] Booking confirmation sent to artist: ${artistEmail}`);
 
       // Send email to venue
       const venueHtmlContent = htmlContent.replace(
@@ -117,7 +116,6 @@ class EmailService {
         ],
       });
 
-      console.log(`[EmailService] Booking confirmation sent to venue: ${venueEmail}`);
 
       return true;
     } catch (error) {
@@ -179,7 +177,6 @@ class EmailService {
         html: welcomeHtml,
       });
 
-      console.log(`[EmailService] Welcome email sent to: ${email}`);
       return true;
     } catch (error) {
       console.error('[EmailService] Error sending welcome email:', error);
@@ -244,7 +241,6 @@ class EmailService {
         html: cancellationHtml,
       });
 
-      console.log('[EmailService] Cancellation emails sent');
       return true;
     } catch (error) {
       console.error('[EmailService] Error sending cancellation email:', error);

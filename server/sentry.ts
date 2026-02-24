@@ -45,7 +45,6 @@ export function initializeSentry(app: any) {
     next(err);
   });
 
-  console.log('Sentry initialized successfully');
 }
 
 /**

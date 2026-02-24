@@ -40,7 +40,6 @@ export async function archiveContractPdf(
   metadata: Record<string, any> = {}
 ): Promise<ContractArchive> {
   try {
-    console.log(`[Archive Service] Archiving PDF for contract ${contractId}`);
 
     // Generate unique storage key
     const timestamp = Date.now();
@@ -69,7 +68,6 @@ export async function archiveContractPdf(
       downloadCount: 0,
     };
 
-    console.log(`[Archive Service] PDF archived successfully: ${archiveId}`);
     return archive;
   } catch (error) {
     console.error('[Archive Service] Error archiving PDF:', error);
@@ -82,7 +80,6 @@ export async function archiveContractPdf(
  */
 export async function retrieveArchivedPdf(archiveId: string, expiresIn: number = 3600): Promise<{ url: string; filename: string; expiresAt: Date }> {
   try {
-    console.log(`[Archive Service] Retrieving archived PDF: ${archiveId}`);
 
     // In production, you would:
     // 1. Fetch archive metadata from database
@@ -107,7 +104,6 @@ export async function retrieveArchivedPdf(archiveId: string, expiresIn: number =
  */
 export async function getContractVersions(contractId: string): Promise<ContractVersion[]> {
   try {
-    console.log(`[Archive Service] Getting versions for contract ${contractId}`);
 
     // In production, fetch from database
     return [];
@@ -126,7 +122,6 @@ export async function createContractVersion(
   certificateNumber?: string
 ): Promise<ContractVersion> {
   try {
-    console.log(`[Archive Service] Creating new version for contract ${contractId}`);
 
     const version: ContractVersion = {
       contractId,
@@ -148,7 +143,6 @@ export async function createContractVersion(
  */
 export async function deleteArchivedPdf(archiveId: string): Promise<boolean> {
   try {
-    console.log(`[Archive Service] Deleting archived PDF: ${archiveId}`);
 
     // In production:
     // 1. Delete from S3
@@ -172,7 +166,6 @@ export async function getStorageStats(userId: number): Promise<{
   newestArchive: Date | null;
 }> {
   try {
-    console.log(`[Archive Service] Getting storage stats for user ${userId}`);
 
     return {
       totalSize: 0,
@@ -191,7 +184,6 @@ export async function getStorageStats(userId: number): Promise<{
  */
 export async function cleanupOldArchives(retentionDays: number = 365): Promise<{ deletedCount: number; freedSpace: number }> {
   try {
-    console.log(`[Archive Service] Cleaning up archives older than ${retentionDays} days`);
 
     // In production:
     // 1. Find archives older than retention date
@@ -214,7 +206,6 @@ export async function cleanupOldArchives(retentionDays: number = 365): Promise<{
  */
 export async function exportContractArchive(contractId: string): Promise<Buffer> {
   try {
-    console.log(`[Archive Service] Exporting archive for contract ${contractId}`);
 
     // In production:
     // 1. Get all versions of contract
@@ -234,7 +225,6 @@ export async function exportContractArchive(contractId: string): Promise<Buffer>
  */
 export async function getArchiveMetadata(archiveId: string): Promise<ContractArchive | null> {
   try {
-    console.log(`[Archive Service] Getting metadata for archive ${archiveId}`);
 
     // In production, fetch from database
     return null;
@@ -249,7 +239,6 @@ export async function getArchiveMetadata(archiveId: string): Promise<ContractArc
  */
 export async function updateArchiveMetadata(archiveId: string, metadata: Record<string, any>): Promise<ContractArchive | null> {
   try {
-    console.log(`[Archive Service] Updating metadata for archive ${archiveId}`);
 
     // In production:
     // 1. Fetch archive from database

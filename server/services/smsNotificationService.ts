@@ -35,7 +35,7 @@ class SMSNotificationService {
    */
   async sendBookingConfirmationSMS(data: SMSNotificationData): Promise<void> {
     if (!this.twilioClient) {
-      console.log("[SMS] Twilio not configured, skipping SMS");
+      
       return;
     }
 
@@ -52,7 +52,7 @@ class SMSNotificationService {
         from: this.twilioPhoneNumber,
         to: data.recipientPhone,
       });
-      console.log(`[SMS] Booking confirmation sent to ${data.recipientPhone} (SID: ${result.sid})`);
+      
     } catch (error) {
       console.error("[SMS] Failed to send booking confirmation:", error);
     }
@@ -63,7 +63,7 @@ class SMSNotificationService {
    */
   async sendContractSignedSMS(data: SMSNotificationData): Promise<void> {
     if (!this.twilioClient) {
-      console.log("[SMS] Twilio not configured, skipping SMS");
+      
       return;
     }
 
@@ -80,7 +80,7 @@ class SMSNotificationService {
         from: this.twilioPhoneNumber,
         to: data.recipientPhone,
       });
-      console.log(`[SMS] Contract signed notification sent to ${data.recipientPhone} (SID: ${result.sid})`);
+      
     } catch (error) {
       console.error("[SMS] Failed to send contract signed SMS:", error);
     }
@@ -91,7 +91,7 @@ class SMSNotificationService {
    */
   async sendBookingReminderSMS(data: SMSNotificationData): Promise<void> {
     if (!this.twilioClient) {
-      console.log("[SMS] Twilio not configured, skipping SMS");
+      
       return;
     }
 
@@ -108,7 +108,7 @@ class SMSNotificationService {
         from: this.twilioPhoneNumber,
         to: data.recipientPhone,
       });
-      console.log(`[SMS] Booking reminder sent to ${data.recipientPhone} (SID: ${result.sid})`);
+      
     } catch (error) {
       console.error("[SMS] Failed to send booking reminder:", error);
     }
@@ -119,7 +119,7 @@ class SMSNotificationService {
    */
   async sendPaymentReceivedSMS(data: SMSNotificationData): Promise<void> {
     if (!this.twilioClient) {
-      console.log("[SMS] Twilio not configured, skipping SMS");
+      
       return;
     }
 
@@ -136,7 +136,7 @@ class SMSNotificationService {
         from: this.twilioPhoneNumber,
         to: data.recipientPhone,
       });
-      console.log(`[SMS] Payment notification sent to ${data.recipientPhone} (SID: ${result.sid})`);
+      
     } catch (error) {
       console.error("[SMS] Failed to send payment SMS:", error);
     }
@@ -147,7 +147,7 @@ class SMSNotificationService {
    */
   async sendCustomSMS(data: SMSNotificationData): Promise<void> {
     if (!this.twilioClient) {
-      console.log("[SMS] Twilio not configured, skipping SMS");
+      
       return;
     }
 
@@ -162,7 +162,7 @@ class SMSNotificationService {
         from: this.twilioPhoneNumber,
         to: data.recipientPhone,
       });
-      console.log(`[SMS] Custom SMS sent to ${data.recipientPhone} (SID: ${result.sid})`);
+      
     } catch (error) {
       console.error("[SMS] Failed to send custom SMS:", error);
     }
@@ -192,7 +192,7 @@ class SMSNotificationService {
     const sent = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
-    console.log(`[SMS] Batch SMS: ${sent} sent, ${failed} failed`);
+    
     return { sent, failed };
   }
 
@@ -208,5 +208,4 @@ export const smsNotificationService = new SMSNotificationService();
 
 // Log SMS service status
 if (!smsNotificationService.isConfigured()) {
-  console.log('[SMS] Twilio SMS service not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER to enable.');
 }

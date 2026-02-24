@@ -71,7 +71,6 @@ export async function calculateContractMetrics(dateRange: 'today' | '7days' | '3
       metrics.signingRate = (metrics.signedContracts / metrics.totalContracts) * 100;
     }
 
-    console.log(`[Analytics] Contract metrics calculated for ${dateRange}:`, metrics);
     return metrics;
   } catch (error) {
     console.error('[Analytics] Error calculating contract metrics:', error);
@@ -105,7 +104,6 @@ export async function calculateSupportMetrics(dateRange: 'today' | '7days' | '30
       metrics.slaComplianceRate = (slaCompliantTickets / totalSLATrackedTickets) * 100;
     }
 
-    console.log(`[Analytics] Support metrics calculated for ${dateRange}:`, metrics);
     return metrics;
   } catch (error) {
     console.error('[Analytics] Error calculating support metrics:', error);
@@ -135,7 +133,6 @@ export async function calculateBookingMetrics(dateRange: 'today' | '7days' | '30
       metrics.conversionRate = (metrics.confirmedBookings / metrics.totalBookings) * 100;
     }
 
-    console.log(`[Analytics] Booking metrics calculated for ${dateRange}:`, metrics);
     return metrics;
   } catch (error) {
     console.error('[Analytics] Error calculating booking metrics:', error);
@@ -165,7 +162,6 @@ export async function calculateUserMetrics(dateRange: 'today' | '7days' | '30day
       metrics.retentionRate = (metrics.activeUsers / metrics.totalUsers) * 100;
     }
 
-    console.log(`[Analytics] User metrics calculated for ${dateRange}:`, metrics);
     return metrics;
   } catch (error) {
     console.error('[Analytics] Error calculating user metrics:', error);
@@ -195,7 +191,6 @@ export async function calculateDailyMetrics(date: Date): Promise<DailyMetrics> {
       users,
     };
 
-    console.log(`[Analytics] Daily metrics calculated for ${dateString}`);
     return metrics;
   } catch (error) {
     console.error('[Analytics] Error calculating daily metrics:', error);
@@ -209,12 +204,10 @@ export async function calculateDailyMetrics(date: Date): Promise<DailyMetrics> {
 export async function storeDailyMetrics(metrics: DailyMetrics): Promise<boolean> {
   try {
     // Store metrics in support_metrics table
-    console.log(`[Analytics] Storing daily metrics for ${metrics.date}`);
 
     // This would be implemented with actual database queries
     // INSERT INTO support_metrics (date, totalTickets, openTickets, ...) VALUES (...)
 
-    console.log(`[Analytics] Daily metrics stored successfully`);
     return true;
   } catch (error) {
     console.error('[Analytics] Error storing daily metrics:', error);
@@ -231,7 +224,6 @@ export async function getMetricsForDateRange(
   metricType: 'contracts' | 'support' | 'bookings' | 'users' | 'all'
 ): Promise<any> {
   try {
-    console.log(`[Analytics] Fetching ${metricType} metrics from ${startDate} to ${endDate}`);
 
     // Query database for metrics in the date range
     // This would be implemented with actual database queries
@@ -272,7 +264,6 @@ export function calculateTrend(current: number, previous: number): { trend: 'up'
  */
 export async function generateAnalyticsReport(dateRange: 'today' | '7days' | '30days' | '90days' | 'all'): Promise<any> {
   try {
-    console.log(`[Analytics] Generating analytics report for ${dateRange}`);
 
     const validDateRange: 'all' | 'today' | '7days' | '30days' = dateRange === '90days' ? '30days' : dateRange;
     const [contracts, support, bookings, users] = await Promise.all([
@@ -299,7 +290,6 @@ export async function generateAnalyticsReport(dateRange: 'today' | '7days' | '30
       },
     };
 
-    console.log(`[Analytics] Analytics report generated for ${dateRange}`);
     return report;
   } catch (error) {
     console.error('[Analytics] Error generating analytics report:', error);

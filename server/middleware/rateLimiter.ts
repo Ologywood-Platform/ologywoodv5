@@ -230,7 +230,6 @@ export function startRateLimitCleanup(intervalMs: number = 60000) {
     keysToDelete.forEach(key => rateLimitStore.delete(key));
 
     if (cleaned > 0) {
-      console.log(`[RateLimit] Cleaned up ${cleaned} expired entries`);
     }
   }, intervalMs);
 }

@@ -136,7 +136,6 @@ class ContractService {
   async saveContractTemplate(artistId: number, templateName: string, contractData: ContractData): Promise<number> {
     try {
       // This is a placeholder - actual implementation would use database
-      console.log(`[ContractService] Contract template saved for artist ${artistId}`);
       return Math.floor(Math.random() * 10000);
     } catch (error) {
       console.error('[ContractService] Error saving contract template:', error);
@@ -150,7 +149,6 @@ class ContractService {
   async getContractTemplate(artistId: number, templateId?: number) {
     try {
       // This is a placeholder - actual implementation would query database
-      console.log(`[ContractService] Getting contract template for artist ${artistId}`);
       return null;
     } catch (error) {
       console.error('[ContractService] Error getting contract template:', error);
@@ -164,7 +162,6 @@ class ContractService {
   async listContractTemplates(artistId: number) {
     try {
       // This is a placeholder - actual implementation would query database
-      console.log(`[ContractService] Listing contract templates for artist ${artistId}`);
       return [];
     } catch (error) {
       console.error('[ContractService] Error listing contract templates:', error);
@@ -223,7 +220,6 @@ class ContractService {
 
       // Note: riderData is stored in contract, not booking
       // Bookings table doesn't have riderData field
-      console.log(`[ContractService] Contract attached to booking ${bookingId}`);
     } catch (error) {
       console.error('[ContractService] Error attaching contract to booking:', error);
       throw new Error('Failed to attach contract to booking');
@@ -237,7 +233,6 @@ class ContractService {
     try {
       // This would typically use a service like puppeteer or wkhtmltopdf
       // For now, we'll return a placeholder
-      console.log(`[ContractService] PDF export requested for: ${filename}`);
       throw new Error('PDF export requires external service configuration');
     } catch (error) {
       console.error('[ContractService] Error exporting contract as PDF:', error);
