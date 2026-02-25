@@ -232,7 +232,8 @@ export const reviews = mysqlTable("reviews", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("bookingId").unique(),
   artistId: int("artistId").notNull(),
-  venueId: int("venueId").notNull(),
+  venueId: int("venueId"),
+  reviewerUserId: int("reviewerUserId"), // user ID of the reviewer (for profile-based reviews)
   rating: int("rating").notNull(), // 1-5
   comment: text("comment"),
   artistResponse: text("artistResponse"),
@@ -243,6 +244,7 @@ export const reviews = mysqlTable("reviews", {
   artistIdx: index("idx_reviews_artist").on(table.artistId),
   venueIdx: index("idx_reviews_venue").on(table.venueId),
   artistRatingIdx: index("idx_reviews_artist_rating").on(table.artistId, table.rating),
+  reviewerUserIdx: index("idx_reviews_reviewer_user").on(table.reviewerUserId),
 }));
 
 export type Review = typeof reviews.$inferSelect;

@@ -37,8 +37,16 @@ describe('Review Persistence Feature', () => {
       expect(routersContent).toContain("'Artist not found'");
     });
 
-    it('should prevent duplicate reviews from the same venue', () => {
+    it('should prevent duplicate reviews from the same user', () => {
       expect(routersContent).toContain('You have already reviewed this artist');
+      expect(routersContent).toContain('r.reviewerUserId === ctx.user.id');
+    });
+
+    it('should use reviewerUserId instead of requiring venue profile', () => {
+      const startIdx = routersContent.indexOf('createFromProfile');
+      const createFromProfileSection = routersContent.slice(startIdx, startIdx + 1500);
+      expect(createFromProfileSection).toContain('reviewerUserId');
+      expect(createFromProfileSection).toContain('ctx.user.id');
     });
 
     it('should store title and review text as combined comment', () => {
@@ -47,16 +55,31 @@ describe('Review Persistence Feature', () => {
     });
   });
 
-  describe('Schema: bookingId is optional', () => {
+  describe('Schema: bookingId and venueId are optional', () => {
     it('should have bookingId without notNull constraint for profile-based reviews', () => {
-      // bookingId should not have .notNull() to allow null values
       const reviewsTableSection = schemaContent.slice(
         schemaContent.indexOf('export const reviews = mysqlTable'),
-        schemaContent.indexOf('export const reviews = mysqlTable') + 300
+        schemaContent.indexOf('export const reviews = mysqlTable') + 500
       );
-      // Should have bookingId but NOT with notNull
       expect(reviewsTableSection).toContain('bookingId');
       expect(reviewsTableSection).not.toMatch(/bookingId.*\.notNull\(\)/);
+    });
+
+    it('should have venueId without notNull constraint', () => {
+      const reviewsTableSection = schemaContent.slice(
+        schemaContent.indexOf('export const reviews = mysqlTable'),
+        schemaContent.indexOf('export const reviews = mysqlTable') + 500
+      );
+      expect(reviewsTableSection).toContain('venueId');
+      expect(reviewsTableSection).not.toMatch(/venueId.*\.notNull\(\)/);
+    });
+
+    it('should have reviewerUserId column for profile-based reviews', () => {
+      const reviewsTableSection = schemaContent.slice(
+        schemaContent.indexOf('export const reviews = mysqlTable'),
+        schemaContent.indexOf('export const reviews = mysqlTable') + 500
+      );
+      expect(reviewsTableSection).toContain('reviewerUserId');
     });
   });
 

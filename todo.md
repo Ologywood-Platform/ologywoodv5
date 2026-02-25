@@ -370,3 +370,8 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Load persisted reviews from database on artist profile
 - [x] Remove photo upload (keep it lean — text only for now)
 - [x] Write tests and verify TypeScript correctness (20 tests passing)
+
+## BUG FIX: Review submission error for venue users
+- [x] Investigate server logs for review submission error (venue_profiles table empty)
+- [x] Fix the root cause (use reviewerUserId instead of requiring venue profile)
+- [x] Verify fix works end-to-end (23 tests passing, server running clean)

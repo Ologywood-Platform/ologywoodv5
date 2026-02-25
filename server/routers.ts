@@ -992,31 +992,29 @@ export const appRouter = router({
         reviewText: z.string().min(1).max(2000),
       }))
       .mutation(async ({ input, ctx }) => {
-        // Get venue profile
-        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
-        if (!venueProfile) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave reviews' });
-        }
-        
         // Check if artist exists
         const artist = await db.getArtistProfileById(input.artistId);
         if (!artist) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist not found' });
         }
         
-        // Check if this venue already reviewed this artist (without a booking)
+        // Check if this user already reviewed this artist (without a booking)
         const existingReviews = await db.getReviewsByArtistId(input.artistId);
         const alreadyReviewed = existingReviews.find(
-          (r: any) => r.venueId === venueProfile.id && !r.bookingId
+          (r: any) => r.reviewerUserId === ctx.user.id && !r.bookingId
         );
         if (alreadyReviewed) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'You have already reviewed this artist' });
         }
         
+        // Try to get venue profile for venueId, but don't require it
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        
         await db.createReview({
           bookingId: null as any,
           artistId: input.artistId,
-          venueId: venueProfile.id,
+          venueId: venueProfile?.id || null as any,
+          reviewerUserId: ctx.user.id,
           rating: input.rating,
           comment: `${input.title}\n\n${input.reviewText}`,
         });
