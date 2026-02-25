@@ -983,6 +983,47 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    // Create review from artist profile page (venue only, no booking required)
+    createFromProfile: venueProcedure
+      .input(z.object({
+        artistId: z.number(),
+        rating: z.number().min(1).max(5),
+        title: z.string().min(1).max(200),
+        reviewText: z.string().min(1).max(2000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Get venue profile
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave reviews' });
+        }
+        
+        // Check if artist exists
+        const artist = await db.getArtistProfileById(input.artistId);
+        if (!artist) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist not found' });
+        }
+        
+        // Check if this venue already reviewed this artist (without a booking)
+        const existingReviews = await db.getReviewsByArtistId(input.artistId);
+        const alreadyReviewed = existingReviews.find(
+          (r: any) => r.venueId === venueProfile.id && !r.bookingId
+        );
+        if (alreadyReviewed) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'You have already reviewed this artist' });
+        }
+        
+        await db.createReview({
+          bookingId: null as any,
+          artistId: input.artistId,
+          venueId: venueProfile.id,
+          rating: input.rating,
+          comment: `${input.title}\n\n${input.reviewText}`,
+        });
+        
+        return { success: true };
+      }),
+
     // Get reviews for an artist (public)
     getByArtist: publicProcedure
       .input(z.object({ artistId: z.number() }))

@@ -4,57 +4,60 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
-import { Star, Upload, Trash2, MessageCircle, LogIn, UserPlus } from 'lucide-react';
+import { Star, MessageCircle, LogIn, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
-
-interface Review {
-  id: number;
-  authorName: string;
-  authorRole: 'artist' | 'venue';
-  rating: number;
-  title: string;
-  content: string;
-  photos?: string[];
-  createdAt: string;
-  helpful: number;
-  verified: boolean;
-}
-
-interface ReviewStats {
-  averageRating: number;
-  totalReviews: number;
-  ratingDistribution: {
-    5: number;
-    4: number;
-    3: number;
-    2: number;
-    1: number;
-  };
-}
+import { trpc } from '@/lib/trpc';
 
 interface ReviewSystemProps {
   targetId: number;
   targetType: 'artist' | 'venue';
-  onReviewSubmitted?: (review: Review) => void;
+  onReviewSubmitted?: () => void;
 }
 
 export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: ReviewSystemProps) {
   const { user, isAuthenticated } = useAuth();
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats>({
-    averageRating: 0,
-    totalReviews: 0,
-    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-  });
 
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Fetch reviews from the database
+  const reviewsQuery = trpc.review.getByArtist.useQuery(
+    { artistId: targetId },
+    { enabled: targetType === 'artist' }
+  );
+
+  // Fetch average rating
+  const ratingQuery = trpc.review.getAverageRating.useQuery(
+    { artistId: targetId },
+    { enabled: targetType === 'artist' }
+  );
+
+  // Create review mutation
+  const createReviewMutation = trpc.review.createFromProfile.useMutation({
+    onSuccess: () => {
+      toast.success('Review submitted successfully!');
+      setTitle('');
+      setContent('');
+      setRating(5);
+      setShowForm(false);
+      // Refetch reviews and rating
+      reviewsQuery.refetch();
+      ratingQuery.refetch();
+      onReviewSubmitted?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to submit review');
+    },
+  });
+
+  const reviews = reviewsQuery.data || [];
+  const averageRating = ratingQuery.data?.averageRating || 0;
+  const totalReviews = ratingQuery.data?.reviewCount || 0;
 
   // Determine if the current user can leave a review
   const canReview = isAuthenticated && user && (
@@ -64,15 +67,14 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
 
   const reviewerRole = targetType === 'artist' ? 'venue' : 'artist';
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setPhotos([...photos, ...Array.from(e.target.files)]);
+  // Calculate rating distribution from actual reviews
+  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach((r: any) => {
+    const rVal = r.rating as 1 | 2 | 3 | 4 | 5;
+    if (rVal >= 1 && rVal <= 5) {
+      ratingDistribution[rVal]++;
     }
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setPhotos(photos.filter((_, i) => i !== index));
-  };
+  });
 
   const handleSubmitReview = async () => {
     if (!title.trim() || !content.trim()) {
@@ -82,29 +84,12 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
 
     setLoading(true);
     try {
-      const newReview: Review = {
-        id: Math.random(),
-        authorName: user?.name || 'You',
-        authorRole: user?.role as 'artist' | 'venue' || 'venue',
+      await createReviewMutation.mutateAsync({
+        artistId: targetId,
         rating,
-        title,
-        content,
-        photos: [],
-        createdAt: new Date().toLocaleDateString(),
-        helpful: 0,
-        verified: true,
-      };
-
-      setReviews([newReview, ...reviews]);
-      setTitle('');
-      setContent('');
-      setRating(5);
-      setPhotos([]);
-      setShowForm(false);
-      toast.success('Review submitted successfully');
-      onReviewSubmitted?.(newReview);
-    } catch (error) {
-      toast.error('Failed to submit review');
+        title: title.trim(),
+        reviewText: content.trim(),
+      });
     } finally {
       setLoading(false);
     }
@@ -133,9 +118,19 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
   };
 
   const getRatingPercentage = (ratingCount: number) => {
-    return stats.totalReviews > 0
-      ? Math.round((ratingCount / stats.totalReviews) * 100)
+    return totalReviews > 0
+      ? Math.round((ratingCount / totalReviews) * 100)
       : 0;
+  };
+
+  // Parse review comment to extract title and content
+  const parseReviewComment = (comment: string | null) => {
+    if (!comment) return { title: '', content: '' };
+    const parts = comment.split('\n\n');
+    if (parts.length >= 2) {
+      return { title: parts[0], content: parts.slice(1).join('\n\n') };
+    }
+    return { title: '', content: comment };
   };
 
   const renderReviewPrompt = () => {
@@ -170,7 +165,7 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
       );
     }
 
-    // Case 2: Logged in but wrong role (e.g., artist trying to review another artist)
+    // Case 2: Logged in but wrong role
     if (!canReview) {
       return (
         <Card className="p-6 bg-gray-50 border-gray-200">
@@ -206,28 +201,28 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Average Rating */}
           <div className="flex flex-col items-center justify-center">
-            <div className="text-4xl font-bold mb-2">{stats.averageRating.toFixed(1)}</div>
-            {renderStars(Math.round(stats.averageRating))}
+            <div className="text-4xl font-bold mb-2">{averageRating.toFixed(1)}</div>
+            {renderStars(Math.round(averageRating))}
             <p className="text-sm text-gray-600 mt-2">
-              Based on {stats.totalReviews} reviews
+              Based on {totalReviews} review{totalReviews !== 1 ? 's' : ''}
             </p>
           </div>
 
           {/* Rating Distribution */}
           <div className="md:col-span-2 space-y-2">
-            {[5, 4, 3, 2, 1].map(rating => (
-              <div key={rating} className="flex items-center gap-2">
-                <span className="text-sm font-medium w-8">{rating}★</span>
+            {[5, 4, 3, 2, 1].map(r => (
+              <div key={r} className="flex items-center gap-2">
+                <span className="text-sm font-medium w-8">{r}★</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-yellow-400 h-2 rounded-full"
                     style={{
-                      width: `${getRatingPercentage(stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution])}%`,
+                      width: `${getRatingPercentage(ratingDistribution[r as keyof typeof ratingDistribution])}%`,
                     }}
                   />
                 </div>
                 <span className="text-sm text-gray-600 w-12 text-right">
-                  {getRatingPercentage(stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution])}%
+                  {getRatingPercentage(ratingDistribution[r as keyof typeof ratingDistribution])}%
                 </span>
               </div>
             ))}
@@ -256,6 +251,7 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
               placeholder="Summarize your experience"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              maxLength={200}
             />
           </div>
 
@@ -267,55 +263,16 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={4}
+              maxLength={2000}
             />
-          </div>
-
-          {/* Photos */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Add Photos (Optional)</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-                id="photo-upload"
-              />
-              <label htmlFor="photo-upload" className="cursor-pointer">
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Click to upload photos</span>
-                </div>
-              </label>
-            </div>
-
-            {photos.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {photos.map((photo, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={URL.createObjectURL(photo)}
-                      alt={`Preview ${index}`}
-                      className="w-full h-20 object-cover rounded"
-                    />
-                    <button
-                      onClick={() => handleRemovePhoto(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="text-xs text-gray-500 mt-1">{content.length}/2000 characters</p>
           </div>
 
           {/* Buttons */}
           <div className="flex gap-2">
             <Button
               onClick={handleSubmitReview}
-              disabled={loading}
+              disabled={loading || !title.trim() || !content.trim()}
               className="flex-1"
             >
               {loading ? 'Submitting...' : 'Submit Review'}
@@ -334,44 +291,52 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
       {/* Reviews List */}
       <div className="space-y-4">
         <h4 className="font-semibold">Recent Reviews</h4>
-        {reviews.length > 0 ? (
-          reviews.map(review => (
-            <Card key={review.id} className="p-4">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <div className="font-semibold">{review.title}</div>
-                  <div className="text-sm text-gray-600">
-                    {review.authorName} • {review.createdAt}
-                    {review.verified && (
-                      <Badge className="ml-2 bg-green-100 text-green-800">
-                        Verified
-                      </Badge>
+        {reviewsQuery.isLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map(i => (
+              <Card key={i} className="p-4 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-2" />
+                <div className="h-3 bg-gray-200 rounded w-1/4 mb-3" />
+                <div className="h-3 bg-gray-200 rounded w-full mb-1" />
+                <div className="h-3 bg-gray-200 rounded w-2/3" />
+              </Card>
+            ))}
+          </div>
+        ) : reviews.length > 0 ? (
+          reviews.map((review: any) => {
+            const parsed = parseReviewComment(review.comment);
+            return (
+              <Card key={review.id} className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    {parsed.title && (
+                      <div className="font-semibold">{parsed.title}</div>
                     )}
+                    <div className="text-sm text-gray-600">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                      {review.bookingId && (
+                        <Badge className="ml-2 bg-green-100 text-green-800">
+                          Verified Booking
+                        </Badge>
+                      )}
+                    </div>
                   </div>
+                  {renderStars(review.rating)}
                 </div>
-                {renderStars(review.rating)}
-              </div>
 
-              <p className="text-sm text-gray-700 mb-3">{review.content}</p>
+                <p className="text-sm text-gray-700 mb-3">
+                  {parsed.content || review.comment}
+                </p>
 
-              {review.photos && review.photos.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {review.photos.map((photo, index) => (
-                    <img
-                      key={index}
-                      src={photo}
-                      alt={`Review photo ${index}`}
-                      className="w-full h-20 object-cover rounded"
-                    />
-                  ))}
-                </div>
-              )}
-
-              <div className="text-sm text-gray-500">
-                {review.helpful} people found this helpful
-              </div>
-            </Card>
-          ))
+                {review.artistResponse && (
+                  <div className="mt-3 pl-4 border-l-2 border-purple-300 bg-purple-50 p-3 rounded-r">
+                    <p className="text-xs font-semibold text-purple-700 mb-1">Artist Response</p>
+                    <p className="text-sm text-gray-700">{review.artistResponse}</p>
+                  </div>
+                )}
+              </Card>
+            );
+          })
         ) : (
           <p className="text-sm text-gray-500 text-center py-4">
             No reviews yet. Be the first to share your experience!

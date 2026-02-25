@@ -363,3 +363,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 
 ## UX TWEAK: Review button text
 - [x] Change "Write a Review" to "Leave a Review" for clarity
+
+## WIRE REVIEWS TO BACKEND API
+- [x] Review existing review schema and tRPC endpoints
+- [x] Wire ReviewSystem form to backend create review mutation
+- [x] Load persisted reviews from database on artist profile
+- [x] Remove photo upload (keep it lean — text only for now)
+- [x] Write tests and verify TypeScript correctness (20 tests passing)

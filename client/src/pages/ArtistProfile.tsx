@@ -732,8 +732,8 @@ export default function ArtistProfile() {
                 <ReviewSystem
                   targetId={artistId}
                   targetType="artist"
-                  onReviewSubmitted={(review) => {
-                    toast.success('Review submitted successfully!');
+                  onReviewSubmitted={() => {
+                    // Reviews are now persisted via tRPC
                   }}
                 />
               </CardContent>

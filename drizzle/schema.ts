@@ -230,7 +230,7 @@ export type InsertMessage = typeof messages.$inferInsert;
  */
 export const reviews = mysqlTable("reviews", {
   id: int("id").autoincrement().primaryKey(),
-  bookingId: int("bookingId").notNull().unique(),
+  bookingId: int("bookingId").unique(),
   artistId: int("artistId").notNull(),
   venueId: int("venueId").notNull(),
   rating: int("rating").notNull(), // 1-5

@@ -302,6 +302,13 @@
       "when": 1771538017492,
       "tag": "0042_handy_mister_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1772048970337,
+      "tag": "0043_perfect_ogun",
+      "breakpoints": true
     }
   ]
 }
