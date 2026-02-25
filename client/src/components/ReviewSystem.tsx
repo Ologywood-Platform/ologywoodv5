@@ -184,12 +184,12 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
       );
     }
 
-    // Case 3: Logged in as correct role — show the Write a Review button
+    // Case 3: Logged in as correct role — show the Leave a Review button
     if (!showForm) {
       return (
         <Button onClick={() => setShowForm(true)} className="w-full">
           <MessageCircle className="h-4 w-4 mr-2" />
-          Write a Review
+          Leave a Review
         </Button>
       );
     }

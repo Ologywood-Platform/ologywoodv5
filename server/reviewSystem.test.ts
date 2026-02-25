@@ -35,7 +35,7 @@ describe('ReviewSystem - Auth-Aware Prompts', () => {
   });
 
   it('shows Write a Review button only for authorized users', () => {
-    expect(content).toContain('Write a Review');
+    expect(content).toContain('Leave a Review');
     // The button should be gated behind canReview
     expect(content).toContain('canReview');
   });

@@ -360,3 +360,6 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add "Sign up as a venue to leave a review" prompt for unauthenticated/non-venue users
 - [x] Keep existing reviews publicly visible to all visitors
 - [x] Write tests for review prompt states (11 tests passing)
+
+## UX TWEAK: Review button text
+- [x] Change "Write a Review" to "Leave a Review" for clarity
