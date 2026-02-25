@@ -4,8 +4,10 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
-import { Star, Upload, Trash2, MessageCircle } from 'lucide-react';
+import { Star, Upload, Trash2, MessageCircle, LogIn, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { getLoginUrl } from '@/const';
 
 interface Review {
   id: number;
@@ -39,6 +41,7 @@ interface ReviewSystemProps {
 }
 
 export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: ReviewSystemProps) {
+  const { user, isAuthenticated } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({
     averageRating: 0,
@@ -52,6 +55,14 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Determine if the current user can leave a review
+  const canReview = isAuthenticated && user && (
+    (targetType === 'artist' && user.role === 'venue') ||
+    (targetType === 'venue' && user.role === 'artist')
+  );
+
+  const reviewerRole = targetType === 'artist' ? 'venue' : 'artist';
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -71,24 +82,10 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
 
     setLoading(true);
     try {
-      // In production, call API to submit review
-      // const response = await fetch(`/api/reviews`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     targetId,
-      //     targetType,
-      //     rating,
-      //     title,
-      //     content,
-      //     photos
-      //   })
-      // });
-
       const newReview: Review = {
         id: Math.random(),
-        authorName: 'You',
-        authorRole: 'venue',
+        authorName: user?.name || 'You',
+        authorRole: user?.role as 'artist' | 'venue' || 'venue',
         rating,
         title,
         content,
@@ -141,6 +138,65 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
       : 0;
   };
 
+  const renderReviewPrompt = () => {
+    // Case 1: Not logged in
+    if (!isAuthenticated) {
+      return (
+        <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <div className="text-center space-y-3">
+            <MessageCircle className="h-8 w-8 text-purple-500 mx-auto" />
+            <h4 className="font-semibold text-lg">Have you worked with this {targetType}?</h4>
+            <p className="text-sm text-muted-foreground">
+              Sign up as a {reviewerRole} to share your experience and help others make informed booking decisions.
+            </p>
+            <div className="flex gap-3 justify-center pt-2">
+              <Button
+                onClick={() => { window.location.href = getLoginUrl(window.location.pathname); }}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { window.location.href = getLoginUrl(window.location.pathname); }}
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Create Account
+              </Button>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    // Case 2: Logged in but wrong role (e.g., artist trying to review another artist)
+    if (!canReview) {
+      return (
+        <Card className="p-6 bg-gray-50 border-gray-200">
+          <div className="text-center space-y-2">
+            <MessageCircle className="h-8 w-8 text-gray-400 mx-auto" />
+            <p className="text-sm text-muted-foreground">
+              Only registered {reviewerRole}s who have worked with this {targetType} can leave reviews.
+            </p>
+          </div>
+        </Card>
+      );
+    }
+
+    // Case 3: Logged in as correct role — show the Write a Review button
+    if (!showForm) {
+      return (
+        <Button onClick={() => setShowForm(true)} className="w-full">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          Write a Review
+        </Button>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       {/* Rating Overview */}
@@ -179,16 +235,11 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
         </div>
       </Card>
 
-      {/* Write Review Button */}
-      {!showForm && (
-        <Button onClick={() => setShowForm(true)} className="w-full">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          Write a Review
-        </Button>
-      )}
+      {/* Review Prompt (auth-aware) */}
+      {renderReviewPrompt()}
 
-      {/* Review Form */}
-      {showForm && (
+      {/* Review Form — only shown when canReview and showForm is true */}
+      {showForm && canReview && (
         <Card className="p-6 border-blue-200 bg-blue-50">
           <h4 className="font-semibold mb-4">Share Your Experience</h4>
 

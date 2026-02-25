@@ -353,3 +353,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 ## BUG FIX: Invalid booking ID error on BookingCreate
 - [x] Investigate and fix 'Invalid booking ID' error when navigating to /booking/create?artistId=X (route order collision)
 - [x] Verify the full booking creation flow works end-to-end (5 tests passing)
+
+## BUG FIX: Reviews not displaying for G.Chizo artist
+- [x] Check database for existing reviews (reviews table is empty - user wasn't registered)
+- [x] Investigate review display logic on artist profile page
+- [x] Add "Sign up as a venue to leave a review" prompt for unauthenticated/non-venue users
+- [x] Keep existing reviews publicly visible to all visitors
+- [x] Write tests for review prompt states (11 tests passing)
