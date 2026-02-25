@@ -24,6 +24,9 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
     const staticPages = [
       { url: '/', changefreq: 'weekly', priority: 1.0, lastmod: new Date().toISOString() },
       { url: '/browse', changefreq: 'daily', priority: 0.9, lastmod: new Date().toISOString() },
+      { url: '/venues', changefreq: 'daily', priority: 0.8, lastmod: new Date().toISOString() },
+      { url: '/events', changefreq: 'daily', priority: 0.8, lastmod: new Date().toISOString() },
+      { url: '/pricing', changefreq: 'monthly', priority: 0.7, lastmod: new Date().toISOString() },
       { url: '/how-it-works', changefreq: 'monthly', priority: 0.7, lastmod: new Date().toISOString() },
       { url: '/contact', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
       { url: '/faq', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
@@ -74,8 +77,31 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       console.error('Error fetching venues for sitemap:', error);
     }
 
+    // Fetch public events
+    let eventPages: Array<{ url: string; changefreq: string; priority: number; lastmod: string }> = [];
+    try {
+      const database = await getDb();
+      if (database) {
+        const { events } = await import('../../drizzle/schema');
+        const { eq } = await import('drizzle-orm');
+        const publicEvents = await database.select({
+          id: events.id,
+          updatedAt: events.updatedAt,
+        }).from(events).where(eq(events.isPublic, true)).limit(10000);
+
+        eventPages = publicEvents.map((event: any) => ({
+          url: `/events/${event.id}`,
+          changefreq: 'weekly',
+          priority: 0.7,
+          lastmod: event.updatedAt ? new Date(event.updatedAt).toISOString() : new Date().toISOString(),
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching events for sitemap:', error);
+    }
+
     // Combine all pages
-    const allPages = [...staticPages, ...artistPages, ...venuePages];
+    const allPages = [...staticPages, ...artistPages, ...venuePages, ...eventPages];
 
     // Generate XML
     const xml = generateSitemapXml(baseUrl, allPages);

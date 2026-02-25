@@ -309,3 +309,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add og:image, og:title, og:description meta tags to index.html (already existed, fixed URL)
 - [x] Upload OG preview image to CDN for reliable access
 - [x] Fix Twitter Card meta tags to use same CDN image
+
+## PAGE-SPECIFIC OG TAGS & SITEMAP
+- [x] Add server-side OG meta tag injection for artist profile pages (/artist/:id)
+- [x] Add server-side OG meta tag injection for venue profile pages (/venue/:id, /venues/:id)
+- [x] Add server-side OG meta tag injection for event pages (/events/:id)
+- [x] Updated sitemap.xml to include events, venues browse, and pricing pages
+- [x] robots.txt already existed with sitemap reference
