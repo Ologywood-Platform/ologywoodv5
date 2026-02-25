@@ -9,6 +9,7 @@ import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, S
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
+import { SimilarEvents } from '@/components/SimilarEvents';
 
 // Mock event data - replace with API call
 const mockEvent = {
@@ -292,6 +293,9 @@ export default function EventDetail() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Similar Events */}
+        <SimilarEvents eventId={eventId} limit={6} />
       </div>
 
       {/* Message Dialog */}

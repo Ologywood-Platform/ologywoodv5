@@ -31,7 +31,7 @@ import {
   savedEvents, InsertSavedEvent, SavedEvent
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { eq, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
+import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -1765,5 +1765,119 @@ export async function getVenueBookingsByDateRange(
     eventDate: typeof b.eventDate === 'string' ? b.eventDate : (b.eventDate as Date).toISOString().split('T')[0],
     eventTime: b.eventTime || '',
     status: b.status || 'pending',
+  }));
+}
+
+/**
+ * Find similar events based on event type, location, and date proximity.
+ * Returns up to `limit` public events that are not the current event,
+ * scored by relevance: same type > same location > close date.
+ */
+export async function getSimilarEvents(
+  eventId: number,
+  opts: { limit?: number } = {}
+): Promise<(Event & { artistName?: string; similarityScore: number })[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // First, fetch the source event
+  const [sourceEvent] = await db
+    .select()
+    .from(events)
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!sourceEvent) return [];
+
+  const limit = opts.limit ?? 6;
+
+  // Fetch public events that are not the current event and not cancelled
+  const candidates = await db
+    .select()
+    .from(events)
+    .where(
+      and(
+        ne(events.id, eventId),
+        eq(events.isPublic, true),
+        ne(events.status, 'cancelled' as any)
+      )
+    )
+    .limit(50); // fetch a reasonable pool to score
+
+  // Score each candidate for similarity
+  const scored = candidates.map((candidate) => {
+    let score = 0;
+
+    // Same event type: +3 points
+    if (candidate.eventType === sourceEvent.eventType) {
+      score += 3;
+    }
+
+    // Same or similar location: +2 points (exact match) or +1 (partial)
+    if (sourceEvent.location && candidate.location) {
+      const srcLoc = sourceEvent.location.toLowerCase();
+      const candLoc = candidate.location.toLowerCase();
+      if (srcLoc === candLoc) {
+        score += 2;
+      } else {
+        // Check city-level match (last part of comma-separated address)
+        const srcCity = srcLoc.split(',').pop()?.trim() || '';
+        const candCity = candLoc.split(',').pop()?.trim() || '';
+        if (srcCity && candCity && srcCity === candCity) {
+          score += 1;
+        }
+      }
+    }
+
+    // Date proximity: +2 for within 30 days, +1 for within 90 days
+    if (sourceEvent.eventDate && candidate.eventDate) {
+      const srcDate = new Date(sourceEvent.eventDate);
+      const candDate = new Date(candidate.eventDate);
+      const diffDays = Math.abs(
+        (candDate.getTime() - srcDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (diffDays <= 30) {
+        score += 2;
+      } else if (diffDays <= 90) {
+        score += 1;
+      }
+    }
+
+    // Same artist: +1 point (users who like this artist may like their other events)
+    if (candidate.artistId === sourceEvent.artistId) {
+      score += 1;
+    }
+
+    return { ...candidate, similarityScore: score };
+  });
+
+  // Sort by score descending, then by date ascending (upcoming first)
+  scored.sort((a, b) => {
+    if (b.similarityScore !== a.similarityScore) {
+      return b.similarityScore - a.similarityScore;
+    }
+    // Tie-break: upcoming events first
+    const dateA = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+    const dateB = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+    return dateA - dateB;
+  });
+
+  // Take top results
+  const topResults = scored.slice(0, limit);
+
+  // Enrich with artist names
+  const artistIds = [...new Set(topResults.map((e) => e.artistId))];
+  if (artistIds.length === 0) return topResults.map((e) => ({ ...e, artistName: undefined }));
+
+  const artists = await db
+    .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
+    .from(artistProfiles)
+    .where(inArray(artistProfiles.id, artistIds));
+
+  const artistMap = new Map(artists.map((a) => [a.id, a.artistName]));
+
+  return topResults.map((e) => ({
+    ...e,
+    artistName: artistMap.get(e.artistId) || undefined,
   }));
 }

@@ -248,6 +248,23 @@ export const eventsRouter = router({
       }
     }),
 
+  // Get similar events for the event detail page
+  getSimilar: publicProcedure
+    .input(z.object({
+      eventId: z.number().int().positive(),
+      limit: z.number().int().min(1).max(12).default(6),
+    }))
+    .query(async ({ input }) => {
+      try {
+        const similarEvents = await db.getSimilarEvents(input.eventId, {
+          limit: input.limit,
+        });
+        return similarEvents;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch similar events');
+      }
+    }),
+
   // Get upcoming events for an artist
   getUpcomingEvents: publicProcedure
     .input(z.object({

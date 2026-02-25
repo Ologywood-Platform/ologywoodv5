@@ -331,3 +331,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add server-side BreadcrumbList for crawlers in OG middleware (artist, venue, event pages)
 - [x] Add FAQPage JSON-LD to the pricing page
 - [x] Write tests for BreadcrumbList and FAQ schema generators (covered by existing 19 structured data tests)
+
+## SIMILAR EVENTS FEATURE
+- [x] Add backend API endpoint to find similar events (by event type, location, date proximity)
+- [x] Build SimilarEvents frontend component with event cards
+- [x] Integrate SimilarEvents component into EventDetail page
+- [x] Write unit tests for similar events API and component (20 tests passing)
+- [x] Verify TypeScript correctness and all tests passing (0 TS errors, 483 tests passing)
