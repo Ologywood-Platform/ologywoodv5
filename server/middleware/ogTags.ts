@@ -2,8 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { getDb } from '../db';
 import { artistProfiles, venueProfiles, events } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
-import fs from 'fs';
-import path from 'path';
+import {
+  generateArtistJsonLd,
+  generateVenueJsonLd,
+  generateEventJsonLd,
+  generateOrganizationJsonLd,
+  generateWebSiteJsonLd,
+  jsonLdToScriptTag,
+} from '../utils/jsonLd';
 
 const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ysxOwFpvMPLOUeDm.png';
 const SITE_NAME = 'Ologywood';
@@ -42,7 +48,7 @@ function escapeHtml(str: string): string {
 }
 
 /**
- * Generate an HTML page with OG meta tags for social media crawlers
+ * Generate an HTML page with OG meta tags and JSON-LD for social media crawlers
  */
 function generateOgHtml(opts: {
   title: string;
@@ -50,8 +56,11 @@ function generateOgHtml(opts: {
   image: string;
   url: string;
   type?: string;
+  jsonLd?: object | object[];
 }): string {
-  const { title, description, image, url, type = 'website' } = opts;
+  const { title, description, image, url, type = 'website', jsonLd } = opts;
+  const jsonLdTags = jsonLd ? `\n  ${jsonLdToScriptTag(jsonLd)}` : '';
+  
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -76,6 +85,7 @@ function generateOgHtml(opts: {
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(image)}" />
   <meta name="twitter:site" content="@ologywood" />
+  ${jsonLdTags}
 </head>
 <body>
   <p>${escapeHtml(title)}</p>
@@ -86,7 +96,7 @@ function generateOgHtml(opts: {
 
 /**
  * Middleware that intercepts social media bot requests for artist, venue, and event pages
- * and returns proper OG meta tags with dynamic content from the database.
+ * and returns proper OG meta tags + JSON-LD structured data from the database.
  */
 export function ogTagMiddleware() {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -102,6 +112,22 @@ export function ogTagMiddleware() {
     baseUrl = baseUrl.replace(/\/$/, '');
 
     try {
+      // Match homepage /
+      if (pathname === '/') {
+        const html = generateOgHtml({
+          title: 'Ologywood — Book Talented Artists for Your Events',
+          description: 'Connect with performing artists, manage bookings, and streamline your event planning all in one place.',
+          image: DEFAULT_OG_IMAGE,
+          url: baseUrl,
+          type: 'website',
+          jsonLd: [
+            generateOrganizationJsonLd(baseUrl),
+            generateWebSiteJsonLd(baseUrl),
+          ],
+        });
+        return res.status(200).set('Content-Type', 'text/html').send(html);
+      }
+
       // Match /artist/:id
       const artistMatch = pathname.match(/^\/artist\/(\d+)$/);
       if (artistMatch) {
@@ -110,11 +136,13 @@ export function ogTagMiddleware() {
         if (database) {
           const [artist] = await database
             .select({
+              id: artistProfiles.id,
               artistName: artistProfiles.artistName,
               bio: artistProfiles.bio,
               genre: artistProfiles.genre,
               location: artistProfiles.location,
               profilePhotoUrl: artistProfiles.profilePhotoUrl,
+
             })
             .from(artistProfiles)
             .where(eq(artistProfiles.id, artistId))
@@ -133,6 +161,7 @@ export function ogTagMiddleware() {
               image: artist.profilePhotoUrl || DEFAULT_OG_IMAGE,
               url: `${baseUrl}/artist/${artistId}`,
               type: 'profile',
+              jsonLd: generateArtistJsonLd(artist, baseUrl),
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
@@ -147,11 +176,15 @@ export function ogTagMiddleware() {
         if (database) {
           const [venue] = await database
             .select({
+              id: venueProfiles.id,
               organizationName: venueProfiles.organizationName,
               bio: venueProfiles.bio,
               location: venueProfiles.location,
               profilePhotoUrl: venueProfiles.profilePhotoUrl,
               venueType: venueProfiles.venueType,
+              capacity: venueProfiles.capacity,
+              averageRating: venueProfiles.averageRating,
+              reviewCount: venueProfiles.reviewCount,
             })
             .from(venueProfiles)
             .where(eq(venueProfiles.id, venueId))
@@ -170,6 +203,7 @@ export function ogTagMiddleware() {
               image: venue.profilePhotoUrl || DEFAULT_OG_IMAGE,
               url: `${baseUrl}/venue/${venueId}`,
               type: 'business.business',
+              jsonLd: generateVenueJsonLd(venue, baseUrl),
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
@@ -184,12 +218,17 @@ export function ogTagMiddleware() {
         if (database) {
           const [event] = await database
             .select({
+              id: events.id,
               eventTitle: events.eventTitle,
               eventType: events.eventType,
               eventDate: events.eventDate,
+              eventTime: events.eventTime,
+              eventEndTime: events.eventEndTime,
               location: events.location,
               description: events.description,
               isPublic: events.isPublic,
+              capacity: events.capacity,
+              rate: events.rate,
             })
             .from(events)
             .where(eq(events.id, eventId))
@@ -198,16 +237,20 @@ export function ogTagMiddleware() {
           if (event && event.isPublic) {
             const dateStr = event.eventDate ? ` on ${event.eventDate}` : '';
             const locationStr = event.location ? ` at ${event.location}` : '';
-            const description = event.description
+            const descriptionText = event.description
               ? event.description.substring(0, 200)
               : `${event.eventTitle}${dateStr}${locationStr}. Discover events on Ologywood.`;
             
             const html = generateOgHtml({
               title: `${event.eventTitle} | Ologywood Events`,
-              description,
+              description: descriptionText,
               image: DEFAULT_OG_IMAGE,
               url: `${baseUrl}/events/${eventId}`,
               type: 'event',
+              jsonLd: generateEventJsonLd({
+                ...event,
+                eventDate: event.eventDate ? event.eventDate.toISOString().split('T')[0] : null,
+              }, baseUrl),
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }

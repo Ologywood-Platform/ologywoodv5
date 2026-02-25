@@ -10,6 +10,7 @@ import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
 import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { trpc } from '@/lib/trpc';
+import { JsonLd, buildVenueJsonLd } from '@/components/JsonLd';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -100,6 +101,7 @@ export default function VenueProfile() {
 
   return (
     <div className="min-h-screen bg-background">
+      {venueProfile && <JsonLd data={buildVenueJsonLd(venueProfile)} id={`venue-${venueId}`} />}
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

@@ -316,3 +316,11 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add server-side OG meta tag injection for event pages (/events/:id)
 - [x] Updated sitemap.xml to include events, venues browse, and pricing pages
 - [x] robots.txt already existed with sitemap reference
+
+## JSON-LD STRUCTURED DATA
+- [x] Add JSON-LD to server-side OG middleware for crawlers (artist MusicGroup, venue EventVenue, event Event, homepage Organization+WebSite)
+- [x] Add client-side JSON-LD React component for artist profile pages
+- [x] Add client-side JSON-LD React component for venue profile pages (VenueProfile + VenueProfileDetail)
+- [x] Add client-side JSON-LD React component for event detail pages
+- [x] Add JSON-LD for homepage (Organization + WebSite + SearchAction schema)
+- [x] Write tests for JSON-LD generation (13 tests passing)
