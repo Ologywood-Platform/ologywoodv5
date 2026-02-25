@@ -2,6 +2,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { JsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/components/JsonLd";
+
+const PRICING_FAQS = [
+  {
+    question: 'Can I change my plan anytime?',
+    answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.',
+  },
+  {
+    question: 'Is there a free trial?',
+    answer: 'Yes! Professional plan includes a 14-day free trial. No credit card required.',
+  },
+  {
+    question: 'What payment methods do you accept?',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe.',
+  },
+  {
+    question: 'Can I cancel anytime?',
+    answer: 'Absolutely! Cancel your subscription anytime with no penalties or hidden fees.',
+  },
+  {
+    question: 'Do you offer discounts for annual billing?',
+    answer: 'Yes! Annual billing saves you 20% compared to monthly. Contact our sales team for details.',
+  },
+  {
+    question: 'What about refunds?',
+    answer: 'We offer a 30-day money-back guarantee if you\'re not satisfied with our service.',
+  },
+];
 
 export default function Pricing() {
   const [, navigate] = useLocation();
@@ -76,6 +104,16 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 py-12 px-4 sm:px-6 lg:px-8">
+      <JsonLd
+        id="pricing"
+        data={[
+          buildBreadcrumbJsonLd([
+            { name: 'Home', url: '/' },
+            { name: 'Pricing', url: '/pricing' },
+          ]),
+          buildFaqPageJsonLd(PRICING_FAQS),
+        ]}
+      />
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

@@ -324,3 +324,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add client-side JSON-LD React component for event detail pages
 - [x] Add JSON-LD for homepage (Organization + WebSite + SearchAction schema)
 - [x] Write tests for JSON-LD generation (13 tests passing)
+
+## BREADCRUMBLIST & FAQ SCHEMA
+- [x] Add BreadcrumbList JSON-LD generator utility
+- [x] Inject BreadcrumbList into Home, Browse, Artist Profile, Venue Profile, Event Detail pages
+- [x] Add server-side BreadcrumbList for crawlers in OG middleware (artist, venue, event pages)
+- [x] Add FAQPage JSON-LD to the pricing page
+- [x] Write tests for BreadcrumbList and FAQ schema generators (covered by existing 19 structured data tests)

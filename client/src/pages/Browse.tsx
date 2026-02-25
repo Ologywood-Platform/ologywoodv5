@@ -14,6 +14,7 @@ import { LazyImage } from "@/components/LazyImage";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // EventDiscovery removed - not part of current MVP
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -105,6 +106,7 @@ export default function Browse() {
 
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }])} id="browse-breadcrumb" />
       {/* Header - Mobile Optimized */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">

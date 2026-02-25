@@ -14,7 +14,7 @@ import { ShareProfileModal } from "@/components/ShareProfileModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "../components/RiderComparisonTool";
-import { JsonLd, buildArtistJsonLd } from "../components/JsonLd";
+import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect } from "react";
 import { Share2 } from "lucide-react";
@@ -231,7 +231,7 @@ export default function ArtistProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {artist && <JsonLd data={buildArtistJsonLd(artist)} id={`artist-${artistId}`} />}
+      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artistId}` }])]} id={`artist-${artistId}`} />}
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

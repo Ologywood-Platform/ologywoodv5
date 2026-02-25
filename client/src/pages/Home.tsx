@@ -13,7 +13,7 @@ import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
-import { JsonLd, buildHomepageJsonLd } from "@/components/JsonLd";
+import { JsonLd, buildHomepageJsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 
 function LogoutButton() {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -100,7 +100,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <JsonLd data={buildHomepageJsonLd()} id="homepage" />
+      <JsonLd data={[buildHomepageJsonLd(), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }])]} id="homepage" />
       {/* Header - Mobile Optimized */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">

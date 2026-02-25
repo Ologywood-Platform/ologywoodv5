@@ -263,6 +263,52 @@ export function generateWebSiteJsonLd(baseUrl: string = SITE_URL): object {
 }
 
 /**
+ * Generate JSON-LD for a BreadcrumbList
+ * @param items Array of breadcrumb items with name and url
+ */
+export interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+export function generateBreadcrumbJsonLd(items: BreadcrumbItem[], baseUrl: string = SITE_URL): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url.startsWith('http') ? item.url : `${baseUrl}${item.url}`,
+    })),
+  };
+}
+
+/**
+ * Generate JSON-LD for a FAQPage
+ * @param faqs Array of question/answer pairs
+ */
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export function generateFaqPageJsonLd(faqs: FaqItem[]): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
+/**
  * Serialize JSON-LD to a script tag string for HTML injection
  */
 export function jsonLdToScriptTag(jsonLd: object | object[]): string {

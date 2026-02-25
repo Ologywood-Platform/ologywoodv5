@@ -8,7 +8,7 @@ import { useParams, useLocation } from 'wouter';
 import { VenueShareButtons } from '@/components/VenueShareButtons';
 import { useEffect, useState } from 'react';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-import { JsonLd, buildVenueJsonLd } from '@/components/JsonLd';
+import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 
 const mockVenueData: Record<number, any> = {
   1: {
@@ -157,7 +157,7 @@ export default function VenueProfileDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={buildVenueJsonLd(venue)} id={`venue-${venueId}`} />
+      <JsonLd data={[buildVenueJsonLd(venue), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venue.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />
       {/* Hero Section */}
       <div className="relative h-96 bg-gray-300 overflow-hidden">
         <img

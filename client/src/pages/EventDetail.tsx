@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { JsonLd, buildEventJsonLd } from '@/components/JsonLd';
+import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 
 // Mock event data - replace with API call
 const mockEvent = {
@@ -133,11 +133,11 @@ export default function EventDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {event && <JsonLd data={buildEventJsonLd({
+      {event && <JsonLd data={[buildEventJsonLd({
         ...event,
         eventDate: event.eventDate instanceof Date ? event.eventDate.toISOString().split('T')[0] : event.eventDate,
         rate: typeof event.rate === 'string' ? event.rate.replace('$', '') : event.rate,
-      })} id={`event-${eventId}`} />}
+      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${eventId}` }])]} id={`event-${eventId}`} />}
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

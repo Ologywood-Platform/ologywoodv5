@@ -8,6 +8,8 @@ import {
   generateEventJsonLd,
   generateOrganizationJsonLd,
   generateWebSiteJsonLd,
+  generateBreadcrumbJsonLd,
+  generateFaqPageJsonLd,
   jsonLdToScriptTag,
 } from '../utils/jsonLd';
 
@@ -155,13 +157,19 @@ export function ogTagMiddleware() {
               ? artist.bio.substring(0, 200)
               : `${artist.artistName}${locationStr}${genres ? ` — ${genres}` : ''}. Book on Ologywood.`;
             
+            const breadcrumb = generateBreadcrumbJsonLd([
+              { name: 'Home', url: '/' },
+              { name: 'Browse Artists', url: '/browse' },
+              { name: artist.artistName, url: `/artist/${artistId}` },
+            ], baseUrl);
+
             const html = generateOgHtml({
               title: `${artist.artistName} | Book on Ologywood`,
               description,
               image: artist.profilePhotoUrl || DEFAULT_OG_IMAGE,
               url: `${baseUrl}/artist/${artistId}`,
               type: 'profile',
-              jsonLd: generateArtistJsonLd(artist, baseUrl),
+              jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
@@ -197,13 +205,19 @@ export function ogTagMiddleware() {
               ? venue.bio.substring(0, 200)
               : `${venue.organizationName} — ${typeStr}${locationStr}. Find and book artists on Ologywood.`;
             
+            const breadcrumb = generateBreadcrumbJsonLd([
+              { name: 'Home', url: '/' },
+              { name: 'Browse Venues', url: '/venues' },
+              { name: venue.organizationName, url: `/venue/${venueId}` },
+            ], baseUrl);
+
             const html = generateOgHtml({
               title: `${venue.organizationName} | Ologywood`,
               description,
               image: venue.profilePhotoUrl || DEFAULT_OG_IMAGE,
               url: `${baseUrl}/venue/${venueId}`,
               type: 'business.business',
-              jsonLd: generateVenueJsonLd(venue, baseUrl),
+              jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
@@ -241,20 +255,71 @@ export function ogTagMiddleware() {
               ? event.description.substring(0, 200)
               : `${event.eventTitle}${dateStr}${locationStr}. Discover events on Ologywood.`;
             
+            const breadcrumb = generateBreadcrumbJsonLd([
+              { name: 'Home', url: '/' },
+              { name: 'Events', url: '/events' },
+              { name: event.eventTitle, url: `/events/${eventId}` },
+            ], baseUrl);
+
             const html = generateOgHtml({
               title: `${event.eventTitle} | Ologywood Events`,
               description: descriptionText,
               image: DEFAULT_OG_IMAGE,
               url: `${baseUrl}/events/${eventId}`,
               type: 'event',
-              jsonLd: generateEventJsonLd({
+              jsonLd: [generateEventJsonLd({
                 ...event,
                 eventDate: event.eventDate ? event.eventDate.toISOString().split('T')[0] : null,
-              }, baseUrl),
+              }, baseUrl), breadcrumb],
             });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }
+      }
+
+      // Match /pricing
+      if (pathname === '/pricing') {
+        const breadcrumb = generateBreadcrumbJsonLd([
+          { name: 'Home', url: '/' },
+          { name: 'Pricing', url: '/pricing' },
+        ], baseUrl);
+
+        const faqSchema = generateFaqPageJsonLd([
+          { question: 'Can I change my plan anytime?', answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.' },
+          { question: 'Is there a free trial?', answer: 'Yes! Professional plan includes a 14-day free trial. No credit card required.' },
+          { question: 'What payment methods do you accept?', answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe.' },
+          { question: 'Can I cancel anytime?', answer: 'Absolutely! Cancel your subscription anytime with no penalties or hidden fees.' },
+          { question: 'Do you offer discounts for annual billing?', answer: 'Yes! Annual billing saves you 20% compared to monthly. Contact our sales team for details.' },
+          { question: 'What about refunds?', answer: 'We offer a 30-day money-back guarantee if you\'re not satisfied with our service.' },
+        ]);
+
+        const html = generateOgHtml({
+          title: 'Pricing — Simple, Transparent Plans | Ologywood',
+          description: 'Choose the perfect plan for your booking needs. Start free, upgrade anytime. Free, Professional ($9.99/mo), and Enterprise plans available.',
+          image: DEFAULT_OG_IMAGE,
+          url: `${baseUrl}/pricing`,
+          type: 'website',
+          jsonLd: [breadcrumb, faqSchema],
+        });
+        return res.status(200).set('Content-Type', 'text/html').send(html);
+      }
+
+      // Match /browse
+      if (pathname === '/browse') {
+        const breadcrumb = generateBreadcrumbJsonLd([
+          { name: 'Home', url: '/' },
+          { name: 'Browse Artists', url: '/browse' },
+        ], baseUrl);
+
+        const html = generateOgHtml({
+          title: 'Browse Artists — Find & Book Talent | Ologywood',
+          description: 'Discover and book talented performing artists for your events. Search by genre, location, and availability.',
+          image: DEFAULT_OG_IMAGE,
+          url: `${baseUrl}/browse`,
+          type: 'website',
+          jsonLd: [breadcrumb],
+        });
+        return res.status(200).set('Content-Type', 'text/html').send(html);
       }
 
     } catch (error) {
