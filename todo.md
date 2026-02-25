@@ -375,3 +375,8 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Investigate server logs for review submission error (venue_profiles table empty)
 - [x] Fix the root cause (use reviewerUserId instead of requiring venue profile)
 - [x] Verify fix works end-to-end (23 tests passing, server running clean)
+
+## BUG FIX: Empty link preview when sharing artist profile URLs
+- [x] Investigate OG tag injection for artist profile pages (production SPA fallback bypasses middleware)
+- [x] Fix the OG tag rendering issue (inject dynamic OG tags in serveStatic SPA fallback for bots)
+- [x] Verify fix works with social media preview tools (543 tests passing, 0 TS errors)
