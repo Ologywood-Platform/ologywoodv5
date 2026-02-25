@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Calendar, MessageSquare, Shield, Search, LogOut, AlertCircle } from "lucide-react";
-import { ClearableInput } from "@/components/ui/clearable-input";
+import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -40,7 +40,6 @@ function LogoutButton() {
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
   const [loginUrl, setLoginUrl] = useState("");
   // Use artist.search with empty filters to get all artists (same as Browse page)
   const { data: artists, isLoading } = trpc.artist.search.useQuery({});
@@ -90,13 +89,6 @@ export default function Home() {
   }, [isAuthenticated, user]);
 
   // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
-
-  const filteredArtists = artists?.filter(artist => 
-    searchQuery === "" || 
-    artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    artist.location?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -169,14 +161,10 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">Find Your Perfect Artist</h2>
-            <ClearableInput
-              type="text"
-              placeholder="Search by artist name or location..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClear={() => setSearchQuery("")}
-              leftIcon={<Search className="h-4 sm:h-5 w-4 sm:w-5" />}
-              className="py-2 sm:py-6 text-sm sm:text-base"
+            <ArtistSearchDropdown
+              inputClassName="py-2 sm:py-6 text-sm sm:text-base"
+              placeholder="Search by artist name, genre, or location..."
+              maxResults={5}
             />
           </div>
         </div>

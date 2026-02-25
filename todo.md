@@ -338,3 +338,10 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Integrate SimilarEvents component into EventDetail page
 - [x] Write unit tests for similar events API and component (20 tests passing)
 - [x] Verify TypeScript correctness and all tests passing (0 TS errors, 483 tests passing)
+
+## HOME PAGE SEARCH FIX
+- [x] Build ArtistSearchDropdown component (live autocomplete with artist cards)
+- [x] Integrate dropdown into Home page search bar
+- [x] Support Enter key to navigate to Browse page with query pre-filled
+- [x] Ensure Browse page reads query param from URL on load
+- [x] Write tests for search dropdown behavior (21 tests passing)

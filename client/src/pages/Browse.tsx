@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,9 @@ export default function Browse() {
     setMetaTags(pageMetaTags.browse);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearch();
+  const initialQuery = new URLSearchParams(searchParams).get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [filters, setFilters] = useState<{
     location?: string;
     minFee?: number;

@@ -15,11 +15,15 @@ describe('UX Fix 1: Clear X icon on search inputs', () => {
     expect(content).toContain('Clear input');
   });
 
-  it('Home page uses ClearableInput for search', () => {
+  it('Home page uses ArtistSearchDropdown for search (which wraps ClearableInput)', () => {
     const filePath = join(clientSrc, 'pages', 'Home.tsx');
     const content = readFileSync(filePath, 'utf-8');
-    expect(content).toContain('ClearableInput');
-    expect(content).toContain('onClear');
+    expect(content).toContain('ArtistSearchDropdown');
+    // ArtistSearchDropdown internally uses ClearableInput with onClear
+    const dropdownPath = join(clientSrc, 'components', 'ArtistSearchDropdown.tsx');
+    const dropdownContent = readFileSync(dropdownPath, 'utf-8');
+    expect(dropdownContent).toContain('ClearableInput');
+    expect(dropdownContent).toContain('onClear');
   });
 
   it('Browse page uses ClearableInput for search', () => {
