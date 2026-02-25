@@ -51,4 +51,16 @@ describe('Venue Dashboard - Book Artist Button', () => {
     expect(content).toContain('booking/create');
     expect(content).toContain('BookingCreate');
   });
+
+  it('/booking/create route is defined BEFORE /booking/:id to prevent route collision', () => {
+    const filePath = join(clientSrc, 'App.tsx');
+    const content = readFileSync(filePath, 'utf-8');
+
+    const createRouteIndex = content.indexOf('/booking/create');
+    const idRouteIndex = content.indexOf('/booking/:id');
+
+    expect(createRouteIndex).toBeGreaterThan(-1);
+    expect(idRouteIndex).toBeGreaterThan(-1);
+    expect(createRouteIndex).toBeLessThan(idRouteIndex);
+  });
 });

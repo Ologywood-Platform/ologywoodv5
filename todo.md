@@ -349,3 +349,7 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 ## BUG FIX: Book Artist button in Venue Dashboard
 - [x] Investigate and fix non-functioning Book Artist button in Venue Dashboard Artist tab
 - [x] Write/update tests to verify the fix (4 tests passing)
+
+## BUG FIX: Invalid booking ID error on BookingCreate
+- [x] Investigate and fix 'Invalid booking ID' error when navigating to /booking/create?artistId=X (route order collision)
+- [x] Verify the full booking creation flow works end-to-end (5 tests passing)

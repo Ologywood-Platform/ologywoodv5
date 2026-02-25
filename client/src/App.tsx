@@ -92,8 +92,8 @@ function Router() {
           <Route path="/venues/:id" component={VenueProfileDetail} />
           
           {/* Core Booking Flow */}
-          <Route path="/booking/:id">{(params: any) => <PageErrorBoundary><BookingDetail {...params} /></PageErrorBoundary>}</Route>
           <Route path="/booking/create">{() => <PageErrorBoundary><BookingCreate /></PageErrorBoundary>}</Route>
+          <Route path="/booking/:id">{(params: any) => <PageErrorBoundary><BookingDetail {...params} /></PageErrorBoundary>}</Route>
           <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
           <Route path="/bookings" component={BookingsList} />
           
