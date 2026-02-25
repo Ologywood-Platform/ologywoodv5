@@ -347,6 +347,7 @@ export function VenueDashboard() {
                           <Button
                             size="sm"
                             className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
+                            onClick={() => navigate(`/booking/create?artistId=${artist.id}`)}
                           >
                             <Plus className="h-4 w-4" />
                             Book Artist

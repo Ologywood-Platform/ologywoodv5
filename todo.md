@@ -345,3 +345,7 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Support Enter key to navigate to Browse page with query pre-filled
 - [x] Ensure Browse page reads query param from URL on load
 - [x] Write tests for search dropdown behavior (21 tests passing)
+
+## BUG FIX: Book Artist button in Venue Dashboard
+- [x] Investigate and fix non-functioning Book Artist button in Venue Dashboard Artist tab
+- [x] Write/update tests to verify the fix (4 tests passing)
