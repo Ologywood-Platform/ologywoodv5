@@ -24,6 +24,7 @@ import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
+import SiteHeader from "@/components/SiteHeader";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -224,26 +225,8 @@ export default function ArtistProfile() {
   return (
     <div className="min-h-screen bg-background">
       {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artistId}` }])]} id={`artist-${artistId}`} />}
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <img src="/logo-sm.png" alt="Ologywood" className="h-8 w-8 rounded" />
-            Ologywood
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            <Link href="/browse">
-              <Button variant="ghost">Browse Artists</Button>
-            </Link>
-            {isAuthenticated && (
-              <Link href={getDashboardUrl(user)}>
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Shared Header with Following link */}
+      <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}

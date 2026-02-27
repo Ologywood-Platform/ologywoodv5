@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart } from "lucide-react";
+import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
 import { SearchFilters } from "@/components/SearchFilters";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -109,20 +110,8 @@ export default function Browse() {
   return (
     <div className="min-h-screen bg-background">
       <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }])} id="browse-breadcrumb" />
-      {/* Header - Mobile Optimized */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1 sm:gap-2 text-lg sm:text-2xl font-bold text-primary">
-            <img src="/logo-sm.png" alt="Ologywood" className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
-            <span className="hidden sm:inline">Ologywood</span>
-            <span className="sm:hidden">OW</span>
-          </Link>
-          
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">← Back</Button>
-          </Link>
-        </div>
-      </header>
+      {/* Shared Header with Following link */}
+      <SiteHeader hideBrowse />
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Search Bar */}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { getLoginUrl } from '@/const';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function Following() {
   const { user } = useAuth();
@@ -15,7 +16,9 @@ export default function Following() {
   // If not logged in, show sign-up prompt
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16">
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <div className="max-w-4xl mx-auto px-4 py-16">
         <div className="text-center">
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Heart className="w-8 h-8 text-purple-600" />
@@ -39,11 +42,17 @@ export default function Following() {
             </Button>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
-  return <FollowingList userId={user.id} />;
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <FollowingList userId={user.id} />
+    </div>
+  );
 }
 
 function FollowingList({ userId }: { userId: number }) {

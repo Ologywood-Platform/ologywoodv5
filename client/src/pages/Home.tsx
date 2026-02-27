@@ -1,10 +1,8 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, MessageSquare, Shield, Search, LogOut, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Music, Calendar, MessageSquare, Shield } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
-import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { getLoginUrl } from "@/const";
@@ -12,31 +10,8 @@ import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
-import { getDashboardUrl } from "@/utils/dashboardUrl";
 import { JsonLd, buildHomepageJsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
-
-function LogoutButton() {
-  const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
-
-  const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-    window.location.href = '/';
-  };
-
-  return (
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      className="text-red-600 hover:text-red-700 text-xs sm:text-sm px-2 sm:px-4"
-      onClick={handleLogout}
-      disabled={logoutMutation.isPending}
-    >
-      <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-      <span className="hidden sm:inline">{logoutMutation.isPending ? 'Logging out...' : 'Logout'}</span>
-      <span className="sm:hidden">{logoutMutation.isPending ? '...' : 'Out'}</span>
-    </Button>
-  );
-}
+import SiteHeader from "@/components/SiteHeader";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -79,8 +54,6 @@ export default function Home() {
     }
   };
 
-
-
   // Redirect authenticated users without a role to role selection
   useEffect(() => {
     if (isAuthenticated && user && !user.role) {
@@ -93,43 +66,9 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <JsonLd data={[buildHomepageJsonLd(), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }])]} id="homepage" />
-      {/* Header - Mobile Optimized */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1 sm:gap-2 text-lg sm:text-2xl font-bold text-primary">
-            <img src="/logo-lg.png" alt="Ologywood" className="h-8 sm:h-10 w-auto object-contain" />
-            <span className="hidden sm:inline">Ologywood</span>
-            <span className="sm:hidden">OW</span>
-          </Link>
-          
-          <nav className="flex items-center gap-2 sm:gap-4">
-            {isAuthenticated ? (
-              <>
-                <a href={getDashboardUrl()} className="no-underline">
-                  <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
-                    Dashboard
-                  </Button>
-                </a>
-                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline max-w-[150px] truncate">
-                  {user?.name || user?.email}
-                </span>
-                <LogoutButton />
-              </>
-            ) : (
-              <>
-                <a href="/browse" className="no-underline">
-                  <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
-                    Browse
-                  </Button>
-                </a>
-                <Button size="sm" className="text-xs sm:text-sm px-2 sm:px-4" onClick={handleSignIn}>
-                  Sign In
-                </Button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      
+      {/* Shared Header with Following link */}
+      <SiteHeader largeLogo />
 
       {/* Hero Section - Mobile Optimized */}
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import { SimilarEvents } from '@/components/SimilarEvents';
+import SiteHeader from '@/components/SiteHeader';
 
 // Mock event data - replace with API call
 const mockEvent = {
@@ -139,22 +140,8 @@ export default function EventDetail() {
         eventDate: event.eventDate instanceof Date ? event.eventDate.toISOString().split('T')[0] : event.eventDate,
         rate: typeof event.rate === 'string' ? event.rate.replace('$', '') : event.rate,
       }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${eventId}` }])]} id={`event-${eventId}`} />}
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('-1')}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <h1 className="text-xl font-bold">Event Details</h1>
-          <div className="w-10" />
-        </div>
-      </header>
+      {/* Shared Header with Following link */}
+      <SiteHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Main Event Card */}

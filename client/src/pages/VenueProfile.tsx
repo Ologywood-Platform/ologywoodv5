@@ -11,6 +11,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/Skel
 import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -102,25 +103,17 @@ export default function VenueProfile() {
   return (
     <div className="min-h-screen bg-background">
       {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />}
-      {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <img src="/logo-sm.png" alt="Ologywood" className="h-8 w-8 rounded" />
-            Ologywood
-          </a>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setShareVenueOpen(true)} className="gap-2">
-              <Share2 className="h-4 w-4" />
-              Share
+      {/* Shared Header with Following link */}
+      <SiteHeader
+        extraNav={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setShareVenueOpen(true)} className="gap-1 text-xs sm:text-sm px-2 sm:px-4">
+              <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
-            <Button variant="ghost" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Venue Info Card */}

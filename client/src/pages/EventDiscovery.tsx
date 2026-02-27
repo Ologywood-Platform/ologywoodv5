@@ -9,6 +9,7 @@ import { EventCard } from '@/components/EventCard';
 import { Search, Loader2, ArrowLeft, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
+import SiteHeader from '@/components/SiteHeader';
 
 // Mock events data - replace with API call
 const mockEvents = [
@@ -155,22 +156,8 @@ export default function EventDiscovery() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <h1 className="text-xl font-bold">Discover Events</h1>
-          <div className="w-10" />
-        </div>
-      </header>
+      {/* Shared Header with Following link */}
+      <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filters */}

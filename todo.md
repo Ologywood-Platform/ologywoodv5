@@ -413,3 +413,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add route registration for /following in App.tsx
 - [x] Verify full follow flow end-to-end (dev server running clean)
 - [x] Write tests for all new features (23 tests passing, 598 total)
+
+## NAVIGATION: Following Link
+- [x] Add "Following" link to main navigation bar for logged-in users
+- [x] Create reusable SiteHeader component with auth-aware nav (Following, Browse, Dashboard, Sign In)
+- [x] Integrate SiteHeader into 7 key pages (Home, Browse, ArtistProfile, VenueProfile, EventDetail, EventDiscovery, Following)
+- [x] Write 30 tests for SiteHeader component and page integration (631 total tests passing)
