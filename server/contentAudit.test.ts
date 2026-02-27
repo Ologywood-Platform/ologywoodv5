@@ -57,8 +57,11 @@ describe('Platform Content Audit', () => {
       expect(content).toContain('Send Update');
     });
 
-    it('should NOT claim 14-day free trial', () => {
-      expect(content).not.toContain('14-day free trial');
+    it('should show 14-day trial only for Professional plan', () => {
+      expect(content).toContain('14-day free trial included');
+      // Should only appear once (Professional plan)
+      const matches = content.match(/14-day free trial/g);
+      expect(matches?.length).toBe(1);
     });
   });
 

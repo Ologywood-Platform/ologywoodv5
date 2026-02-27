@@ -451,3 +451,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add SiteHeader to Help page
 - [x] Add SiteHeader to How It Works page
 - [x] Verify TypeScript and run tests (726 passing, 0 TS errors)
+
+## MOBILE HAMBURGER MENU
+- [x] Add hamburger icon toggle for mobile screens (<768px)
+- [x] Create slide-down/overlay mobile menu with all nav links
+- [x] Close menu on link click and outside tap
+- [x] Ensure smooth animation and accessible markup
+
+## STRIPE SUBSCRIPTION CHECKOUT FROM PRICING PAGE
+- [x] Create backend tRPC endpoint for subscription checkout session (updated to accept plan param)
+- [x] Define Stripe products/prices for Starter ($9) and Professional ($29)
+- [x] Wire Pricing page buttons to create checkout and redirect
+- [x] Handle success/cancel redirects
+- [x] Write tests for both features (43 new tests, 769 total passing, 0 TS errors)

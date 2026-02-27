@@ -1237,6 +1237,7 @@ export const appRouter = router({
       .input(z.object({
         successUrl: z.string(),
         cancelUrl: z.string(),
+        plan: z.enum(['starter', 'professional']).optional().default('professional'),
       }))
       .mutation(async ({ ctx, input }) => {
         const { getOrCreateStripeCustomer, createSubscriptionCheckoutSession } = await import('./stripe');
@@ -1248,7 +1249,7 @@ export const appRouter = router({
           userId: ctx.user.id.toString(),
         });
 
-        // Create checkout session
+        // Create checkout session for the selected plan
         const checkoutUrl = await createSubscriptionCheckoutSession({
           customerId,
           userEmail: ctx.user.email || '',
@@ -1256,6 +1257,7 @@ export const appRouter = router({
           userId: ctx.user.id.toString(),
           successUrl: input.successUrl,
           cancelUrl: input.cancelUrl,
+          plan: input.plan,
         });
 
         return { checkoutUrl };

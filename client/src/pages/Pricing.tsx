@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { JsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/components/JsonLd";
 import SiteHeader from "@/components/SiteHeader";
+import { useToast } from "@/components/ErrorToast";
 
 const PRICING_FAQS = [
   {
@@ -32,10 +36,39 @@ const PRICING_FAQS = [
   },
 ];
 
+type PlanSlug = 'starter' | 'professional';
+
+interface Tier {
+  name: string;
+  description: string;
+  price: string;
+  period: string;
+  cta: string;
+  highlight: boolean;
+  badge?: string;
+  planSlug?: PlanSlug;
+  features: { name: string; included: boolean }[];
+}
+
 export default function Pricing() {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
+  const toastCtx = useToast();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const tiers = [
+  const checkoutMutation = (trpc.subscription.createCheckoutSession as any).useMutation?.({
+    onSuccess: (data: { checkoutUrl: string }) => {
+      toastCtx.addInfo("Redirecting to checkout", "You'll be taken to Stripe to complete your subscription.");
+      window.open(data.checkoutUrl, '_blank');
+      setLoadingPlan(null);
+    },
+    onError: (err: any) => {
+      toastCtx.addError("Checkout error", err?.message || "Could not create checkout session. Please try again.");
+      setLoadingPlan(null);
+    },
+  });
+
+  const tiers: Tier[] = [
     {
       name: "Free",
       description: "Get started and explore the platform",
@@ -66,6 +99,7 @@ export default function Pricing() {
       cta: "Upgrade to Starter",
       highlight: true,
       badge: "Most Popular",
+      planSlug: "starter",
       features: [
         { name: "Everything in Free, plus:", included: true },
         { name: "Unlimited booking requests", included: true },
@@ -88,6 +122,7 @@ export default function Pricing() {
       period: "month",
       cta: "Go Professional",
       highlight: false,
+      planSlug: "professional",
       features: [
         { name: "Everything in Starter, plus:", included: true },
         { name: "Contract management & e-signatures", included: true },
@@ -105,12 +140,28 @@ export default function Pricing() {
     },
   ];
 
-  const handleCTA = (tierName: string) => {
-    if (tierName === "Free" || tierName === "Starter") {
+  const handleCTA = (tier: Tier) => {
+    // Free tier → go to sign-up
+    if (!tier.planSlug) {
       navigate("/get-started");
-    } else {
-      navigate("/get-started");
+      return;
     }
+
+    // Paid tiers: if not logged in, send to sign-up first
+    if (!isAuthenticated) {
+      toastCtx.addInfo("Sign in required", "Create an account or sign in first, then you can upgrade your plan.");
+      navigate("/get-started");
+      return;
+    }
+
+    // Logged in → create Stripe checkout session
+    setLoadingPlan(tier.name);
+    const origin = window.location.origin;
+    checkoutMutation.mutate({
+      plan: tier.planSlug,
+      successUrl: `${origin}/dashboard?subscription=success`,
+      cancelUrl: `${origin}/pricing`,
+    });
   };
 
   return (
@@ -173,18 +224,31 @@ export default function Pricing() {
                         <span className="text-gray-600">/{tier.period}</span>
                       )}
                     </div>
+                    {tier.planSlug === 'professional' && (
+                      <p className="text-xs text-indigo-600 mt-1 font-medium">14-day free trial included</p>
+                    )}
                   </div>
 
                   {/* CTA Button */}
                   <Button
-                    onClick={() => handleCTA(tier.name)}
+                    onClick={() => handleCTA(tier)}
+                    disabled={loadingPlan === tier.name}
                     className={`w-full mb-8 ${
                       tier.highlight
                         ? "bg-indigo-600 hover:bg-indigo-700"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                        : tier.planSlug
+                          ? "bg-gray-900 hover:bg-gray-800 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
                     }`}
                   >
-                    {tier.cta}
+                    {loadingPlan === tier.name ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Redirecting...
+                      </>
+                    ) : (
+                      tier.cta
+                    )}
                   </Button>
 
                   {/* Features List */}
