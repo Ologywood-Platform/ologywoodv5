@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, MessageSquare, Shield } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -127,7 +127,7 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join thousands of venues and event organizers who trust Ologywood to find and book amazing artists.
+            Join artists and venues who use Ologywood to find and book amazing talent.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={handleSignIn}>
@@ -141,15 +141,27 @@ export default function Home() {
       <section className="py-8 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <Music className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Diverse Talent</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Browse & Book Artists</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Browse thousands of talented artists across multiple genres and styles.
+                  Search artists by genre, location, and availability. Send booking requests and manage everything in one place.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <FileText className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Riders & Contracts</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Build professional riders with technical requirements. Generate contracts and sign them digitally with e-signatures.
                 </p>
               </CardContent>
             </Card>
@@ -157,23 +169,23 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Calendar className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Easy Booking</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Events & Availability</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Simple and streamlined booking process with instant confirmations.
+                  Discover upcoming events, manage your availability calendar, and keep your schedule organized.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <MessageSquare className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Direct Communication</CardTitle>
+                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Follow & Stay Connected</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Message artists directly to discuss details and negotiate terms.
+                  Follow your favorite artists to stay updated. Artists can send email updates directly to their fan base.
                 </p>
               </CardContent>
             </Card>
@@ -185,7 +197,19 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Safe and secure payment processing with buyer and seller protection.
+                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts securely.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Send className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Direct Messaging</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Message artists and venues directly to discuss event details, negotiate terms, and finalize bookings.
                 </p>
               </CardContent>
             </Card>

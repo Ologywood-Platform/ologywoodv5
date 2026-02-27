@@ -98,7 +98,7 @@ export default function RoleSelection() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Save rider templates for technical requirements</span>
+                  <span className="text-sm">Follow artists and discover events</span>
                 </li>
               </ul>
               <Button 
@@ -141,7 +141,7 @@ export default function RoleSelection() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Direct communication with artists</span>
+                  <span className="text-sm">Create events and communicate directly with artists</span>
                 </li>
               </ul>
               <Button 

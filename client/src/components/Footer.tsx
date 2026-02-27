@@ -26,6 +26,8 @@ const Footer = () => {
       title: 'Platform',
       links: [
         { label: 'Browse Artists', path: '/browse' },
+        { label: 'Events', path: '/events' },
+        { label: 'Pricing', path: '/pricing' },
         { label: 'How It Works', path: '/how-it-works' },
         { label: 'FAQ', path: '/faq' },
         { label: 'Contact Us', path: '/contact' },
@@ -38,7 +40,8 @@ const Footer = () => {
         { label: 'Browse Venues', path: '/venues' },
         { label: 'Create Rider', path: '/rider-builder' },
         { label: 'My Bookings', path: '/bookings' },
-        { label: 'My Favorites', path: '/favorites' },
+        { label: 'Earnings', path: '/earnings-dashboard' },
+        { label: 'Following', path: '/following' },
       ],
     },
     {
@@ -46,8 +49,9 @@ const Footer = () => {
       links: [
         { label: 'Venue Dashboard', path: '/venue-dashboard' },
         { label: 'Browse Artists', path: '/browse' },
-        { label: 'My Favorites', path: '/favorites' },
+        { label: 'Events', path: '/events' },
         { label: 'My Bookings', path: '/bookings' },
+        { label: 'Invoices', path: '/venue-invoices' },
       ],
     },
     {
@@ -55,7 +59,7 @@ const Footer = () => {
       links: [
         { label: 'Terms of Service', path: '/terms-of-service' },
         { label: 'Privacy Policy', path: '/privacy-policy' },
-        { label: 'Cookie Policy', path: '/cookie-policy' },
+        { label: 'Cookie Policy', path: '/cookies' },
       ],
     },
   ];
@@ -238,7 +242,7 @@ const Footer = () => {
             <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition">
               Privacy
             </Link>
-            <Link to="/cookie-policy" className="text-gray-400 hover:text-white transition">
+            <Link to="/cookies" className="text-gray-400 hover:text-white transition">
               Cookies
             </Link>
           </div>

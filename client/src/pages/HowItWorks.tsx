@@ -205,6 +205,37 @@ export default function HowItWorks() {
               </div>
             </div>
 
+            {/* Step 6 */}
+            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
+                    <span className="text-xl font-bold">6</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Grow Your Fan Base</h3>
+                  <p className="text-gray-600 text-lg mb-4">
+                    Build a following on Ologywood and keep your fans engaged with direct email updates about upcoming shows and news.
+                  </p>
+                  <ul className="space-y-2 text-gray-600">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle size={18} className="text-green-500" />
+                      Fans can follow your profile
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle size={18} className="text-green-500" />
+                      Send branded email updates to followers
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle size={18} className="text-green-500" />
+                      Track your fan engagement
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             {/* Key Features */}
             <div className="mt-12 pt-12 border-t-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Why Artists Love Ologywood</h3>
@@ -212,7 +243,7 @@ export default function HowItWorks() {
                 <div className="bg-purple-50 p-6 rounded-lg">
                   <Star className="text-purple-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Increase Your Bookings</h4>
-                  <p className="text-gray-600">Access thousands of venues looking for talent like you.</p>
+                  <p className="text-gray-600">Get discovered by venues looking for talent like you.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
                   <MessageSquare className="text-purple-600 mb-3" size={28} />
@@ -402,7 +433,7 @@ export default function HowItWorks() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <Star className="text-blue-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Thousands of Talented Artists</h4>
+                  <h4 className="font-bold text-gray-900 mb-2">Talented Artists</h4>
                   <p className="text-gray-600">Access a diverse pool of performers across all genres.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
@@ -435,7 +466,7 @@ export default function HowItWorks() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a
-              href="/onboarding"
+              href="/get-started"
               className="px-8 py-3 bg-white text-purple-600 font-bold rounded-lg hover:bg-gray-100 transition"
             >
               Sign Up Now

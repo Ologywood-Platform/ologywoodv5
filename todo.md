@@ -432,3 +432,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Gate behind paid tier with upgrade prompt for free-tier artists
 - [x] Write tests for backend and frontend integration (43 new tests, 674 total passing)
 - [x] Verify TypeScript correctness (0 errors)
+
+## PLATFORM CONTENT AUDIT
+- [x] Audit homepage feature descriptions vs actual implemented features
+- [x] Audit pricing page tier features vs actual tier gating (fixed Free/$0, Starter/$9, Professional/$29)
+- [x] Audit get-started page claims vs actual onboarding flow
+- [x] Audit footer links and content accuracy (fixed /cookie-policy → /cookies, added Events/Pricing/Following/Earnings/Invoices links)
+- [x] Audit How It Works page (fixed /onboarding → /get-started CTA, added Step 6: Grow Your Fan Base)
+- [x] Audit FAQ page (added 16 comprehensive topics covering all built features)
+- [x] Audit Help page (fixed phone number, fixed email, added 6 new feature help articles)
+- [x] Audit Trust Badges (removed 24/7 claim, toned down exaggerated claims)
+- [x] Update outdated or inaccurate content across all pages
+- [x] Ensure new features (Following, Send Update, E-Signatures, Events, Riders, Contracts) are mentioned where appropriate
+- [x] Write 52 content audit tests (726 total tests passing, 0 TypeScript errors)

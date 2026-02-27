@@ -91,7 +91,7 @@ const faqItems: FAQItem[] = [
     id: 'support-1',
     category: 'Support & Contact',
     question: 'How do I contact support?',
-    answer: 'Use the Contact Us form on this page, email support@ologywood.com, or message us through the in-app chat. We typically respond within 24 hours.',
+    answer: 'Use the Contact Us form on this page, email info@ologywood.com, or message us through the in-app chat. We typically respond within 24 hours.',
   },
   {
     id: 'support-2',
@@ -103,7 +103,43 @@ const faqItems: FAQItem[] = [
     id: 'support-3',
     category: 'Support & Contact',
     question: 'How do I report a problem or issue?',
-    answer: 'Click the "Report Issue" button in your dashboard or contact support@ologywood.com. Include details about what happened, and we\'ll investigate right away.',
+    answer: 'Click the "Report Issue" button in your dashboard or contact info@ologywood.com. Include details about what happened, and we\'ll investigate right away.',
+  },
+  {
+    id: 'features-1',
+    category: 'Features',
+    question: 'How do I follow an artist?',
+    answer: 'Visit any artist\'s profile page and click the "Follow" button. You can view all artists you follow from the "Following" link in the navigation bar. Artists can send email updates to their followers.',
+  },
+  {
+    id: 'features-2',
+    category: 'Features',
+    question: 'What is the Send Update feature?',
+    answer: 'Artists on paid plans can compose and send branded email updates to all their followers. Go to your Artist Dashboard, find the Fans section, and click "Send Update" to compose a message with a subject and body.',
+  },
+  {
+    id: 'features-3',
+    category: 'Features',
+    question: 'How do events work on Ologywood?',
+    answer: 'Venues can create events and artists can discover them through the Events page. Browse upcoming events, view details, and connect with organizers directly through the platform.',
+  },
+  {
+    id: 'features-4',
+    category: 'Features',
+    question: 'How do contracts and e-signatures work?',
+    answer: 'When a booking is confirmed, a digital contract is generated with all the agreed terms. Both the artist and venue can sign electronically. Contracts are stored securely and accessible from your dashboard. This feature is available on the Professional plan.',
+  },
+  {
+    id: 'features-5',
+    category: 'Features',
+    question: 'What are the subscription tiers?',
+    answer: 'Ologywood offers three plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit the Pricing page for full details.',
+  },
+  {
+    id: 'features-6',
+    category: 'Features',
+    question: 'How does the availability calendar work?',
+    answer: 'Artists can set their availability from the Dashboard. Mark dates when you\'re available for bookings and block out unavailable dates. Venues will see your availability when browsing your profile, preventing scheduling conflicts.',
   },
 ];
 
@@ -211,7 +247,7 @@ export default function Help() {
                 <Mail className="text-purple-600" size={24} />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email Support</h3>
-              <p className="text-gray-600 mb-4">support@ologywood.com</p>
+              <p className="text-gray-600 mb-4">info@ologywood.com</p>
               <p className="text-sm text-gray-500">Response time: 24 hours</p>
             </div>
 
@@ -231,7 +267,7 @@ export default function Help() {
                 <Phone className="text-purple-600" size={24} />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone Support</h3>
-              <p className="text-gray-600 mb-4">+1 (555) 123-4567</p>
+              <p className="text-gray-600 mb-4">+1 (800) 654-9963</p>
               <p className="text-sm text-gray-500">Mon-Fri, 9 AM - 6 PM EST</p>
             </div>
           </div>

@@ -20,7 +20,7 @@ export function TrustBadges() {
     {
       icon: Users,
       title: 'Trusted Community',
-      description: 'Thousands of artists and venues trust Ologywood daily.',
+      description: 'Artists and venues trust Ologywood for their bookings.',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
@@ -33,8 +33,8 @@ export function TrustBadges() {
     },
     {
       icon: CheckCircle,
-      title: '24/7 Support',
-      description: 'Our team is ready to help with any questions or issues.',
+      title: 'Dedicated Support',
+      description: 'Our team is available Monday through Friday to help with any questions.',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
     },
@@ -83,8 +83,8 @@ export function TrustBadges() {
               <p className="text-xs sm:text-sm text-muted-foreground">Secure Transactions</p>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Customer Support</p>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">M-F</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Dedicated Support</p>
             </div>
             <div>
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">SSL</div>
