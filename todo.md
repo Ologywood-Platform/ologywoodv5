@@ -445,3 +445,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Update outdated or inaccurate content across all pages
 - [x] Ensure new features (Following, Send Update, E-Signatures, Events, Riders, Contracts) are mentioned where appropriate
 - [x] Write 52 content audit tests (726 total tests passing, 0 TypeScript errors)
+
+## SITEHEADER INTEGRATION — Remaining Pages
+- [x] Add SiteHeader to Contact page
+- [x] Add SiteHeader to Help page
+- [x] Add SiteHeader to How It Works page
+- [x] Verify TypeScript and run tests (726 passing, 0 TS errors)

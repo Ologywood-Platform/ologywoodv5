@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Music, Briefcase, CheckCircle, MessageSquare, CreditCard, Star } from 'lucide-react';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function HowItWorks() {
   const [activeTab, setActiveTab] = useState<'artists' | 'venues'>('artists');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen flex flex-col">
+      <SiteHeader />
+      <div className="flex-1 bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -479,6 +482,7 @@ export default function HowItWorks() {
             </a>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

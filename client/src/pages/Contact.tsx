@@ -1,8 +1,11 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen flex flex-col">
+      <SiteHeader />
+      <div className="flex-1 bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Contact Us</h1>
         
@@ -44,6 +47,7 @@ export default function Contact() {
             </button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );

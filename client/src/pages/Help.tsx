@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, Search, Mail, MessageCircle, Phone } from 'lucide-react';
+import SiteHeader from '@/components/SiteHeader';
 
 interface FAQItem {
   id: string;
@@ -158,7 +159,9 @@ export default function Help() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen flex flex-col">
+      <SiteHeader />
+      <div className="flex-1 bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-12">
         <div className="max-w-4xl mx-auto px-4">
@@ -286,6 +289,7 @@ export default function Help() {
             Contact Us
           </a>
         </div>
+      </div>
       </div>
     </div>
   );
