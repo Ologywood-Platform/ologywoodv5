@@ -380,3 +380,26 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Investigate OG tag injection for artist profile pages (production SPA fallback bypasses middleware)
 - [x] Fix the OG tag rendering issue (inject dynamic OG tags in serveStatic SPA fallback for bots)
 - [x] Verify fix works with social media preview tools (543 tests passing, 0 TS errors)
+
+## FOLLOW FEATURE
+- [x] Create follows database table (already present in schema)
+- [x] Add backend tRPC endpoints (follow, unfollow, isFollowing, getFollowerCount, getFollowedArtists)
+- [x] Build Follow/Unfollow button on artist profile page
+- [x] Display follower count on artist profile
+- [x] Add "Fans" section in Artist Dashboard
+- [x] Write tests for follow feature
+- [x] Verify TypeScript correctness
+
+## FAN + FOLLOW FEATURE
+- [x] Add "fan" to user role enum in schema
+- [x] Remove tier gate from follow/unfollow endpoints (free for all)
+- [x] Build FollowButton component with auth-aware states (follow/unfollow/sign up)
+- [x] Show "Sign Up to Follow" prompt for unauthenticated users
+- [x] Show follower count on artist profile
+- [x] Add email consent dialog when following ("By following, you agree to receive email updates")
+- [x] Add FansSection to Artist Dashboard
+- [x] Free tier: show follower count and names (emails blurred)
+- [x] Paid tier: show full fan list with emails and CSV export
+- [x] Add upgrade prompt for free tier artists to unlock email list
+- [x] Write tests for fan + follow feature (32 tests passing, 575 total)
+- [x] Verify TypeScript correctness (0 errors)

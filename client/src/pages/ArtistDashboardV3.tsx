@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { AccountSettings } from '@/components/AccountSettings';
 import { EventStatusManager } from '@/components/EventStatusManager';
+import { FansSection } from '@/components/FansSection';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -330,6 +331,9 @@ export function ArtistDashboardV3() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Fans Section */}
+            <FansSection artistUserId={user?.id} />
 
             {/* Messages are accessed from the Messages page */}
 

@@ -9,7 +9,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }), // 'oauth', 'google', 'github', etc.
-  role: mysqlEnum("role", ["user", "admin", "artist", "venue"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "artist", "venue", "fan"]).default("user").notNull(),
   emailVerified: boolean("emailVerified").default(false).notNull(),
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
   emailVerificationSentAt: timestamp("emailVerificationSentAt"),

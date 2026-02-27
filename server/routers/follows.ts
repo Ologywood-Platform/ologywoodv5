@@ -1,17 +1,17 @@
 /**
  * Follows Router
  * TRPC endpoints for follow/unfollow operations
- * Premium feature for STARTER and PROFESSIONAL tiers
+ * Follow is free for all users. Fan email list access requires paid tier.
  */
 
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import * as followService from "../services/followService";
 import { hasFeatureAccess } from "../services/pricingTierService";
 
 export const followsRouter = router({
   /**
-   * Follow an artist or venue
+   * Follow an artist or venue (free for all logged-in users)
    */
   follow: protectedProcedure
     .input(
@@ -21,12 +21,6 @@ export const followsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }: any) => {
-      // Check tier access
-      const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
-      if (!hasAccess) {
-        throw new Error("Follow feature requires STARTER tier or higher");
-      }
-
       const success = await followService.followUser(
         ctx.user.id,
         input.followingId,
@@ -65,12 +59,13 @@ export const followsRouter = router({
     }),
 
   /**
-   * Get follow statistics for a user
+   * Get follow statistics for a user (public - no auth required for follower count)
    */
-  getStats: protectedProcedure
+  getStats: publicProcedure
     .input(z.object({ userId: z.number() }))
     .query(async ({ ctx, input }: any) => {
-      const stats = await followService.getFollowStats(input.userId, ctx.user.id);
+      const currentUserId = ctx.user?.id;
+      const stats = await followService.getFollowStats(input.userId, currentUserId);
       return stats;
     }),
 
@@ -95,7 +90,7 @@ export const followsRouter = router({
     }),
 
   /**
-   * Get list of followers for a user
+   * Get list of followers for a user (names only, no emails)
    */
   getFollowers: protectedProcedure
     .input(
@@ -115,17 +110,83 @@ export const followsRouter = router({
     }),
 
   /**
+   * Get fan email list for an artist (PAID TIER ONLY)
+   * Returns full fan details including emails for artists on paid tiers
+   */
+  getFanEmails: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+      })
+    )
+    .query(async ({ ctx, input }: any) => {
+      // Only artists can access their fan email list
+      if (ctx.user.role !== "artist") {
+        throw new Error("Only artists can access fan email lists");
+      }
+
+      // Check tier access - requires paid tier
+      const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
+      if (!hasAccess) {
+        return {
+          fans: [],
+          totalCount: await followService.getFollowerCount(ctx.user.id),
+          hasAccess: false,
+          message: "Upgrade to STARTER tier or higher to access your fan email list",
+        };
+      }
+
+      const fans = await followService.getFanEmailList(
+        ctx.user.id,
+        input.limit,
+        input.offset
+      );
+      const totalCount = await followService.getFollowerCount(ctx.user.id);
+
+      return {
+        fans,
+        totalCount,
+        hasAccess: true,
+        message: null,
+      };
+    }),
+
+  /**
+   * Export fan email list as CSV (PAID TIER ONLY)
+   */
+  exportFanEmails: protectedProcedure
+    .query(async ({ ctx }: any) => {
+      if (ctx.user.role !== "artist") {
+        throw new Error("Only artists can export fan email lists");
+      }
+
+      const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
+      if (!hasAccess) {
+        throw new Error("Upgrade to STARTER tier or higher to export fan emails");
+      }
+
+      const fans = await followService.getFanEmailList(ctx.user.id, 10000, 0);
+      
+      // Build CSV
+      const csvHeader = "Name,Email,Followed At\n";
+      const csvRows = fans.map(f => 
+        `"${(f.name || '').replace(/"/g, '""')}","${f.email}","${f.followedAt.toISOString()}"`
+      ).join("\n");
+
+      return {
+        csv: csvHeader + csvRows,
+        filename: `ologywood-fans-${new Date().toISOString().split('T')[0]}.csv`,
+        totalCount: fans.length,
+      };
+    }),
+
+  /**
    * Get follow recommendations for current user
    */
   getRecommendations: protectedProcedure
     .input(z.object({ limit: z.number().default(10) }))
     .query(async ({ ctx, input }: any) => {
-      // Check tier access
-      const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
-      if (!hasAccess) {
-        return []; // Return empty for free tier
-      }
-
       const recommendations = await followService.getFollowRecommendations(
         ctx.user.id,
         input.limit

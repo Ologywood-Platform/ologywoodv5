@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart } from "lucide-react";
+import { FollowButton } from "@/components/FollowButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -162,15 +163,6 @@ export default function ArtistProfile() {
     },
   });
 
-  // Move follow mutation to top level - MUST NOT be inside conditionals or functions
-  const followMutation = trpc.follows.follow.useMutation({
-    onSuccess: () => {
-      toast.success('Following ' + artist?.artistName);
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to follow');
-    },
-  });
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,21 +295,7 @@ export default function ArtistProfile() {
             
             <div className="flex gap-2">
               <FavoriteButton artistId={artistId} size="lg" />
-                  <Button
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    window.location.href = getLoginUrl();
-                    return;
-                  }
-                  followMutation.mutate({ followingId: artistId, followingType: 'artist' });
-                }}
-                variant="outline"
-                size="lg"
-                className="gap-2"
-              >
-                <Users className="w-5 h-5" />
-                Follow
-              </Button>
+                  <FollowButton artistUserId={artist.userId || artistId} artistName={artist.artistName} />
               <Button
                 onClick={() => setShareProfileOpen(true)}
                 variant="outline"

@@ -511,3 +511,80 @@ export async function removeAllFollows(userId: number): Promise<void> {
     throw error;
   }
 }
+
+
+export interface FanEmail {
+  id: number;
+  name: string;
+  email: string;
+  followedAt: Date;
+}
+
+/**
+ * Get the total follower count for a user
+ */
+export async function getFollowerCount(userId: number): Promise<number> {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const followers = await db
+      .select()
+      .from(follows)
+      .where(eq(follows.followingId, userId));
+
+    return followers.length;
+  } catch (error) {
+    console.error("Error getting follower count:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get fan email list for an artist (paid tier feature)
+ * Returns full fan details including emails
+ */
+export async function getFanEmailList(
+  artistUserId: number,
+  limit_: number = 100,
+  offset: number = 0
+): Promise<FanEmail[]> {
+  try {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const followerRelations = await db
+      .select()
+      .from(follows)
+      .where(eq(follows.followingId, artistUserId))
+      .limit(limit_)
+      .offset(offset);
+
+    const fans: FanEmail[] = [];
+
+    for (const relation of followerRelations) {
+      const userResult = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, relation.followerId))
+        .limit(1);
+
+      if (userResult.length > 0) {
+        const user = userResult[0];
+        if (user.email) {
+          fans.push({
+            id: user.id,
+            name: user.name || "Unknown",
+            email: user.email,
+            followedAt: relation.createdAt,
+          });
+        }
+      }
+    }
+
+    return fans;
+  } catch (error) {
+    console.error("Error getting fan email list:", error);
+    throw error;
+  }
+}
