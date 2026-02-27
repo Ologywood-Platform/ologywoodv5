@@ -464,3 +464,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Wire Pricing page buttons to create checkout and redirect
 - [x] Handle success/cancel redirects
 - [x] Write tests for both features (43 new tests, 769 total passing, 0 TS errors)
+
+## SUBSCRIPTION MANAGEMENT IN DASHBOARD
+- [x] Create SubscriptionManagement component showing current plan, status, billing period
+- [x] Show upgrade options for Free/Starter users
+- [x] Add cancel/reactivate subscription functionality
+- [x] Display trial info when applicable
+- [x] Integrate into artist dashboard layout
+
+## MOBILE-OPTIMIZED PRICING CARDS
+- [x] Stack pricing cards vertically on mobile with swipeable carousel
+- [x] Add plan indicator dots or tabs for mobile navigation
+- [x] Ensure touch-friendly interactions
+- [x] Write tests for both features (47 new tests, 816 total passing, 0 TS errors)

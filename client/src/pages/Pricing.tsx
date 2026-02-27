@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -50,11 +50,166 @@ interface Tier {
   features: { name: string; included: boolean }[];
 }
 
+const tiers: Tier[] = [
+  {
+    name: "Free",
+    description: "Get started and explore the platform",
+    price: "$0",
+    period: "forever",
+    cta: "Get Started",
+    highlight: false,
+    features: [
+      { name: "Artist or venue profile", included: true },
+      { name: "Browse artists and venues", included: true },
+      { name: "In-platform messaging", included: true },
+      { name: "Availability calendar", included: true },
+      { name: "Follow artists & event discovery", included: true },
+      { name: "2 booking requests per month", included: true },
+      { name: "Rider Builder & templates", included: false },
+      { name: "Contract management & e-signatures", included: false },
+      { name: "Fan email list & Send Update", included: false },
+      { name: "Analytics & payment history", included: false },
+      { name: "Priority support", included: false },
+      { name: "Featured profile & custom branding", included: false },
+    ],
+  },
+  {
+    name: "Starter",
+    description: "For active artists and bookers",
+    price: "$9",
+    period: "month",
+    cta: "Upgrade to Starter",
+    highlight: true,
+    badge: "Most Popular",
+    planSlug: "starter",
+    features: [
+      { name: "Everything in Free, plus:", included: true },
+      { name: "Unlimited booking requests", included: true },
+      { name: "Rider Builder & saved templates", included: true },
+      { name: "Fan email list & Send Update", included: true },
+      { name: "Follow artists & event discovery", included: true },
+      { name: "In-platform messaging", included: true },
+      { name: "Availability calendar", included: true },
+      { name: "Contract management & e-signatures", included: false },
+      { name: "Analytics & payment history", included: false },
+      { name: "Priority support", included: false },
+      { name: "Featured profile & custom branding", included: false },
+      { name: "Bulk messaging", included: false },
+    ],
+  },
+  {
+    name: "Professional",
+    description: "Full-featured for serious professionals",
+    price: "$29",
+    period: "month",
+    cta: "Go Professional",
+    highlight: false,
+    planSlug: "professional",
+    features: [
+      { name: "Everything in Starter, plus:", included: true },
+      { name: "Contract management & e-signatures", included: true },
+      { name: "Advanced analytics dashboard", included: true },
+      { name: "Payment history & earnings tracking", included: true },
+      { name: "Priority support", included: true },
+      { name: "Featured profile listing", included: true },
+      { name: "Custom branding", included: true },
+      { name: "Bulk messaging", included: true },
+      { name: "Advanced profile customization", included: true },
+      { name: "Unlimited booking requests", included: true },
+      { name: "Rider Builder & saved templates", included: true },
+      { name: "Fan email list & Send Update", included: true },
+    ],
+  },
+];
+
+/** Renders a single pricing card */
+function PricingCard({ tier, loadingPlan, onCTA }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void }) {
+  return (
+    <Card
+      className={`relative flex flex-col h-full ${
+        tier.highlight
+          ? "ring-2 ring-indigo-600 shadow-xl md:scale-105"
+          : "shadow-lg"
+      }`}
+    >
+      {tier.badge && (
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <span className="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+            {tier.badge}
+          </span>
+        </div>
+      )}
+
+      <CardHeader>
+        <CardTitle className="text-2xl">{tier.name}</CardTitle>
+        <CardDescription>{tier.description}</CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex-1 flex flex-col">
+        {/* Price */}
+        <div className="mb-6">
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
+            {tier.period !== "forever" && (
+              <span className="text-gray-600">/{tier.period}</span>
+            )}
+          </div>
+          {tier.planSlug === 'professional' && (
+            <p className="text-xs text-indigo-600 mt-1 font-medium">14-day free trial included</p>
+          )}
+        </div>
+
+        {/* CTA Button */}
+        <Button
+          onClick={() => onCTA(tier)}
+          disabled={loadingPlan === tier.name}
+          className={`w-full mb-8 ${
+            tier.highlight
+              ? "bg-indigo-600 hover:bg-indigo-700"
+              : tier.planSlug
+                ? "bg-gray-900 hover:bg-gray-800 text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+          }`}
+        >
+          {loadingPlan === tier.name ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Redirecting...
+            </>
+          ) : (
+            tier.cta
+          )}
+        </Button>
+
+        {/* Features List */}
+        <div className="space-y-3 flex-1">
+          {tier.features.map((feature) => (
+            <div key={feature.name} className="flex items-start gap-3">
+              {feature.included ? (
+                <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              ) : (
+                <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
+              )}
+              <span className={feature.included ? "text-gray-900 text-sm" : "text-gray-400 text-sm"}>
+                {feature.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Pricing() {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
   const toastCtx = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [activeSlide, setActiveSlide] = useState(1); // Start on Starter (Most Popular)
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
 
   const checkoutMutation = (trpc.subscription.createCheckoutSession as any).useMutation?.({
     onSuccess: (data: { checkoutUrl: string }) => {
@@ -68,93 +223,16 @@ export default function Pricing() {
     },
   });
 
-  const tiers: Tier[] = [
-    {
-      name: "Free",
-      description: "Get started and explore the platform",
-      price: "$0",
-      period: "forever",
-      cta: "Get Started",
-      highlight: false,
-      features: [
-        { name: "Artist or venue profile", included: true },
-        { name: "Browse artists and venues", included: true },
-        { name: "In-platform messaging", included: true },
-        { name: "Availability calendar", included: true },
-        { name: "Follow artists & event discovery", included: true },
-        { name: "2 booking requests per month", included: true },
-        { name: "Rider Builder & templates", included: false },
-        { name: "Contract management & e-signatures", included: false },
-        { name: "Fan email list & Send Update", included: false },
-        { name: "Analytics & payment history", included: false },
-        { name: "Priority support", included: false },
-        { name: "Featured profile & custom branding", included: false },
-      ],
-    },
-    {
-      name: "Starter",
-      description: "For active artists and bookers",
-      price: "$9",
-      period: "month",
-      cta: "Upgrade to Starter",
-      highlight: true,
-      badge: "Most Popular",
-      planSlug: "starter",
-      features: [
-        { name: "Everything in Free, plus:", included: true },
-        { name: "Unlimited booking requests", included: true },
-        { name: "Rider Builder & saved templates", included: true },
-        { name: "Fan email list & Send Update", included: true },
-        { name: "Follow artists & event discovery", included: true },
-        { name: "In-platform messaging", included: true },
-        { name: "Availability calendar", included: true },
-        { name: "Contract management & e-signatures", included: false },
-        { name: "Analytics & payment history", included: false },
-        { name: "Priority support", included: false },
-        { name: "Featured profile & custom branding", included: false },
-        { name: "Bulk messaging", included: false },
-      ],
-    },
-    {
-      name: "Professional",
-      description: "Full-featured for serious professionals",
-      price: "$29",
-      period: "month",
-      cta: "Go Professional",
-      highlight: false,
-      planSlug: "professional",
-      features: [
-        { name: "Everything in Starter, plus:", included: true },
-        { name: "Contract management & e-signatures", included: true },
-        { name: "Advanced analytics dashboard", included: true },
-        { name: "Payment history & earnings tracking", included: true },
-        { name: "Priority support", included: true },
-        { name: "Featured profile listing", included: true },
-        { name: "Custom branding", included: true },
-        { name: "Bulk messaging", included: true },
-        { name: "Advanced profile customization", included: true },
-        { name: "Unlimited booking requests", included: true },
-        { name: "Rider Builder & saved templates", included: true },
-        { name: "Fan email list & Send Update", included: true },
-      ],
-    },
-  ];
-
   const handleCTA = (tier: Tier) => {
-    // Free tier → go to sign-up
     if (!tier.planSlug) {
       navigate("/get-started");
       return;
     }
-
-    // Paid tiers: if not logged in, send to sign-up first
     if (!isAuthenticated) {
       toastCtx.addInfo("Sign in required", "Create an account or sign in first, then you can upgrade your plan.");
       navigate("/get-started");
       return;
     }
-
-    // Logged in → create Stripe checkout session
     setLoadingPlan(tier.name);
     const origin = window.location.origin;
     checkoutMutation.mutate({
@@ -162,6 +240,31 @@ export default function Pricing() {
       successUrl: `${origin}/dashboard?subscription=success`,
       cancelUrl: `${origin}/pricing`,
     });
+  };
+
+  const goToSlide = useCallback((index: number) => {
+    const clamped = Math.max(0, Math.min(tiers.length - 1, index));
+    setActiveSlide(clamped);
+  }, []);
+
+  // Touch swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  };
+
+  const handleTouchEnd = () => {
+    const threshold = 50;
+    if (touchDeltaX.current < -threshold) {
+      goToSlide(activeSlide + 1);
+    } else if (touchDeltaX.current > threshold) {
+      goToSlide(activeSlide - 1);
+    }
+    touchDeltaX.current = 0;
   };
 
   return (
@@ -189,90 +292,85 @@ export default function Pricing() {
             </p>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8 mb-12">
+          {/* Desktop: 3-column grid (unchanged) */}
+          <div className="hidden md:grid md:grid-cols-3 gap-8 mb-12">
             {tiers.map((tier) => (
-              <Card
-                key={tier.name}
-                className={`relative flex flex-col ${
-                  tier.highlight
-                    ? "ring-2 ring-indigo-600 shadow-xl md:scale-105"
-                    : "shadow-lg"
-                }`}
-              >
-                {tier.badge && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      {tier.badge}
-                    </span>
-                  </div>
-                )}
-
-                <CardHeader>
-                  <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                  <CardDescription>{tier.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="flex-1 flex flex-col">
-                  {/* Price */}
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold text-gray-900">
-                        {tier.price}
-                      </span>
-                      {tier.period !== "forever" && (
-                        <span className="text-gray-600">/{tier.period}</span>
-                      )}
-                    </div>
-                    {tier.planSlug === 'professional' && (
-                      <p className="text-xs text-indigo-600 mt-1 font-medium">14-day free trial included</p>
-                    )}
-                  </div>
-
-                  {/* CTA Button */}
-                  <Button
-                    onClick={() => handleCTA(tier)}
-                    disabled={loadingPlan === tier.name}
-                    className={`w-full mb-8 ${
-                      tier.highlight
-                        ? "bg-indigo-600 hover:bg-indigo-700"
-                        : tier.planSlug
-                          ? "bg-gray-900 hover:bg-gray-800 text-white"
-                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                    }`}
-                  >
-                    {loadingPlan === tier.name ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Redirecting...
-                      </>
-                    ) : (
-                      tier.cta
-                    )}
-                  </Button>
-
-                  {/* Features List */}
-                  <div className="space-y-3 flex-1">
-                    {tier.features.map((feature) => (
-                      <div key={feature.name} className="flex items-start gap-3">
-                        {feature.included ? (
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        ) : (
-                          <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
-                        )}
-                        <span
-                          className={
-                            feature.included ? "text-gray-900 text-sm" : "text-gray-400 text-sm"
-                          }
-                        >
-                          {feature.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} />
             ))}
+          </div>
+
+          {/* Mobile: Swipeable carousel */}
+          <div className="md:hidden mb-12">
+            {/* Plan tabs */}
+            <div className="flex justify-center gap-1 mb-6">
+              {tiers.map((tier, i) => (
+                <button
+                  key={tier.name}
+                  onClick={() => goToSlide(i)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    activeSlide === i
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {tier.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Carousel container */}
+            <div
+              ref={carouselRef}
+              className="relative overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                className="flex transition-transform duration-300 ease-out"
+                style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+              >
+                {tiers.map((tier) => (
+                  <div key={tier.name} className="w-full flex-shrink-0 px-2">
+                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Arrow buttons */}
+              {activeSlide > 0 && (
+                <button
+                  onClick={() => goToSlide(activeSlide - 1)}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 shadow-lg rounded-full p-2 z-10"
+                  aria-label="Previous plan"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-700" />
+                </button>
+              )}
+              {activeSlide < tiers.length - 1 && (
+                <button
+                  onClick={() => goToSlide(activeSlide + 1)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 shadow-lg rounded-full p-2 z-10"
+                  aria-label="Next plan"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-700" />
+                </button>
+              )}
+            </div>
+
+            {/* Dot indicators */}
+            <div className="flex justify-center gap-2 mt-4">
+              {tiers.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goToSlide(i)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    activeSlide === i ? 'bg-indigo-600 w-6' : 'bg-gray-300'
+                  }`}
+                  aria-label={`Go to plan ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
 
           {/* FAQ Section */}

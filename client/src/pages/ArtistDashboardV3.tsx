@@ -8,6 +8,7 @@ import { trpc } from '@/lib/trpc';
 import { AccountSettings } from '@/components/AccountSettings';
 import { EventStatusManager } from '@/components/EventStatusManager';
 import { FansSection } from '@/components/FansSection';
+import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -331,6 +332,9 @@ export function ArtistDashboardV3() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Subscription Management */}
+            <SubscriptionManagement />
 
             {/* Fans Section */}
             <FansSection artistUserId={user?.id} />
