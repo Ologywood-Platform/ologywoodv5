@@ -33,7 +33,7 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should include static public pages', async () => {
       const response = await request(app).get('/sitemap.xml');
-      const publicPages = ['/browse', '/how-it-works', '/contact', '/faq', 'terms-of-service', 'privacy-policy'];
+      const publicPages = ['/browse', '/how-it-works', '/contact', '/faq', '/help', '/cookies', '/accessibility', 'terms-of-service', 'privacy-policy'];
       publicPages.forEach(page => {
         expect(response.text).toContain(page);
       });
@@ -49,7 +49,7 @@ describe('Sitemap and Robots.txt Routes', () => {
     it('should NOT include private pages', async () => {
       const response = await request(app).get('/sitemap.xml');
       // Private pages should not be in sitemap
-      const privatePages = ['/dashboard', '/venue-dashboard', '/admin', '/settings', '/messages', '/bookings', '/earnings', '/rider-builder', '/verify-email', '/revert-email'];
+      const privatePages = ['/dashboard', '/venue-dashboard', '/admin', '/settings', '/messages', '/bookings', '/earnings', '/rider-builder', '/verify-email', '/revert-email', '/following', '/favorites', '/rider-templates', '/unsubscribe'];
       privatePages.forEach(page => {
         // Check that page is not in sitemap URLs
         const regex = new RegExp(`<loc>[^<]*${page.replace(/\//g, '\\/')}[^<]*</loc>`);
@@ -105,7 +105,7 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should allow public pages', async () => {
       const response = await request(app).get('/robots.txt');
-      const publicPages = ['/browse', '/artist/', '/venue/', '/how-it-works', '/contact', '/faq'];
+      const publicPages = ['/browse', '/artist/', '/venue/', '/venues', '/events', '/pricing', '/how-it-works', '/contact', '/faq', '/help', '/cookies', '/accessibility'];
       publicPages.forEach(page => {
         expect(response.text).toContain(`Allow: ${page}`);
       });
@@ -113,7 +113,7 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should disallow private pages', async () => {
       const response = await request(app).get('/robots.txt');
-      const privatePages = ['/admin', '/dashboard', '/venue-dashboard', '/settings', '/messages', '/bookings', '/earnings', '/rider-builder', '/verify-email', '/revert-email'];
+      const privatePages = ['/admin', '/admin/payouts', '/dashboard', '/venue-dashboard', '/artist-dashboard', '/settings', '/messages', '/bookings', '/booking/', '/booking-confirmation', '/earnings', '/earnings-dashboard', '/venue-invoices', '/rider-builder', '/rider-templates', '/saved-riders', '/riders', '/favorites', '/following', '/availability', '/verify-email', '/revert-email', '/unsubscribe', '/artist-tax-reporting'];
       privatePages.forEach(page => {
         expect(response.text).toContain(`Disallow: ${page}`);
       });

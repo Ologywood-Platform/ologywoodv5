@@ -30,9 +30,12 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       { url: '/how-it-works', changefreq: 'monthly', priority: 0.7, lastmod: new Date().toISOString() },
       { url: '/contact', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
       { url: '/faq', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
+      { url: '/help', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
       // Use canonical URLs to avoid duplicates
       { url: '/terms-of-service', changefreq: 'yearly', priority: 0.5, lastmod: new Date().toISOString() },
       { url: '/privacy-policy', changefreq: 'yearly', priority: 0.5, lastmod: new Date().toISOString() },
+      { url: '/cookies', changefreq: 'yearly', priority: 0.4, lastmod: new Date().toISOString() },
+      { url: '/accessibility', changefreq: 'yearly', priority: 0.4, lastmod: new Date().toISOString() },
     ];
 
     // Fetch dynamic artist profiles
@@ -129,28 +132,47 @@ Allow: /
 Allow: /browse
 Allow: /artist/
 Allow: /venue/
+Allow: /venues
+Allow: /events
+Allow: /events/
+Allow: /pricing
 Allow: /how-it-works
 Allow: /contact
 Allow: /faq
+Allow: /help
 Allow: /terms-of-service
 Allow: /privacy-policy
+Allow: /cookies
+Allow: /accessibility
 
 # Disallow private/protected pages
 Disallow: /admin
+Disallow: /admin/payouts
 Disallow: /dashboard
 Disallow: /venue-dashboard
+Disallow: /artist-dashboard
 Disallow: /settings
 Disallow: /account
 Disallow: /messages
 Disallow: /bookings
+Disallow: /booking/
+Disallow: /booking-confirmation
 Disallow: /earnings
+Disallow: /earnings-dashboard
+Disallow: /venue-invoices
 Disallow: /rider-builder
+Disallow: /rider-templates
 Disallow: /saved-riders
+Disallow: /riders
+Disallow: /favorites
+Disallow: /following
 Disallow: /availability
 Disallow: /verify-email
 Disallow: /revert-email
+Disallow: /unsubscribe
 Disallow: /onboarding
 Disallow: /get-started
+Disallow: /artist-tax-reporting
 
 # Disallow API endpoints
 Disallow: /api/

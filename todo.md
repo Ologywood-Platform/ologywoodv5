@@ -487,3 +487,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Integrate email sending into Stripe webhook for checkout.session.completed
 - [x] Include unsubscribe link in all emails (CAN-SPAM compliance)
 - [x] Write tests and verify TypeScript (68 new tests, 884 total passing, 0 TS errors)
+
+## SITEMAP AUDIT
+- [x] Add missing public pages to sitemap (help, cookies, accessibility)
+- [x] Add missing routes to robots.txt Allow/Disallow lists (venues, events, pricing, help, cookies, accessibility)
+- [x] Update robots.txt to include new protected routes (following, favorites, rider-templates, earnings-dashboard, venue-invoices, booking-confirmation, artist-tax-reporting, admin/payouts)
+- [x] Update tests for sitemap completeness (884 tests passing, 0 TS errors)
