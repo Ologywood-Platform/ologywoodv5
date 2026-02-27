@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Music, Briefcase, CheckCircle, MessageSquare, CreditCard, Star } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 export default function HowItWorks() {
   const [activeTab, setActiveTab] = useState<'artists' | 'venues'>('artists');
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.howItWorks);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">

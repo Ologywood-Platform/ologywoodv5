@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search, Mail, MessageCircle, Phone } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 interface FAQItem {
   id: string;
@@ -148,6 +149,11 @@ export default function Help() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.help);
+  }, []);
 
   const categories = ['All', ...new Set(faqItems.map(item => item.category))];
   

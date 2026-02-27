@@ -1,7 +1,14 @@
+import { useEffect } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 export default function Contact() {
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.contact);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />

@@ -8,6 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { JsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/components/JsonLd";
 import SiteHeader from "@/components/SiteHeader";
 import { useToast } from "@/components/ErrorToast";
+import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 
 const PRICING_FAQS = [
   {
@@ -210,6 +211,11 @@ export default function Pricing() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.pricing);
+  }, []);
 
   const checkoutMutation = (trpc.subscription.createCheckoutSession as any).useMutation?.({
     onSuccess: (data: { checkoutUrl: string }) => {

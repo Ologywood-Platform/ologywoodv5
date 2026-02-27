@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.faq);
+  }, []);
 
   const faqs = [
     // Getting Started

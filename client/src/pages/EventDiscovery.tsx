@@ -10,6 +10,7 @@ import { Search, Loader2, ArrowLeft, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 // Mock events data - replace with API call
 const mockEvents = [
@@ -66,6 +67,11 @@ export default function EventDiscovery() {
 
   const [events, setEvents] = useState(mockEvents);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.events);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     eventType: '',

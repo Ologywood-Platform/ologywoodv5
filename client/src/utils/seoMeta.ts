@@ -1,7 +1,12 @@
 /**
  * SEO Meta Tags Utility
- * Generates consistent meta tags for all pages to improve search engine visibility
+ * Generates consistent Open Graph and Twitter Card meta tags for all pages
+ * to improve social media link previews and search engine visibility.
  */
+
+const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ysxOwFpvMPLOUeDm.png';
+const BASE_URL = 'https://www.ologywood.com';
+const SITE_NAME = 'Ologywood';
 
 export interface MetaTagsConfig {
   title: string;
@@ -11,6 +16,7 @@ export interface MetaTagsConfig {
   ogDescription?: string;
   ogImage?: string;
   ogUrl?: string;
+  ogType?: string;
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
   twitterTitle?: string;
   twitterDescription?: string;
@@ -19,11 +25,9 @@ export interface MetaTagsConfig {
 }
 
 /**
- * Set meta tags for a page
+ * Set meta tags for a page. Updates existing tags or creates new ones.
  */
 export function setMetaTags(config: MetaTagsConfig) {
-  const baseUrl = import.meta.env.VITE_APP_URL || 'https://ologywood.com';
-
   // Title
   document.title = config.title;
   updateMetaTag('og:title', config.ogTitle || config.title);
@@ -40,21 +44,21 @@ export function setMetaTags(config: MetaTagsConfig) {
   }
 
   // Open Graph
-  updateMetaTag('og:type', 'website');
-  updateMetaTag('og:url', config.ogUrl || baseUrl);
-  if (config.ogImage) {
-    updateMetaTag('og:image', config.ogImage);
-  }
+  updateMetaTag('og:type', config.ogType || 'website');
+  updateMetaTag('og:site_name', SITE_NAME);
+  updateMetaTag('og:url', config.ogUrl || BASE_URL);
+  updateMetaTag('og:image', config.ogImage || DEFAULT_OG_IMAGE);
+  updateMetaTag('og:image:width', '1200');
+  updateMetaTag('og:image:height', '630');
 
   // Twitter Card
   updateMetaTag('twitter:card', config.twitterCard || 'summary_large_image');
-  if (config.twitterImage) {
-    updateMetaTag('twitter:image', config.twitterImage);
-  }
+  updateMetaTag('twitter:image', config.twitterImage || config.ogImage || DEFAULT_OG_IMAGE);
+  updateMetaTag('twitter:url', config.ogUrl || BASE_URL);
 
   // Canonical URL
-  if (config.canonical) {
-    updateCanonicalTag(config.canonical);
+  if (config.canonical || config.ogUrl) {
+    updateCanonicalTag(config.canonical || config.ogUrl!);
   }
 }
 
@@ -66,7 +70,7 @@ function updateMetaTag(name: string, content: string) {
 
   if (!tag) {
     tag = document.createElement('meta');
-    if (name.startsWith('og:')) {
+    if (name.startsWith('og:') || name.startsWith('twitter:')) {
       tag.setAttribute('property', name);
     } else {
       tag.setAttribute('name', name);
@@ -93,59 +97,121 @@ function updateCanonicalTag(url: string) {
 }
 
 /**
- * Predefined meta tags for common pages
+ * Predefined meta tags for all public pages.
+ * Each entry includes proper og:url, og:image, and page-specific copy.
  */
-// Get base URL for meta tags
-const getBaseUrl = () => import.meta.env.VITE_APP_URL || 'https://ologywood.com';
-
 export const pageMetaTags = {
   home: {
     title: 'Ologywood - Book Talented Artists for Your Events',
     description: 'Connect with performing artists, manage bookings, and streamline your event planning all in one place. Find the perfect artist for your venue or event.',
     keywords: 'artist booking, event planning, performers, venues, entertainment booking',
-    ogImage: 'https://ologywood.com/og-home.jpg',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: BASE_URL,
   },
 
   browse: {
     title: 'Browse Artists - Ologywood',
-    description: 'Discover talented performing artists available for booking. Filter by genre, location, and availability.',
+    description: 'Discover talented performing artists available for booking. Filter by genre, location, and availability to find the perfect act for your event.',
     keywords: 'browse artists, find performers, artist directory, event entertainment',
-    ogImage: 'https://ologywood.com/og-browse.jpg',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/browse`,
+  },
+
+  events: {
+    title: 'Discover Events - Ologywood',
+    description: 'Explore upcoming live events, concerts, and performances. Find events near you and buy tickets directly from the artists you love.',
+    keywords: 'live events, concerts, performances, event discovery, tickets',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/events`,
+  },
+
+  pricing: {
+    title: 'Pricing Plans - Ologywood',
+    description: 'Choose the right plan for your music career. Free, Starter ($9/mo), and Professional ($29/mo) tiers with rider templates, e-signatures, fan updates, and more.',
+    keywords: 'artist pricing, subscription plans, booking platform pricing, artist tools',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/pricing`,
   },
 
   howItWorks: {
     title: 'How It Works - Ologywood',
-    description: 'Learn how Ologywood simplifies the artist booking process for venues and performers. Step-by-step guide for both artists and venues.',
+    description: 'Learn how Ologywood simplifies the artist booking process. Create your profile, set availability, manage riders and contracts, and grow your fan base.',
     keywords: 'how to book artists, booking process, artist management, venue booking',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/how-it-works`,
   },
 
   faq: {
     title: 'FAQ - Ologywood',
-    description: 'Frequently asked questions about booking artists, payments, riders, and platform features.',
+    description: 'Frequently asked questions about booking artists, payments, riders, contracts, e-signatures, events, and platform features on Ologywood.',
     keywords: 'artist booking FAQ, booking questions, payment questions, rider requirements',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/faq`,
   },
 
-  artistProfile: (artistName: string) => ({
-    title: `${artistName} - Ologywood Artist Profile`,
-    description: `Book ${artistName} for your next event. View performance details, availability, and rider requirements.`,
+  help: {
+    title: 'Help Center - Ologywood',
+    description: 'Get help with your Ologywood account. Learn about bookings, riders, contracts, payments, events, and more.',
+    keywords: 'help center, support, artist booking help, platform guide',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/help`,
+  },
+
+  contact: {
+    title: 'Contact Us - Ologywood',
+    description: 'Get in touch with the Ologywood team. We are here to help with questions about artist bookings, venue partnerships, and platform support.',
+    keywords: 'contact ologywood, support, artist booking help, venue partnerships',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/contact`,
+  },
+
+  venues: {
+    title: 'Browse Venues - Ologywood',
+    description: 'Discover venues looking for talented performers. Browse venue profiles, upcoming events, and booking opportunities.',
+    keywords: 'browse venues, find venues, venue directory, performance venues',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/venues`,
+  },
+
+  artistProfile: (artistName: string, artistId?: number, artistImage?: string) => ({
+    title: `${artistName} - Book on Ologywood`,
+    description: `Book ${artistName} for your next event on Ologywood. View performance details, availability, rider requirements, and upcoming events.`,
     keywords: `${artistName}, book artist, performer profile, event booking`,
+    ogImage: artistImage || DEFAULT_OG_IMAGE,
+    ogUrl: artistId ? `${BASE_URL}/artist/${artistId}` : BASE_URL,
+    ogType: 'profile',
   }),
 
-  venueProfile: (venueName: string) => ({
-    title: `${venueName} - Ologywood Venue Profile`,
-    description: `${venueName} on Ologywood. Browse upcoming events and available artists.`,
+  venueProfile: (venueName: string, venueId?: number, venueImage?: string) => ({
+    title: `${venueName} - Ologywood Venue`,
+    description: `${venueName} on Ologywood. Browse upcoming events, available booking slots, and connect with talented artists.`,
     keywords: `${venueName}, venue profile, event venue, booking venue`,
+    ogImage: venueImage || DEFAULT_OG_IMAGE,
+    ogUrl: venueId ? `${BASE_URL}/venue/${venueId}` : BASE_URL,
+  }),
+
+  eventDetail: (eventTitle: string, eventId?: number, eventImage?: string, eventDescription?: string) => ({
+    title: `${eventTitle} - Ologywood Event`,
+    description: eventDescription || `${eventTitle} on Ologywood. View event details, lineup, tickets, and venue information.`,
+    keywords: `${eventTitle}, live event, concert, performance, tickets`,
+    ogImage: eventImage || DEFAULT_OG_IMAGE,
+    ogUrl: eventId ? `${BASE_URL}/events/${eventId}` : `${BASE_URL}/events`,
+    ogType: 'event',
   }),
 
   login: {
     title: 'Login - Ologywood',
     description: 'Sign in to your Ologywood account to manage bookings, profiles, and messages.',
     keywords: 'login, sign in, artist login, venue login',
+    ogUrl: `${BASE_URL}/get-started`,
   },
 
   signup: {
     title: 'Sign Up - Ologywood',
     description: 'Create a free account on Ologywood. Join as an artist or venue to start booking today.',
     keywords: 'sign up, register, create account, artist registration, venue registration',
+    ogUrl: `${BASE_URL}/get-started`,
   },
 };
+
+export { DEFAULT_OG_IMAGE, BASE_URL, SITE_NAME };

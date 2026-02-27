@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
@@ -12,6 +12,7 @@ import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,13 @@ export default function VenueProfile() {
   const { data: venueProfile, isLoading } = { data: null as any, isLoading: false };
   const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
   const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
+
+  // Set SEO meta tags when venue data loads
+  useEffect(() => {
+    if (venueProfile) {
+      setMetaTags(pageMetaTags.venueProfile(venueProfile.organizationName || 'Venue', venueId));
+    }
+  }, [venueProfile, venueId]);
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');

@@ -11,6 +11,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 // Mock event data - replace with API call
 const mockEvent = {
@@ -62,6 +63,13 @@ export default function EventDetail() {
     // };
     // fetchEvent();
   }, [eventId]);
+
+  // Set SEO meta tags for the event
+  useEffect(() => {
+    if (event) {
+      setMetaTags(pageMetaTags.eventDetail(event.eventTitle, eventId, undefined, event.description));
+    }
+  }, [event, eventId]);
 
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;

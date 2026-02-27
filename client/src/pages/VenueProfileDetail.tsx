@@ -124,7 +124,7 @@ export default function VenueProfileDetail() {
   useEffect(() => {
     const venueData = mockVenueData[venueId];
     if (venueData) {
-      setMetaTags(pageMetaTags.venueProfile(venue.organizationName));
+      setMetaTags(pageMetaTags.venueProfile(venue.organizationName, venueId));
     }
   }, [venueId]);
   const [isContacting, setIsContacting] = useState(false);

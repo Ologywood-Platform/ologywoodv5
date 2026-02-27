@@ -493,3 +493,13 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add missing routes to robots.txt Allow/Disallow lists (venues, events, pricing, help, cookies, accessibility)
 - [x] Update robots.txt to include new protected routes (following, favorites, rider-templates, earnings-dashboard, venue-invoices, booking-confirmation, artist-tax-reporting, admin/payouts)
 - [x] Update tests for sitemap completeness (884 tests passing, 0 TS errors)
+
+## OPEN GRAPH META TAGS
+- [x] Create reusable useMetaTags hook for dynamic OG tag management
+- [x] Add OG tags to Home page (og:title, og:description, og:image, og:url, twitter:card)
+- [x] Add OG tags to Browse page
+- [x] Add OG tags to Artist Profile page (dynamic per artist, includes photo and ID)
+- [x] Add OG tags to Event Detail page (dynamic per event)
+- [x] Add OG tags to Pricing page
+- [x] Add OG tags to How It Works, FAQ, Help, Contact, VenueBrowse, VenueProfile, EventDiscovery pages
+- [x] Write tests and verify TypeScript (112 new tests, 996 total passing, 0 TS errors)

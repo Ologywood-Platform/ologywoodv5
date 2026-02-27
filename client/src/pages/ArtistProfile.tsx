@@ -56,7 +56,7 @@ export default function ArtistProfile() {
   // Set SEO meta tags when artist data loads
   useEffect(() => {
     if (artist) {
-      setMetaTags(pageMetaTags.artistProfile(artist.artistName));
+      setMetaTags(pageMetaTags.artistProfile(artist.artistName, artist.id, artist.profilePhotoUrl || undefined));
     }
   }, [artist]);
   const { data: availability } = trpc.availability.getForArtist.useQuery(

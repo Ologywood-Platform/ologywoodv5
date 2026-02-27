@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
 import { LazyImage } from '@/components/LazyImage';
 import { trpc } from '@/lib/trpc';
+import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 interface Venue {
   id: number;
@@ -25,6 +26,11 @@ export default function VenueBrowse() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showSignupModal, setShowSignupModal] = useState(false);
+
+  // Set SEO meta tags
+  useEffect(() => {
+    setMetaTags(pageMetaTags.venues);
+  }, []);
 
   // Fetch venues from database
   // NOTE: venue router was removed during cleanup - using empty data for now
