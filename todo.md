@@ -477,3 +477,13 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add plan indicator dots or tabs for mobile navigation
 - [x] Ensure touch-friendly interactions
 - [x] Write tests for both features (47 new tests, 816 total passing, 0 TS errors)
+
+## SUBSCRIPTION CONFIRMATION EMAILS
+- [x] Create subscription email service with branded HTML templates
+- [x] Build upgrade confirmation email (plan name, price, features unlocked)
+- [x] Build cancellation confirmation email (access-until date, reactivation link)
+- [x] Build reactivation confirmation email (plan restored, next billing date)
+- [x] Integrate email sending into tRPC cancel/reactivate endpoints
+- [x] Integrate email sending into Stripe webhook for checkout.session.completed
+- [x] Include unsubscribe link in all emails (CAN-SPAM compliance)
+- [x] Write tests and verify TypeScript (68 new tests, 884 total passing, 0 TS errors)

@@ -142,11 +142,14 @@ export async function getSubscriptionStatus(subscriptionId: string) {
   try {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subData = subscription as any;
+    const priceItem = subData.items?.data?.[0]?.price;
     return {
       status: subscription.status,
       currentPeriodEnd: subData.current_period_end ? new Date(subData.current_period_end * 1000) : new Date(),
       cancelAtPeriodEnd: subData.cancel_at_period_end || false,
       trialEnd: subData.trial_end ? new Date(subData.trial_end * 1000) : null,
+      priceAmount: priceItem?.unit_amount as number | undefined,
+      lookupKey: priceItem?.lookup_key as string | undefined,
     };
   } catch (error) {
     console.error('Error fetching subscription:', error);

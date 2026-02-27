@@ -196,9 +196,32 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       const trialEndDate = subData.trial_end 
         ? new Date(subData.trial_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         : undefined;
+
+      // Determine plan from price
+      const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
+      const priceId = subData.items?.data?.[0]?.price?.id;
+      const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+      let planName = 'Professional Plan';
+      let planPrice = '$29/month';
+      let features = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.features as unknown as string[];
+
+      if (lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+          (subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly)) {
+        planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+        planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
+        features = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.features as unknown as string[];
+      } else {
+        planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+        planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly / 100}/month`;
+        features = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.features as unknown as string[];
+      }
+
       await email.sendSubscriptionCreatedEmail({
         artistEmail: user.email,
         artistName: user.name || 'Artist',
+        planName,
+        planPrice,
+        features,
         trialEndDate,
       });
     }
@@ -217,16 +240,29 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   await db.updateSubscriptionStatus(parseInt(userId), 'cancelled');
   
-  // Send cancellation email
+  // Send cancellation email with plan details
   const user = await db.getUserById(parseInt(userId)) as any;
   if (user?.email) {
     const subData = subscription as any;
     const endDate = subData.current_period_end 
       ? new Date(subData.current_period_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
       : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Determine plan name from price
+    const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
+    const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+    let planName = 'your plan';
+    if (lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+        (subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly)) {
+      planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+    } else {
+      planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+    }
+
     await email.sendSubscriptionCanceledEmail({
       artistEmail: user.email,
       artistName: user.name || 'Artist',
+      planName,
       endDate,
     });
   }

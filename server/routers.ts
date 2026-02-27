@@ -1283,8 +1283,41 @@ export const appRouter = router({
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }
-      const { cancelSubscription } = await import('./stripe');
+      const { cancelSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+
+      // Get plan details before cancelling
+      let planName = 'your plan';
+      let endDate = '';
+      try {
+        const status = await getSubscriptionStatus(subscription.stripeSubscriptionId);
+        if (status) {
+          endDate = status.currentPeriodEnd
+            ? new Date(status.currentPeriodEnd).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+          // Determine plan from price amount
+          if (status.priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+          } else {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+          }
+        }
+      } catch (e) {
+        console.error('[Subscription] Error fetching status for cancel email:', e);
+      }
+
       await cancelSubscription(subscription.stripeSubscriptionId);
+
+      // Send cancellation confirmation email
+      if (ctx.user.email) {
+        email.sendSubscriptionCanceledEmail({
+          artistEmail: ctx.user.email,
+          artistName: ctx.user.name || 'Artist',
+          planName,
+          endDate: endDate || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        }).catch(err => console.error('[Subscription] Cancel email failed:', err));
+      }
+
       return { success: true };
     }),
 
@@ -1294,8 +1327,44 @@ export const appRouter = router({
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }
-      const { reactivateSubscription } = await import('./stripe');
+      const { reactivateSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+
       await reactivateSubscription(subscription.stripeSubscriptionId);
+
+      // Get plan details after reactivation for the email
+      let planName = 'your plan';
+      let planPrice = '';
+      let nextBillingDate = '';
+      try {
+        const status = await getSubscriptionStatus(subscription.stripeSubscriptionId);
+        if (status) {
+          nextBillingDate = status.currentPeriodEnd
+            ? new Date(status.currentPeriodEnd).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+          if (status.priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+            planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
+          } else {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+            planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly / 100}/month`;
+          }
+        }
+      } catch (e) {
+        console.error('[Subscription] Error fetching status for reactivate email:', e);
+      }
+
+      // Send reactivation confirmation email
+      if (ctx.user.email) {
+        email.sendSubscriptionReactivatedEmail({
+          artistEmail: ctx.user.email,
+          artistName: ctx.user.name || 'Artist',
+          planName,
+          planPrice,
+          nextBillingDate,
+        }).catch(err => console.error('[Subscription] Reactivate email failed:', err));
+      }
+
       return { success: true };
     }),
   }),

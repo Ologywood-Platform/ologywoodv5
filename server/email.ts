@@ -220,51 +220,94 @@ export async function sendBookingCancellationEmail(params: {
 }
 
 /**
- * Send subscription created notification
+ * Branded email wrapper for subscription emails
+ */
+function subscriptionEmailWrapper(content: string, recipientEmail: string): string {
+  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=subscription`;
+  return `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
+      </div>
+      <div style="padding: 30px 24px;">
+        ${content}
+      </div>
+      <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
+          You're receiving this email because you have an Ologywood account.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+          <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+          <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+        </p>
+        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+          &copy; 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Send subscription upgrade/created confirmation email
  */
 export async function sendSubscriptionCreatedEmail(params: {
   artistEmail: string;
   artistName: string;
+  planName?: string;
+  planPrice?: string;
+  features?: string[];
   trialEndDate?: string;
 }) {
-  const { artistEmail, artistName, trialEndDate } = params;
+  const { artistEmail, artistName, planName, planPrice, features, trialEndDate } = params;
+  const displayPlan = planName || 'Professional Plan';
+  const displayPrice = planPrice || '$29/month';
+  const displayFeatures = features || [
+    'Unlimited booking requests',
+    'Rider Builder & saved templates',
+    'Fan email list & Send Update',
+    'In-platform messaging',
+    'Availability calendar',
+  ];
+  const baseUrl = `https://${ENV.appId}.manus.space`;
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #8b5cf6;">Welcome to Ologywood! 🎵</h2>
-      <p>Hi ${artistName},</p>
-      <p>Thank you for subscribing to Ologywood! Your subscription is now active.</p>
-      
+  const content = `
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+    
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+      Welcome aboard! Your <strong>${displayPlan}</strong> subscription is now active.
+    </p>
+
+    <div style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+      <h3 style="color: #1f2937; margin: 0 0 8px 0; font-size: 18px;">${displayPlan}</h3>
+      <p style="color: #6D28D9; font-weight: 600; margin: 0 0 12px 0; font-size: 20px;">${displayPrice}</p>
       ${trialEndDate ? `
-        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-          <p style="margin: 0;"><strong>Free Trial Active</strong></p>
-          <p style="margin: 10px 0 0 0;">Your 14-day free trial ends on ${trialEndDate}. You won't be charged until then.</p>
+        <div style="background: #fef3c7; padding: 12px 16px; border-radius: 6px; margin: 0 0 12px 0;">
+          <p style="color: #92400e; margin: 0; font-size: 14px;"><strong>14-day free trial active</strong> — you won't be charged until ${trialEndDate}.</p>
         </div>
       ` : ''}
-      
-      <p>You now have access to all Ologywood features:</p>
-      <ul style="line-height: 1.8;">
-        <li>Create and manage your artist profile</li>
-        <li>Receive booking requests from venues</li>
-        <li>Manage your availability calendar</li>
-        <li>Create rider templates</li>
-        <li>Communicate with venues</li>
+      <p style="color: #4b5563; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">What's included:</p>
+      <ul style="color: #4b5563; margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px;">
+        ${displayFeatures.map(f => `<li>${f}</li>`).join('')}
       </ul>
-      
-      <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-        Go to Dashboard
-      </a>
-      
-      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-        This is an automated message from Ologywood. Please do not reply to this email.
-      </p>
     </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+      Start exploring your new features and grow your booking business!
+    </p>
   `;
 
   return sendEmail({
     to: artistEmail,
-    subject: 'Welcome to Ologywood - Subscription Active',
-    html,
+    subject: `Welcome to Ologywood ${displayPlan}!`,
+    html: subscriptionEmailWrapper(content, artistEmail),
   });
 }
 
@@ -308,42 +351,98 @@ export async function sendTrialEndingEmail(params: {
 }
 
 /**
- * Send subscription canceled notification
+ * Send subscription cancellation confirmation email
  */
 export async function sendSubscriptionCanceledEmail(params: {
   artistEmail: string;
   artistName: string;
+  planName?: string;
   endDate: string;
 }) {
-  const { artistEmail, artistName, endDate } = params;
+  const { artistEmail, artistName, planName, endDate } = params;
+  const displayPlan = planName || 'your plan';
+  const baseUrl = `https://${ENV.appId}.manus.space`;
 
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #6b7280;">Subscription Cancelled</h2>
-      <p>Hi ${artistName},</p>
-      <p>We're sorry to see you go! Your Ologywood subscription has been cancelled.</p>
-      
-      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <p>You'll continue to have access to all features until <strong>${endDate}</strong>.</p>
-        <p>After that date, your profile will be hidden from venues and you won't be able to receive new bookings.</p>
-      </div>
-      
-      <p>You can reactivate your subscription anytime from your dashboard. We'd love to have you back!</p>
-      
-      <a href="https://ologywood.com/subscription" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-        Reactivate Subscription
-      </a>
-      
-      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-        This is an automated message from Ologywood. Please do not reply to this email.
-      </p>
+  const content = `
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+    
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+      We're sorry to see you go. Your <strong>${displayPlan}</strong> subscription has been cancelled.
+    </p>
+
+    <div style="background: #fef2f2; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+      <p style="color: #991b1b; margin: 0 0 8px 0; font-weight: 600;">What happens next:</p>
+      <ul style="color: #7f1d1d; margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px;">
+        <li>You'll keep full access to all features until <strong>${endDate}</strong></li>
+        <li>After that date, your account will revert to the Free plan</li>
+        <li>Your profile and data will be preserved</li>
+      </ul>
     </div>
+
+    <p style="color: #374151; font-size: 15px; margin: 20px 0;">
+      Changed your mind? You can reactivate anytime before ${endDate} and keep your subscription going.
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Reactivate Subscription</a>
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+      We'd love to have you back. If there's anything we could improve, please let us know at <a href="${baseUrl}/contact" style="color: #6D28D9;">our contact page</a>.
+    </p>
   `;
 
   return sendEmail({
     to: artistEmail,
     subject: 'Your Ologywood Subscription Has Been Cancelled',
-    html,
+    html: subscriptionEmailWrapper(content, artistEmail),
+  });
+}
+
+/**
+ * Send subscription reactivation confirmation email
+ */
+export async function sendSubscriptionReactivatedEmail(params: {
+  artistEmail: string;
+  artistName: string;
+  planName?: string;
+  planPrice?: string;
+  nextBillingDate?: string;
+}) {
+  const { artistEmail, artistName, planName, planPrice, nextBillingDate } = params;
+  const displayPlan = planName || 'your plan';
+  const displayPrice = planPrice || '';
+  const baseUrl = `https://${ENV.appId}.manus.space`;
+
+  const content = `
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+    
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+      Great news! Your <strong>${displayPlan}</strong> subscription has been reactivated.
+    </p>
+
+    <div style="background: #f0fdf4; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
+      <p style="color: #166534; margin: 0 0 8px 0; font-weight: 600;">Subscription Restored</p>
+      <ul style="color: #15803d; margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px;">
+        <li>Plan: <strong>${displayPlan}</strong>${displayPrice ? ` (${displayPrice})` : ''}</li>
+        <li>Status: <strong>Active</strong></li>
+        ${nextBillingDate ? `<li>Next billing date: <strong>${nextBillingDate}</strong></li>` : ''}
+      </ul>
+    </div>
+
+    <p style="color: #374151; font-size: 15px; margin: 20px 0;">
+      All your features are back and your profile is visible to venues again. Welcome back!
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+    </div>
+  `;
+
+  return sendEmail({
+    to: artistEmail,
+    subject: `Welcome Back! Your ${displayPlan} Is Active Again`,
+    html: subscriptionEmailWrapper(content, artistEmail),
   });
 }
 
