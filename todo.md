@@ -419,3 +419,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Create reusable SiteHeader component with auth-aware nav (Following, Browse, Dashboard, Sign In)
 - [x] Integrate SiteHeader into 7 key pages (Home, Browse, ArtistProfile, VenueProfile, EventDetail, EventDiscovery, Following)
 - [x] Write 30 tests for SiteHeader component and page integration (631 total tests passing)
+
+## SEND UPDATE FEATURE (Artist Email Blasts)
+- [x] Design artist_updates database table (subject, body, sentAt, recipientCount, artistId)
+- [x] Create tRPC endpoint for sending updates (paid-tier only)
+- [x] Build email blast logic using existing fan notification service
+- [x] Add rate limiting (prevent spam, e.g., max 1 update per day)
+- [x] Build "Send Update" UI in Artist Dashboard Fans section
+- [x] Add compose form with subject, body (rich text or plain), preview
+- [x] Add send confirmation dialog
+- [x] Show update history (past blasts with date, subject, recipient count)
+- [x] Gate behind paid tier with upgrade prompt for free-tier artists
+- [x] Write tests for backend and frontend integration (43 new tests, 674 total passing)
+- [x] Verify TypeScript correctness (0 errors)

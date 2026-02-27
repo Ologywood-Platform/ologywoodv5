@@ -112,7 +112,7 @@ describe('Fan + Follow Feature', () => {
     });
 
     it('should show upgrade prompt for free tier', () => {
-      expect(component).toContain('Unlock Your Fan Email List');
+      expect(component).toContain('Unlock Fan Email List & Updates');
       expect(component).toContain('View Plans');
     });
 

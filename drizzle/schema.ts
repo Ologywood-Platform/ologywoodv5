@@ -758,3 +758,28 @@ export const emailLogs = mysqlTable("email_logs", {
 
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type InsertEmailLog = typeof emailLogs.$inferInsert;
+
+
+/**
+ * Artist Updates - tracks email blasts sent by artists to their fans
+ * Paid-tier artists can compose and send custom updates to their follower list.
+ * Rate limited to 1 update per day per artist.
+ */
+export const artistUpdates = mysqlTable("artist_updates", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  recipientCount: int("recipientCount").default(0).notNull(),
+  sentCount: int("sentCount").default(0).notNull(),
+  failedCount: int("failedCount").default(0).notNull(),
+  status: mysqlEnum("status", ["sending", "sent", "failed"]).default("sending").notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_artist_updates_artist").on(table.artistId),
+  sentAtIdx: index("idx_artist_updates_sent_at").on(table.sentAt),
+}));
+
+export type ArtistUpdate = typeof artistUpdates.$inferSelect;
+export type InsertArtistUpdate = typeof artistUpdates.$inferInsert;
