@@ -26,6 +26,7 @@ import { eventsRouter } from "./routers/events";
 import { adminRouter } from "./routers/admin";
 import { payoutRouter } from "./routers/payout";
 import { venueRouter } from "./routers/venue";
+import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 
 
 // Helper to check if user is an artist
@@ -268,6 +269,17 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
         await db.updateArtistProfile(profile.id, input);
+
+        // Notify fans about profile update (fire-and-forget)
+        const updateSummary = input.bio ? 'Updated their bio and profile info' 
+          : input.genre ? 'Updated their music genres'
+          : input.profilePhotoUrl ? 'Updated their profile photo'
+          : 'Updated their profile';
+        notifyFansProfileUpdate(ctx.user.id, {
+          updateType: input.bio ? 'bio' : input.profilePhotoUrl ? 'photos' : 'general',
+          summary: updateSummary,
+        }).catch(err => console.error('[Artist] Fan notification failed:', err));
+
         return { success: true, profile: await db.getArtistProfileById(profile.id) };
       }),
     

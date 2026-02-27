@@ -403,3 +403,13 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add upgrade prompt for free tier artists to unlock email list
 - [x] Write tests for fan + follow feature (32 tests passing, 575 total)
 - [x] Verify TypeScript correctness (0 errors)
+
+## FAN FOLLOW-UP FEATURES
+- [x] Build fan email notification system (notify fans when artist creates events/updates profile)
+- [x] Add notification trigger in event creation flow (public events only, fire-and-forget)
+- [x] Add notification trigger in artist profile update flow
+- [x] Include unsubscribe link in all fan notification emails (CAN-SPAM compliant)
+- [x] Build "Following" page for fans to see all followed artists
+- [x] Add route registration for /following in App.tsx
+- [x] Verify full follow flow end-to-end (dev server running clean)
+- [x] Write tests for all new features (23 tests passing, 598 total)

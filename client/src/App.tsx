@@ -43,6 +43,7 @@ import ArtistEarnings from "./pages/ArtistEarnings";
 import ArtistEarningsDashboard from "./pages/ArtistEarningsDashboard";
 import VenueInvoiceDashboard from "./pages/VenueInvoiceDashboard";
 import Help from "./pages/Help";
+import Following from "./pages/Following";
 import AdminPayouts from "./pages/AdminPayouts";
 import ArtistTaxReporting from "./pages/ArtistTaxReporting";
 import { AdminDashboard } from "./pages/AdminDashboard";
@@ -113,6 +114,9 @@ function Router() {
           <Route path="/messages">{() => <PageErrorBoundary><Messages /></PageErrorBoundary>}</Route>
           <Route path="/messages/:id">{(params: any) => <PageErrorBoundary><MessagesDetail {...params} /></PageErrorBoundary>}</Route>
           
+          {/* Following */}
+          <Route path="/following" component={Following} />
+
           {/* Availability Management */}
           <Route path="/availability" component={Availability} />
           

@@ -1,6 +1,7 @@
 import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import * as db from '../db';
+import { notifyFansNewEvent } from '../services/fanNotificationService';
 
 // Input validation schemas
 const createEventSchema = z.object({
@@ -44,6 +45,17 @@ export const eventsRouter = router({
           ...input,
           artistId: ctx.user.id,
         });
+
+        // Notify fans about the new event (fire-and-forget, don't block response)
+        if (input.isPublic) {
+          notifyFansNewEvent(ctx.user.id, {
+            eventTitle: input.eventTitle,
+            eventDate: input.eventDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+            eventLocation: input.location,
+            eventId: event?.id,
+          }).catch(err => console.error('[Events] Fan notification failed:', err));
+        }
+
         return {
           success: true,
           event,
