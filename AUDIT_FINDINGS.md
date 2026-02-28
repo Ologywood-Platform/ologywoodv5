@@ -1,94 +1,26 @@
-# Platform Content Audit - Findings
+# Platform Content Audit — Findings & Resolution
 
-## Summary of Issues Found
+**Original Audit Date:** February 27, 2026  
+**Resolution Date:** February 27, 2026  
+**Status:** ALL ISSUES RESOLVED
 
-### 1. PRICING PAGE — Major Mismatches
+---
 
-**Actual backend tiers (pricingTierService.ts):**
-- Free ($0, 2 bookings/month)
-- Starter ($9/month)
-- Professional ($29/month)
+## Summary
 
-**Pricing page shows:**
-- Free ($0)
-- Professional ($9.99/month) — WRONG price, WRONG name (should be Starter)
-- Enterprise (Custom) — DOES NOT EXIST in backend
+A content audit identified 8 categories of inaccuracies across the platform's public-facing pages. All issues were fixed in the "Platform Content Audit" sprint (see todo.md, lines 436-447). The fixes included 52 new tests (726 total at time of completion).
 
-**Feature list mismatches:**
-- Free tier says "Create 1 rider template" — backend has `riderBuilder: false` for free
-- Free tier says "Send 5 booking requests/month" — backend says 2/month
-- Free tier says "Basic messaging" — backend has `messaging: true` (same as paid)
-- "Professional" at $9.99 says "Contract management" — backend Starter has `contractTemplates: false`
-- "Professional" at $9.99 says "Basic analytics" — backend Starter has `analytics: false`
-- Missing: Starter tier entirely
-- Missing: Professional tier at $29 with all features
-- "14-day free trial" badge — not implemented in backend
+## Issues Found and Resolved
 
-### 2. HOMEPAGE — Missing Feature Highlights
+| Category | Issue | Resolution |
+|----------|-------|------------|
+| **Pricing Page** | Tier names, prices, and feature lists did not match backend | Fixed to show Free ($0), Starter ($9/mo), Professional ($29/mo) with accurate feature gating |
+| **Homepage** | Missing mentions of rider/contract system, follow, events, e-signatures, availability calendar | Updated feature highlights to reflect all built features |
+| **How It Works** | Missing rider builder, fan updates, earnings dashboard, following system; CTA linked to /onboarding (nonexistent) | Added Step 6 "Grow Your Fan Base"; fixed CTA to /get-started |
+| **FAQ Page** | Missing topics for following, riders, contracts, e-signatures, events, subscriptions, availability | Added 16 comprehensive FAQ topics covering all features |
+| **Help Page** | Placeholder phone number, inconsistent email address, missing help articles | Fixed phone to match footer, fixed email, added 6 new feature help articles |
+| **Footer** | Cookie Policy link wrong path, missing links for Events, Pricing, Following, Earnings, Invoices | Fixed /cookie-policy to /cookies, added all missing links |
+| **Trust Badges** | Exaggerated claims ("Thousands of users", "24/7 Support", "Verified Artists") | Toned down claims, removed 24/7 support reference |
+| **Role Selection** | Free tier claimed rider access (backend has riderBuilder: false for free) | Updated to match actual tier gating |
 
-**Currently shows 4 generic cards:**
-- Diverse Talent
-- Easy Booking
-- Direct Communication
-- Secure Payments
-
-**Missing key features that are actually built:**
-- Rider/Contract system (built, not mentioned)
-- Follow artists & fan updates (built, not mentioned)
-- Event discovery (built, not mentioned)
-- E-signatures on contracts (built, not mentioned)
-- Artist availability calendar (built, not mentioned)
-
-### 3. HOW IT WORKS PAGE — Mostly Accurate but Missing Features
-
-**For Artists — missing:**
-- Rider builder / contract templates
-- Fan email updates (Send Update feature)
-- Earnings dashboard / tax reporting
-- Following system
-
-**For Venues — missing:**
-- Contract signing flow
-- Rider acknowledgment
-- Invoice dashboard
-
-**CTA links to "/onboarding" which doesn't exist** — should be "/get-started"
-
-### 4. FAQ PAGE — Incomplete
-
-**Missing topics:**
-- Following artists
-- Rider templates and contracts
-- E-signatures
-- Events system
-- Fan updates (Send Update)
-- Subscription tiers and pricing
-- Availability calendar
-
-### 5. HELP PAGE — Partially Outdated
-
-**Issues:**
-- Phone support number "+1 (555) 123-4567" is a placeholder — Footer shows "+1 (800) 654-9963"
-- Says "support@ologywood.com" but Contact page says "info@ologywood.com" — inconsistent
-- Missing help articles for new features (Following, Send Update, E-signatures, Events)
-
-### 6. FOOTER — Minor Issues
-
-**Issues:**
-- Cookie Policy link goes to "/cookie-policy" but route is "/cookies"
-- Missing links: Events, Following, Pricing
-- "For Artists" section missing: Events, Following, Earnings
-- "For Venues" section missing: Events, Invoices
-
-### 7. TRUST BADGES — Slightly Exaggerated
-
-**Issues:**
-- "Thousands of artists and venues trust Ologywood daily" — platform is new
-- "24/7 Support" claimed but Help page says "Mon-Fri, 9 AM - 6 PM EST"
-- "Verified Artists" — no formal verification system exists
-
-### 8. ROLE SELECTION (Get Started) — Mostly Accurate
-
-**Minor issues:**
-- Artist card mentions "Save rider templates" but free tier doesn't have rider access
-- Missing mention of: Following, Events, Contracts
+All changes are tracked in `todo.md` under "PLATFORM CONTENT AUDIT" with 52 passing tests verifying the fixes.

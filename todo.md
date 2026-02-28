@@ -130,17 +130,14 @@
 
 ## Known Issues
 
-- OAuth login blocked: Waiting for Manus support to register redirect URIs
-  - Production: https://www.ologywood.com/api/oauth/callback
-  - Dev: https://3000-i9qad3khhqtrn65ly2mg5-47d7cd70.us2.manus.computer/api/oauth/callback
-- 0 TypeScript errors (all 56 fixed on Feb 24, 2026)
-- 4 test artists still in database (should be removed)
+- No open issues as of February 28, 2026
+- All previously reported issues have been resolved (see completed items above)
 
 ---
 
 ## Archive
 
-See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
+Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the resolved content audit summary.
 
 
 ## URGENT ISSUES
@@ -590,3 +587,12 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix sitemap route registration to serve proper XML (dynamic route correct, removed static robots.txt conflict)
 - [x] Verify robots.txt also returns plain text, not HTML
 - [x] Write tests and verify fix (1230 tests passing)
+
+## SYSTEM OF RECORDS UPDATE (Feb 28, 2026)
+- [x] Update README.md with current metrics, features, and correct doc links
+- [x] Delete obsolete PRODUCTION_DEPLOYMENT_FIX.md
+- [x] Update/archive AUDIT_FINDINGS.md (issues resolved)
+- [x] Delete PLATFORM_AUDIT_2026-02-24.md (outdated, replaced by README)
+- [x] Update docs/API.md with all current endpoints and OAuth auth
+- [x] Create ARCHITECTURE.md documenting folder structure and data flow
+- [x] Clean up stale Known Issues section in todo.md
