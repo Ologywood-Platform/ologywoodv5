@@ -171,8 +171,9 @@ npx vitest run --reporter=verbose  # Verbose output
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System architecture, folder structure, and data flow |
 | [docs/API.md](./docs/API.md) | API endpoint documentation |
 | [docs/DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) | Developer setup and coding standards |
-| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Deployment procedures |
+| [docs/CI_CD_DEPLOYMENT.md](./docs/CI_CD_DEPLOYMENT.md) | Deployment & CI/CD procedures |
 | [docs/DISASTER_RECOVERY.md](./docs/DISASTER_RECOVERY.md) | Backup and recovery procedures |
+| [CHANGELOG.md](./CHANGELOG.md) | Versioned release history |
 | [server/templates/riderContractTemplate.md](./server/templates/riderContractTemplate.md) | Rider contract template specification |
 
 ---

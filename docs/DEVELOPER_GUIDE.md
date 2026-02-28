@@ -496,6 +496,6 @@ Before submitting changes, verify:
 |----------|-------------|
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture, folder structure, data flow, module boundaries |
 | [API.md](./API.md) | Complete API endpoint documentation |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Deployment procedures |
+| [CI_CD_DEPLOYMENT.md](./CI_CD_DEPLOYMENT.md) | Deployment & CI/CD procedures |
 | [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | Backup and recovery procedures |
 | [todo.md](../todo.md) | Feature tracking — single source of truth |
