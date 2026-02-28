@@ -284,10 +284,10 @@ export default function ArtistProfile() {
                     Request Booking
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Request Booking with {artist.artistName}</DialogTitle>
-                  <DialogDescription>
+                <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto fixed inset-0 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] translate-x-0 translate-y-0 rounded-none sm:rounded-lg w-full sm:w-auto sm:max-w-[calc(100%-2rem)] p-4 sm:p-6">
+                <DialogHeader className="sticky top-0 bg-background z-10 pb-3 border-b sm:border-b-0 sm:static sm:pb-0">
+                  <DialogTitle className="text-lg sm:text-xl">Request Booking with {artist.artistName}</DialogTitle>
+                  <DialogDescription className="text-sm">
                     Fill out the details below to send a booking request.
                   </DialogDescription>
                 </DialogHeader>
@@ -344,57 +344,62 @@ export default function ArtistProfile() {
                     </div>
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="eventDate">Event Date *</Label>
+                      <Label htmlFor="eventDate" className="text-sm font-medium">Event Date *</Label>
                       <Input
                         id="eventDate"
                         type="date"
                         value={eventDate}
                         onChange={(e) => setEventDate(e.target.value)}
                         required
+                        className="h-11 sm:h-10 text-base sm:text-sm"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="eventTime">Event Time</Label>
+                      <Label htmlFor="eventTime" className="text-sm font-medium">Event Time</Label>
                       <Input
                         id="eventTime"
                         type="time"
                         value={eventTime}
                         onChange={(e) => setEventTime(e.target.value)}
+                        className="h-11 sm:h-10 text-base sm:text-sm"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="venueName">Venue Name *</Label>
+                    <Label htmlFor="venueName" className="text-sm font-medium">Venue Name *</Label>
                     <Input
                       id="venueName"
                       value={venueName}
                       onChange={(e) => setVenueName(e.target.value)}
                       placeholder="Enter venue name"
                       required
+                      className="h-11 sm:h-10 text-base sm:text-sm"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="venueAddress">Venue Address</Label>
+                    <Label htmlFor="venueAddress" className="text-sm font-medium">Venue Address</Label>
                     <Input
                       id="venueAddress"
                       value={venueAddress}
                       onChange={(e) => setVenueAddress(e.target.value)}
                       placeholder="Enter venue address"
+                      className="h-11 sm:h-10 text-base sm:text-sm"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="totalFee">Offered Fee ($)</Label>
+                    <Label htmlFor="totalFee" className="text-sm font-medium">Offered Fee ($)</Label>
                     <Input
                       id="totalFee"
                       type="number"
                       value={totalFee}
                       onChange={(e) => setTotalFee(e.target.value)}
                       placeholder="Enter your offer"
+                      className="h-11 sm:h-10 text-base sm:text-sm"
                     />
                   </div>
                   
@@ -409,11 +414,11 @@ export default function ArtistProfile() {
                     />
                   </div>
                   
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setBookingDialogOpen(false)}>
+                  <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end sticky bottom-0 bg-background pt-3 border-t sm:border-t-0 sm:static sm:pt-0">
+                    <Button type="button" variant="outline" onClick={() => setBookingDialogOpen(false)} className="w-full sm:w-auto">
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createBooking.isPending}>
+                    <Button type="submit" disabled={createBooking.isPending} className="w-full sm:w-auto">
                       {createBooking.isPending ? "Sending..." : "Send Request"}
                     </Button>
                   </div>

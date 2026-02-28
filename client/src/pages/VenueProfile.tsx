@@ -127,19 +127,19 @@ export default function VenueProfile() {
         {/* Venue Info Card */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
-                <CardTitle className="text-3xl mb-2">{venueProfile.organizationName}</CardTitle>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Building2 className="h-4 w-4" />
+                <CardTitle className="text-2xl sm:text-3xl mb-2">{venueProfile.organizationName}</CardTitle>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Building2 className="h-4 w-4 shrink-0" />
                   <span>Contact: {(venueProfile as any)?.contactName}</span>
                 </div>
               </div>
               {averageRating && typeof averageRating === 'object' && 'reviewCount' in averageRating && averageRating.reviewCount > 0 && (
-                <div className="text-right">
-                  <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:text-right">
+                  <div className="flex items-center gap-1">
                     <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-2xl font-bold">
+                    <span className="text-xl sm:text-2xl font-bold">
                       {(averageRating as { averageRating: number; reviewCount: number }).averageRating.toFixed(1)}
                     </span>
                   </div>

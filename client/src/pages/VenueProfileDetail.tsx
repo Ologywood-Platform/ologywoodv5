@@ -159,37 +159,37 @@ export default function VenueProfileDetail() {
     <div className="min-h-screen bg-gray-50">
       <JsonLd data={[buildVenueJsonLd(venue), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venue.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />
       {/* Hero Section */}
-      <div className="relative h-96 bg-gray-300 overflow-hidden">
+      <div className="relative h-64 sm:h-80 md:h-96 bg-gray-300 overflow-hidden">
         <img
           src={venue.profilePhotoUrl}
           alt={venue.organizationName}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/30" />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-8">
-          <h1 className="text-4xl font-bold text-white mb-2">{venue.organizationName}</h1>
-          <div className="flex items-center gap-2 text-white mb-4">
-            <MapPin className="h-5 w-5" />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 sm:p-6 md:p-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">{venue.organizationName}</h1>
+          <div className="flex items-center gap-2 text-white text-sm sm:text-base mb-3 sm:mb-4">
+            <MapPin className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
             {venue.location}
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 bg-white/20 px-2 sm:px-3 py-1 rounded-full text-sm">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-semibold">{venue.averageRating}</span>
-              <span className="text-sm">({venue.reviewCount} reviews)</span>
+              <span className="text-xs sm:text-sm">({venue.reviewCount})</span>
             </div>
-            <Badge variant="secondary">{venue.venueType}</Badge>
-            <Badge variant="outline" className="bg-white/20 text-white border-white">
+            <Badge variant="secondary" className="text-xs sm:text-sm">{venue.venueType}</Badge>
+            <Badge variant="outline" className="bg-white/20 text-white border-white text-xs sm:text-sm">
               <Users className="h-3 w-3 mr-1" />
-              {venue.capacity} capacity
+              {venue.capacity}
             </Badge>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
@@ -274,9 +274,9 @@ export default function VenueProfileDetail() {
           {/* Right Column - Contact & CTA */}
           <div className="space-y-6">
             {/* Contact Card */}
-            <Card className="sticky top-4">
+            <Card className="lg:sticky lg:top-4">
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>

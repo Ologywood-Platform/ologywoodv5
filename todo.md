@@ -510,3 +510,14 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Fix follower count badge overlapping with Share text
 - [x] Ensure proper spacing and padding on mobile for artist info section
 - [x] Verify clean layout on 375px and 414px widths (996 tests passing, 0 TS errors)
+
+## VENUE PROFILE MOBILE OPTIMIZATION
+- [x] Stack action buttons vertically on mobile (match artist profile pattern)
+- [x] Fix spacing and text sizing for mobile screens (both VenueProfile and VenueProfileDetail)
+- [x] Ensure flex-wrap on secondary action buttons
+
+## BOOKING DIALOG FULL-SCREEN MOBILE SHEET
+- [x] Convert booking dialog to full-screen sheet on mobile (<640px)
+- [x] Keep centered dialog on desktop (>640px)
+- [x] Add proper mobile scroll behavior and padding (sticky header + sticky footer buttons)
+- [x] Ensure form fields are touch-friendly with proper sizing (h-11 on mobile, h-10 on desktop)
