@@ -605,3 +605,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## LEGACY SCRIPTS CLEANUP (Feb 28, 2026)
 - [x] Move outdated legacy scripts from scripts/ to scripts/legacy/
 - [x] Update documentation references to reflect new location
+
+## DOCKER FILES CLEANUP (Feb 28, 2026)
+- [x] Remove legacy Dockerfile and docker-compose.yml from project root
+- [x] Update documentation references to remove Docker mentions

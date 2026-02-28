@@ -175,15 +175,15 @@ If a conflict is detected:
 
 ## Legacy Infrastructure Files
 
-The following files exist in the repository from an earlier infrastructure setup but are **not actively used** with Manus hosting:
+Legacy infrastructure files from a previous self-hosted setup have been cleaned up:
 
-| File | Status | Notes |
-|------|--------|-------|
-| `Dockerfile` | Not used | Manus handles containerization |
-| `docker-compose.yml` | Not used | No local Docker stack needed |
-| `scripts/legacy/` | Archived | All legacy deploy/backup scripts moved here |
+| Item | Action Taken |
+|------|-------------|
+| `Dockerfile` | Removed (Manus handles containerization) |
+| `docker-compose.yml` | Removed (no local Docker stack needed) |
+| `scripts/legacy/` | Archived — all legacy deploy/backup scripts moved here |
 
-Legacy scripts (deploy, backup, rollback, verification) have been archived to `scripts/legacy/`. See `scripts/legacy/README.md` for a full inventory. The only active script in `scripts/` is `build.sh`.
+See `scripts/legacy/README.md` for a full inventory of archived scripts. The only active script in `scripts/` is `build.sh`.
 
 ---
 
