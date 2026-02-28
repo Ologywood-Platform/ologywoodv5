@@ -601,3 +601,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Rewrite docs/DEVELOPER_GUIDE.md aligned with ARCHITECTURE.md
 - [x] Review and update docs/CI_CD_DEPLOYMENT.md for Manus hosting
 - [x] Review and update docs/DISASTER_RECOVERY.md for Manus hosting
+
+## LEGACY SCRIPTS CLEANUP (Feb 28, 2026)
+- [x] Move outdated legacy scripts from scripts/ to scripts/legacy/
+- [x] Update documentation references to reflect new location

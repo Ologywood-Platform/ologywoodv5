@@ -181,11 +181,9 @@ The following files exist in the repository from an earlier infrastructure setup
 |------|--------|-------|
 | `Dockerfile` | Not used | Manus handles containerization |
 | `docker-compose.yml` | Not used | No local Docker stack needed |
-| `scripts/deploy-*.sh` | Not used | Deployment is via Manus UI |
-| `scripts/backup-*.sh` | Not used | Database backups are managed by AWS RDS |
-| `scripts/setup-backup-cron.sh` | Not used | No cron jobs on Manus platform |
+| `scripts/legacy/` | Archived | All legacy deploy/backup scripts moved here |
 
-These files are retained for reference but should not be relied upon for current operations. If self-hosted deployment is ever needed in the future, they would need to be updated to match the current codebase.
+Legacy scripts (deploy, backup, rollback, verification) have been archived to `scripts/legacy/`. See `scripts/legacy/README.md` for a full inventory. The only active script in `scripts/` is `build.sh`.
 
 ---
 

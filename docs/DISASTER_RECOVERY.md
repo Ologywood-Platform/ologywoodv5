@@ -205,20 +205,9 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 
 ## Legacy Scripts
 
-The `scripts/` directory contains backup and deployment scripts from a previous self-hosted infrastructure setup. These scripts are **not used** with the current Manus + AWS RDS architecture:
+Legacy backup and deployment scripts from a previous self-hosted infrastructure setup have been archived to `scripts/legacy/`. These scripts are **not used** with the current Manus + AWS RDS architecture. See `scripts/legacy/README.md` for a full inventory and original purposes.
 
-| Script | Status |
-|--------|--------|
-| `backup-database.sh` | Not used — AWS RDS handles backups |
-| `backup-daily.sh` | Not used |
-| `backup-weekly.sh` | Not used |
-| `backup-monthly.sh` | Not used |
-| `setup-backup-cron.sh` | Not used |
-| `verify-backups.sh` | Not used |
-| `test-restore.sh` | Not used |
-| `deploy-*.sh` | Not used — deployment is via Manus UI |
-
-These files are retained for reference only.
+The only active script remaining in `scripts/` is `build.sh`.
 
 ---
 
