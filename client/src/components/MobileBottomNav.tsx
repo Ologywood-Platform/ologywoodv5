@@ -11,7 +11,7 @@ interface NavItem {
   badge?: number;
 }
 
-type NavMode = 'public' | 'dashboard';
+type NavMode = 'public' | 'dashboard' | 'venue-dashboard';
 
 export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
   const [pathname, navigate] = useLocation();
@@ -84,11 +84,48 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
     },
   ];
 
-  const navItems = mode === 'dashboard' ? dashboardNavItems : publicNavItems;
+  const venueDashboardNavItems: NavItem[] = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      path: '/venue-dashboard',
+    },
+    {
+      id: 'bookings',
+      label: 'Bookings',
+      icon: <Calendar className="h-5 w-5" />,
+      path: '/bookings',
+    },
+    {
+      id: 'messages',
+      label: 'Messages',
+      icon: <MessageCircle className="h-5 w-5" />,
+      path: '/messages',
+    },
+    {
+      id: 'artists',
+      label: 'Artists',
+      icon: <Music className="h-5 w-5" />,
+      path: '/browse',
+    },
+    {
+      id: 'more',
+      label: 'More',
+      icon: <MoreHorizontal className="h-5 w-5" />,
+      path: '/venue-dashboard#more',
+    },
+  ];
+
+  const navItems = mode === 'dashboard'
+    ? dashboardNavItems
+    : mode === 'venue-dashboard'
+    ? venueDashboardNavItems
+    : publicNavItems;
 
   const isActive = (item: NavItem) => {
     if (item.id === 'overview') {
-      return pathname === '/artist-dashboard' || pathname === '/dashboard';
+      return pathname === '/artist-dashboard' || pathname === '/dashboard' || pathname === '/venue-dashboard';
     }
     if (item.id === 'more') return false;
     return pathname === item.path || pathname.startsWith(item.path + '/');
@@ -109,12 +146,15 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
                 key={item.id}
                 onClick={() => {
                   if (item.id === 'more') {
-                    // Scroll to quick actions on dashboard
+                    // Scroll to profile/settings section on dashboard
                     if (pathname === '/artist-dashboard' || pathname === '/dashboard') {
                       const el = document.getElementById('quick-actions');
                       el?.scrollIntoView({ behavior: 'smooth' });
+                    } else if (pathname === '/venue-dashboard') {
+                      const el = document.getElementById('venue-profile-section');
+                      el?.scrollIntoView({ behavior: 'smooth' });
                     } else {
-                      navigate('/artist-dashboard');
+                      navigate(mode === 'venue-dashboard' ? '/venue-dashboard' : '/artist-dashboard');
                     }
                   } else {
                     navigate(item.path);

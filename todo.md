@@ -555,3 +555,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Generate app icons in multiple sizes (already had 7 icon sizes)
 - [x] Add install prompt banner for mobile users (with 7-day dismiss cooldown)
 - [x] Write tests for both features (72 new tests, 1117 total passing, 0 TS errors)
+
+## VENUE DASHBOARD MOBILE BOTTOM NAV
+- [x] Add MobileBottomNav to venue dashboard with venue-specific tabs
+- [x] Configure venue tabs: Overview, Bookings, Messages, Artists, More
+- [x] Ensure scroll-to-section behavior matches artist dashboard pattern
+- [x] Write tests and verify TypeScript (30 new tests, 1147 total passing, 0 TS errors)

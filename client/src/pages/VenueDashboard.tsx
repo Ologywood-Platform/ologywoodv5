@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye } from 'lucide-react';
+import { MobileBottomNav } from '../components/MobileBottomNav';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -116,12 +117,12 @@ export function VenueDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 px-3 py-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Venue Dashboard</h1>
-          <p className="text-gray-600">Manage your venue, bookings, and artist connections</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">Venue Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600">Manage your venue, bookings, and artist connections</p>
         </div>
 
         {/* Profile Status Card */}
@@ -143,23 +144,23 @@ export function VenueDashboard() {
         )}
 
         {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Overview
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Bookings
+            <TabsTrigger value="bookings" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="artists" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Artists
+            <TabsTrigger value="artists" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Artists</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Profile
+            <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Profile</span>
             </TabsTrigger>
           </TabsList>
 
@@ -369,7 +370,7 @@ export function VenueDashboard() {
           </TabsContent>
 
           {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-4">
+          <TabsContent value="profile" className="space-y-4" id="venue-profile-section">
             {editingProfile ? (
               <Card>
                 <CardHeader>
@@ -540,6 +541,9 @@ export function VenueDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav mode="venue-dashboard" />
     </div>
   );
 }
