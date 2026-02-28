@@ -1,359 +1,231 @@
 # Ologywood Disaster Recovery Plan
 
-## Overview
-
-This document outlines the disaster recovery procedures for the Ologywood platform, including backup strategies, recovery procedures, and business continuity measures.
-
-## Backup Strategy
-
-### Backup Types
-
-**Full Backups**
-
-Full backups capture the entire database state and are performed weekly on Sundays at 3:00 AM. These backups serve as the baseline for recovery operations and are retained for 30 days.
-
-**Incremental Backups**
-
-Incremental backups capture only changes since the last backup and are performed daily at 2:00 AM. These backups are more efficient in terms of storage and network bandwidth but require the full backup for complete recovery.
-
-### Backup Retention Policy
-
-The platform maintains the following retention schedule:
-
-| Backup Type | Frequency | Retention | Purpose |
-|---|---|---|---|
-| Full Backup | Weekly (Sunday 3 AM) | 30 days | Complete recovery baseline |
-| Incremental | Daily (2 AM) | 30 days | Point-in-time recovery |
-| Archive | Monthly | 1 year | Long-term compliance and audit |
-| Off-site | Weekly | 90 days | Disaster recovery site |
-
-### Backup Verification
-
-Automated backup verification occurs every Monday at 4:00 AM to ensure backup integrity:
-
-```bash
-# Manual verification
-/home/ubuntu/ologywood/scripts/backup-database.sh verify /backups/ologywood/backup_file.sql.gz
-
-# View backup statistics
-/home/ubuntu/ologywood/scripts/backup-database.sh stats
-```
-
-## Recovery Procedures
-
-### Point-in-Time Recovery
-
-To recover the database to a specific point in time:
-
-```bash
-# 1. Restore the most recent full backup
-/home/ubuntu/ologywood/scripts/backup-database.sh restore /backups/ologywood/full_2026-01-12_030000.sql.gz
-
-# 2. Apply incremental backups in order
-/home/ubuntu/ologywood/scripts/backup-database.sh restore /backups/ologywood/incremental_2026-01-13_020000.sql.gz
-/home/ubuntu/ologywood/scripts/backup-database.sh restore /backups/ologywood/incremental_2026-01-14_020000.sql.gz
-```
-
-### Complete Database Recovery
-
-For complete database recovery from a full backup:
-
-```bash
-# 1. Stop the application
-pm2 stop ologywood
-
-# 2. Create a backup of current database (for analysis)
-mysqldump -u ologywood_app -p ologywood_prod > /backups/current_state_$(date +%s).sql
-
-# 3. Restore from backup
-/home/ubuntu/ologywood/scripts/backup-database.sh restore /backups/ologywood/full_2026-01-12_030000.sql.gz
-
-# 4. Verify database integrity
-mysql -u ologywood_app -p ologywood_prod -e "CHECK TABLE \`bookings\`, \`messages\`, \`reviews\`;"
-
-# 5. Restart application
-pm2 start ologywood
-```
-
-### Partial Recovery
-
-To recover specific tables:
-
-```bash
-# 1. Extract specific table from backup
-gunzip -c /backups/ologywood/full_2026-01-12_030000.sql.gz | grep "^CREATE TABLE \`bookings\`" -A 100 > bookings_table.sql
-
-# 2. Drop corrupted table
-mysql -u ologywood_app -p ologywood_prod -e "DROP TABLE bookings;"
-
-# 3. Restore table from backup
-mysql -u ologywood_app -p ologywood_prod < bookings_table.sql
-
-# 4. Verify table
-mysql -u ologywood_app -p ologywood_prod -e "SELECT COUNT(*) FROM bookings;"
-```
-
-## Disaster Scenarios
-
-### Scenario 1: Database Corruption
-
-**Symptoms**: Application errors, data inconsistencies, failed queries
-
-**Recovery Steps**:
-
-1. Identify the corruption time window
-2. Restore from the most recent backup before corruption
-3. Verify data integrity with checksums
-4. Monitor application for errors
-5. If successful, retain corrupted backup for forensics
-
-**Recovery Time**: 15-30 minutes
-
-### Scenario 2: Data Loss
-
-**Symptoms**: Missing records, deleted tables, incomplete data
-
-**Recovery Steps**:
-
-1. Identify when data was lost
-2. Restore from backup before loss occurred
-3. Compare recovered data with current state
-4. Merge recovered data if needed
-5. Notify affected users
-
-**Recovery Time**: 30-60 minutes
-
-### Scenario 3: Server Failure
-
-**Symptoms**: Application offline, database unreachable
-
-**Recovery Steps**:
-
-1. Provision new server with same specifications
-2. Install MySQL and dependencies
-3. Restore latest backup to new server
-4. Update application configuration
-5. Verify connectivity and data
-6. Failover DNS/load balancer
-7. Monitor for issues
-
-**Recovery Time**: 1-2 hours
-
-### Scenario 4: Ransomware/Malicious Activity
-
-**Symptoms**: Encrypted files, unauthorized access, suspicious queries
-
-**Recovery Steps**:
-
-1. Immediately isolate affected systems
-2. Preserve evidence for forensics
-3. Restore from clean backup (before infection)
-4. Verify backup integrity
-5. Scan all systems for malware
-6. Update security policies
-7. Monitor for re-infection
-
-**Recovery Time**: 2-4 hours
-
-## Business Continuity
-
-### Recovery Time Objective (RTO)
-
-The target recovery time for different scenarios:
-
-- **Critical Data Loss**: 30 minutes
-- **Database Corruption**: 1 hour
-- **Server Failure**: 2 hours
-- **Complete Disaster**: 4 hours
-
-### Recovery Point Objective (RPO)
-
-The maximum acceptable data loss:
-
-- **Daily Operations**: 24 hours (incremental backups)
-- **Financial Transactions**: 1 hour (hourly backups during business hours)
-- **User Data**: 24 hours
-
-### High Availability Setup
-
-For production environments, implement:
-
-1. **Database Replication**: Master-slave replication for automatic failover
-2. **Load Balancing**: Distribute traffic across multiple servers
-3. **Automated Failover**: Automatic detection and failover on failure
-4. **Monitoring & Alerts**: Real-time monitoring with alerting
-
-```bash
-# Check replication status
-mysql -u root -p -e "SHOW SLAVE STATUS\G"
-
-# Monitor replication lag
-mysql -u root -p -e "SHOW PROCESSLIST;"
-```
-
-## Testing & Validation
-
-### Regular Backup Testing
-
-Perform monthly backup tests to ensure recovery procedures work:
-
-```bash
-# 1. Create test environment
-docker run -d --name mysql-test -e MYSQL_ROOT_PASSWORD=test mysql:8.0
-
-# 2. Restore backup to test environment
-gunzip -c /backups/ologywood/full_latest.sql.gz | mysql -u root -p test_ologywood
-
-# 3. Run data validation queries
-mysql -u root -p test_ologywood < /home/ubuntu/ologywood/scripts/validate-data.sql
-
-# 4. Verify application connectivity
-npm test -- --testNamePattern="database-connection"
-
-# 5. Clean up
-docker stop mysql-test
-docker rm mysql-test
-```
-
-### Disaster Recovery Drills
-
-Conduct quarterly disaster recovery drills:
-
-1. **Announcement**: Notify team of drill
-2. **Simulation**: Simulate specific disaster scenario
-3. **Execution**: Execute recovery procedures
-4. **Validation**: Verify system functionality
-5. **Documentation**: Record results and lessons learned
-6. **Debrief**: Team discussion and improvements
-
-## Monitoring & Alerting
-
-### Backup Monitoring
-
-Monitor backup health with these metrics:
-
-| Metric | Threshold | Action |
-|---|---|---|
-| Backup Duration | > 30 minutes | Investigate performance |
-| Backup Size Change | > 50% increase | Investigate data growth |
-| Backup Verification | Failed | Alert administrator |
-| Backup Age | > 24 hours | Alert administrator |
-| Storage Usage | > 80% | Cleanup old backups |
-
-### Alert Configuration
-
-```bash
-# Email alerts on backup failure
-# Configure in /etc/cron.d/ologywood-backup
-MAILTO=admin@ologywood.com
-
-# Slack alerts
-# Use backup script hooks to send Slack messages
-curl -X POST -H 'Content-type: application/json' \
-  --data '{"text":"Backup failed"}' \
-  $SLACK_WEBHOOK_URL
-```
-
-## Off-site Backup
-
-### Cloud Backup Strategy
-
-Maintain off-site backups for disaster recovery:
-
-```bash
-# Upload backup to AWS S3
-aws s3 cp /backups/ologywood/full_latest.sql.gz \
-  s3://ologywood-backups/prod/full_latest.sql.gz \
-  --sse AES256 \
-  --storage-class GLACIER
-
-# Upload to Google Cloud Storage
-gsutil -m cp /backups/ologywood/full_latest.sql.gz \
-  gs://ologywood-backups/prod/full_latest.sql.gz
-```
-
-### Backup Encryption
-
-Encrypt backups before uploading:
-
-```bash
-# Encrypt backup with GPG
-gpg --symmetric --cipher-algo AES256 /backups/ologywood/full_latest.sql.gz
-
-# Upload encrypted backup
-aws s3 cp /backups/ologywood/full_latest.sql.gz.gpg \
-  s3://ologywood-backups/prod/
-```
-
-## Documentation & Communication
-
-### Runbooks
-
-Maintain updated runbooks for:
-
-- Backup procedures
-- Recovery procedures
-- Failover procedures
-- Escalation procedures
-- Contact information
-
-### Communication Plan
-
-In case of disaster:
-
-1. **Immediate**: Notify incident commander
-2. **5 minutes**: Notify management
-3. **15 minutes**: Update status page
-4. **30 minutes**: Notify customers
-5. **Hourly**: Provide status updates
-
-## Compliance & Audit
-
-### Backup Compliance
-
-Ensure backups meet compliance requirements:
-
-- [ ] GDPR: Data retention policies
-- [ ] HIPAA: Encryption and access controls
-- [ ] SOC 2: Backup verification and testing
-- [ ] ISO 27001: Information security
-
-### Audit Trail
-
-Maintain audit logs for:
-
-- Backup creation and verification
-- Backup access and restoration
-- Backup deletion
-- Configuration changes
-
-## Maintenance Schedule
-
-| Task | Frequency | Owner |
-|---|---|---|
-| Backup verification | Weekly | DevOps |
-| Backup testing | Monthly | QA |
-| Disaster recovery drill | Quarterly | DevOps |
-| Documentation review | Quarterly | Technical Lead |
-| Compliance audit | Annually | Security |
-
-## Emergency Contacts
-
-- **On-call Engineer**: [Contact Info]
-- **Database Administrator**: [Contact Info]
-- **System Administrator**: [Contact Info]
-- **Management**: [Contact Info]
-- **Vendor Support**: [Contact Info]
-
-## Additional Resources
-
-- [MySQL Backup and Recovery](https://dev.mysql.com/doc/refman/8.0/en/backup-and-recovery.html)
-- [AWS Disaster Recovery](https://aws.amazon.com/disaster-recovery/)
-- [Google Cloud Backup and Disaster Recovery](https://cloud.google.com/solutions/backup-dr)
-- [NIST Disaster Recovery Guide](https://csrc.nist.gov/publications/detail/sp/800-34/rev-1/final)
+**Last Updated:** February 28, 2026  
+**Next Review:** May 2026
 
 ---
 
-**Last Updated**: January 2026
-**Next Review**: April 2026
-**Owner**: DevOps Team
+## Overview
+
+This document outlines the disaster recovery procedures for the Ologywood platform. The platform is hosted on **Manus** with the database on **AWS RDS MySQL**. Both services provide built-in redundancy and backup capabilities that form the foundation of our recovery strategy.
+
+---
+
+## Infrastructure Summary
+
+| Component | Service | Backup Responsibility |
+|-----------|---------|----------------------|
+| Application code | Manus Platform | Manus checkpoints + GitHub |
+| Database | AWS RDS MySQL 8.0 | AWS automated backups |
+| File storage | AWS S3 | S3 built-in durability (99.999999999%) |
+| Email delivery | SendGrid | No local state to back up |
+| Payments | Stripe | Stripe maintains all transaction records |
+| Domain / SSL | Manus Platform | Managed automatically |
+
+---
+
+## Backup Strategy
+
+### Application Code
+
+Application code is protected by two independent systems:
+
+**Manus Checkpoints** — Every checkpoint captures the complete project state (code, configuration, dependencies). Checkpoints are created before each deployment and at key milestones. Any checkpoint can be restored via the Management UI.
+
+**GitHub Repository** — The project is synced to a GitHub repository via the `user_github` remote. Every checkpoint save triggers a git push to the `main` branch, providing a second copy of all code.
+
+### Database (AWS RDS)
+
+AWS RDS provides automated backups with the following characteristics:
+
+| Feature | Detail |
+|---------|--------|
+| Automated backups | Enabled by default, daily snapshots |
+| Retention period | Configurable (default 7 days, up to 35 days) |
+| Point-in-time recovery | Available within the retention window |
+| Multi-AZ | Depends on RDS instance configuration |
+| Manual snapshots | Can be created on demand, retained indefinitely |
+
+To check or modify backup settings, access the AWS RDS console or contact the database administrator.
+
+### File Storage (AWS S3)
+
+S3 provides 99.999999999% durability. All uploaded files (profile photos, event photos, gallery images) are stored in S3 and do not require additional backup procedures. S3 versioning can be enabled for additional protection if needed.
+
+### External Services
+
+Stripe and SendGrid maintain their own records. No local backup is needed for:
+- Payment history and transaction records (query via Stripe API)
+- Email delivery logs (available in SendGrid dashboard)
+- Customer billing information (stored in Stripe)
+
+---
+
+## Recovery Procedures
+
+### Scenario 1: Application Code Issue (Bad Deployment)
+
+**Symptoms:** Application errors, broken UI, server crashes after deployment
+
+**Recovery:**
+1. Open the Manus Management UI
+2. Navigate to the **Dashboard** panel
+3. Find the last known-good checkpoint
+4. Click **Rollback**
+5. Verify the application is working
+
+**Recovery Time:** Under 5 minutes
+
+### Scenario 2: Database Schema Error (Bad Migration)
+
+**Symptoms:** Database query errors, missing columns, broken API responses
+
+**Recovery:**
+1. Identify the problematic migration in `drizzle/` directory
+2. Write a corrective migration to fix the schema
+3. Apply with `pnpm db:push`
+4. If the schema is severely broken, contact the database administrator to restore from an AWS RDS automated backup or point-in-time recovery
+
+**Recovery Time:** 15-60 minutes depending on severity
+
+### Scenario 3: Accidental Data Deletion
+
+**Symptoms:** Missing records, empty tables, user-reported data loss
+
+**Recovery:**
+1. Identify when the deletion occurred
+2. Use AWS RDS **point-in-time recovery** to restore the database to a moment before the deletion
+3. This creates a new RDS instance with the restored data
+4. Compare restored data with current state
+5. Selectively merge recovered records back into the production database
+6. Update `DATABASE_URL` if switching to the restored instance
+
+**Recovery Time:** 30-60 minutes
+
+**How to initiate point-in-time recovery:**
+- AWS Console: RDS > Databases > Select instance > Actions > Restore to point in time
+- Specify the target time (must be within the backup retention window)
+
+### Scenario 4: Complete Application Loss
+
+**Symptoms:** Manus platform unavailable, project directory missing
+
+**Recovery:**
+1. Clone the repository from GitHub: `git clone <repository-url>`
+2. Set up a new Manus project or restore from the latest checkpoint
+3. Verify all environment variables are configured in **Settings > Secrets**
+4. The database on AWS RDS is independent and unaffected
+5. S3 files are independent and unaffected
+6. Redeploy via Manus
+
+**Recovery Time:** 1-2 hours
+
+### Scenario 5: Database Instance Failure
+
+**Symptoms:** Database connection errors, timeouts, AWS RDS instance unavailable
+
+**Recovery:**
+1. Check AWS RDS console for instance status
+2. If Multi-AZ is enabled, automatic failover should occur
+3. If not, restore from the latest automated backup:
+   - AWS Console: RDS > Automated backups > Select backup > Restore
+4. Update `DATABASE_URL` in Manus **Settings > Secrets** to point to the new instance
+5. Restart the application
+
+**Recovery Time:** 30 minutes to 2 hours depending on database size
+
+### Scenario 6: Compromised Credentials
+
+**Symptoms:** Unauthorized access, suspicious API activity, unexpected charges
+
+**Recovery:**
+1. Immediately rotate all affected credentials:
+   - Database password (AWS RDS console)
+   - Stripe API keys (Stripe Dashboard > Developers > API keys)
+   - SendGrid API key (SendGrid > Settings > API Keys)
+   - JWT secret (Manus Settings > Secrets)
+2. Update all rotated values in Manus **Settings > Secrets**
+3. Review access logs for unauthorized activity
+4. Review Stripe Dashboard for unauthorized transactions
+5. Restart the application to pick up new credentials
+
+**Recovery Time:** 30-60 minutes
+
+---
+
+## Recovery Objectives
+
+| Scenario | RTO (Recovery Time) | RPO (Max Data Loss) |
+|----------|--------------------|--------------------|
+| Bad deployment | 5 minutes | 0 (checkpoint rollback) |
+| Schema error | 15-60 minutes | 0 (corrective migration) |
+| Data deletion | 30-60 minutes | Up to 24 hours (RDS backup frequency) |
+| Application loss | 1-2 hours | 0 (GitHub + checkpoints) |
+| Database failure | 30 min - 2 hours | Up to 5 minutes (RDS continuous backup) |
+| Credential compromise | 30-60 minutes | 0 (no data loss, credential rotation) |
+
+---
+
+## Preventive Measures
+
+### Before Every Deployment
+
+1. Run `pnpm test` — all 1,233+ tests must pass
+2. Run `pnpm check` — zero TypeScript errors
+3. Save a checkpoint — provides instant rollback capability
+4. Review database migrations — ensure they are reversible
+
+### Database Safety
+
+- Always use `pnpm db:push` for migrations (generates SQL, then applies)
+- Never run raw SQL `DROP TABLE` or `DELETE FROM` without a backup
+- Test migrations in the development environment first
+- Keep the AWS RDS backup retention period at maximum (35 days) for production
+
+### Code Safety
+
+- The GitHub repository provides a second copy of all code
+- Checkpoints provide point-in-time snapshots of the full project
+- Never force-push to the `main` branch
+
+---
+
+## Key Contacts and Access
+
+| Resource | Access Method |
+|----------|-------------|
+| Manus Management UI | Project dashboard (checkpoint, rollback, publish) |
+| AWS RDS Console | AWS account with RDS access |
+| Stripe Dashboard | [dashboard.stripe.com](https://dashboard.stripe.com) |
+| SendGrid Dashboard | [app.sendgrid.com](https://app.sendgrid.com) |
+| GitHub Repository | Settings > GitHub in Management UI |
+| Domain Management | Settings > Domains in Management UI |
+
+---
+
+## Legacy Scripts
+
+The `scripts/` directory contains backup and deployment scripts from a previous self-hosted infrastructure setup. These scripts are **not used** with the current Manus + AWS RDS architecture:
+
+| Script | Status |
+|--------|--------|
+| `backup-database.sh` | Not used — AWS RDS handles backups |
+| `backup-daily.sh` | Not used |
+| `backup-weekly.sh` | Not used |
+| `backup-monthly.sh` | Not used |
+| `setup-backup-cron.sh` | Not used |
+| `verify-backups.sh` | Not used |
+| `test-restore.sh` | Not used |
+| `deploy-*.sh` | Not used — deployment is via Manus UI |
+
+These files are retained for reference only.
+
+---
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [CI_CD_DEPLOYMENT.md](./CI_CD_DEPLOYMENT.md) | Deployment workflow and environment configuration |
+| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Development setup and coding standards |
+| [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture and data flow |

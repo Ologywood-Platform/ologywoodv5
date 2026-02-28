@@ -596,3 +596,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update docs/API.md with all current endpoints and OAuth auth
 - [x] Create ARCHITECTURE.md documenting folder structure and data flow
 - [x] Clean up stale Known Issues section in todo.md
+
+## DEVELOPER DOCS UPDATE (Feb 28, 2026)
+- [x] Rewrite docs/DEVELOPER_GUIDE.md aligned with ARCHITECTURE.md
+- [x] Review and update docs/CI_CD_DEPLOYMENT.md for Manus hosting
+- [x] Review and update docs/DISASTER_RECOVERY.md for Manus hosting

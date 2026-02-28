@@ -1,22 +1,30 @@
 # Ologywood Developer Guide
 
-## Getting Started
+**Last Updated:** February 28, 2026
 
-Welcome to the Ologywood development team! This guide will help you set up your development environment and understand the project structure.
+This guide covers environment setup, development workflows, coding standards, and troubleshooting for the Ologywood platform. For system architecture and folder structure details, see [ARCHITECTURE.md](../ARCHITECTURE.md).
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ (we use 22.13.0)
-- pnpm 9+ (package manager)
-- MySQL 8.0+
-- Git
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Node.js | 22.x | Runtime (we use 22.13.0) |
+| pnpm | 9+ | Package manager |
+| Git | 2.x+ | Version control |
+| MySQL client | 8.0+ | For local database inspection only; production DB is AWS RDS |
+
+You do **not** need a local MySQL server. The development environment connects to the shared AWS RDS database via the `DATABASE_URL` environment variable.
+
+---
 
 ## Initial Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ologywood/platform.git
+git clone <repository-url>
 cd ologywood
 ```
 
@@ -28,26 +36,35 @@ pnpm install
 
 ### 3. Environment Configuration
 
+Environment variables are managed through the Manus platform. In the Manus Management UI, go to **Settings > Secrets** to view and configure all required environment variables. The following are automatically injected at runtime:
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | AWS RDS MySQL connection string |
+| `JWT_SECRET` | Session signing key |
+| `STRIPE_SECRET_KEY` | Stripe API key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook verification |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe client key |
+| `SENDGRID_API_KEY` | Email delivery |
+| `SENDGRID_FROM_EMAIL` | Sender email address |
+| `AWS_ACCESS_KEY_ID` | S3 storage access |
+| `AWS_SECRET_ACCESS_KEY` | S3 storage secret |
+| `AWS_REGION` | S3 region |
+| `OAUTH_SERVER_URL` | Manus OAuth server |
+| `VITE_OAUTH_PORTAL_URL` | OAuth portal for frontend |
+| `VITE_OAUTH_REDIRECT_BASE_URL` | OAuth callback base URL |
+| `BASE_URL` | Production URL (https://www.ologywood.com) |
+
+No `.env` file is needed when developing in the Manus sandbox. All secrets are injected automatically.
+
+### 4. Database Migrations
+
 ```bash
-# Copy example environment file
-cp .env.example .env.local
-
-# Edit with your local settings
-nano .env.local
-```
-
-### 4. Database Setup
-
-```bash
-# Create local database
-mysql -u root -p < scripts/init-db.sql
-
-# Run migrations
+# Generate and apply any pending migrations
 pnpm db:push
-
-# Seed test data (optional)
-pnpm db:seed
 ```
+
+This runs `drizzle-kit generate && drizzle-kit migrate` under the hood. The schema is defined in `drizzle/schema.ts`.
 
 ### 5. Start Development Server
 
@@ -55,375 +72,377 @@ pnpm db:seed
 pnpm dev
 ```
 
-The application will be available at `http://localhost:3000`
+The application starts at `http://localhost:3000` with hot module replacement enabled via Vite.
 
-## Project Structure
+---
 
-```
-ologywood/
-├── client/                  # Frontend (React + Vite)
-│   ├── src/
-│   │   ├── components/     # Reusable React components
-│   │   ├── pages/          # Page components (routes)
-│   │   ├── lib/            # Utility functions
-│   │   └── App.tsx         # Main app component
-│   └── index.html
-├── server/                  # Backend (Node.js + Express)
-│   ├── routers.ts          # TRPC route definitions
-│   ├── db.ts               # Database functions
-│   ├── auth.ts             # Authentication logic
-│   ├── errorHandler.ts     # Error handling utilities
-│   ├── cacheManager.ts     # Caching utilities
-│   └── _core/
-│       └── index.ts        # Server entry point
-├── drizzle/                # Database schema & migrations
-│   ├── schema.ts           # Drizzle ORM schema
-│   └── migrations/         # SQL migration files
-├── docs/                   # Documentation
-├── package.json
-├── tsconfig.json
-├── drizzle.config.ts
-└── vite.config.ts
-```
+## Available Scripts
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| `pnpm dev` | `NODE_ENV=development tsx watch server/_core/index.ts` | Start dev server with HMR |
+| `pnpm build` | `vite build && esbuild ...` | Production build (client + server) |
+| `pnpm start` | `NODE_ENV=production node dist/index.js` | Run production server |
+| `pnpm check` | `tsc --noEmit` | TypeScript type checking |
+| `pnpm test` | `vitest run` | Run all tests |
+| `pnpm db:push` | `drizzle-kit generate && drizzle-kit migrate` | Generate and apply DB migrations |
+
+---
 
 ## Development Workflow
 
-### Creating a New Feature
+### Adding a New Feature
 
-1. **Create a branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+Follow this sequence to keep the codebase consistent. See [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed folder rules.
 
-2. **Update todo.md**
-   ```bash
-   # Add your feature to todo.md
-   - [ ] Your new feature description
-   ```
+**Step 1: Track in todo.md**
 
-3. **Implement the feature**
-   - Create database schema if needed
-   - Create TRPC router endpoints
-   - Create React components
-   - Write tests
+Add the feature as unchecked items in `todo.md` before writing any code:
 
-4. **Test locally**
-   ```bash
-   pnpm test
-   pnpm tsc --noEmit
-   ```
+```markdown
+## MY NEW FEATURE
+- [ ] Add database table for feature
+- [ ] Create backend API endpoints
+- [ ] Build frontend page
+- [ ] Write tests
+```
 
-5. **Commit and push**
-   ```bash
-   git add .
-   git commit -m "feat: add your feature description"
-   git push origin feature/your-feature-name
-   ```
+**Step 2: Database (if needed)**
 
-6. **Create pull request**
-   - Link related issues
-   - Describe changes
-   - Request review
+Edit `drizzle/schema.ts` to add your table, then apply:
+
+```bash
+pnpm db:push
+```
+
+Add query functions to `server/db.ts`. All database access goes through this single file.
+
+**Step 3: Backend API**
+
+For a new domain, create a dedicated router file:
+
+```typescript
+// server/routers/myFeature.ts
+import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
+import { z } from "zod";
+
+export const myFeatureRouter = router({
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    // Call functions from db.ts
+  }),
+  create: protectedProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Implementation
+    }),
+});
+```
+
+Register it in `server/routers.ts`:
+
+```typescript
+import { myFeatureRouter } from "./routers/myFeature";
+
+export const appRouter = router({
+  // ... existing routers
+  myFeature: myFeatureRouter,
+});
+```
+
+For complex business logic, create a service file in `server/services/`.
+
+**Step 4: Frontend**
+
+Create a page component in `client/src/pages/`:
+
+```typescript
+// client/src/pages/MyFeature.tsx
+import { trpc } from "@/lib/trpc";
+
+export default function MyFeature() {
+  const { data, isLoading } = trpc.myFeature.getAll.useQuery();
+  // Render UI
+}
+```
+
+Add the route in `client/src/App.tsx`:
+
+```typescript
+<Route path="/my-feature" element={<MyFeature />} />
+```
+
+**Step 5: Tests**
+
+Write vitest tests alongside the feature. Test files can live next to the code they test or in a `__tests__` directory:
+
+```bash
+npx vitest run myFeature    # Run tests matching "myFeature"
+```
+
+**Step 6: Mark Complete**
+
+Update `todo.md` to mark items as `[x]` when done.
 
 ### Database Changes
 
-1. **Update schema** (`drizzle/schema.ts`)
-   ```typescript
-   export const newTable = mysqlTable("new_table", {
-     id: int("id").autoincrement().primaryKey(),
-     // ... columns
-   });
-   ```
+The schema lives in a single file: `drizzle/schema.ts`. All 36 tables are defined here.
 
-2. **Generate migration**
-   ```bash
-   pnpm db:generate
-   ```
+```typescript
+// Example: adding a new table
+export const myTable = mysqlTable("my_table", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  userId: int("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+```
 
-3. **Review migration** (`drizzle/migrations/`)
+After editing the schema:
 
-4. **Apply migration**
-   ```bash
-   pnpm db:push
-   ```
+```bash
+pnpm db:push    # Generates migration SQL and applies it
+```
 
-5. **Update todo.md**
-   ```bash
-   - [x] Add new_table to database schema
-   ```
+Never edit the generated SQL files in `drizzle/` manually.
 
-### API Development
-
-1. **Create TRPC router** (`server/routers.ts`)
-   ```typescript
-   export const appRouter = router({
-     feature: router({
-       create: protectedProcedure
-         .input(z.object({ name: z.string() }))
-         .mutation(async ({ input, ctx }) => {
-           // Implementation
-         }),
-     }),
-   });
-   ```
-
-2. **Create client hook** (`client/src/lib/trpc.ts`)
-   ```typescript
-   export const useCreateFeature = () => {
-     return trpc.feature.create.useMutation();
-   };
-   ```
-
-3. **Use in component**
-   ```typescript
-   const { mutate, isPending } = useCreateFeature();
-   
-   const handleCreate = () => {
-     mutate({ name: 'test' });
-   };
-   ```
-
-### Component Development
-
-1. **Create component file** (`client/src/components/MyComponent.tsx`)
-   ```typescript
-   interface MyComponentProps {
-     title: string;
-     onAction?: () => void;
-   }
-   
-   export function MyComponent({ title, onAction }: MyComponentProps) {
-     return <div>{title}</div>;
-   }
-   ```
-
-2. **Add to page** (`client/src/pages/MyPage.tsx`)
-   ```typescript
-   import { MyComponent } from '@/components/MyComponent';
-   
-   export default function MyPage() {
-     return <MyComponent title="Hello" />;
-   }
-   ```
-
-3. **Test component**
-   ```bash
-   pnpm test MyComponent.test.tsx
-   ```
+---
 
 ## Testing
 
-### Unit Tests
+The project uses **Vitest** for all testing. As of February 28, 2026, there are **1,233 passing tests** across **46 test files**.
+
+### Running Tests
 
 ```bash
 # Run all tests
 pnpm test
 
 # Run specific test file
-pnpm test MyComponent.test.tsx
+npx vitest run server/routers/rider.test.ts
 
-# Run tests in watch mode
-pnpm test --watch
+# Run tests matching a pattern
+npx vitest run --reporter=verbose myFeature
 
-# Generate coverage report
-pnpm test --coverage
+# Watch mode (re-runs on file change)
+npx vitest --watch
 ```
 
-### Integration Tests
+### Test Organization
 
-```bash
-# Test TRPC routers
-pnpm test routers.test.ts
+Tests are co-located with the code they test:
 
-# Test database functions
-pnpm test db.test.ts
+```
+server/routers/rider.test.ts          # Tests for rider router
+server/services/emailService.test.ts   # Tests for email service
+client/src/components/__tests__/       # Component tests
 ```
 
-### E2E Tests
+### Writing Tests
 
-```bash
-# Run end-to-end tests
-pnpm test:e2e
+```typescript
+import { describe, it, expect, vi } from "vitest";
 
-# Run specific E2E test
-pnpm test:e2e booking.spec.ts
+describe("MyFeature", () => {
+  it("should create a new item", async () => {
+    // Arrange
+    const input = { name: "Test" };
+    
+    // Act
+    const result = await createItem(input);
+    
+    // Assert
+    expect(result).toBeDefined();
+    expect(result.name).toBe("Test");
+  });
+});
 ```
+
+---
 
 ## Code Standards
 
 ### TypeScript
 
-- Use strict mode
-- Define interfaces for all objects
-- Avoid `any` type
-- Use proper error handling
+The project compiles with **zero TypeScript errors** in strict mode. Maintain this standard.
 
-```typescript
-// Good
-interface User {
-  id: number;
-  email: string;
-  name: string;
-}
-
-function getUser(id: number): Promise<User | null> {
-  // Implementation
-}
-
-// Bad
-function getUser(id: any): any {
-  // Implementation
-}
-```
+| Rule | Guidance |
+|------|----------|
+| No `any` types | Use proper interfaces or `unknown` |
+| Strict null checks | Handle `null` and `undefined` explicitly |
+| Return types | Let TypeScript infer where possible; annotate public APIs |
+| Error handling | Use try-catch in db functions; use tRPC error codes in routers |
 
 ### React Components
 
-- Use functional components
-- Use hooks for state management
-- Memoize expensive computations
-- Write descriptive prop types
-
-```typescript
-// Good
-interface CardProps {
-  title: string;
-  description?: string;
-  onAction?: () => void;
-}
-
-export const Card = memo(function Card({
-  title,
-  description,
-  onAction,
-}: CardProps) {
-  return <div>{title}</div>;
-});
-
-// Bad
-export function Card(props: any) {
-  return <div>{props.title}</div>;
-}
-```
+| Rule | Guidance |
+|------|----------|
+| Functional components only | No class components |
+| Props interfaces | Define `interface XProps` for every component |
+| Hooks for state | Use `useState`, `useEffect`, tRPC hooks |
+| shadcn/ui primitives | Use components from `components/ui/` — do not modify these |
+| Import paths | Use `@/` alias for `client/src/` imports |
 
 ### Database Functions
 
-- Use try-catch for error handling
-- Return typed results
-- Add JSDoc comments
-- Validate inputs
+All database queries are centralized in `server/db.ts`:
+
+| Rule | Guidance |
+|------|----------|
+| Single file | All queries in `db.ts` — no scattered database calls |
+| Error handling | Wrap in try-catch, log with `logger.error()` |
+| Return types | Use Drizzle's inferred types |
+| Input validation | Validate at the router level with Zod, not in db functions |
+
+### Naming Conventions
+
+| Element | Convention | Example |
+|---------|-----------|---------|
+| Files (pages) | PascalCase | `ArtistProfile.tsx` |
+| Files (server) | camelCase | `emailService.ts` |
+| Database tables | snake_case | `artist_profiles` |
+| tRPC procedures | camelCase | `getMyProfile` |
+| React components | PascalCase | `FollowButton` |
+| CSS classes | Tailwind utilities | `className="flex items-center gap-2"` |
+
+---
+
+## Key Patterns
+
+### Authentication
+
+The platform uses Manus OAuth. The `useAuth()` hook provides the current user:
 
 ```typescript
-// Good
-/**
- * Get user by ID
- * @param userId - The user ID
- * @returns User or undefined if not found
- */
-export async function getUserById(userId: number): Promise<User | undefined> {
-  if (userId <= 0) {
-    throw new Error('Invalid user ID');
-  }
+import { useAuth } from "@/_core/hooks/useAuth";
+
+function MyComponent() {
+  const { user, isLoading } = useAuth();
   
-  try {
-    const result = await db.select().from(users).where(eq(users.id, userId));
-    return result[0];
-  } catch (error) {
-    logger.error('Error fetching user', error);
-    throw error;
-  }
+  if (!user) return <p>Please sign in</p>;
+  return <p>Hello, {user.name}</p>;
 }
 ```
 
-## Debugging
+On the server, `ctx.user` is available in protected procedures:
 
-### Debug Mode
-
-```bash
-# Run with debug logging
-DEBUG=* pnpm dev
-
-# Debug specific module
-DEBUG=ologywood:* pnpm dev
+```typescript
+create: protectedProcedure.mutation(async ({ ctx }) => {
+  const userId = ctx.user.id;
+  // ...
+});
 ```
 
-### Browser DevTools
+### Subscription Tier Gating
 
-1. Open Chrome DevTools (F12)
-2. Go to Sources tab
-3. Set breakpoints in code
-4. Reload page to hit breakpoints
+Use the pricing service to check feature access:
 
-### Server Debugging
+```typescript
+import { pricingTierService } from "../services/pricingTierService";
 
-```bash
-# Run with Node debugger
-node --inspect-brk server/_core/index.ts
-
-# Open chrome://inspect in Chrome
+// In a router
+const hasAccess = await pricingTierService.hasFeature(userId, "riderBuilder");
+if (!hasAccess) throw new TRPCError({ code: "FORBIDDEN" });
 ```
 
-## Performance Optimization
+### Email Sending
 
-### Frontend
+All emails go through `emailService.ts`, which automatically checks user preferences:
 
-- Use React DevTools Profiler
-- Lazy load components
-- Optimize images
-- Minimize bundle size
+```typescript
+import { sendBookingConfirmation } from "../services/emailService";
 
-```bash
-# Analyze bundle
-pnpm build --analyze
+await sendBookingConfirmation(booking, artist, venue);
 ```
 
-### Backend
+### File Uploads
 
-- Use database indexes
-- Implement caching
-- Optimize queries
-- Monitor slow endpoints
+Files are stored in S3 via the storage helpers:
 
-```bash
-# Profile server
-pnpm dev --profile
+```typescript
+import { storagePut, storageGet } from "../storage";
+
+// Upload
+const { key, url } = await storagePut("profiles/photo.jpg", buffer, "image/jpeg");
+
+// Get presigned URL
+const { url } = await storageGet("profiles/photo.jpg");
 ```
+
+---
+
+## Deployment
+
+Ologywood is hosted on the **Manus Platform**. There is no Docker, Kubernetes, or self-hosted infrastructure.
+
+### How to Deploy
+
+1. Make your changes and verify tests pass (`pnpm test`)
+2. Verify TypeScript compiles (`pnpm check`)
+3. Save a checkpoint in the Manus Management UI
+4. Click **Publish** in the Management UI header
+
+### Rollback
+
+Use the Manus Management UI to roll back to any previous checkpoint. Each checkpoint captures the full project state.
+
+### Custom Domain
+
+The production domain `www.ologywood.com` is configured in **Settings > Domains** in the Management UI. SSL is handled automatically.
+
+---
 
 ## Troubleshooting
 
-### Common Issues
+### Dev Server Won't Start
 
-**Port 3000 already in use**
 ```bash
-# Find process using port
+# Check if port 3000 is in use
 lsof -i :3000
 
-# Kill process
+# Kill the process
 kill -9 <PID>
+
+# Restart
+pnpm dev
 ```
 
-**Database connection error**
+### Database Connection Error
+
+Verify `DATABASE_URL` is set in the Manus Management UI under **Settings > Secrets**. The connection uses SSL to AWS RDS.
+
+### TypeScript Errors
+
 ```bash
-# Check MySQL status
-mysql -u root -p -e "SELECT 1"
+# Check all types
+pnpm check
 
-# Check DATABASE_URL in .env.local
+# See detailed errors
+npx tsc --noEmit --pretty
 ```
 
-**Module not found**
+### Module Not Found
+
 ```bash
 # Reinstall dependencies
 rm -rf node_modules
 pnpm install
 ```
 
-**TypeScript errors**
-```bash
-# Check types
-pnpm tsc --noEmit
+### Tests Failing
 
-# Fix errors
-pnpm tsc --noEmit --pretty
+```bash
+# Run with verbose output
+npx vitest run --reporter=verbose
+
+# Run a single test file
+npx vitest run path/to/test.ts
 ```
+
+### Stripe Webhook Issues
+
+Check the Stripe Dashboard under **Developers > Webhooks** for event delivery logs. The webhook endpoint is `/api/stripe/webhook`. Use test card `4242 4242 4242 4242` for testing.
+
+---
 
 ## Git Workflow
 
@@ -432,63 +451,51 @@ pnpm tsc --noEmit --pretty
 Follow conventional commits:
 
 ```
-feat: add new feature
-fix: fix bug
-docs: update documentation
-style: format code
-refactor: refactor code
-test: add tests
-chore: update dependencies
+feat: add fan email export feature
+fix: resolve booking status update race condition
+docs: update API documentation
+test: add rider contract signing tests
+refactor: simplify dashboard layout
 ```
 
-### Branch Naming
+### Branch Strategy
 
-```
-feature/feature-name
-bugfix/bug-name
-docs/documentation-name
-refactor/refactor-name
-```
+The project uses a single `main` branch with checkpoint-based deployment through Manus. Feature branches are optional for larger changes.
 
-### Pull Request Process
+### Code Review Checklist
 
-1. Create feature branch
-2. Make changes
-3. Write tests
-4. Update documentation
-5. Create pull request
-6. Request review
-7. Address feedback
-8. Merge to main
+Before submitting changes, verify:
 
-## Resources
-
-- [TRPC Documentation](https://trpc.io)
-- [React Documentation](https://react.dev)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs)
-- [Drizzle ORM](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-
-## Getting Help
-
-- Check existing issues and documentation
-- Ask in team Slack channel
-- Create GitHub issue with details
-- Contact tech lead for guidance
-
-## Code Review Checklist
-
-Before submitting a PR, ensure:
-
-- [ ] Code follows style guide
-- [ ] Tests are written and passing
-- [ ] No console.log statements
-- [ ] TypeScript compiles without errors
-- [ ] Database migrations are included
-- [ ] Documentation is updated
-- [ ] Commit messages are clear
-- [ ] No breaking changes (unless approved)
+| Check | Command |
+|-------|---------|
+| TypeScript compiles | `pnpm check` |
+| All tests pass | `pnpm test` |
+| No console.log statements | `grep -rn "console.log" client/src/ server/` |
+| todo.md updated | Mark completed items as `[x]` |
+| Documentation updated | Update relevant docs if behavior changed |
 
 ---
 
-Happy coding! 🚀
+## Resources
+
+| Resource | URL |
+|----------|-----|
+| tRPC Documentation | [trpc.io](https://trpc.io) |
+| React Documentation | [react.dev](https://react.dev) |
+| Drizzle ORM | [orm.drizzle.team](https://orm.drizzle.team) |
+| Tailwind CSS | [tailwindcss.com](https://tailwindcss.com) |
+| Vitest | [vitest.dev](https://vitest.dev) |
+| Stripe API | [stripe.com/docs](https://stripe.com/docs) |
+| SendGrid API | [docs.sendgrid.com](https://docs.sendgrid.com) |
+
+---
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture, folder structure, data flow, module boundaries |
+| [API.md](./API.md) | Complete API endpoint documentation |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Deployment procedures |
+| [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | Backup and recovery procedures |
+| [todo.md](../todo.md) | Feature tracking — single source of truth |

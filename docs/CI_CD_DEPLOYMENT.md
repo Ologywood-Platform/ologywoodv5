@@ -1,492 +1,229 @@
-# CI/CD Pipeline & Deployment Guide
+# CI/CD & Deployment Guide
 
-## Overview
-
-Ologywood uses GitHub Actions for automated testing, building, and deployment. This guide covers the CI/CD pipeline setup, deployment procedures, and best practices.
-
-## GitHub Actions CI/CD Pipeline
-
-### Pipeline Stages
-
-The CI/CD pipeline consists of 8 automated stages:
-
-#### 1. **Lint & Format Check**
-- Runs ESLint for code quality
-- Checks TypeScript compilation
-- Validates code formatting
-- Runs on every push and pull request
-
-#### 2. **Unit & Integration Tests**
-- Executes all unit tests with vitest
-- Runs integration tests against test database
-- Uploads code coverage to Codecov
-- Requires lint stage to pass
-
-#### 3. **Build**
-- Builds the application
-- Generates optimized bundles
-- Uploads build artifacts
-- Requires test stage to pass
-
-#### 4. **Security Scan**
-- Runs npm audit for vulnerabilities
-- Executes Snyk security scanning
-- Checks for dependency issues
-- Runs in parallel with build
-
-#### 5. **Docker Build & Push**
-- Builds multi-stage Docker image
-- Pushes to GitHub Container Registry
-- Only runs on main branch
-- Requires build stage to pass
-
-#### 6. **Deploy to Staging**
-- Deploys to staging environment
-- Runs smoke tests
-- Sends Slack notifications
-- Only runs on develop branch
-
-#### 7. **Deploy to Production**
-- Creates GitHub deployment
-- Deploys to production environment
-- Runs health checks
-- Sends Slack notifications
-- Only runs on main branch
-
-#### 8. **Performance Testing**
-- Runs performance benchmarks
-- Uploads results as artifacts
-- Only runs on develop branch
-- Runs after staging deployment
-
-### Pipeline Configuration
-
-The pipeline is defined in `.github/workflows/ci-cd.yml`:
-
-```yaml
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-```
-
-### Branch Strategy
-
-**Main Branch** (`main`)
-- Production-ready code
-- Triggers: Build, Docker, Production Deploy
-- Requires: All tests passing, code review
-
-**Develop Branch** (`develop`)
-- Integration branch for features
-- Triggers: Build, Docker, Staging Deploy, Performance Tests
-- Requires: All tests passing
-
-**Feature Branches** (`feature/*`)
-- Individual feature development
-- Triggers: Lint, Test, Build
-- Requires: All tests passing before merge
-
-## Environment Variables & Secrets
-
-### Required GitHub Secrets
-
-Configure these secrets in Settings → Secrets and variables → Actions:
-
-| Secret | Purpose | Example |
-|---|---|---|
-| `SNYK_TOKEN` | Snyk security scanning | `xxxx-xxxx-xxxx` |
-| `SLACK_WEBHOOK_URL` | Slack notifications | `https://hooks.slack.com/...` |
-| `SENTRY_DSN` | Error tracking | `https://key@sentry.io/123456` |
-| `DATABASE_URL` | Production database | `mysql://user:pass@host/db` |
-| `STRIPE_SECRET_KEY` | Stripe payments | `sk_live_xxxx` |
-
-### Environment-Specific Variables
-
-**Staging Environment**
-```
-DATABASE_URL=mysql://user:pass@staging-db/ologywood_staging
-SENTRY_DSN=https://key@sentry.io/staging-project
-NODE_ENV=staging
-```
-
-**Production Environment**
-```
-DATABASE_URL=mysql://user:pass@prod-db/ologywood_prod
-SENTRY_DSN=https://key@sentry.io/prod-project
-NODE_ENV=production
-```
-
-## Docker Deployment
-
-### Building Docker Image Locally
-
-```bash
-# Build image
-docker build -t ologywood:latest .
-
-# Run container
-docker run -p 3000:3000 \
-  -e DATABASE_URL=mysql://user:pass@localhost/ologywood \
-  -e NODE_ENV=production \
-  ologywood:latest
-```
-
-### Using Docker Compose
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Stop services
-docker-compose down
-
-# Clean up volumes
-docker-compose down -v
-```
-
-### Docker Compose Services
-
-- **MySQL**: Database server (port 3306)
-- **Redis**: Cache server (port 6379)
-- **App**: Application (port 3000)
-- **Adminer**: Database UI (port 8080)
-
-## Health Check Endpoints
-
-### API Health Endpoints
-
-```bash
-# Comprehensive health check
-curl http://localhost:3000/api/health/check
-
-# Liveness probe (Kubernetes)
-curl http://localhost:3000/api/health/liveness
-
-# Readiness probe (Kubernetes)
-curl http://localhost:3000/api/health/readiness
-
-# System metrics
-curl http://localhost:3000/api/health/metrics
-
-# Version information
-curl http://localhost:3000/api/health/version
-```
-
-### Health Check Response
-
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-01-16T21:00:00.000Z",
-  "uptime": 3600,
-  "version": "1.0.0",
-  "checks": {
-    "database": {
-      "status": "ok",
-      "responseTime": 5,
-      "message": "Database is healthy"
-    },
-    "memory": {
-      "status": "ok",
-      "responseTime": 0,
-      "message": "Memory usage is normal",
-      "details": {
-        "heapUsed": 128,
-        "heapTotal": 512,
-        "heapUsedPercent": 25
-      }
-    },
-    "cpu": {
-      "status": "ok",
-      "responseTime": 0
-    },
-    "api": {
-      "status": "ok",
-      "responseTime": 0,
-      "message": "API is responding"
-    }
-  }
-}
-```
-
-## Sentry Integration
-
-### Setup Sentry
-
-1. **Create Sentry Account**
-   - Go to https://sentry.io
-   - Create a new project for Node.js
-   - Copy the DSN
-
-2. **Configure Environment Variable**
-   ```bash
-   SENTRY_DSN=https://key@sentry.io/project-id
-   ```
-
-3. **Initialize in Application**
-   - Sentry is automatically initialized in the server startup
-   - All errors are captured and reported
-
-### Monitoring in Sentry
-
-**Error Tracking**
-- View all errors in real-time
-- Group similar errors
-- Track error trends
-- Set up alerts
-
-**Performance Monitoring**
-- Monitor slow requests
-- Track database query performance
-- Identify bottlenecks
-- Set performance thresholds
-
-**Release Tracking**
-- Track deployments
-- Associate errors with releases
-- Monitor release health
-
-## Deployment Procedures
-
-### Manual Deployment
-
-#### Deploy to Staging
-
-```bash
-# 1. Ensure all tests pass
-pnpm test
-pnpm test:integration
-
-# 2. Build application
-pnpm build
-
-# 3. Deploy to staging
-docker build -t ologywood:staging .
-docker push ghcr.io/ologywood/ologywood:staging
-
-# 4. Update staging environment
-kubectl set image deployment/ologywood-staging \
-  app=ghcr.io/ologywood/ologywood:staging
-```
-
-#### Deploy to Production
-
-```bash
-# 1. Create release tag
-git tag -a v1.0.0 -m "Release version 1.0.0"
-git push origin v1.0.0
-
-# 2. Build and push image
-docker build -t ologywood:v1.0.0 .
-docker push ghcr.io/ologywood/ologywood:v1.0.0
-
-# 3. Update production environment
-kubectl set image deployment/ologywood-prod \
-  app=ghcr.io/ologywood/ologywood:v1.0.0
-
-# 4. Verify deployment
-kubectl rollout status deployment/ologywood-prod
-```
-
-### Rollback Procedure
-
-```bash
-# View deployment history
-kubectl rollout history deployment/ologywood-prod
-
-# Rollback to previous version
-kubectl rollout undo deployment/ologywood-prod
-
-# Rollback to specific revision
-kubectl rollout undo deployment/ologywood-prod --to-revision=2
-```
-
-## Kubernetes Deployment
-
-### Deployment Configuration
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ologywood-prod
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: ologywood
-  template:
-    metadata:
-      labels:
-        app: ologywood
-    spec:
-      containers:
-      - name: app
-        image: ghcr.io/ologywood/ologywood:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: production
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: ologywood-secrets
-              key: database-url
-        livenessProbe:
-          httpGet:
-            path: /api/health/liveness
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /api/health/readiness
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-```
-
-### Service Configuration
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: ologywood-service
-spec:
-  selector:
-    app: ologywood
-  type: LoadBalancer
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-```
-
-## Monitoring & Alerts
-
-### Slack Notifications
-
-The pipeline sends notifications to Slack on:
-- Successful deployments
-- Failed deployments
-- Test failures
-- Security issues
-
-Configure webhook URL in GitHub Secrets: `SLACK_WEBHOOK_URL`
-
-### Email Alerts
-
-Configure email notifications for:
-- Failed deployments
-- Security vulnerabilities
-- Performance degradation
-- Database backup failures
-
-## Best Practices
-
-### Code Quality
-- Keep tests passing at all times
-- Maintain >80% code coverage
-- Use TypeScript strict mode
-- Follow ESLint rules
-
-### Security
-- Scan dependencies regularly
-- Use environment variables for secrets
-- Rotate credentials periodically
-- Enable branch protection rules
-
-### Performance
-- Monitor bundle size
-- Track Core Web Vitals
-- Optimize database queries
-- Use caching effectively
-
-### Reliability
-- Run smoke tests after deployment
-- Monitor error rates
-- Track uptime metrics
-- Maintain runbooks
-
-## Troubleshooting
-
-### Pipeline Failures
-
-**Lint Failures**
-```bash
-# Fix formatting
-pnpm format
-
-# Fix ESLint issues
-pnpm lint --fix
-```
-
-**Test Failures**
-```bash
-# Run tests locally
-pnpm test
-
-# Run specific test file
-pnpm test server/routers.test.ts
-
-# Update snapshots
-pnpm test -u
-```
-
-**Build Failures**
-```bash
-# Clean build
-rm -rf dist
-pnpm build
-
-# Check TypeScript errors
-pnpm tsc --noEmit
-```
-
-### Deployment Issues
-
-**Database Connection**
-- Verify DATABASE_URL in environment
-- Check database credentials
-- Ensure database is running
-- Check network connectivity
-
-**Sentry Not Capturing Errors**
-- Verify SENTRY_DSN is set
-- Check Sentry project settings
-- Review error filtering rules
-- Check network requests
-
-**Health Check Failures**
-- Verify database connectivity
-- Check memory usage
-- Review application logs
-- Check port availability
-
-## Additional Resources
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Docker Documentation](https://docs.docker.com/)
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Sentry Documentation](https://docs.sentry.io/)
+**Last Updated:** February 28, 2026
 
 ---
 
-**Last Updated**: January 2026
-**Owner**: DevOps Team
+## Overview
+
+Ologywood is hosted on the **Manus Platform**, which provides built-in deployment, SSL, custom domains, and rollback capabilities. The platform does not use Docker, Kubernetes, or GitHub Actions for deployment. All deployments are checkpoint-based through the Manus Management UI.
+
+---
+
+## Deployment Architecture
+
+```
+Developer → Save Checkpoint → Publish (Manus UI) → Production
+                                                        │
+                                                        ▼
+                                              www.ologywood.com
+                                              (SSL, CDN, auto-scaling)
+```
+
+The Manus platform handles:
+- Build process (Vite frontend + esbuild server bundle)
+- SSL certificate provisioning and renewal
+- Custom domain management
+- Environment variable injection
+- Automatic scaling
+- Health monitoring
+
+---
+
+## Deployment Workflow
+
+### Pre-Deployment Checklist
+
+Before deploying, verify the following:
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| TypeScript compiles | `pnpm check` | 0 errors |
+| All tests pass | `pnpm test` | 1,233+ passing |
+| No stale console.logs | `grep -rn "console.log" client/src/ server/` | Only essential logs |
+| todo.md updated | Review `todo.md` | All completed items marked `[x]` |
+| Database migrations applied | `pnpm db:push` | No pending changes |
+
+### Deployment Steps
+
+1. **Verify locally** — Run `pnpm test` and `pnpm check`
+2. **Save checkpoint** — In the Manus Management UI, or via the development workflow
+3. **Review checkpoint** — The checkpoint captures a screenshot and full project state
+4. **Publish** — Click the **Publish** button in the Management UI header
+
+### Rollback
+
+If a deployment introduces issues:
+
+1. Open the Manus Management UI
+2. Navigate to the **Dashboard** panel
+3. Find the previous checkpoint
+4. Click **Rollback** to restore that version
+
+Each checkpoint is a complete snapshot of code, configuration, and dependencies.
+
+---
+
+## Build Process
+
+The production build consists of two steps defined in `package.json`:
+
+```bash
+pnpm build
+# Equivalent to:
+# vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+```
+
+**Frontend build (Vite):**
+- Compiles React + TypeScript
+- Bundles and tree-shakes with Rollup
+- Outputs to `dist/public/`
+- Generates hashed filenames for cache busting
+
+**Server build (esbuild):**
+- Bundles `server/_core/index.ts` and all imports
+- Outputs to `dist/index.js`
+- External node_modules are not bundled (resolved at runtime)
+
+The production server runs with:
+
+```bash
+NODE_ENV=production node dist/index.js
+```
+
+---
+
+## Environment Configuration
+
+All environment variables are managed through **Settings > Secrets** in the Manus Management UI. Variables are automatically injected into both the development sandbox and production deployment.
+
+### Current Environment Variables
+
+| Variable | Purpose | Managed By |
+|----------|---------|------------|
+| `DATABASE_URL` | AWS RDS MySQL connection | Manus (auto) |
+| `JWT_SECRET` | Session signing | Manus (auto) |
+| `STRIPE_SECRET_KEY` | Stripe payments | Settings > Payment |
+| `STRIPE_WEBHOOK_SECRET` | Webhook verification | Settings > Payment |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe client key | Settings > Payment |
+| `SENDGRID_API_KEY` | Email delivery | Settings > Secrets |
+| `SENDGRID_FROM_EMAIL` | Sender address | Settings > Secrets |
+| `AWS_ACCESS_KEY_ID` | S3 storage | Manus (auto) |
+| `AWS_SECRET_ACCESS_KEY` | S3 storage | Manus (auto) |
+| `AWS_REGION` | S3 region | Manus (auto) |
+| `OAUTH_SERVER_URL` | OAuth server | Manus (auto) |
+| `BASE_URL` | Production URL | Manus (auto) |
+
+To add or update secrets, use the Manus Management UI **Settings > Secrets** panel.
+
+---
+
+## Custom Domain
+
+The production domain `www.ologywood.com` is configured in **Settings > Domains**. The Manus platform handles:
+
+- DNS verification
+- SSL certificate provisioning (automatic)
+- HTTPS enforcement
+- www/non-www redirect
+
+Additional domains can be purchased or bound through the Domains settings panel.
+
+---
+
+## Health Monitoring
+
+### Health Check Endpoint
+
+```bash
+curl https://www.ologywood.com/health
+# Returns: { "status": "ok" }
+```
+
+### Monitoring via Management UI
+
+The **Dashboard** panel in the Management UI provides:
+
+- Uptime status
+- Visibility controls (public/private)
+- Analytics (UV/PV) for published sites
+- Recent deployment history
+
+---
+
+## GitHub Integration
+
+The project is connected to a GitHub repository via the `user_github` remote. Code syncing happens automatically:
+
+- File writes and checkpoint saves trigger `git pull` and `git push` to the `main` branch
+- Conflicts are detected and reported; they must be resolved manually
+- The GitHub connection is configured in **Settings > GitHub** in the Management UI
+
+### Syncing Changes
+
+To sync the latest changes from GitHub, save a checkpoint. The checkpoint tool handles all git pull/push operations internally.
+
+### Conflict Resolution
+
+If a conflict is detected:
+1. The operation is aborted and conflict details are shown
+2. Merge code/structural changes logically to preserve both intentions
+3. For content conflicts, confirm with the team which version to keep
+4. Never overwrite remote changes without explicit confirmation
+
+---
+
+## Legacy Infrastructure Files
+
+The following files exist in the repository from an earlier infrastructure setup but are **not actively used** with Manus hosting:
+
+| File | Status | Notes |
+|------|--------|-------|
+| `Dockerfile` | Not used | Manus handles containerization |
+| `docker-compose.yml` | Not used | No local Docker stack needed |
+| `scripts/deploy-*.sh` | Not used | Deployment is via Manus UI |
+| `scripts/backup-*.sh` | Not used | Database backups are managed by AWS RDS |
+| `scripts/setup-backup-cron.sh` | Not used | No cron jobs on Manus platform |
+
+These files are retained for reference but should not be relied upon for current operations. If self-hosted deployment is ever needed in the future, they would need to be updated to match the current codebase.
+
+---
+
+## Troubleshooting
+
+### Deployment Fails
+
+1. Check that `pnpm build` succeeds locally
+2. Verify all environment variables are set in **Settings > Secrets**
+3. Check for TypeScript errors with `pnpm check`
+4. Review the dev server logs for runtime errors
+
+### Database Connection Issues
+
+1. Verify `DATABASE_URL` in **Settings > Secrets**
+2. The connection uses SSL to AWS RDS — ensure SSL is enabled
+3. Check the database connection info in **Database** panel (bottom-left settings)
+
+### Stripe Webhook Issues
+
+1. Check **Developers > Webhooks** in the Stripe Dashboard
+2. Verify `STRIPE_WEBHOOK_SECRET` matches the webhook endpoint secret
+3. The webhook endpoint is `POST /api/stripe/webhook`
+4. Use test card `4242 4242 4242 4242` for testing
+
+### Static Assets Not Loading
+
+1. All static assets must be uploaded to S3 via `manus-upload-file --webdev`
+2. Local files in the project directory may cause deployment timeouts
+3. Reference assets by their CDN URL, not local paths
+
+---
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture and folder structure |
+| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Development setup and coding standards |
+| [API.md](./API.md) | API endpoint documentation |
+| [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | Backup and recovery procedures |
