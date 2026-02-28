@@ -79,9 +79,9 @@ export function ArtistDashboardV3() {
   const completionScore = (artistProfile as any)?.profileCompletionScore || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-200">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
+      <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm transition-colors duration-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -94,8 +94,8 @@ export function ArtistDashboardV3() {
               <span className="hidden sm:inline">Back</span>
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Artist Dashboard</h1>
-              <p className="text-sm text-slate-600">{artistProfile?.artistName || (artistProfile as any)?.stageName || 'Welcome'}</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">Artist Dashboard</h1>
+              <p className="text-sm text-slate-600 dark:text-gray-400">{artistProfile?.artistName || (artistProfile as any)?.stageName || 'Welcome'}</p>
             </div>
           </div>
 

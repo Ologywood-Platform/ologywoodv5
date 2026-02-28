@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, User } from 'lucide-react';
+import { DarkModeToggle } from './DarkModeToggle';
 import { useLocation } from 'wouter';
 import { getLoginUrl } from '@/const';
 import RealtimeNotifications from './RealtimeNotifications';
@@ -41,7 +42,7 @@ export default function DashboardHeader() {
     .toUpperCase() || 'U';
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-200">
       <div className="flex items-center justify-between h-16 px-6">
         {/* Left side - Logo/Title */}
         <div className="flex items-center gap-3">
@@ -54,6 +55,9 @@ export default function DashboardHeader() {
 
         {/* Right side - Notifications and User Menu */}
         <div className="flex items-center gap-4">
+          {/* Dark Mode Toggle */}
+          <DarkModeToggle compact />
+
           {/* Real-time Notifications */}
           <RealtimeNotifications />
 
@@ -74,9 +78,9 @@ export default function DashboardHeader() {
             <DropdownMenuContent align="end" className="w-56">
               {/* User Info */}
               <div className="px-2 py-1.5">
-                <p className="text-sm font-medium text-gray-900">{user.name || 'User'}</p>
-                <p className="text-xs text-gray-500">{user.email}</p>
-                <p className="text-xs text-gray-500 capitalize mt-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name || 'User'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 capitalize mt-1">
                   {user.role === 'artist' ? '🎤 Artist' : '🎭 Venue'}
                 </p>
               </div>

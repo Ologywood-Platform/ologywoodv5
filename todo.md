@@ -561,3 +561,16 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Configure venue tabs: Overview, Bookings, Messages, Artists, More
 - [x] Ensure scroll-to-section behavior matches artist dashboard pattern
 - [x] Write tests and verify TypeScript (30 new tests, 1147 total passing, 0 TS errors)
+
+## DARK MODE TOGGLE
+- [x] Review existing ThemeProvider and CSS variable setup
+- [x] Enable switchable={true} on ThemeProvider
+- [x] Create DarkModeToggle component (sun/moon icon with compact variant, accessible)
+- [x] Add dark mode toggle button to SiteHeader (public pages)
+- [x] Add dark mode toggle to DashboardHeader (dashboard pages)
+- [x] Fix dark mode primary color to match purple brand (hue 285)
+- [x] Add 40+ global CSS dark mode overrides (bg-white, text-gray-*, bg-gradient-*, shadows, borders, hover states)
+- [x] Add dark-aware styling to ArtistDashboardV3 and VenueDashboard
+- [x] Add dark-aware styling to Footer
+- [x] Ensure dark mode persists via localStorage (built into ThemeProvider)
+- [x] Write tests and verify TypeScript (43 new tests, 1190 total passing, 0 TS errors)
