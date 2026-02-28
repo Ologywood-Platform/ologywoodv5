@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,7 +13,7 @@ import {
   Search,
   MoreVertical,
   MessageCircle,
-  Clock,
+  ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +47,9 @@ export default function Messages() {
   const [searchQuery, setSearchQuery] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch bookings to build conversations
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
@@ -91,29 +94,25 @@ export default function Messages() {
 
   // Build conversations from bookings
   useEffect(() => {
-    const buildConversations = async () => {
-      const allBookings = bookings || venueBookings || [];
-      const convos: Conversation[] = [];
+    const allBookings = bookings || venueBookings || [];
+    const convos: Conversation[] = [];
 
-      for (const booking of allBookings) {
-        const isArtist = user?.role === 'artist';
-        
-        const conversation: Conversation = {
-          id: booking.id,
-          participantId: isArtist ? booking.venueId : booking.artistId,
-          participantName: isArtist ? `Venue #${booking.venueId}` : 'Artist',
-          participantRole: isArtist ? 'venue' : 'artist',
-          bookingId: booking.id,
-          bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
-          unreadCount: 0,
-        };
-        convos.push(conversation);
-      }
+    for (const booking of allBookings) {
+      const isArtist = user?.role === 'artist';
 
-      setConversations(convos);
-    };
+      const conversation: Conversation = {
+        id: booking.id,
+        participantId: isArtist ? booking.venueId : booking.artistId,
+        participantName: isArtist ? `Venue #${booking.venueId}` : 'Artist',
+        participantRole: isArtist ? 'venue' : 'artist',
+        bookingId: booking.id,
+        bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
+        unreadCount: 0,
+      };
+      convos.push(conversation);
+    }
 
-    buildConversations();
+    setConversations(convos);
   }, [bookings, venueBookings, user?.role]);
 
   // Update messages when selectedMessages changes
@@ -133,7 +132,12 @@ export default function Messages() {
     }
   }, [selectedMessages, user?.id]);
 
-  // Add polling for real-time message updates
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Polling for real-time message updates
   useEffect(() => {
     if (!selectedConversation?.bookingId) return;
     const pollInterval = setInterval(() => {
@@ -171,189 +175,261 @@ export default function Messages() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
+    setMobileShowChat(true);
     if (conversation.bookingId) {
       markAsReadMutation.mutate({ bookingId: conversation.bookingId });
       refetchMessages();
     }
   };
 
+  const handleBackToList = () => {
+    setMobileShowChat(false);
+  };
+
   const totalUnread = unreadData?.count || 0;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
-              <p className="text-sm text-slate-600">Manage your conversations</p>
-            </div>
-          </div>
-          {totalUnread > 0 && (
-            <Badge className="bg-red-500 text-lg px-3 py-1">
-              {totalUnread} Unread
-            </Badge>
-          )}
+  // ─── Conversation List ───
+  const ConversationList = () => (
+    <div className="flex flex-col h-full">
+      {/* Search */}
+      <div className="p-3 sm:p-4 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-10"
+          />
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Conversations List */}
-          <div className="lg:col-span-1">
-            <Card className="h-full flex flex-col">
-              <CardHeader className="border-b border-slate-200">
-                <CardTitle className="text-lg">Conversations</CardTitle>
-                <div className="relative mt-4">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search conversations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+      {/* List */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredConversations.length > 0 ? (
+          filteredConversations.map((conversation) => (
+            <button
+              key={conversation.id}
+              onClick={() => handleSelectConversation(conversation)}
+              className={`w-full text-left p-3 sm:p-4 border-b transition-colors hover:bg-muted/50 ${
+                selectedConversation?.id === conversation.id ? 'bg-primary/5' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {/* Avatar */}
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-semibold text-primary">
+                    {conversation.participantName.charAt(0).toUpperCase()}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-0">
-                {filteredConversations.length > 0 ? (
-                  filteredConversations.map((conversation) => (
-                    <div
-                      key={conversation.id}
-                      onClick={() => handleSelectConversation(conversation)}
-                      className={`p-4 border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 ${
-                        selectedConversation?.id === conversation.id ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-slate-900">
-                            {conversation.participantName}
-                          </h3>
-                          <p className="text-xs text-slate-600 mt-1">
-                            {conversation.bookingTitle}
-                          </p>
-                        </div>
-                        {conversation.unreadCount && conversation.unreadCount > 0 && (
-                          <Badge className="bg-blue-500">{conversation.unreadCount}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm text-slate-600">No conversations found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Message Thread */}
-          <div className="lg:col-span-2">
-            {selectedConversation ? (
-              <Card className="h-full flex flex-col">
-                <CardHeader className="border-b border-slate-200">
+                {/* Info */}
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="font-semibold text-slate-900">
-                        {selectedConversation.participantName}
-                      </h2>
-                      <p className="text-xs text-slate-600">
-                        {selectedConversation.bookingTitle}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
+                    <h3 className="font-semibold text-sm truncate">
+                      {conversation.participantName}
+                    </h3>
+                    {conversation.unreadCount && conversation.unreadCount > 0 && (
+                      <Badge className="bg-primary text-[10px] h-5 min-w-5 px-1.5">
+                        {conversation.unreadCount}
+                      </Badge>
+                    )}
                   </div>
-                </CardHeader>
-
-                <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {messages.length > 0 ? (
-                    messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`rounded-lg p-3 max-w-xs ${
-                            msg.senderId === user?.id
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-slate-100 text-slate-900'
-                          }`}
-                        >
-                          <p className="text-sm">{msg.content}</p>
-                          <p
-                            className={`text-xs mt-1 ${
-                              msg.senderId === user?.id
-                                ? 'text-blue-100'
-                                : 'text-slate-500'
-                            }`}
-                          >
-                            {new Date(msg.timestamp).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-slate-600">
-                      <p>No messages yet. Start the conversation!</p>
-                    </div>
-                  )}
-                </CardContent>
-
-                <div className="border-t border-slate-200 p-4">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Type your message..."
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!messageText.trim() || sendMessageMutation.isPending}
-                      className="gap-2"
-                    >
-                      <Send className="h-4 w-4" />
-                      Send
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs mt-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-slate-600">
-                      Connected
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            ) : (
-              <Card className="h-full flex items-center justify-center">
-                <div className="text-center">
-                  <MessageCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    Select a conversation
-                  </h3>
-                  <p className="text-slate-600">
-                    Choose a conversation from the list to start messaging
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                    {conversation.bookingTitle}
                   </p>
                 </div>
-              </Card>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <MessageCircle className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No conversations found</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ─── Chat Panel ───
+  const ChatPanel = () => (
+    <div className="flex flex-col h-full">
+      {/* Chat Header */}
+      <div className="flex items-center gap-2 p-3 sm:p-4 border-b bg-background">
+        {/* Back button - mobile only */}
+        <button
+          onClick={handleBackToList}
+          className="sm:hidden p-1.5 -ml-1 rounded-lg hover:bg-muted transition-colors"
+          aria-label="Back to conversations"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        {/* Avatar */}
+        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <span className="text-sm font-semibold text-primary">
+            {selectedConversation?.participantName.charAt(0).toUpperCase()}
+          </span>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-sm truncate">
+            {selectedConversation?.participantName}
+          </h2>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {selectedConversation?.bookingTitle}
+          </p>
+        </div>
+
+        <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:flex">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+        {messages.length > 0 ? (
+          messages.map((msg) => {
+            const isOwn = msg.senderId === user?.id;
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`rounded-2xl px-3.5 py-2.5 max-w-[80%] sm:max-w-xs ${
+                    isOwn
+                      ? 'bg-primary text-primary-foreground rounded-br-md'
+                      : 'bg-muted rounded-bl-md'
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <p
+                    className={`text-[10px] mt-1 ${
+                      isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            <p className="text-sm">No messages yet. Start the conversation!</p>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Message Input */}
+      <div className="border-t p-3 sm:p-4 bg-background safe-area-bottom">
+        <div className="flex gap-2 items-end">
+          <Input
+            ref={inputRef}
+            placeholder="Type a message..."
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            className="h-11 sm:h-10 text-sm"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!messageText.trim() || sendMessageMutation.isPending}
+            size="icon"
+            className="h-11 w-11 sm:h-10 sm:w-10 flex-shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Empty State ───
+  const EmptyChat = () => (
+    <div className="hidden sm:flex h-full items-center justify-center">
+      <div className="text-center">
+        <MessageCircle className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Select a conversation</h3>
+        <p className="text-sm text-muted-foreground">
+          Choose a conversation from the list to start messaging
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header - visible on both mobile and desktop */}
+      <div className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold">Messages</h1>
+                <p className="text-[11px] sm:text-sm text-muted-foreground hidden sm:block">
+                  Manage your conversations
+                </p>
+              </div>
+            </div>
+            {totalUnread > 0 && (
+              <Badge variant="destructive" className="text-xs sm:text-sm px-2 sm:px-3">
+                {totalUnread} Unread
+              </Badge>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 max-w-6xl mx-auto w-full">
+        {/* Desktop: Two-column layout */}
+        <div className="hidden sm:grid sm:grid-cols-3 h-[calc(100vh-80px)]">
+          {/* Conversation List - always visible on desktop */}
+          <div className="col-span-1 border-r overflow-hidden">
+            <ConversationList />
+          </div>
+
+          {/* Chat Panel or Empty State - desktop */}
+          <div className="col-span-2 overflow-hidden">
+            {selectedConversation ? <ChatPanel /> : <EmptyChat />}
+          </div>
+        </div>
+
+        {/* Mobile: Single-column with slide transition */}
+        <div className="sm:hidden h-[calc(100vh-60px)] relative overflow-hidden">
+          {/* Conversation List - slides out when chat is open */}
+          <div
+            className={`absolute inset-0 transition-transform duration-300 ease-in-out ${
+              mobileShowChat ? '-translate-x-full' : 'translate-x-0'
+            }`}
+          >
+            <ConversationList />
+          </div>
+
+          {/* Chat Panel - slides in from right */}
+          <div
+            className={`absolute inset-0 transition-transform duration-300 ease-in-out ${
+              mobileShowChat ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            {selectedConversation && <ChatPanel />}
           </div>
         </div>
       </div>

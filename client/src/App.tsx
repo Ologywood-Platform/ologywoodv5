@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Redirect } from "wouter";
 import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
+import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // MVP CORE ROUTES ONLY
@@ -155,6 +156,7 @@ function App() {
           <Toaster />
           <Router />
           <AIChatWidget />
+          <PWAInstallBanner />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

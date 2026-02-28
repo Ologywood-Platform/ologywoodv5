@@ -539,3 +539,19 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Show loading spinner during refresh
 - [x] Native-feeling touch interaction (resistance curve, progress states, threshold detection)
 - [x] 49 new tests, 1043 total passing, 0 TS errors
+
+## MOBILE MESSAGING PAGE
+- [x] Convert desktop two-column chat layout to single-column on mobile
+- [x] Show conversation list as default mobile view
+- [x] Add slide-in chat panel when conversation is selected
+- [x] Add back button to return to conversation list on mobile
+- [x] Ensure message input is touch-friendly and doesn't get hidden by keyboard (safe-area-bottom)
+- [x] Maintain desktop two-column layout on larger screens
+
+## PROGRESSIVE WEB APP (PWA)
+- [x] Create manifest.json with app name, icons, theme color, display mode
+- [x] Create service worker for offline caching and install support
+- [x] Add PWA meta tags to index.html (already had them)
+- [x] Generate app icons in multiple sizes (already had 7 icon sizes)
+- [x] Add install prompt banner for mobile users (with 7-day dismiss cooldown)
+- [x] Write tests for both features (72 new tests, 1117 total passing, 0 TS errors)
