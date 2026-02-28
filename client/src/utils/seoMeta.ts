@@ -25,7 +25,34 @@ export interface MetaTagsConfig {
 }
 
 /**
+ * Normalize a URL: remove trailing slashes (except root), ensure www prefix.
+ */
+function normalizeUrl(url: string): string {
+  // Remove trailing slash except for root
+  let normalized = url.replace(/\/+$/, '') || '/';
+  // If it's just the base domain, keep trailing slash
+  if (normalized === BASE_URL) {
+    normalized = BASE_URL + '/';
+  }
+  return normalized;
+}
+
+/**
+ * Build the canonical URL for the current page.
+ * Uses ogUrl if provided, otherwise derives from window.location.pathname.
+ */
+function buildCanonicalUrl(config: MetaTagsConfig): string {
+  if (config.canonical) return normalizeUrl(config.canonical);
+  if (config.ogUrl) return normalizeUrl(config.ogUrl);
+  // Fallback: derive from current path
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const cleanPath = path.replace(/\/+$/, '') || '/';
+  return cleanPath === '/' ? `${BASE_URL}/` : `${BASE_URL}${cleanPath}`;
+}
+
+/**
  * Set meta tags for a page. Updates existing tags or creates new ones.
+ * ALWAYS sets a canonical URL to prevent duplicate content issues.
  */
 export function setMetaTags(config: MetaTagsConfig) {
   // Title
@@ -43,10 +70,14 @@ export function setMetaTags(config: MetaTagsConfig) {
     updateMetaTag('keywords', config.keywords);
   }
 
+  // Build canonical URL (always set, never skip)
+  const canonicalUrl = buildCanonicalUrl(config);
+  const ogUrl = normalizeUrl(config.ogUrl || canonicalUrl);
+
   // Open Graph
   updateMetaTag('og:type', config.ogType || 'website');
   updateMetaTag('og:site_name', SITE_NAME);
-  updateMetaTag('og:url', config.ogUrl || BASE_URL);
+  updateMetaTag('og:url', ogUrl);
   updateMetaTag('og:image', config.ogImage || DEFAULT_OG_IMAGE);
   updateMetaTag('og:image:width', '1200');
   updateMetaTag('og:image:height', '630');
@@ -54,12 +85,10 @@ export function setMetaTags(config: MetaTagsConfig) {
   // Twitter Card
   updateMetaTag('twitter:card', config.twitterCard || 'summary_large_image');
   updateMetaTag('twitter:image', config.twitterImage || config.ogImage || DEFAULT_OG_IMAGE);
-  updateMetaTag('twitter:url', config.ogUrl || BASE_URL);
+  updateMetaTag('twitter:url', ogUrl);
 
-  // Canonical URL
-  if (config.canonical || config.ogUrl) {
-    updateCanonicalTag(config.canonical || config.ogUrl!);
-  }
+  // Canonical URL - ALWAYS set to prevent duplicate content issues
+  updateCanonicalTag(canonicalUrl);
 }
 
 /**

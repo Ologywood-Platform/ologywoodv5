@@ -124,7 +124,12 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
  * Properly configured to allow public pages and disallow private ones
  */
 router.get('/robots.txt', (req: Request, res: Response) => {
-  const baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
+  // Always use www.ologywood.com for canonical consistency
+  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
+  // Ensure www prefix for consistency with canonical URLs
+  if (baseUrl.includes('ologywood.com') && !baseUrl.includes('www.')) {
+    baseUrl = baseUrl.replace('https://', 'https://www.');
+  }
 
   const robotsTxt = `# Robots.txt for Ologywood Artist Booking Platform
 User-agent: *

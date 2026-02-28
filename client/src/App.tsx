@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch, Redirect } from "wouter";
 import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
+import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // MVP CORE ROUTES ONLY
@@ -154,6 +155,7 @@ function App() {
       <ThemeProvider defaultTheme="light" switchable={true}>
         <TooltipProvider>
           <Toaster />
+          <CanonicalUpdater />
           <Router />
           <AIChatWidget />
           <PWAInstallBanner />

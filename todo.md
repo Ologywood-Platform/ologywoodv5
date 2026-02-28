@@ -574,3 +574,13 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Add dark-aware styling to Footer
 - [x] Ensure dark mode persists via localStorage (built into ThemeProvider)
 - [x] Write tests and verify TypeScript (43 new tests, 1190 total passing, 0 TS errors)
+
+## FIX DUPLICATE WITHOUT USER-SELECTED CANONICAL (Google Search Console)
+- [x] Fix index.html canonical tag pointing to manus.space instead of www.ologywood.com
+- [x] Create CanonicalUpdater component for global route-change canonical updates
+- [x] Update seoMeta.ts to always set canonical URL and normalize trailing slashes
+- [x] Add server-side trailing slash normalization middleware (301 redirect /path/ → /path)
+- [x] Ensure www prefix consistency in sitemap and robots.txt baseUrl
+- [x] Ensure og:url matches canonical on every page
+- [x] Verify 13 public pages all call setMetaTags for proper canonical
+- [x] Write tests and verify TypeScript (43 new tests, 1233 total passing, 0 TS errors)

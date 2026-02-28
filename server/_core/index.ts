@@ -58,6 +58,22 @@ async function startServer() {
     }
     next();
   });
+
+  // Trailing slash normalization: redirect /path/ to /path (except root /)
+  // Prevents Google from indexing both /browse and /browse/ as separate pages
+  app.use((req, res, next) => {
+    // Skip API routes, static files, and root path
+    if (req.path === '/' || req.path.startsWith('/api/') || req.path.startsWith('/trpc/') || req.path.includes('.')) {
+      return next();
+    }
+    // If path has trailing slash, redirect to without
+    if (req.path.length > 1 && req.path.endsWith('/')) {
+      const query = req.url.slice(req.path.length);
+      const cleanPath = req.path.replace(/\/+$/, '');
+      return res.redirect(301, cleanPath + query);
+    }
+    next();
+  });
   
   // Stripe webhook MUST be registered before express.json() for signature verification
   const { handleStripeWebhook } = await import('../webhooks/stripe');
