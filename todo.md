@@ -584,3 +584,9 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Ensure og:url matches canonical on every page
 - [x] Verify 13 public pages all call setMetaTags for proper canonical
 - [x] Write tests and verify TypeScript (43 new tests, 1233 total passing, 0 TS errors)
+
+## FIX SITEMAP RETURNING HTML INSTEAD OF XML
+- [x] Investigate why /sitemap.xml returns HTML (SPA fallback) instead of XML
+- [x] Fix sitemap route registration to serve proper XML (dynamic route correct, removed static robots.txt conflict)
+- [x] Verify robots.txt also returns plain text, not HTML
+- [x] Write tests and verify fix (1230 tests passing)
