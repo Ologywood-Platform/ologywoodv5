@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'wouter';
-import { Home, Search, MessageCircle, Calendar, User } from 'lucide-react';
+import { Home, Search, MessageCircle, Calendar, User, LayoutDashboard, DollarSign, Music, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 interface NavItem {
@@ -11,16 +11,13 @@ interface NavItem {
   badge?: number;
 }
 
-export function MobileBottomNav() {
+type NavMode = 'public' | 'dashboard';
+
+export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
   const [pathname, navigate] = useLocation();
   const { user } = useAuth();
 
-  // Don't show on desktop
-  if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-    return null;
-  }
-
-  const navItems: NavItem[] = [
+  const publicNavItems: NavItem[] = [
     {
       id: 'home',
       label: 'Home',
@@ -38,7 +35,7 @@ export function MobileBottomNav() {
       label: 'Messages',
       icon: <MessageCircle className="h-5 w-5" />,
       path: '/messages',
-      badge: 0, // Would be populated from API
+      badge: 0,
     },
     {
       id: 'bookings',
@@ -54,44 +51,97 @@ export function MobileBottomNav() {
     },
   ];
 
-  const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(path + '/');
+  const dashboardNavItems: NavItem[] = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      path: '/artist-dashboard',
+    },
+    {
+      id: 'bookings',
+      label: 'Bookings',
+      icon: <Calendar className="h-5 w-5" />,
+      path: '/bookings',
+    },
+    {
+      id: 'messages',
+      label: 'Messages',
+      icon: <MessageCircle className="h-5 w-5" />,
+      path: '/messages',
+    },
+    {
+      id: 'earnings',
+      label: 'Earnings',
+      icon: <DollarSign className="h-5 w-5" />,
+      path: '/earnings',
+    },
+    {
+      id: 'more',
+      label: 'More',
+      icon: <MoreHorizontal className="h-5 w-5" />,
+      path: '/artist-dashboard#more',
+    },
+  ];
+
+  const navItems = mode === 'dashboard' ? dashboardNavItems : publicNavItems;
+
+  const isActive = (item: NavItem) => {
+    if (item.id === 'overview') {
+      return pathname === '/artist-dashboard' || pathname === '/dashboard';
+    }
+    if (item.id === 'more') return false;
+    return pathname === item.path || pathname.startsWith(item.path + '/');
   };
 
   return (
     <>
       {/* Spacer to prevent content from being hidden behind nav */}
-      <div className="h-20 md:hidden" />
+      <div className="h-16 sm:hidden" />
 
       {/* Bottom Navigation - Mobile Only */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-        <div className="flex items-center justify-around h-20">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors relative ${
-                isActive(item.path)
-                  ? 'text-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              aria-label={item.label}
-              title={item.label}
-            >
-              <div className="relative">
-                {item.icon}
-                {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {item.badge > 9 ? '9+' : item.badge}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs font-medium">{item.label}</span>
-              {isActive(item.path) && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 rounded-t-full" />
-              )}
-            </button>
-          ))}
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t sm:hidden z-50 safe-area-bottom">
+        <div className="grid grid-cols-5 h-14">
+          {navItems.map((item) => {
+            const active = isActive(item);
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (item.id === 'more') {
+                    // Scroll to quick actions on dashboard
+                    if (pathname === '/artist-dashboard' || pathname === '/dashboard') {
+                      const el = document.getElementById('quick-actions');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/artist-dashboard');
+                    }
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`flex flex-col items-center justify-center gap-0.5 transition-colors relative ${
+                  active
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
+              >
+                <div className="relative">
+                  {item.icon}
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-medium">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] leading-tight ${active ? 'font-semibold' : 'font-medium'}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </>

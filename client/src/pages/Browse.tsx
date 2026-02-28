@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // EventDiscovery removed - not part of current MVP
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -51,7 +52,14 @@ export default function Browse() {
   // Tab state for Artists/Events
   const [activeTab, setActiveTab] = useState<'artists' | 'events'>('artists');
 
-  const { data: artists, isLoading: artistsLoading } = trpc.artist.search.useQuery(filters);
+  const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
+
+  // Pull-to-refresh
+  const { PullIndicator } = usePullToRefresh({
+    onRefresh: async () => {
+      await refetchArtists();
+    },
+  });
 
   const noResultsRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +120,9 @@ export default function Browse() {
       <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }])} id="browse-breadcrumb" />
       {/* Shared Header with Following link */}
       <SiteHeader hideBrowse />
+
+      {/* Pull-to-refresh indicator */}
+      <PullIndicator />
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Search Bar */}

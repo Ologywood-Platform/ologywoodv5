@@ -17,7 +17,7 @@ import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "../components/RiderComparisonTool";
 import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
@@ -25,6 +25,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
+import { StickyBookingBar } from "@/components/StickyBookingBar";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -104,6 +105,7 @@ export default function ArtistProfile() {
   const [totalFee, setTotalFee] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
   
   const toggleRiderExpanded = (riderId: number) => {
     setExpandedRiders(prev => {
@@ -230,7 +232,7 @@ export default function ArtistProfile() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-6 sm:mb-8" ref={heroRef}>
           {artist.profilePhotoUrl ? (
             <div className="w-full h-64 md:h-96 rounded-lg overflow-hidden mb-6">
               <img 
@@ -716,6 +718,17 @@ export default function ArtistProfile() {
           </div>
         </div>
       </div>
+
+      {/* Sticky Booking Bar for Mobile */}
+      {artist && (
+        <StickyBookingBar
+          artistName={artist.artistName}
+          feeRangeMin={artist.feeRangeMin}
+          feeRangeMax={artist.feeRangeMax}
+          onBookClick={() => setBookingDialogOpen(true)}
+          heroRef={heroRef}
+        />
+      )}
 
       {/* Share Profile Modal */}
       {artist && (

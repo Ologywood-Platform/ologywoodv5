@@ -10,6 +10,7 @@ import { QuickSignupModal } from '@/components/QuickSignupModal';
 import { LazyImage } from '@/components/LazyImage';
 import { trpc } from '@/lib/trpc';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 interface Venue {
   id: number;
@@ -35,6 +36,14 @@ export default function VenueBrowse() {
   // Fetch venues from database
   // NOTE: venue router was removed during cleanup - using empty data for now
   const { data: venues = [], isLoading } = { data: [], isLoading: false };
+
+  // Pull-to-refresh
+  const { PullIndicator } = usePullToRefresh({
+    onRefresh: async () => {
+      // Venue data refresh - will work when venue router is restored
+      await new Promise(resolve => setTimeout(resolve, 500));
+    },
+  });
 
   // Get venue types for filter dropdown
   const { data: venueTypes = [] } = { data: [] };
@@ -86,6 +95,9 @@ export default function VenueBrowse() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Pull-to-refresh indicator */}
+      <PullIndicator />
+
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">

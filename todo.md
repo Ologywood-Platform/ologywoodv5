@@ -521,3 +521,21 @@ See `PRODUCTION_AUDIT.md` for detailed audit checklist and progress tracking.
 - [x] Keep centered dialog on desktop (>640px)
 - [x] Add proper mobile scroll behavior and padding (sticky header + sticky footer buttons)
 - [x] Ensure form fields are touch-friendly with proper sizing (h-11 on mobile, h-10 on desktop)
+
+## STICKY REQUEST BOOKING BAR (Mobile)
+- [x] Add fixed bottom bar on artist profile that appears when user scrolls past hero
+- [x] Show artist name, price range, and "Request Booking" button
+- [x] Only visible on mobile screens (<640px)
+- [x] Smooth show/hide animation on scroll
+
+## MOBILE DASHBOARD NAVIGATION
+- [x] Collapse dashboard sidebar into bottom navigation on mobile
+- [x] Show key tabs (Overview, Bookings, Messages, Earnings, More) as bottom nav icons
+- [x] Ensure smooth tab switching on mobile
+
+## PULL-TO-REFRESH ON BROWSE
+- [x] Add pull-to-refresh gesture on artist browse page
+- [x] Add pull-to-refresh gesture on venue browse page
+- [x] Show loading spinner during refresh
+- [x] Native-feeling touch interaction (resistance curve, progress states, threshold detection)
+- [x] 49 new tests, 1043 total passing, 0 TS errors

@@ -9,6 +9,7 @@ import { AccountSettings } from '@/components/AccountSettings';
 import { EventStatusManager } from '@/components/EventStatusManager';
 import { FansSection } from '@/components/FansSection';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -167,7 +168,7 @@ export function ArtistDashboardV3() {
             </Card>
 
             {/* Quick Actions */}
-            <Card>
+            <Card id="quick-actions">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
@@ -356,6 +357,9 @@ export function ArtistDashboardV3() {
           </div>
         )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav mode="dashboard" />
     </div>
   );
 }
