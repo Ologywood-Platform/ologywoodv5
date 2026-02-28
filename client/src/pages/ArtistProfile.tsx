@@ -247,8 +247,8 @@ export default function ArtistProfile() {
           
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">{artist.artistName}</h1>
-              <p className="text-xl text-muted-foreground mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{artist.artistName}</h1>
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                 {Array.isArray(artist.genre) && artist.genre.length > 0 
                   ? artist.genre.join(", ") 
                   : "Various Genres"}
@@ -276,21 +276,11 @@ export default function ArtistProfile() {
               </div>
             </div>
             
-            <div className="flex gap-2">
-              <FavoriteButton artistId={artistId} size="lg" />
-                  <FollowButton artistUserId={artist.userId || artistId} artistName={artist.artistName} />
-              <Button
-                onClick={() => setShareProfileOpen(true)}
-                variant="outline"
-                size="lg"
-                className="gap-2"
-              >
-                <Share2 className="w-4 h-4" />
-                Share
-              </Button>
+            <div className="flex flex-col gap-3">
+              {/* Primary action - full width on mobile */}
               <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="md:min-w-[200px]">
+                  <Button size="lg" className="w-full sm:w-auto md:min-w-[200px]">
                     Request Booking
                   </Button>
                 </DialogTrigger>
@@ -429,7 +419,26 @@ export default function ArtistProfile() {
                   </div>
                 </form>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+
+              {/* Secondary actions row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <FollowButton artistUserId={artist.userId || artistId} artistName={artist.artistName} showCount={false} />
+                <FavoriteButton artistId={artistId} size="lg" showText={false} />
+                <Button
+                  onClick={() => setShareProfileOpen(true)}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <FollowerCount artistUserId={artist.userId || artistId} />
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -718,5 +727,12 @@ export default function ArtistProfile() {
   );
 }
 
-// Events section added in Phase 2
-// TODO: Add Events and Event History sections before Reviews
+// Simple helper to display follower count
+function FollowerCount({ artistUserId }: { artistUserId: number }) {
+  const { data: stats } = trpc.follows.getStats.useQuery(
+    { userId: artistUserId },
+    { enabled: !!artistUserId }
+  );
+  const count = stats?.followersCount ?? 0;
+  return <>{count} {count === 1 ? 'follower' : 'followers'}</>;
+}
