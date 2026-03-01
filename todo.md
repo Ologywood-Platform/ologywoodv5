@@ -630,3 +630,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update Privacy Policy with Ologywood-specific data collection and processing
 - [x] Update Terms of Service with platform-specific booking, payment, and rider terms
 - [x] Update Accessibility Statement with specific WCAG compliance details
+
+## QR CODE OVERLAP FIX (Feb 28, 2026)
+- [x] Fix text overlap on QR Code section in profile share dialog (desktop view) — fixed in both ShareProfileModal and ShareVenueModal

@@ -258,11 +258,11 @@ export function ShareProfileModal({
           {/* QR Code Section */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">QR Code</Label>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 rounded-lg space-y-3">
               <div className="text-sm text-gray-600">
                 Generate a QR code for your profile. Great for business cards and posters!
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+              <div className="flex flex-wrap items-center gap-2">
                 {artistProfileImage && (
                   <span className="text-xs text-green-600 flex items-center gap-1 whitespace-nowrap">
                     <Image className="w-3 h-3 flex-shrink-0" />
@@ -273,7 +273,7 @@ export function ShareProfileModal({
                 <Button
                   onClick={() => setShowQR(!showQR)}
                   variant="outline"
-                  className="gap-2 w-full sm:w-auto"
+                  className="gap-2"
                 >
                   <QrCode className="w-4 h-4 flex-shrink-0" />
                   <span className="hidden sm:inline">{showQR ? 'Hide' : 'Show'} QR Code</span>
