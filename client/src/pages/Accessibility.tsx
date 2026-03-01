@@ -10,7 +10,7 @@ const Accessibility = () => {
             Back to Home
           </Link>
           <h1 className="text-4xl font-bold text-gray-900 mt-4">Accessibility Statement</h1>
-          <p className="text-gray-600 mt-2">Last updated: February 4, 2024</p>
+          <p className="text-gray-600 mt-2">Last updated: February 28, 2026</p>
         </div>
       </div>
 

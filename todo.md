@@ -614,3 +614,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create CHANGELOG.md with versioned release history
 - [x] Check and consolidate docs/DEPLOYMENT.md with CI_CD_DEPLOYMENT.md (deleted DEPLOYMENT.md, updated all references)
 - [x] Clean up .gitignore (removed 20+ unused entries for Yarn, Next.js, Nuxt, Gatsby, Storybook, Microbundle, jspm, lerna; no .dockerignore existed)
+
+## PUBLIC DIRECTORY AUDIT (Feb 28, 2026)
+- [x] Inventory all files in public/ directory (17 files across public/ and client/public/)
+- [x] Review legal pages — fixed Cookies and Accessibility dates from 2024 to 2026
+- [x] Verify favicons and manifest are current (client/public/ manifest is correct, favicons use CDN)
+- [x] Remove stale/orphaned files: deleted entire orphaned public/ root (manifest, sw.js, favicon.svg, og-image.png, PRIVACY_POLICY.md), removed client/public/og-image.png (975KB, unused), removed .gitkeep, removed Google Fonts comment block from index.html
