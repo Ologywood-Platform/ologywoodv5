@@ -29,6 +29,7 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       { url: '/pricing', changefreq: 'monthly', priority: 0.7, lastmod: new Date().toISOString() },
       { url: '/how-it-works', changefreq: 'monthly', priority: 0.7, lastmod: new Date().toISOString() },
       { url: '/sell-music', changefreq: 'monthly', priority: 0.8, lastmod: new Date().toISOString() },
+      { url: '/blog', changefreq: 'daily', priority: 0.8, lastmod: new Date().toISOString() },
       { url: '/contact', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
       { url: '/faq', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
       { url: '/help', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
@@ -145,6 +146,8 @@ Allow: /events/
 Allow: /pricing
 Allow: /how-it-works
 Allow: /sell-music
+Allow: /blog
+Allow: /blog/
 Allow: /contact
 Allow: /faq
 Allow: /help

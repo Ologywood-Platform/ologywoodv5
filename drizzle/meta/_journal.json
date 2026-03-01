@@ -337,6 +337,13 @@
       "when": 1772370449857,
       "tag": "0047_cold_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "5",
+      "when": 1772375453219,
+      "tag": "0048_ambiguous_hiroim",
+      "breakpoints": true
     }
   ]
 }

@@ -112,6 +112,12 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             </Link>
           )}
 
+          <Link href="/blog">
+            <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
+              Blog
+            </Button>
+          </Link>
+
           {isAuthenticated ? (
             <>
               <Link href="/following">
@@ -187,6 +193,12 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
           <Link href="/events" onClick={closeMobile} className="block">
             <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
               Events
+            </Button>
+          </Link>
+
+          <Link href="/blog" onClick={closeMobile} className="block">
+            <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+              Blog
             </Button>
           </Link>
 

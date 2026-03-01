@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive } from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -83,7 +83,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts', 'releases'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -119,6 +119,7 @@ export function AdminDashboard() {
           {activeTab === 'releases' && (
             <ReleasesTab releases={releasesQuery.data || []} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
           )}
+          {activeTab === 'blog' && <BlogTab />}
         </div>
       </div>
     </div>
@@ -412,6 +413,286 @@ function ReleasesTab({ releases, isLoading, refetch }: { releases: any[]; isLoad
               </button>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Blog Tab
+function BlogTab() {
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
+  const [editId, setEditId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'draft' | 'published' | 'archived' | undefined>(undefined);
+
+  const postsQuery = trpc.blog.adminList.useQuery({ limit: 50, status: statusFilter });
+  const editPostQuery = trpc.blog.adminGetById.useQuery({ id: editId! }, { enabled: !!editId });
+  const createMutation = trpc.blog.create.useMutation({ onSuccess: () => { postsQuery.refetch(); setView('list'); } });
+  const updateMutation = trpc.blog.update.useMutation({ onSuccess: () => { postsQuery.refetch(); setView('list'); setEditId(null); } });
+  const setStatusMutation = trpc.blog.setStatus.useMutation({ onSuccess: () => postsQuery.refetch() });
+  const deleteMutation = trpc.blog.delete.useMutation({ onSuccess: () => postsQuery.refetch() });
+
+  const [form, setForm] = useState({
+    title: '', slug: '', excerpt: '', content: '', coverImageUrl: '',
+    category: 'announcement' as 'announcement' | 'guide' | 'news' | 'update' | 'tutorial',
+    tags: '',
+    status: 'draft' as 'draft' | 'published',
+  });
+
+  const resetForm = () => setForm({ title: '', slug: '', excerpt: '', content: '', coverImageUrl: '', category: 'announcement', tags: '', status: 'draft' });
+
+  const handleCreate = () => {
+    createMutation.mutate({
+      ...form,
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      coverImageUrl: form.coverImageUrl || undefined,
+    });
+  };
+
+  const handleUpdate = () => {
+    if (!editId) return;
+    updateMutation.mutate({
+      id: editId,
+      ...form,
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      coverImageUrl: form.coverImageUrl || undefined,
+    });
+  };
+
+  const startEdit = (post: any) => {
+    setEditId(post.id);
+    setForm({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      coverImageUrl: post.coverImageUrl || '',
+      category: post.category,
+      tags: (post.tags || []).join(', '),
+      status: post.status === 'published' ? 'published' : 'draft',
+    });
+    setView('edit');
+  };
+
+  const generateSlug = (title: string) => {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  };
+
+  if (view === 'create' || view === 'edit') {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {view === 'create' ? 'New Blog Post' : 'Edit Blog Post'}
+          </h3>
+          <button onClick={() => { setView('list'); setEditId(null); resetForm(); }} className="text-sm text-gray-600 hover:text-gray-900">
+            Cancel
+          </button>
+        </div>
+        <div className="space-y-4 max-w-3xl">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input
+              type="text" value={form.title}
+              onChange={(e) => { setForm({ ...form, title: e.target.value, slug: view === 'create' ? generateSlug(e.target.value) : form.slug }); }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Post title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+            <input
+              type="text" value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="url-friendly-slug"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value as any })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="announcement">Announcement</option>
+                <option value="guide">Guide</option>
+                <option value="news">News</option>
+                <option value="update">Update</option>
+                <option value="tutorial">Tutorial</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+              <input
+                type="text" value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                placeholder="music, release, feature"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image URL (optional)</label>
+            <input
+              type="text" value={form.coverImageUrl}
+              onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              placeholder="https://..."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
+            <textarea
+              value={form.excerpt}
+              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              rows={2}
+              placeholder="Short summary shown on the blog listing page"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Content (Markdown)</label>
+            <textarea
+              value={form.content}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              rows={16}
+              placeholder="Write your blog post in Markdown..."
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="status" checked={form.status === 'draft'} onChange={() => setForm({ ...form, status: 'draft' })} />
+              Save as Draft
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="radio" name="status" checked={form.status === 'published'} onChange={() => setForm({ ...form, status: 'published' })} />
+              Publish Now
+            </label>
+          </div>
+          <button
+            onClick={view === 'create' ? handleCreate : handleUpdate}
+            disabled={!form.title || !form.slug || !form.excerpt || !form.content || createMutation.isPending || updateMutation.isPending}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+          >
+            {(createMutation.isPending || updateMutation.isPending) ? 'Saving...' : view === 'create' ? 'Create Post' : 'Update Post'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const posts = postsQuery.data?.posts || [];
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <BookOpen className="w-5 h-5" /> Blog Posts
+        </h3>
+        <button
+          onClick={() => { resetForm(); setView('create'); }}
+          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4" /> New Post
+        </button>
+      </div>
+
+      {/* Status filter */}
+      <div className="flex gap-2 mb-4">
+        {[undefined, 'draft', 'published', 'archived'].map((s) => (
+          <button
+            key={s || 'all'}
+            onClick={() => setStatusFilter(s as any)}
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              statusFilter === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All'}
+          </button>
+        ))}
+      </div>
+
+      {postsQuery.isLoading ? (
+        <p className="text-gray-500">Loading posts...</p>
+      ) : posts.length === 0 ? (
+        <p className="text-gray-500">No blog posts found. Create your first post!</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Title</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Published</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {posts.map((post: any) => (
+                <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-900 font-medium max-w-xs truncate">{post.title}</td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                      {post.category}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      post.status === 'published' ? 'bg-green-100 text-green-700' :
+                      post.status === 'archived' ? 'bg-gray-100 text-gray-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {post.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 text-xs">
+                    {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '—'}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => startEdit(post)} className="p-1 text-gray-500 hover:text-blue-600" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      {post.status === 'draft' && (
+                        <button
+                          onClick={() => setStatusMutation.mutate({ id: post.id, status: 'published' })}
+                          className="p-1 text-gray-500 hover:text-green-600" title="Publish"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                      {post.status === 'published' && (
+                        <button
+                          onClick={() => setStatusMutation.mutate({ id: post.id, status: 'draft' })}
+                          className="p-1 text-gray-500 hover:text-yellow-600" title="Unpublish"
+                        >
+                          <EyeOff className="w-4 h-4" />
+                        </button>
+                      )}
+                      {post.status !== 'archived' && (
+                        <button
+                          onClick={() => setStatusMutation.mutate({ id: post.id, status: 'archived' })}
+                          className="p-1 text-gray-500 hover:text-gray-800" title="Archive"
+                        >
+                          <Archive className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { if (confirm('Delete this post permanently?')) deleteMutation.mutate({ id: post.id }); }}
+                        className="p-1 text-gray-500 hover:text-red-600" title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

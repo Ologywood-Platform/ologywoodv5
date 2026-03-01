@@ -29,6 +29,7 @@ import { venueRouter } from "./routers/venue";
 import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
+import { blogRouter } from "./routers/blog";
 
 
 // Helper to check if user is an artist
@@ -137,6 +138,7 @@ export const appRouter = router({
   // helpCenter: helpCenterRouter,
   riderContract: riderContractRouter,
   release: releaseRouter,
+  blog: blogRouter,
   // signature: signatureRouter,
   // contractTemplate: contractTemplateRouter,
   // contractHistory: contractHistoryRouter,

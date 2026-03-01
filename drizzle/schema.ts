@@ -873,3 +873,31 @@ export const releasePurchases = mysqlTable("release_purchases", {
 
 export type ReleasePurchase = typeof releasePurchases.$inferSelect;
 export type InsertReleasePurchase = typeof releasePurchases.$inferInsert;
+
+/**
+ * Blog Posts — platform blog for announcements, guides, and news.
+ */
+export const blogPosts = mysqlTable("blog_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: varchar("title", { length: 500 }).notNull(),
+  excerpt: varchar("excerpt", { length: 1000 }).notNull(),
+  content: text("content").notNull(),
+  coverImageUrl: varchar("coverImageUrl", { length: 1000 }),
+  authorId: int("authorId").notNull(),
+  authorName: varchar("authorName", { length: 255 }).notNull(),
+  category: mysqlEnum("category", ["announcement", "guide", "news", "update", "tutorial"]).default("announcement").notNull(),
+  tags: json("tags").$type<string[]>().default([]),
+  status: mysqlEnum("status", ["draft", "published", "archived"]).default("draft").notNull(),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  slugIdx: index("idx_blog_slug").on(table.slug),
+  statusIdx: index("idx_blog_status").on(table.status),
+  publishedAtIdx: index("idx_blog_published_at").on(table.publishedAt),
+  categoryIdx: index("idx_blog_category").on(table.category),
+  authorIdx: index("idx_blog_author").on(table.authorId),
+}));
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = typeof blogPosts.$inferInsert;

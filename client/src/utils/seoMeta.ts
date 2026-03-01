@@ -242,6 +242,14 @@ export const pageMetaTags = {
     ogUrl: `${BASE_URL}/get-started`,
   },
 
+  blog: {
+    title: 'Blog - Ologywood',
+    description: 'Announcements, guides, and news from the Ologywood team. Stay up to date with platform features, artist tips, and industry insights.',
+    keywords: 'ologywood blog, artist booking news, music industry, platform updates',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/blog`,
+  },
+
   sellMusic: {
     title: 'Sell Your Music - Ologywood White Label Releases',
     description: 'Sell singles directly from your Ologywood artist profile. Keep 99% of every sale with just a 1% platform fee. Upload, price, and sell your music to fans worldwide.',

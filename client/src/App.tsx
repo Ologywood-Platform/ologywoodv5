@@ -62,6 +62,8 @@ import Cookies from "./pages/Cookies";
 import Accessibility from "./pages/Accessibility";
 import DMCAPolicy from "./pages/DMCAPolicy";
 import SellMusic from "./pages/SellMusic";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 
 function Router() {
   return (
@@ -145,6 +147,8 @@ function Router() {
           <Route path="/accessibility" component={Accessibility} />
           <Route path="/dmca" component={DMCAPolicy} />
           <Route path="/sell-music" component={SellMusic} />
+          <Route path="/blog" component={Blog} />
+          <Route path="/blog/:slug">{(params: any) => <BlogPost {...params} />}</Route>
           
           {/* ============================================
               HARD 404 - ALL OTHER ROUTES SILENCED

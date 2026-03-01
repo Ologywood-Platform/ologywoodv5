@@ -696,4 +696,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create "Sell Your Music" marketing landing page (/sell-music) with hero, fee comparison, how-it-works, features grid, tier comparison, CTA
 - [x] Add /sell-music to sitemap, robots.txt Allow, Footer "For Artists" section, and SEO meta tags
 - [x] Write tests for new features (16 new tests, 1,334 total passing)
-- [ ] Save checkpoint and publish to production
+- [x] Save checkpoint and publish to production (version: 7b026b64)
+
+## BLOG SECTION (Mar 1, 2026)
+- [x] Create blog_posts database table (title, slug, content, excerpt, coverImage, author, publishedAt, status, category, tags)
+- [x] Build blog tRPC API routes (list, getBySlug, adminList, adminGetById, create, update, setStatus, delete)
+- [x] Build /blog listing page with cards, category filter, pagination, and SEO
+- [x] Build /blog/:slug detail page with Markdown rendering, breadcrumbs, and SEO
+- [x] Build admin blog management UI in AdminDashboard (create/edit/delete/publish/unpublish/archive with status filter)
+- [x] Seed inaugural post: "Introducing White Label Releases: Sell Your Music for Just 1%"
+- [x] Add blog links to SiteHeader (desktop + mobile), Footer, sitemap, robots.txt, and SEO meta
+- [x] Write 27 tests for blog features (1,361 total passing)
