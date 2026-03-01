@@ -91,6 +91,61 @@ export function buildArtistJsonLd(artist: {
   return jsonLd;
 }
 
+export function buildMusicRecordingJsonLd(release: {
+  id: number;
+  title: string;
+  artistName: string;
+  artistId: number;
+  genre?: string | null;
+  description?: string | null;
+  coverArtUrl?: string | null;
+  priceInCents: number;
+  currency?: string;
+  durationSeconds: number;
+  publishedAt?: string | Date | null;
+}): object {
+  const baseUrl = getSiteUrl();
+  const jsonLd: Record<string, any> = {
+    '@context': 'https://schema.org',
+    '@type': 'MusicRecording',
+    name: release.title,
+    url: `${baseUrl}/artist/${release.artistId}`,
+    byArtist: {
+      '@type': 'MusicGroup',
+      name: release.artistName,
+      url: `${baseUrl}/artist/${release.artistId}`,
+    },
+    duration: `PT${Math.floor(release.durationSeconds / 60)}M${release.durationSeconds % 60}S`,
+  };
+
+  if (release.description) jsonLd.description = release.description.substring(0, 500);
+  if (release.coverArtUrl) jsonLd.image = release.coverArtUrl;
+  if (release.genre) jsonLd.genre = release.genre;
+
+  if (release.publishedAt) {
+    jsonLd.datePublished = new Date(release.publishedAt).toISOString().split('T')[0];
+  }
+
+  // Add Offer for the purchase price
+  const price = (release.priceInCents / 100).toFixed(2);
+  jsonLd.offers = {
+    '@type': 'Offer',
+    price,
+    priceCurrency: (release.currency || 'usd').toUpperCase(),
+    availability: 'https://schema.org/InStock',
+    seller: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: baseUrl,
+    },
+  };
+
+  // inAlbum not applicable — singles only
+  jsonLd.isrcCode = undefined; // Not available yet
+
+  return jsonLd;
+}
+
 export function buildVenueJsonLd(venue: {
   id: number;
   organizationName: string;

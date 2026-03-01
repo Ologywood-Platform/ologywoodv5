@@ -1,15 +1,17 @@
 /**
  * ReleaseCard — Displays a single release on an artist's public profile.
  * Shows cover art, title, price, and a buy button.
- * Includes a simple audio preview player when a preview is available.
+ * Includes an inline audio preview player with progress bar and 30-second cap.
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Music, Play, Pause, ShoppingCart, Download, Loader2 } from "lucide-react";
+import { Music, Play, Pause, ShoppingCart, Download, Loader2, Volume2 } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
+
+const PREVIEW_MAX_SECONDS = 30;
 
 interface ReleaseCardProps {
   release: {
@@ -19,6 +21,7 @@ interface ReleaseCardProps {
     priceInCents: number;
     coverArtUrl?: string | null;
     previewFileKey?: string | null;
+    audioFileKey?: string | null;
     totalSales: number;
     publishedAt?: string | Date | null;
     durationSeconds?: number | null;
@@ -32,12 +35,25 @@ interface ReleaseCardProps {
 export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }: ReleaseCardProps) {
   const toast = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [previewDuration, setPreviewDuration] = useState(PREVIEW_MAX_SECONDS);
+  const [hasPreviewFile, setHasPreviewFile] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const animFrameRef = useRef<number | null>(null);
 
   const priceFormatted = (release.priceInCents / 100).toFixed(2);
   const hasPurchased = !!purchaseId;
+  const hasPreview = !!(release.previewFileKey || release.audioFileKey);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -45,10 +61,131 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
+
+  const updateProgress = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !isPlaying) return;
+
+    const time = audio.currentTime;
+    const maxDuration = hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+
+    setCurrentTime(time);
+    setProgress(maxDuration > 0 ? (time / maxDuration) * 100 : 0);
+
+    // Enforce 30-second cap when using full audio file as preview
+    if (!hasPreviewFile && time >= PREVIEW_MAX_SECONDS) {
+      audio.pause();
+      setIsPlaying(false);
+      setProgress(100);
+      setCurrentTime(PREVIEW_MAX_SECONDS);
+      return;
+    }
+
+    animFrameRef.current = requestAnimationFrame(updateProgress);
+  }, [isPlaying, hasPreviewFile]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      animFrameRef.current = requestAnimationFrame(updateProgress);
+    } else if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+    }
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isPlaying, updateProgress]);
+
+  const handlePreviewToggle = async () => {
+    // If already playing, pause
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    // If audio is loaded and paused, resume
+    if (audioRef.current && audioRef.current.src && !isPlaying) {
+      const audio = audioRef.current;
+      // If at the end, restart
+      if (!hasPreviewFile && audio.currentTime >= PREVIEW_MAX_SECONDS) {
+        audio.currentTime = 0;
+        setCurrentTime(0);
+        setProgress(0);
+      }
+      audio.play();
+      setIsPlaying(true);
+      return;
+    }
+
+    // Load preview from server
+    setIsLoadingPreview(true);
+    try {
+      const response = await fetch(`/api/release/download/preview/${release.id}`);
+      const data = await response.json();
+      if (data.success && data.previewUrl) {
+        setHasPreviewFile(!!data.hasPreviewFile);
+
+        const audio = new Audio(data.previewUrl);
+        audioRef.current = audio;
+
+        audio.onloadedmetadata = () => {
+          const maxDur = data.hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+          setPreviewDuration(maxDur);
+        };
+
+        audio.onended = () => {
+          setIsPlaying(false);
+          setProgress(100);
+        };
+
+        audio.onerror = () => {
+          setIsPlaying(false);
+          setIsLoadingPreview(false);
+          toast.addError("Preview unavailable", "Could not load audio preview");
+        };
+
+        await audio.play();
+        setIsPlaying(true);
+      } else {
+        toast.addError("Preview unavailable", data.error || "No preview available");
+      }
+    } catch {
+      toast.addError("Preview unavailable", "Could not load audio preview");
+    }
+    setIsLoadingPreview(false);
+  };
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = clickX / rect.width;
+    const maxDur = hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+    const newTime = ratio * maxDur;
+
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+    setProgress(ratio * 100);
+  };
+
   const handleBuy = async () => {
     setIsBuying(true);
     try {
-      // Use fetch to call the checkout endpoint directly
       const response = await fetch('/api/release/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,7 +211,6 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
       const response = await fetch(`/api/release/download/${purchaseId}`);
       const data = await response.json();
       if (data.success && data.downloadUrl) {
-        // Open download URL
         const a = document.createElement("a");
         a.href = data.downloadUrl;
         a.download = data.fileName || `${release.title}.mp3`;
@@ -90,33 +226,6 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
       toast.addError("Download failed", "Network error. Please try again.");
     }
     setIsDownloading(false);
-  };
-
-  const handlePreviewToggle = async () => {
-    if (!release.previewFileKey) return;
-
-    if (isPlaying && audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/release/download/preview/${release.id}`);
-      const data = await response.json();
-      if (data.success && data.previewUrl) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        const audio = new Audio(data.previewUrl);
-        audioRef.current = audio;
-        audio.onended = () => setIsPlaying(false);
-        audio.play();
-        setIsPlaying(true);
-      }
-    } catch {
-      toast.addError("Preview unavailable", "Could not load audio preview");
-    }
   };
 
   return (
@@ -135,14 +244,17 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
               <Music className="h-12 w-12 text-muted-foreground/40" />
             </div>
           )}
-          {/* Preview play button overlay */}
-          {release.previewFileKey && (
+          {/* Preview play button overlay on cover art */}
+          {hasPreview && (
             <button
               onClick={handlePreviewToggle}
+              disabled={isLoadingPreview}
               className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"
               aria-label={isPlaying ? "Pause preview" : "Play preview"}
             >
-              {isPlaying ? (
+              {isLoadingPreview ? (
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              ) : isPlaying ? (
                 <Pause className="h-8 w-8 text-white" />
               ) : (
                 <Play className="h-8 w-8 text-white" />
@@ -176,7 +288,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
                 </span>
               )}
               {release.fileFormat && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground uppercase">
                   {release.fileFormat}
                 </span>
               )}
@@ -187,6 +299,60 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
               )}
             </div>
           </div>
+
+          {/* Audio Preview Player */}
+          {(isPlaying || (audioRef.current && progress > 0)) && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={handlePreviewToggle}
+                className="flex-shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? (
+                  <Pause className="h-4 w-4 text-primary" />
+                ) : (
+                  <Play className="h-4 w-4 text-primary" />
+                )}
+              </button>
+              <div
+                className="flex-1 h-1.5 bg-muted rounded-full cursor-pointer relative overflow-hidden"
+                onClick={handleProgressClick}
+                role="progressbar"
+                aria-valuenow={Math.round(progress)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-100"
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground tabular-nums flex-shrink-0 w-[72px] text-right">
+                {formatTime(currentTime)} / {formatTime(previewDuration)}
+              </span>
+              {isPlaying && (
+                <Volume2 className="h-3 w-3 text-primary flex-shrink-0 animate-pulse" />
+              )}
+            </div>
+          )}
+
+          {/* Inline preview button when player is not active */}
+          {hasPreview && !isPlaying && !(audioRef.current && progress > 0) && (
+            <div className="mt-2">
+              <button
+                onClick={handlePreviewToggle}
+                disabled={isLoadingPreview}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                {isLoadingPreview ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Play className="h-3 w-3" />
+                )}
+                Preview ({formatTime(Math.min(release.durationSeconds || PREVIEW_MAX_SECONDS, PREVIEW_MAX_SECONDS))})
+              </button>
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="mt-3 flex gap-2">
@@ -219,19 +385,6 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
                 Buy ${priceFormatted}
               </Button>
             ) : null}
-            {release.previewFileKey && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handlePreviewToggle}
-              >
-                {isPlaying ? (
-                  <Pause className="h-4 w-4" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-              </Button>
-            )}
           </div>
         </CardContent>
       </div>

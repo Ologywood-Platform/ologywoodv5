@@ -102,14 +102,21 @@ router.get("/preview/:releaseId", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Release not found" });
     }
 
-    // Use preview file if available, otherwise no preview
+    // Use dedicated preview file if available, otherwise fall back to full audio
+    // The client-side player will limit playback to 30 seconds
     const previewKey = release.previewFileKey;
-    if (!previewKey) {
-      return res.status(404).json({ error: "Preview not available for this release" });
+    if (previewKey) {
+      const { url } = await storageGet(previewKey);
+      return res.json({ success: true, previewUrl: url, hasPreviewFile: true });
     }
 
-    const { url } = await storageGet(previewKey);
-    return res.json({ success: true, previewUrl: url });
+    // Fall back to full audio file — client will cap at 30 seconds
+    if (release.audioFileKey) {
+      const { url } = await storageGet(release.audioFileKey);
+      return res.json({ success: true, previewUrl: url, hasPreviewFile: false });
+    }
+
+    return res.status(404).json({ error: "Preview not available for this release" });
   } catch (error: any) {
     console.error("[Release Preview] Error:", error);
     return res.status(500).json({ error: "Failed to generate preview link" });

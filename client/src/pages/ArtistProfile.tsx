@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "../components/RiderComparisonTool";
 import { ReleaseCard } from "@/components/ReleaseCard";
-import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd } from "../components/JsonLd";
+import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd, buildMusicRecordingJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
@@ -232,6 +232,24 @@ export default function ArtistProfile() {
   return (
     <div className="min-h-screen bg-background">
       {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artistId}` }])]} id={`artist-${artistId}`} />}
+      {artist && releases && releases.length > 0 && (
+        <JsonLd
+          data={releases.map((r: any) => buildMusicRecordingJsonLd({
+            id: r.id,
+            title: r.title,
+            artistName: artist.artistName,
+            artistId: artistId,
+            genre: r.genre,
+            description: r.description,
+            coverArtUrl: r.coverArtUrl,
+            priceInCents: r.priceInCents,
+            currency: r.currency,
+            durationSeconds: r.durationSeconds,
+            publishedAt: r.publishedAt,
+          }))}
+          id={`releases-${artistId}`}
+        />
+      )}
       {/* Shared Header with Following link */}
       <SiteHeader />
 
