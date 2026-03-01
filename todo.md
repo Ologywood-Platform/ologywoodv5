@@ -690,3 +690,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update pricing page with White Label Release tier limits (Free: none, Starter: 2 singles, Professional: unlimited + PWYW, added FAQ)
 - [x] Fix ReleaseManager infinite spinner for non-artist users (shows "Artist Account Required" error state)
 - [x] 11 new tests (CookieConsentAndPricingRelease.test.ts), 1,318 total passing
+
+## FOLLOW-UPS ROUND 2 (Mar 1, 2026)
+- [x] Add White Label Releases step to artist onboarding wizard (step 6: informational intro with tier comparison, Disc3 icon, optional)
+- [x] Create "Sell Your Music" marketing landing page (/sell-music) with hero, fee comparison, how-it-works, features grid, tier comparison, CTA
+- [x] Add /sell-music to sitemap, robots.txt Allow, Footer "For Artists" section, and SEO meta tags
+- [x] Write tests for new features (16 new tests, 1,334 total passing)
+- [ ] Save checkpoint and publish to production

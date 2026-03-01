@@ -61,6 +61,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Cookies from "./pages/Cookies";
 import Accessibility from "./pages/Accessibility";
 import DMCAPolicy from "./pages/DMCAPolicy";
+import SellMusic from "./pages/SellMusic";
 
 function Router() {
   return (
@@ -143,6 +144,7 @@ function Router() {
           <Route path="/cookies" component={Cookies} />
           <Route path="/accessibility" component={Accessibility} />
           <Route path="/dmca" component={DMCAPolicy} />
+          <Route path="/sell-music" component={SellMusic} />
           
           {/* ============================================
               HARD 404 - ALL OTHER ROUTES SILENCED

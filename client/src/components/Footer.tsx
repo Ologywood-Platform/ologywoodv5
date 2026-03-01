@@ -41,6 +41,7 @@ const Footer = () => {
         { label: 'Create Rider', path: '/rider-builder' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Earnings', path: '/earnings-dashboard' },
+        { label: 'Sell Music', path: '/sell-music' },
         { label: 'Following', path: '/following' },
       ],
     },

@@ -241,6 +241,14 @@ export const pageMetaTags = {
     keywords: 'sign up, register, create account, artist registration, venue registration',
     ogUrl: `${BASE_URL}/get-started`,
   },
+
+  sellMusic: {
+    title: 'Sell Your Music - Ologywood White Label Releases',
+    description: 'Sell singles directly from your Ologywood artist profile. Keep 99% of every sale with just a 1% platform fee. Upload, price, and sell your music to fans worldwide.',
+    keywords: 'sell music online, white label release, independent artist, music distribution, sell singles',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/sell-music`,
+  },
 };
 
 export { DEFAULT_OG_IMAGE, BASE_URL, SITE_NAME };

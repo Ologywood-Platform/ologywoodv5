@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, CheckCircle2, Circle, Upload, Music, MapPin, DollarSign, Link2 } from 'lucide-react';
+import { ChevronRight, CheckCircle2, Circle, Upload, Music, MapPin, DollarSign, Link2, Disc3 } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 
 interface SetupStep {
@@ -75,6 +75,14 @@ export function ArtistProfileSetupWizard() {
       icon: <Link2 className="w-5 h-5" />,
       required: false,
       completed: false
+    },
+    {
+      id: 'releases',
+      title: 'Sell Your Music',
+      description: 'Learn how to sell singles directly from your profile (optional)',
+      icon: <Disc3 className="w-5 h-5" />,
+      required: false,
+      completed: false
     }
   ];
 
@@ -138,6 +146,8 @@ export function ArtistProfileSetupWizard() {
       await updateProfileMutation.mutateAsync({
         socialLinks: formData.socialLinks
       });
+    } else if (currentStep === 5) { // White Label Releases info step — no save needed
+      // Informational step, nothing to persist
     }
 
     if (currentStep < steps.length - 1) {
@@ -263,6 +273,9 @@ export function ArtistProfileSetupWizard() {
                 }))
               }
             />
+          )}
+          {currentStep === 5 && (
+            <WhiteLabelReleasesStep />
           )}
         </div>
 
@@ -507,6 +520,51 @@ function SocialLinksStep({
 
       <p className="text-gray-600 text-sm">
         Add your social media handles so venues can learn more about you
+      </p>
+    </div>
+  );
+}
+
+function WhiteLabelReleasesStep() {
+  return (
+    <div className="space-y-5">
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-5">
+        <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <Disc3 className="w-5 h-5 text-purple-600" />
+          Sell Singles From Your Profile
+        </h4>
+        <p className="text-gray-700 text-sm leading-relaxed">
+          With <strong>White Label Releases</strong>, you can upload and sell singles directly from your Ologywood artist profile. Fans can preview 30 seconds, purchase, and download instantly.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="border rounded-lg p-4 text-center">
+          <div className="text-2xl font-bold text-gray-400 mb-1">Free</div>
+          <p className="text-xs text-gray-500">Not available</p>
+        </div>
+        <div className="border-2 border-purple-600 rounded-lg p-4 text-center bg-purple-50">
+          <div className="text-2xl font-bold text-purple-600 mb-1">Starter</div>
+          <p className="text-xs text-gray-700">Up to <strong>2 singles</strong></p>
+        </div>
+        <div className="border rounded-lg p-4 text-center">
+          <div className="text-2xl font-bold text-gray-900 mb-1">Pro</div>
+          <p className="text-xs text-gray-700"><strong>Unlimited</strong> + pay-what-you-want</p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-green-800">Only 1% platform fee</p>
+          <p className="text-xs text-green-700 mt-0.5">
+            You keep 99% of every sale. No hidden costs, no monthly fees on top of your subscription.
+          </p>
+        </div>
+      </div>
+
+      <p className="text-gray-500 text-xs text-center">
+        You can set up your first release anytime from the <strong>Release Manager</strong> in your dashboard.
       </p>
     </div>
   );
