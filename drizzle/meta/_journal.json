@@ -330,6 +330,13 @@
       "when": 1772229254035,
       "tag": "0046_certain_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1772370449857,
+      "tag": "0047_cold_giant_man",
+      "breakpoints": true
     }
   ]
 }

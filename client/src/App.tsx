@@ -48,6 +48,7 @@ import Help from "./pages/Help";
 import Following from "./pages/Following";
 import AdminPayouts from "./pages/AdminPayouts";
 import ArtistTaxReporting from "./pages/ArtistTaxReporting";
+import ReleaseManager from "./pages/ReleaseManager";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
@@ -58,6 +59,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Cookies from "./pages/Cookies";
 import Accessibility from "./pages/Accessibility";
+import DMCAPolicy from "./pages/DMCAPolicy";
 
 function Router() {
   return (
@@ -105,6 +107,9 @@ function Router() {
           <Route path="/events/create" component={EventCreate} />
           <Route path="/events/:id" component={EventDetail} />
           
+          {/* White Label Release */}
+          <Route path="/releases">{() => <PageErrorBoundary><ReleaseManager /></PageErrorBoundary>}</Route>
+          
           {/* Rider System */}
           <Route path="/rider-builder">{() => <PageErrorBoundary><RiderBuilder /></PageErrorBoundary>}</Route>
           <Route path="/rider-templates" component={RiderTemplates} />
@@ -136,6 +141,7 @@ function Router() {
           <Route path="/terms" component={TermsOfService} />
           <Route path="/cookies" component={Cookies} />
           <Route path="/accessibility" component={Accessibility} />
+          <Route path="/dmca" component={DMCAPolicy} />
           
           {/* ============================================
               HARD 404 - ALL OTHER ROUTES SILENCED

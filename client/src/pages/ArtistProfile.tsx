@@ -15,6 +15,7 @@ import { ShareProfileModal } from "@/components/ShareProfileModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import { RiderComparisonTool } from "../components/RiderComparisonTool";
+import { ReleaseCard } from "@/components/ReleaseCard";
 import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect, useRef } from "react";
@@ -72,6 +73,10 @@ export default function ArtistProfile() {
     { enabled: isValidId }
   );
   const { data: avgRating } = trpc.review.getAverageRating.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+  const { data: releases } = trpc.release.getByArtist.useQuery(
     { artistId },
     { enabled: isValidId }
   );
@@ -591,6 +596,27 @@ export default function ArtistProfile() {
                         )}
                       </CollapsibleContent>
                     </Collapsible>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* White Label Releases */}
+            {releases && releases.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Music className="h-5 w-5 text-primary" />
+                    Music ({releases.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {releases.map((release: any) => (
+                    <ReleaseCard
+                      key={release.id}
+                      release={release}
+                      artistName={artist?.artistName || ""}
+                    />
                   ))}
                 </CardContent>
               </Card>

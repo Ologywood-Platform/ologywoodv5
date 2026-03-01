@@ -1,7 +1,8 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts } from "../../drizzle/schema";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases } from "../../drizzle/schema";
+import { desc } from "drizzle-orm";
 
 // Middleware to ensure user is admin
 const adminOnly = protectedProcedure.use(async (opts) => {
@@ -361,4 +362,96 @@ return { success: true, payoutId: input.payoutId };
       lastChecked: new Date(),
     };
   }),
+
+  // ============ RELEASE MODERATION ============
+
+  /**
+   * Get all releases for admin moderation
+   */
+  getReleases: adminOnly
+    .input(z.object({
+      status: z.enum(["draft", "published", "archived", "taken_down"]).optional(),
+      limit: z.number().min(1).max(100).default(50),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      const status = input?.status;
+      const limit = input?.limit || 50;
+
+      if (!db) throw new Error("Database not available");
+
+      const selectFields = {
+        id: artistReleases.id,
+        title: artistReleases.title,
+        artistId: artistReleases.artistId,
+        genre: artistReleases.genre,
+        priceInCents: artistReleases.priceInCents,
+        status: artistReleases.status,
+        totalSales: artistReleases.totalSales,
+        totalRevenueCents: artistReleases.totalRevenueCents,
+        rightsCertifiedAt: artistReleases.rightsCertifiedAt,
+        createdAt: artistReleases.createdAt,
+        publishedAt: artistReleases.publishedAt,
+      };
+
+      if (status) {
+        const { eq } = await import("drizzle-orm");
+        return await db.select(selectFields)
+          .from(artistReleases)
+          .where(eq(artistReleases.status, status))
+          .orderBy(desc(artistReleases.createdAt))
+          .limit(limit);
+      }
+
+      return await db.select(selectFields)
+        .from(artistReleases)
+        .orderBy(desc(artistReleases.createdAt))
+        .limit(limit);
+    }),
+
+  /**
+   * DMCA takedown - set release status to taken_down
+   */
+  takedownRelease: adminOnly
+    .input(z.object({
+      releaseId: z.number(),
+      reason: z.string().min(10, "Reason must be at least 10 characters"),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { eq } = await import("drizzle-orm");
+
+      await db.update(artistReleases)
+        .set({
+          status: "taken_down",
+          updatedAt: new Date(),
+        })
+        .where(eq(artistReleases.id, input.releaseId));
+
+      console.log(`[Admin] Release ${input.releaseId} taken down. Reason: ${input.reason}`);
+      return { success: true, message: `Release ${input.releaseId} has been taken down.` };
+    }),
+
+  /**
+   * Restore a taken-down release
+   */
+  restoreRelease: adminOnly
+    .input(z.object({
+      releaseId: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { eq } = await import("drizzle-orm");
+
+      await db.update(artistReleases)
+        .set({
+          status: "draft",
+          updatedAt: new Date(),
+        })
+        .where(eq(artistReleases.id, input.releaseId));
+
+      return { success: true, message: `Release ${input.releaseId} has been restored to draft.` };
+    }),
 });

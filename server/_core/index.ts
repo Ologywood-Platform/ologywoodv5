@@ -11,6 +11,9 @@ import { serveStatic, setupVite } from "./vite";
 import sitemapRoutes from "../routes/sitemapRoutes";
 import emailRoutes from "../routes/emailRoutes";
 import eventRoutes from "../routes/events";
+import releaseUploadRoutes from "../routes/releaseUpload";
+import releaseDownloadRoutes from "../routes/releaseDownload";
+import releaseCheckoutRoutes from "../routes/releaseCheckout";
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -103,6 +106,15 @@ async function startServer() {
   
   // Event routes (BEFORE Vite setup)
   app.use('/', eventRoutes);
+  
+  // Release upload routes (BEFORE Vite setup)
+  app.use('/api/release/upload', releaseUploadRoutes);
+  
+  // Release download routes (BEFORE Vite setup)
+  app.use('/api/release/download', releaseDownloadRoutes);
+  
+  // Release checkout routes (BEFORE Vite setup)
+  app.use('/api/release/checkout', releaseCheckoutRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

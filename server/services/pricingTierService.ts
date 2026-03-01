@@ -10,6 +10,7 @@ export const PRICING_TIERS = {
     name: "Free",
     price: 0,
     bookingsPerMonth: 2,
+    maxActiveReleases: 0,
     features: {
       basicProfile: true,
       messaging: true,
@@ -26,12 +27,15 @@ export const PRICING_TIERS = {
       bulkMessaging: false,
       featuredProfile: false,
       customBranding: false,
+      whiteLabel: false,
+      whiteLabelAdvanced: false,
     },
   },
   starter: {
     name: "Starter",
     price: 9,
     bookingsPerMonth: Infinity,
+    maxActiveReleases: 2,
     features: {
       basicProfile: true,
       messaging: true,
@@ -48,12 +52,15 @@ export const PRICING_TIERS = {
       bulkMessaging: false,
       featuredProfile: false,
       customBranding: false,
+      whiteLabel: true,
+      whiteLabelAdvanced: false,
     },
   },
   professional: {
     name: "Professional",
     price: 29,
     bookingsPerMonth: Infinity,
+    maxActiveReleases: Infinity,
     features: {
       basicProfile: true,
       messaging: true,
@@ -70,6 +77,8 @@ export const PRICING_TIERS = {
       bulkMessaging: true,
       featuredProfile: true,
       customBranding: true,
+      whiteLabel: true,
+      whiteLabelAdvanced: true,
     },
   },
 };
@@ -274,4 +283,44 @@ export function getTierInfo(tier: PricingTier) {
  */
 export function getAllTiers() {
   return PRICING_TIERS;
+}
+
+
+/**
+ * Check if user can create a new release based on tier limits.
+ * Free: 0 releases, Starter: 2 active, Professional: unlimited.
+ */
+export async function canCreateRelease(userId: number, currentActiveCount: number): Promise<{
+  allowed: boolean;
+  reason?: string;
+  maxAllowed: number;
+  currentCount: number;
+}> {
+  const subscription = await getUserSubscription(userId);
+  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const maxAllowed = tier.maxActiveReleases;
+
+  if (maxAllowed === 0) {
+    return {
+      allowed: false,
+      reason: "Upgrade to Starter or Professional to sell music through White Label Release.",
+      maxAllowed: 0,
+      currentCount: currentActiveCount,
+    };
+  }
+
+  if (maxAllowed === Infinity) {
+    return { allowed: true, maxAllowed: Infinity, currentCount: currentActiveCount };
+  }
+
+  if (currentActiveCount >= maxAllowed) {
+    return {
+      allowed: false,
+      reason: `You've reached your limit of ${maxAllowed} active releases on the ${tier.name} plan. Upgrade to Professional for unlimited releases.`,
+      maxAllowed,
+      currentCount: currentActiveCount,
+    };
+  }
+
+  return { allowed: true, maxAllowed, currentCount: currentActiveCount };
 }

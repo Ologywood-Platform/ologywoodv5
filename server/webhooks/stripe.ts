@@ -153,6 +153,65 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (error) {
       console.error('[Stripe Webhook] Error processing booking payment:', error);
     }
+  } else if (session.metadata?.releaseId) {
+    // Handle release purchase checkout
+    const releaseId = parseInt(session.metadata.releaseId);
+    console.log(`[Stripe Webhook] Processing release purchase for release ${releaseId}`);
+
+    try {
+      // Check idempotency — don't process the same session twice
+      const existingPurchase = await db.getPurchaseBySessionId(session.id);
+      if (existingPurchase) {
+        console.log(`[Stripe Webhook] Purchase already recorded for session ${session.id}, skipping`);
+        return;
+      }
+
+      const release = await db.getReleaseById(releaseId);
+      if (!release) {
+        console.error(`[Stripe Webhook] Release ${releaseId} not found`);
+        return;
+      }
+
+      const amountPaid = session.amount_total || release.priceInCents;
+      const platformFeeCents = Math.max(1, Math.round(amountPaid * 0.01)); // 1% fee, minimum 1 cent
+
+      // Create purchase record
+      await db.createReleasePurchase({
+        releaseId,
+        buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || 'unknown',
+        buyerName: session.customer_details?.name || session.metadata?.buyerName || null,
+        buyerUserId: session.metadata?.buyerUserId ? parseInt(session.metadata.buyerUserId) : null,
+        stripeCheckoutSessionId: session.id,
+        amountPaidCents: amountPaid,
+        platformFeeCents,
+        artistNetCents: amountPaid - platformFeeCents,
+      });
+
+      // Increment sales counters on the release
+      await db.incrementReleaseSales(releaseId, amountPaid);
+
+      console.log(`[Stripe Webhook] Release purchase recorded: release=${releaseId}, amount=$${(amountPaid / 100).toFixed(2)}, fee=$${(platformFeeCents / 100).toFixed(2)}`);
+
+      // Send purchase confirmation email to buyer
+      try {
+        const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
+        const artistProfile = await db.getArtistProfileById(release.artistId);
+        if (buyerEmail && artistProfile) {
+          await email.sendEmail({
+            to: buyerEmail,
+            subject: `Your purchase: "${release.title}" by ${artistProfile.artistName}`,
+            html: `<h2>Thank you for your purchase!</h2>
+            <p>You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for $${(amountPaid / 100).toFixed(2)}.</p>
+            <p>You can download your track from the artist's profile on Ologywood.</p>
+            <p>Thank you for supporting independent artists!</p>`,
+          });
+        }
+      } catch (emailErr) {
+        console.error('[Stripe Webhook] Error sending purchase confirmation email:', emailErr);
+      }
+    } catch (error) {
+      console.error('[Stripe Webhook] Error processing release purchase:', error);
+    }
   } else if (subscriptionId) {
     // Handle subscription checkout
     // Update or create subscription record

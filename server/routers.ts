@@ -28,6 +28,7 @@ import { payoutRouter } from "./routers/payout";
 import { venueRouter } from "./routers/venue";
 import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 import { artistUpdatesRouter } from "./routers/artistUpdates";
+import { releaseRouter } from "./routers/release";
 
 
 // Helper to check if user is an artist
@@ -135,6 +136,7 @@ export const appRouter = router({
   // eviction: evictionRouter,
   // helpCenter: helpCenterRouter,
   riderContract: riderContractRouter,
+  release: releaseRouter,
   // signature: signatureRouter,
   // contractTemplate: contractTemplateRouter,
   // contractHistory: contractHistoryRouter,

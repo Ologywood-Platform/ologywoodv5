@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw } from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -15,6 +15,7 @@ export function AdminDashboard() {
   const usersQuery = trpc.admin.getUsers.useQuery({ search: searchQuery, limit: 50 });
   const bookingsQuery = trpc.admin.getBookings.useQuery({ limit: 50 });
   const payoutsQuery = trpc.admin.getPayouts.useQuery({ limit: 50 });
+  const releasesQuery = trpc.admin.getReleases.useQuery({ limit: 50 });
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -82,7 +83,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -114,6 +115,9 @@ export function AdminDashboard() {
           )}
           {activeTab === 'payouts' && (
             <PayoutsTab payouts={payoutsQuery.data?.payouts || []} isLoading={payoutsQuery.isLoading} />
+          )}
+          {activeTab === 'releases' && (
+            <ReleasesTab releases={releasesQuery.data || []} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
           )}
         </div>
       </div>
@@ -287,6 +291,127 @@ function BookingsTab({ bookings, isLoading }: { bookings: any[]; isLoading: bool
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Releases Tab (Admin Moderation)
+function ReleasesTab({ releases, isLoading, refetch }: { releases: any[]; isLoading: boolean; refetch: () => void }) {
+  const [takedownReason, setTakedownReason] = useState('');
+  const [selectedRelease, setSelectedRelease] = useState<number | null>(null);
+  const takedownMutation = trpc.admin.takedownRelease.useMutation({
+    onSuccess: () => { refetch(); setSelectedRelease(null); setTakedownReason(''); },
+  });
+  const restoreMutation = trpc.admin.restoreRelease.useMutation({
+    onSuccess: () => refetch(),
+  });
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Music className="w-5 h-5" /> White Label Releases
+        </h3>
+        <span className="text-sm text-gray-500">{releases.length} total</span>
+      </div>
+
+      {isLoading ? (
+        <p className="text-gray-500">Loading releases...</p>
+      ) : releases.length === 0 ? (
+        <p className="text-gray-500">No releases found</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">ID</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Title</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Genre</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Price</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Sales</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Revenue</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Created</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {releases.map((release: any) => (
+                <tr key={release.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-900">#{release.id}</td>
+                  <td className="py-3 px-4 text-gray-900 font-medium">{release.title}</td>
+                  <td className="py-3 px-4 text-gray-600">{release.genre || '—'}</td>
+                  <td className="py-3 px-4 text-gray-900">${(release.priceInCents / 100).toFixed(2)}</td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      release.status === 'published' ? 'bg-green-100 text-green-700' :
+                      release.status === 'taken_down' ? 'bg-red-100 text-red-700' :
+                      release.status === 'archived' ? 'bg-gray-100 text-gray-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {release.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">{release.totalSales}</td>
+                  <td className="py-3 px-4 text-gray-900">${(release.totalRevenueCents / 100).toFixed(2)}</td>
+                  <td className="py-3 px-4 text-gray-600">{new Date(release.createdAt).toLocaleDateString()}</td>
+                  <td className="py-3 px-4">
+                    {release.status === 'published' && (
+                      <button
+                        onClick={() => setSelectedRelease(release.id)}
+                        className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded text-xs hover:bg-red-100"
+                      >
+                        <AlertTriangle className="w-3 h-3" /> Takedown
+                      </button>
+                    )}
+                    {release.status === 'taken_down' && (
+                      <button
+                        onClick={() => restoreMutation.mutate({ releaseId: release.id })}
+                        disabled={restoreMutation.isPending}
+                        className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs hover:bg-blue-100"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Restore
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Takedown Modal */}
+      {selectedRelease && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">DMCA Takedown</h4>
+            <p className="text-sm text-gray-600 mb-4">This will immediately remove the release from public view.</p>
+            <textarea
+              value={takedownReason}
+              onChange={(e) => setTakedownReason(e.target.value)}
+              placeholder="Reason for takedown (min 10 characters)..."
+              className="w-full p-3 border border-gray-300 rounded-lg text-sm mb-4"
+              rows={3}
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setSelectedRelease(null); setTakedownReason(''); }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => takedownMutation.mutate({ releaseId: selectedRelease, reason: takedownReason })}
+                disabled={takedownReason.length < 10 || takedownMutation.isPending}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {takedownMutation.isPending ? 'Processing...' : 'Confirm Takedown'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

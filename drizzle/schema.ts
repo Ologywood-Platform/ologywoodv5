@@ -783,3 +783,93 @@ export const artistUpdates = mysqlTable("artist_updates", {
 
 export type ArtistUpdate = typeof artistUpdates.$inferSelect;
 export type InsertArtistUpdate = typeof artistUpdates.$inferInsert;
+
+
+/**
+ * Artist Releases — single track uploads for direct-to-fan sales (White Label Release)
+ * Gated behind paid subscription tiers (Starter: 2 active, Professional: unlimited)
+ * Platform takes 1% revenue share on each sale.
+ */
+export const artistReleases = mysqlTable("artist_releases", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  genre: varchar("genre", { length: 100 }),
+
+  // Audio files stored in S3
+  audioFileKey: varchar("audioFileKey", { length: 512 }).notNull(),
+  previewFileKey: varchar("previewFileKey", { length: 512 }),
+  coverArtKey: varchar("coverArtKey", { length: 512 }).notNull(),
+
+  // Audio metadata
+  durationSeconds: int("durationSeconds").notNull(),
+  fileFormat: varchar("fileFormat", { length: 10 }).notNull(),
+  fileSizeBytes: int("fileSizeBytes").notNull(),
+
+  // Pricing
+  priceInCents: int("priceInCents").notNull(),
+  currency: varchar("currency", { length: 3 }).default("usd").notNull(),
+  allowPayWhatYouWant: boolean("allowPayWhatYouWant").default(false).notNull(),
+
+  // Status
+  status: mysqlEnum("status", ["draft", "published", "taken_down", "archived"])
+    .default("draft").notNull(),
+  publishedAt: timestamp("publishedAt"),
+
+  // Rights certification
+  rightsCertified: boolean("rightsCertified").default(false).notNull(),
+  rightsCertifiedAt: timestamp("rightsCertifiedAt"),
+
+  // Counters (denormalized for performance — avoids JOIN on every profile view)
+  totalSales: int("totalSales").default(0).notNull(),
+  totalRevenueCents: int("totalRevenueCents").default(0).notNull(),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_releases_artist").on(table.artistId),
+  statusIdx: index("idx_releases_status").on(table.status),
+  publishedIdx: index("idx_releases_published").on(table.publishedAt),
+  artistStatusIdx: index("idx_releases_artist_status").on(table.artistId, table.status),
+}));
+
+export type ArtistRelease = typeof artistReleases.$inferSelect;
+export type InsertArtistRelease = typeof artistReleases.$inferInsert;
+
+/**
+ * Release Purchases — tracks each single sale
+ * Stores Stripe IDs + amount fields (justified for sales dashboard without API calls).
+ * All other payment details fetched from Stripe on demand.
+ */
+export const releasePurchases = mysqlTable("release_purchases", {
+  id: int("id").autoincrement().primaryKey(),
+  releaseId: int("releaseId").notNull(),
+  buyerEmail: varchar("buyerEmail", { length: 320 }).notNull(),
+  buyerName: varchar("buyerName", { length: 255 }),
+  buyerUserId: int("buyerUserId"),
+
+  // Stripe references
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }).notNull(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+
+  // Amount (stored for reporting without API calls)
+  amountPaidCents: int("amountPaidCents").notNull(),
+  platformFeeCents: int("platformFeeCents").notNull(),
+  artistNetCents: int("artistNetCents").notNull(),
+
+  // Download tracking
+  downloadCount: int("downloadCount").default(0).notNull(),
+  maxDownloads: int("maxDownloads").default(5).notNull(),
+  lastDownloadedAt: timestamp("lastDownloadedAt"),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  releaseIdx: index("idx_purchases_release").on(table.releaseId),
+  buyerEmailIdx: index("idx_purchases_buyer_email").on(table.buyerEmail),
+  buyerUserIdx: index("idx_purchases_buyer_user").on(table.buyerUserId),
+  sessionIdx: index("idx_purchases_session").on(table.stripeCheckoutSessionId),
+}));
+
+export type ReleasePurchase = typeof releasePurchases.$inferSelect;
+export type InsertReleasePurchase = typeof releasePurchases.$inferInsert;

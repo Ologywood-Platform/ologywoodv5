@@ -28,7 +28,9 @@ import {
   eventRecurrence, InsertEventRecurrence, EventRecurrence,
   eventHistory, InsertEventHistory, EventHistory,
   eventPhotos, InsertEventPhoto, EventPhoto,
-  savedEvents, InsertSavedEvent, SavedEvent
+  savedEvents, InsertSavedEvent, SavedEvent,
+  artistReleases, InsertArtistRelease, ArtistRelease,
+  releasePurchases, InsertReleasePurchase, ReleasePurchase
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -1880,4 +1882,205 @@ export async function getSimilarEvents(
     ...e,
     artistName: artistMap.get(e.artistId) || undefined,
   }));
+}
+
+
+// ============= ARTIST RELEASE FUNCTIONS (White Label Release) =============
+
+/**
+ * Create a new artist release (single track).
+ */
+export async function createRelease(data: InsertArtistRelease): Promise<ArtistRelease> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(artistReleases).values(data);
+  const id = (result as any).insertId;
+  const release = await db.select().from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
+  return release[0] as ArtistRelease;
+}
+
+/**
+ * Get a release by ID.
+ */
+export async function getReleaseById(id: number): Promise<ArtistRelease | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Get all releases for an artist (for dashboard management).
+ */
+export async function getReleasesByArtistId(artistId: number): Promise<ArtistRelease[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(artistReleases)
+    .where(eq(artistReleases.artistId, artistId))
+    .orderBy(desc(artistReleases.createdAt));
+}
+
+/**
+ * Get published releases for an artist (for public profile).
+ */
+export async function getPublishedReleasesByArtistId(artistId: number): Promise<ArtistRelease[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(artistReleases)
+    .where(and(
+      eq(artistReleases.artistId, artistId),
+      eq(artistReleases.status, 'published')
+    ))
+    .orderBy(desc(artistReleases.publishedAt));
+}
+
+/**
+ * Get count of active (non-archived, non-taken_down) releases for tier gating.
+ */
+export async function getActiveReleaseCount(artistId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(artistReleases)
+    .where(and(
+      eq(artistReleases.artistId, artistId),
+      or(
+        eq(artistReleases.status, 'draft'),
+        eq(artistReleases.status, 'published')
+      )
+    ));
+  return result.length;
+}
+
+/**
+ * Update a release.
+ */
+export async function updateRelease(id: number, data: Partial<InsertArtistRelease>): Promise<ArtistRelease | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(artistReleases).set(data).where(eq(artistReleases.id, id));
+  return await getReleaseById(id);
+}
+
+/**
+ * Delete a release (hard delete — only for drafts).
+ */
+export async function deleteRelease(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    await db.delete(artistReleases).where(eq(artistReleases.id, id));
+    return true;
+  } catch (error) {
+    console.error('Error deleting release:', error);
+    return false;
+  }
+}
+
+/**
+ * Increment sales counters on a release after a successful purchase.
+ */
+export async function incrementReleaseSales(releaseId: number, amountCents: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(artistReleases).set({
+    totalSales: sql`${artistReleases.totalSales} + 1`,
+    totalRevenueCents: sql`${artistReleases.totalRevenueCents} + ${amountCents}`,
+  }).where(eq(artistReleases.id, releaseId));
+}
+
+// ============= RELEASE PURCHASE FUNCTIONS =============
+
+/**
+ * Create a purchase record after successful Stripe checkout.
+ */
+export async function createReleasePurchase(data: InsertReleasePurchase): Promise<ReleasePurchase> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(releasePurchases).values(data);
+  const id = (result as any).insertId;
+  const purchase = await db.select().from(releasePurchases).where(eq(releasePurchases.id, id)).limit(1);
+  return purchase[0] as ReleasePurchase;
+}
+
+/**
+ * Get a purchase by Stripe checkout session ID (for webhook idempotency).
+ */
+export async function getPurchaseBySessionId(sessionId: string): Promise<ReleasePurchase | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(releasePurchases)
+    .where(eq(releasePurchases.stripeCheckoutSessionId, sessionId))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Get a purchase by ID.
+ */
+export async function getPurchaseById(id: number): Promise<ReleasePurchase | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(releasePurchases).where(eq(releasePurchases.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Get all purchases for a release (for artist sales dashboard).
+ */
+export async function getPurchasesByReleaseId(releaseId: number): Promise<ReleasePurchase[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(releasePurchases)
+    .where(eq(releasePurchases.releaseId, releaseId))
+    .orderBy(desc(releasePurchases.createdAt));
+}
+
+/**
+ * Get purchases by buyer email (for download access verification).
+ */
+export async function getPurchasesByBuyerEmail(email: string, releaseId: number): Promise<ReleasePurchase | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(releasePurchases)
+    .where(and(
+      eq(releasePurchases.buyerEmail, email),
+      eq(releasePurchases.releaseId, releaseId)
+    ))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Increment download count for a purchase.
+ */
+export async function incrementDownloadCount(purchaseId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(releasePurchases).set({
+    downloadCount: sql`${releasePurchases.downloadCount} + 1`,
+    lastDownloadedAt: new Date(),
+  }).where(eq(releasePurchases.id, purchaseId));
+}
+
+/**
+ * Get total sales stats for an artist across all releases.
+ */
+export async function getArtistReleaseSalesStats(artistId: number): Promise<{
+  totalReleases: number;
+  publishedReleases: number;
+  totalSales: number;
+  totalRevenueCents: number;
+}> {
+  const db = await getDb();
+  if (!db) return { totalReleases: 0, publishedReleases: 0, totalSales: 0, totalRevenueCents: 0 };
+  
+  const releases = await db.select().from(artistReleases)
+    .where(eq(artistReleases.artistId, artistId));
+  
+  return {
+    totalReleases: releases.length,
+    publishedReleases: releases.filter(r => r.status === 'published').length,
+    totalSales: releases.reduce((sum, r) => sum + r.totalSales, 0),
+    totalRevenueCents: releases.reduce((sum, r) => sum + r.totalRevenueCents, 0),
+  };
 }

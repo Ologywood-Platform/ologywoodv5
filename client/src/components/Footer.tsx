@@ -60,6 +60,7 @@ const Footer = () => {
         { label: 'Terms of Service', path: '/terms-of-service' },
         { label: 'Privacy Policy', path: '/privacy-policy' },
         { label: 'Cookie Policy', path: '/cookies' },
+        { label: 'DMCA Policy', path: '/dmca' },
       ],
     },
   ];
@@ -244,6 +245,9 @@ const Footer = () => {
             </Link>
             <Link to="/cookies" className="text-gray-400 hover:text-white transition">
               Cookies
+            </Link>
+            <Link to="/dmca" className="text-gray-400 hover:text-white transition">
+              DMCA
             </Link>
           </div>
 

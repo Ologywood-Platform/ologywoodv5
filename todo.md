@@ -633,3 +633,48 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## QR CODE OVERLAP FIX (Feb 28, 2026)
 - [x] Fix text overlap on QR Code section in profile share dialog (desktop view) — fixed in both ShareProfileModal and ShareVenueModal
+
+## WHITE LABEL RELEASE IMPLEMENTATION (Mar 1, 2026)
+
+### Phase 1: Core Infrastructure
+- [x] Add artistReleases and releasePurchases tables to database schema
+- [x] Run database migration (tables created, migration marked as applied)
+- [x] Add DB helper functions for releases (CRUD operations)
+- [x] Create tRPC release router with create, update, publish, unpublish, delete, getMyReleases, getById, getByArtist
+- [x] Build audio file upload endpoint (Express route, S3 storage, format/size validation)
+- [x] Build cover art upload endpoint
+- [ ] Implement 30-second preview generation (deferred to Phase 2 — artists can upload custom preview)
+- [x] Add maxActiveReleases to subscription tier gating (Free: 0, Starter: 2, Professional: unlimited)
+- [x] Implement rights certification flow (legal text + timestamp in create mutation)
+- [x] Write vitest tests for Phase 1 (22 tests passing)
+
+### Phase 2: Purchase Flow & Profile I- [x] Create Stripe checkout session for release purchases (1% application_fee_amount via Connect)
+- [x] Add webhook handler for release purchase checkout.session.completed
+- [x] Build presigned URL download endpoint with download count tracking (max 5)ads per purchase)
+- [x] Create release card UI component for artist public profile (cover art, title, price, buy button)
+- [ ] Build 30-second audio preview player (deferred — artists can upload custom preview)
+- [ ] Create purchase confirmation email templates (buyer + artist)
+- [ ] Support guest purchases (no account required)
+- [ ] Write vitest tests for Phase 2
+
+### Phase 3: Dashboard, Analytics & Notifications
+- [x] Build release management page in artist dashboard (/releases route)
+- [x] Create new/edit release form page (integrated into ReleaseManager)
+- [x] Add Release Manager link to artist dashboard quick actions
+- [x] Implement sales analytics (getSalesStats, getPurchases in release router)
+- [ ] Integrate fan email capture from purchases into existing fan email list
+- [x] Add follower notification on new release publish
+- [x] Integrate release earnings into existing Earnings dashboard (tabbed: Overview, Bookings, Releases)
+- [x] Implement "pay what you want" for Professional tier (checkout route)
+- [ ] Add multi-format download for Professional tier
+- [ ] Write vitest tests for Phase 3
+
+### Phase 4: Legal, Admin & Polish
+- [x] Create DMCA takedown policy page (/dmca with full takedown process)
+- [x] Add DMCA link to footer and bottom bar
+- [x] Add /dmca to sitemap, /releases to robots.txt Disallow
+- [x] Build admin release moderation tools (Releases tab with takedown/restore)
+- [x] Write vitest tests for Phase 2/3/4 (47 release tests total)
+- [ ] Add JSON-LD MusicRecording structured data on release pages
+- [ ] Verify mobile responsiveness for all new UI
+- [ ] Add release feature to artist onboarding flow
