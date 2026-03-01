@@ -64,7 +64,7 @@ export default function Blog() {
       {/* Hero */}
       <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-14 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-3">Blog</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">Blog</h1>
           <p className="text-lg text-purple-200">
             Announcements, guides, and news from the Ologywood team.
           </p>
@@ -180,7 +180,7 @@ export default function Blog() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-10">
+              <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
                 <button
                   onClick={() => setPage(Math.max(0, page - 1))}
                   disabled={page === 0}

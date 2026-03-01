@@ -719,3 +719,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix "Most Popular" badge clipped behind tab switcher on mobile (added pt-2 to carousel container, increased tab margin to mb-8)
 - [x] Fix carousel left/right arrows overlapping the pricing card on mobile (removed arrows entirely, swipe-only + tab navigation)
 - [x] Improve overall mobile spacing and layout for pricing cards (increased card padding to px-4, added swipe hint text)
+
+## MOBILE AUDIT: BLOG & ARTIST PROFILE (Mar 1, 2026)
+- [x] Audit blog listing page for mobile layout issues (hero text size, pagination overflow)
+- [x] Audit artist profile page for mobile layout issues (grid breakpoints, media gallery, col-span)
+- [x] Audit blog post detail page for mobile layout issues (already well-structured, no fixes needed)
+- [x] Fix blog hero: text-4xl → text-3xl sm:text-4xl for small screens
+- [x] Fix blog pagination: added flex-wrap to prevent horizontal overflow on many pages
+- [x] Fix artist profile main grid: removed duplicate lg:grid-cols, corrected to grid-cols-1 md:grid-cols-3
+- [x] Fix artist profile col-span: lg:col-span-2 → md:col-span-2 to match md breakpoint
+- [x] Fix artist media gallery: removed broken md:grid-cols-1, corrected to grid-cols-2 md:grid-cols-3

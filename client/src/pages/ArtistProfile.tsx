@@ -473,9 +473,9 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:p-4 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:p-4 md:p-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-6">
             {/* Bio */}
             {artist.bio && (
               <Card>
@@ -495,7 +495,7 @@ export default function ArtistProfile() {
                   <CardTitle>Media Gallery</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {mediaGallery.photos.map((photo, idx) => (
                       <img 
                         key={idx}
