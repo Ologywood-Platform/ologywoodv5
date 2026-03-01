@@ -620,3 +620,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Review legal pages — fixed Cookies and Accessibility dates from 2024 to 2026
 - [x] Verify favicons and manifest are current (client/public/ manifest is correct, favicons use CDN)
 - [x] Remove stale/orphaned files: deleted entire orphaned public/ root (manifest, sw.js, favicon.svg, og-image.png, PRIVACY_POLICY.md), removed client/public/og-image.png (975KB, unused), removed .gitkeep, removed Google Fonts comment block from index.html
+
+## ARCHIVE DIRECTORY AUDIT (Feb 28, 2026)
+- [x] Audit archive/ directory — does not exist, no action needed (.gitignore entry retained as a safeguard)
+
+## LEGAL PAGES UPDATE (Feb 28, 2026)
+- [x] Audit actual cookies, localStorage, and third-party integrations used
+- [x] Update Cookie Policy with specific cookies and their purposes
+- [x] Update Privacy Policy with Ologywood-specific data collection and processing
+- [x] Update Terms of Service with platform-specific booking, payment, and rider terms
+- [x] Update Accessibility Statement with specific WCAG compliance details
