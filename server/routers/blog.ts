@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { blogPosts } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { storagePut } from "../storage";
 
 // Admin-only middleware
 const adminOnly = protectedProcedure.use(async (opts) => {
@@ -223,6 +224,44 @@ export const blogRouter = router({
 
       await db.update(blogPosts).set(updates).where(eq(blogPosts.id, input.id));
       return { success: true };
+    }),
+
+  /**
+   * Upload a cover image for a blog post (admin only)
+   */
+  uploadCoverImage: adminOnly
+    .input(
+      z.object({
+        postId: z.number(),
+        fileData: z.string(), // base64 encoded image
+        fileName: z.string(),
+        mimeType: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // Verify post exists
+      const [post] = await db
+        .select({ id: blogPosts.id })
+        .from(blogPosts)
+        .where(eq(blogPosts.id, input.postId));
+      if (!post) throw new Error("Post not found");
+
+      // Upload to S3
+      const base64Data = input.fileData.split(',')[1] || input.fileData;
+      const buffer = Buffer.from(base64Data, 'base64');
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(7);
+      const fileExtension = input.fileName.split('.').pop() || 'jpg';
+      const fileKey = `blog-covers/${input.postId}/${timestamp}-${randomSuffix}.${fileExtension}`;
+      const { url } = await storagePut(fileKey, buffer, input.mimeType);
+
+      // Update post with cover image URL
+      await db.update(blogPosts).set({ coverImageUrl: url }).where(eq(blogPosts.id, input.postId));
+
+      return { url, success: true };
     }),
 
   /**

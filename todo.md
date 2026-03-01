@@ -707,3 +707,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Seed inaugural post: "Introducing White Label Releases: Sell Your Music for Just 1%"
 - [x] Add blog links to SiteHeader (desktop + mobile), Footer, sitemap, robots.txt, and SEO meta
 - [x] Write 27 tests for blog features (1,361 total passing)
+
+## BLOG COVER IMAGE UPLOAD (Mar 1, 2026)
+- [x] Add blog cover image upload tRPC endpoint (S3 storagePut, blog-covers/ prefix, admin-only)
+- [x] Add image upload UI to blog admin create/edit form (drag-and-drop, preview, replace, remove, 5MB limit, JPEG/PNG/WebP)
+- [x] Generate branded cover image for White Label Releases post (purple gradient, vinyl, sound waves, "Sell Your Music. Keep 99%.")
+- [x] Attach cover image to the inaugural announcement post (CDN URL stored in blog_posts.coverImageUrl)
+- [x] Write 17 tests for blog image upload feature (1,378 total passing)

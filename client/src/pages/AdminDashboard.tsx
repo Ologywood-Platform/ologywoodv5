@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X } from 'lucide-react';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog'>('overview');
@@ -438,8 +438,49 @@ function BlogTab() {
     tags: '',
     status: 'draft' as 'draft' | 'published',
   });
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const uploadCoverMutation = trpc.blog.uploadCoverImage.useMutation({
+    onSuccess: (data) => {
+      setForm(prev => ({ ...prev, coverImageUrl: data.url }));
+      setIsUploadingCover(false);
+    },
+    onError: () => setIsUploadingCover(false),
+  });
 
-  const resetForm = () => setForm({ title: '', slug: '', excerpt: '', content: '', coverImageUrl: '', category: 'announcement', tags: '', status: 'draft' });
+  const handleCoverImageSelect = async (file: File, postId?: number) => {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setCoverPreview(base64);
+
+      // If editing an existing post, upload immediately
+      if (postId) {
+        setIsUploadingCover(true);
+        uploadCoverMutation.mutate({
+          postId,
+          fileData: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        });
+      } else {
+        // For new posts, store base64 in form for upload after creation
+        setForm(prev => ({ ...prev, coverImageUrl: base64 }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeCoverImage = () => {
+    setCoverPreview(null);
+    setForm(prev => ({ ...prev, coverImageUrl: '' }));
+  };
+
+  const resetForm = () => { setForm({ title: '', slug: '', excerpt: '', content: '', coverImageUrl: '', category: 'announcement', tags: '', status: 'draft' }); setCoverPreview(null); };
 
   const handleCreate = () => {
     createMutation.mutate({
@@ -461,6 +502,7 @@ function BlogTab() {
 
   const startEdit = (post: any) => {
     setEditId(post.id);
+    setCoverPreview(null);
     setForm({
       title: post.title,
       slug: post.slug,
@@ -534,13 +576,64 @@ function BlogTab() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image URL (optional)</label>
-            <input
-              type="text" value={form.coverImageUrl}
-              onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              placeholder="https://..."
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
+            {(coverPreview || form.coverImageUrl) ? (
+              <div className="relative">
+                <img
+                  src={coverPreview || form.coverImageUrl}
+                  alt="Cover preview"
+                  className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  {isUploadingCover && (
+                    <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded">Uploading...</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={removeCoverImage}
+                    className="p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
+                    title="Remove cover image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <label className="mt-2 flex items-center gap-2 text-sm text-blue-600 cursor-pointer hover:text-blue-700">
+                  <Upload className="w-4 h-4" /> Replace image
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleCoverImageSelect(file, editId || undefined);
+                    }}
+                  />
+                </label>
+              </div>
+            ) : (
+              <label
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleCoverImageSelect(file, editId || undefined);
+                }}
+              >
+                <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-600">Click or drag an image to upload</span>
+                <span className="text-xs text-gray-400 mt-1">JPEG, PNG, or WebP (max 5MB)</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleCoverImageSelect(file, editId || undefined);
+                  }}
+                />
+              </label>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
