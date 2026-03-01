@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -315,7 +315,7 @@ export default function Pricing() {
           {/* Mobile: Swipeable carousel */}
           <div className="md:hidden mb-12">
             {/* Plan tabs */}
-            <div className="flex justify-center gap-1 mb-6">
+            <div className="flex justify-center gap-1 mb-8">
               {tiers.map((tier, i) => (
                 <button
                   key={tier.name}
@@ -331,10 +331,10 @@ export default function Pricing() {
               ))}
             </div>
 
-            {/* Carousel container */}
+            {/* Carousel container — no arrows, swipe only */}
             <div
               ref={carouselRef}
-              className="relative overflow-hidden"
+              className="relative overflow-hidden pt-2"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -344,31 +344,11 @@ export default function Pricing() {
                 style={{ transform: `translateX(-${activeSlide * 100}%)` }}
               >
                 {tiers.map((tier) => (
-                  <div key={tier.name} className="w-full flex-shrink-0 px-2">
+                  <div key={tier.name} className="w-full flex-shrink-0 px-4">
                     <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} />
                   </div>
                 ))}
               </div>
-
-              {/* Arrow buttons */}
-              {activeSlide > 0 && (
-                <button
-                  onClick={() => goToSlide(activeSlide - 1)}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 shadow-lg rounded-full p-2 z-10"
-                  aria-label="Previous plan"
-                >
-                  <ChevronLeft className="h-5 w-5 text-gray-700" />
-                </button>
-              )}
-              {activeSlide < tiers.length - 1 && (
-                <button
-                  onClick={() => goToSlide(activeSlide + 1)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 shadow-lg rounded-full p-2 z-10"
-                  aria-label="Next plan"
-                >
-                  <ChevronRight className="h-5 w-5 text-gray-700" />
-                </button>
-              )}
             </div>
 
             {/* Dot indicators */}
@@ -384,6 +364,9 @@ export default function Pricing() {
                 />
               ))}
             </div>
+
+            {/* Swipe hint */}
+            <p className="text-center text-xs text-gray-400 mt-2">Swipe or tap tabs to compare plans</p>
           </div>
 
           {/* FAQ Section */}

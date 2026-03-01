@@ -714,3 +714,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Generate branded cover image for White Label Releases post (purple gradient, vinyl, sound waves, "Sell Your Music. Keep 99%.")
 - [x] Attach cover image to the inaugural announcement post (CDN URL stored in blog_posts.coverImageUrl)
 - [x] Write 17 tests for blog image upload feature (1,378 total passing)
+
+## MOBILE PRICING PAGE FIX (Mar 1, 2026)
+- [x] Fix "Most Popular" badge clipped behind tab switcher on mobile (added pt-2 to carousel container, increased tab margin to mb-8)
+- [x] Fix carousel left/right arrows overlapping the pricing card on mobile (removed arrows entirely, swipe-only + tab navigation)
+- [x] Improve overall mobile spacing and layout for pricing cards (increased card padding to px-4, added swipe hint text)

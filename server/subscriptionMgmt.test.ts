@@ -220,14 +220,17 @@ describe('Mobile-Optimized Pricing Page', () => {
   });
 
   describe('Navigation controls', () => {
-    it('has left arrow button', () => {
-      expect(src).toContain('Previous plan');
-      expect(src).toContain('ChevronLeft');
+    it('uses swipe-only navigation without arrow buttons', () => {
+      expect(src).not.toContain('ChevronLeft');
+      expect(src).not.toContain('ChevronRight');
+      expect(src).not.toContain('Previous plan');
+      expect(src).not.toContain('Next plan');
     });
 
-    it('has right arrow button', () => {
-      expect(src).toContain('Next plan');
-      expect(src).toContain('ChevronRight');
+    it('supports touch swipe gestures', () => {
+      expect(src).toContain('onTouchStart');
+      expect(src).toContain('onTouchMove');
+      expect(src).toContain('onTouchEnd');
     });
 
     it('has dot indicators', () => {
@@ -236,12 +239,8 @@ describe('Mobile-Optimized Pricing Page', () => {
       expect(src).toContain('bg-gray-300');
     });
 
-    it('hides left arrow on first slide', () => {
-      expect(src).toContain('activeSlide > 0');
-    });
-
-    it('hides right arrow on last slide', () => {
-      expect(src).toContain('activeSlide < tiers.length - 1');
+    it('shows swipe hint text', () => {
+      expect(src).toContain('Swipe or tap tabs to compare plans');
     });
   });
 
