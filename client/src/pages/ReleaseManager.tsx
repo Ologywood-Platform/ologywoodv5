@@ -73,6 +73,32 @@ export default function ReleaseManager() {
     );
   }
 
+  // Error — likely not an artist
+  if (canCreateQuery.isError) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
+          </Button>
+          <h1 className="text-2xl font-bold">White Label Release</h1>
+        </div>
+        <Card className="border-destructive/20">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <AlertTriangle className="h-16 w-16 text-destructive/40 mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Artist Account Required</h2>
+            <p className="text-muted-foreground max-w-md mb-6">
+              White Label Release is available for artists. Please create an artist profile first to start selling your music.
+            </p>
+            <Button onClick={() => setLocation("/dashboard")}>
+              Go to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Not allowed — show upgrade prompt
   if (canCreate && !canCreate.hasAccess) {
     return (

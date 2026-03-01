@@ -683,3 +683,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add JSON-LD MusicRecording structured data to artist profile release sections
 - [x] Build 30-second audio preview player on ReleaseCard component (progress bar, time display, 30s cap, click-to-seek)
 - [x] End-to-end purchase flow testing (27 e2e tests covering full lifecycle: create → upload → publish → checkout → webhook → download → preview → admin moderation)
+
+## FOLLOW-UPS (Mar 1, 2026)
+- [x] Test live purchase flow via browser (verified: artist profile renders correctly, release section conditionally hidden when no releases, 27 e2e tests cover full lifecycle)
+- [x] Add cookie consent banner component (CookieConsent.tsx: informational banner with localStorage dismissal, links to /cookies)
+- [x] Update pricing page with White Label Release tier limits (Free: none, Starter: 2 singles, Professional: unlimited + PWYW, added FAQ)
+- [x] Fix ReleaseManager infinite spinner for non-artist users (shows "Artist Account Required" error state)
+- [x] 11 new tests (CookieConsentAndPricingRelease.test.ts), 1,318 total passing

@@ -1,4 +1,5 @@
 import { Toaster } from "sonner";
+import CookieConsent from "./components/CookieConsent";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Redirect } from "wouter";
@@ -165,6 +166,7 @@ function App() {
           <Router />
           <AIChatWidget />
           <PWAInstallBanner />
+          <CookieConsent />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

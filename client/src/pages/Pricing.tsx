@@ -35,6 +35,10 @@ const PRICING_FAQS = [
     question: 'Can I send email updates to my fans?',
     answer: 'Yes! Artists on Starter and Professional plans can send branded email updates to all their followers, up to once per day.',
   },
+  {
+    question: 'What are White Label Releases?',
+    answer: 'White Label Releases let artists sell singles directly from their Ologywood profile. Starter plans include up to 2 active singles, while Professional plans get unlimited releases with pay-what-you-want pricing. Ologywood takes just a 1% platform fee on each sale.',
+  },
 ];
 
 type PlanSlug = 'starter' | 'professional';
@@ -69,6 +73,7 @@ const tiers: Tier[] = [
       { name: "Rider Builder & templates", included: false },
       { name: "Contract management & e-signatures", included: false },
       { name: "Fan email list & Send Update", included: false },
+      { name: "White Label Releases (sell music)", included: false },
       { name: "Analytics & payment history", included: false },
       { name: "Priority support", included: false },
       { name: "Featured profile & custom branding", included: false },
@@ -91,6 +96,7 @@ const tiers: Tier[] = [
       { name: "Follow artists & event discovery", included: true },
       { name: "In-platform messaging", included: true },
       { name: "Availability calendar", included: true },
+      { name: "White Label Releases — 2 singles", included: true },
       { name: "Contract management & e-signatures", included: false },
       { name: "Analytics & payment history", included: false },
       { name: "Priority support", included: false },
@@ -119,6 +125,7 @@ const tiers: Tier[] = [
       { name: "Unlimited booking requests", included: true },
       { name: "Rider Builder & saved templates", included: true },
       { name: "Fan email list & Send Update", included: true },
+      { name: "White Label Releases — unlimited + pay-what-you-want", included: true },
     ],
   },
 ];
