@@ -32,7 +32,6 @@ const Footer = () => {
         { label: 'FAQ', path: '/faq' },
         { label: 'Contact Us', path: '/contact' },
         { label: 'Blog', path: '/blog' },
-        { label: 'API Docs', path: '/api-docs' },
       ],
     },
     {

@@ -351,13 +351,6 @@
       "when": 1772420014122,
       "tag": "0049_black_gamora",
       "breakpoints": true
-    },
-    {
-      "idx": 50,
-      "version": "5",
-      "when": 1772482352301,
-      "tag": "0050_cloudy_psylocke",
-      "breakpoints": true
     }
   ]
 }

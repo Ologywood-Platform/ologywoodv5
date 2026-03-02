@@ -28,7 +28,6 @@ import { EmailPreferencesCenter } from './EmailPreferencesCenter';
 import { PhotoManagement } from './PhotoManagement';
 import { MediaGalleryManager } from './MediaGalleryManager';
 import { EmailVerificationModal } from './EmailVerificationModal';
-import { DeveloperSettings } from './DeveloperSettings';
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
@@ -149,13 +148,12 @@ export function AccountSettings() {
       />
       <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="subscription">Subscription</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="support">Support</TabsTrigger>
-          <TabsTrigger value="developer">Developer</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}
@@ -699,11 +697,6 @@ export function AccountSettings() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-
-        {/* Developer Tab */}
-        <TabsContent value="developer" className="space-y-4 mt-6">
-          <DeveloperSettings />
         </TabsContent>
       </Tabs>
     </div>

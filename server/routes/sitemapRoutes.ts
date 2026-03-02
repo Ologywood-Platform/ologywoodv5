@@ -39,7 +39,6 @@ router.get('/sitemap.xml', async (req: Request, res: Response) => {
       { url: '/cookies', changefreq: 'yearly', priority: 0.4, lastmod: new Date().toISOString() },
       { url: '/accessibility', changefreq: 'yearly', priority: 0.4, lastmod: new Date().toISOString() },
       { url: '/dmca', changefreq: 'yearly', priority: 0.4, lastmod: new Date().toISOString() },
-      { url: '/api-docs', changefreq: 'monthly', priority: 0.6, lastmod: new Date().toISOString() },
     ];
 
     // Fetch dynamic artist profiles
@@ -157,7 +156,6 @@ Allow: /privacy-policy
 Allow: /cookies
 Allow: /accessibility
 Allow: /dmca
-Allow: /api-docs
 
 # Disallow private/protected pages
 Disallow: /admin

@@ -13,7 +13,6 @@ export enum SubscriptionTier {
   FREE = 'free',
   BASIC = 'basic',
   PREMIUM = 'premium',
-  API_AGENT = 'api_agent',
 }
 
 export interface TierLimits {
@@ -49,14 +48,6 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxConcurrentRequests: 50,
     apiCallsPerMonth: 10000000,
     description: 'Premium tier - unlimited access',
-  },
-  [SubscriptionTier.API_AGENT]: {
-    requestsPerMinute: 500,
-    requestsPerHour: 20000,
-    requestsPerDay: 200000,
-    maxConcurrentRequests: 25,
-    apiCallsPerMonth: 5000000,
-    description: 'API Agent tier - programmatic access with burst support',
   },
 };
 
