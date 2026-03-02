@@ -30,6 +30,7 @@ import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
+import { apiKeysRouter } from "./routers/apiKeys";
 
 
 // Helper to check if user is an artist
@@ -139,6 +140,7 @@ export const appRouter = router({
   riderContract: riderContractRouter,
   release: releaseRouter,
   blog: blogRouter,
+  apiKeys: apiKeysRouter,
   // signature: signatureRouter,
   // contractTemplate: contractTemplateRouter,
   // contractHistory: contractHistoryRouter,

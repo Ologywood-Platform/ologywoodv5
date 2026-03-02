@@ -257,6 +257,13 @@ export const pageMetaTags = {
     ogImage: DEFAULT_OG_IMAGE,
     ogUrl: `${BASE_URL}/sell-music`,
   },
+  'api-docs': {
+    title: 'API Documentation - Ologywood Developer Platform',
+    description: 'Build integrations and AI agents with the Ologywood REST API. Authenticate with API keys, receive real-time webhooks, and access every platform feature programmatically.',
+    keywords: 'ologywood api, developer documentation, rest api, ai agent integration, webhooks, api keys',
+    ogImage: DEFAULT_OG_IMAGE,
+    ogUrl: `${BASE_URL}/api-docs`,
+  },
 };
 
 export { DEFAULT_OG_IMAGE, BASE_URL, SITE_NAME };

@@ -744,3 +744,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create reusable SocialShareButtons component (Twitter/X, LinkedIn, copy-link with clipboard fallback)
 - [x] Integrate sharing buttons into BlogPost detail page (below title + bottom share bar after content)
 - [x] Write 17 tests for social sharing functionality (1,392 total passing)
+
+## AI AGENT READINESS (Mar 2, 2026)
+- [x] Create api_keys + webhook_endpoints database tables (key hash, name, scopes, rate limit, status, last_used, expires_at)
+- [x] Build API key management tRPC routes (create with olo_ prefix, list, revoke, getScopes, verifyApiKey)
+- [x] Add API key auth middleware in createContext (X-API-Key header, falls back to OAuth, non-breaking)
+- [x] Build Developer Settings UI in AccountSettings (create/revoke keys, scope checkboxes, rate limit slider)
+- [x] Create API documentation page (/api-docs) with 6 endpoint groups, Quick Start, auth/rate-limit/webhook docs, error codes, search
+- [x] Add API_AGENT rate limiting tier (500 req/min, 20K/hr, 200K/day, 25 concurrent)
+- [x] Add webhook_endpoints table for agent callbacks (url, events, signing secret, status)
+- [x] Add /api-docs to sitemap, robots.txt, footer, SEO meta tags
+- [x] Write 43 tests for AI agent readiness (1,435 total passing)

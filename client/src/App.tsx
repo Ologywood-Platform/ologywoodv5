@@ -71,6 +71,7 @@ const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
 const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const ApiDocs = lazy(() => import("./pages/ApiDocs"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -166,6 +167,7 @@ function Router() {
           <Route path="/sell-music" component={SellMusic} />
           <Route path="/blog" component={Blog} />
           <Route path="/blog/:slug">{(params: any) => <BlogPost {...params} />}</Route>
+          <Route path="/api-docs" component={ApiDocs} />
           
           {/* ============================================
               HARD 404 - ALL OTHER ROUTES SILENCED

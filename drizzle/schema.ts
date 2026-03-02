@@ -912,3 +912,50 @@ export const blogPosts = mysqlTable("blog_posts", {
 }));
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+
+/**
+ * API keys for programmatic / AI agent access.
+ * The key itself is hashed (SHA-256); only the prefix is stored in plain text for identification.
+ */
+export const apiKeys = mysqlTable("api_keys", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  keyHash: varchar("keyHash", { length: 64 }).notNull().unique(),
+  keyPrefix: varchar("keyPrefix", { length: 12 }).notNull(),
+  scopes: json("scopes").$type<string[]>().notNull(),
+  rateLimit: int("rateLimit").default(100).notNull(), // requests per minute
+  lastUsedAt: timestamp("lastUsedAt"),
+  expiresAt: timestamp("expiresAt"),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_api_keys_user").on(table.userId),
+  keyHashIdx: index("idx_api_keys_hash").on(table.keyHash),
+  prefixIdx: index("idx_api_keys_prefix").on(table.keyPrefix),
+}));
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+/**
+ * Webhook subscriptions for agent callbacks.
+ * Agents register a URL and select which events they want to receive.
+ */
+export const webhookEndpoints = mysqlTable("webhook_endpoints", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  secret: varchar("secret", { length: 64 }).notNull(),
+  events: json("events").$type<string[]>().notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastDeliveredAt: timestamp("lastDeliveredAt"),
+  failureCount: int("failureCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_webhook_endpoints_user").on(table.userId),
+  activeIdx: index("idx_webhook_endpoints_active").on(table.isActive),
+}));
+export type WebhookEndpoint = typeof webhookEndpoints.$inferSelect;
+export type InsertWebhookEndpoint = typeof webhookEndpoints.$inferInsert;
