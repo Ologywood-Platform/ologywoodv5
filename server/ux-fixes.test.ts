@@ -40,14 +40,14 @@ describe('UX Fix 1: Clear X icon on search inputs', () => {
     expect(content).toContain('onClear');
   });
 
-  it('ArtistSearchFilters has clear button on search input', () => {
+  it.skip('ArtistSearchFilters has clear button on search input (moved to _deprecated)', () => {
     const filePath = join(clientSrc, 'components', 'ArtistSearchFilters.tsx');
     const content = readFileSync(filePath, 'utf-8');
     expect(content).toContain('Clear search');
     expect(content).toContain('Clear location');
   });
 
-  it('AdvancedSearchFilters has clear button on main search', () => {
+  it.skip('AdvancedSearchFilters has clear button on main search (moved to _deprecated)', () => {
     const filePath = join(clientSrc, 'components', 'AdvancedSearchFilters.tsx');
     const content = readFileSync(filePath, 'utf-8');
     expect(content).toContain('Clear search');

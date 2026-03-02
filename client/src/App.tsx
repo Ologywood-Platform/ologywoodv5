@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
 import CookieConsent from "./components/CookieConsent";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,69 +8,85 @@ import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { ThemeProvider } from "./contexts/ThemeContext";
-
-// MVP CORE ROUTES ONLY
-import Home from "./pages/Home";
-import Browse from "./pages/Browse";
-import ArtistProfile from "./pages/ArtistProfile";
-import { ArtistDashboardV3 } from '@/pages/ArtistDashboardV3';
-import { VenueDashboard } from '@/pages/VenueDashboard';
-import RoleSelection from "./pages/RoleSelection";
-import ArtistOnboarding from "./pages/ArtistOnboarding";
-import VenueOnboarding from "./pages/VenueOnboarding";
-import Availability from "./pages/Availability";
-import RiderBuilder from "./pages/RiderBuilder";
-import SavedRiders from "./pages/SavedRiders";
-import Favorites from "./pages/Favorites";
-import BookingDetail from "./pages/BookingDetail";
-import BookingCreate from "./pages/BookingCreate";
-import BookingsList from "./pages/BookingsList";
-import BookingConfirmation from "./pages/BookingConfirmation";
-import VenueProfile from "./pages/VenueProfile";
-import VenueBrowse from "./pages/VenueBrowse";
-import VenueProfileDetail from "./pages/VenueProfileDetail";
-import Messages from "./pages/Messages";
-import MessagesDetail from "./pages/MessagesDetail";
-import Riders from "./pages/Riders";
-import { RiderTemplates } from "./pages/RiderTemplates";
-import EventCreate from "./pages/EventCreate";
-import EventDiscovery from "./pages/EventDiscovery";
-import EventDetail from "./pages/EventDetail";
-import HowItWorks from "./pages/HowItWorks";
-import Contact from "./pages/Contact";
-import FAQ from "./pages/FAQ";
-import Pricing from "./pages/Pricing";
-import { Unsubscribe } from "./pages/Unsubscribe";
-import VerifyEmail from "./pages/VerifyEmail";
-import RevertEmail from "./pages/RevertEmail";
-import ArtistEarnings from "./pages/ArtistEarnings";
-import ArtistEarningsDashboard from "./pages/ArtistEarningsDashboard";
-import VenueInvoiceDashboard from "./pages/VenueInvoiceDashboard";
-import Help from "./pages/Help";
-import Following from "./pages/Following";
-import AdminPayouts from "./pages/AdminPayouts";
-import ArtistTaxReporting from "./pages/ArtistTaxReporting";
-import ReleaseManager from "./pages/ReleaseManager";
-import { AdminDashboard } from "./pages/AdminDashboard";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
 
-// Legal pages (required for compliance)
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import Cookies from "./pages/Cookies";
-import Accessibility from "./pages/Accessibility";
-import DMCAPolicy from "./pages/DMCAPolicy";
-import SellMusic from "./pages/SellMusic";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
+// ============================================
+// EAGERLY LOADED — Critical path pages
+// ============================================
+import Home from "./pages/Home";
+import Browse from "./pages/Browse";
+import ArtistProfile from "./pages/ArtistProfile";
+
+// ============================================
+// LAZY LOADED — Code-split for smaller initial bundle
+// ============================================
+const ArtistDashboardV3 = lazy(() => import('@/pages/ArtistDashboardV3').then(m => ({ default: m.ArtistDashboardV3 })));
+const VenueDashboard = lazy(() => import('@/pages/VenueDashboard').then(m => ({ default: m.VenueDashboard })));
+const RoleSelection = lazy(() => import("./pages/RoleSelection"));
+const ArtistOnboarding = lazy(() => import("./pages/ArtistOnboarding"));
+const VenueOnboarding = lazy(() => import("./pages/VenueOnboarding"));
+const Availability = lazy(() => import("./pages/Availability"));
+const RiderBuilder = lazy(() => import("./pages/RiderBuilder"));
+const SavedRiders = lazy(() => import("./pages/SavedRiders"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const BookingDetail = lazy(() => import("./pages/BookingDetail"));
+const BookingCreate = lazy(() => import("./pages/BookingCreate"));
+const BookingsList = lazy(() => import("./pages/BookingsList"));
+const BookingConfirmation = lazy(() => import("./pages/BookingConfirmation"));
+const VenueProfile = lazy(() => import("./pages/VenueProfile"));
+const VenueBrowse = lazy(() => import("./pages/VenueBrowse"));
+const VenueProfileDetail = lazy(() => import("./pages/VenueProfileDetail"));
+const Messages = lazy(() => import("./pages/Messages"));
+const MessagesDetail = lazy(() => import("./pages/MessagesDetail"));
+const Riders = lazy(() => import("./pages/Riders"));
+const RiderTemplates = lazy(() => import("./pages/RiderTemplates").then(m => ({ default: m.RiderTemplates })));
+const EventCreate = lazy(() => import("./pages/EventCreate"));
+const EventDiscovery = lazy(() => import("./pages/EventDiscovery"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe").then(m => ({ default: m.Unsubscribe })));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const RevertEmail = lazy(() => import("./pages/RevertEmail"));
+const ArtistEarnings = lazy(() => import("./pages/ArtistEarnings"));
+const ArtistEarningsDashboard = lazy(() => import("./pages/ArtistEarningsDashboard"));
+const VenueInvoiceDashboard = lazy(() => import("./pages/VenueInvoiceDashboard"));
+const Help = lazy(() => import("./pages/Help"));
+const Following = lazy(() => import("./pages/Following"));
+const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
+const ArtistTaxReporting = lazy(() => import("./pages/ArtistTaxReporting"));
+const ReleaseManager = lazy(() => import("./pages/ReleaseManager"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
+
+// Legal & marketing pages
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Cookies = lazy(() => import("./pages/Cookies"));
+const Accessibility = lazy(() => import("./pages/Accessibility"));
+const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
+const SellMusic = lazy(() => import("./pages/SellMusic"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+
+// Loading fallback for lazy-loaded pages
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+    </div>
+  );
+}
 
 function Router() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
       <ScrollToTop />
       <div className="flex-1">
+        <Suspense fallback={<PageLoader />}>
         <Switch>
           {/* ============================================
               MVP CORE ROUTES ONLY - PRODUCTION PATHS
@@ -156,6 +173,7 @@ function Router() {
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
+        </Suspense>
       </div>
       <Footer />
     </div>

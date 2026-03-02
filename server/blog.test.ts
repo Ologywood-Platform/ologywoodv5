@@ -216,8 +216,9 @@ describe('Blog Routes', () => {
       path.resolve(__dirname, '../client/src/App.tsx'),
       'utf-8'
     );
-    expect(appFile).toContain('import Blog from');
-    expect(appFile).toContain('import BlogPost from');
+    // Lazy imports use import() syntax
+    expect(appFile).toContain('./pages/Blog');
+    expect(appFile).toContain('./pages/BlogPost');
   });
 });
 

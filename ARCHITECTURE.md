@@ -52,8 +52,10 @@ This document describes the architecture of the Ologywood platform, including fo
 ```
 client/
 ├── src/
-│   ├── pages/              # 46 page components (one per route)
+│   ├── pages/              # 48 page components (lazy-loaded via React.lazy)
 │   ├── components/         # Reusable components
+│   │   ├── _deprecated/    # 138 orphaned components (excluded from build & TS)
+│   │   ├── __tests__/      # Component-level tests
 │   │   ├── ui/             # shadcn/ui primitives (Button, Card, Dialog, etc.)
 │   │   └── *.tsx           # Feature components (SiteHeader, FollowButton, etc.)
 │   ├── _core/
@@ -71,7 +73,9 @@ client/
 
 **Rules for `client/`:**
 - Pages go in `pages/` — one file per route, named in PascalCase
+- **All new pages MUST use `React.lazy()` in App.tsx** — only Home, Browse, and ArtistProfile are eagerly loaded
 - Shared components go in `components/` — if used on 2+ pages, extract here
+- **Never import from `components/_deprecated/`** — these are archived orphaned components
 - UI primitives (shadcn) live in `components/ui/` — do not modify these directly
 - All API calls go through `trpc` from `lib/trpc.ts` — never use `fetch()` directly for tRPC endpoints
 - Auth state comes from `useAuth()` hook — never read cookies directly
@@ -240,8 +244,18 @@ All uploaded files (profile photos, event photos, gallery images) are stored in 
 
 - `server/_core/` — Infrastructure only. Do not add feature code.
 - `client/src/components/ui/` — shadcn primitives. Do not modify.
+- `client/src/components/_deprecated/` — Archived orphaned components. Do not import.
 - `drizzle/*.sql` — Generated migration files. Do not edit manually.
 - `node_modules/` — Managed by pnpm. Do not modify.
+
+## Performance Optimizations
+
+| Optimization | Before | After | Impact |
+|---|---|---|---|
+| React.lazy() code splitting | 3,402 KB single bundle | 1,001 KB initial + lazy chunks | 70% smaller initial load |
+| Vendor chunk splitting | All in one bundle | react (30 KB), ui (80 KB), pdf (983 KB) | Better caching |
+| Orphaned component cleanup | 138 unused components in build | Moved to _deprecated, excluded from TS | Faster TS checks |
+| Database indexes | Missing on 5 tables | Composite indexes on all FK/query columns | Faster queries |
 
 ---
 

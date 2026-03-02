@@ -102,7 +102,8 @@ describe('Following Route Registration', () => {
   const appTsx = readFileSync(resolve(rootDir, 'client/src/App.tsx'), 'utf-8');
 
   it('imports Following page', () => {
-    expect(appTsx).toContain('import Following from');
+    // Lazy imports use import() syntax
+    expect(appTsx).toContain('./pages/Following');
   });
 
   it('registers /following route', () => {

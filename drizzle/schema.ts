@@ -55,7 +55,9 @@ export const bookingUsage = mysqlTable("booking_usage", {
   bookingCount: int("bookingCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  userMonthIdx: index("idx_booking_usage_user_month").on(table.userId, table.month),
+}));
 
 export type BookingUsage = typeof bookingUsage.$inferSelect;
 export type InsertBookingUsage = typeof bookingUsage.$inferInsert;
@@ -675,7 +677,9 @@ export const eventRecurrence = mysqlTable("event_recurrence", {
   daysOfWeek: varchar("daysOfWeek", { length: 50 }), // 'MON,WED,FRI' for weekly
   endDate: date("endDate"), // When recurrence ends
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  eventIdx: index("idx_event_recurrence_event").on(table.eventId),
+}));
 
 export type EventRecurrence = typeof eventRecurrence.$inferSelect;
 export type InsertEventRecurrence = typeof eventRecurrence.$inferInsert;
@@ -695,7 +699,10 @@ export const eventHistory = mysqlTable("event_history", {
   notes: text("notes"), // Event recap/summary
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  artistIdx: index("idx_event_history_artist").on(table.artistId),
+  eventDateIdx: index("idx_event_history_date").on(table.eventDate),
+}));
 
 export type EventHistory = typeof eventHistory.$inferSelect;
 export type InsertEventHistory = typeof eventHistory.$inferInsert;
@@ -710,7 +717,9 @@ export const eventPhotos = mysqlTable("event_photos", {
   caption: text("caption"),
   uploadedBy: int("uploadedBy"), // User ID who uploaded
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  eventHistoryIdx: index("idx_event_photos_history").on(table.eventHistoryId),
+}));
 
 export type EventPhoto = typeof eventPhotos.$inferSelect;
 export type InsertEventPhoto = typeof eventPhotos.$inferInsert;
@@ -723,7 +732,9 @@ export const savedEvents = mysqlTable("saved_events", {
   userId: int("userId").notNull(), // Venue user saving the event
   eventId: int("eventId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  userEventIdx: index("idx_saved_events_user_event").on(table.userId, table.eventId),
+}));
 
 export type SavedEvent = typeof savedEvents.$inferSelect;
 export type InsertSavedEvent = typeof savedEvents.$inferInsert;

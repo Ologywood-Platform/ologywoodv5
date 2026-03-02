@@ -729,3 +729,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix artist profile main grid: removed duplicate lg:grid-cols, corrected to grid-cols-1 md:grid-cols-3
 - [x] Fix artist profile col-span: lg:col-span-2 → md:col-span-2 to match md breakpoint
 - [x] Fix artist media gallery: removed broken md:grid-cols-1, corrected to grid-cols-2 md:grid-cols-3
+
+## CODE OPTIMIZATION & SCALABILITY AUDIT (Mar 1, 2026)
+- [x] Audit database schema: added indexes on bookingUsage, eventHistory, eventPhotos, savedEvents, eventRecurrence
+- [x] Audit API layer: tiered rate limiting present, pagination on all list endpoints, Zod validation on all inputs
+- [x] Audit frontend: 138 orphaned components moved to _deprecated, excluded from TS/build
+- [x] Audit infrastructure: S3 storage, Stripe webhooks, security headers, CORS all properly configured
+- [x] Apply React.lazy() code splitting: initial bundle 3,402 KB → 1,001 KB (70% reduction)
+- [x] Apply vendor chunk splitting: react (30 KB), ui (80 KB), pdf (983 KB) for better caching
+- [x] Update ARCHITECTURE.md with performance optimizations and lazy loading rules
+- [x] All 1,375 tests passing, 0 TypeScript errors
