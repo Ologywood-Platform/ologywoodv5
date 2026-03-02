@@ -7,6 +7,7 @@ import { Link, useParams } from "wouter";
 import { Calendar, Tag, ArrowLeft, User, BookOpen } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import SiteHeader from "@/components/SiteHeader";
+import SocialShareButtons from "@/components/SocialShareButtons";
 import { setMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 
@@ -189,9 +190,18 @@ export default function BlogPost() {
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
           {post.title}
         </h1>
+
+        {/* Social Sharing */}
+        <div className="mb-6">
+          <SocialShareButtons
+            title={post.title}
+            description={post.excerpt}
+            url={`${window.location.origin}/blog/${post.slug}`}
+          />
+        </div>
 
         {/* Content */}
         <div
@@ -213,6 +223,16 @@ export default function BlogPost() {
             ))}
           </div>
         )}
+
+        {/* Bottom Share Bar */}
+        <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <p className="text-sm text-gray-500">Enjoyed this article? Share it with your network.</p>
+          <SocialShareButtons
+            title={post.title}
+            description={post.excerpt}
+            url={`${window.location.origin}/blog/${post.slug}`}
+          />
+        </div>
 
         {/* CTA */}
         <div className="mt-10 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 text-center">

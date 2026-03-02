@@ -739,3 +739,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Apply vendor chunk splitting: react (30 KB), ui (80 KB), pdf (983 KB) for better caching
 - [x] Update ARCHITECTURE.md with performance optimizations and lazy loading rules
 - [x] All 1,375 tests passing, 0 TypeScript errors
+
+## SOCIAL SHARING BUTTONS (Mar 2, 2026)
+- [x] Create reusable SocialShareButtons component (Twitter/X, LinkedIn, copy-link with clipboard fallback)
+- [x] Integrate sharing buttons into BlogPost detail page (below title + bottom share bar after content)
+- [x] Write 17 tests for social sharing functionality (1,392 total passing)
