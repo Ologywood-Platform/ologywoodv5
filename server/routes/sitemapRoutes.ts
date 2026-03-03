@@ -162,10 +162,10 @@ Disallow: /admin
 Disallow: /admin/payouts
 Disallow: /dashboard
 Disallow: /venue-dashboard
-Disallow: /artist-dashboard
 Disallow: /settings
 Disallow: /account
 Disallow: /messages
+Disallow: /messages/
 Disallow: /bookings
 Disallow: /booking/
 Disallow: /booking-confirmation
@@ -180,6 +180,9 @@ Disallow: /riders
 Disallow: /favorites
 Disallow: /following
 Disallow: /availability
+Disallow: /profile/edit
+Disallow: /artists/*/history
+Disallow: /events/create
 Disallow: /verify-email
 Disallow: /revert-email
 Disallow: /unsubscribe

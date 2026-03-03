@@ -864,3 +864,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Audit header nav for missing features
 - [x] Update footer (replaced Sell Music→Releases, added Riders/Availability/Favorites), header (added Events link), MobileBottomNav (fixed stale /artist-dashboard→/dashboard, /artist-profile→/profile/edit)
 - [x] Check legal pages, contact info, social links — all valid
+
+## VENUE-SIDE E2E TEST (Mar 3, 2026)
+
+- [ ] Check/create venue account with complete profile
+- [ ] Test venue dashboard loads correctly
+- [ ] Test browse artists page from venue perspective
+- [ ] Test viewing Adonis artist profile as a venue
+- [ ] Test sending a booking request to Adonis
+- [ ] Test booking detail page from venue side
+- [ ] Test contract generation and signing flow
+- [ ] Test payment/checkout flow
+- [ ] Document all findings and fix bugs
+
+## SITEMAP & ROBOTS.TXT CLEANUP (Mar 3, 2026)
+
+- [x] Fix stale /artist-dashboard path in robots.txt (removed)
+- [x] Add missing protected pages to robots.txt (/profile/edit, /artists/*/history, /events/create, /messages/)
+- [x] Review sitemap static pages — all accurate, dynamic pages auto-generated from DB

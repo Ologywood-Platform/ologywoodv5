@@ -113,7 +113,7 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should disallow private pages', async () => {
       const response = await request(app).get('/robots.txt');
-      const privatePages = ['/admin', '/admin/payouts', '/dashboard', '/venue-dashboard', '/artist-dashboard', '/settings', '/messages', '/bookings', '/booking/', '/booking-confirmation', '/earnings', '/earnings-dashboard', '/venue-invoices', '/rider-builder', '/rider-templates', '/saved-riders', '/riders', '/favorites', '/following', '/availability', '/verify-email', '/revert-email', '/unsubscribe', '/artist-tax-reporting'];
+      const privatePages = ['/admin', '/admin/payouts', '/dashboard', '/venue-dashboard', '/settings', '/messages', '/bookings', '/booking/', '/booking-confirmation', '/earnings', '/earnings-dashboard', '/venue-invoices', '/rider-builder', '/rider-templates', '/saved-riders', '/riders', '/favorites', '/following', '/availability', '/profile/edit', '/events/create', '/verify-email', '/revert-email', '/unsubscribe', '/artist-tax-reporting'];
       privatePages.forEach(page => {
         expect(response.text).toContain(`Disallow: ${page}`);
       });
