@@ -41,9 +41,12 @@ export const eventsRouter = router({
     .input(createEventSchema)
     .mutation(async ({ input, ctx }) => {
       try {
+        // Look up artist profile to get the correct profile ID (not user ID)
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
         const event = await db.createEvent({
           ...input,
-          artistId: ctx.user.id,
+          artistId: artistProfile.id,
         });
 
         // Notify fans about the new event (fire-and-forget, don't block response)
@@ -256,8 +259,11 @@ export const eventsRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       try {
+        // Look up artist profile to get the correct profile ID (not user ID)
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
         const history = await db.createEventHistory({
-          artistId: ctx.user.id,
+          artistId: artistProfile.id,
           eventDate: new Date(input.eventDate),
           notes: input.notes ? `**${input.eventName}**${input.venueName ? ` at ${input.venueName}` : ''}${input.location ? ` — ${input.location}` : ''}\n\n${input.notes}` : `**${input.eventName}**${input.venueName ? ` at ${input.venueName}` : ''}${input.location ? ` — ${input.location}` : ''}`,
           attendeeCount: input.attendeeCount,
@@ -286,7 +292,8 @@ export const eventsRouter = router({
       try {
         const existing = await db.getEventHistoryById(input.historyId);
         if (!existing) throw new Error('History entry not found');
-        if (existing.artistId !== ctx.user.id) throw new Error('Not authorized to edit this entry');
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || existing.artistId !== artistProfile.id) throw new Error('Not authorized to edit this entry');
         const updateData: any = {};
         if (input.eventDate) updateData.eventDate = input.eventDate;
         if (input.attendeeCount !== undefined) updateData.attendeeCount = input.attendeeCount;
@@ -311,7 +318,8 @@ export const eventsRouter = router({
       try {
         const existing = await db.getEventHistoryById(input.historyId);
         if (!existing) throw new Error('History entry not found');
-        if (existing.artistId !== ctx.user.id) throw new Error('Not authorized to delete this entry');
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || existing.artistId !== artistProfile.id) throw new Error('Not authorized to delete this entry');
         const deleted = await db.deleteEventHistory(input.historyId);
         return { success: deleted, message: deleted ? 'Portfolio entry deleted' : 'Failed to delete' };
       } catch (error) {
@@ -333,7 +341,8 @@ export const eventsRouter = router({
         // Verify ownership
         const historyEntry = await db.getEventHistoryById(input.eventHistoryId);
         if (!historyEntry) throw new Error('History entry not found');
-        if (historyEntry.artistId !== ctx.user.id) throw new Error('Not authorized to upload photos to this entry');
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || historyEntry.artistId !== artistProfile.id) throw new Error('Not authorized to upload photos to this entry');
         // Upload to S3 via existing handler
         const { handlePhotoUpload } = await import('../handlers/imageUploadHandler');
         const uploadResult = await handlePhotoUpload(

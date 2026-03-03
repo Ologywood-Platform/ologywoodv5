@@ -888,3 +888,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Added websiteUrl field to Edit Profile form and updateProfile API mutation
 - [x] Fix: Added hasSocialLinks check to prevent empty Connect card from showing
 - [x] Cleared phantom test data from database
+- [x] Bug: Performance Portfolio items added but not showing on artist profile page (artistId mismatch: was saving userId instead of profileId)
