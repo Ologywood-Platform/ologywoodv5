@@ -30,24 +30,21 @@ interface EventFormProps {
 }
 
 const EVENT_TYPES = [
-  'Concert',
-  'Wedding',
-  'Corporate Event',
-  'Private Party',
-  'Festival',
-  'Club Performance',
-  'Acoustic Set',
-  'DJ Set',
-  'Live Band',
-  'Other',
+  { value: 'concert', label: 'Concert' },
+  { value: 'wedding', label: 'Wedding' },
+  { value: 'corporate', label: 'Corporate Event' },
+  { value: 'private_party', label: 'Private Party' },
+  { value: 'festival', label: 'Festival' },
+  { value: 'bar_gig', label: 'Bar / Club Gig' },
+  { value: 'other', label: 'Other' },
 ];
 
 const AUDIENCE_TYPES = [
-  'General Public',
-  'Adults Only',
-  'All Ages',
-  'Corporate',
-  'Private',
+  { value: 'general_public', label: 'General Public' },
+  { value: 'adults_only', label: 'Adults Only' },
+  { value: 'all_ages', label: 'All Ages' },
+  { value: 'corporate', label: 'Corporate' },
+  { value: 'private', label: 'Private' },
 ];
 
 export function EventForm({
@@ -193,8 +190,8 @@ export function EventForm({
               </SelectTrigger>
               <SelectContent>
                 {EVENT_TYPES.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type}
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -286,8 +283,8 @@ export function EventForm({
                 </SelectTrigger>
                 <SelectContent>
                   {AUDIENCE_TYPES.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

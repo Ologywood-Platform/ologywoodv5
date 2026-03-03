@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import {
   Dialog,
   DialogContent,
@@ -140,6 +141,13 @@ export default function Availability() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Availability' },
+          ]}
+        />
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">Manage Availability</h1>
           <p className="text-muted-foreground">

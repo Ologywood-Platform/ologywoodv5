@@ -815,3 +815,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Audit venue pages for back-nav gaps
 - [x] Fix venue pages: VenueBrowse, VenueProfile, VenueProfileDetail, VenueInvoiceDashboard (breadcrumbs), VenueOnboarding (back button)
 - [x] Test all breadcrumbs and venue nav — 0 TS errors, 1392 tests passing
+
+## FOLLOW-UP TASKS (Mar 3, 2026)
+
+- [x] Add breadcrumbs to ArtistEditProfile
+- [x] Add breadcrumbs to Riders
+- [x] Add breadcrumbs to RiderBuilder
+- [x] Add breadcrumbs to ReleaseManager
+- [x] Add breadcrumbs to Availability
+- [x] Add breadcrumbs to ArtistHistory
+- [x] Create a test event from artist dashboard (event shows on Events Discovery page)
+- [x] Test release creation flow with Starter subscription (form loads with all fields, uploads, pricing, rights cert)
+- [x] Fixed EventForm dropdown values to match backend enums
+- [x] Fixed EventCreate hooks ordering (React rules of hooks violation)
+- [x] Fixed isPublic boolean storage in MySQL (drizzle ORM handles correctly, raw SQL needed explicit 1/0)

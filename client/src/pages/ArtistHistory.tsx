@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Button } from "../components/ui/button";
 import { ArrowLeft, Calendar, MapPin, Music, Camera } from "lucide-react";
 import { setMetaTags, pageMetaTags } from "../utils/seoMeta";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { useEffect } from "react";
 
 export default function ArtistHistory() {
@@ -55,15 +56,14 @@ export default function ArtistHistory() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
       <SiteHeader />
       <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          className="mb-6 gap-2"
-          onClick={() => navigate(`/artist/${artistId}`)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to {artist?.artistName || "Artist"}'s Profile
-        </Button>
+        <PageBreadcrumb
+          className="mb-6"
+          segments={[
+            { label: 'Browse', href: '/browse' },
+            { label: artist?.artistName || 'Artist', href: `/artist/${artistId}` },
+            { label: 'Performance History' },
+          ]}
+        />
 
         {/* Header */}
         <div className="mb-8">

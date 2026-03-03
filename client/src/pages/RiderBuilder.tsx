@@ -52,6 +52,7 @@ import {
   Edit2,
   RotateCcw,
 } from "lucide-react";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 // ============= TYPE DEFINITIONS =============
 
@@ -565,6 +566,14 @@ export default function RiderBuilder() {
         </header>
 
         <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <PageBreadcrumb
+            className="mb-4"
+            segments={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Rider Builder', href: '/riders/builder' },
+              { label: 'Choose Template' },
+            ]}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {(defaultTemplates || []).map((tpl: any) => (
               <button
@@ -833,6 +842,13 @@ export default function RiderBuilder() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Rider Builder' },
+          ]}
+        />
         {/* Info Banner */}
         <Card className="mb-8 border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
           <CardContent className="pt-5 pb-4">

@@ -37,7 +37,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { generateRiderPDF } from "@/utils/pdfExport";
 import { RiderContractTemplate, RiderContractData } from "@/components/RiderContractTemplate";
 
@@ -280,6 +281,13 @@ export default function Riders() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Rider Templates' },
+          ]}
+        />
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">

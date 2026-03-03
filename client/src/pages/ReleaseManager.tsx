@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 type ReleaseStatus = "draft" | "published" | "archived";
 
@@ -127,6 +128,13 @@ export default function ReleaseManager() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <PageBreadcrumb
+        className="mb-4"
+        segments={[
+          { label: 'Dashboard', href: '/dashboard' },
+          { label: 'Releases' },
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

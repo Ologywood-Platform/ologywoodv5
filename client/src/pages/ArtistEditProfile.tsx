@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Camera, Save, X, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 const GENRE_OPTIONS = [
   "Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Blues", "Country", "Electronic",
@@ -193,6 +194,13 @@ export default function ArtistEditProfile() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Edit Profile' },
+          ]}
+        />
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

@@ -13,8 +13,9 @@ export default function EventCreate() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const createEventMutation = trpc.events.create.useMutation();
 
-  // Verify user is an artist
+  // Verify user is an artist (after all hooks)
   if (user?.role !== 'artist') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -33,7 +34,12 @@ export default function EventCreate() {
     );
   }
 
-  const createEventMutation = trpc.events.create.useMutation();
+  // Strip currency formatting from rate string (e.g., "$5,000" -> "5000")
+  const cleanRate = (rate: string | undefined): string | undefined => {
+    if (!rate) return undefined;
+    const cleaned = rate.replace(/[^0-9.]/g, '');
+    return cleaned || undefined;
+  };
 
   const handleEventCreate = async (eventData: any) => {
     setIsSubmitting(true);
@@ -43,13 +49,13 @@ export default function EventCreate() {
         eventTitle: eventData.eventTitle,
         eventType: eventData.eventType,
         eventDate: eventData.eventDate,
-        eventTime: eventData.eventTime,
-        eventEndTime: eventData.eventEndTime,
+        eventTime: eventData.eventTime || undefined,
+        eventEndTime: eventData.eventEndTime || undefined,
         location: eventData.location,
         capacity: eventData.capacity,
-        audienceType: eventData.audienceType,
-        rate: eventData.rate || undefined,
-        description: eventData.description,
+        audienceType: eventData.audienceType || undefined,
+        rate: cleanRate(eventData.rate),
+        description: eventData.description || undefined,
         isPublic: eventData.isPublic,
       });
       
@@ -94,20 +100,10 @@ export default function EventCreate() {
           </Card>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Event Details</CardTitle>
-            <CardDescription>
-              Fill in the details about your event. This information will be visible to venues on the platform.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EventForm 
-              onSubmit={handleEventCreate}
-              isLoading={isSubmitting || createEventMutation.isPending}
-            />
-          </CardContent>
-        </Card>
+        <EventForm 
+          onSubmit={handleEventCreate}
+          isLoading={isSubmitting || createEventMutation.isPending}
+        />
       </div>
     </div>
   );
