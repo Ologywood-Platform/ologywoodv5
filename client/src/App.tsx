@@ -72,6 +72,7 @@ const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const ArtistHistory = lazy(() => import("./pages/ArtistHistory"));
+const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -98,6 +99,7 @@ function Router() {
           <Route path="/home" component={Home} />
           <Route path="/get-started" component={RoleSelection} />
           <Route path="/onboarding/artist" component={ArtistOnboarding} />
+          <Route path="/profile/edit" component={ArtistEditProfile} />
           <Route path="/onboarding/venue" component={VenueOnboarding} />
           <Route path="/dashboard">{() => <PageErrorBoundary><ArtistDashboardV3 /></PageErrorBoundary>}</Route>
           <Route path="/venue-dashboard">{() => <PageErrorBoundary><VenueDashboard /></PageErrorBoundary>}</Route>

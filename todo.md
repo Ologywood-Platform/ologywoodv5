@@ -763,3 +763,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## BUG FIX: Missing /artists/:id/history Route (Mar 2, 2026)
 - [x] Fix 404 on /artists/:id/history — created ArtistHistory.tsx page with event history listing, lazy-loaded route added to App.tsx
+
+## BUG FIX: No Edit Profile Button on Artist Dashboard (Mar 2, 2026)
+- [ ] Fix artist dashboard to show Edit Profile button when profile exists
+
+## ARTIST EDIT PROFILE (Mar 2, 2026)
+
+- [x] Create ArtistEditProfile.tsx page with all editable fields (name, bio, genre, location, fees, social links, photo upload)
+- [x] Add /profile/edit route to App.tsx with lazy loading
+- [x] Add "Edit Profile" button to artist dashboard profile card header
+- [x] Add "View Public Profile" button to artist dashboard
+- [x] Add "Edit" button to public ArtistProfile page (visible only to profile owner)
+- [x] Fix onboarding redirect - now redirects to /profile/edit instead of /dashboard when profile already exists
+- [x] Verify all 1,392 tests still passing

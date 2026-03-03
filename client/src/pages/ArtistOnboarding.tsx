@@ -26,8 +26,8 @@ export default function ArtistOnboarding() {
 
   useEffect(() => {
     if (existingProfile.data) {
-      toast.info("You already have an artist profile. Redirecting to dashboard.");
-      navigate("/dashboard");
+      toast.info("You already have an artist profile. Redirecting to edit page.");
+      navigate("/profile/edit");
     }
   }, [existingProfile.data, navigate]);
 

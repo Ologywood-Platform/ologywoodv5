@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings } from "lucide-react";
 import { FollowButton } from "@/components/FollowButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
@@ -272,7 +272,20 @@ export default function ArtistProfile() {
           
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{artist.artistName}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{artist.artistName}</h1>
+                {user && artist.userId === user.id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/profile/edit')}
+                    className="gap-1.5"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                )}
+              </div>
               <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                 {Array.isArray(artist.genre) && artist.genre.length > 0 
                   ? artist.genre.join(", ") 

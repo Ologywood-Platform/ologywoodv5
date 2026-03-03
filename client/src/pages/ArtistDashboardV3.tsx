@@ -139,6 +139,15 @@ export function ArtistDashboardV3() {
                       )}
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/profile/edit')}
+                    className="gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -153,16 +162,26 @@ export function ArtistDashboardV3() {
                       style={{ width: `${completionScore}%` }}
                     />
                   </div>
-                  {completionScore < 100 && (
+                  <div className="flex gap-2 mt-4">
+                    {completionScore < 100 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/onboarding/artist')}
+                        className="flex-1"
+                      >
+                        Complete Your Profile
+                      </Button>
+                    )}
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
-                      onClick={() => navigate('/onboarding/artist')}
-                      className="mt-4 w-full"
+                      onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
+                      className="flex-1"
                     >
-                      Complete Your Profile
+                      View Public Profile
                     </Button>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
