@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -18,6 +18,18 @@ export default function ArtistOnboarding() {
   const [, navigate] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
+
+  // Check if user already has an artist profile — redirect to dashboard if so
+  const existingProfile = trpc.artist.getMyProfile.useQuery(undefined, {
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (existingProfile.data) {
+      toast.info("You already have an artist profile. Redirecting to dashboard.");
+      navigate("/dashboard");
+    }
+  }, [existingProfile.data, navigate]);
 
   // Step 1: Basic Info
   const [artistName, setArtistName] = useState("");

@@ -744,3 +744,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create reusable SocialShareButtons component (Twitter/X, LinkedIn, copy-link with clipboard fallback)
 - [x] Integrate sharing buttons into BlogPost detail page (below title + bottom share bar after content)
 - [x] Write 17 tests for social sharing functionality (1,392 total passing)
+
+## BUG FIX: Artist Onboarding (Mar 2, 2026)
+- [x] Fix "Failed to get insert ID" error: drizzle returns array, fixed result[0].insertId across 27 insert functions
+- [x] Add server-side guard: createProfile now returns existing profile instead of duplicate insert
+- [x] Add client-side guard: ArtistOnboarding checks for existing profile and redirects to dashboard

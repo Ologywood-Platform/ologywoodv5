@@ -333,6 +333,12 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Check if user already has an artist profile
+        const existing = await db.getArtistProfileByUserId(ctx.user.id);
+        if (existing) {
+          // Return the existing profile instead of creating a duplicate
+          return existing;
+        }
         const profile = await db.createArtistProfile({
           userId: ctx.user.id,
           ...input,

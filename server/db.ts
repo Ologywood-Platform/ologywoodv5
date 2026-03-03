@@ -57,7 +57,7 @@ export async function createContract(data: InsertContract): Promise<Contract> {
   }
 
   const result = await db.insert(contracts).values(data);
-  const contractId = (result as any).insertId;
+  const contractId = (result as any)[0].insertId;
   const contract = await db.select().from(contracts).where(eq(contracts.id, contractId)).limit(1);
   return contract[0] as Contract;
 }
@@ -105,7 +105,7 @@ export async function createSignature(data: InsertSignature): Promise<Signature>
   }
 
   const result = await db.insert(signatures).values(data);
-  const signatureId = (result as any).insertId;
+  const signatureId = (result as any)[0].insertId;
   const signature = await db.select().from(signatures).where(eq(signatures.id, signatureId)).limit(1);
   return signature[0] as Signature;
 }
@@ -305,7 +305,7 @@ export async function createArtistProfile(data: InsertArtistProfile): Promise<Ar
 
   try {
     const result = await db.insert(artistProfiles).values(data);
-    const artistId = (result as any).insertId;
+    const artistId = (result as any)[0].insertId;
     
     if (!artistId) {
       console.error('[createArtistProfile] No insertId from insert');
@@ -459,7 +459,7 @@ export async function createVenueProfile(data: InsertVenueProfile): Promise<Venu
   }
 
   const result = await db.insert(venueProfiles).values(data);
-  const venueId = (result as any).insertId;
+  const venueId = (result as any)[0].insertId;
   const venue = await db.select().from(venueProfiles).where(eq(venueProfiles.id, venueId)).limit(1);
   return venue[0] as VenueProfile;
 }
@@ -553,7 +553,7 @@ export async function createRiderTemplate(data: InsertRiderTemplate): Promise<Ri
   }
 
   const result = await db.insert(riderTemplates).values(data);
-  const riderId = (result as any).insertId;
+  const riderId = (result as any)[0].insertId;
   const rider = await db.select().from(riderTemplates).where(eq(riderTemplates.id, riderId)).limit(1);
   return rider[0] as RiderTemplate;
 }
@@ -582,7 +582,7 @@ export async function createBooking(data: InsertBooking): Promise<Booking> {
   }
 
   const result = await db.insert(bookings).values(data);
-  const bookingId = (result as any).insertId;
+  const bookingId = (result as any)[0].insertId;
   const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   return booking[0] as Booking;
 }
@@ -662,7 +662,7 @@ export async function createMessage(data: InsertMessage): Promise<Message> {
   }
 
   const result = await db.insert(messages).values(data);
-  const messageId = (result as any).insertId;
+  const messageId = (result as any)[0].insertId;
   const message = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1);
   return message[0] as Message;
 }
@@ -689,7 +689,7 @@ export async function createAvailability(data: InsertAvailability): Promise<Avai
   }
 
   const result = await db.insert(availability).values(data);
-  const availabilityId = (result as any).insertId;
+  const availabilityId = (result as any)[0].insertId;
   const avail = await db.select().from(availability).where(eq(availability.id, availabilityId)).limit(1);
   return avail[0] as Availability;
 }
@@ -729,7 +729,7 @@ export async function createReview(data: InsertReview): Promise<Review> {
   }
 
   const result = await db.insert(reviews).values(data);
-  const reviewId = (result as any).insertId;
+  const reviewId = (result as any)[0].insertId;
   const review = await db.select().from(reviews).where(eq(reviews.id, reviewId)).limit(1);
   return review[0] as Review;
 }
@@ -774,7 +774,7 @@ export async function createVenueReview(data: InsertVenueReview): Promise<VenueR
   }
 
   const result = await db.insert(venueReviews).values(data);
-  const reviewId = (result as any).insertId;
+  const reviewId = (result as any)[0].insertId;
   const review = await db.select().from(venueReviews).where(eq(venueReviews.id, reviewId)).limit(1);
   return review[0] as VenueReview;
 }
@@ -794,7 +794,7 @@ export async function addFavorite(userId: number, artistId: number): Promise<Fav
   }
 
   const result = await db.insert(favorites).values({ venueId: userId, artistId });
-  const favoriteId = (result as any).insertId;
+  const favoriteId = (result as any)[0].insertId;
   const favorite = await db.select().from(favorites).where(eq(favorites.id, favoriteId)).limit(1);
   return favorite[0] as Favorite;
 }
@@ -824,7 +824,7 @@ export async function createBookingTemplate(data: InsertBookingTemplate): Promis
   }
 
   const result = await db.insert(bookingTemplates).values(data);
-  const templateId = (result as any).insertId;
+  const templateId = (result as any)[0].insertId;
   const template = await db.select().from(bookingTemplates).where(eq(bookingTemplates.id, templateId)).limit(1);
   return template[0] as BookingTemplate;
 }
@@ -866,7 +866,7 @@ export async function trackProfileView(data: InsertProfileView): Promise<Profile
   }
 
   const result = await db.insert(profileViews).values(data);
-  const viewId = (result as any).insertId;
+  const viewId = (result as any)[0].insertId;
   const view = await db.select().from(profileViews).where(eq(profileViews.id, viewId)).limit(1);
   return view[0] as ProfileView;
 }
@@ -886,7 +886,7 @@ export async function createBookingReminder(data: InsertBookingReminder): Promis
   }
 
   const result = await db.insert(bookingReminders).values(data);
-  const reminderId = (result as any).insertId;
+  const reminderId = (result as any)[0].insertId;
   const reminder = await db.select().from(bookingReminders).where(eq(bookingReminders.id, reminderId)).limit(1);
   return reminder[0] as BookingReminder;
 }
@@ -975,7 +975,7 @@ export async function createStripeConnectAccount(data: InsertStripeConnectAccoun
   }
 
   const result = await db.insert(stripeConnectAccounts).values(data);
-  const accountId = (result as any).insertId;
+  const accountId = (result as any)[0].insertId;
   const account = await db.select().from(stripeConnectAccounts).where(eq(stripeConnectAccounts.id, accountId)).limit(1);
   return account[0] as StripeConnectAccount;
 }
@@ -997,7 +997,7 @@ export async function createArtistPayout(data: InsertArtistPayout): Promise<Arti
   }
 
   const result = await db.insert(artistPayouts).values(data);
-  const payoutId = (result as any).insertId;
+  const payoutId = (result as any)[0].insertId;
   const payout = await db.select().from(artistPayouts).where(eq(artistPayouts.id, payoutId)).limit(1);
   return payout[0] as ArtistPayout;
 }
@@ -1017,7 +1017,7 @@ export async function createInvoice(data: InsertInvoice): Promise<Invoice> {
   }
 
   const result = await db.insert(invoices).values(data);
-  const invoiceId = (result as any).insertId;
+  const invoiceId = (result as any)[0].insertId;
   const invoice = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
   return invoice[0] as Invoice;
 }
@@ -1037,7 +1037,7 @@ export async function createEvent(data: InsertEvent): Promise<Event> {
   }
 
   const result = await db.insert(events).values(data);
-  const eventId = (result as any).insertId;
+  const eventId = (result as any)[0].insertId;
   const event = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
   return event[0] as Event;
 }
@@ -1086,7 +1086,7 @@ export async function createEventRecurrence(data: InsertEventRecurrence): Promis
   }
 
   const result = await db.insert(eventRecurrence).values(data);
-  const recurrenceId = (result as any).insertId;
+  const recurrenceId = (result as any)[0].insertId;
   const recurrence = await db.select().from(eventRecurrence).where(eq(eventRecurrence.id, recurrenceId)).limit(1);
   return recurrence[0] as EventRecurrence;
 }
@@ -1106,7 +1106,7 @@ export async function createEventHistory(data: InsertEventHistory): Promise<Even
   }
 
   const result = await db.insert(eventHistory).values(data);
-  const historyId = (result as any).insertId;
+  const historyId = (result as any)[0].insertId;
   const history = await db.select().from(eventHistory).where(eq(eventHistory.id, historyId)).limit(1);
   return history[0] as EventHistory;
 }
@@ -1126,7 +1126,7 @@ export async function createEventPhoto(data: InsertEventPhoto): Promise<EventPho
   }
 
   const result = await db.insert(eventPhotos).values(data);
-  const photoId = (result as any).insertId;
+  const photoId = (result as any)[0].insertId;
   const photo = await db.select().from(eventPhotos).where(eq(eventPhotos.id, photoId)).limit(1);
   return photo[0] as EventPhoto;
 }
@@ -1147,7 +1147,7 @@ export async function createSavedEvent(data: InsertSavedEvent): Promise<SavedEve
   }
 
   const result = await db.insert(savedEvents).values(data);
-  const savedId = (result as any).insertId;
+  const savedId = (result as any)[0].insertId;
   const saved = await db.select().from(savedEvents).where(eq(savedEvents.id, savedId)).limit(1);
   return saved[0] as SavedEvent;
 }
@@ -1421,7 +1421,7 @@ export async function setAvailability(data: InsertAvailability): Promise<Availab
   } else {
     // Insert new
     const result = await db.insert(availability).values(data);
-    const id = (result as any).insertId;
+    const id = (result as any)[0].insertId;
     const created = await db.select().from(availability).where(eq(availability.id, id)).limit(1);
     return created[0] ?? null;
   }
@@ -1519,7 +1519,7 @@ export async function addEventPhoto(data: InsertEventPhoto): Promise<EventPhoto 
   const db = await getDb();
   if (!db) return null;
   const result = await db.insert(eventPhotos).values(data);
-  const id = (result as any).insertId;
+  const id = (result as any)[0].insertId;
   const photo = await db.select().from(eventPhotos).where(eq(eventPhotos.id, id)).limit(1);
   return photo[0] ?? null;
 }
@@ -1622,7 +1622,7 @@ export async function saveEvent(eventId: number, userId: number): Promise<SavedE
   if (existing[0]) return existing[0];
   
   const result = await db.insert(savedEvents).values({ userId, eventId } as InsertSavedEvent);
-  const id = (result as any).insertId;
+  const id = (result as any)[0].insertId;
   const saved = await db.select().from(savedEvents).where(eq(savedEvents.id, id)).limit(1);
   return saved[0] ?? null;
 }
@@ -1894,7 +1894,7 @@ export async function createRelease(data: InsertArtistRelease): Promise<ArtistRe
   const db = await getDb();
   if (!db) throw new Error('Database not available');
   const result = await db.insert(artistReleases).values(data);
-  const id = (result as any).insertId;
+  const id = (result as any)[0].insertId;
   const release = await db.select().from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
   return release[0] as ArtistRelease;
 }
@@ -1997,7 +1997,7 @@ export async function createReleasePurchase(data: InsertReleasePurchase): Promis
   const db = await getDb();
   if (!db) throw new Error('Database not available');
   const result = await db.insert(releasePurchases).values(data);
-  const id = (result as any).insertId;
+  const id = (result as any)[0].insertId;
   const purchase = await db.select().from(releasePurchases).where(eq(releasePurchases.id, id)).limit(1);
   return purchase[0] as ReleasePurchase;
 }
