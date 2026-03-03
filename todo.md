@@ -857,3 +857,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] All 1392 existing tests passing, 0 TS errors outside deprecated
 - [x] Tested dashboard Portfolio button, portfolio page empty state, breadcrumbs, owner view
 - [ ] Save checkpoint
+
+## FOOTER & NAV AUDIT (Mar 3, 2026)
+
+- [x] Audit footer links for stale or missing items
+- [x] Audit header nav for missing features
+- [x] Update footer (replaced Sell Music→Releases, added Riders/Availability/Favorites), header (added Events link), MobileBottomNav (fixed stale /artist-dashboard→/dashboard, /artist-profile→/profile/edit)
+- [x] Check legal pages, contact info, social links — all valid

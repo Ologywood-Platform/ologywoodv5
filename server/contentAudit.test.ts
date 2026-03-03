@@ -140,9 +140,9 @@ describe('Platform Content Audit', () => {
       expect(content).toContain("'/pricing'");
     });
 
-    it('should include Following link for artists', () => {
-      expect(content).toContain("'Following'");
-      expect(content).toContain("'/following'");
+    it('should include Riders link for artists', () => {
+      expect(content).toContain("'Riders'");
+      expect(content).toContain("'/riders'");
     });
 
     it('should include Earnings link for artists', () => {

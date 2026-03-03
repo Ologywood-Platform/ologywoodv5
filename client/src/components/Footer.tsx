@@ -39,11 +39,11 @@ const Footer = () => {
       links: [
         { label: 'Artist Dashboard', path: '/dashboard' },
         { label: 'Browse Venues', path: '/venues' },
-        { label: 'Create Rider', path: '/rider-builder' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Earnings', path: '/earnings-dashboard' },
-        { label: 'Sell Music', path: '/sell-music' },
-        { label: 'Following', path: '/following' },
+        { label: 'Releases', path: '/releases' },
+        { label: 'Riders', path: '/riders' },
+        { label: 'Availability', path: '/availability' },
       ],
     },
     {
@@ -54,6 +54,7 @@ const Footer = () => {
         { label: 'Events', path: '/events' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Invoices', path: '/venue-invoices' },
+        { label: 'Favorites', path: '/favorites' },
       ],
     },
     {

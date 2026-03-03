@@ -47,7 +47,7 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
       id: 'profile',
       label: 'Profile',
       icon: <User className="h-5 w-5" />,
-      path: user?.role === 'artist' ? '/artist-profile' : '/venue-profile',
+      path: user?.role === 'artist' ? '/profile/edit' : '/venue-dashboard',
     },
   ];
 
@@ -56,7 +56,7 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
       id: 'overview',
       label: 'Overview',
       icon: <LayoutDashboard className="h-5 w-5" />,
-      path: '/artist-dashboard',
+      path: '/dashboard',
     },
     {
       id: 'bookings',
@@ -80,7 +80,7 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
       id: 'more',
       label: 'More',
       icon: <MoreHorizontal className="h-5 w-5" />,
-      path: '/artist-dashboard#more',
+      path: '/dashboard#more',
     },
   ];
 
@@ -125,7 +125,7 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
 
   const isActive = (item: NavItem) => {
     if (item.id === 'overview') {
-      return pathname === '/artist-dashboard' || pathname === '/dashboard' || pathname === '/venue-dashboard';
+      return pathname === '/dashboard' || pathname === '/venue-dashboard';
     }
     if (item.id === 'more') return false;
     return pathname === item.path || pathname.startsWith(item.path + '/');
@@ -147,14 +147,14 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
                 onClick={() => {
                   if (item.id === 'more') {
                     // Scroll to profile/settings section on dashboard
-                    if (pathname === '/artist-dashboard' || pathname === '/dashboard') {
+                    if (pathname === '/dashboard') {
                       const el = document.getElementById('quick-actions');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     } else if (pathname === '/venue-dashboard') {
                       const el = document.getElementById('venue-profile-section');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     } else {
-                      navigate(mode === 'venue-dashboard' ? '/venue-dashboard' : '/artist-dashboard');
+                      navigate(mode === 'venue-dashboard' ? '/venue-dashboard' : '/dashboard');
                     }
                   } else {
                     navigate(item.path);

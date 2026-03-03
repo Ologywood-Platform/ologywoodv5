@@ -60,7 +60,7 @@ describe('Venue Dashboard Mobile Bottom Navigation', () => {
     });
 
     it('should navigate to venue-dashboard when More is clicked from other pages', () => {
-      expect(mobileBottomNavContent).toContain("navigate(mode === 'venue-dashboard' ? '/venue-dashboard' : '/artist-dashboard')");
+      expect(mobileBottomNavContent).toContain("navigate(mode === 'venue-dashboard' ? '/venue-dashboard' : '/dashboard')");
     });
   });
 
