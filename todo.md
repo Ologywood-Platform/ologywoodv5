@@ -889,3 +889,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Added hasSocialLinks check to prevent empty Connect card from showing
 - [x] Cleared phantom test data from database
 - [x] Bug: Performance Portfolio items added but not showing on artist profile page (artistId mismatch: was saving userId instead of profileId)
+- [x] Bug: Cannot upload audio file when creating a new release (frontend sent FormData, backend expected base64 JSON)
+- [x] Bug: Cannot upload cover art when creating a new release (same FormData vs JSON mismatch)
+- [x] Bug: Cannot create draft release (uploads failing meant no fileKey, blocking draft creation)

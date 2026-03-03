@@ -286,21 +286,31 @@ function ReleaseForm({
 
     setIsUploadingAudio(true);
     try {
-      const formData = new FormData();
-      formData.append("audio", file);
+      // Read file as base64 (backend expects JSON with base64 data)
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
       const response = await fetch("/api/release/upload/audio", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileData: base64Data,
+          fileName: file.name,
+          mimeType: file.type || "audio/mpeg",
+        }),
       });
 
       const data = await response.json();
       if (data.success) {
-        setAudioFileKey(data.key);
+        setAudioFileKey(data.fileKey);
         setAudioFileName(file.name);
         setDurationSeconds(data.durationSeconds || 0);
-        setFileFormat(data.format || file.name.split(".").pop()?.toUpperCase() || "MP3");
-        setFileSizeBytes(file.size);
+        setFileFormat(data.fileFormat || file.name.split(".").pop()?.toUpperCase() || "MP3");
+        setFileSizeBytes(data.fileSizeBytes || file.size);
         toast.addSuccess("Audio uploaded", `${file.name} uploaded successfully.`);
       } else {
         toast.addError("Upload failed", data.error || "Failed to upload audio file.");
@@ -327,17 +337,27 @@ function ReleaseForm({
 
     setIsUploadingCover(true);
     try {
-      const formData = new FormData();
-      formData.append("cover", file);
+      // Read file as base64 (backend expects JSON with base64 data)
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
       const response = await fetch("/api/release/upload/cover", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileData: base64Data,
+          fileName: file.name,
+          mimeType: file.type || "image/jpeg",
+        }),
       });
 
       const data = await response.json();
       if (data.success) {
-        setCoverArtKey(data.key);
+        setCoverArtKey(data.fileKey);
         setCoverArtPreview(data.url || URL.createObjectURL(file));
         toast.addSuccess("Cover uploaded", "Cover art uploaded successfully.");
       } else {
