@@ -749,3 +749,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix "Failed to get insert ID" error: drizzle returns array, fixed result[0].insertId across 27 insert functions
 - [x] Add server-side guard: createProfile now returns existing profile instead of duplicate insert
 - [x] Add client-side guard: ArtistOnboarding checks for existing profile and redirects to dashboard
+
+## BUG FIX: Dashboard Not Recognizing Existing Profile (Mar 2, 2026)
+- [ ] Fix artist dashboard showing "Create artist profile" instead of loading existing Adonis profile for user ID 7
+
+## BUG FIX: Bookings Table Schema Mismatch (Mar 2, 2026)
+- [x] Fix bookings query error: added missing riderAcknowledgedAt and riderAcknowledgedBy columns to bookings table
+- [x] Full schema audit: created missing artist_follows table, added unsubscribeToken/unsubscribedAt to email_preferences
+- [x] All 1,392 tests passing
