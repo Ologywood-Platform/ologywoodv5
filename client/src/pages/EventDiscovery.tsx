@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,72 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventCard } from '@/components/EventCard';
-import { Search, Loader2, ArrowLeft, Calendar } from 'lucide-react';
+import { Search, Loader2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-
-// Mock events data - replace with API call
-const mockEvents = [
-  {
-    id: 1,
-    eventTitle: 'Summer Music Festival 2026',
-    eventType: 'Festival',
-    eventDate: new Date('2026-06-15'),
-    eventTime: '18:00',
-    location: 'Central Park, New York, NY',
-    capacity: 500,
-    rate: '$5000',
-    artistName: 'The Amazing Band',
-    artistId: 1,
-    artistPhoto: 'https://via.placeholder.com/80',
-    isPublic: true,
-    status: 'available' as const,
-  },
-  {
-    id: 2,
-    eventTitle: 'Corporate Gala',
-    eventType: 'Corporate Event',
-    eventDate: new Date('2026-05-20'),
-    eventTime: '19:00',
-    location: 'Hilton Hotel, Boston, MA',
-    capacity: 200,
-    rate: '$3000',
-    artistName: 'Jazz Quartet',
-    artistId: 2,
-    artistPhoto: 'https://via.placeholder.com/80',
-    isPublic: true,
-    status: 'available' as const,
-  },
-  {
-    id: 3,
-    eventTitle: 'Wedding Reception',
-    eventType: 'Wedding',
-    eventDate: new Date('2026-07-10'),
-    eventTime: '20:00',
-    location: 'The Grand Ballroom, Chicago, IL',
-    capacity: 150,
-    rate: '$2500',
-    artistName: 'DJ Smooth Beats',
-    artistId: 3,
-    artistPhoto: 'https://via.placeholder.com/80',
-    isPublic: true,
-    status: 'available' as const,
-  },
-];
 
 export default function EventDiscovery() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
 
-  const [events, setEvents] = useState(mockEvents);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Set SEO meta tags
-  useEffect(() => {
-    setMetaTags(pageMetaTags.events);
-  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     eventType: '',
@@ -81,60 +26,66 @@ export default function EventDiscovery() {
     startDate: '',
     endDate: '',
   });
-  const [savedEventIds, setSavedEventIds] = useState<number[]>([]);
 
+  // Set SEO meta tags
   useEffect(() => {
-    // TODO: Fetch events from API
-    // const fetchEvents = async () => {
-    //   setIsLoading(true);
-    //   try {
-    //     const query = new URLSearchParams();
-    //     if (filters.eventType) query.append('eventType', filters.eventType);
-    //     if (filters.location) query.append('location', filters.location);
-    //     if (filters.minRate) query.append('minRate', filters.minRate);
-    //     if (filters.maxRate) query.append('maxRate', filters.maxRate);
-    //     if (filters.startDate) query.append('startDate', filters.startDate);
-    //     if (filters.endDate) query.append('endDate', filters.endDate);
-    //
-    //     const response = await fetch(`/api/events/search?${query}`);
-    //     if (response.ok) {
-    //       const data = await response.json();
-    //       setEvents(data);
-    //     }
-    //   } catch (error) {
-    //     toast.error('Failed to load events');
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
-    // fetchEvents();
+    setMetaTags(pageMetaTags.events);
+  }, []);
+
+  // Build the tRPC query input from filters
+  const searchInput = useMemo(() => {
+    const input: Record<string, any> = {};
+    if (filters.eventType) input.eventType = filters.eventType;
+    if (filters.location) input.location = filters.location;
+    if (filters.minRate) input.minRate = parseFloat(filters.minRate);
+    if (filters.maxRate) input.maxRate = parseFloat(filters.maxRate);
+    if (filters.startDate) input.startDate = new Date(filters.startDate);
+    if (filters.endDate) input.endDate = new Date(filters.endDate);
+    return input;
   }, [filters]);
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch =
-      searchQuery === '' ||
-      event.eventTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.toLowerCase());
+  // Fetch events from real API
+  const { data: apiEvents = [], isLoading } = trpc.events.search.useQuery(searchInput);
 
-    return matchesSearch;
-  });
+  // Fetch saved event IDs for the current user
+  const { data: savedEventsData = [] } = trpc.events.getSavedEvents.useQuery(
+    {},
+    { enabled: isAuthenticated }
+  );
+  const savedEventIds = useMemo(
+    () => savedEventsData.map((se: any) => se.eventId),
+    [savedEventsData]
+  );
+
+  const saveEventMutation = trpc.events.saveEvent.useMutation();
+  const unsaveEventMutation = trpc.events.unsaveEvent.useMutation();
+  const utils = trpc.useUtils();
+
+  // Client-side text search filter on top of API results
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery) return apiEvents;
+    const q = searchQuery.toLowerCase();
+    return apiEvents.filter((event: any) =>
+      (event.eventTitle?.toLowerCase().includes(q)) ||
+      (event.artistName?.toLowerCase().includes(q)) ||
+      (event.location?.toLowerCase().includes(q))
+    );
+  }, [apiEvents, searchQuery]);
 
   const handleSaveEvent = async (eventId: number) => {
     if (!isAuthenticated) {
       toast.error('Please sign in to save events');
       return;
     }
-
     try {
-      // TODO: Call API to save/unsave event
-      // const method = savedEventIds.includes(eventId) ? 'DELETE' : 'POST';
-      // const response = await fetch(`/api/events/${eventId}/save`, { method });
-      setSavedEventIds(prev =>
-        prev.includes(eventId)
-          ? prev.filter(id => id !== eventId)
-          : [...prev, eventId]
-      );
+      if (savedEventIds.includes(eventId)) {
+        await unsaveEventMutation.mutateAsync({ eventId });
+        toast.success('Event removed from saved');
+      } else {
+        await saveEventMutation.mutateAsync({ eventId });
+        toast.success('Event saved!');
+      }
+      utils.events.getSavedEvents.invalidate();
     } catch (error) {
       toast.error('Failed to save event');
     }
@@ -162,7 +113,6 @@ export default function EventDiscovery() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Shared Header with Following link */}
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
@@ -198,7 +148,9 @@ export default function EventDiscovery() {
                     <SelectItem value="wedding">Wedding</SelectItem>
                     <SelectItem value="corporate">Corporate Event</SelectItem>
                     <SelectItem value="festival">Festival</SelectItem>
-                    <SelectItem value="club">Club Performance</SelectItem>
+                    <SelectItem value="bar_gig">Bar Gig</SelectItem>
+                    <SelectItem value="private_party">Private Party</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -273,10 +225,22 @@ export default function EventDiscovery() {
               Found {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEvents.map(event => (
+              {filteredEvents.map((event: any) => (
                 <EventCard
                   key={event.id}
-                  {...event}
+                  id={event.id}
+                  eventTitle={event.eventTitle}
+                  eventType={event.eventType}
+                  eventDate={event.eventDate}
+                  eventTime={event.eventTime}
+                  location={event.location || 'TBD'}
+                  capacity={event.capacity}
+                  rate={event.rate ? `$${event.rate}` : undefined}
+                  artistName={event.artistName || 'Unknown Artist'}
+                  artistId={event.artistId}
+                  artistPhoto={event.artistPhoto}
+                  isPublic={event.isPublic}
+                  status={event.status as 'available' | 'booked' | 'cancelled'}
                   isSaved={savedEventIds.includes(event.id)}
                   onSave={handleSaveEvent}
                   onMessage={handleMessageArtist}
@@ -291,7 +255,7 @@ export default function EventDiscovery() {
               <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 mb-2">No Events Found</h3>
               <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                Sorry, there are no events matching your criteria at this time. Try adjusting your filters or check back later.
+                There are no public events posted yet. When artists create public events, they'll appear here for you to discover and book.
               </p>
               <Button
                 variant="outline"

@@ -66,7 +66,7 @@ export const eventsRouter = router({
       }
     }),
 
-  // Get event by ID
+  // Get event by ID (enriched with artist data)
   getById: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .query(async ({ input }) => {
@@ -75,7 +75,16 @@ export const eventsRouter = router({
         if (!event) {
           throw new Error('Event not found');
         }
-        return event;
+        // Enrich with artist profile data
+        const artistProfile = await db.getArtistProfileByUserId(event.artistId);
+        return {
+          ...event,
+          artistName: artistProfile?.artistName || 'Unknown Artist',
+          artistPhoto: artistProfile?.profilePhotoUrl || undefined,
+          artistProfileId: artistProfile?.id || undefined,
+          artistGenre: Array.isArray(artistProfile?.genre) ? artistProfile.genre.join(', ') : '',
+          artistBio: artistProfile?.bio || undefined,
+        };
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to fetch event');
       }
@@ -124,7 +133,7 @@ export const eventsRouter = router({
       }
     }),
 
-  // Search public events with filters
+  // Search public events with filters (enriched with artist data)
   search: publicProcedure
     .input(searchEventsSchema)
     .query(async ({ input }) => {
@@ -136,7 +145,19 @@ export const eventsRouter = router({
           startDate: input.startDate?.toISOString().split('T')[0],
           endDate: input.endDate?.toISOString().split('T')[0],
         });
-        return events;
+        // Enrich events with artist profile data for display
+        const enriched = await Promise.all(
+          events.map(async (event) => {
+            const artistProfile = await db.getArtistProfileByUserId(event.artistId);
+            return {
+              ...event,
+              artistName: artistProfile?.artistName || 'Unknown Artist',
+              artistPhoto: artistProfile?.profilePhotoUrl || undefined,
+              artistProfileId: artistProfile?.id || undefined,
+            };
+          })
+        );
+        return enriched;
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to search events');
       }
@@ -233,6 +254,21 @@ export const eventsRouter = router({
         };
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to save event');
+      }
+    }),
+
+  // Unsave (remove) a saved event
+  unsaveEvent: protectedProcedure
+    .input(z.object({ eventId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const removed = await db.removeSavedEvent(ctx.user.id, input.eventId);
+        return {
+          success: removed,
+          message: removed ? 'Event unsaved' : 'Event was not saved',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to unsave event');
       }
     }),
 

@@ -8,32 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-
-// Mock event data - replace with API call
-const mockEvent = {
-  id: 1,
-  eventTitle: 'Summer Music Festival 2026',
-  eventType: 'Festival',
-  eventDate: new Date('2026-06-15'),
-  eventTime: '18:00',
-  eventEndTime: '23:00',
-  location: '123 Main St, New York, NY',
-  capacity: 500,
-  rate: '$5000',
-  description: 'Join us for an amazing summer music festival featuring local and international artists.',
-  isPublic: true,
-  status: 'available',
-  artistId: 1,
-  artistName: 'The Amazing Band',
-  artistPhoto: 'https://via.placeholder.com/80',
-  artistGenre: 'Rock, Alternative',
-  artistRating: 4.8,
-  artistReviews: 12,
-};
 
 export default function EventDetail() {
   const { id: idParam } = useParams();
@@ -41,37 +20,36 @@ export default function EventDetail() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
 
-  const [event, setEvent] = useState(mockEvent);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
 
-  useEffect(() => {
-    // TODO: Fetch event data from API
-    // const fetchEvent = async () => {
-    //   try {
-    //     const response = await fetch(`/api/events/${eventId}`);
-    //     if (response.ok) {
-    //       const data = await response.json();
-    //       setEvent(data);
-    //     }
-    //   } catch (error) {
-    //     toast.error('Failed to load event');
-    //   }
-    // };
-    // fetchEvent();
-  }, [eventId]);
+  // Fetch event from real API
+  const { data: event, isLoading, error } = trpc.events.getById.useQuery(
+    { id: eventId },
+    { enabled: eventId > 0 }
+  );
+
+  // Check if event is saved by current user
+  const { data: isSavedData } = trpc.events.isEventSaved.useQuery(
+    { eventId },
+    { enabled: isAuthenticated && eventId > 0 }
+  );
+  const isSaved = isSavedData ?? false;
+
+  const saveEventMutation = trpc.events.saveEvent.useMutation();
+  const unsaveEventMutation = trpc.events.unsaveEvent.useMutation();
+  const utils = trpc.useUtils();
 
   // Set SEO meta tags for the event
   useEffect(() => {
     if (event) {
-      setMetaTags(pageMetaTags.eventDetail(event.eventTitle, eventId, undefined, event.description));
+      setMetaTags(pageMetaTags.eventDetail(event.eventTitle, eventId, undefined, event.description || undefined));
     }
   }, [event, eventId]);
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return 'TBD';
     const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
@@ -82,18 +60,17 @@ export default function EventDetail() {
       return;
     }
 
-    setIsLoading(true);
     try {
-      // TODO: Call API to save/unsave event
-      // const response = await fetch(`/api/events/${eventId}/save`, {
-      //   method: isSaved ? 'DELETE' : 'POST',
-      // });
-      setIsSaved(!isSaved);
-      toast.success(isSaved ? 'Event removed from saved' : 'Event saved');
-    } catch (error) {
+      if (isSaved) {
+        await unsaveEventMutation.mutateAsync({ eventId });
+        toast.success('Event removed from saved');
+      } else {
+        await saveEventMutation.mutateAsync({ eventId });
+        toast.success('Event saved!');
+      }
+      utils.events.isEventSaved.invalidate({ eventId });
+    } catch (err) {
       toast.error('Failed to save event');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -102,22 +79,15 @@ export default function EventDetail() {
       toast.error('Please enter a message');
       return;
     }
+    if (!event) return;
 
     setIsSendingMessage(true);
     try {
-      // TODO: Send message to artist
-      // const response = await fetch('/api/messages', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     recipientId: event.artistId,
-      //     message: messageText,
-      //     eventId: eventId,
-      //   }),
-      // });
-      toast.success('Message sent to artist');
-      setMessageText('');
+      // Navigate to messages page with the artist context
+      navigate(`/messages?artistId=${event.artistId}`);
+      toast.success('Redirecting to messages...');
       setMessageDialogOpen(false);
-    } catch (error) {
+    } catch (err) {
       toast.error('Failed to send message');
     } finally {
       setIsSendingMessage(false);
@@ -125,7 +95,27 @@ export default function EventDetail() {
   };
 
   const handleNavigateToArtist = () => {
-    navigate(`/artist/${String(event.artistId)}`);
+    if (!event) return;
+    // Use artistProfileId if available, otherwise fall back to artistId
+    const profileId = (event as any).artistProfileId || event.artistId;
+    navigate(`/artist/${String(profileId)}`);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share && event) {
+      try {
+        await navigator.share({
+          title: event.eventTitle,
+          text: `Check out this event: ${event.eventTitle}`,
+          url: window.location.href,
+        });
+      } catch {
+        // User cancelled share
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard!');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -134,6 +124,8 @@ export default function EventDetail() {
         return 'bg-green-100 text-green-800';
       case 'booked':
         return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-slate-100 text-slate-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -141,17 +133,74 @@ export default function EventDetail() {
     }
   };
 
+  const getEventTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      wedding: 'Wedding',
+      corporate: 'Corporate Event',
+      festival: 'Festival',
+      bar_gig: 'Bar Gig',
+      private_party: 'Private Party',
+      concert: 'Concert',
+      other: 'Other',
+    };
+    return labels[type] || type;
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <SiteHeader />
+        <div className="flex justify-center items-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        </div>
+      </div>
+    );
+  }
+
+  // Error or not found state
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <SiteHeader />
+        <div className="container mx-auto px-4 py-16 max-w-3xl text-center">
+          <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-slate-700 mb-2">Event Not Found</h2>
+          <p className="text-slate-500 mb-6">This event may have been removed or doesn't exist.</p>
+          <Button onClick={() => navigate('/events')} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Events
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const artistName = (event as any).artistName || 'Unknown Artist';
+  const artistPhoto = (event as any).artistPhoto;
+  const artistGenre = (event as any).artistGenre || '';
+  const artistBio = (event as any).artistBio || '';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {event && <JsonLd data={[buildEventJsonLd({
+      <JsonLd data={[buildEventJsonLd({
         ...event,
-        eventDate: event.eventDate instanceof Date ? event.eventDate.toISOString().split('T')[0] : event.eventDate,
-        rate: typeof event.rate === 'string' ? event.rate.replace('$', '') : event.rate,
-      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${eventId}` }])]} id={`event-${eventId}`} />}
-      {/* Shared Header with Following link */}
+        eventDate: typeof event.eventDate === 'string' ? event.eventDate : (event.eventDate as any)?.toISOString?.()?.split('T')[0] || '',
+        rate: event.rate ? String(event.rate) : undefined,
+      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${eventId}` }])]} id={`event-${eventId}`} />
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/events')}
+          className="mb-4 gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Events
+        </Button>
+
         {/* Main Event Card */}
         <Card className="mb-6">
           <CardHeader>
@@ -159,7 +208,7 @@ export default function EventDetail() {
               <div className="flex-1">
                 <CardTitle className="text-3xl mb-2">{event.eventTitle}</CardTitle>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline">{event.eventType}</Badge>
+                  <Badge variant="outline">{getEventTypeLabel(event.eventType)}</Badge>
                   <Badge className={getStatusColor(event.status)}>
                     {event.status}
                   </Badge>
@@ -187,7 +236,7 @@ export default function EventDetail() {
                 <MapPin className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-slate-600">Location</p>
-                  <p className="text-base font-semibold">{event.location}</p>
+                  <p className="text-base font-semibold">{event.location || 'TBD'}</p>
                 </div>
               </div>
 
@@ -206,7 +255,7 @@ export default function EventDetail() {
                   <DollarSign className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-slate-600">Rate</p>
-                    <p className="text-base font-semibold">{event.rate}</p>
+                    <p className="text-base font-semibold">${event.rate}</p>
                   </div>
                 </div>
               )}
@@ -221,10 +270,10 @@ export default function EventDetail() {
             )}
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-4 border-t">
+            <div className="flex gap-2 pt-4 border-t flex-wrap">
               <Button
                 onClick={handleSaveEvent}
-                disabled={isLoading}
+                disabled={saveEventMutation.isPending || unsaveEventMutation.isPending}
                 variant={isSaved ? 'default' : 'outline'}
                 className="gap-2"
               >
@@ -233,7 +282,13 @@ export default function EventDetail() {
               </Button>
 
               <Button
-                onClick={() => setMessageDialogOpen(true)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.error('Please sign in to message artists');
+                    return;
+                  }
+                  setMessageDialogOpen(true);
+                }}
                 variant="outline"
                 className="gap-2"
               >
@@ -244,6 +299,7 @@ export default function EventDetail() {
               <Button
                 variant="outline"
                 className="gap-2 ml-auto"
+                onClick={handleShare}
               >
                 <Share2 className="h-4 w-4" />
                 Share
@@ -253,28 +309,27 @@ export default function EventDetail() {
         </Card>
 
         {/* Artist Card */}
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-lg">About the Artist</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div className="flex items-start gap-4">
-              {event.artistPhoto && (
+              {artistPhoto && (
                 <img
-                  src={event.artistPhoto}
-                  alt={event.artistName}
+                  src={artistPhoto}
+                  alt={artistName}
                   className="w-16 h-16 rounded-lg object-cover"
                 />
               )}
               <div className="flex-1">
-                <h3 className="font-semibold text-lg">{event.artistName}</h3>
-                <p className="text-sm text-slate-600">{event.artistGenre}</p>
-                {event.artistRating && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <span className="text-sm font-semibold">★ {event.artistRating}</span>
-                    <span className="text-xs text-slate-500">({event.artistReviews} reviews)</span>
-                  </div>
+                <h3 className="font-semibold text-lg">{artistName}</h3>
+                {artistGenre && (
+                  <p className="text-sm text-slate-600">{artistGenre}</p>
+                )}
+                {artistBio && (
+                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">{artistBio}</p>
                 )}
               </div>
             </div>
@@ -297,7 +352,7 @@ export default function EventDetail() {
       <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Message {event.artistName}</DialogTitle>
+            <DialogTitle>Message {artistName}</DialogTitle>
             <DialogDescription>
               Send a message about this event
             </DialogDescription>

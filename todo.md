@@ -776,3 +776,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Edit" button to public ArtistProfile page (visible only to profile owner)
 - [x] Fix onboarding redirect - now redirects to /profile/edit instead of /dashboard when profile already exists
 - [x] Verify all 1,392 tests still passing
+
+## WIRE UP EVENTS PAGES TO REAL API (Mar 2, 2026)
+
+- [x] Wire EventDiscovery page (/events) to real tRPC events.search API, replacing mock data
+- [x] Wire EventDetail page (/events/:id) to real tRPC events.getById API, replacing mock data
+- [x] Wire save/unsave event functionality to real API
+- [x] Wire event detail message artist to real messaging
+- [x] Test both pages with empty state (no real events) and verify graceful fallback
+- [ ] Save checkpoint (pending)

@@ -67,7 +67,7 @@ describe('UX Fix 2: Empty state messages for blank sections', () => {
     const filePath = join(clientSrc, 'pages', 'EventDiscovery.tsx');
     const content = readFileSync(filePath, 'utf-8');
     expect(content).toContain('No Events Found');
-    expect(content).toContain('no events matching your criteria');
+    expect(content).toContain('no public events posted yet');
   });
 
   it('VenueBrowse has improved empty state with icon', () => {
