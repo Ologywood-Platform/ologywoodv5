@@ -12,6 +12,7 @@ import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
 export default function VenueProfile() {
@@ -124,6 +125,13 @@ export default function VenueProfile() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Browse Venues', href: '/venues' },
+            { label: venueProfile?.organizationName || 'Venue' },
+          ]}
+        />
         {/* Venue Info Card */}
         <Card className="mb-6">
           <CardHeader>

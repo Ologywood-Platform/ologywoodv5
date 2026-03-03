@@ -12,6 +12,7 @@ import PaymentSection from '@/components/PaymentSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { useParams, useLocation } from 'wouter';
 
@@ -100,14 +101,14 @@ export default function BookingDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-teal-50 py-12">
       <div className="container max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard')}
+        <PageBreadcrumb
           className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Bookings', href: '/bookings' },
+            { label: `Booking #${id}` },
+          ]}
+        />
 
         <div className="space-y-6">
           {/* Booking Header */}

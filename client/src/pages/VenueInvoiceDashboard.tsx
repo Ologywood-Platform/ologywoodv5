@@ -5,6 +5,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { formatCurrency } from '@/lib/utils';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 export default function VenueInvoiceDashboard() {
   const [, navigate] = useLocation();
@@ -62,6 +63,15 @@ export default function VenueInvoiceDashboard() {
           </div>
         </div>
       </header>
+
+      <div className="container mx-auto px-4 pt-4">
+        <PageBreadcrumb
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Invoices' },
+          ]}
+        />
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">

@@ -11,6 +11,7 @@ import { LazyImage } from '@/components/LazyImage';
 import { trpc } from '@/lib/trpc';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 interface Venue {
   id: number;
@@ -107,6 +108,15 @@ export default function VenueBrowse() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {isAuthenticated && (
+          <PageBreadcrumb
+            className="mb-4"
+            segments={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Browse Venues' },
+            ]}
+          />
+        )}
         {/* Search and Filters */}
         <Card className="mb-8">
           <CardHeader>

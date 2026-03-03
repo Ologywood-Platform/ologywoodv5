@@ -9,6 +9,7 @@ import { VenueShareButtons } from '@/components/VenueShareButtons';
 import { useEffect, useState } from 'react';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 const mockVenueData: Record<number, any> = {
   1: {
@@ -189,6 +190,13 @@ export default function VenueProfileDetail() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 md:py-12">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Browse Venues', href: '/venues' },
+            { label: venue.organizationName },
+          ]}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-8">

@@ -8,6 +8,7 @@ import { ArrowLeft, Send, Search, MoreVertical } from "lucide-react";
 import { Link, useLocation, useParams } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 interface Message {
   id: number;
@@ -182,9 +183,17 @@ export default function MessagesDetail() {
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <PageBreadcrumb
+            className="mb-2"
+            segments={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Messages', href: '/messages' },
+              { label: conversation.participantName },
+            ]}
+          />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
+              <Link href="/messages">
                 <Button variant="ghost" size="icon">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>

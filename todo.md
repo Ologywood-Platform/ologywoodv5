@@ -807,3 +807,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Audit all artist-facing pages for back navigation
 - [x] Add consistent back-to-dashboard nav to: ArtistEarnings, ArtistTaxReporting, EventDiscovery, Favorites, Following
 - [x] Test all pages have working back navigation
+
+## BREADCRUMBS & VENUE NAV (Mar 3, 2026)
+
+- [x] Create reusable PageBreadcrumb component (wraps shadcn breadcrumb primitives)
+- [x] Add breadcrumbs to: EventDetail, BookingDetail, BookingCreate, BookingConfirmation, MessagesDetail, ArtistProfile
+- [x] Audit venue pages for back-nav gaps
+- [x] Fix venue pages: VenueBrowse, VenueProfile, VenueProfileDetail, VenueInvoiceDashboard (breadcrumbs), VenueOnboarding (back button)
+- [x] Test all breadcrumbs and venue nav — 0 TS errors, 1392 tests passing

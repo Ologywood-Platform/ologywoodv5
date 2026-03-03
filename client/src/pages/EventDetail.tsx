@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
@@ -191,15 +192,15 @@ export default function EventDetail() {
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/events')}
-          className="mb-4 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Events
-        </Button>
+        {/* Breadcrumb */}
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Events', href: '/events' },
+            { label: event.eventTitle },
+          ]}
+        />
 
         {/* Main Event Card */}
         <Card className="mb-6">

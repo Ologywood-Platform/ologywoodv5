@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Calendar, MapPin, DollarSign, MessageSquare, ArrowRight } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +39,14 @@ export default function BookingConfirmation() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
+        <PageBreadcrumb
+          className="mb-6"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Bookings', href: '/bookings' },
+            { label: 'Confirmation' },
+          ]}
+        />
         {/* Success Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">

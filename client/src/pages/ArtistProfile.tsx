@@ -26,6 +26,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
 
 export default function ArtistProfile() {
@@ -254,6 +255,13 @@ export default function ArtistProfile() {
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Browse', href: '/browse' },
+            { label: artist.artistName },
+          ]}
+        />
         {/* Hero Section */}
         <div className="mb-6 sm:mb-8" ref={heroRef}>
           {artist.profilePhotoUrl ? (

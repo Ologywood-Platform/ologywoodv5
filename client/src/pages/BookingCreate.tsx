@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, DollarSign, Music, Building2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
+import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 export default function BookingCreate() {
   const { user, isAuthenticated } = useAuth();
@@ -119,6 +120,14 @@ export default function BookingCreate() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <PageBreadcrumb
+          className="mb-4"
+          segments={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Bookings', href: '/bookings' },
+            { label: 'New Booking' },
+          ]}
+        />
         <Card>
           <CardHeader>
             <CardTitle>Event Details</CardTitle>
