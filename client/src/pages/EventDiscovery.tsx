@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventCard } from '@/components/EventCard';
-import { Search, Loader2, Calendar } from 'lucide-react';
+import { Search, Loader2, Calendar, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -116,6 +116,13 @@ export default function EventDiscovery() {
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
+        {/* Back to Dashboard */}
+        {isAuthenticated && (
+          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2 mb-4">
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Button>
+        )}
         {/* Search and Filters */}
         <Card className="mb-6">
           <CardHeader>

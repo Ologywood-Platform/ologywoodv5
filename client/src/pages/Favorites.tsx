@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, MapPin, DollarSign, Music, Trash2, Loader2 } from "lucide-react";
+import { Heart, MapPin, DollarSign, Music, Trash2, Loader2, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -94,6 +94,10 @@ export default function Favorites() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2 mb-4">
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Following</h1>
           <p className="text-gray-600">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, DollarSign, Clock, CheckCircle, TrendingUp } from 'lucide-react';
+import { AlertCircle, DollarSign, Clock, CheckCircle, TrendingUp, ArrowLeft } from 'lucide-react';
 
 export default function ArtistEarnings() {
+  const [, navigate] = useLocation();
   const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'stripe_connect' | 'manual'>('bank_transfer');
   const [showPayoutForm, setShowPayoutForm] = useState(false);
@@ -75,6 +77,12 @@ export default function ArtistEarnings() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
+      </div>
       <div>
         <h1 className="text-3xl font-bold">Earnings & Payouts</h1>
         <p className="text-gray-600 mt-2">Track your earnings and manage payout requests</p>

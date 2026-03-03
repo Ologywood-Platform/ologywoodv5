@@ -801,3 +801,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## EARNINGS PAGE ERRORS (Mar 3, 2026)
 
 - [x] Investigate and fix 2 errors on the Earnings page (was using raw useQuery instead of trpc hooks)
+
+## BACK-TO-DASHBOARD NAVIGATION (Mar 3, 2026)
+
+- [x] Audit all artist-facing pages for back navigation
+- [x] Add consistent back-to-dashboard nav to: ArtistEarnings, ArtistTaxReporting, EventDiscovery, Favorites, Following
+- [x] Test all pages have working back navigation

@@ -4,7 +4,7 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users } from 'lucide-react';
+import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { getLoginUrl } from '@/const';
 import SiteHeader from '@/components/SiteHeader';
@@ -50,6 +50,12 @@ export default function Following() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Dashboard
+        </Button>
+      </div>
       <FollowingList userId={user.id} />
     </div>
   );
