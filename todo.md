@@ -882,3 +882,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix stale /artist-dashboard path in robots.txt (removed)
 - [x] Add missing protected pages to robots.txt (/profile/edit, /artists/*/history, /events/create, /messages/)
 - [x] Review sitemap static pages — all accurate, dynamic pages auto-generated from DB
+
+## BUG: Phantom website link in artist profile Connect section
+- [x] Investigate why website link shows in Connect section when user never added one
+- [x] Fix: Added websiteUrl field to Edit Profile form and updateProfile API mutation
+- [x] Fix: Added hasSocialLinks check to prevent empty Connect card from showing
+- [x] Cleared phantom test data from database

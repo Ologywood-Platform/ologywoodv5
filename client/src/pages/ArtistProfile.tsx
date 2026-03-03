@@ -237,7 +237,8 @@ export default function ArtistProfile() {
     );
   }
 
-  const socialLinks = artist.socialLinks as { instagram?: string; facebook?: string; youtube?: string; spotify?: string } | null;
+  const socialLinks = artist.socialLinks as { instagram?: string; facebook?: string; youtube?: string; spotify?: string; twitter?: string } | null;
+  const hasSocialLinks = socialLinks && Object.values(socialLinks).some(v => !!v);
   const mediaGallery = artist.mediaGallery as { photos: string[]; videos: string[] } | null;
 
   return (
@@ -544,7 +545,7 @@ export default function ArtistProfile() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Social Links */}
-            {(socialLinks || artist.websiteUrl) && (
+            {(hasSocialLinks || artist.websiteUrl) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Connect</CardTitle>

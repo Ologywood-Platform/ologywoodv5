@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Camera, Save, X, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Save, X, Plus, Loader2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
@@ -66,6 +66,7 @@ export default function ArtistEditProfile() {
   const [youtube, setYoutube] = useState("");
   const [spotify, setSpotify] = useState("");
   const [twitter, setTwitter] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [customGenre, setCustomGenre] = useState("");
 
   // Populate form when profile loads
@@ -79,6 +80,7 @@ export default function ArtistEditProfile() {
       setFeeRangeMax(profile.feeRangeMax?.toString() || "");
       setTouringPartySize(profile.touringPartySize?.toString() || "1");
       setProfilePhotoUrl(profile.profilePhotoUrl || "");
+      setWebsiteUrl(profile.websiteUrl || "");
       const social = profile.socialLinks as any;
       if (social) {
         setInstagram(social.instagram || "");
@@ -179,6 +181,7 @@ export default function ArtistEditProfile() {
       feeRangeMin: feeRangeMin ? parseInt(feeRangeMin) : undefined,
       feeRangeMax: feeRangeMax ? parseInt(feeRangeMax) : undefined,
       touringPartySize: touringPartySize ? parseInt(touringPartySize) : undefined,
+      websiteUrl: websiteUrl.trim() || null,
       socialLinks: {
         instagram: instagram.trim() || undefined,
         facebook: facebook.trim() || undefined,
@@ -410,9 +413,21 @@ export default function ArtistEditProfile() {
           <Card>
             <CardHeader>
               <CardTitle>Social Links</CardTitle>
-              <CardDescription>Connect your social media profiles</CardDescription>
+              <CardDescription>Connect your website and social media profiles</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="websiteUrl" className="flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5" />
+                  Website
+                </Label>
+                <Input
+                  id="websiteUrl"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://www.yourwebsite.com"
+                />
+              </div>
               <div>
                 <Label htmlFor="instagram">Instagram</Label>
                 <Input

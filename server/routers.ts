@@ -260,6 +260,7 @@ export const appRouter = router({
         feeRangeMin: z.number().optional(),
         feeRangeMax: z.number().optional(),
         touringPartySize: z.number().optional(),
+        websiteUrl: z.string().nullable().optional(),
         socialLinks: z.object({
           instagram: z.string().optional(),
           facebook: z.string().optional(),
