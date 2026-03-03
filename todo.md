@@ -829,3 +829,31 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fixed EventForm dropdown values to match backend enums
 - [x] Fixed EventCreate hooks ordering (React rules of hooks violation)
 - [x] Fixed isPublic boolean storage in MySQL (drizzle ORM handles correctly, raw SQL needed explicit 1/0)
+
+## EVENT HISTORY & PORTFOLIO FEATURE (Mar 3, 2026)
+
+### Backend
+- [x] Add events.createHistory route (protected, artist-only)
+- [x] Add events.updateHistory route (protected, artist-only, ownership check)
+- [x] Add events.deleteHistory route (protected, cascade-delete photos)
+- [x] Add events.uploadEventPhoto route (protected, base64 → S3 via handlePhotoUpload)
+- [x] Add events.deletePhoto route (protected, ownership check)
+
+### Frontend Components
+- [x] Build AddPerformanceForm component (modal with event name, date, venue, attendee count, notes)
+- [x] Build PhotoUploadGallery component (upload, grid display, delete, captions)
+
+### Frontend Pages
+- [x] Rewrite ArtistHistory page with dual-mode (public portfolio grid + owner edit view)
+- [x] Add photo gallery to each history entry (expandable per entry)
+- [x] Add owner controls (add/delete history entries; upload/delete photos via PhotoUploadGallery)
+
+### Integration Points
+- [x] ArtistProfile: show 4 recent portfolio photos as preview thumbnails + stats
+- [x] ArtistDashboard: add Portfolio quick-action button (Camera icon)
+- [x] BookingDetail: add "Add to Portfolio" button on completed bookings (navigates to portfolio with pre-filled data)
+
+### Testing
+- [x] All 1392 existing tests passing, 0 TS errors outside deprecated
+- [x] Tested dashboard Portfolio button, portfolio page empty state, breadcrumbs, owner view
+- [ ] Save checkpoint

@@ -2084,3 +2084,65 @@ export async function getArtistReleaseSalesStats(artistId: number): Promise<{
     totalRevenueCents: releases.reduce((sum, r) => sum + r.totalRevenueCents, 0),
   };
 }
+
+
+/**
+ * Update an event history entry.
+ */
+export async function updateEventHistory(historyId: number, data: Partial<InsertEventHistory>): Promise<EventHistory | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(eventHistory).set(data).where(eq(eventHistory.id, historyId));
+  const result = await db.select().from(eventHistory).where(eq(eventHistory.id, historyId)).limit(1);
+  return result[0] ?? null;
+}
+
+/**
+ * Delete an event history entry and its associated photos.
+ */
+export async function deleteEventHistory(historyId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  try {
+    // Delete associated photos first
+    await db.delete(eventPhotos).where(eq(eventPhotos.eventHistoryId, historyId));
+    // Delete the history entry
+    await db.delete(eventHistory).where(eq(eventHistory.id, historyId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting event history:', error);
+    return false;
+  }
+}
+
+/**
+ * Get portfolio stats for an artist (history count + photo count).
+ */
+export async function getArtistPortfolioStats(artistId: number): Promise<{ historyCount: number; photoCount: number }> {
+  const db = await getDb();
+  if (!db) return { historyCount: 0, photoCount: 0 };
+  const histories = await db.select().from(eventHistory).where(eq(eventHistory.artistId, artistId));
+  const historyIds = histories.map(h => h.id);
+  let photoCount = 0;
+  if (historyIds.length > 0) {
+    const photos = await db.select().from(eventPhotos).where(inArray(eventPhotos.eventHistoryId, historyIds));
+    photoCount = photos.length;
+  }
+  return { historyCount: histories.length, photoCount };
+}
+
+/**
+ * Get recent portfolio photos for an artist (for profile preview).
+ */
+export async function getArtistRecentPhotos(artistId: number, limit: number = 3): Promise<EventPhoto[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const histories = await db.select().from(eventHistory).where(eq(eventHistory.artistId, artistId));
+  const historyIds = histories.map(h => h.id);
+  if (historyIds.length === 0) return [];
+  const photos = await db.select().from(eventPhotos)
+    .where(inArray(eventPhotos.eventHistoryId, historyIds))
+    .orderBy(desc(eventPhotos.createdAt))
+    .limit(limit);
+  return photos;
+}

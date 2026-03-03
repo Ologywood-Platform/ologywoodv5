@@ -77,6 +77,16 @@ export default function ArtistProfile() {
     { artistId },
     { enabled: isValidId }
   );
+  const { data: recentPhotos = [] } = trpc.events.getRecentPhotos.useQuery(
+    { artistId, limit: 4 },
+    { enabled: isValidId }
+  );
+
+  const { data: portfolioStats } = trpc.events.getPortfolioStats.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+
   const { data: releases } = trpc.release.getByArtist.useQuery(
     { artistId },
     { enabled: isValidId }
@@ -749,19 +759,38 @@ export default function ArtistProfile() {
             {/* Event History/Portfolio */}
             <Card>
               <CardHeader>
-                <CardTitle>Event History & Portfolio</CardTitle>
-                <CardDescription>Past events and performance photos</CardDescription>
+                <CardTitle>Performance Portfolio</CardTitle>
+                <CardDescription>
+                  {portfolioStats
+                    ? `${portfolioStats.historyCount} performances · ${portfolioStats.photoCount} photos`
+                    : 'Past events and performance photos'}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-600 mb-4">
-                  See photos and details from previous events this artist has performed at.
-                </p>
+                {/* Recent photo thumbnails */}
+                {recentPhotos.length > 0 ? (
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {recentPhotos.map((photo: any) => (
+                      <div key={photo.id} className="aspect-square rounded-md overflow-hidden bg-muted">
+                        <img
+                          src={photo.photoUrl}
+                          alt={photo.caption || 'Performance photo'}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">
+                    See details from previous events this artist has performed at.
+                  </p>
+                )}
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => navigate(`/artists/${artistId}/history`)}
                 >
-                  View Portfolio
+                  View Full Portfolio
                 </Button>
               </CardContent>
             </Card>

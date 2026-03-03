@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, MapPin, DollarSign, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, DollarSign, Clock, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
@@ -219,6 +219,36 @@ export default function BookingDetail() {
             paymentStatus={booking.paymentStatus || undefined}
             isVenue={user.role === "venue"}
           />
+
+          {/* Add to Portfolio - Only show for artists on completed bookings */}
+          {user.role === 'artist' && booking.status === 'completed' && (
+            <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+              <CardContent className="py-5 flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-sm">Add to Your Portfolio</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Showcase this performance in your portfolio with photos and details
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 shrink-0"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      eventName: booking.eventDetails || 'Performance',
+                      eventDate: booking.eventDate ? new Date(booking.eventDate).toISOString().split('T')[0] : '',
+                      bookingId: bookingId.toString(),
+                    });
+                    navigate(`/artists/${booking.artistId}/history?addFromBooking=true&${params.toString()}`);
+                  }}
+                >
+                  <Camera className="h-4 w-4" />
+                  Add to Portfolio
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Artist Review of Venue - Only show for artists on completed bookings */}
           {user.role === 'artist' && booking.status === 'completed' && (

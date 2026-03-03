@@ -241,6 +241,153 @@ export const eventsRouter = router({
       }
     }),
 
+  // Create event history entry (artist logs a past performance)
+  createHistory: protectedProcedure
+    .input(z.object({
+      eventName: z.string().min(1, 'Event name is required'),
+      eventDate: z.string().min(1, 'Event date is required'),
+      venueName: z.string().optional(),
+      location: z.string().optional(),
+      attendeeCount: z.number().int().optional(),
+      notes: z.string().optional(),
+      eventId: z.number().int().optional(),
+      bookingId: z.number().int().optional(),
+      venueId: z.number().int().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const history = await db.createEventHistory({
+          artistId: ctx.user.id,
+          eventDate: new Date(input.eventDate),
+          notes: input.notes ? `**${input.eventName}**${input.venueName ? ` at ${input.venueName}` : ''}${input.location ? ` — ${input.location}` : ''}\n\n${input.notes}` : `**${input.eventName}**${input.venueName ? ` at ${input.venueName}` : ''}${input.location ? ` — ${input.location}` : ''}`,
+          attendeeCount: input.attendeeCount,
+          eventId: input.eventId,
+          bookingId: input.bookingId,
+          venueId: input.venueId,
+        });
+        return { success: true, history, message: 'Performance added to portfolio' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create history entry');
+      }
+    }),
+
+  // Update event history entry (artist edits their own entry)
+  updateHistory: protectedProcedure
+    .input(z.object({
+      historyId: z.number().int().positive(),
+      eventName: z.string().optional(),
+      eventDate: z.string().optional(),
+      venueName: z.string().optional(),
+      location: z.string().optional(),
+      attendeeCount: z.number().int().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const existing = await db.getEventHistoryById(input.historyId);
+        if (!existing) throw new Error('History entry not found');
+        if (existing.artistId !== ctx.user.id) throw new Error('Not authorized to edit this entry');
+        const updateData: any = {};
+        if (input.eventDate) updateData.eventDate = input.eventDate;
+        if (input.attendeeCount !== undefined) updateData.attendeeCount = input.attendeeCount;
+        if (input.notes !== undefined || input.eventName) {
+          const name = input.eventName || '';
+          const venue = input.venueName ? ` at ${input.venueName}` : '';
+          const loc = input.location ? ` — ${input.location}` : '';
+          const body = input.notes || '';
+          updateData.notes = body ? `**${name}**${venue}${loc}\n\n${body}` : `**${name}**${venue}${loc}`;
+        }
+        const updated = await db.updateEventHistory(input.historyId, updateData);
+        return { success: true, history: updated, message: 'Portfolio entry updated' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to update history entry');
+      }
+    }),
+
+  // Delete event history entry (cascade-deletes photos)
+  deleteHistory: protectedProcedure
+    .input(z.object({ historyId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const existing = await db.getEventHistoryById(input.historyId);
+        if (!existing) throw new Error('History entry not found');
+        if (existing.artistId !== ctx.user.id) throw new Error('Not authorized to delete this entry');
+        const deleted = await db.deleteEventHistory(input.historyId);
+        return { success: deleted, message: deleted ? 'Portfolio entry deleted' : 'Failed to delete' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to delete history entry');
+      }
+    }),
+
+  // Upload photo to event history entry (base64 → S3)
+  uploadEventPhoto: protectedProcedure
+    .input(z.object({
+      eventHistoryId: z.number().int().positive(),
+      fileData: z.string().min(1, 'File data is required'),
+      fileName: z.string().min(1, 'File name is required'),
+      mimeType: z.string().min(1, 'MIME type is required'),
+      caption: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Verify ownership
+        const historyEntry = await db.getEventHistoryById(input.eventHistoryId);
+        if (!historyEntry) throw new Error('History entry not found');
+        if (historyEntry.artistId !== ctx.user.id) throw new Error('Not authorized to upload photos to this entry');
+        // Upload to S3 via existing handler
+        const { handlePhotoUpload } = await import('../handlers/imageUploadHandler');
+        const uploadResult = await handlePhotoUpload(
+          { fileData: input.fileData, fileName: input.fileName, mimeType: input.mimeType },
+          ctx.user.id,
+          'event-photos'
+        );
+        // Save photo record
+        const photo = await db.addEventPhoto({
+          eventHistoryId: input.eventHistoryId,
+          photoUrl: uploadResult.url,
+          caption: input.caption,
+          uploadedBy: ctx.user.id,
+        });
+        return { success: true, photo, url: uploadResult.url, message: 'Photo uploaded successfully' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to upload photo');
+      }
+    }),
+
+  // Delete a photo from event history
+  deletePhoto: protectedProcedure
+    .input(z.object({ photoId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const deleted = await db.deleteEventPhoto(input.photoId);
+        return { success: deleted, message: deleted ? 'Photo deleted' : 'Failed to delete photo' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to delete photo');
+      }
+    }),
+
+  // Get portfolio stats for an artist
+  getPortfolioStats: publicProcedure
+    .input(z.object({ artistId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        return await db.getArtistPortfolioStats(input.artistId);
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch portfolio stats');
+      }
+    }),
+
+  // Get recent portfolio photos for artist profile preview
+  getRecentPhotos: publicProcedure
+    .input(z.object({ artistId: z.number().int().positive(), limit: z.number().int().optional() }))
+    .query(async ({ input }) => {
+      try {
+        return await db.getArtistRecentPhotos(input.artistId, input.limit || 3);
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch recent photos');
+      }
+    }),
+
   // Save event (bookmark/wishlist)
   saveEvent: protectedProcedure
     .input(z.object({ eventId: z.number().int().positive() }))
