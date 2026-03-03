@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ErrorToast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,47 +27,23 @@ export default function ArtistEarnings() {
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'stripe_connect' | 'manual'>('bank_transfer');
   const [showPayoutForm, setShowPayoutForm] = useState(false);
 
+  const toast = useToast();
+
   // Fetch earnings data from payout router
-  const { data: earningsData, isLoading: earningsLoading } = useQuery({
-    queryKey: ['payout.getEarnings'],
-    queryFn: async () => {
-      return await (trpc.payout.getEarnings as any)();
-    },
-  });
+  const { data: earningsData, isLoading: earningsLoading } = trpc.payout.getEarnings.useQuery();
 
   // Fetch payout history from payout router
-  const { data: payoutHistory, isLoading: historyLoading } = useQuery({
-    queryKey: ['payout.getPayoutHistory'],
-    queryFn: async () => {
-      return await (trpc.payout.getPayoutHistory as any)();
-    },
-  });
+  const { data: payoutHistory, isLoading: historyLoading } = trpc.payout.getPayoutHistory.useQuery();
 
   // Request payout mutation using payout router
-  const requestPayoutMutation = useMutation({
-    mutationFn: async () => {
-      const amount = parseFloat(payoutAmount);
-      if (!amount || amount <= 0) {
-        throw new Error('Please enter a valid amount');
-      }
-      if (amount > (earningsData?.completedEarnings || 0)) {
-        throw new Error('Insufficient balance for this payout amount');
-      }
-
-      const result = await (trpc.payout.requestPayout as any)({
-        amount,
-        payoutMethod,
-        bankAccountId: undefined,
-      });
-      return result;
-    },
+  const requestPayoutMutation = trpc.payout.requestPayout.useMutation({
     onSuccess: () => {
-      toast.success('Payout requested successfully');
+      toast.addSuccess('Payout requested', 'Your payout request has been submitted successfully.');
       setPayoutAmount('');
       setShowPayoutForm(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to request payout');
+      toast.addError('Payout failed', error.message || 'Failed to request payout');
     },
   });
 
@@ -194,7 +169,18 @@ export default function ArtistEarnings() {
 
               <div className="flex gap-2">
                 <Button
-                  onClick={() => requestPayoutMutation.mutate()}
+                  onClick={() => {
+                    const amount = parseFloat(payoutAmount);
+                    if (!amount || amount <= 0) {
+                      toast.addError('Invalid amount', 'Please enter a valid amount');
+                      return;
+                    }
+                    if (amount > (earningsData?.completedEarnings || 0)) {
+                      toast.addError('Insufficient balance', 'Insufficient balance for this payout amount');
+                      return;
+                    }
+                    requestPayoutMutation.mutate({ amount, payoutMethod, bankAccountId: undefined as any });
+                  }}
                   disabled={requestPayoutMutation.isPending || !payoutAmount}
                 >
                   {requestPayoutMutation.isPending ? 'Processing...' : 'Submit Request'}

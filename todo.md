@@ -784,4 +784,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Wire save/unsave event functionality to real API
 - [x] Wire event detail message artist to real messaging
 - [x] Test both pages with empty state (no real events) and verify graceful fallback
-- [ ] Save checkpoint (pending)
+- [x] Save checkpoint
+
+## ARTIST RELEASE MANAGEMENT (Mar 2, 2026)
+
+- [ ] Audit current Releases tab implementation in dashboard
+- [ ] Check if releases DB table/schema exists or needs creation
+- [ ] Build release creation page with fields (title, type, release date, cover art, tracks, description, streaming links)
+- [ ] Build releases list/management view for the dashboard
+- [ ] Add routes for releases CRUD (create, read, update, delete)
+- [ ] Wire Releases quick action button to the new release management page
+- [ ] Allow free-tier artists to create releases (remove paywall for basic release management)
+- [ ] Test full release creation and management flow
+- [ ] Save checkpoint
+
+## EARNINGS PAGE ERRORS (Mar 3, 2026)
+
+- [x] Investigate and fix 2 errors on the Earnings page (was using raw useQuery instead of trpc hooks)
