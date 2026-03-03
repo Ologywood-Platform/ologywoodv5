@@ -71,6 +71,7 @@ const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
 const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const ArtistHistory = lazy(() => import("./pages/ArtistHistory"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -113,6 +114,7 @@ function Router() {
           {/* Discovery */}
           <Route path="/browse">{() => <PageErrorBoundary><Browse /></PageErrorBoundary>}</Route>
           <Route path="/artist/:id">{(params: any) => <PageErrorBoundary><ArtistProfile {...params} /></PageErrorBoundary>}</Route>
+          <Route path="/artists/:id/history" component={ArtistHistory} />
           <Route path="/venues" component={VenueBrowse} />
           <Route path="/venue/:id" component={VenueProfile} />
           <Route path="/venues/:id" component={VenueProfileDetail} />

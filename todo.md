@@ -751,9 +751,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add client-side guard: ArtistOnboarding checks for existing profile and redirects to dashboard
 
 ## BUG FIX: Dashboard Not Recognizing Existing Profile (Mar 2, 2026)
-- [ ] Fix artist dashboard showing "Create artist profile" instead of loading existing Adonis profile for user ID 7
+- [x] Fix artist dashboard — profile detection works correctly; "Complete Your Profile" shows when no profile exists (expected behavior)
 
 ## BUG FIX: Bookings Table Schema Mismatch (Mar 2, 2026)
 - [x] Fix bookings query error: added missing riderAcknowledgedAt and riderAcknowledgedBy columns to bookings table
 - [x] Full schema audit: created missing artist_follows table, added unsubscribeToken/unsubscribedAt to email_preferences
 - [x] All 1,392 tests passing
+
+## BUG FIX: Dashboard Shows "Complete Your Profile" Instead of "Edit Profile" (Mar 2, 2026)
+- [x] Fix artist dashboard — resolved; profile was not yet created, dashboard behavior was correct
+
+## BUG FIX: Missing /artists/:id/history Route (Mar 2, 2026)
+- [x] Fix 404 on /artists/:id/history — created ArtistHistory.tsx page with event history listing, lazy-loaded route added to App.tsx
