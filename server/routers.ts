@@ -1798,8 +1798,8 @@ export const appRouter = router({
           cancel_url: `${origin}/booking/${input.bookingId}?payment=cancelled`,
           metadata: {
             bookingId: input.bookingId.toString(),
-            type: 'deposit',
-            user_id: ctx.user.id.toString(),
+            paymentType: 'deposit',
+            userId: ctx.user.id.toString(),
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
           },
@@ -1850,14 +1850,99 @@ export const appRouter = router({
           cancel_url: `${origin}/booking/${input.bookingId}?payment=cancelled`,
           metadata: {
             bookingId: input.bookingId.toString(),
-            type: 'full_payment',
-            user_id: ctx.user.id.toString(),
+            paymentType: 'final_payment',
+            userId: ctx.user.id.toString(),
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
           },
         });
         
         return { sessionId: session.id, url: session.url };
+      }),
+    
+    // Verify payment after returning from Stripe checkout (webhook fallback)
+    verifyPayment: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // If fully paid, nothing more to do
+        if (booking.paymentStatus === 'fully_paid') {
+          return { status: 'fully_paid', updated: false };
+        }
+        
+        // Check Stripe for recent completed checkout sessions for this booking
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+        
+        try {
+          const sessions = await stripe.checkout.sessions.list({
+            limit: 10,
+          });
+          
+          // Find ALL completed sessions for this booking (sorted newest first by Stripe)
+          const bookingSessions = sessions.data.filter(
+            (s) => s.metadata?.bookingId === input.bookingId.toString() && s.payment_status === 'paid'
+          );
+          
+          if (bookingSessions.length === 0) {
+            return { status: booking.paymentStatus || 'unpaid', updated: false };
+          }
+          
+          // Check for final_payment session first (most recent sessions come first)
+          const finalSession = bookingSessions.find(s => s.metadata?.paymentType === 'final_payment');
+          const depositSession = bookingSessions.find(s => s.metadata?.paymentType === 'deposit');
+          
+          // If we have a final payment and booking is deposit_paid or has a deposit session, mark fully paid
+          if (finalSession && (booking.paymentStatus === 'deposit_paid' || depositSession)) {
+            await db.updateBookingPaymentStatus(
+              input.bookingId, 
+              'fully_paid', 
+              finalSession.id, 
+              'final_payment'
+            );
+            return { status: 'fully_paid', updated: true };
+          }
+          
+          // If we have a deposit session and booking is unpaid, mark deposit paid
+          if (depositSession && booking.paymentStatus === 'unpaid') {
+            await db.updateBookingPaymentStatus(
+              input.bookingId, 
+              'deposit_paid', 
+              depositSession.id, 
+              'deposit'
+            );
+            
+            // Store the deposit amount if not already set
+            if (!booking.depositAmount) {
+              const depositAmount = (depositSession.amount_total || 0) / 100;
+              await db.updateBooking(input.bookingId, { depositAmount: depositAmount.toString() });
+            }
+            
+            return { status: 'deposit_paid', updated: true };
+          }
+          
+          // If we have a full payment (no type specified) and booking is unpaid
+          const fullPaymentSession = bookingSessions.find(s => !s.metadata?.paymentType);
+          if (fullPaymentSession && booking.paymentStatus === 'unpaid') {
+            await db.updateBookingPaymentStatus(
+              input.bookingId, 
+              'fully_paid', 
+              fullPaymentSession.id, 
+              'full'
+            );
+            return { status: 'fully_paid', updated: true };
+          }
+          
+          return { status: booking.paymentStatus || 'unpaid', updated: false };
+        } catch (error) {
+          console.error('[Payment Verify] Error checking Stripe sessions:', error);
+          return { status: booking.paymentStatus || 'unpaid', updated: false };
+        }
       }),
     
     // Get payment history

@@ -657,7 +657,7 @@ export async function updateBookingPaymentStatus(
     if (stripeSessionId) updateData.stripeDepositPaymentIntentId = stripeSessionId;
     // Auto-confirm booking when deposit is paid
     updateData.status = 'confirmed';
-  } else if (paymentType === 'final') {
+  } else if (paymentType === 'final_payment' || paymentType === 'final') {
     updateData.finalPaidAt = new Date();
     if (stripeSessionId) updateData.stripeFinalPaymentIntentId = stripeSessionId;
     // Mark booking as completed when fully paid

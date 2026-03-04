@@ -15,14 +15,52 @@ import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { useParams, useLocation } from 'wouter';
+import { useEffect, useRef } from 'react';
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const bookingId = id ? parseInt(id, 10) : 0;
+  const paymentVerified = useRef(false);
 
   const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId }, { enabled: bookingId > 0 });
+  const verifyPayment = trpc.payment.verifyPayment.useMutation();
+
+  // Auto-verify payment when returning from Stripe checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success' && bookingId > 0 && !paymentVerified.current) {
+      paymentVerified.current = true;
+      toast.info('Verifying your payment...');
+      verifyPayment.mutateAsync({ bookingId }).then((result) => {
+        if (result.updated) {
+          toast.success(result.status === 'deposit_paid' 
+            ? 'Deposit payment confirmed! The booking has been updated.' 
+            : 'Payment confirmed! The booking is now fully paid.');
+          refetch();
+        } else if (result.status !== 'unpaid') {
+          toast.success('Payment already recorded.');
+          refetch();
+        } else {
+          toast.info('Payment is being processed. It may take a moment to update.');
+          // Retry after a short delay
+          setTimeout(() => {
+            verifyPayment.mutateAsync({ bookingId }).then((retryResult) => {
+              if (retryResult.updated) {
+                toast.success('Payment confirmed!');
+                refetch();
+              }
+            }).catch(() => {});
+          }, 5000);
+        }
+        // Clean up URL
+        window.history.replaceState({}, '', `/booking/${bookingId}`);
+      }).catch(() => {
+        toast.error('Could not verify payment. Please refresh the page.');
+      });
+    }
+  }, [bookingId]);
   const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
   const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
