@@ -39,7 +39,7 @@ describe('Subscription Management Component', () => {
     it('includes tier descriptions', () => {
       expect(src).toContain('2 bookings/month');
       expect(src).toContain('Unlimited bookings');
-      expect(src).toContain('Contracts, e-signatures');
+      expect(src).toContain('contracts, analytics');
     });
 
     it('assigns distinct icons per tier', () => {

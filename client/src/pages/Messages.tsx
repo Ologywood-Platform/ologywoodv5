@@ -334,8 +334,11 @@ export default function Messages() {
             const isRider = msg.messageType === 'rider';
 
             if (isRider) {
-              const riderData = msg.metadata?.riderTemplateData || {};
-              const riderName = msg.metadata?.riderTemplateName || 'Rider';
+              // Parse metadata if it's a string
+              const parsedMetadata = typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : msg.metadata;
+              const riderData = parsedMetadata?.riderTemplateData || {};
+              const formData = riderData.formData || riderData;
+              const riderName = parsedMetadata?.riderTemplateName || 'Rider';
               return (
                 <div
                   key={msg.id}
@@ -354,17 +357,18 @@ export default function Messages() {
                     </div>
                     {/* Quick summary */}
                     <div className="text-xs text-muted-foreground space-y-1 mb-3">
-                      {riderData.stageSize && <p>Stage: {riderData.stageSize}</p>}
-                      {riderData.soundRequirements && <p>Sound: {riderData.soundRequirements}</p>}
-                      {riderData.dressingRooms && <p>Dressing Rooms: {riderData.dressingRooms}</p>}
-                      {riderData.depositRequired && <p>Deposit: {riderData.depositRequired}</p>}
+                      {formData.stage_size_min && <p>Stage: {formData.stage_size_min}</p>}
+                      {formData.sound_system && <p>Sound: {formData.sound_system}</p>}
+                      {formData.green_room && <p>Green Room: {formData.green_room}</p>}
+                      {formData.deposit_percentage && <p>Deposit: {formData.deposit_percentage}</p>}
+                      {formData.performance_duration && <p>Performance: {formData.performance_duration} min</p>}
                     </div>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         variant="outline"
                         className="h-7 text-xs"
-                        onClick={() => setViewingRider(msg.metadata)}
+                        onClick={() => setViewingRider(parsedMetadata)}
                       >
                         <Eye className="h-3 w-3 mr-1" />
                         View Full Rider
@@ -593,67 +597,80 @@ export default function Messages() {
               </Button>
             </div>
             <div className="p-4 space-y-4">
-              {/* Technical Requirements */}
-              {(viewingRider.riderTemplateData?.stageSize || viewingRider.riderTemplateData?.soundRequirements || viewingRider.riderTemplateData?.lightingRequirements || viewingRider.riderTemplateData?.backlineRequirements) && (
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-2">Technical Requirements</h4>
-                  <div className="space-y-2 text-sm">
-                    {viewingRider.riderTemplateData.stageSize && (
-                      <div><span className="font-medium">Stage Size:</span> {viewingRider.riderTemplateData.stageSize}</div>
+              {(() => {
+                const rd = viewingRider.riderTemplateData || {};
+                const fd = rd.formData || rd;
+                return (
+                  <>
+                    {/* Technical Requirements */}
+                    {(fd.stage_size_min || fd.sound_system || fd.lighting || fd.monitors || fd.microphones) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-primary mb-2">Technical Requirements</h4>
+                        <div className="space-y-2 text-sm">
+                          {fd.stage_size_min && <div><span className="font-medium">Stage Size:</span> {fd.stage_size_min}</div>}
+                          {fd.stage_surface && <div><span className="font-medium">Stage Surface:</span> {fd.stage_surface}</div>}
+                          {fd.sound_system && <div><span className="font-medium">Sound System:</span> {fd.sound_system}</div>}
+                          {fd.monitors && <div><span className="font-medium">Monitors:</span> {fd.monitors}</div>}
+                          {fd.microphones && <div><span className="font-medium">Microphones:</span> {fd.microphones}</div>}
+                          {fd.di_boxes && <div><span className="font-medium">DI Boxes:</span> {fd.di_boxes}</div>}
+                          {fd.lighting && <div><span className="font-medium">Lighting:</span> {fd.lighting}</div>}
+                          {fd.power_outlets && <div><span className="font-medium">Power Outlets:</span> {fd.power_outlets}</div>}
+                        </div>
+                      </div>
                     )}
-                    {viewingRider.riderTemplateData.soundRequirements && (
-                      <div><span className="font-medium">Sound:</span> {viewingRider.riderTemplateData.soundRequirements}</div>
+                    {/* Performance Details */}
+                    {(fd.performance_duration || fd.soundcheck_duration || fd.load_in_time) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-primary mb-2">Performance Details</h4>
+                        <div className="space-y-2 text-sm">
+                          {fd.performance_duration && <div><span className="font-medium">Performance Duration:</span> {fd.performance_duration} min</div>}
+                          {fd.num_sets && <div><span className="font-medium">Number of Sets:</span> {fd.num_sets}</div>}
+                          {fd.set_break_duration && <div><span className="font-medium">Break Duration:</span> {fd.set_break_duration} min</div>}
+                          {fd.soundcheck_duration && <div><span className="font-medium">Soundcheck:</span> {fd.soundcheck_duration} min</div>}
+                          {fd.load_in_time && <div><span className="font-medium">Load-in Time:</span> {fd.load_in_time} hrs before</div>}
+                        </div>
+                      </div>
                     )}
-                    {viewingRider.riderTemplateData.lightingRequirements && (
-                      <div><span className="font-medium">Lighting:</span> {viewingRider.riderTemplateData.lightingRequirements}</div>
+                    {/* Hospitality Requirements */}
+                    {(fd.green_room || fd.meals || fd.beverages || fd.parking) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-primary mb-2">Hospitality Requirements</h4>
+                        <div className="space-y-2 text-sm">
+                          {fd.green_room && <div><span className="font-medium">Green Room:</span> {fd.green_room}</div>}
+                          {fd.meals && <div><span className="font-medium">Meals:</span> {fd.meals}</div>}
+                          {fd.beverages && <div><span className="font-medium">Beverages:</span> {fd.beverages}</div>}
+                          {fd.towels && <div><span className="font-medium">Towels:</span> Yes</div>}
+                          {fd.wifi_required && <div><span className="font-medium">WiFi:</span> Required</div>}
+                          {fd.parking && <div><span className="font-medium">Parking:</span> {fd.parking}</div>}
+                        </div>
+                      </div>
                     )}
-                    {viewingRider.riderTemplateData.backlineRequirements && (
-                      <div><span className="font-medium">Backline:</span> {viewingRider.riderTemplateData.backlineRequirements}</div>
+                    {/* Financial Terms */}
+                    {(fd.deposit_percentage || fd.payment_method || fd.cancellation_policy) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-primary mb-2">Financial Terms</h4>
+                        <div className="space-y-2 text-sm">
+                          {fd.deposit_percentage && <div><span className="font-medium">Deposit:</span> {fd.deposit_percentage}</div>}
+                          {fd.deposit_due_date && <div><span className="font-medium">Deposit Due:</span> {fd.deposit_due_date}</div>}
+                          {fd.balance_due_date && <div><span className="font-medium">Balance Due:</span> {fd.balance_due_date}</div>}
+                          {fd.payment_method && <div><span className="font-medium">Payment Method:</span> {fd.payment_method}</div>}
+                          {fd.cancellation_policy && <div><span className="font-medium">Cancellation Policy:</span> {fd.cancellation_policy}</div>}
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </div>
-              )}
-              {/* Hospitality Requirements */}
-              {(viewingRider.riderTemplateData?.dressingRooms || viewingRider.riderTemplateData?.cateringRequirements || viewingRider.riderTemplateData?.accommodationRequirements) && (
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-2">Hospitality Requirements</h4>
-                  <div className="space-y-2 text-sm">
-                    {viewingRider.riderTemplateData.dressingRooms && (
-                      <div><span className="font-medium">Dressing Rooms:</span> {viewingRider.riderTemplateData.dressingRooms}</div>
+                    {/* Policies */}
+                    {(fd.recording_policy || fd.merch_sales) && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-primary mb-2">Policies</h4>
+                        <div className="space-y-2 text-sm">
+                          {fd.recording_policy && <div><span className="font-medium">Recording:</span> {fd.recording_policy}</div>}
+                          {fd.merch_sales && <div><span className="font-medium">Merch Sales:</span> {fd.merch_sales}</div>}
+                        </div>
+                      </div>
                     )}
-                    {viewingRider.riderTemplateData.cateringRequirements && (
-                      <div><span className="font-medium">Catering:</span> {viewingRider.riderTemplateData.cateringRequirements}</div>
-                    )}
-                    {viewingRider.riderTemplateData.accommodationRequirements && (
-                      <div><span className="font-medium">Accommodation:</span> {viewingRider.riderTemplateData.accommodationRequirements}</div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {/* Financial Terms */}
-              {(viewingRider.riderTemplateData?.depositRequired || viewingRider.riderTemplateData?.paymentMethod || viewingRider.riderTemplateData?.cancellationPolicy) && (
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-2">Financial Terms</h4>
-                  <div className="space-y-2 text-sm">
-                    {viewingRider.riderTemplateData.depositRequired && (
-                      <div><span className="font-medium">Deposit:</span> {viewingRider.riderTemplateData.depositRequired}</div>
-                    )}
-                    {viewingRider.riderTemplateData.paymentMethod && (
-                      <div><span className="font-medium">Payment Method:</span> {viewingRider.riderTemplateData.paymentMethod}</div>
-                    )}
-                    {viewingRider.riderTemplateData.cancellationPolicy && (
-                      <div><span className="font-medium">Cancellation Policy:</span> {viewingRider.riderTemplateData.cancellationPolicy}</div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {/* Additional Notes */}
-              {viewingRider.riderTemplateData?.additionalNotes && (
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-2">Additional Notes</h4>
-                  <p className="text-sm">{viewingRider.riderTemplateData.additionalNotes}</p>
-                </div>
-              )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>

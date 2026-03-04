@@ -914,3 +914,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Feature: Booking payment flow - cancellation/refund logic (venue cancels = artist keeps deposit, artist cancels = venue gets full refund)
 - [x] Bug: Browse Artist button on Following page leads to 404 (navigated to /artists instead of /browse)
 - [x] Bug: Subscription plan descriptions are inaccurate - audited and fixed all tier descriptions across SubscriptionManagement, Pricing page, FAQ, and deprecated wizard to accurately reflect features per tier
+- [x] Bug: Rider message in Messages page not showing summary or View Full Rider properly (field names mismatched - used camelCase but data uses snake_case under formData)
