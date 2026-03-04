@@ -331,6 +331,20 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
           {/* Audio Preview Player */}
           {(isPlaying || (audioRef.current && progress > 0)) && (
             <div className="mt-3 flex items-center gap-2">
+              {/* Cover art thumbnail */}
+              <div className="flex-shrink-0 w-8 h-8 rounded overflow-hidden bg-muted">
+                {release.coverArtUrl ? (
+                  <img
+                    src={release.coverArtUrl}
+                    alt={`${release.title} cover`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Music className="h-4 w-4 text-muted-foreground/40" />
+                  </div>
+                )}
+              </div>
               <button
                 onClick={handlePreviewToggle}
                 className="flex-shrink-0 p-1 rounded-full hover:bg-muted transition-colors"

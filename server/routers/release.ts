@@ -10,6 +10,29 @@ import { TRPCError } from "@trpc/server";
 import * as db from "../db";
 import { hasFeatureAccess, canCreateRelease, getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 import { sendArtistUpdate } from "../services/artistUpdateService";
+import { storageGet } from "../storage";
+
+// Helper to resolve S3 keys to presigned URLs for a release
+async function withUrls(release: any) {
+  const result = { ...release, coverArtUrl: null as string | null, previewUrl: null as string | null, audioUrl: null as string | null };
+  try {
+    if (release.coverArtKey) {
+      const { url } = await storageGet(release.coverArtKey);
+      result.coverArtUrl = url;
+    }
+    if (release.previewFileKey) {
+      const { url } = await storageGet(release.previewFileKey);
+      result.previewUrl = url;
+    }
+    if (release.audioFileKey) {
+      const { url } = await storageGet(release.audioFileKey);
+      result.audioUrl = url;
+    }
+  } catch (e) {
+    console.error("[Release] Failed to resolve S3 URLs:", e);
+  }
+  return result;
+}
 
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -331,7 +354,7 @@ export const releaseRouter = router({
     }
 
     const releases = await db.getReleasesByArtistId(profile.id);
-    return releases;
+    return await Promise.all(releases.map(withUrls));
   }),
 
   /**
@@ -344,7 +367,7 @@ export const releaseRouter = router({
       if (!release) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Release not found" });
       }
-      return release;
+      return await withUrls(release);
     }),
 
   /**
@@ -353,7 +376,8 @@ export const releaseRouter = router({
   getByArtist: publicProcedure
     .input(z.object({ artistId: z.number() }))
     .query(async ({ input }) => {
-      return await db.getPublishedReleasesByArtistId(input.artistId);
+      const releases = await db.getPublishedReleasesByArtistId(input.artistId);
+      return await Promise.all(releases.map(withUrls));
     }),
 
   /**

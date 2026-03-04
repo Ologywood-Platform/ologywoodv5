@@ -953,3 +953,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add breadcrumb navigation (Home / Dashboard / Contracts)
 - [x] Write vitest tests for the contracts endpoint (13 tests passing)
 - [x] Test end-to-end in browser - verified contracts page loads with real data
+
+## COVER ART IN PREVIEW PLAYER
+
+- [x] Add cover art thumbnail to the inline audio preview player in ReleaseCard
+- [x] Fix cover art not displaying — added storageGet() URL resolution in release router
+- [x] Test cover art displays correctly in browser
