@@ -724,6 +724,77 @@ export const appRouter = router({
         
         return { success: true };
       }),
+
+    // Venue respond to booking (accept/decline)
+    venueRespond: venueProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(['confirmed', 'cancelled']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        const booking = await db.getBookingById(input.id);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // Verify this booking belongs to this venue
+        if (booking.venueId !== venueProfile.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        
+        // If confirming, mark date as booked
+        if (input.status === 'confirmed') {
+          const dateStr = booking.eventDate instanceof Date 
+            ? booking.eventDate.toISOString().split('T')[0] 
+            : booking.eventDate;
+          await db.setAvailability({
+            artistId: booking.artistId,
+            date: dateStr,
+            status: 'booked',
+          });
+        }
+        
+        await db.updateBooking(input.id, { status: input.status });
+        
+        // Send email notifications
+        const artistProfile = await db.getArtistProfileById(booking.artistId);
+        if (artistProfile && venueProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          const venueUser = await db.getUserById(venueProfile.userId);
+          const eventDateStr = booking.eventDate instanceof Date 
+            ? booking.eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          
+          if (input.status === 'confirmed' && artistUser?.email && artistProfile.userId) {
+            await emailService.sendBookingConfirmationEmail(
+              artistProfile.userId,
+              artistUser.email,
+              {
+                artistName: artistProfile.artistName,
+                venueName: venueProfile.organizationName,
+                eventDate: eventDateStr,
+                eventTime: booking.eventTime || 'TBD',
+                eventLocation: venueProfile.location || 'TBD',
+                bookingId: booking.id,
+              }
+            );
+          } else if (input.status === 'cancelled' && artistUser?.email) {
+            await email.sendBookingCancellationEmail({
+              recipientEmail: artistUser.email,
+              recipientName: artistProfile.artistName,
+              otherPartyName: venueProfile.organizationName,
+              eventDate: eventDateStr,
+            });
+          }
+        }
+        
+        return { success: true };
+      }),
     
     // Create deposit payment intent
     createDepositPayment: protectedProcedure

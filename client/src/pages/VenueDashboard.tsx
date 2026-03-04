@@ -66,6 +66,26 @@ export function VenueDashboard() {
     return cleaned.length >= 10 && cleaned.length <= 15;
   };
 
+  const createProfileMutation = trpc.venue.createProfile.useMutation({
+    onSuccess: () => {
+      refetchProfile();
+      setEditingProfile(false);
+    },
+    onError: (error: any) => {
+      alert(error.message || 'Failed to create profile');
+    },
+  });
+
+  const updateProfileMutation = trpc.venue.updateProfile.useMutation({
+    onSuccess: () => {
+      refetchProfile();
+      setEditingProfile(false);
+    },
+    onError: (error: any) => {
+      alert(error.message || 'Failed to update profile');
+    },
+  });
+
   const handleProfileUpdate = async () => {
     try {
       // Validate phone number
@@ -73,11 +93,35 @@ export function VenueDashboard() {
         alert('Please enter a valid phone number (10-15 digits)');
         return;
       }
-      // TODO: Implement profile update mutation
-      setEditingProfile(false);
-      refetchProfile();
+      if (!profileForm.organizationName.trim()) {
+        alert('Organization name is required');
+        return;
+      }
+      if (profile) {
+        // Update existing profile
+        await updateProfileMutation.mutateAsync(profileForm);
+      } else {
+        // Create new profile
+        await createProfileMutation.mutateAsync(profileForm);
+      }
     } catch (error) {
+      console.error('Profile update error:', error);
     }
+  };
+
+  const venueRespondMutation = trpc.booking.venueRespond.useMutation({
+    onSuccess: () => {
+      refetchBookings();
+    },
+    onError: (error: any) => {
+      alert(error.message || 'Failed to update booking');
+    },
+  });
+
+  const handleBookingRespond = async (bookingId: number, status: 'confirmed' | 'cancelled') => {
+    const action = status === 'confirmed' ? 'accept' : 'decline';
+    if (!confirm(`Are you sure you want to ${action} this booking?`)) return;
+    await venueRespondMutation.mutateAsync({ id: bookingId, status });
   };
 
   const handleViewArtist = (artistId: number) => {
@@ -282,15 +326,15 @@ export function VenueDashboard() {
                           <p className="font-medium capitalize">{booking.paymentStatus}</p>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/booking/${booking.id}`)}>
                             View Details
                           </Button>
                           {booking.status === 'pending' && (
                             <>
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleBookingRespond(booking.id, 'confirmed')}>
                                 Accept
                               </Button>
-                              <Button variant="outline" size="sm" className="text-red-600">
+                              <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleBookingRespond(booking.id, 'cancelled')}>
                                 Decline
                               </Button>
                             </>

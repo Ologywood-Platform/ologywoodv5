@@ -895,3 +895,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Release create fails with "durationSeconds too small" - added client-side audio duration extraction + relaxed backend validation to accept 0
 - [x] Feature: Enable "Pay What You Want" pricing for Starter tier (keep 2-release limit)
 - [x] Feature: Add visible "Pay What You Want" custom price input on release purchase page when artist enables the option
+- [x] Bug: Venue profile create button not functioning (handleProfileUpdate was a stub with TODO comment, wired up to venue.createProfile and venue.updateProfile tRPC mutations)
+- [x] Bug: Venue dashboard booking buttons not working (View Details, Accept, Decline) - added venueRespond mutation + wired onClick handlers
