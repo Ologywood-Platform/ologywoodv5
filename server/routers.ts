@@ -622,15 +622,26 @@ export const appRouter = router({
       if (!profile) return [];
       const bookings = await db.getBookingsByVenueId(profile.id);
       if (!bookings || bookings.length === 0) return [];
-      // Check which bookings have rider messages
-      const bookingsWithRiderInfo = await Promise.all(
+      // Enrich bookings with artist name and rider message flag
+      const enrichedBookings = await Promise.all(
         bookings.map(async (booking) => {
+          // Resolve artist name
+          let artistName = `Artist #${booking.artistId}`;
+          let artistPhoto: string | null = null;
+          try {
+            const artistProfile = await db.getArtistProfileById(booking.artistId);
+            if (artistProfile) {
+              artistName = artistProfile.artistName || artistName;
+              artistPhoto = artistProfile.profilePhotoUrl || null;
+            }
+          } catch (_) { /* fallback to default */ }
+          // Check for rider messages
           const msgs = await db.getMessagesByBookingId(booking.id);
           const hasRiderMessage = msgs.some((m) => m.messageType === 'rider');
-          return { ...booking, hasRiderMessage };
+          return { ...booking, artistName, artistPhoto, hasRiderMessage };
         })
       );
-      return bookingsWithRiderInfo;
+      return enrichedBookings;
     }),
     
     // Update booking status (artist)

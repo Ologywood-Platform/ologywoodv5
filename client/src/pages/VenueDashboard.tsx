@@ -297,10 +297,25 @@ export function VenueDashboard() {
                 {bookings.map(booking => (
                   <Card key={booking.id}>
                     <CardHeader>
-                      <CardTitle className="text-lg">Artist #{booking.artistId}</CardTitle>
-                      <CardDescription>
-                        {new Date(booking.eventDate).toLocaleDateString()} at {booking.eventTime || 'TBA'} • {booking.status}
-                      </CardDescription>
+                      <div className="flex items-center gap-3">
+                        {(booking as any).artistPhoto ? (
+                          <img
+                            src={(booking as any).artistPhoto}
+                            alt={(booking as any).artistName}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-purple-600" />
+                          </div>
+                        )}
+                        <div>
+                          <CardTitle className="text-lg">{(booking as any).artistName || `Artist #${booking.artistId}`}</CardTitle>
+                          <CardDescription>
+                            {new Date(booking.eventDate).toLocaleDateString()} at {booking.eventTime || 'TBA'} • <span className={`capitalize ${booking.status === 'confirmed' ? 'text-green-600' : booking.status === 'pending' ? 'text-yellow-600' : booking.status === 'cancelled' ? 'text-red-600' : ''}`}>{booking.status}</span>
+                          </CardDescription>
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
