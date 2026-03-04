@@ -1,12 +1,15 @@
 /**
  * Release Checkout Route — Express endpoint for creating Stripe Checkout sessions
- * for release purchases. Collects 1% platform fee via application_fee_amount.
+ * for release purchases. Uses Stripe Connect to pay artists directly with 1% platform fee.
  */
 
 import { Router, Request, Response } from "express";
 import Stripe from "stripe";
 import * as db from "../db";
 import { sdk } from "../_core/sdk";
+import { getDb } from "../db";
+import { stripeConnectAccounts } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -17,9 +20,34 @@ const router = Router();
 const PLATFORM_FEE_PERCENT = 1; // 1% platform fee
 
 /**
+ * Look up the artist's connected Stripe account ID
+ */
+async function getArtistStripeAccountId(artistUserId: number): Promise<string | null> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return null;
+
+  const accounts = await dbInstance
+    .select()
+    .from(stripeConnectAccounts)
+    .where(eq(stripeConnectAccounts.artistId, artistUserId))
+    .limit(1);
+
+  if (!accounts.length) return null;
+  const account = accounts[0];
+
+  // Only return if the account is active and can receive charges
+  if (account.status === 'active' && account.chargesEnabled) {
+    return account.stripeAccountId;
+  }
+
+  return null;
+}
+
+/**
  * POST /api/release/checkout
  * Create a Stripe Checkout session for purchasing a release.
  * Supports both authenticated and guest purchases.
+ * If artist has Stripe Connect, payment goes directly to them with platform fee.
  */
 router.post("/", async (req: Request, res: Response) => {
   try {
@@ -53,7 +81,7 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Artist not found" });
     }
 
-    // Determine the final price (support pay-what-you-want for Professional tier)
+    // Determine the final price (support pay-what-you-want)
     let finalPriceCents = release.priceInCents;
     if (release.allowPayWhatYouWant && customAmountCents) {
       const customAmount = parseInt(customAmountCents);
@@ -65,6 +93,9 @@ router.post("/", async (req: Request, res: Response) => {
 
     // Calculate platform fee (1%, minimum 1 cent)
     const platformFeeCents = Math.max(1, Math.round(finalPriceCents * PLATFORM_FEE_PERCENT / 100));
+
+    // Check if artist has a connected Stripe account
+    const artistStripeAccountId = await getArtistStripeAccountId(artistProfile.userId);
 
     // Build the checkout session
     const origin = req.headers.origin || process.env.BASE_URL || "https://www.ologywood.com";
@@ -79,7 +110,6 @@ router.post("/", async (req: Request, res: Response) => {
             product_data: {
               name: release.title,
               description: `Single by ${artistProfile.artistName}`,
-              // Cover art is stored as S3 key, not a public URL — omit from Stripe
             },
             unit_amount: finalPriceCents,
           },
@@ -89,10 +119,13 @@ router.post("/", async (req: Request, res: Response) => {
       metadata: {
         releaseId: release.id.toString(),
         artistId: release.artistId.toString(),
+        artistUserId: artistProfile.userId.toString(),
         buyerUserId: user?.id?.toString() || "",
         buyerEmail: user?.email || "",
         buyerName: user?.name || "",
         type: "release_purchase",
+        platformFeeCents: platformFeeCents.toString(),
+        hasConnectAccount: artistStripeAccountId ? "true" : "false",
       },
       success_url: `${origin}/artist/${release.artistId}?purchase=success&release=${release.id}`,
       cancel_url: `${origin}/artist/${release.artistId}?purchase=cancelled`,
@@ -104,17 +137,22 @@ router.post("/", async (req: Request, res: Response) => {
       sessionParams.customer_email = user.email;
     }
 
-    // Add application fee if artist has a connected Stripe account
-    // For now, the fee goes to the platform account
-    if (platformFeeCents > 0) {
-      // Note: application_fee_amount requires payment_intent_data with transfer_data
-      // For simplicity, we track the fee in metadata and handle it in the webhook
-      sessionParams.metadata!.platformFeeCents = platformFeeCents.toString();
+    // If artist has Stripe Connect, route payment to them with platform fee
+    if (artistStripeAccountId) {
+      sessionParams.payment_intent_data = {
+        application_fee_amount: platformFeeCents,
+        transfer_data: {
+          destination: artistStripeAccountId,
+        },
+      };
+      console.log(`[Release Checkout] Using Stripe Connect: ${artistStripeAccountId}, fee: ${platformFeeCents}c`);
+    } else {
+      console.log(`[Release Checkout] No Connect account for artist ${artistProfile.userId}, payment goes to platform`);
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    console.log(`[Release Checkout] Session created: ${session.id} for release ${release.id} ($${(release.priceInCents / 100).toFixed(2)})`);
+    console.log(`[Release Checkout] Session created: ${session.id} for release ${release.id} ($${(finalPriceCents / 100).toFixed(2)})`);
 
     return res.json({
       checkoutUrl: session.url,

@@ -1,84 +1,83 @@
 import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
-
-// Mock data for payouts
-const mockPayouts = [
-  {
-    id: 1,
-    artistId: 1,
-    amount: 2000,
-    currency: 'USD',
-    status: 'completed',
-    payoutMethod: 'bank_transfer',
-    stripeTransferId: null,
-    bankAccountId: 'ba_1234567890',
-    requestedAt: new Date('2026-02-01'),
-    processedAt: new Date('2026-02-02'),
-    completedAt: new Date('2026-02-03'),
-    notes: 'Monthly payout',
-    createdAt: new Date('2026-02-01'),
-    updatedAt: new Date('2026-02-03'),
-  },
-  {
-    id: 2,
-    artistId: 1,
-    amount: 1500,
-    currency: 'USD',
-    status: 'completed',
-    payoutMethod: 'stripe_connect',
-    stripeTransferId: 'tr_1234567890',
-    bankAccountId: null,
-    requestedAt: new Date('2026-01-15'),
-    processedAt: new Date('2026-01-16'),
-    completedAt: new Date('2026-01-17'),
-    notes: 'Event payout',
-    createdAt: new Date('2026-01-15'),
-    updatedAt: new Date('2026-01-17'),
-  },
-  {
-    id: 3,
-    artistId: 1,
-    amount: 1700,
-    currency: 'USD',
-    status: 'pending',
-    payoutMethod: 'bank_transfer',
-    stripeTransferId: null,
-    bankAccountId: 'ba_0987654321',
-    requestedAt: new Date('2026-02-15'),
-    processedAt: null,
-    completedAt: null,
-    notes: 'Pending review',
-    createdAt: new Date('2026-02-15'),
-    updatedAt: new Date('2026-02-15'),
-  },
-];
-
-const mockEarnings = {
-  completedEarnings: 8500,
-  recentEarnings: [
-    { id: 1, amount: 500, date: new Date('2026-02-15'), bookingId: 1, status: 'completed' },
-    { id: 2, amount: 1200, date: new Date('2026-02-10'), bookingId: 2, status: 'completed' },
-    { id: 3, amount: 750, date: new Date('2026-02-05'), bookingId: 3, status: 'completed' },
-  ],
-  pendingEarnings: 2100,
-  paidOutEarnings: 5200,
-  totalEarnings: 10600,
-};
+import { getDb } from '../db';
+import { artistEarnings, artistPayouts } from '../../drizzle/schema';
+import { eq, sql } from 'drizzle-orm';
 
 export const payoutRouter = router({
   getPayouts: protectedProcedure.query(async ({ ctx }: any) => {
-    // Return mock payouts for the current user
-    return mockPayouts.filter(p => p.artistId === ctx.user.id || ctx.user.role === 'admin');
+    const db = await getDb();
+    if (!db) return [];
+
+    const payouts = await db
+      .select()
+      .from(artistPayouts)
+      .where(eq(artistPayouts.artistId, ctx.user.id));
+
+    return payouts;
   }),
 
   getEarnings: protectedProcedure.query(async ({ ctx }: any) => {
-    // Return mock earnings data
-    return mockEarnings;
+    const db = await getDb();
+    if (!db) {
+      return {
+        completedEarnings: 0,
+        recentEarnings: [],
+        pendingEarnings: 0,
+        paidOutEarnings: 0,
+        totalEarnings: 0,
+      };
+    }
+
+    // Get earnings from the artist_earnings table
+    const earnings = await db
+      .select()
+      .from(artistEarnings)
+      .where(eq(artistEarnings.artistId, ctx.user.id));
+
+    let completedEarnings = 0;
+    let pendingEarnings = 0;
+    let paidOutEarnings = 0;
+
+    for (const e of earnings) {
+      const net = parseFloat(e.netAmount as string) || 0;
+      if (e.status === 'completed') completedEarnings += net;
+      else if (e.status === 'pending') pendingEarnings += net;
+      else if (e.status === 'paid_out') paidOutEarnings += net;
+    }
+
+    const totalEarnings = completedEarnings + pendingEarnings + paidOutEarnings;
+
+    const recentEarnings = earnings
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 10)
+      .map((e) => ({
+        id: e.id,
+        amount: parseFloat(e.netAmount as string) || 0,
+        date: e.createdAt,
+        bookingId: e.bookingId,
+        status: e.status,
+      }));
+
+    return {
+      completedEarnings,
+      recentEarnings,
+      pendingEarnings,
+      paidOutEarnings,
+      totalEarnings,
+    };
   }),
 
   getPayoutHistory: protectedProcedure.query(async ({ ctx }: any) => {
-    // Return mock payout history
-    return mockPayouts.filter(p => p.artistId === ctx.user.id || ctx.user.role === 'admin');
+    const db = await getDb();
+    if (!db) return [];
+
+    const payouts = await db
+      .select()
+      .from(artistPayouts)
+      .where(eq(artistPayouts.artistId, ctx.user.id));
+
+    return payouts;
   }),
 
   requestPayout: protectedProcedure
@@ -90,52 +89,54 @@ export const payoutRouter = router({
       })
     )
     .mutation(async ({ ctx, input }: any) => {
-      // Mock payout request
-      const newPayout = {
-        id: mockPayouts.length + 1,
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      // Create a payout request in the database
+      await db.insert(artistPayouts).values({
         artistId: ctx.user.id,
-        amount: input.amount,
+        amount: input.amount.toFixed(2),
         currency: 'USD',
         status: 'pending',
         payoutMethod: input.payoutMethod,
-        stripeTransferId: null,
-        bankAccountId: input.bankAccountId || null,
-        requestedAt: new Date(),
-        processedAt: null,
-        completedAt: null,
-        notes: 'Payout request',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockPayouts.push(newPayout);
-      return { success: true, message: 'Payout request submitted', payout: newPayout };
+        bankAccountId: input.bankAccountId ? parseInt(input.bankAccountId) : null,
+        notes: 'Payout request via dashboard',
+      });
+
+      return { success: true, message: 'Payout request submitted' };
     }),
 
   processPayout: protectedProcedure
     .input(z.object({ payoutId: z.number() }))
     .mutation(async ({ ctx, input }: any) => {
-      // Only admins can process payouts
       if (ctx.user.role !== 'admin') {
         throw new Error('Unauthorized');
       }
-      const payout = mockPayouts.find(p => p.id === input.payoutId);
-      if (!payout) throw new Error('Payout not found');
-      payout.status = 'processing';
-      payout.processedAt = new Date();
-      return { success: true, message: 'Payout processing started', payout };
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      await db
+        .update(artistPayouts)
+        .set({ status: 'processing', processedAt: new Date() })
+        .where(eq(artistPayouts.id, input.payoutId));
+
+      return { success: true, message: 'Payout processing started' };
     }),
 
   completePayout: protectedProcedure
     .input(z.object({ payoutId: z.number() }))
     .mutation(async ({ ctx, input }: any) => {
-      // Only admins can complete payouts
       if (ctx.user.role !== 'admin') {
         throw new Error('Unauthorized');
       }
-      const payout = mockPayouts.find(p => p.id === input.payoutId);
-      if (!payout) throw new Error('Payout not found');
-      payout.status = 'completed';
-      payout.completedAt = new Date();
-      return { success: true, message: 'Payout completed', payout };
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+
+      await db
+        .update(artistPayouts)
+        .set({ status: 'completed', completedAt: new Date() })
+        .where(eq(artistPayouts.id, input.payoutId));
+
+      return { success: true, message: 'Payout completed' };
     }),
 });

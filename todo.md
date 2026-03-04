@@ -898,3 +898,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Venue profile create button not functioning (handleProfileUpdate was a stub with TODO comment, wired up to venue.createProfile and venue.updateProfile tRPC mutations)
 - [x] Bug: Venue dashboard booking buttons not working (View Details, Accept, Decline) - added venueRespond mutation + wired onClick handlers
 - [x] Feature: Send Rider via Messages - artist can pick a rider template and send it as a special message in the booking conversation
+- [ ] Bug: Payment request sent but no clear indication of who received it - need better UX feedback
+- [x] Feature: Stripe Connect - backend account creation, onboarding links, dashboard links
+- [x] Feature: Stripe Connect - update release checkout to use Connect with 1% application fee
+- [x] Feature: Stripe Connect - update booking deposit to use Connect with application fee (ready for when booking deposit checkout is built)
+- [x] Feature: Stripe Connect - artist onboarding UI (connect Stripe account from dashboard)
+- [x] Feature: Stripe Connect - real earnings dashboard replacing mock payout data
+- [x] Bug: Payment request sent but no clear indication of who received it (root cause: entire payout system was mock data - replaced with real Stripe Connect flow)
