@@ -1,8 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { getDb } from '../db';
-// TODO: notifications table needs to be created in schema
-// import { notifications } from '../../drizzle/schema';
+import { notifications } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 let db: any = null;
@@ -16,7 +15,7 @@ async function getDatabase() {
 }
 
 interface NotificationPayload {
-  type: 'message' | 'payment' | 'booking' | 'alert';
+  type: 'booking' | 'message' | 'payment' | 'contract' | 'review';
   title: string;
   message: string;
   userId: number;
@@ -136,16 +135,16 @@ class SocketService {
     try {
       const database = await getDatabase();
       // Store notification in database
-      // TODO: Implement notifications table
-      // const notification = await database.insert(notifications).values({
-      //   userId: payload.userId,
-      //   type: payload.type,
-      //   title: payload.title,
-      //   message: payload.message,
-      //   actionUrl: payload.actionUrl,
-      //   data: payload.data ? JSON.stringify(payload.data) : null,
-      //   read: false,
-      // });
+      if (database) {
+        await database.insert(notifications).values({
+          userId: payload.userId,
+          type: payload.type,
+          title: payload.title,
+          message: payload.message,
+          actionUrl: payload.actionUrl,
+          isRead: false,
+        });
+      }
 
       // Emit to user's rooms
       this.io.to(`user:${payload.userId}`).emit('notification:new', {
@@ -240,11 +239,12 @@ class SocketService {
 
     try {
       const database = await getDatabase();
-      // TODO: Implement notifications table
-      // await database
-      //   .update(notifications)
-      //   .set({ read: true })
-      //   .where(eq(notifications.id, notificationId))
+      if (database) {
+        await database
+          .update(notifications)
+          .set({ isRead: true })
+          .where(eq(notifications.id, notificationId));
+      }
 
       
     } catch (error) {

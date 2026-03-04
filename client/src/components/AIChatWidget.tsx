@@ -62,12 +62,11 @@ export function AIChatWidget() {
     setInputValue("");
     setIsLoading(true);
 
-    // AI Chat feature is disabled in MVP
-    // For now, show a placeholder message
+    // Direct users to the help center for support
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: "assistant",
-      content: "Thank you for reaching out! Please contact our support team at info@ologywood.com for assistance. We're here to help!",
+      content: "Thanks for your message! For the best support experience, please visit our Help Center at /help where you'll find answers to common questions about bookings, payments, and riders. You can also reach our team directly at info@ologywood.com.",
       timestamp: new Date(),
     };
 
@@ -184,15 +183,15 @@ export function AIChatWidget() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Contact support at info@ologywood.com"
-                disabled={true}
+                placeholder="Ask a question..."
+                disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 text-sm"
               />
               <button
                 type="submit"
-                disabled={true}
-                className="bg-gray-400 text-white px-4 py-2 rounded-lg disabled:bg-gray-400 transition-colors flex items-center justify-center flex-shrink-0"
-                title="Support feature coming soon"
+                disabled={!inputValue.trim() || isLoading}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-400 transition-colors flex items-center justify-center flex-shrink-0 hover:bg-purple-700"
+                title="Send message"
               >
                 <Send className="w-4 h-4" />
               </button>

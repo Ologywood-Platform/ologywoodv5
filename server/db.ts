@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
-// All stubs have been replaced with real implementations below (db-stubs.ts is no longer used)
+
 
 import { 
   User, InsertUser, users, 
@@ -45,8 +45,7 @@ export function getPool() {
   return _pool;
 }
 
-// ============= CALENDAR EVENT FUNCTIONS (DEPRECATED) =============
-// Calendar functions removed - calendarRouter is deprecated and commented out in routers.ts
+
 
 // ============= CONTRACT FUNCTIONS =============
 
@@ -1177,17 +1176,7 @@ export async function getSavedEventsByUserId(userId: number): Promise<SavedEvent
 }
 
 
-// ============= STUB FUNCTIONS FOR NON-MVP ROUTERS =============
-// These are placeholders for functions used by commented-out routers
-
-
-
-
-
-
-
-
-// ============= MISSING FUNCTIONS - ADDED IN AUDIT FIX =============
+/// ============= ADDITIONAL DATABASE FUNCTIONS =============
 
 // Availability Functions
 export async function getAvailabilityForDate(artistId: number, date: Date): Promise<Availability | undefined> {

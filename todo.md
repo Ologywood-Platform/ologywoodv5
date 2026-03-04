@@ -959,3 +959,36 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add cover art thumbnail to the inline audio preview player in ReleaseCard
 - [x] Fix cover art not displaying — added storageGet() URL resolution in release router
 - [x] Test cover art displays correctly in browser
+
+## CODEBASE CLEANUP & POLISH (Full Audit)
+
+### Phase 1: Dead Code Removal
+- [x] Delete server/db-stubs.ts (not imported anywhere)
+- [x] Delete client/src/components/_deprecated/ folder (130+ unused components)
+- [x] Remove commented-out tRPC router registrations from routers.ts
+- [x] Remove stub function block headers in db.ts
+- [x] Delete 66 unused service files (mock services, orphaned integrations)
+- [x] Delete 7 unused middleware files
+- [x] Delete mock paymentProcessingService.ts
+- [x] Remove empty jobs directory
+
+### Phase 2: Fix CRITICAL User-Facing Stubs
+- [x] Fix Favorites page — replaced with redirect to /following (working implementation)
+- [x] Fix BookingCreate page — wired to real booking.create tRPC mutation with venue profile lookup
+- [x] Remove/replace mock paymentProcessingService.ts (deleted in Phase 1, real Stripe integration exists)
+
+### Phase 3: Wire Up HIGH-Priority Stubbed Servic- [x] Fix supportTicketService — deleted (unused, help center exists at /help)
+- [x] Fix contractService template CRUD — deleted (rider templates work separately)
+- [x] Fix analyticsMetricsService — deleted (unused, no active consumers)
+- [x] Fix followNotificationService — deleted (unused, follows router works directly)# Phase 4: Fix MEDIUM TODOs
+- [x] Wire socket notifications to persist in DB (created notifications table, uncommented insert/update)
+- [x] Record refunds in database (update booking with stripeRefundId and paymentStatus=refunded)
+- [x] Fix email marketing service — deleted (unused stub)
+- [x] Fix newsletter double opt-in — deleted unused router/service, kept inline SendGrid version
+- [x] Fix rider reminder service — deleted (unused stub)
+- [x] Deleted orphaned analyticsMetricsService.ts
+- [x] Cleaned up VenueShareButtons TODO with console.log analytics tracking
+
+### Phase 5: Clean Up LOW Items
+- [x] Replace "Coming Soon" toasts in AccountSettings with real navigation (bookings, pricing)
+- [x] Enable AI chat widget input and redirect to Help Center instead of fake AI

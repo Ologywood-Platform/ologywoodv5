@@ -396,7 +396,7 @@ export function AccountSettings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toast.info('Payment method management coming soon')}
+                        onClick={() => toast.info('Payment methods are managed through Stripe during checkout')}
                       >
                         Update
                       </Button>
@@ -407,15 +407,15 @@ export function AccountSettings() {
                   <div className="flex gap-3 pt-4 border-t">
                     <Button
                       className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      onClick={() => toast.info('Invoice viewer coming soon')}
+                      onClick={() => navigate('/bookings')}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
-                      View Invoice
+                      View Bookings
                     </Button>
                     <Button
                       variant="outline"
                       className="flex-1"
-                      onClick={() => toast.info('Plan upgrade coming soon')}
+                      onClick={() => navigate('/pricing')}
                     >
                       Upgrade Plan
                     </Button>

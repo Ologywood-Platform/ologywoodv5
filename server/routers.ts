@@ -94,24 +94,6 @@ export const appRouter = router({
   // ===== MVP CORE ROUTERS ONLY =====
   // (Defined inline below at lines ~172, ~412, ~634, ~850)
   
-  // ===== NON-MVP ROUTERS (DISABLED FOR MVP) =====
-  // system: systemRouter,
-  // analytics: analyticsRouter,
-  // contracts: contractsRouter,
-  // contractManagement: contractManagementRouter,
-  // contractAudit: contractAuditRouter,
-  // referrals: referralRouter,
-  // verification: verificationRouter,
-  // templates: templatesRouter,
-  // testdata: testdataRouter,
-  // testdataSeeding: testdataSeedingRouter,
-  // impersonation: impersonationRouter,
-  // testWorkflows: testWorkflowsRouter,
-  // support: supportRouter,
-  // adminSeed: adminSeedRouter,
-  // supportSeeder: supportSeederRouter,
-  // aiChat: aiChatRouter,
-  // depositPayments: depositPaymentsRouter,
   events: eventsRouter,
   account: router({
     validateDeletion: protectedProcedure.query(async ({ ctx }) => {
@@ -131,12 +113,6 @@ export const appRouter = router({
   follows: followsRouter,
   artistUpdates: artistUpdatesRouter,
   payout: payoutRouter,
-  // helpAndSupport: helpAndSupportRouter,
-  // contractPdf: contractPdfRouter,
-  // supportTickets: supportTicketsRouter,
-  // semanticSearch: semanticSearchRouter,
-  // eviction: evictionRouter,
-  // helpCenter: helpCenterRouter,
   riderContract: riderContractRouter,
 
   // Contract dashboard - list all contracts for the current user
@@ -230,45 +206,6 @@ export const appRouter = router({
   release: releaseRouter,
   blog: blogRouter,
   stripeConnect: stripeConnectRouter,
-  // signature: signatureRouter,
-  // contractTemplate: contractTemplateRouter,
-  // contractHistory: contractHistoryRouter,
-  // webhook: webhookRouter,
-  // bulkContract: bulkContractRouter,
-  // realtimeNotifications: realtimeNotificationsRouter,
-  // paymentAnalytics: paymentAnalyticsRouter,
-  // artistVerification: artistVerificationRouter,
-  // emailVerification: emailVerificationRouter,
-  // smsNotifications: smsNotificationsRouter,
-  // user: userRouter,
-  // venueDirectory: venueDirectoryRouter,
-  // contact: contactRouter,
-  // riderManagement: riderManagementRouter,
-  // privacy: privacyRouter,
-  // payments: paymentsRouter,
-  // follows: followsRouter,
-  // availabilityAlerts: availabilityAlertsRouter,
-  // referralRewards: referralRewardsRouter,
-  // browseFilters: browseFiltersRouter,
-  // artistOnboarding: artistOnboardingRouter,
-  // bookingAnalyticsExport: bookingAnalyticsExportRouter,
-  // paymentTesting: router({
-  //   success: publicProcedure
-  //     .input(z.object({ bookingId: z.number() }))
-  //     .query(async ({ input }) => {
-  //       return { success: true, bookingId: input.bookingId, message: 'Payment success test' };
-  //     }),
-  //   failure: publicProcedure
-  //     .input(z.object({ bookingId: z.number() }))
-  //     .query(async ({ input }) => {
-  //       return { success: true, bookingId: input.bookingId, message: 'Payment failure test' };
-  //     }),
-  //   retry: publicProcedure
-  //     .input(z.object({ bookingId: z.number() }))
-  //     .query(async ({ input }) => {
-  //       return { success: true, bookingId: input.bookingId, message: 'Payment retry test' };
-  //     }),
-  // }),
   auth: router({
     setUserRole: publicProcedure.input(z.object({ userId: z.number(), role: z.enum(['artist', 'venue']) })).mutation(async ({ input }) => {
       await db.updateUserRole(input.userId, input.role);
@@ -2074,7 +2011,12 @@ export const appRouter = router({
           },
         });
         
-        // Record refund in database (stub for now)
+        // Record refund in database
+        await db.updateBooking(input.bookingId, {
+          stripeRefundId: refund.id,
+          paymentStatus: 'refunded',
+          status: 'cancelled',
+        });
         
         return { refundId: refund.id, success: true };
        }),
@@ -2157,8 +2099,6 @@ export const appRouter = router({
     getArtistEarnings: publicProcedure.query(() => null),
     getRecentTransactions: publicProcedure.query(() => []),
   } as any),
-  
-  // calendarEvent: calendarRouter, // Deprecated - commented out for noise elimination
   
   emailTesting: emailTestingRouter,
   

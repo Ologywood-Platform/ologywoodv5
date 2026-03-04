@@ -66,8 +66,7 @@ export function VenueShareButtons({
 
   const trackShare = (platform: string) => {
     // Track share event for analytics
-    
-    // TODO: Send to analytics backend
+    console.log(`[Analytics] Share event: ${platform} - venue: ${venueId}`);
   };
 
   return (
