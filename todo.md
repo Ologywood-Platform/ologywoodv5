@@ -922,3 +922,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Booking payment status didn't advance after Stripe test deposit payment - fixed verifyPayment route to handle both deposit and final_payment sessions, fixed metadata field name mismatches (type→paymentType, user_id→userId), fixed Stripe ESM import (require→import)
 - [x] Feature: Ensure full payment flow works end-to-end: deposit → deposit_paid → remaining balance button → final payment → fully_paid/completed - tested and verified with Stripe sandbox
 - [x] UX: Remove redundant 'Rider Contract' section from BookingDetail page - rider already viewable via Messages and View Rider shortcut
+- [x] Bug: Venue Invoices page is a static placeholder - rewritten with real booking payment data from Stripe
+- [x] UX: Add Invoices quick-access card to venue dashboard Overview tab + Messages card for easy navigation
