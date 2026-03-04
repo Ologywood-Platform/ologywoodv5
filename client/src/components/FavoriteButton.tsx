@@ -28,12 +28,12 @@ export function FavoriteButton({
   const isVenue = user?.role === 'venue';
   
   // Don't show favorite button on own profile
-  const isOwnProfile = user && artistUserId && user.id === artistUserId;
-  if (isOwnProfile) return null;
-  
+  const isOwnProfile = !!(user && artistUserId && user.id === artistUserId);
+
+  // ALL hooks must be called before any early returns (React rules of hooks)
   const { data: isFavorited, isLoading } = trpc.favorite.isFavorited.useQuery(
     { artistId },
-    { enabled: isVenue }
+    { enabled: isVenue && !isOwnProfile }
   );
   
   const addMutation = trpc.favorite.add.useMutation({
@@ -70,11 +70,10 @@ export function FavoriteButton({
       addMutation.mutate({ artistId });
     }
   };
-  
-  if (!isVenue) {
-    return null;
-  }
-  
+
+  // Early returns AFTER all hooks
+  if (isOwnProfile) return null;
+  if (!isVenue) return null;
   
   const isProcessing = addMutation.isPending || removeMutation.isPending;
   

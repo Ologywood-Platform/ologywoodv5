@@ -926,3 +926,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] UX: Add Invoices quick-access card to venue dashboard Overview tab + Messages card for easy navigation
 - [x] UX: Hide Follow button when viewing own artist profile - now hides button and shows only follower count on own profile
 - [x] UX: Hide Favorite button when viewing own artist profile - same self-check as FollowButton
+- [x] Bug: FavoriteButton crashes with "Rendered fewer hooks than expected" - moved self-check early return after all hooks
