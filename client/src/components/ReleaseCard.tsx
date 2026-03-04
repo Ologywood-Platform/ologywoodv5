@@ -8,7 +8,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Music, Play, Pause, ShoppingCart, Download, Loader2, Volume2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Music, Play, Pause, ShoppingCart, Download, Loader2, Volume2, Heart } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 
 const PREVIEW_MAX_SECONDS = 30;
@@ -26,6 +27,7 @@ interface ReleaseCardProps {
     publishedAt?: string | Date | null;
     durationSeconds?: number | null;
     fileFormat?: string | null;
+    allowPayWhatYouWant?: boolean;
   };
   artistName: string;
   isOwner?: boolean;
@@ -46,6 +48,9 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
   const animFrameRef = useRef<number | null>(null);
 
   const priceFormatted = (release.priceInCents / 100).toFixed(2);
+  const minPrice = release.priceInCents / 100;
+  const [customPrice, setCustomPrice] = useState<string>(priceFormatted);
+  const [showPriceInput, setShowPriceInput] = useState(false);
   const hasPurchased = !!purchaseId;
   const hasPreview = !!(release.previewFileKey || release.audioFileKey);
 
@@ -184,12 +189,30 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
   };
 
   const handleBuy = async () => {
+    // If PWYW is enabled and we haven't shown the price input yet, show it
+    if (release.allowPayWhatYouWant && !showPriceInput) {
+      setShowPriceInput(true);
+      return;
+    }
+
+    const finalAmountCents = release.allowPayWhatYouWant
+      ? Math.round(parseFloat(customPrice) * 100)
+      : release.priceInCents;
+
+    if (release.allowPayWhatYouWant && (isNaN(finalAmountCents) || finalAmountCents < release.priceInCents)) {
+      toast.addError("Invalid amount", `Minimum price is $${priceFormatted}`);
+      return;
+    }
+
     setIsBuying(true);
     try {
       const response = await fetch('/api/release/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ releaseId: release.id }),
+        body: JSON.stringify({
+          releaseId: release.id,
+          ...(release.allowPayWhatYouWant ? { customAmountCents: finalAmountCents } : {}),
+        }),
       });
       const data = await response.json();
       if (data.checkoutUrl) {
@@ -271,9 +294,14 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
                 <h3 className="font-semibold text-base leading-tight">{release.title}</h3>
                 <p className="text-sm text-muted-foreground">{artistName}</p>
               </div>
-              <span className="text-lg font-bold text-primary whitespace-nowrap">
-                ${priceFormatted}
-              </span>
+              <div className="text-right flex-shrink-0">
+                <span className="text-lg font-bold text-primary whitespace-nowrap">
+                  ${priceFormatted}
+                </span>
+                {release.allowPayWhatYouWant && (
+                  <span className="block text-[10px] text-muted-foreground leading-tight">or more</span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -371,19 +399,43 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
                 Download
               </Button>
             ) : !isOwner ? (
-              <Button
-                size="sm"
-                onClick={handleBuy}
-                disabled={isBuying}
-                className="flex-1"
-              >
-                {isBuying ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : (
-                  <ShoppingCart className="h-4 w-4 mr-1" />
+              <>
+                {release.allowPayWhatYouWant && showPriceInput && (
+                  <div className="flex items-center gap-2 w-full mb-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min={minPrice}
+                        value={customPrice}
+                        onChange={(e) => setCustomPrice(e.target.value)}
+                        className="pl-6 h-8 text-sm"
+                        placeholder={priceFormatted}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">min ${priceFormatted}</span>
+                  </div>
                 )}
-                Buy ${priceFormatted}
-              </Button>
+                <Button
+                  size="sm"
+                  onClick={handleBuy}
+                  disabled={isBuying}
+                  className="flex-1"
+                >
+                  {isBuying ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  ) : release.allowPayWhatYouWant ? (
+                    <Heart className="h-4 w-4 mr-1" />
+                  ) : (
+                    <ShoppingCart className="h-4 w-4 mr-1" />
+                  )}
+                  {release.allowPayWhatYouWant
+                    ? (showPriceInput ? `Pay $${parseFloat(customPrice || priceFormatted).toFixed(2)}` : "Name Your Price")
+                    : `Buy $${priceFormatted}`
+                  }
+                </Button>
+              </>
             ) : null}
           </div>
         </CardContent>

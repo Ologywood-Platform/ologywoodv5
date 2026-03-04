@@ -894,3 +894,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Cannot create draft release (uploads failing meant no fileKey, blocking draft creation)
 - [x] Bug: Release create fails with "durationSeconds too small" - added client-side audio duration extraction + relaxed backend validation to accept 0
 - [x] Feature: Enable "Pay What You Want" pricing for Starter tier (keep 2-release limit)
+- [x] Feature: Add visible "Pay What You Want" custom price input on release purchase page when artist enables the option
