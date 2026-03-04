@@ -80,7 +80,7 @@ export default function Favorites() {
             As an artist, you can follow other artists for inspiration and collaboration.
           </p>
           <Button 
-            onClick={() => navigate("/artists")}
+            onClick={() => navigate("/browse")}
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             Browse Artists
@@ -117,7 +117,7 @@ export default function Favorites() {
               Start exploring and save your favorite artists to view them here.
             </p>
             <Button 
-              onClick={() => navigate("/artists")}
+              onClick={() => navigate("/browse")}
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               Browse Artists

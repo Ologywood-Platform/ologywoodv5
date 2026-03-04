@@ -545,11 +545,11 @@ function WhiteLabelReleasesStep() {
         </div>
         <div className="border-2 border-purple-600 rounded-lg p-4 text-center bg-purple-50">
           <div className="text-2xl font-bold text-purple-600 mb-1">Starter</div>
-          <p className="text-xs text-gray-700">Up to <strong>2 singles</strong></p>
+          <p className="text-xs text-gray-700">Up to <strong>2 singles</strong> + pay-what-you-want</p>
         </div>
         <div className="border rounded-lg p-4 text-center">
           <div className="text-2xl font-bold text-gray-900 mb-1">Pro</div>
-          <p className="text-xs text-gray-700"><strong>Unlimited</strong> + pay-what-you-want</p>
+          <p className="text-xs text-gray-700"><strong>Unlimited</strong> singles</p>
         </div>
       </div>
 

@@ -20,21 +20,21 @@ const TIER_INFO: Record<SubscriptionTier, {
     color: 'text-slate-600',
     bgColor: 'bg-slate-100',
     icon: Shield,
-    description: '2 bookings/month, basic profile',
+    description: '2 bookings/month, basic profile, messaging',
   },
   starter: {
     label: 'Starter',
     color: 'text-blue-700',
     bgColor: 'bg-blue-50',
     icon: Zap,
-    description: 'Unlimited bookings, Rider Builder, fan updates',
+    description: 'Unlimited bookings, Rider Builder, 2 releases, fan updates',
   },
   professional: {
     label: 'Professional',
     color: 'text-purple-700',
     bgColor: 'bg-purple-50',
     icon: Crown,
-    description: 'Contracts, e-signatures, analytics, priority support',
+    description: 'Unlimited releases, contracts, analytics, priority support',
   },
 };
 

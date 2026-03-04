@@ -37,7 +37,7 @@ const PRICING_FAQS = [
   },
   {
     question: 'What are White Label Releases?',
-    answer: 'White Label Releases let artists sell singles directly from their Ologywood profile. Starter plans include up to 2 active singles, while Professional plans get unlimited releases with pay-what-you-want pricing. Ologywood takes just a 1% platform fee on each sale.',
+    answer: 'White Label Releases let artists sell singles directly from their Ologywood profile. Starter plans include up to 2 active singles with pay-what-you-want pricing. Professional plans get unlimited releases. Ologywood takes just a 1% platform fee on each sale.',
   },
 ];
 
@@ -96,7 +96,7 @@ const tiers: Tier[] = [
       { name: "Follow artists & event discovery", included: true },
       { name: "In-platform messaging", included: true },
       { name: "Availability calendar", included: true },
-      { name: "White Label Releases — 2 singles", included: true },
+      { name: "White Label Releases — 2 singles + pay-what-you-want", included: true },
       { name: "Contract management & e-signatures", included: false },
       { name: "Analytics & payment history", included: false },
       { name: "Priority support", included: false },
@@ -125,7 +125,7 @@ const tiers: Tier[] = [
       { name: "Unlimited booking requests", included: true },
       { name: "Rider Builder & saved templates", included: true },
       { name: "Fan email list & Send Update", included: true },
-      { name: "White Label Releases — unlimited + pay-what-you-want", included: true },
+      { name: "White Label Releases — unlimited singles", included: true },
     ],
   },
 ];
