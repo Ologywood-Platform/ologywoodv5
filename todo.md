@@ -932,3 +932,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Feature: Auto-attach riderTemplateId to booking when rider is sent via message
 - [x] Feature: Update contract signing to work with rider data from messages (not just riderTemplateId)
 - [x] Feature: Full e-signature flow: view rider → sign → countersign → fully signed status — tested artist signing successfully
+- [ ] Feature: Generate downloadable PDF of signed rider contract with rider terms, signatures, timestamps, and booking details
+
+## PDF Download Feature Fix
+
+- [x] Fix contract PDF generation type error (numeric values passed to drawText)
+- [x] Fix boolean value display (true/false → Yes/No)
+- [x] Improve signature rendering (show signer name instead of generic placeholder)
+- [x] Add formatFieldValue helper for proper type coercion
+- [x] Add delayed cleanup for blob URL downloads
+- [x] Add empty blob size check with error message
+- [x] Write comprehensive vitest tests (12 tests: auth, authorization, PDF generation)

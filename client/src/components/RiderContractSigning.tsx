@@ -93,55 +93,40 @@ export function RiderContractSigning({
     setSignatureType(type);
   };
 
-  const handleDownloadPdf = () => {
-    if (!previewRef.current) return;
-    // Use browser print for PDF
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error('Please allow popups to download PDF');
-      return;
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      const response = await fetch(`/api/contract/${bookingId}/pdf`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Download failed' }));
+        throw new Error(err.error || 'Download failed');
+      }
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        throw new Error('PDF generation returned empty file');
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rider-contract-booking-${bookingId}-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      // Delay cleanup to allow download to start
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 1000);
+      toast.success('Contract PDF downloaded successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to download PDF');
+    } finally {
+      setIsDownloading(false);
     }
-
-    const signaturesHtml = data?.signatures?.length
-      ? data.signatures
-          .map(
-            (s: any) => `
-          <div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-            <p style="font-weight: bold; color: #6c5ce7; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">
-              ${s.signerRole === 'artist' ? 'Artist' : 'Venue'} Signature
-            </p>
-            <img src="${s.signatureData}" style="max-height: 80px; margin-bottom: 8px;" />
-            <p style="font-size: 14px; font-weight: 600;">${s.signerName}</p>
-            <p style="font-size: 12px; color: #666;">Signed: ${new Date(s.signedAt).toLocaleString()}</p>
-          </div>
-        `
-          )
-          .join('')
-      : '';
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Rider Contract - Booking #${bookingId}</title>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          ${previewData?.html || '<p>No rider content available</p>'}
-          <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
-            <h3 style="color: #6c5ce7;">Digital Signatures</h3>
-            ${signaturesHtml || '<p style="color: #999;">No signatures yet</p>'}
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
   };
 
   if (isLoading) {
@@ -307,12 +292,14 @@ export function RiderContractSigning({
               {showPreview ? 'Hide' : 'View'} Rider
             </Button>
 
-            {showPreview && previewData && (
-              <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={isDownloading}>
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
                 <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-            )}
+              )}
+              {isDownloading ? 'Generating...' : 'Download PDF'}
+            </Button>
 
             {!currentUserSigned && !isFullySigned && (
               <Button
