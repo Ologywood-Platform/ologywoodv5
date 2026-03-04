@@ -98,6 +98,19 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
 
   const isLoading = followMutation.isPending || unfollowMutation.isPending;
 
+  // Don't show follow button on own profile
+  const isOwnProfile = isAuthenticated && user?.id === artistUserId;
+  if (isOwnProfile) {
+    return showCount ? (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground flex items-center gap-1">
+          <Users className="w-3.5 h-3.5" />
+          {followerCount} {followerCount === 1 ? "follower" : "followers"}
+        </span>
+      </div>
+    ) : null;
+  }
+
   return (
     <>
       <div className="flex items-center gap-2">
