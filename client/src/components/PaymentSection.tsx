@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2, Clock, CreditCard, DollarSign, ArrowRight, Shield, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 
 interface PaymentSectionProps {
   bookingId: number;
@@ -28,6 +29,10 @@ export default function PaymentSection({
 }: PaymentSectionProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // tRPC mutations for Stripe checkout
+  const depositCheckout = trpc.payment.createDepositCheckout.useMutation();
+  const fullPaymentCheckout = trpc.payment.createFullPaymentCheckout.useMutation();
+
   // Calculate amounts
   const deposit = depositAmount || Math.round(totalFee / 2 * 100) / 100;
   const remaining = Math.round((totalFee - deposit) * 100) / 100;
@@ -36,22 +41,14 @@ export default function PaymentSection({
   const handlePayment = async (paymentType: 'deposit' | 'final') => {
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/booking-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ bookingId, paymentType }),
-      });
+      const mutation = paymentType === 'deposit' ? depositCheckout : fullPaymentCheckout;
+      const result = await mutation.mutateAsync({ bookingId });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
-
-      if (data.url) {
+      if (result.url) {
         toast.info('Redirecting to secure payment page...');
-        window.open(data.url, '_blank');
+        window.open(result.url, '_blank');
+      } else {
+        throw new Error('Failed to create checkout session');
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to create payment session');

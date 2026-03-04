@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 import * as email from "./email";
 import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } from "./email";
 import * as emailService from "./services/emailService";
-import { getSubscriptionStatus, cancelSubscription, reactivateSubscription } from "./stripe";
+import { getSubscriptionStatus, cancelSubscription, reactivateSubscription, stripe } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
 import * as imageOptimization from "./imageOptimization";
 import { handlePhotoUpload } from "./handlers/imageUploadHandler";
@@ -861,13 +861,13 @@ export const appRouter = router({
         }
         
         // Create Stripe payment intent
-        const stripe = require('stripe')(ENV.stripeSecretKey);
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const paymentIntent = await stripe.paymentIntents.create({
           amount: Math.round(input.depositAmount * 100), // Convert to cents
           currency: 'usd',
           metadata: {
-            bookingId: input.bookingId,
-            userId: ctx.user.id,
+            bookingId: String(input.bookingId),
+            userId: String(ctx.user.id),
             type: 'booking_deposit',
           },
         });
@@ -896,7 +896,7 @@ export const appRouter = router({
         }
         
         // Verify payment intent succeeded
-        const stripe = require('stripe')(ENV.stripeSecretKey);
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId);
         
         if (paymentIntent.status !== 'succeeded') {
@@ -1763,14 +1763,23 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
         }
         
-        if (!booking.depositAmount) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No deposit amount set' });
+        // Calculate deposit: use stored amount or default to 50% of total fee
+        const depositAmount = booking.depositAmount 
+          ? Number(booking.depositAmount) 
+          : booking.totalFee 
+            ? Math.round(Number(booking.totalFee) / 2 * 100) / 100 
+            : null;
+        
+        if (!depositAmount || depositAmount <= 0) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No deposit amount could be determined. Please set a total fee for this booking.' });
         }
         
         // Create Stripe checkout session
-        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+        const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ['card'],
+          customer_email: ctx.user.email || undefined,
           line_items: [{
             price_data: {
               currency: 'usd',
@@ -1778,16 +1787,21 @@ export const appRouter = router({
                 name: `Booking Deposit - ${booking.eventDetails || 'Event'}`,
                 description: booking.eventDetails || 'Event booking deposit',
               },
-              unit_amount: Math.round(Number(booking.depositAmount) * 100),
+              unit_amount: Math.round(depositAmount * 100),
             },
             quantity: 1,
           }],
           mode: 'payment',
-          success_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=success`,
-          cancel_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=cancelled`,
+          allow_promotion_codes: true,
+          client_reference_id: ctx.user.id.toString(),
+          success_url: `${origin}/booking/${input.bookingId}?payment=success`,
+          cancel_url: `${origin}/booking/${input.bookingId}?payment=cancelled`,
           metadata: {
-            bookingId: input.bookingId,
+            bookingId: input.bookingId.toString(),
             type: 'deposit',
+            user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || '',
+            customer_name: ctx.user.name || '',
           },
         });
         
@@ -1814,26 +1828,32 @@ export const appRouter = router({
           ? Number(booking.totalFee) - Number(booking.depositAmount || 0)
           : Number(booking.totalFee);
         
-        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+        const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ['card'],
+          customer_email: ctx.user.email || undefined,
           line_items: [{
             price_data: {
               currency: 'usd',
               product_data: {
-                name: `Booking Payment - ${booking.eventDetails || 'Event'}`,
-                description: booking.eventDetails || 'Event booking payment',
+                name: `Remaining Balance - ${booking.eventDetails || 'Event'}`,               description: booking.eventDetails || 'Event booking payment',
               },
               unit_amount: Math.round(remainingAmount * 100),
             },
             quantity: 1,
           }],
           mode: 'payment',
-          success_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=success`,
-          cancel_url: `${process.env.VITE_APP_URL}/booking/${input.bookingId}?payment=cancelled`,
+          allow_promotion_codes: true,
+          client_reference_id: ctx.user.id.toString(),
+          success_url: `${origin}/booking/${input.bookingId}?payment=success`,
+          cancel_url: `${origin}/booking/${input.bookingId}?payment=cancelled`,
           metadata: {
-            bookingId: input.bookingId,
+            bookingId: input.bookingId.toString(),
             type: 'full_payment',
+            user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || '',
+            customer_name: ctx.user.name || '',
           },
         });
         
@@ -1864,13 +1884,13 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'No payment to refund' });
         }
         
-        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const refund = await stripe.refunds.create({
           payment_intent: booking.stripePaymentIntentId,
-          reason: 'requested_by_customer',
+          reason: 'requested_by_customer' as const,
           metadata: {
-            bookingId: input.bookingId,
-            reason: input.reason,
+            bookingId: String(input.bookingId),
+            reason: input.reason || '',
           },
         });
         

@@ -918,3 +918,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Venue dashboard shows rider message preview but no way to view full rider details - added View Full Rider button + modal to BookingMessages component on booking detail page
 - [x] Feature: Add View Rider shortcut icon to Bookings tab on venue dashboard for quick access without opening booking detail
 - [x] Feature: Show artist's actual name on venue dashboard booking cards instead of 'Artist #11'
+- [x] Bug: Venue user gets 'not authenticated' error when clicking Pay Deposit on booking detail page - fixed by switching PaymentSection from non-existent REST endpoint to tRPC mutations, and fixed checkout URLs to use ctx.req.headers.origin
