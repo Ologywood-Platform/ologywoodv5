@@ -13,7 +13,6 @@ import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
-import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { useParams, useLocation } from 'wouter';
 import { useEffect, useRef } from 'react';
 
@@ -369,15 +368,6 @@ export default function BookingDetail() {
                 />
               )}
             </div>
-          )}
-
-          {/* Rider Contract & E-Signature Section */}
-          {booking?.artistId && (user.role === 'artist' || user.role === 'venue') && (
-            <RiderContractSigning
-              bookingId={bookingId}
-              currentUserRole={user.role as 'artist' | 'venue'}
-              onSigningComplete={() => refetch()}
-            />
           )}
 
           {/* Messages */}

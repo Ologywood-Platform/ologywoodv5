@@ -921,3 +921,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Venue user gets 'not authenticated' error when clicking Pay Deposit on booking detail page - fixed by switching PaymentSection from non-existent REST endpoint to tRPC mutations, and fixed checkout URLs to use ctx.req.headers.origin
 - [x] Bug: Booking payment status didn't advance after Stripe test deposit payment - fixed verifyPayment route to handle both deposit and final_payment sessions, fixed metadata field name mismatches (type→paymentType, user_id→userId), fixed Stripe ESM import (require→import)
 - [x] Feature: Ensure full payment flow works end-to-end: deposit → deposit_paid → remaining balance button → final payment → fully_paid/completed - tested and verified with Stripe sandbox
+- [x] UX: Remove redundant 'Rider Contract' section from BookingDetail page - rider already viewable via Messages and View Rider shortcut
