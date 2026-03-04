@@ -5,7 +5,7 @@ import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X } from 'lucide-react';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 
 export function VenueDashboard() {
@@ -13,6 +13,7 @@ export function VenueDashboard() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [editingProfile, setEditingProfile] = useState(false);
+  const [viewingRiderBookingId, setViewingRiderBookingId] = useState<number | null>(null);
   const [profileForm, setProfileForm] = useState({
     organizationName: '',
     location: '',
@@ -325,10 +326,21 @@ export function VenueDashboard() {
                           <p className="text-sm text-gray-600">Payment Status</p>
                           <p className="font-medium capitalize">{booking.paymentStatus}</p>
                         </div>
-                        <div className="flex gap-2 mt-4">
+                        <div className="flex flex-wrap gap-2 mt-4">
                           <Button variant="outline" size="sm" onClick={() => navigate(`/booking/${booking.id}`)}>
                             View Details
                           </Button>
+                          {(booking as any).hasRiderMessage && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                              onClick={() => setViewingRiderBookingId(booking.id)}
+                            >
+                              <ClipboardList className="h-4 w-4 mr-1" />
+                              View Rider
+                            </Button>
+                          )}
                           {booking.status === 'pending' && (
                             <>
                               <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleBookingRespond(booking.id, 'confirmed')}>
@@ -588,6 +600,131 @@ export function VenueDashboard() {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav mode="venue-dashboard" />
+
+      {/* Rider Viewer Modal */}
+      {viewingRiderBookingId && (
+        <RiderViewerModal
+          bookingId={viewingRiderBookingId}
+          onClose={() => setViewingRiderBookingId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Inline modal component that fetches rider messages for a booking and displays the rider details */
+function RiderViewerModal({ bookingId, onClose }: { bookingId: number; onClose: () => void }) {
+  const { data: messages, isLoading } = trpc.message.getForBooking.useQuery({ bookingId });
+
+  // Find the rider message
+  const riderMessage = messages?.find((m: any) => m.messageType === 'rider');
+  let riderData: any = null;
+  let riderName = 'Rider';
+
+  if (riderMessage) {
+    const parsed = typeof riderMessage.metadata === 'string'
+      ? JSON.parse(riderMessage.metadata)
+      : riderMessage.metadata;
+    riderName = parsed?.riderTemplateName || 'Rider';
+    const rd = parsed?.riderTemplateData || {};
+    riderData = rd.formData || rd;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-900 rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5 text-purple-600" />
+            <h3 className="font-semibold">{riderName}</h3>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="p-4">
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-3"></div>
+              <p>Loading rider details...</p>
+            </div>
+          ) : !riderData ? (
+            <div className="text-center py-8 text-gray-500">
+              <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p>No rider details found for this booking.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Technical Requirements */}
+              {(riderData.stage_size_min || riderData.sound_system || riderData.lighting) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-600 mb-2">Technical Requirements</h4>
+                  <div className="space-y-1.5 text-sm">
+                    {riderData.stage_size_min && <div><span className="font-medium">Stage Size:</span> {riderData.stage_size_min}</div>}
+                    {riderData.stage_surface && <div><span className="font-medium">Stage Surface:</span> {riderData.stage_surface}</div>}
+                    {riderData.sound_system && <div><span className="font-medium">Sound System:</span> {riderData.sound_system}</div>}
+                    {riderData.monitors && <div><span className="font-medium">Monitors:</span> {riderData.monitors}</div>}
+                    {riderData.microphones && <div><span className="font-medium">Microphones:</span> {riderData.microphones}</div>}
+                    {riderData.di_boxes && <div><span className="font-medium">DI Boxes:</span> {riderData.di_boxes}</div>}
+                    {riderData.lighting && <div><span className="font-medium">Lighting:</span> {riderData.lighting}</div>}
+                    {riderData.power_outlets && <div><span className="font-medium">Power Outlets:</span> {riderData.power_outlets}</div>}
+                  </div>
+                </div>
+              )}
+              {/* Performance Details */}
+              {(riderData.performance_duration || riderData.soundcheck_duration || riderData.load_in_time) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-600 mb-2">Performance Details</h4>
+                  <div className="space-y-1.5 text-sm">
+                    {riderData.performance_duration && <div><span className="font-medium">Performance Duration:</span> {riderData.performance_duration} min</div>}
+                    {riderData.num_sets && <div><span className="font-medium">Number of Sets:</span> {riderData.num_sets}</div>}
+                    {riderData.set_break_duration && <div><span className="font-medium">Break Duration:</span> {riderData.set_break_duration} min</div>}
+                    {riderData.soundcheck_duration && <div><span className="font-medium">Soundcheck:</span> {riderData.soundcheck_duration} min</div>}
+                    {riderData.load_in_time && <div><span className="font-medium">Load-in Time:</span> {riderData.load_in_time} hrs before</div>}
+                  </div>
+                </div>
+              )}
+              {/* Hospitality Requirements */}
+              {(riderData.green_room || riderData.meals || riderData.beverages || riderData.parking) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-600 mb-2">Hospitality Requirements</h4>
+                  <div className="space-y-1.5 text-sm">
+                    {riderData.green_room && <div><span className="font-medium">Green Room:</span> {riderData.green_room}</div>}
+                    {riderData.meals && <div><span className="font-medium">Meals:</span> {riderData.meals}</div>}
+                    {riderData.beverages && <div><span className="font-medium">Beverages:</span> {riderData.beverages}</div>}
+                    {riderData.towels && <div><span className="font-medium">Towels:</span> Yes</div>}
+                    {riderData.wifi_required && <div><span className="font-medium">WiFi:</span> Required</div>}
+                    {riderData.parking && <div><span className="font-medium">Parking:</span> {riderData.parking}</div>}
+                  </div>
+                </div>
+              )}
+              {/* Financial Terms */}
+              {(riderData.deposit_percentage || riderData.payment_method || riderData.cancellation_policy) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-600 mb-2">Financial Terms</h4>
+                  <div className="space-y-1.5 text-sm">
+                    {riderData.deposit_percentage && <div><span className="font-medium">Deposit:</span> {riderData.deposit_percentage}</div>}
+                    {riderData.deposit_due_date && <div><span className="font-medium">Deposit Due:</span> {riderData.deposit_due_date}</div>}
+                    {riderData.balance_due_date && <div><span className="font-medium">Balance Due:</span> {riderData.balance_due_date}</div>}
+                    {riderData.payment_method && <div><span className="font-medium">Payment Method:</span> {riderData.payment_method}</div>}
+                    {riderData.cancellation_policy && <div><span className="font-medium">Cancellation Policy:</span> {riderData.cancellation_policy}</div>}
+                  </div>
+                </div>
+              )}
+              {/* Policies */}
+              {(riderData.recording_policy || riderData.merch_sales) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-purple-600 mb-2">Policies</h4>
+                  <div className="space-y-1.5 text-sm">
+                    {riderData.recording_policy && <div><span className="font-medium">Recording:</span> {riderData.recording_policy}</div>}
+                    {riderData.merch_sales && <div><span className="font-medium">Merch Sales:</span> {riderData.merch_sales}</div>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

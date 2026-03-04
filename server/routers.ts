@@ -621,7 +621,16 @@ export const appRouter = router({
       const profile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!profile) return [];
       const bookings = await db.getBookingsByVenueId(profile.id);
-      return bookings || [];
+      if (!bookings || bookings.length === 0) return [];
+      // Check which bookings have rider messages
+      const bookingsWithRiderInfo = await Promise.all(
+        bookings.map(async (booking) => {
+          const msgs = await db.getMessagesByBookingId(booking.id);
+          const hasRiderMessage = msgs.some((m) => m.messageType === 'rider');
+          return { ...booking, hasRiderMessage };
+        })
+      );
+      return bookingsWithRiderInfo;
     }),
     
     // Update booking status (artist)

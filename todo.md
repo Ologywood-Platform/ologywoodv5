@@ -916,3 +916,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Subscription plan descriptions are inaccurate - audited and fixed all tier descriptions across SubscriptionManagement, Pricing page, FAQ, and deprecated wizard to accurately reflect features per tier
 - [x] Bug: Rider message in Messages page not showing summary or View Full Rider properly (field names mismatched - used camelCase but data uses snake_case under formData)
 - [x] Bug: Venue dashboard shows rider message preview but no way to view full rider details - added View Full Rider button + modal to BookingMessages component on booking detail page
+- [x] Feature: Add View Rider shortcut icon to Bookings tab on venue dashboard for quick access without opening booking detail
