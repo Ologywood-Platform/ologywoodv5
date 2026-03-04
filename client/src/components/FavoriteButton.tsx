@@ -7,6 +7,8 @@ import { useAuth } from '@/_core/hooks/useAuth';
 
 interface FavoriteButtonProps {
   artistId: number;
+  /** The user ID of the artist (for self-check) */
+  artistUserId?: number;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   showText?: boolean;
@@ -14,6 +16,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ 
   artistId, 
+  artistUserId,
   variant = 'outline', 
   size = 'default',
   showText = true 
@@ -23,6 +26,10 @@ export function FavoriteButton({
   
   // Only venues can favorite
   const isVenue = user?.role === 'venue';
+  
+  // Don't show favorite button on own profile
+  const isOwnProfile = user && artistUserId && user.id === artistUserId;
+  if (isOwnProfile) return null;
   
   const { data: isFavorited, isLoading } = trpc.favorite.isFavorited.useQuery(
     { artistId },
@@ -67,6 +74,7 @@ export function FavoriteButton({
   if (!isVenue) {
     return null;
   }
+  
   
   const isProcessing = addMutation.isPending || removeMutation.isPending;
   

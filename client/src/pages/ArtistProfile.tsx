@@ -486,7 +486,7 @@ export default function ArtistProfile() {
               {/* Secondary actions row */}
               <div className="flex items-center gap-2 flex-wrap">
                 <FollowButton artistUserId={artist.userId || artistId} artistName={artist.artistName} showCount={false} />
-                <FavoriteButton artistId={artistId} size="lg" showText={false} />
+                <FavoriteButton artistId={artistId} artistUserId={artist.userId || artistId} size="lg" showText={false} />
                 <Button
                   onClick={() => setShareProfileOpen(true)}
                   variant="outline"

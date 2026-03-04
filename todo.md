@@ -925,3 +925,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Venue Invoices page is a static placeholder - rewritten with real booking payment data from Stripe
 - [x] UX: Add Invoices quick-access card to venue dashboard Overview tab + Messages card for easy navigation
 - [x] UX: Hide Follow button when viewing own artist profile - now hides button and shows only follower count on own profile
+- [x] UX: Hide Favorite button when viewing own artist profile - same self-check as FollowButton
