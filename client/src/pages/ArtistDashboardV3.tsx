@@ -292,7 +292,7 @@ export function ArtistDashboardV3() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(`/bookings/${booking.id}`)}
+                          onClick={() => navigate(`/booking/${booking.id}`)}
                         >
                           View
                         </Button>

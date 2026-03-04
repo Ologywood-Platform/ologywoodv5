@@ -180,7 +180,13 @@ export const bookings = mysqlTable("bookings", {
 
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "deposit_paid", "fully_paid", "refunded"]).default("unpaid").notNull(),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  stripeDepositPaymentIntentId: varchar("stripeDepositPaymentIntentId", { length: 255 }),
+  stripeFinalPaymentIntentId: varchar("stripeFinalPaymentIntentId", { length: 255 }),
   stripeRefundId: varchar("stripeRefundId", { length: 255 }),
+  finalPaidAt: timestamp("finalPaidAt"),
+  cancelledAt: timestamp("cancelledAt"),
+  cancelledBy: varchar("cancelledBy", { length: 20 }),
+  cancellationReason: text("cancellationReason"),
   
   // Rider template linked to this booking
   riderTemplateId: int("riderTemplateId"),

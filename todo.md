@@ -905,3 +905,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Feature: Stripe Connect - artist onboarding UI (connect Stripe account from dashboard)
 - [x] Feature: Stripe Connect - real earnings dashboard replacing mock payout data
 - [x] Bug: Payment request sent but no clear indication of who received it (root cause: entire payout system was mock data - replaced with real Stripe Connect flow)
+- [x] Bug: Clicking View on Upcoming Bookings in Artist Dashboard gives 404 page not found (route was /bookings/:id but should be /booking/:id)
+- [x] Feature: Booking payment flow - add payment tracking fields to bookings table (depositPaid, depositAmount, remainingAmount, paymentStatus, stripePaymentIntentId)
+- [x] Feature: Booking payment flow - build booking checkout route for deposit and final payment with Stripe Connect
+- [x] Feature: Booking payment flow - update webhook handler to auto-update booking status on payment success
+- [x] Feature: Booking payment flow - venue-side UI (Pay Deposit + Pay Remaining Balance buttons)
+- [x] Feature: Booking payment flow - artist-side UI (payment status timeline, received amounts)
+- [x] Feature: Booking payment flow - cancellation/refund logic (venue cancels = artist keeps deposit, artist cancels = venue gets full refund)

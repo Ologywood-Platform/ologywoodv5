@@ -648,19 +648,26 @@ export const appRouter = router({
           });
         }
         
-        // If cancelling from confirmed, mark as available again
-        if (input.status === 'cancelled' && booking.status === 'confirmed') {
-          const dateStr = booking.eventDate instanceof Date 
-            ? booking.eventDate.toISOString().split('T')[0] 
-            : booking.eventDate;
-          await db.setAvailability({
-            artistId: booking.artistId,
-            date: dateStr,
-            status: 'available',
-          });
+        // If cancelling, handle refunds and mark date as available
+        if (input.status === 'cancelled') {
+          if (booking.status === 'confirmed') {
+            const dateStr = booking.eventDate instanceof Date 
+              ? booking.eventDate.toISOString().split('T')[0] 
+              : booking.eventDate;
+            await db.setAvailability({
+              artistId: booking.artistId,
+              date: dateStr,
+              status: 'available',
+            });
+          }
+          
+          // Use cancellation service for refund handling
+          const { cancelBooking } = await import('./services/bookingCancellation');
+          const result = await cancelBooking(input.id, 'artist');
+          // cancelBooking already updates the booking status
+        } else {
+          await db.updateBooking(input.id, { status: input.status });
         }
-        
-        await db.updateBooking(input.id, { status: input.status });
         
         // Send email notifications based on status change
         const artistProfile = await db.getArtistProfileById(booking.artistId);
@@ -759,9 +766,24 @@ export const appRouter = router({
             date: dateStr,
             status: 'booked',
           });
+          await db.updateBooking(input.id, { status: input.status });
         }
         
-        await db.updateBooking(input.id, { status: input.status });
+        // If cancelling, handle refunds via cancellation service
+        if (input.status === 'cancelled') {
+          if (booking.status === 'confirmed') {
+            const dateStr = booking.eventDate instanceof Date 
+              ? booking.eventDate.toISOString().split('T')[0] 
+              : booking.eventDate;
+            await db.setAvailability({
+              artistId: booking.artistId,
+              date: dateStr,
+              status: 'available',
+            });
+          }
+          const { cancelBooking } = await import('./services/bookingCancellation');
+          await cancelBooking(input.id, 'venue');
+        }
         
         // Send email notifications
         const artistProfile = await db.getArtistProfileById(booking.artistId);

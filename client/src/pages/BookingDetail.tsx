@@ -216,8 +216,11 @@ export default function BookingDetail() {
             bookingId={bookingId}
             totalFee={booking.totalFee ? Number(booking.totalFee) : undefined}
             depositAmount={booking.depositAmount ? Number(booking.depositAmount) : undefined}
-            paymentStatus={booking.paymentStatus || undefined}
-            isVenue={user.role === "venue"}
+            paymentStatus={booking.paymentStatus || 'unpaid'}
+            isVenue={user.role === 'venue'}
+            bookingStatus={booking.status}
+            depositPaidAt={(booking as any).depositPaidAt || null}
+            finalPaidAt={(booking as any).finalPaidAt || null}
           />
 
           {/* Add to Portfolio - Only show for artists on completed bookings */}

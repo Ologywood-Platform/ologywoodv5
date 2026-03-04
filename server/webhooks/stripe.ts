@@ -143,8 +143,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         console.log(`[Stripe Webhook] Final payment completed for booking ${bookingId}`);
       }
       
-      // Update booking payment status
-      await db.updateBookingPaymentStatus(parseInt(bookingId), paymentStatus, session.id);
+      // Update booking payment status with payment type for proper tracking
+      await db.updateBookingPaymentStatus(parseInt(bookingId), paymentStatus, session.id, paymentType || undefined);
       
       // Log platform fee collection
       if (platformFeeAmount > 0) {

@@ -641,16 +641,34 @@ export async function upsertSubscription(data: any): Promise<void> {
   }
 }
 
-export async function updateBookingPaymentStatus(bookingId: number, paymentStatus: string, stripePaymentIntentId?: string): Promise<void> {
+export async function updateBookingPaymentStatus(
+  bookingId: number, 
+  paymentStatus: string, 
+  stripeSessionId?: string,
+  paymentType?: string
+): Promise<void> {
   const db = await getDb();
   if (!db) return;
   
   const updateData: any = { paymentStatus };
-  if (stripePaymentIntentId) {
-    updateData.stripePaymentIntentId = stripePaymentIntentId;
+  
+  if (paymentType === 'deposit') {
+    updateData.depositPaidAt = new Date();
+    if (stripeSessionId) updateData.stripeDepositPaymentIntentId = stripeSessionId;
+    // Auto-confirm booking when deposit is paid
+    updateData.status = 'confirmed';
+  } else if (paymentType === 'final') {
+    updateData.finalPaidAt = new Date();
+    if (stripeSessionId) updateData.stripeFinalPaymentIntentId = stripeSessionId;
+    // Mark booking as completed when fully paid
+    updateData.status = 'completed';
+  } else {
+    // Legacy full payment
+    if (stripeSessionId) updateData.stripePaymentIntentId = stripeSessionId;
   }
   
   await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
+  console.log(`[DB] Updated booking #${bookingId} payment status to ${paymentStatus} (type: ${paymentType || 'full'})`);
 }
 
 // ============= MESSAGE FUNCTIONS =============
