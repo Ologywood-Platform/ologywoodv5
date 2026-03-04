@@ -4,6 +4,44 @@ All notable changes to the Ologywood platform are documented in this file. Versi
 
 ---
 
+## [1.0.0] - March 4, 2026
+
+### Stripe Payment Flow (End-to-End)
+- Fixed PaymentSection to use tRPC mutations instead of non-existent REST endpoint
+- Fixed Stripe ESM import (`require('stripe')` → proper `import` from `./stripe.ts`)
+- Fixed checkout session metadata field names to match webhook handler (`type` → `paymentType`, `user_id` → `userId`)
+- Added auto-calculation of deposit amount (50% of total fee) when `depositAmount` is null
+- Added `verifyPayment` tRPC route as client-side fallback for webhook delays
+- Fixed `verifyPayment` to detect both deposit and final_payment sessions
+- Fixed `updateBookingPaymentStatus` to accept both `final` and `final_payment` types
+- Verified full two-phase payment: deposit ($1,000) → deposit_paid → remaining ($1,000) → fully_paid → completed
+
+### Rider Viewing
+- Fixed rider message rendering in Messages page (corrected field paths for `formData` snake_case fields)
+- Added "View Full Rider" button and modal to BookingMessages component on booking detail page
+- Added "View Rider" shortcut icon on venue dashboard booking cards (purple clipboard button)
+- Enhanced `getMyVenueBookings` API to detect rider messages per booking (`hasRiderMessage` flag)
+- Removed redundant "Rider Contract" placeholder section from BookingDetail page
+
+### Venue Dashboard Improvements
+- Booking cards now show artist name and profile photo instead of "Artist #11"
+- Enhanced `getMyVenueBookings` to resolve artist profiles for each booking
+- Added Invoices and Messages quick-access cards to venue dashboard Overview tab
+- Rebuilt VenueInvoiceDashboard with real booking payment data (was static placeholder)
+
+### UX Fixes
+- Fixed Messages page scroll: auto-scroll only on new messages, respects manual scrolling
+- Hidden Follow button when viewing own artist profile (was showing "cannot follow yourself" error)
+- Hidden Favorite button when viewing own artist profile (same self-check)
+- Fixed FavoriteButton React hooks crash ("Rendered fewer hooks than expected" — moved early return after hooks)
+
+### Documentation
+- Updated README.md with current metrics (40 tables, 53 pages, 1,403 tests)
+- Created ROADMAP.md with prioritized feature roadmap
+- Updated CHANGELOG.md with all March 4 changes
+
+---
+
 ## [0.9.5] - February 28, 2026
 
 ### Documentation & Cleanup
@@ -163,13 +201,13 @@ All notable changes to the Ologywood platform are documented in this file. Versi
 
 ---
 
-**Platform Metrics (as of February 28, 2026):**
+**Platform Metrics (as of March 4, 2026):**
 
 | Metric | Value |
 |--------|-------|
-| Database tables | 36 |
-| Client pages | 46 |
-| Test suite | 1,233 passing (46 files) |
+| Database tables | 40 |
+| Client pages | 53 |
+| Test suite | 1,403 passing (56 files) |
 | TypeScript errors | 0 |
-| tRPC router namespaces | 30 |
+| Active tRPC router namespaces | 18 |
 | Production domain | www.ologywood.com |
