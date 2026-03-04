@@ -138,6 +138,95 @@ export const appRouter = router({
   // eviction: evictionRouter,
   // helpCenter: helpCenterRouter,
   riderContract: riderContractRouter,
+
+  // Contract dashboard - list all contracts for the current user
+  contractDashboard: router({
+    getMyContracts: protectedProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user.id;
+      const role = ctx.user.role;
+
+      let contractsList: any[] = [];
+
+      if (role === 'artist' || role === 'admin') {
+        const artistProfile = await db.getArtistProfileByUserId(userId);
+        if (artistProfile) {
+          contractsList = await db.getContractsByArtistId(artistProfile.id);
+        }
+      }
+
+      if (role === 'venue' || role === 'admin') {
+        const venueProfile = await db.getVenueProfileByUserId(userId);
+        if (venueProfile) {
+          const venueContracts = await db.getContractsByVenueId(venueProfile.id);
+          // Merge without duplicates
+          const existingIds = new Set(contractsList.map(c => c.id));
+          for (const vc of venueContracts) {
+            if (!existingIds.has(vc.id)) contractsList.push(vc);
+          }
+        }
+      }
+
+      // Enrich each contract with booking, signature, and party info
+      const enriched = await Promise.all(
+        contractsList.map(async (contract) => {
+          const booking = await db.getBookingById(contract.bookingId);
+          const sigs = await db.getSignaturesByContractId(contract.id);
+          const artistSig = sigs.find(s => s.signerRole === 'artist');
+          const venueSig = sigs.find(s => s.signerRole === 'venue');
+
+          // Get party names
+          let artistName = 'Unknown Artist';
+          let venueName = 'Unknown Venue';
+          let riderTemplateName = 'Performance Rider';
+
+          const artistProf = await db.getArtistProfileById(contract.artistId);
+          if (artistProf) artistName = artistProf.artistName || artistName;
+
+          const venueProf = await db.getVenueProfileById(contract.venueId);
+          if (venueProf) venueName = venueProf.organizationName || venueName;
+
+          // Get rider template name
+          if (booking?.riderTemplateId) {
+            try {
+              const tmpl = await db.getRiderTemplateById(booking.riderTemplateId);
+              if (tmpl) riderTemplateName = tmpl.templateName || riderTemplateName;
+            } catch (_) { /* fallback */ }
+          }
+
+          return {
+            id: contract.id,
+            bookingId: contract.bookingId,
+            status: contract.status,
+            createdAt: contract.createdAt,
+            updatedAt: contract.updatedAt,
+            artistName,
+            venueName,
+            riderTemplateName,
+            eventDate: booking?.eventDate || null,
+            eventDetails: booking?.eventDetails || null,
+            totalFee: booking?.totalFee || null,
+            bookingStatus: booking?.status || null,
+            artistSigned: !!artistSig,
+            artistSignedAt: artistSig?.signedAt || null,
+            artistSignerName: artistSig?.signerName || null,
+            venueSigned: !!venueSig,
+            venueSignedAt: venueSig?.signedAt || null,
+            venueSignerName: venueSig?.signerName || null,
+          };
+        })
+      );
+
+      // Sort by most recent first
+      enriched.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      return enriched;
+    }),
+  }),
+
   release: releaseRouter,
   blog: blogRouter,
   stripeConnect: stripeConnectRouter,

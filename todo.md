@@ -943,3 +943,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add delayed cleanup for blob URL downloads
 - [x] Add empty blob size check with error message
 - [x] Write comprehensive vitest tests (12 tests: auth, authorization, PDF generation)
+
+## Contracts Dashboard Tab
+
+- [x] Add tRPC endpoint (contractDashboard.getMyContracts) to fetch user contracts with booking/signature data
+- [x] Create standalone /contracts page with summary cards, filter tabs, status badges, and PDF download links
+- [x] Add Contracts quick action to Artist Dashboard and Venue Dashboard
+- [x] Add /contracts route to App.tsx with lazy loading
+- [x] Add breadcrumb navigation (Home / Dashboard / Contracts)
+- [x] Write vitest tests for the contracts endpoint (13 tests passing)
+- [x] Test end-to-end in browser - verified contracts page loads with real data

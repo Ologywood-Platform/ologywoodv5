@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -264,6 +264,14 @@ export function ArtistDashboardV3() {
                   >
                     <Camera className="h-5 w-5" />
                     <span className="text-xs">Portfolio</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/contracts')}
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span className="text-xs">Contracts</span>
                   </Button>
                 </div>
               </CardContent>

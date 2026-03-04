@@ -258,7 +258,7 @@ export function VenueDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/venue-invoices')}>
                 <CardContent className="py-5 flex items-center gap-4">
                   <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
@@ -267,6 +267,18 @@ export function VenueDashboard() {
                   <div className="flex-1">
                     <h3 className="font-semibold">Invoices</h3>
                     <p className="text-sm text-muted-foreground">View payment history and outstanding balances</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/contracts')}>
+                <CardContent className="py-5 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                    <ClipboardList className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">Contracts</h3>
+                    <p className="text-sm text-muted-foreground">View and download signed rider contracts</p>
                   </div>
                 </CardContent>
               </Card>

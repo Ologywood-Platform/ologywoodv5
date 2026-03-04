@@ -72,6 +72,7 @@ const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const ArtistHistory = lazy(() => import("./pages/ArtistHistory"));
+const Contracts = lazy(() => import("./pages/Contracts"));
 const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 
 // Loading fallback for lazy-loaded pages
@@ -126,6 +127,7 @@ function Router() {
           <Route path="/booking/:id">{(params: any) => <PageErrorBoundary><BookingDetail {...params} /></PageErrorBoundary>}</Route>
           <Route path="/booking-confirmation/:id" component={BookingConfirmation} />
           <Route path="/bookings" component={BookingsList} />
+          <Route path="/contracts">{() => <PageErrorBoundary><Contracts /></PageErrorBoundary>}</Route>
           
           {/* Event Management */}
           <Route path="/events" component={EventDiscovery} />
