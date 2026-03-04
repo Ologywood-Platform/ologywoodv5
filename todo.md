@@ -928,3 +928,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] UX: Hide Favorite button when viewing own artist profile - same self-check as FollowButton
 - [x] Bug: FavoriteButton crashes with "Rendered fewer hooks than expected" - moved self-check early return after all hooks
 - [x] Bug: Messages page chat snaps back to top when user scrolls down - fixed: auto-scroll only on new messages, respects manual scrolling via distance-from-bottom detection
+- [x] Feature: Wire RiderContractSigning component into BookingDetail page for both artist and venue roles
+- [x] Feature: Auto-attach riderTemplateId to booking when rider is sent via message
+- [x] Feature: Update contract signing to work with rider data from messages (not just riderTemplateId)
+- [x] Feature: Full e-signature flow: view rider → sign → countersign → fully signed status — tested artist signing successfully

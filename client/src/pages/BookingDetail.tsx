@@ -9,6 +9,7 @@ import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
 import { VenueReviewForm } from '@/components/VenueReviewForm';
 import PaymentSection from '@/components/PaymentSection';
+import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
@@ -259,6 +260,15 @@ export default function BookingDetail() {
             depositPaidAt={(booking as any).depositPaidAt || null}
             finalPaidAt={(booking as any).finalPaidAt || null}
           />
+
+          {/* Rider Contract & E-Signature */}
+          {booking.riderTemplateId && (
+            <RiderContractSigning
+              bookingId={bookingId}
+              currentUserRole={user.role === 'venue' ? 'venue' : 'artist'}
+              onSigningComplete={() => refetch()}
+            />
+          )}
 
           {/* Add to Portfolio - Only show for artists on completed bookings */}
           {user.role === 'artist' && booking.status === 'completed' && (

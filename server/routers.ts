@@ -1028,6 +1028,12 @@ export const appRouter = router({
             riderTemplateData: input.riderTemplateData,
           },
         });
+
+        // Auto-attach riderTemplateId to booking for contract signing
+        await db.updateBooking(input.bookingId, {
+          riderTemplateId: input.riderTemplateId,
+        });
+
         return { success: true };
       }),
 
