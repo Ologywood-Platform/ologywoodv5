@@ -927,3 +927,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] UX: Hide Follow button when viewing own artist profile - now hides button and shows only follower count on own profile
 - [x] UX: Hide Favorite button when viewing own artist profile - same self-check as FollowButton
 - [x] Bug: FavoriteButton crashes with "Rendered fewer hooks than expected" - moved self-check early return after all hooks
+- [x] Bug: Messages page chat snaps back to top when user scrolls down - fixed: auto-scroll only on new messages, respects manual scrolling via distance-from-bottom detection

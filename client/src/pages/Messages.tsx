@@ -58,7 +58,10 @@ export default function Messages() {
   const [showRiderPicker, setShowRiderPicker] = useState(false);
   const [viewingRider, setViewingRider] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevMessageCountRef = useRef(0);
+  const userIsScrollingRef = useRef(false);
 
   // Fetch bookings to build conversations
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
@@ -160,9 +163,19 @@ export default function Messages() {
     }
   }, [selectedMessages, user?.id]);
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom only when new messages arrive (not on every poll refetch)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const prevCount = prevMessageCountRef.current;
+    const newCount = messages.length;
+    prevMessageCountRef.current = newCount;
+
+    // Auto-scroll on initial load or when new messages arrive
+    if (prevCount === 0 || newCount > prevCount) {
+      // Only auto-scroll if user is near the bottom (not manually scrolled up)
+      if (!userIsScrollingRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: prevCount === 0 ? 'instant' : 'smooth' });
+      }
+    }
   }, [messages]);
 
   // Polling for real-time message updates
@@ -215,6 +228,9 @@ export default function Messages() {
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
     setMobileShowChat(true);
+    // Reset scroll tracking for new conversation
+    prevMessageCountRef.current = 0;
+    userIsScrollingRef.current = false;
     if (conversation.bookingId) {
       markAsReadMutation.mutate({ bookingId: conversation.bookingId });
       refetchMessages();
@@ -327,7 +343,16 @@ export default function Messages() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+          // If user scrolled more than 150px from bottom, they're manually scrolling
+          userIsScrollingRef.current = distanceFromBottom > 150;
+        }}
+      >
         {messages.length > 0 ? (
           messages.map((msg) => {
             const isOwn = msg.senderId === user?.id;
