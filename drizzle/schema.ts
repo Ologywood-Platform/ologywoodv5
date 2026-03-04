@@ -212,6 +212,8 @@ export const messages = mysqlTable("messages", {
   senderId: int("senderId").notNull(),
   recipientId: int("recipientId").notNull(),
   content: text("content").notNull(),
+  messageType: varchar("messageType", { length: 50 }).default('text').notNull(),
+  metadata: json("metadata"),
   isRead: boolean("isRead").default(false).notNull(),
   readAt: timestamp("readAt"),
   lastReadAt: timestamp("lastReadAt"),

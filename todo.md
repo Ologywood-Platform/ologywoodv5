@@ -897,3 +897,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Feature: Add visible "Pay What You Want" custom price input on release purchase page when artist enables the option
 - [x] Bug: Venue profile create button not functioning (handleProfileUpdate was a stub with TODO comment, wired up to venue.createProfile and venue.updateProfile tRPC mutations)
 - [x] Bug: Venue dashboard booking buttons not working (View Details, Accept, Decline) - added venueRespond mutation + wired onClick handlers
+- [x] Feature: Send Rider via Messages - artist can pick a rider template and send it as a special message in the booking conversation

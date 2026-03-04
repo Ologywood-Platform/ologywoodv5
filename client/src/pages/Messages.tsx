@@ -14,6 +14,11 @@ import {
   MoreVertical,
   MessageCircle,
   ChevronLeft,
+  FileText,
+  X,
+  ClipboardList,
+  Download,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +40,8 @@ interface Message {
   senderId: number;
   senderName: string;
   content: string;
+  messageType?: string;
+  metadata?: any;
   timestamp: Date | string;
   read?: boolean;
 }
@@ -48,6 +55,8 @@ export default function Messages() {
   const [messageText, setMessageText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [showRiderPicker, setShowRiderPicker] = useState(false);
+  const [viewingRider, setViewingRider] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -86,6 +95,23 @@ export default function Messages() {
   // Mark as read mutation
   const markAsReadMutation = trpc.message.markBookingAsRead.useMutation();
 
+  // Fetch rider templates (for artists)
+  const { data: riderTemplates } = trpc.rider.getMyTemplates.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'artist',
+  });
+
+  // Send rider mutation
+  const sendRiderMutation = trpc.message.sendRider.useMutation({
+    onSuccess: () => {
+      toast.success("Rider sent!");
+      setShowRiderPicker(false);
+      refetchMessages();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send rider");
+    },
+  });
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       window.location.href = getLoginUrl();
@@ -122,8 +148,10 @@ export default function Messages() {
         id: msg.id,
         senderId: msg.senderId,
         senderName: msg.senderId === user?.id ? 'You' : 'Participant',
-        content: msg.messageText,
-        timestamp: msg.sentAt,
+        content: msg.messageText || msg.content,
+        messageType: msg.messageType || 'text',
+        metadata: msg.metadata,
+        timestamp: msg.sentAt || msg.createdAt,
         read: msg.readAt !== null,
       }));
       setMessages(formattedMessages);
@@ -170,6 +198,17 @@ export default function Messages() {
       bookingId: selectedConversation.bookingId,
       receiverId: selectedConversation.participantId,
       messageText: messageText,
+    });
+  };
+
+  const handleSendRider = (template: any) => {
+    if (!selectedConversation?.bookingId) return;
+    sendRiderMutation.mutate({
+      bookingId: selectedConversation.bookingId,
+      receiverId: selectedConversation.participantId,
+      riderTemplateId: template.id,
+      riderTemplateName: template.templateName,
+      riderTemplateData: template.templateData || {},
     });
   };
 
@@ -292,6 +331,58 @@ export default function Messages() {
         {messages.length > 0 ? (
           messages.map((msg) => {
             const isOwn = msg.senderId === user?.id;
+            const isRider = msg.messageType === 'rider';
+
+            if (isRider) {
+              const riderData = msg.metadata?.riderTemplateData || {};
+              const riderName = msg.metadata?.riderTemplateName || 'Rider';
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`rounded-2xl px-4 py-3 max-w-[85%] sm:max-w-sm border ${
+                      isOwn
+                        ? 'bg-primary/5 border-primary/20 rounded-br-md'
+                        : 'bg-muted/50 border-border rounded-bl-md'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <ClipboardList className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="text-sm font-semibold truncate">{riderName}</span>
+                    </div>
+                    {/* Quick summary */}
+                    <div className="text-xs text-muted-foreground space-y-1 mb-3">
+                      {riderData.stageSize && <p>Stage: {riderData.stageSize}</p>}
+                      {riderData.soundRequirements && <p>Sound: {riderData.soundRequirements}</p>}
+                      {riderData.dressingRooms && <p>Dressing Rooms: {riderData.dressingRooms}</p>}
+                      {riderData.depositRequired && <p>Deposit: {riderData.depositRequired}</p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => setViewingRider(msg.metadata)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View Full Rider
+                      </Button>
+                    </div>
+                    <p
+                      className="text-[10px] mt-2 text-muted-foreground"
+                    >
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div
                 key={msg.id}
@@ -327,9 +418,63 @@ export default function Messages() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Rider Picker Overlay */}
+      {showRiderPicker && (
+        <div className="border-t bg-background p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-semibold">Select a Rider Template</h4>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setShowRiderPicker(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          {riderTemplates && riderTemplates.length > 0 ? (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {riderTemplates.map((template: any) => (
+                <button
+                  key={template.id}
+                  onClick={() => handleSendRider(template)}
+                  className="w-full text-left p-2.5 rounded-lg border hover:bg-muted/50 transition-colors flex items-center gap-2"
+                  disabled={sendRiderMutation.isPending}
+                >
+                  <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{template.templateName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {template.templateType || 'Custom'} template
+                    </p>
+                  </div>
+                  <Send className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No rider templates yet. Create one in your Riders page first.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Message Input */}
       <div className="border-t p-3 sm:p-4 bg-background safe-area-bottom">
         <div className="flex gap-2 items-end">
+          {/* Send Rider button - artists only */}
+          {user?.role === 'artist' && (
+            <Button
+              variant={showRiderPicker ? 'secondary' : 'ghost'}
+              size="icon"
+              className="h-11 w-11 sm:h-10 sm:w-10 flex-shrink-0"
+              onClick={() => setShowRiderPicker(!showRiderPicker)}
+              title="Send Rider"
+            >
+              <ClipboardList className="h-4 w-4" />
+            </Button>
+          )}
           <Input
             ref={inputRef}
             placeholder="Type a message..."
@@ -433,6 +578,86 @@ export default function Messages() {
           </div>
         </div>
       </div>
+
+      {/* Rider Viewer Modal */}
+      {viewingRider && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setViewingRider(null)}>
+          <div className="bg-background rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-background border-b px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">{viewingRider.riderTemplateName || 'Rider'}</h3>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewingRider(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 space-y-4">
+              {/* Technical Requirements */}
+              {(viewingRider.riderTemplateData?.stageSize || viewingRider.riderTemplateData?.soundRequirements || viewingRider.riderTemplateData?.lightingRequirements || viewingRider.riderTemplateData?.backlineRequirements) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-primary mb-2">Technical Requirements</h4>
+                  <div className="space-y-2 text-sm">
+                    {viewingRider.riderTemplateData.stageSize && (
+                      <div><span className="font-medium">Stage Size:</span> {viewingRider.riderTemplateData.stageSize}</div>
+                    )}
+                    {viewingRider.riderTemplateData.soundRequirements && (
+                      <div><span className="font-medium">Sound:</span> {viewingRider.riderTemplateData.soundRequirements}</div>
+                    )}
+                    {viewingRider.riderTemplateData.lightingRequirements && (
+                      <div><span className="font-medium">Lighting:</span> {viewingRider.riderTemplateData.lightingRequirements}</div>
+                    )}
+                    {viewingRider.riderTemplateData.backlineRequirements && (
+                      <div><span className="font-medium">Backline:</span> {viewingRider.riderTemplateData.backlineRequirements}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Hospitality Requirements */}
+              {(viewingRider.riderTemplateData?.dressingRooms || viewingRider.riderTemplateData?.cateringRequirements || viewingRider.riderTemplateData?.accommodationRequirements) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-primary mb-2">Hospitality Requirements</h4>
+                  <div className="space-y-2 text-sm">
+                    {viewingRider.riderTemplateData.dressingRooms && (
+                      <div><span className="font-medium">Dressing Rooms:</span> {viewingRider.riderTemplateData.dressingRooms}</div>
+                    )}
+                    {viewingRider.riderTemplateData.cateringRequirements && (
+                      <div><span className="font-medium">Catering:</span> {viewingRider.riderTemplateData.cateringRequirements}</div>
+                    )}
+                    {viewingRider.riderTemplateData.accommodationRequirements && (
+                      <div><span className="font-medium">Accommodation:</span> {viewingRider.riderTemplateData.accommodationRequirements}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Financial Terms */}
+              {(viewingRider.riderTemplateData?.depositRequired || viewingRider.riderTemplateData?.paymentMethod || viewingRider.riderTemplateData?.cancellationPolicy) && (
+                <div>
+                  <h4 className="text-sm font-semibold text-primary mb-2">Financial Terms</h4>
+                  <div className="space-y-2 text-sm">
+                    {viewingRider.riderTemplateData.depositRequired && (
+                      <div><span className="font-medium">Deposit:</span> {viewingRider.riderTemplateData.depositRequired}</div>
+                    )}
+                    {viewingRider.riderTemplateData.paymentMethod && (
+                      <div><span className="font-medium">Payment Method:</span> {viewingRider.riderTemplateData.paymentMethod}</div>
+                    )}
+                    {viewingRider.riderTemplateData.cancellationPolicy && (
+                      <div><span className="font-medium">Cancellation Policy:</span> {viewingRider.riderTemplateData.cancellationPolicy}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Additional Notes */}
+              {viewingRider.riderTemplateData?.additionalNotes && (
+                <div>
+                  <h4 className="text-sm font-semibold text-primary mb-2">Additional Notes</h4>
+                  <p className="text-sm">{viewingRider.riderTemplateData.additionalNotes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

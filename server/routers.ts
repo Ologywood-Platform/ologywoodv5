@@ -962,6 +962,31 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    // Send rider template as a message
+    sendRider: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        receiverId: z.number(),
+        riderTemplateId: z.number(),
+        riderTemplateName: z.string(),
+        riderTemplateData: z.record(z.string(), z.any()),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.createMessage({
+          bookingId: input.bookingId,
+          senderId: ctx.user.id,
+          recipientId: input.receiverId,
+          content: `📋 Rider: ${input.riderTemplateName}`,
+          messageType: 'rider',
+          metadata: {
+            riderTemplateId: input.riderTemplateId,
+            riderTemplateName: input.riderTemplateName,
+            riderTemplateData: input.riderTemplateData,
+          },
+        });
+        return { success: true };
+      }),
+
     // Mark message as read
     markAsRead: protectedProcedure
       .input(z.object({ id: z.number() }))
