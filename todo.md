@@ -892,3 +892,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Bug: Cannot upload audio file when creating a new release (frontend sent FormData, backend expected base64 JSON)
 - [x] Bug: Cannot upload cover art when creating a new release (same FormData vs JSON mismatch)
 - [x] Bug: Cannot create draft release (uploads failing meant no fileKey, blocking draft creation)
+- [x] Bug: Release create fails with "durationSeconds too small" - added client-side audio duration extraction + relaxed backend validation to accept 0
+- [x] Feature: Enable "Pay What You Want" pricing for Starter tier (keep 2-release limit)

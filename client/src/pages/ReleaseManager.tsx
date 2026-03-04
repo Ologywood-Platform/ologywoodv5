@@ -286,6 +286,22 @@ function ReleaseForm({
 
     setIsUploadingAudio(true);
     try {
+      // Extract audio duration using HTML5 Audio element
+      const audioDuration = await new Promise<number>((resolve) => {
+        const audio = new Audio();
+        const objectUrl = URL.createObjectURL(file);
+        audio.addEventListener("loadedmetadata", () => {
+          const duration = Math.round(audio.duration);
+          URL.revokeObjectURL(objectUrl);
+          resolve(duration > 0 ? duration : 1);
+        });
+        audio.addEventListener("error", () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve(1); // fallback to 1 second if metadata can't be read
+        });
+        audio.src = objectUrl;
+      });
+
       // Read file as base64 (backend expects JSON with base64 data)
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -308,7 +324,7 @@ function ReleaseForm({
       if (data.success) {
         setAudioFileKey(data.fileKey);
         setAudioFileName(file.name);
-        setDurationSeconds(data.durationSeconds || 0);
+        setDurationSeconds(audioDuration);
         setFileFormat(data.fileFormat || file.name.split(".").pop()?.toUpperCase() || "MP3");
         setFileSizeBytes(data.fileSizeBytes || file.size);
         toast.addSuccess("Audio uploaded", `${file.name} uploaded successfully.`);

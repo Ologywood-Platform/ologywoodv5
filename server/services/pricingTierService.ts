@@ -53,7 +53,7 @@ export const PRICING_TIERS = {
       featuredProfile: false,
       customBranding: false,
       whiteLabel: true,
-      whiteLabelAdvanced: false,
+      whiteLabelAdvanced: true,
     },
   },
   professional: {
