@@ -1109,3 +1109,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix upsertUser overwriting email/loginMethod with null on OAuth session refresh (COALESCE fix)
 - [x] Re-set owner email, password, emailVerified, loginMethod in production DB
 - [x] Verified login works on both dev and production
+
+## FIX: LOGIN SUCCESS BUT NOT RECOGNIZED AS LOGGED IN (Mar 5, 2026)
+- [x] Investigate why session cookie isn't being set after email/password login
+- [x] Fix verifySession to not require name field to be non-empty (root cause: email/password users with no name had empty string in JWT)
+- [x] Verify login + auth.me flow works end-to-end on dev server (production needs publish)
