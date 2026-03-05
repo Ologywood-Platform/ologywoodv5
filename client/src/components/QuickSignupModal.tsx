@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordStrengthIndicator } from '@/components/ui/password-strength';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 
@@ -29,12 +30,16 @@ export function QuickSignupModal({
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signup' | 'login'>(defaultTab);
   const [showSetPassword, setShowSetPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [oauthEmail, setOauthEmail] = useState('');
   
   // API mutations
   const signupMutation = ((trpc.auth as any)?.signup?.useMutation?.() || { mutateAsync: async () => {} }) as any;
   const loginMutation = ((trpc.auth as any)?.login?.useMutation?.() || { mutateAsync: async () => {} }) as any;
   const setPasswordMutation = ((trpc.auth as any)?.setPassword?.useMutation?.() || { mutateAsync: async () => {} }) as any;
+  const forgotPasswordMutation = ((trpc.auth as any)?.forgotPassword?.useMutation?.() || { mutateAsync: async () => {} }) as any;
   
   // Signup form state
   const [signupData, setSignupData] = useState({
@@ -240,6 +245,7 @@ export function QuickSignupModal({
                 disabled={isLoading}
                 autoComplete="new-password"
               />
+              <PasswordStrengthIndicator password={setPasswordData.password} />
             </div>
 
             <div className="space-y-2">
@@ -273,6 +279,101 @@ export function QuickSignupModal({
               Back to Login
             </Button>
           </form>
+        ) : showForgotPassword ? (
+          /* Forgot Password Form */
+          <div className="space-y-4">
+            {forgotPasswordSent ? (
+              <div className="text-center space-y-4 py-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold">Check Your Email</h3>
+                <p className="text-sm text-muted-foreground">
+                  If an account exists for <strong>{forgotPasswordEmail}</strong>, we've sent a password reset link. Please check your inbox and spam folder.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  The link expires in 1 hour.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setShowForgotPassword(false);
+                    setForgotPasswordSent(false);
+                  }}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Login
+                </Button>
+              </div>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!forgotPasswordEmail) {
+                    toast.error('Please enter your email address');
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    await forgotPasswordMutation.mutateAsync({ email: forgotPasswordEmail });
+                    setForgotPasswordSent(true);
+                  } catch (error: any) {
+                    const msg = error?.message || 'Failed to send reset email';
+                    if (msg.includes('Too many')) {
+                      toast.error(msg);
+                    } else {
+                      // Always show success to prevent email enumeration
+                      setForgotPasswordSent(true);
+                    }
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div className="text-center space-y-1">
+                  <h3 className="text-lg font-semibold">Forgot Password</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enter your email and we'll send you a link to reset your password.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Email
+                  </Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="email"
+                    autoFocus
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setShowForgotPassword(false)}
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Login
+                </Button>
+              </form>
+            )}
+          </div>
         ) : (
           /* Normal Sign Up / Log In Tabs */
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signup' | 'login')} className="w-full">
@@ -328,6 +429,7 @@ export function QuickSignupModal({
                     disabled={isLoading}
                     autoComplete="new-password"
                   />
+                  <PasswordStrengthIndicator password={signupData.password} />
                 </div>
 
                 <div className="space-y-2">
@@ -397,6 +499,20 @@ export function QuickSignupModal({
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isLoading ? 'Logging In...' : 'Log In'}
                 </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => {
+                      setShowForgotPassword(true);
+                      setForgotPasswordEmail(loginData.email || '');
+                      setForgotPasswordSent(false);
+                    }}
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
               </form>
             </TabsContent>
           </Tabs>

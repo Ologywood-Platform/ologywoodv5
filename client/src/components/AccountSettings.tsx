@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { PasswordInput } from './ui/password-input';
+import { PasswordStrengthIndicator } from './ui/password-strength';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
@@ -383,6 +384,7 @@ export function AccountSettings() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
                       placeholder="At least 8 characters"
                     />
+                    <PasswordStrengthIndicator password={newPassword} />
                   </div>
                   <div>
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>

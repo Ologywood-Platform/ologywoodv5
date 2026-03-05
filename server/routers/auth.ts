@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { publicProcedure, protectedProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
-import { users } from '../../drizzle/schema';
+import { users, passwordResetTokens } from '../../drizzle/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { emailConfirmationService } from '../services/emailConfirmationService';
 import { sdk } from '../_core/sdk';
 import { getSessionCookieOptions } from '../_core/cookies';
@@ -11,7 +12,8 @@ import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription, setTrialForBetaUser } from '../services/pricingTierService';
 import { TRPCError } from '@trpc/server';
-import { signupLimiter, loginLimiter, resendEmailLimiter } from '../utils/rateLimiter';
+import { signupLimiter, loginLimiter, resendEmailLimiter, forgotPasswordLimiter } from '../utils/rateLimiter';
+import { sendEmail } from '../email';
 
 /** Extract client IP from tRPC context */
 function getClientIp(ctx: any): string {
@@ -492,6 +494,183 @@ export const authRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to change password',
+        });
+      }
+    }),
+
+  // Forgot Password - send reset link
+  forgotPassword: publicProcedure
+    .input(z.object({ email: z.string().email('Invalid email address') }))
+    .mutation(async ({ input, ctx }) => {
+      // Rate limit: 3 per 15 min per IP and email
+      const ipCheck = forgotPasswordLimiter.check(`ip:forgot:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many reset attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
+      const emailCheck = forgotPasswordLimiter.check(`email:forgot:${input.email.toLowerCase()}`);
+      if (!emailCheck.allowed) {
+        // Don't reveal rate limit per email — just return success
+        return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
+      }
+
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        }
+
+        // Find user by email
+        const userResult = await db.select().from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
+
+        // Always return success to prevent email enumeration
+        if (userResult.length === 0) {
+          return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
+        }
+
+        const user = userResult[0];
+
+        // Generate secure random token
+        const token = randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        // Store token in database
+        await db.insert(passwordResetTokens).values({
+          userId: user.id,
+          token,
+          expiresAt,
+        });
+
+        // Build reset link
+        const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+        const resetLink = `${baseUrl}/reset-password?token=${token}`;
+
+        // Send email
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password</h1>
+            </div>
+            <div style="padding: 30px; background-color: #f9f9f9;">
+              <p style="font-size: 16px; margin: 0 0 20px 0;">Hi ${user.name || 'there'},</p>
+              <p style="font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+                We received a request to reset your password for your Ologywood account. Click the button below to set a new password.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" style="display: inline-block; padding: 14px 40px; background-color: #667eea; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+                  Reset Password
+                </a>
+              </div>
+              <p style="font-size: 12px; color: #666; margin: 20px 0 0 0; text-align: center;">
+                This link expires in 1 hour.
+              </p>
+              <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+              <p style="font-size: 12px; color: #999; margin: 0;">
+                If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+              </p>
+            </div>
+            <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666;">
+              <p style="margin: 0 0 5px 0;">© 2026 Ologywood. All rights reserved.</p>
+              <p style="margin: 0;"><a href="https://www.ologywood.com/unsubscribe?email=${encodeURIComponent(input.email)}" style="color: #999;">Unsubscribe</a></p>
+            </div>
+          </div>
+        `;
+
+        await sendEmail({
+          to: input.email,
+          subject: 'Reset Your Password - Ologywood',
+          html: htmlContent,
+        });
+
+        return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Forgot password error:', error);
+        // Don't reveal internal errors
+        return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
+      }
+    }),
+
+  // Reset Password - verify token and set new password
+  resetPassword: publicProcedure
+    .input(z.object({
+      token: z.string().min(1, 'Token is required'),
+      newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        }
+
+        // Find token
+        const tokenResult = await db.select().from(passwordResetTokens)
+          .where(eq(passwordResetTokens.token, input.token))
+          .limit(1);
+
+        if (tokenResult.length === 0) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid or expired reset link. Please request a new one.' });
+        }
+
+        const resetToken = tokenResult[0];
+
+        // Check if already used
+        if (resetToken.usedAt) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This reset link has already been used. Please request a new one.' });
+        }
+
+        // Check if expired
+        if (new Date() > resetToken.expiresAt) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This reset link has expired. Please request a new one.' });
+        }
+
+        // Find user
+        const userResult = await db.select().from(users).where(eq(users.id, resetToken.userId)).limit(1);
+        if (userResult.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found.' });
+        }
+
+        const user = userResult[0];
+
+        // Hash and store new password
+        const hashedPassword = await bcrypt.hash(input.newPassword, 10);
+        await db.update(users).set({
+          passwordHash: hashedPassword,
+          loginMethod: 'email',
+          lastSignedIn: new Date(),
+        }).where(eq(users.id, user.id));
+
+        // Mark token as used
+        await db.update(passwordResetTokens).set({
+          usedAt: new Date(),
+        }).where(eq(passwordResetTokens.id, resetToken.id));
+
+        // Create session token and log them in
+        const sessionToken = await sdk.createSessionToken(
+          user.openId || '',
+          { name: user.name || '' }
+        );
+
+        if (ctx.res) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        }
+
+        return {
+          success: true,
+          message: 'Password reset successfully! You are now logged in.',
+          sessionToken,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Reset password error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to reset password. Please try again.',
         });
       }
     }),

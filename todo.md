@@ -1084,3 +1084,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add password visibility toggle (eye icon) to AuthModal login/signup fields
 - [x] Add password visibility toggle (eye icon) to AccountSettings change password fields
 - [x] Write tests for password visibility toggle (21 tests passing)
+
+## FORGOT PASSWORD FLOW (Mar 5, 2026)
+- [x] Add password_reset_tokens table to database schema
+- [x] Create auth.forgotPassword endpoint (generate token, send email)
+- [x] Create auth.resetPassword endpoint (verify token, update password)
+- [x] Build Forgot Password request form in QuickSignupModal login tab
+- [x] Build /reset-password page for the reset link landing
+- [x] Send branded reset email via SendGrid with secure token link
+- [x] Write tests for forgot password flow (49 tests passing)
+
+## PASSWORD STRENGTH INDICATOR (Mar 5, 2026)
+- [x] Create PasswordStrengthIndicator component (Weak/Fair/Good/Strong meter)
+- [x] Integrate into QuickSignupModal signup password field
+- [x] Integrate into QuickSignupModal set-password field
+- [x] Integrate into AccountSettings change password field
+- [x] Write tests for password strength indicator (22 tests passing)
+- [x] Integrate into /reset-password page

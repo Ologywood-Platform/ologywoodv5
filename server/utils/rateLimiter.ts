@@ -145,3 +145,9 @@ export const emailTestingLimiter = new RateLimiter({
   maxRequests: 5,
   windowMs: 15 * 60 * 1000,
 });
+
+// Forgot password: 3 requests per 15 min per IP/email
+export const forgotPasswordLimiter = new RateLimiter({
+  maxRequests: 3,
+  windowMs: 15 * 60 * 1000,
+});

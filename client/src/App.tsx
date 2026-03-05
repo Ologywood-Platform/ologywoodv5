@@ -74,6 +74,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const ArtistHistory = lazy(() => import("./pages/ArtistHistory"));
 const Contracts = lazy(() => import("./pages/Contracts"));
 const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -106,6 +107,7 @@ function Router() {
           <Route path="/venue-dashboard">{() => <PageErrorBoundary><VenueDashboard /></PageErrorBoundary>}</Route>
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/revert-email" component={RevertEmail} />
+          <Route path="/reset-password" component={ResetPassword} />
           <Route path="/earnings" component={ArtistEarnings} />
           <Route path="/earnings-dashboard" component={ArtistEarningsDashboard} />
           <Route path="/venue-invoices" component={VenueInvoiceDashboard} />
