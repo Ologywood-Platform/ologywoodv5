@@ -1044,3 +1044,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add honeypot field to catch bots on the frontend
 - [x] Add user-friendly error messages when rate limited
 - [x] Write tests for rate limiting behavior (19 tests passing)
+
+## RATE LIMITING ALL PUBLIC ENDPOINTS
+- [x] Add rate limiter to newsletter subscribe (5 per 15 min per IP/email)
+- [x] Add rate limiter to auth signup (5 per 15 min per IP)
+- [x] Add rate limiter to auth login (10 per 15 min per IP)
+- [x] Add rate limiter to auth resendConfirmationEmail (3 per 15 min per IP)
+- [x] Add rate limiter to email testing endpoints (5 per 15 min per IP)
+- [x] Write tests for all new rate limiters (38 tests passing)

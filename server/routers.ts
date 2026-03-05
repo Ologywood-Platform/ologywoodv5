@@ -32,6 +32,7 @@ import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
 import { stripeConnectRouter } from "./routers/stripeConnect";
 import { contactRouter } from "./routers/contact";
+import { newsletterLimiter } from "./utils/rateLimiter";
 
 
 // Helper to check if user is an artist
@@ -2111,7 +2112,27 @@ export const appRouter = router({
         name: z.string().optional(),
         source: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // Rate limit by IP
+        const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+          || ctx.req?.socket?.remoteAddress || 'unknown';
+        const ipCheck = newsletterLimiter.check(`ip:${clientIp}`);
+        if (!ipCheck.allowed) {
+          const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: `Too many subscription attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+          });
+        }
+        // Rate limit by email
+        const emailCheck = newsletterLimiter.check(`email:${input.email.toLowerCase()}`);
+        if (!emailCheck.allowed) {
+          const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: `This email has already been submitted recently. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+          });
+        }
         try {
           const emailSent = await email.sendNewsletterSubscriptionEmail(input.email);
           if (!emailSent) {

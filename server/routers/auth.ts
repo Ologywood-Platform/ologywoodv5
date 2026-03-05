@@ -10,6 +10,14 @@ import { getSessionCookieOptions } from '../_core/cookies';
 import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription, setTrialForBetaUser } from '../services/pricingTierService';
+import { TRPCError } from '@trpc/server';
+import { signupLimiter, loginLimiter, resendEmailLimiter } from '../utils/rateLimiter';
+
+/** Extract client IP from tRPC context */
+function getClientIp(ctx: any): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress || 'unknown';
+}
 
 // Validation schemas
 const signupSchema = z.object({
@@ -59,7 +67,25 @@ export const authRouter = router({
   // Resend confirmation email
   resendConfirmationEmail: publicProcedure
     .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Rate limit: 3 resend attempts per 15 min per IP
+      const ipCheck = resendEmailLimiter.check(`ip:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many resend attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
+      // Rate limit by email too
+      const emailCheck = resendEmailLimiter.check(`email:${input.email.toLowerCase()}`);
+      if (!emailCheck.allowed) {
+        const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Confirmation email was already sent recently. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
       try {
         const db = await getDb();
         if (!db) {
@@ -105,7 +131,16 @@ export const authRouter = router({
   // Email/Password Signup
   signup: publicProcedure
     .input(signupSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Rate limit: 5 signup attempts per 15 min per IP
+      const ipCheck = signupLimiter.check(`ip:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many signup attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
       try {
         const db = await getDb();
         if (!db) {
@@ -196,7 +231,16 @@ export const authRouter = router({
   // Email/Password Login
   login: publicProcedure
     .input(loginSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Rate limit: 10 login attempts per 15 min per IP
+      const ipCheck = loginLimiter.check(`ip:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many login attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
       try {
         const db = await getDb();
         if (!db) {

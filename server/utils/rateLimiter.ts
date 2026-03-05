@@ -107,9 +107,41 @@ export class RateLimiter {
 
 /**
  * Pre-configured rate limiters for different use cases.
- * Contact form: 3 submissions per 15 minutes per key.
+ * Each limiter tracks by key (IP, email, etc.) with a sliding window.
  */
+
+/** Contact form: 3 submissions per 15 minutes */
 export const contactFormLimiter = new RateLimiter({
   maxRequests: 3,
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Newsletter subscribe: 5 attempts per 15 minutes */
+export const newsletterLimiter = new RateLimiter({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Auth signup: 5 attempts per 15 minutes */
+export const signupLimiter = new RateLimiter({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Auth login: 10 attempts per 15 minutes */
+export const loginLimiter = new RateLimiter({
+  maxRequests: 10,
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Resend confirmation email: 3 attempts per 15 minutes */
+export const resendEmailLimiter = new RateLimiter({
+  maxRequests: 3,
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Email testing: 5 attempts per 15 minutes */
+export const emailTestingLimiter = new RateLimiter({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
 });
