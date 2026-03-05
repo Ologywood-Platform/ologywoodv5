@@ -13,6 +13,7 @@ export const users = mysqlTable("users", {
   emailVerified: boolean("emailVerified").default(false).notNull(),
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
   emailVerificationSentAt: timestamp("emailVerificationSentAt"),
+  passwordHash: varchar("passwordHash", { length: 255 }), // For email/password auth (nullable for OAuth users)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

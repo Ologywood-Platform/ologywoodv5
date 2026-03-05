@@ -1052,3 +1052,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add rate limiter to auth resendConfirmationEmail (3 per 15 min per IP)
 - [x] Add rate limiter to email testing endpoints (5 per 15 min per IP)
 - [x] Write tests for all new rate limiters (38 tests passing)
+
+## EMAIL/PASSWORD AUTH FIX
+- [x] Add passwordHash column to users table (nullable, won't break existing users)
+- [x] Fix signup endpoint to store hashed password
+- [x] Fix login endpoint to verify password against stored hash
+- [x] Set session cookie on successful email/password login
+- [x] Test signup and login via API
+- [x] Add Sign Up / Log In modal accessible from header
+- [x] Test full flow end-to-end in browser
+- [x] Write tests for email/password auth (15 tests passing)

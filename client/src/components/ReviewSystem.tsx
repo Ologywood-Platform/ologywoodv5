@@ -7,7 +7,7 @@ import { Input } from './ui/input';
 import { Star, MessageCircle, LogIn, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { getLoginUrl } from '@/const';
+import { QuickSignupModal } from '@/components/QuickSignupModal';
 import { trpc } from '@/lib/trpc';
 
 interface ReviewSystemProps {
@@ -18,6 +18,8 @@ interface ReviewSystemProps {
 
 export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: ReviewSystemProps) {
   const { user, isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authTab, setAuthTab] = useState<'signup' | 'login'>('login');
 
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
@@ -146,7 +148,7 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
             </p>
             <div className="flex gap-3 justify-center pt-2">
               <Button
-                onClick={() => { window.location.href = getLoginUrl(window.location.pathname); }}
+                onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 <LogIn className="h-4 w-4 mr-2" />
@@ -154,7 +156,7 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
               </Button>
               <Button
                 variant="outline"
-                onClick={() => { window.location.href = getLoginUrl(window.location.pathname); }}
+                onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
               >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Create Account
@@ -343,6 +345,13 @@ export function ReviewSystem({ targetId, targetType, onReviewSubmitted }: Review
           </p>
         )}
       </div>
+      {/* Auth Modal */}
+      <QuickSignupModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultTab={authTab}
+        actionType="general"
+      />
     </div>
   );
 }

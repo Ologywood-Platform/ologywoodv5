@@ -151,33 +151,41 @@ export const authRouter = router({
         const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
         if (existingUser.length > 0) {
-          throw new Error('Email already registered');
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'An account with this email already exists. Please log in instead.',
+          });
         }
 
         // Hash password
         const hashedPassword = await bcrypt.hash(input.password, 10);
 
-        // Create user with default 'user' role
+        // Create user with hashed password
         const result = await db.insert(users).values({
           email: input.email,
           name: input.name,
           role: 'user',
           loginMethod: 'email',
           openId: `email_${input.email}`, // Generate a unique openId for email users
+          passwordHash: hashedPassword,
           lastSignedIn: new Date(),
           emailVerified: false,
         });
 
-        const newUserId = (result as any).insertId; // TODO: Fix Drizzle insert return type
+        const newUserId = (result as any)[0]?.insertId ?? (result as any).insertId;
+        if (!newUserId) {
+          throw new Error('Failed to create user');
+        }
+
         const newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
 
         if (!newUser || newUser.length === 0) {
-          throw new Error('Failed to create user');
+          throw new Error('Failed to retrieve new user');
         }
 
         // Generate verification token and send email
         const token = emailConfirmationService.generateConfirmationToken(input.email, newUserId);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
         const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
 
         try {
@@ -197,6 +205,12 @@ export const authRouter = router({
           newUser[0].openId || '',
           { name: newUser[0].name || '' }
         );
+
+        // Set session cookie on the response
+        if (ctx.res) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        }
 
         // Create default FREE subscription for new user
         const subscription = await getUserSubscription(newUser[0].id);
@@ -224,7 +238,12 @@ export const authRouter = router({
           trial: trialStatus,
         };
       } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Signup failed');
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Signup error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Signup failed',
+        });
       }
     }),
 
@@ -251,14 +270,47 @@ export const authRouter = router({
         const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
         if (userResult.length === 0) {
-          throw new Error('Invalid email or password');
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Invalid email or password',
+          });
         }
 
         const user = userResult[0];
 
-        // Note: Password verification would require storing hashed passwords
-        // For now, this is a placeholder that would need to be implemented
-        // once the schema is updated to support password storage
+        // Check if user has a password (OAuth-only users won't have one)
+        if (!user.passwordHash) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'This account uses social login. Please sign in with your original method.',
+          });
+        }
+
+        // Verify password
+        const passwordValid = await bcrypt.compare(input.password, user.passwordHash);
+        if (!passwordValid) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Invalid email or password',
+          });
+        }
+
+        // Update last signed in
+        await db.update(users).set({
+          lastSignedIn: new Date(),
+        }).where(eq(users.id, user.id));
+
+        // Create session token
+        const sessionToken = await sdk.createSessionToken(
+          user.openId || '',
+          { name: user.name || '' }
+        );
+
+        // Set session cookie on the response
+        if (ctx.res) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        }
 
         return {
           success: true,
@@ -270,9 +322,15 @@ export const authRouter = router({
             emailVerified: user?.emailVerified ?? false,
           },
           message: 'Logged in successfully',
+          sessionToken,
         };
       } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Login failed');
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Login error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Login failed',
+        });
       }
     }),
 

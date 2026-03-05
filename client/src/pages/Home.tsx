@@ -5,7 +5,7 @@ import { Music, Calendar, FileText, Shield, Heart, Send } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
-import { getLoginUrl } from "@/const";
+import { QuickSignupModal } from "@/components/QuickSignupModal";
 import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
@@ -15,18 +15,10 @@ import SiteHeader from "@/components/SiteHeader";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
-  const [loginUrl, setLoginUrl] = useState("");
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('signup');
   // Use artist.search with empty filters to get all artists (same as Browse page)
   const { data: artists, isLoading } = trpc.artist.search.useQuery({});
-  
-  // Fetch login URL on component mount
-  useEffect(() => {
-    const fetchLoginUrl = async () => {
-      const url = await getLoginUrl();
-      setLoginUrl(url);
-    };
-    fetchLoginUrl();
-  }, []);
 
   // Set SEO meta tags
   useEffect(() => {
@@ -42,16 +34,14 @@ export default function Home() {
     }
   }, []);
   
-  const handleSignIn = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!loginUrl) {
-      const url = await getLoginUrl();
-      if (url) {
-        window.location.href = url;
-      }
-    } else {
-      window.location.href = loginUrl;
-    }
+  const openSignUp = () => {
+    setAuthModalTab('signup');
+    setAuthModalOpen(true);
+  };
+
+  const openSignIn = () => {
+    setAuthModalTab('login');
+    setAuthModalOpen(true);
   };
 
   // Redirect authenticated users without a role to role selection
@@ -82,8 +72,8 @@ export default function Home() {
           
           {!isAuthenticated && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={handleSignIn}>
-                  Sign In
+                <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
+                  Get Started
                 </Button>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
@@ -130,8 +120,8 @@ export default function Home() {
             Join artists and venues who use Ologywood to find and book amazing talent.
           </p>
           {!isAuthenticated && (
-            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={handleSignIn}>
-              Sign In
+            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
+              Get Started
             </Button>
           )}
         </div>
@@ -223,6 +213,13 @@ export default function Home() {
           <p>&copy; 2026 Ologywood. All rights reserved.</p>
         </div>
       </footer>
+      {/* Auth Modal */}
+      <QuickSignupModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        defaultTab={authModalTab}
+        actionType="general"
+      />
     </div>
   );
 }

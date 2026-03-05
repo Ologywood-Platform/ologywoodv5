@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Building2, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { getLoginUrl } from "@/const";
+
 import { useEffect } from "react";
 import { SkeletonRoleSelection } from "@/components/SkeletonLoaders";
 
@@ -30,7 +30,7 @@ export default function RoleSelection() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      window.location.href = getLoginUrl();
+      window.location.href = '/';
     }
   }, [isAuthenticated, loading]);
 

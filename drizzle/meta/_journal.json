@@ -379,6 +379,13 @@
       "when": 1772632630699,
       "tag": "0053_puzzling_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "5",
+      "when": 1772744856297,
+      "tag": "0054_abandoned_midnight",
+      "breakpoints": true
     }
   ]
 }

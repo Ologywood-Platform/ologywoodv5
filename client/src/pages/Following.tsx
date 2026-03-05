@@ -6,13 +6,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { getLoginUrl } from '@/const';
+import { QuickSignupModal } from '@/components/QuickSignupModal';
 import SiteHeader from '@/components/SiteHeader';
 import { SuggestedFollows } from '@/components/SuggestedFollows';
 
 export default function Following() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authTab, setAuthTab] = useState<'signup' | 'login'>('login');
 
   // If not logged in, show sign-up prompt
   if (!user) {
@@ -30,20 +32,26 @@ export default function Following() {
           </p>
           <div className="flex gap-3 justify-center">
             <Button
-              onClick={() => window.location.href = getLoginUrl()}
+              onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
               className="bg-purple-600 hover:bg-purple-700"
             >
               Sign In
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate('/get-started')}
+              onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
             >
               Create Account
             </Button>
           </div>
         </div>
         </div>
+        <QuickSignupModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          defaultTab={authTab}
+          actionType="general"
+        />
       </div>
     );
   }

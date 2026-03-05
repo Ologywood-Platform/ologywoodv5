@@ -12,19 +12,21 @@ interface QuickSignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSignupSuccess?: () => void;
-  actionType?: 'book' | 'message'; // What action triggered the signup
-  targetType?: 'artist' | 'venue'; // What type of entity they're trying to interact with
+  actionType?: 'book' | 'message' | 'general';
+  targetType?: 'artist' | 'venue' | '';
+  defaultTab?: 'signup' | 'login';
 }
 
 export function QuickSignupModal({
   isOpen,
   onClose,
   onSignupSuccess,
-  actionType = 'book',
-  targetType = 'artist',
+  actionType = 'general',
+  targetType = '',
+  defaultTab = 'signup',
 }: QuickSignupModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'signup' | 'login'>('signup');
+  const [activeTab, setActiveTab] = useState<'signup' | 'login'>(defaultTab);
   
   // API mutations
   const signupMutation = ((trpc.auth as any)?.signup?.useMutation?.() || { mutateAsync: async () => {} }) as any;
@@ -47,7 +49,6 @@ export function QuickSignupModal({
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!signupData.email || !signupData.password || !signupData.name) {
       toast.error('Please fill in all fields');
       return;
@@ -73,34 +74,22 @@ export function QuickSignupModal({
       
       toast.success(result.message || 'Account created successfully!');
       
-      // Set session cookie if provided
-      if (result.sessionToken) {
-        const maxAge = 365 * 24 * 60 * 60;
-        document.cookie = `app_session_id=${result.sessionToken}; path=/; max-age=${maxAge}; samesite=none; secure`;
-      }
-      
       // Display trial information if user is a beta tester
       if (result.trial?.isTrialUser) {
-        toast.success(`Welcome! You've got 3 months of premium access free! 🎉`);
+        toast.success(`Welcome! You've got 3 months of premium access free!`);
       }
       
-      // Store user data in localStorage temporarily
-      localStorage.setItem('user_email', signupData.email);
-      localStorage.setItem('user_name', signupData.name);
-      if (result.trial) {
-        localStorage.setItem('user_trial', JSON.stringify(result.trial));
-      }
+      onClose();
       
-      // Call success callback
       if (onSignupSuccess) {
         onSignupSuccess();
       }
       
-      onClose();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
+      // Reload to pick up the session cookie set by the server
+      setTimeout(() => window.location.reload(), 500);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Signup failed. Please try again.';
       toast.error(errorMessage);
-      console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -123,18 +112,17 @@ export function QuickSignupModal({
       
       toast.success(result.message || 'Logged in successfully!');
       
-      // Store user data in localStorage temporarily
-      localStorage.setItem('user_email', loginData.email);
+      onClose();
       
       if (onSignupSuccess) {
         onSignupSuccess();
       }
       
-      onClose();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      // Reload to pick up the session cookie set by the server
+      setTimeout(() => window.location.reload(), 500);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Login failed. Please try again.';
       toast.error(errorMessage);
-      console.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -146,7 +134,7 @@ export function QuickSignupModal({
     } else if (actionType === 'message') {
       return `Message this ${targetType}`;
     }
-    return 'Join Ologywood';
+    return 'Welcome to Ologywood';
   };
 
   const getModalDescription = () => {
@@ -155,7 +143,7 @@ export function QuickSignupModal({
     } else if (actionType === 'message') {
       return `Create an account to message this ${targetType}. Connect and collaborate today!`;
     }
-    return 'Sign up or log in to continue';
+    return 'Sign up or log in to discover and book talented artists for your events.';
   };
 
   return (
@@ -186,6 +174,7 @@ export function QuickSignupModal({
                   value={signupData.name}
                   onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="name"
                 />
               </div>
 
@@ -201,6 +190,7 @@ export function QuickSignupModal({
                   value={signupData.email}
                   onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="email"
                 />
               </div>
 
@@ -212,12 +202,12 @@ export function QuickSignupModal({
                 <Input
                   id="signup-password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Min. 8 characters"
                   value={signupData.password}
                   onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
-                <p className="text-xs text-gray-500">At least 8 characters</p>
               </div>
 
               <div className="space-y-2">
@@ -228,10 +218,11 @@ export function QuickSignupModal({
                 <Input
                   id="signup-confirm-password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Re-enter password"
                   value={signupData.confirmPassword}
                   onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -240,8 +231,11 @@ export function QuickSignupModal({
                 {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
 
-              <p className="text-xs text-center text-gray-500">
-                By signing up, you agree to our Terms of Service and Privacy Policy
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                By signing up, you agree to our{' '}
+                <a href="/terms" className="text-purple-600 hover:underline dark:text-purple-400">Terms of Service</a>
+                {' '}and{' '}
+                <a href="/privacy" className="text-purple-600 hover:underline dark:text-purple-400">Privacy Policy</a>
               </p>
             </form>
           </TabsContent>
@@ -261,6 +255,7 @@ export function QuickSignupModal({
                   value={loginData.email}
                   onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="email"
                 />
               </div>
 
@@ -272,10 +267,11 @@ export function QuickSignupModal({
                 <Input
                   id="login-password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={loginData.password}
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
               </div>
 
@@ -283,32 +279,9 @@ export function QuickSignupModal({
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isLoading ? 'Logging In...' : 'Log In'}
               </Button>
-
-              <p className="text-xs text-center text-gray-500">
-                Forgot your password? <a href="#" className="text-blue-600 hover:underline">Reset it here</a>
-              </p>
             </form>
           </TabsContent>
         </Tabs>
-
-        {/* OAuth Options */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" disabled={isLoading}>
-            Google
-          </Button>
-          <Button variant="outline" disabled={isLoading}>
-            Apple
-          </Button>
-        </div>
       </DialogContent>
     </Dialog>
   );

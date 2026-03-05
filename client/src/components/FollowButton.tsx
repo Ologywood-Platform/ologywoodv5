@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { QuickSignupModal } from "@/components/QuickSignupModal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserPlus, UserCheck, Users, Mail, Music } from "lucide-react";
@@ -31,6 +31,7 @@ interface FollowButtonProps {
 export function FollowButton({ artistUserId, artistName, size = "lg", showCount = true }: FollowButtonProps) {
   const { user, isAuthenticated } = useAuth();
   const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const utils = trpc.useUtils();
 
@@ -78,8 +79,8 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
 
   const handleClick = () => {
     if (!isAuthenticated) {
-      // Not logged in → redirect to sign up
-      window.location.href = getLoginUrl();
+      // Not logged in → show auth modal
+      setShowAuthModal(true);
       return;
     }
 
@@ -212,6 +213,14 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Auth Modal for unauthenticated users */}
+      <QuickSignupModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        actionType="general"
+        defaultTab="signup"
+      />
     </>
   );
 }

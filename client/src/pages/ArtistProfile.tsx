@@ -1,7 +1,7 @@
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { QuickSignupModal } from "@/components/QuickSignupModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -110,6 +110,7 @@ export default function ArtistProfile() {
   }
   
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showRiderComparison, setShowRiderComparison] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [selectedRiderId, setSelectedRiderId] = useState<number | null>(null);
@@ -187,7 +188,7 @@ export default function ArtistProfile() {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
+      setShowAuthModal(true);
       return;
     }
     
@@ -844,6 +845,13 @@ export default function ArtistProfile() {
           artistProfileImage={artist.profilePhotoUrl || ''}
         />
       )}
+      {/* Auth Modal */}
+      <QuickSignupModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultTab="signup"
+        actionType="general"
+      />
     </div>
   );
 }
