@@ -253,9 +253,9 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
 
   return (
     <Card className="overflow-hidden group hover:shadow-md transition-shadow">
-      <div className="flex flex-col sm:flex-row">
+      <div className="flex flex-col">
         {/* Cover Art */}
-        <div className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0 bg-muted">
+        <div className="relative w-full h-48 flex-shrink-0 bg-muted">
           {release.coverArtUrl ? (
             <img
               src={release.coverArtUrl}
@@ -291,7 +291,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
           <div>
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-base leading-tight">{release.title}</h3>
+                <h3 className="font-semibold text-base leading-tight line-clamp-2">{release.title}</h3>
                 <p className="text-sm text-muted-foreground">{artistName}</p>
               </div>
               <div className="text-right flex-shrink-0">

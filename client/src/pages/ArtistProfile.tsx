@@ -505,8 +505,8 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:p-4 md:p-8">
-          {/* Main Content */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:p-4 md:p-8">
+          {/* Main Content - Left Column */}
           <div className="md:col-span-2 space-y-6">
             {/* Bio */}
             {artist.bio && (
@@ -542,7 +542,7 @@ export default function ArtistProfile() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Right Column (short items only) */}
           <div className="space-y-6">
             {/* Social Links */}
             {(hasSocialLinks || artist.websiteUrl) && (
@@ -672,6 +672,11 @@ export default function ArtistProfile() {
               </Card>
             )}
 
+          </div>
+        </div>
+
+        {/* Full-width sections below the two-column grid */}
+        <div className="space-y-6 sm:p-4 md:px-8">
             {/* Reviews Section */}
             {reviews && reviews.length > 0 && (
               <Card>
@@ -686,41 +691,43 @@ export default function ArtistProfile() {
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="border-b pb-4 last:border-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              star <= review.rating
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                        <span className="text-sm text-muted-foreground ml-2">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {review.reviewText && (
-                        <p className="text-sm text-muted-foreground">{review.reviewText}</p>
-                      )}
-                      
-                      {review.artistResponse && (
-                        <div className="mt-3 pl-4 border-l-2 border-primary/30">
-                          <p className="text-xs font-medium text-primary mb-1">Artist Response:</p>
-                          <p className="text-sm text-muted-foreground">{review.artistResponse}</p>
-                          {review.respondedAt && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(review.respondedAt).toLocaleDateString()}
-                            </p>
-                          )}
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= review.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {review.reviewText && (
+                          <p className="text-sm text-muted-foreground">{review.reviewText}</p>
+                        )}
+                        
+                        {review.artistResponse && (
+                          <div className="mt-3 pl-4 border-l-2 border-primary/30">
+                            <p className="text-xs font-medium text-primary mb-1">Artist Response:</p>
+                            <p className="text-sm text-muted-foreground">{review.artistResponse}</p>
+                            {review.respondedAt && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(review.respondedAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -736,65 +743,67 @@ export default function ArtistProfile() {
               />
             </div>
 
-            {/* Review System */}
-            {/* Events Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Events & Gigs</CardTitle>
-                <CardDescription>Events this artist has posted</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 mb-4">
-                  Upcoming events and gigs from this artist. Click an event to view details or inquire about booking.
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate(`/events?artistId=${artistId}`)}
-                >
-                  View All Events
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Event History/Portfolio */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Portfolio</CardTitle>
-                <CardDescription>
-                  {portfolioStats
-                    ? `${portfolioStats.historyCount} performances · ${portfolioStats.photoCount} photos`
-                    : 'Past events and performance photos'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Recent photo thumbnails */}
-                {recentPhotos.length > 0 ? (
-                  <div className="grid grid-cols-4 gap-2 mb-4">
-                    {recentPhotos.map((photo: any) => (
-                      <div key={photo.id} className="aspect-square rounded-md overflow-hidden bg-muted">
-                        <img
-                          src={photo.photoUrl}
-                          alt={photo.caption || 'Performance photo'}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">
-                    See details from previous events this artist has performed at.
+            {/* Events and Portfolio in a two-column grid on tablet+ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Events Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upcoming Events & Gigs</CardTitle>
+                  <CardDescription>Events this artist has posted</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Upcoming events and gigs from this artist. Click an event to view details or inquire about booking.
                   </p>
-                )}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate(`/artists/${artistId}/history`)}
-                >
-                  View Full Portfolio
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate(`/events?artistId=${artistId}`)}
+                  >
+                    View All Events
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Event History/Portfolio */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Performance Portfolio</CardTitle>
+                  <CardDescription>
+                    {portfolioStats
+                      ? `${portfolioStats.historyCount} performances · ${portfolioStats.photoCount} photos`
+                      : 'Past events and performance photos'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Recent photo thumbnails */}
+                  {recentPhotos.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2 mb-4">
+                      {recentPhotos.map((photo: any) => (
+                        <div key={photo.id} className="aspect-square rounded-md overflow-hidden bg-muted">
+                          <img
+                            src={photo.photoUrl}
+                            alt={photo.caption || 'Performance photo'}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">
+                      See details from previous events this artist has performed at.
+                    </p>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate(`/artists/${artistId}/history`)}
+                  >
+                    View Full Portfolio
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardHeader>
@@ -810,7 +819,6 @@ export default function ArtistProfile() {
                 />
               </CardContent>
             </Card>
-          </div>
         </div>
       </div>
 

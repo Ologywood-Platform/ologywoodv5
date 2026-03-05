@@ -999,3 +999,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Delete 3,549 test users (all @test.com emails)
 - [x] Verify 9 real users preserved with all associated data intact
 - [x] Remove temporary audit/cleanup endpoints from server
+
+## IPAD TABLET LAYOUT FIXES
+
+- [x] Fix artist profile page: restructured to balanced 2-column layout (About left 2/3, Connect+Music right 1/3)
+- [x] Fix music/release card: changed to vertical stack layout (cover on top, content below) — no more text truncation
+- [x] Fix reviews section: moved to full-width section below sidebar with 2-column grid
+- [x] Fix "Have you worked with this artist?" CTA card: moved to full-width section below sidebar
+- [x] Move Calendar, Events, Portfolio to full-width sections below the two-column grid
+- [x] Verified layout renders properly at tablet-width viewport
