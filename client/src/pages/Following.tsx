@@ -8,6 +8,7 @@ import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users, ArrowLef
 import { toast } from 'sonner';
 import { getLoginUrl } from '@/const';
 import SiteHeader from '@/components/SiteHeader';
+import { SuggestedFollows } from '@/components/SuggestedFollows';
 
 export default function Following() {
   const { user } = useAuth();
@@ -174,6 +175,11 @@ function FollowingList({ userId }: { userId: number }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Discover More Artists */}
+      <div className="mb-10">
+        <SuggestedFollows />
       </div>
 
       {/* Venues Section */}

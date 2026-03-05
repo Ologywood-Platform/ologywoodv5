@@ -8,6 +8,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import * as followService from "../services/followService";
 import { hasFeatureAccess } from "../services/pricingTierService";
+import * as db from "../db";
 
 export const followsRouter = router({
   /**
@@ -242,5 +243,97 @@ export const followsRouter = router({
         input.limit
       );
       return trending;
+    }),
+
+  /**
+   * Get suggested artists with enriched profile data.
+   * For logged-in users: personalized recommendations based on mutual follows,
+   * falling back to all artists if no recommendations exist.
+   * For logged-out users: returns all artists sorted by name.
+   * Always excludes artists the current user already follows.
+   */
+  getSuggestedArtists: publicProcedure
+    .input(z.object({ limit: z.number().default(8) }).optional().default({ limit: 8 }))
+    .query(async ({ ctx, input }: any) => {
+      const currentUserId = ctx.user?.id;
+      const limit = input?.limit ?? 8;
+
+      // Get all artist profiles
+      const allArtists = await db.getAllArtists();
+      if (!allArtists || allArtists.length === 0) return [];
+
+      // Get IDs the user already follows (so we can exclude them)
+      let followingIds = new Set<number>();
+      if (currentUserId) {
+        try {
+          const userFollowing = await followService.getFollowing(currentUserId, 1000, 0);
+          followingIds = new Set(userFollowing.map((f: any) => f.id));
+        } catch (_) { /* ignore */ }
+      }
+
+      // Try personalized recommendations first (logged-in users only)
+      let recommendedUserIds: number[] = [];
+      if (currentUserId) {
+        try {
+          const recs = await followService.getFollowRecommendations(currentUserId, limit);
+          recommendedUserIds = recs.map(r => r.id);
+        } catch (_) { /* ignore */ }
+      }
+
+      // Build enriched artist list
+      // Priority: recommended artists first, then remaining artists
+      const enriched: any[] = [];
+      const addedUserIds = new Set<number>();
+
+      // Helper to enrich an artist profile
+      const enrichArtist = async (artist: any, isRecommended: boolean) => {
+        const userId = artist.userId;
+        if (followingIds.has(userId) || addedUserIds.has(userId)) return null;
+        // Don't suggest yourself
+        if (currentUserId && userId === currentUserId) return null;
+        addedUserIds.add(userId);
+
+        let followerCount = 0;
+        try {
+          followerCount = await followService.getFollowerCount(userId);
+        } catch (_) { /* ignore */ }
+
+        return {
+          id: artist.id,
+          userId: artist.userId,
+          artistName: artist.artistName || 'Unknown',
+          genres: Array.isArray(artist.genre) ? artist.genre : [],
+          location: artist.location || null,
+          profilePhotoUrl: artist.profilePhotoUrl || null,
+          followerCount,
+          isRecommended,
+        };
+      };
+
+      // Add recommended artists first
+      for (const recUserId of recommendedUserIds) {
+        const artist = allArtists.find((a: any) => a.userId === recUserId);
+        if (artist) {
+          const enrichedArtist = await enrichArtist(artist, true);
+          if (enrichedArtist) enriched.push(enrichedArtist);
+        }
+        if (enriched.length >= limit) break;
+      }
+
+      // Fill remaining slots with other artists
+      if (enriched.length < limit) {
+        // Shuffle remaining artists for variety
+        const remaining = allArtists
+          .filter((a: any) => !addedUserIds.has(a.userId))
+          .sort(() => Math.random() - 0.5);
+
+        for (const artist of remaining) {
+          const enrichedArtist = await enrichArtist(artist, false);
+          if (enrichedArtist) enriched.push(enrichedArtist);
+          if (enriched.length >= limit) break;
+        }
+      }
+
+      return enriched;
     }),
 });

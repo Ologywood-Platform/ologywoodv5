@@ -1014,3 +1014,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix title truncation — removed line-clamp, title now wraps fully with break-words
 - [x] Fix "Name Your Price" button — changed to full-width button, no overflow
 - [x] Restructured card: square cover art on top, stacked content below, all fits within sidebar
+
+## ARTIST DISCOVERY FEATURE FIX
+
+- [x] Rewrite SuggestedFollows to call real follows.follow/unfollow mutations (not local state)
+- [x] Use real follower counts from follows.getStats instead of random numbers
+- [x] Use follows.getRecommendations for logged-in users (personalized suggestions)
+- [x] Fall back to artist.search for logged-out or new users with no follows
+- [x] Exclude already-followed artists from suggestions
+- [x] Add Suggested Artists section to the Following page (when user has few follows)
+- [x] Remove orphaned components: ContractDisplay, DashboardHeader, DashboardLayoutSkeleton, ModificationTimeline, NotificationPersistence, RatingDisplay, ReviewResponseForm, SignatureCanvas, SimplePaymentOptions
+- [x] Write tests for SuggestedFollows component (17 tests passing)
