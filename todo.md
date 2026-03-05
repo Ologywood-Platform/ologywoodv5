@@ -1062,3 +1062,19 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Sign Up / Log In modal accessible from header
 - [x] Test full flow end-to-end in browser
 - [x] Write tests for email/password auth (15 tests passing)
+
+## FIX: OAuth users can't log in with email/password
+- [ ] Detect OAuth users (no passwordHash) during login and show helpful error
+- [ ] Add "Set Password" flow for existing OAuth users
+- [ ] Update QuickSignupModal to handle this case gracefully
+- [ ] Test with existing OAuth account
+- [ ] Fix profile security settings to detect email/password login and show Change Password form
+
+## SETTINGS SECURITY SECTION FIX (Mar 5, 2026)
+- [x] Add changePassword tRPC endpoint (protectedProcedure, bcrypt verify + hash)
+- [x] Update auth.me to include hasPassword boolean flag and strip passwordHash from response
+- [x] Update auth.me to handle email/password users (lookup by ID when no openId)
+- [x] Fix AccountSettings Security section to conditionally show password change form vs OAuth message
+- [x] Fix changePassword mutation hook in AccountSettings component
+- [x] Set owner account (ID 7) email to garychisolm30@gmail.com with loginMethod=email
+- [x] Write 22 comprehensive tests for changePassword feature (all passing)

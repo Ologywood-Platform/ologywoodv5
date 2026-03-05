@@ -43,6 +43,13 @@ export function AccountSettings() {
   const [newEmail, setNewEmail] = useState(user?.email || '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
+  
+  // Password change states
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -59,6 +66,7 @@ export function AccountSettings() {
   const updateProfileMutation = (trpc.artist?.updateProfile as any)?.useMutation?.() || { mutateAsync: async () => {} };
   // const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
   const deleteAccountMutation = (trpc.account.deleteAccount as any).useMutation();
+  const changePasswordMutation = (trpc.auth as any).changePassword.useMutation();
   // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
   
   // Placeholder values
@@ -314,24 +322,126 @@ export function AccountSettings() {
                 Security
               </CardTitle>
               <CardDescription>
-                Your account uses OAuth authentication (Google, Apple, or Email)
+                Manage your password and account security
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700">
-                  Password management is not available because your account uses OAuth authentication. 
-                  To change your login method, please contact support.
-                </p>
-              </div>
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Shield className="h-4 w-4 mr-2" />
-                Change Password (Not Available)
-              </Button>
-              <Button variant="outline" className="w-full justify-start" disabled>
-                <Lock className="h-4 w-4 mr-2" />
-                Two-Factor Authentication (Not Available)
-              </Button>
+              {!(user as any)?.hasPassword ? (
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="h-5 w-5 text-gray-500" />
+                    <p className="font-medium text-gray-700">OAuth Authentication</p>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Your account uses OAuth authentication. Password management is not available for OAuth-only accounts.
+                  </p>
+                </div>
+              ) : !showPasswordChange ? (
+                <>
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <p className="text-sm font-medium text-green-700">Email/Password authentication is enabled</p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setShowPasswordChange(true);
+                      setPasswordError('');
+                      setCurrentPassword('');
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    }}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Change Password
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" disabled>
+                    <Lock className="h-4 w-4 mr-2" />
+                    Two-Factor Authentication (Coming Soon)
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+                      placeholder="At least 8 characters"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                    />
+                  </div>
+                  {passwordError && (
+                    <p className="text-sm text-red-600">{passwordError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        setPasswordError('');
+                        if (newPassword.length < 8) {
+                          setPasswordError('New password must be at least 8 characters.');
+                          return;
+                        }
+                        if (newPassword !== confirmPassword) {
+                          setPasswordError('Passwords do not match.');
+                          return;
+                        }
+                        try {
+                          if (changePasswordMutation) {
+                            await changePasswordMutation.mutateAsync({
+                              currentPassword,
+                              newPassword,
+                            });
+                          }
+                          toast.success('Password changed successfully!');
+                          setShowPasswordChange(false);
+                          setCurrentPassword('');
+                          setNewPassword('');
+                          setConfirmPassword('');
+                        } catch (err: any) {
+                          setPasswordError(err?.message || 'Failed to change password. Please check your current password.');
+                        }
+                      }}
+                      className="flex-1"
+                    >
+                      Update Password
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowPasswordChange(false);
+                        setPasswordError('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

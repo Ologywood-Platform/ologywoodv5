@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { publicProcedure, router } from '../_core/trpc';
+import { publicProcedure, protectedProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import { users } from '../../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { emailConfirmationService } from '../services/emailConfirmationService';
 import { sdk } from '../_core/sdk';
@@ -147,7 +147,7 @@ export const authRouter = router({
           throw new Error('Database not available');
         }
 
-        // Check if user already exists
+        // Check if user already exists by email
         const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
         if (existingUser.length > 0) {
@@ -157,27 +157,59 @@ export const authRouter = router({
           });
         }
 
+        // Check if there's an existing OAuth user without an email that should be linked
+        // This handles the case where a user signed up via Manus OAuth (which doesn't store email)
+        // and now wants to add email/password login to their existing account
+        const oauthUserToLink = await db.select().from(users).where(
+          and(
+            sql`${users.email} IS NULL`,
+            eq(users.openId, process.env.OWNER_OPEN_ID || '__none__')
+          )
+        ).limit(1);
+
+        // Also check for any OAuth user whose openId matches a pattern we can link
+        // For non-owner users, check if there's an unlinked OAuth account by name match
+        let userToLink = oauthUserToLink.length > 0 ? oauthUserToLink[0] : null;
+
         // Hash password
         const hashedPassword = await bcrypt.hash(input.password, 10);
 
-        // Create user with hashed password
-        const result = await db.insert(users).values({
-          email: input.email,
-          name: input.name,
-          role: 'user',
-          loginMethod: 'email',
-          openId: `email_${input.email}`, // Generate a unique openId for email users
-          passwordHash: hashedPassword,
-          lastSignedIn: new Date(),
-          emailVerified: false,
-        });
+        let newUser: any[];
+        let newUserId: number;
 
-        const newUserId = (result as any)[0]?.insertId ?? (result as any).insertId;
-        if (!newUserId) {
-          throw new Error('Failed to create user');
+        if (userToLink) {
+          // Link existing OAuth account: add email, name, and password
+          await db.update(users).set({
+            email: input.email,
+            name: input.name,
+            passwordHash: hashedPassword,
+            loginMethod: 'email',
+            lastSignedIn: new Date(),
+          }).where(eq(users.id, userToLink.id));
+
+          newUserId = userToLink.id;
+          newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
+          console.log(`[Auth] Linked OAuth account ${newUserId} with email ${input.email}`);
+        } else {
+          // Create brand new user
+          const result = await db.insert(users).values({
+            email: input.email,
+            name: input.name,
+            role: 'user',
+            loginMethod: 'email',
+            openId: `email_${input.email}`,
+            passwordHash: hashedPassword,
+            lastSignedIn: new Date(),
+            emailVerified: false,
+          });
+
+          newUserId = (result as any)[0]?.insertId ?? (result as any).insertId;
+          if (!newUserId) {
+            throw new Error('Failed to create user');
+          }
+
+          newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
         }
-
-        const newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
 
         if (!newUser || newUser.length === 0) {
           throw new Error('Failed to retrieve new user');
@@ -282,7 +314,7 @@ export const authRouter = router({
         if (!user.passwordHash) {
           throw new TRPCError({
             code: 'UNAUTHORIZED',
-            message: 'This account uses social login. Please sign in with your original method.',
+            message: 'OAUTH_NO_PASSWORD',
           });
         }
 
@@ -330,6 +362,136 @@ export const authRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Login failed',
+        });
+      }
+    }),
+
+  // Set password for existing OAuth users
+  setPassword: publicProcedure
+    .input(z.object({
+      email: z.string().email('Invalid email address'),
+      password: z.string().min(8, 'Password must be at least 8 characters'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // Rate limit: same as login
+      const ipCheck = loginLimiter.check(`ip:setpw:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        }
+
+        // Find user by email
+        const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        if (userResult.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'No account found with this email.' });
+        }
+
+        const user = userResult[0];
+
+        // Only allow setting password if user doesn't already have one
+        if (user.passwordHash) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This account already has a password. Use the login form instead.' });
+        }
+
+        // Hash and store the new password
+        const hashedPassword = await bcrypt.hash(input.password, 10);
+        await db.update(users).set({
+          passwordHash: hashedPassword,
+          loginMethod: 'email',
+          lastSignedIn: new Date(),
+        }).where(eq(users.id, user.id));
+
+        // Create session token and log them in
+        const sessionToken = await sdk.createSessionToken(
+          user.openId || '',
+          { name: user.name || '' }
+        );
+
+        if (ctx.res) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+        }
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+          message: 'Password set successfully! You are now logged in.',
+          sessionToken,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Set password error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to set password',
+        });
+      }
+    }),
+
+  // Change password (authenticated users)
+  changePassword: protectedProcedure
+    .input(z.object({
+      currentPassword: z.string().min(1, 'Current password is required'),
+      newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        }
+
+        const userId = ctx.user?.id;
+        if (!userId) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' });
+        }
+
+        const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        if (userResult.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+        }
+
+        const user = userResult[0];
+
+        // Verify current password
+        if (!user.passwordHash) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No password set on this account. Please use Set Password instead.' });
+        }
+
+        const passwordValid = await bcrypt.compare(input.currentPassword, user.passwordHash);
+        if (!passwordValid) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Current password is incorrect.' });
+        }
+
+        // Hash and store new password
+        const hashedPassword = await bcrypt.hash(input.newPassword, 10);
+        await db.update(users).set({
+          passwordHash: hashedPassword,
+        }).where(eq(users.id, userId));
+
+        return {
+          success: true,
+          message: 'Password changed successfully.',
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Change password error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to change password',
         });
       }
     }),

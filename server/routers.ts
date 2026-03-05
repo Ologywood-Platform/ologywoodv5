@@ -217,15 +217,22 @@ export const appRouter = router({
     me: publicProcedure.query(async (opts) => {
       if (!opts.ctx.user) return null;
       try {
+        let userData: any = opts.ctx.user;
+        // Fetch fresh user data from DB
         if (opts.ctx.user.openId) {
           const freshUser = await db.getUserByOpenId(opts.ctx.user.openId);
-          const result = freshUser || opts.ctx.user;
-          return result;
+          userData = freshUser || opts.ctx.user;
+        } else if (opts.ctx.user.id) {
+          const freshUser = await db.getUserById(opts.ctx.user.id);
+          userData = freshUser || opts.ctx.user;
         }
-        return opts.ctx.user;
+        // Add hasPassword flag and strip passwordHash for security
+        const { passwordHash, ...safeUser } = userData as any;
+        return { ...safeUser, hasPassword: !!passwordHash };
       } catch (error) {
         console.error('[Auth.me] Error:', error);
-        return opts.ctx.user;
+        const { passwordHash, ...safeUser } = opts.ctx.user as any;
+        return { ...safeUser, hasPassword: !!passwordHash };
       }
     }),
     logout: protectedProcedure.mutation(({ ctx }) => {
