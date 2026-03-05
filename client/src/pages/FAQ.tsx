@@ -40,7 +40,7 @@ export default function FAQ() {
     { q: 'Can I change my plan?', a: 'Yes! You can upgrade or downgrade your plan at any time from your dashboard. Changes take effect immediately.' },
     
     // Support
-    { q: 'How do I contact support?', a: 'Email info@ologywood.com or use our contact form. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
+    { q: 'How do I contact support?', a: 'Email support@ologywood.com or use our contact form. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
   ];
 
   return (

@@ -253,7 +253,7 @@ export default function PrivacyPolicy() {
             <div className="bg-muted p-4 rounded-lg mt-4 space-y-2 text-base">
               <p><strong>Ologywood</strong></p>
               <p>Email: <a href="mailto:privacy@ologywood.com" className="text-primary hover:underline">privacy@ologywood.com</a></p>
-              <p>General Inquiries: <a href="mailto:info@ologywood.com" className="text-primary hover:underline">info@ologywood.com</a></p>
+              <p>General Inquiries: <a href="mailto:hello@ologywood.com" className="text-primary hover:underline">hello@ologywood.com</a></p>
               <p>Phone: <a href="tel:678-525-0891" className="text-primary hover:underline">678-525-0891</a></p>
               <p>Address: 171 Prestwick Dr, Hoschton, GA</p>
             </div>

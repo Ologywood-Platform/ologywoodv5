@@ -66,7 +66,7 @@ export function AIChatWidget() {
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
       role: "assistant",
-      content: "Thanks for your message! For the best support experience, please visit our Help Center at /help where you'll find answers to common questions about bookings, payments, and riders. You can also reach our team directly at info@ologywood.com.",
+      content: "Thanks for your message! For the best support experience, please visit our Help Center at /help where you'll find answers to common questions about bookings, payments, and riders. You can also reach our team directly at support@ologywood.com.",
       timestamp: new Date(),
     };
 

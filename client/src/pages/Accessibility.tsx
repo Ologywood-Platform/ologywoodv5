@@ -124,7 +124,7 @@ const Accessibility = () => {
           </p>
           <ul>
             <li>Email: <a href="mailto:accessibility@ologywood.com">accessibility@ologywood.com</a></li>
-            <li>General support: <a href="mailto:info@ologywood.com">info@ologywood.com</a></li>
+            <li>General support: <a href="mailto:support@ologywood.com">support@ologywood.com</a></li>
             <li>Phone: <a href="tel:678-525-0891">678-525-0891</a></li>
           </ul>
           <p>

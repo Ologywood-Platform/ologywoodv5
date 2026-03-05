@@ -20,7 +20,7 @@ export default function Contact() {
           <div className="bg-white p-6 rounded-lg shadow">
             <Mail className="w-8 h-8 text-indigo-600 mb-3" />
             <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-            <p className="text-gray-600">info@ologywood.com</p>
+            <p className="text-gray-600">hello@ologywood.com</p>
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow">

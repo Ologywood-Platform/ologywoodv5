@@ -164,9 +164,10 @@ describe('Platform Content Audit', () => {
       expect(content).not.toContain('(555) 123-4567');
     });
 
-    it('should use consistent email address', () => {
-      expect(content).toContain('info@ologywood.com');
-      expect(content).not.toContain('support@ologywood.com');
+    it('should use correct email addresses', () => {
+      expect(content).toContain('hello@ologywood.com');
+      expect(content).toContain('support@ologywood.com');
+      expect(content).not.toContain('info@ologywood.com');
     });
 
     it('should have help articles for Following feature', () => {

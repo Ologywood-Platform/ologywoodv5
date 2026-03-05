@@ -167,7 +167,7 @@ export default function TermsOfService() {
               Ologywood reserves the right to suspend or terminate your account at any time, with or without notice, for violations of these Terms, fraudulent activity, or any conduct that we determine is harmful to other users or the Platform. Upon termination, your right to use the Platform ceases immediately. Any pending bookings at the time of termination will be handled on a case-by-case basis.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              You may delete your account at any time by contacting us at <a href="mailto:info@ologywood.com" className="text-primary hover:underline">info@ologywood.com</a>. Account deletion is subject to the data retention terms described in our <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>.
+              You may delete your account at any time by contacting us at <a href="mailto:support@ologywood.com" className="text-primary hover:underline">support@ologywood.com</a>. Account deletion is subject to the data retention terms described in our <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>.
             </p>
           </section>
 
@@ -227,7 +227,8 @@ export default function TermsOfService() {
             </p>
             <div className="bg-muted p-4 rounded-lg mt-4 space-y-2 text-base">
               <p><strong>Ologywood</strong></p>
-              <p>Email: <a href="mailto:info@ologywood.com" className="text-primary hover:underline">info@ologywood.com</a></p>
+              <p>Email: <a href="mailto:hello@ologywood.com" className="text-primary hover:underline">hello@ologywood.com</a></p>
+              <p>Support: <a href="mailto:support@ologywood.com" className="text-primary hover:underline">support@ologywood.com</a></p>
               <p>Phone: <a href="tel:678-525-0891" className="text-primary hover:underline">678-525-0891</a></p>
               <p>Address: 171 Prestwick Dr, Hoschton, GA</p>
             </div>

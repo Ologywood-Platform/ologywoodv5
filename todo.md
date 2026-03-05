@@ -1025,3 +1025,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Suggested Artists section to the Following page (when user has few follows)
 - [x] Remove orphaned components: ContractDisplay, DashboardHeader, DashboardLayoutSkeleton, ModificationTimeline, NotificationPersistence, RatingDisplay, ReviewResponseForm, SignatureCanvas, SimplePaymentOptions
 - [x] Write tests for SuggestedFollows component (17 tests passing)
+
+## EMAIL ADDRESS UPDATE
+- [x] Replace info@ologywood.com with hello@ologywood.com in footer and public-facing areas
+- [x] Add support@ologywood.com for help/support references
+- [x] Update automated email templates to reference support@ologywood.com for help
+- [x] Verify all changes in browser

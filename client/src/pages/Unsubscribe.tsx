@@ -147,8 +147,8 @@ export function Unsubscribe() {
 
             <p className="text-slate-600 text-sm mt-4 text-center">
               Having trouble? Contact us at{' '}
-              <a href="mailto:info@ologywood.com" className="text-blue-600 hover:underline">
-                info@ologywood.com
+              <a href="mailto:support@ologywood.com" className="text-blue-600 hover:underline">
+                support@ologywood.com
               </a>
             </p>
           </div>

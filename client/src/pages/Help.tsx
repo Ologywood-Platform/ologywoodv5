@@ -93,7 +93,7 @@ const faqItems: FAQItem[] = [
     id: 'support-1',
     category: 'Support & Contact',
     question: 'How do I contact support?',
-    answer: 'Use the Contact Us form on this page, email info@ologywood.com, or message us through the in-app chat. We typically respond within 24 hours.',
+    answer: 'Use the Contact Us form on this page, email support@ologywood.com, or message us through the in-app chat. We typically respond within 24 hours.',
   },
   {
     id: 'support-2',
@@ -105,7 +105,7 @@ const faqItems: FAQItem[] = [
     id: 'support-3',
     category: 'Support & Contact',
     question: 'How do I report a problem or issue?',
-    answer: 'Click the "Report Issue" button in your dashboard or contact info@ologywood.com. Include details about what happened, and we\'ll investigate right away.',
+    answer: 'Click the "Report Issue" button in your dashboard or contact support@ologywood.com. Include details about what happened, and we\'ll investigate right away.',
   },
   {
     id: 'features-1',
@@ -256,7 +256,7 @@ export default function Help() {
                 <Mail className="text-purple-600" size={24} />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email Support</h3>
-              <p className="text-gray-600 mb-4">info@ologywood.com</p>
+              <p className="text-gray-600 mb-4">support@ologywood.com</p>
               <p className="text-sm text-gray-500">Response time: 24 hours</p>
             </div>
 
