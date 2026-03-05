@@ -259,7 +259,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     // Default to 'venue' role so users can create bookings immediately
     const role = user.role ?? 'venue';
 
-    const sql = 'INSERT INTO users (openId, name, email, loginMethod, lastSignedIn, role, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email), loginMethod = VALUES(loginMethod), lastSignedIn = VALUES(lastSignedIn), updatedAt = NOW()';
+    const sql = 'INSERT INTO users (openId, name, email, loginMethod, lastSignedIn, role, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE name = COALESCE(VALUES(name), name), email = COALESCE(email, VALUES(email)), loginMethod = COALESCE(loginMethod, VALUES(loginMethod)), lastSignedIn = VALUES(lastSignedIn), updatedAt = NOW()';
 
     await pool.query(sql, [user.openId, name, email, loginMethod, lastSignedIn, role]);
   } catch (error) {

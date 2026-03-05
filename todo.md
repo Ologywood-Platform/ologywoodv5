@@ -1101,3 +1101,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integrate into AccountSettings change password field
 - [x] Write tests for password strength indicator (22 tests passing)
 - [x] Integrate into /reset-password page
+
+## FIX: EMAIL VERIFICATION BLOCKING LOGIN (Mar 5, 2026)
+- [x] Investigate why login flow requires email verification for owner account
+- [x] Mark owner account (ID 7) as email-verified in database
+- [x] Review login flow to ensure verified users skip verification step
+- [x] Fix upsertUser overwriting email/loginMethod with null on OAuth session refresh (COALESCE fix)
+- [x] Re-set owner email, password, emailVerified, loginMethod in production DB
+- [x] Verified login works on both dev and production
