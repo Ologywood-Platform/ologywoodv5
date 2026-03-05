@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { PasswordInput } from './ui/password-input';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
@@ -367,9 +368,8 @@ export function AccountSettings() {
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input
+                    <PasswordInput
                       id="currentPassword"
-                      type="password"
                       value={currentPassword}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
                       placeholder="Enter current password"
@@ -377,9 +377,8 @@ export function AccountSettings() {
                   </div>
                   <div>
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input
+                    <PasswordInput
                       id="newPassword"
-                      type="password"
                       value={newPassword}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
                       placeholder="At least 8 characters"
@@ -387,9 +386,8 @@ export function AccountSettings() {
                   </div>
                   <div>
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input
+                    <PasswordInput
                       id="confirmPassword"
-                      type="password"
                       value={confirmPassword}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm new password"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
@@ -231,9 +232,8 @@ export function QuickSignupModal({
                 <Lock className="h-4 w-4" />
                 New Password
               </Label>
-              <Input
+              <PasswordInput
                 id="set-password"
-                type="password"
                 placeholder="Min. 8 characters"
                 value={setPasswordData.password}
                 onChange={(e) => setSetPasswordData({ ...setPasswordData, password: e.target.value })}
@@ -247,9 +247,8 @@ export function QuickSignupModal({
                 <Lock className="h-4 w-4" />
                 Confirm Password
               </Label>
-              <Input
+              <PasswordInput
                 id="set-confirm-password"
-                type="password"
                 placeholder="Re-enter password"
                 value={setPasswordData.confirmPassword}
                 onChange={(e) => setSetPasswordData({ ...setPasswordData, confirmPassword: e.target.value })}
@@ -321,9 +320,8 @@ export function QuickSignupModal({
                     <Lock className="h-4 w-4" />
                     Password
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="signup-password"
-                    type="password"
                     placeholder="Min. 8 characters"
                     value={signupData.password}
                     onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
@@ -337,9 +335,8 @@ export function QuickSignupModal({
                     <Lock className="h-4 w-4" />
                     Confirm Password
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="signup-confirm-password"
-                    type="password"
                     placeholder="Re-enter password"
                     value={signupData.confirmPassword}
                     onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
@@ -386,9 +383,8 @@ export function QuickSignupModal({
                     <Lock className="h-4 w-4" />
                     Password
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="login-password"
-                    type="password"
                     placeholder="Enter your password"
                     value={loginData.password}
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}

@@ -1078,3 +1078,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix changePassword mutation hook in AccountSettings component
 - [x] Set owner account (ID 7) email to garychisolm30@gmail.com with loginMethod=email
 - [x] Write 22 comprehensive tests for changePassword feature (all passing)
+
+## PASSWORD FIX & VISIBILITY TOGGLE (Mar 5, 2026)
+- [x] Reset owner account (ID 7) password to Crewology12#$ in production DB
+- [x] Add password visibility toggle (eye icon) to AuthModal login/signup fields
+- [x] Add password visibility toggle (eye icon) to AccountSettings change password fields
+- [x] Write tests for password visibility toggle (21 tests passing)
