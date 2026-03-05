@@ -1031,3 +1031,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add support@ologywood.com for help/support references
 - [x] Update automated email templates to reference support@ologywood.com for help
 - [x] Verify all changes in browser
+
+## GMAIL FILTERS & CONTACT FORM
+- [x] Provide Gmail filter setup instructions for Ologywood - Hello and Ologywood - Support labels
+- [x] Build Contact form on Contact page that submits through the platform via SendGrid
+- [x] Add backend API endpoint for contact form submissions
+- [x] Write tests for contact form endpoint (15 tests passing)
+- [x] Verify contact form in browser

@@ -31,6 +31,7 @@ import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
 import { stripeConnectRouter } from "./routers/stripeConnect";
+import { contactRouter } from "./routers/contact";
 
 
 // Helper to check if user is an artist
@@ -206,6 +207,7 @@ export const appRouter = router({
   release: releaseRouter,
   blog: blogRouter,
   stripeConnect: stripeConnectRouter,
+  contact: contactRouter,
   auth: router({
     setUserRole: publicProcedure.input(z.object({ userId: z.number(), role: z.enum(['artist', 'venue']) })).mutation(async ({ input }) => {
       await db.updateUserRole(input.userId, input.role);
