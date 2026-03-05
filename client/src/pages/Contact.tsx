@@ -25,6 +25,7 @@ export default function Contact() {
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState<Subject | ''>('');
   const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState(''); // Honeypot field
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,6 +57,7 @@ export default function Contact() {
       email: email.trim(),
       subject: subject as Subject,
       message: message.trim(),
+      website, // Honeypot — bots fill this, humans never see it
     });
   };
 
@@ -114,6 +116,18 @@ export default function Contact() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Honeypot field — hidden from real users, bots will fill it */}
+                <div className="absolute opacity-0 -z-10" style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                  <label htmlFor="contact-website">Website</label>
+                  <input
+                    id="contact-website"
+                    type="text"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
                 <div>
                   <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-1">
                     Your Name <span className="text-red-500">*</span>

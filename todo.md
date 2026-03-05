@@ -1038,3 +1038,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add backend API endpoint for contact form submissions
 - [x] Write tests for contact form endpoint (15 tests passing)
 - [x] Verify contact form in browser
+
+## CONTACT FORM RATE LIMITING
+- [x] Implement in-memory rate limiter for contact form (per IP + per email)
+- [x] Add honeypot field to catch bots on the frontend
+- [x] Add user-friendly error messages when rate limited
+- [x] Write tests for rate limiting behavior (19 tests passing)

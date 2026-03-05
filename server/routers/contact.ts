@@ -1,6 +1,8 @@
 import { publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { sendEmail } from "../email";
+import { contactFormLimiter } from "../utils/rateLimiter";
 
 const CONTACT_SUBJECTS = [
   'General Inquiry',
@@ -20,10 +22,43 @@ export const contactRouter = router({
         email: z.string().email("Please enter a valid email address"),
         subject: z.enum(CONTACT_SUBJECTS),
         message: z.string().min(10, "Message must be at least 10 characters").max(5000),
+        // Honeypot field — bots will fill this in, real users won't see it
+        website: z.string().max(0, "Bot detected").optional().default(""),
       })
     )
-    .mutation(async ({ input }) => {
-      const { name, email, subject, message } = input;
+    .mutation(async ({ input, ctx }) => {
+      const { name, email, subject, message, website } = input;
+
+      // Honeypot check — if the hidden field has any value, it's a bot
+      if (website && website.length > 0) {
+        console.log('[Contact] Honeypot triggered — bot submission blocked');
+        // Return success to not tip off the bot
+        return { success: true };
+      }
+
+      // Rate limit by IP address
+      const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+        || ctx.req?.socket?.remoteAddress
+        || 'unknown';
+      
+      const ipCheck = contactFormLimiter.check(`ip:${clientIp}`);
+      if (!ipCheck.allowed) {
+        const retryMinutes = Math.ceil(ipCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `You've sent too many messages. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
+
+      // Rate limit by email address (prevents using different IPs with same email)
+      const emailCheck = contactFormLimiter.check(`email:${email.toLowerCase()}`);
+      if (!emailCheck.allowed) {
+        const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many messages from this email address. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
 
       // Determine which inbox to send to based on subject
       const isSupport = ['Booking Support', 'Technical Issue'].includes(subject);
@@ -108,8 +143,6 @@ ${message}
 
       if (!teamEmailSent) {
         console.error('[Contact] Failed to send contact form to team');
-        // Still return success to the user — their confirmation was sent
-        // Log the submission details so nothing is lost
         console.log('[Contact] FALLBACK LOG:', JSON.stringify({ name, email, subject, message, timestamp: new Date().toISOString() }));
       }
 
