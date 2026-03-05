@@ -255,7 +255,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
     <Card className="overflow-hidden group hover:shadow-md transition-shadow">
       <div className="flex flex-col">
         {/* Cover Art */}
-        <div className="relative w-full h-48 flex-shrink-0 bg-muted">
+        <div className="relative aspect-square w-full flex-shrink-0 bg-muted">
           {release.coverArtUrl ? (
             <img
               src={release.coverArtUrl}
@@ -276,111 +276,95 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
               aria-label={isPlaying ? "Pause preview" : "Play preview"}
             >
               {isLoadingPreview ? (
-                <Loader2 className="h-8 w-8 text-white animate-spin" />
+                <Loader2 className="h-10 w-10 text-white animate-spin" />
               ) : isPlaying ? (
-                <Pause className="h-8 w-8 text-white" />
+                <Pause className="h-10 w-10 text-white" />
               ) : (
-                <Play className="h-8 w-8 text-white" />
+                <Play className="h-10 w-10 text-white" />
               )}
             </button>
           )}
         </div>
 
         {/* Content */}
-        <CardContent className="flex-1 p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-semibold text-base leading-tight line-clamp-2">{release.title}</h3>
-                <p className="text-sm text-muted-foreground">{artistName}</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <span className="text-lg font-bold text-primary whitespace-nowrap">
-                  ${priceFormatted}
-                </span>
-                {release.allowPayWhatYouWant && (
-                  <span className="block text-[10px] text-muted-foreground leading-tight">or more</span>
-                )}
-              </div>
-            </div>
+        <CardContent className="p-3">
+          {/* Title */}
+          <h3 className="font-semibold text-sm leading-snug break-words">{release.title}</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">{artistName}</p>
 
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {release.genre && (
-                <Badge variant="secondary" className="text-xs">
-                  {release.genre}
-                </Badge>
-              )}
-              {release.durationSeconds && (
-                <span className="text-xs text-muted-foreground">
-                  {formatDuration(release.durationSeconds)}
-                </span>
-              )}
-              {release.fileFormat && (
-                <span className="text-xs text-muted-foreground uppercase">
-                  {release.fileFormat}
-                </span>
-              )}
-              {release.totalSales > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {release.totalSales} {release.totalSales === 1 ? "sale" : "sales"}
-                </span>
-              )}
-            </div>
+          {/* Price */}
+          <div className="mt-1.5">
+            <span className="text-lg font-bold text-primary">${priceFormatted}</span>
+            {release.allowPayWhatYouWant && (
+              <span className="text-[10px] text-muted-foreground ml-1">or more</span>
+            )}
+          </div>
+
+          {/* Meta info */}
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            {release.genre && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {release.genre}
+              </Badge>
+            )}
+            {release.durationSeconds && (
+              <span className="text-[10px] text-muted-foreground">
+                {formatDuration(release.durationSeconds)}
+              </span>
+            )}
+            {release.fileFormat && (
+              <span className="text-[10px] text-muted-foreground uppercase">
+                {release.fileFormat}
+              </span>
+            )}
+            {release.totalSales > 0 && (
+              <span className="text-[10px] text-muted-foreground">
+                {release.totalSales} {release.totalSales === 1 ? "sale" : "sales"}
+              </span>
+            )}
           </div>
 
           {/* Audio Preview Player */}
           {(isPlaying || (audioRef.current && progress > 0)) && (
-            <div className="mt-3 flex items-center gap-2">
-              {/* Cover art thumbnail */}
-              <div className="flex-shrink-0 w-8 h-8 rounded overflow-hidden bg-muted">
-                {release.coverArtUrl ? (
-                  <img
-                    src={release.coverArtUrl}
-                    alt={`${release.title} cover`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Music className="h-4 w-4 text-muted-foreground/40" />
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handlePreviewToggle}
-                className="flex-shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? (
-                  <Pause className="h-4 w-4 text-primary" />
-                ) : (
-                  <Play className="h-4 w-4 text-primary" />
-                )}
-              </button>
-              <div
-                className="flex-1 h-1.5 bg-muted rounded-full cursor-pointer relative overflow-hidden"
-                onClick={handleProgressClick}
-                role="progressbar"
-                aria-valuenow={Math.round(progress)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handlePreviewToggle}
+                  className="flex-shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? (
+                    <Pause className="h-3.5 w-3.5 text-primary" />
+                  ) : (
+                    <Play className="h-3.5 w-3.5 text-primary" />
+                  )}
+                </button>
                 <div
-                  className="absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-100"
-                  style={{ width: `${Math.min(progress, 100)}%` }}
-                />
+                  className="flex-1 h-1.5 bg-muted rounded-full cursor-pointer relative overflow-hidden"
+                  onClick={handleProgressClick}
+                  role="progressbar"
+                  aria-valuenow={Math.round(progress)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className="absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-100"
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  />
+                </div>
+                {isPlaying && (
+                  <Volume2 className="h-3 w-3 text-primary flex-shrink-0 animate-pulse" />
+                )}
               </div>
-              <span className="text-xs text-muted-foreground tabular-nums flex-shrink-0 w-[72px] text-right">
+              <div className="text-[10px] text-muted-foreground text-center tabular-nums">
                 {formatTime(currentTime)} / {formatTime(previewDuration)}
-              </span>
-              {isPlaying && (
-                <Volume2 className="h-3 w-3 text-primary flex-shrink-0 animate-pulse" />
-              )}
+              </div>
             </div>
           )}
 
           {/* Inline preview button when player is not active */}
           {hasPreview && !isPlaying && !(audioRef.current && progress > 0) && (
-            <div className="mt-2">
+            <div className="mt-1.5">
               <button
                 onClick={handlePreviewToggle}
                 disabled={isLoadingPreview}
@@ -396,60 +380,60 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
             </div>
           )}
 
+          {/* PWYW Price Input */}
+          {release.allowPayWhatYouWant && showPriceInput && !hasPurchased && !isOwner && (
+            <div className="flex items-center gap-1.5 mt-2">
+              <div className="relative flex-1">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min={minPrice}
+                  value={customPrice}
+                  onChange={(e) => setCustomPrice(e.target.value)}
+                  className="pl-5 h-7 text-xs"
+                  placeholder={priceFormatted}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap">min ${priceFormatted}</span>
+            </div>
+          )}
+
           {/* Action buttons */}
-          <div className="mt-3 flex gap-2">
+          <div className="mt-2">
             {hasPurchased ? (
               <Button
                 size="sm"
                 onClick={handleDownload}
                 disabled={isDownloading}
-                className="flex-1"
+                className="w-full h-8 text-xs"
               >
                 {isDownloading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                 ) : (
-                  <Download className="h-4 w-4 mr-1" />
+                  <Download className="h-3.5 w-3.5 mr-1" />
                 )}
                 Download
               </Button>
             ) : !isOwner ? (
-              <>
-                {release.allowPayWhatYouWant && showPriceInput && (
-                  <div className="flex items-center gap-2 w-full mb-2">
-                    <div className="relative flex-1">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min={minPrice}
-                        value={customPrice}
-                        onChange={(e) => setCustomPrice(e.target.value)}
-                        className="pl-6 h-8 text-sm"
-                        placeholder={priceFormatted}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">min ${priceFormatted}</span>
-                  </div>
+              <Button
+                size="sm"
+                onClick={handleBuy}
+                disabled={isBuying}
+                className="w-full h-8 text-xs"
+              >
+                {isBuying ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                ) : release.allowPayWhatYouWant ? (
+                  <Heart className="h-3.5 w-3.5 mr-1" />
+                ) : (
+                  <ShoppingCart className="h-3.5 w-3.5 mr-1" />
                 )}
-                <Button
-                  size="sm"
-                  onClick={handleBuy}
-                  disabled={isBuying}
-                  className="flex-1"
-                >
-                  {isBuying ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                  ) : release.allowPayWhatYouWant ? (
-                    <Heart className="h-4 w-4 mr-1" />
-                  ) : (
-                    <ShoppingCart className="h-4 w-4 mr-1" />
-                  )}
-                  {release.allowPayWhatYouWant
-                    ? (showPriceInput ? `Pay $${parseFloat(customPrice || priceFormatted).toFixed(2)}` : "Name Your Price")
-                    : `Buy $${priceFormatted}`
-                  }
-                </Button>
-              </>
+                {release.allowPayWhatYouWant
+                  ? (showPriceInput ? `Pay $${parseFloat(customPrice || priceFormatted).toFixed(2)}` : "Name Your Price")
+                  : `Buy $${priceFormatted}`
+                }
+              </Button>
             ) : null}
           </div>
         </CardContent>

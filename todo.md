@@ -1008,3 +1008,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix "Have you worked with this artist?" CTA card: moved to full-width section below sidebar
 - [x] Move Calendar, Events, Portfolio to full-width sections below the two-column grid
 - [x] Verified layout renders properly at tablet-width viewport
+
+## RELEASE CARD PLAYER FIX (iPad)
+
+- [x] Fix title truncation — removed line-clamp, title now wraps fully with break-words
+- [x] Fix "Name Your Price" button — changed to full-width button, no overflow
+- [x] Restructured card: square cover art on top, stacked content below, all fits within sidebar
