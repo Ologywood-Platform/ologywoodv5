@@ -251,6 +251,8 @@ export default function ArtistProfile() {
 
   const socialLinks = artist.socialLinks as { instagram?: string; facebook?: string; youtube?: string; spotify?: string; twitter?: string } | null;
   const hasSocialLinks = socialLinks && Object.values(socialLinks).some(v => !!v);
+  const tipLinks = artist.tipLinks as { cashapp?: string; venmo?: string; paypal?: string; zelle?: string } | null;
+  const hasTipLinks = tipLinks && Object.values(tipLinks).some(v => !!v);
   const mediaGallery = artist.mediaGallery as { photos: string[]; videos: string[] } | null;
 
   return (
@@ -624,6 +626,65 @@ export default function ArtistProfile() {
               </Card>
             )}
             
+            {/* Support This Artist - Tip Links */}
+            {hasTipLinks && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Support {artist.artistName}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {tipLinks?.cashapp && (
+                    <a
+                      href={tipLinks.cashapp.startsWith('http') ? tipLinks.cashapp : `https://cash.app/${tipLinks.cashapp.replace(/^\$/, '$')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                    >
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ backgroundColor: '#00D54B' }}>
+                        <span className="text-white text-xs font-bold">$</span>
+                      </span>
+                      <span>Cash App</span>
+                    </a>
+                  )}
+                  {tipLinks?.venmo && (
+                    <a
+                      href={tipLinks.venmo.startsWith('http') ? tipLinks.venmo : `https://venmo.com/${tipLinks.venmo.replace(/^@/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                    >
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ backgroundColor: '#3D95CE' }}>
+                        <span className="text-white text-xs font-bold">V</span>
+                      </span>
+                      <span>Venmo</span>
+                    </a>
+                  )}
+                  {tipLinks?.paypal && (
+                    <a
+                      href={tipLinks.paypal.startsWith('http') ? tipLinks.paypal : `https://paypal.me/${tipLinks.paypal}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                    >
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ backgroundColor: '#00457C' }}>
+                        <span className="text-white text-xs font-bold">P</span>
+                      </span>
+                      <span>PayPal</span>
+                    </a>
+                  )}
+                  {tipLinks?.zelle && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ backgroundColor: '#6D1ED4' }}>
+                        <span className="text-white text-xs font-bold">Z</span>
+                      </span>
+                      <span>Zelle: {tipLinks.zelle}</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground pt-1">Tip directly — no platform fees</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Rider Templates */}
             {riderTemplates && riderTemplates.length > 0 && (
               <Card>

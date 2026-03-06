@@ -1282,3 +1282,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update RiderContractTemplate with same address breakdown + legacy address parser
 - [x] Address fields combine into single string for API (backward compatible)
 - [x] All 1549 tests passing, zero TypeScript errors
+
+## FIX: tRPC "Failed to fetch" ERROR ON HOMEPAGE (Mar 6, 2026)
+
+- [ ] Diagnose tRPC "Failed to fetch" error on / page for artist user (id:7)
+- [ ] Check server logs for failing endpoints
+- [ ] Implement fix
+
+## SUPPORT THIS ARTIST - TIP LINKS FEATURE (Mar 6, 2026)
+
+- [x] Add tipLinks JSON field to artist_profiles schema (Cash App, Venmo, PayPal, Zelle)
+- [x] Push schema migration to database
+- [x] Add tipLinks to updateProfile mutation input in routers.ts
+- [x] Build tip links management UI in ArtistEditProfile (Support This Artist card)
+- [x] Display "Support This Artist" section on public ArtistProfile (sidebar, after social links)
+- [x] Smart URL generation for Cash App, Venmo, PayPal links; Zelle shown as text
+- [x] Write 17 tests for tip links feature (all passing)
+- [x] All 1566 tests passing, zero TypeScript errors

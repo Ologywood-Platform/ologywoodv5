@@ -306,6 +306,12 @@ export const appRouter = router({
           spotify: z.string().optional(),
           twitter: z.string().optional(),
         }).optional(),
+        tipLinks: z.object({
+          cashapp: z.string().optional(),
+          venmo: z.string().optional(),
+          paypal: z.string().optional(),
+          zelle: z.string().optional(),
+        }).optional(),
         profilePhotoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {

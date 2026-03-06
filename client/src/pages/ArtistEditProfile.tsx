@@ -68,6 +68,11 @@ export default function ArtistEditProfile() {
   const [twitter, setTwitter] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [customGenre, setCustomGenre] = useState("");
+  // Tip links state
+  const [cashapp, setCashapp] = useState("");
+  const [venmo, setVenmo] = useState("");
+  const [paypal, setPaypal] = useState("");
+  const [zelle, setZelle] = useState("");
 
   // Populate form when profile loads
   useEffect(() => {
@@ -88,6 +93,13 @@ export default function ArtistEditProfile() {
         setYoutube(social.youtube || "");
         setSpotify(social.spotify || "");
         setTwitter(social.twitter || "");
+      }
+      const tips = profile.tipLinks as any;
+      if (tips) {
+        setCashapp(tips.cashapp || "");
+        setVenmo(tips.venmo || "");
+        setPaypal(tips.paypal || "");
+        setZelle(tips.zelle || "");
       }
     }
   }, [profile]);
@@ -192,6 +204,12 @@ export default function ArtistEditProfile() {
         youtube: youtube.trim() || undefined,
         spotify: spotify.trim() || undefined,
         twitter: twitter.trim() || undefined,
+      },
+      tipLinks: {
+        cashapp: cashapp.trim() || undefined,
+        venmo: venmo.trim() || undefined,
+        paypal: paypal.trim() || undefined,
+        zelle: zelle.trim() || undefined,
       },
       profilePhotoUrl: profilePhotoUrl || undefined,
     });
@@ -477,6 +495,68 @@ export default function ArtistEditProfile() {
                   placeholder="https://twitter.com/yourhandle"
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Support / Tip Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <svg className="h-5 w-5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                Support This Artist
+              </CardTitle>
+              <CardDescription>Let fans tip you directly. Add your payment handles and they'll appear on your public profile.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="cashapp" className="flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#00D54B' }} />
+                  Cash App
+                </Label>
+                <Input
+                  id="cashapp"
+                  value={cashapp}
+                  onChange={(e) => setCashapp(e.target.value)}
+                  placeholder="$yourcashtag"
+                />
+              </div>
+              <div>
+                <Label htmlFor="venmo" className="flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#3D95CE' }} />
+                  Venmo
+                </Label>
+                <Input
+                  id="venmo"
+                  value={venmo}
+                  onChange={(e) => setVenmo(e.target.value)}
+                  placeholder="@yourvenmo"
+                />
+              </div>
+              <div>
+                <Label htmlFor="paypal" className="flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#00457C' }} />
+                  PayPal
+                </Label>
+                <Input
+                  id="paypal"
+                  value={paypal}
+                  onChange={(e) => setPaypal(e.target.value)}
+                  placeholder="paypal.me/yourname"
+                />
+              </div>
+              <div>
+                <Label htmlFor="zelle" className="flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: '#6D1ED4' }} />
+                  Zelle
+                </Label>
+                <Input
+                  id="zelle"
+                  value={zelle}
+                  onChange={(e) => setZelle(e.target.value)}
+                  placeholder="your@email.com or phone number"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Only filled fields will be shown on your profile. Fans can tip you directly — no platform fees.</p>
             </CardContent>
           </Card>
 

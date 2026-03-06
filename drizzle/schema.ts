@@ -81,6 +81,7 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   mediaGallery: json("mediaGallery").$type<{ photos: string[], videos: string[] }>(),
   websiteUrl: text("websiteUrl"),
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
+  tipLinks: json("tipLinks").$type<{ cashapp?: string, venmo?: string, paypal?: string, zelle?: string }>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
