@@ -5,7 +5,7 @@ import { Check, X, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { JsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/components/JsonLd";
+import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import SiteHeader from "@/components/SiteHeader";
 import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
@@ -285,6 +285,7 @@ export default function Pricing() {
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
       <div className="flex-1 bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb JSON-LD only — FAQPage schema is injected server-side by ogTags middleware to avoid duplicate structured data */}
         <JsonLd
           id="pricing"
           data={[
@@ -292,7 +293,6 @@ export default function Pricing() {
               { name: 'Home', url: '/' },
               { name: 'Pricing', url: '/pricing' },
             ]),
-            buildFaqPageJsonLd(PRICING_FAQS),
           ]}
         />
         <div className="max-w-7xl mx-auto">

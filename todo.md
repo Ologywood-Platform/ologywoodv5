@@ -1182,3 +1182,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Removed in-memory Map and cleanup interval (no longer needed)
 - [x] 21 new tests passing for email verification flow
 - [x] All 1,548 tests passing, 0 TypeScript errors
+
+## GOOGLE SEARCH CONSOLE: DUPLICATE FAQPage STRUCTURED DATA (Mar 6, 2026)
+
+- [x] Investigate duplicate FAQPage structured data issue flagged by Google Search Console
+- [x] Find all FAQPage JSON-LD schema instances in the codebase
+- [x] Remove or deduplicate so only one FAQPage schema exists per page (removed client-side buildFaqPageJsonLd from Pricing.tsx)
+- [x] Synced server-side FAQ content to match visible Pricing page FAQs (7 items)
+- [x] All 1,548 tests passing, 0 regressions
