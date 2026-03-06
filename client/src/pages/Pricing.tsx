@@ -9,6 +9,7 @@ import { JsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/components/
 import SiteHeader from "@/components/SiteHeader";
 import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
+import Footer from '@/components/Footer';
 
 const PRICING_FAQS = [
   {
@@ -401,6 +402,7 @@ export default function Pricing() {
           </div>
         </div>
       </div>
+          <Footer />
     </div>
   );
 }

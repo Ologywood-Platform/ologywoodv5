@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, Search, Mail, MessageCircle, Phone } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import Footer from '@/components/Footer';
 
 interface FAQItem {
   id: string;
@@ -297,6 +298,7 @@ export default function Help() {
         </div>
       </div>
       </div>
+          <Footer />
     </div>
   );
 }

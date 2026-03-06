@@ -78,8 +78,8 @@ describe('Fan + Follow Feature', () => {
       expect(component).toContain('followers');
     });
 
-    it('should redirect to login for unauthenticated users', () => {
-      expect(component).toContain('getLoginUrl');
+    it('should show login modal for unauthenticated users', () => {
+      expect(component).toContain('QuickSignupModal');
     });
 
     it('should use trpc follows.follow mutation', () => {

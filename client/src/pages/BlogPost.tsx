@@ -10,6 +10,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SocialShareButtons from "@/components/SocialShareButtons";
 import { setMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
+import Footer from '@/components/Footer';
 
 /**
  * Minimal Markdown-to-HTML converter.
@@ -250,6 +251,7 @@ export default function BlogPost() {
           </Link>
         </div>
       </article>
+          <Footer />
     </div>
   );
 }

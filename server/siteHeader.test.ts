@@ -35,9 +35,9 @@ describe('SiteHeader Component', () => {
     expect(authBlock![1]).toContain('/following');
   });
 
-  it('should show Sign In button when not authenticated', () => {
-    expect(siteHeaderContent).toContain('Sign In');
-    expect(siteHeaderContent).toContain('handleSignIn');
+  it('should show Log In button when not authenticated', () => {
+    expect(siteHeaderContent).toContain('Log In');
+    expect(siteHeaderContent).toContain('openSignIn');
   });
 
   it('should include Dashboard link for authenticated users', () => {

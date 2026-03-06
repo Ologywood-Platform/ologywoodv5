@@ -14,6 +14,7 @@ import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/Js
 import SiteHeader from '@/components/SiteHeader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import Footer from '@/components/Footer';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -389,6 +390,7 @@ export default function VenueProfile() {
           venueCapacity={(venueProfile as any)?.capacity}
         />
       )}
+          <Footer />
     </div>
   );
 }

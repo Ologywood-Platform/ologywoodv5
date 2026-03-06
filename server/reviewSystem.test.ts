@@ -13,8 +13,8 @@ describe('ReviewSystem - Auth-Aware Prompts', () => {
     expect(content).toContain("useAuth()");
   });
 
-  it('imports getLoginUrl for sign-in redirect', () => {
-    expect(content).toContain("import { getLoginUrl }");
+  it('imports QuickSignupModal for sign-in redirect', () => {
+    expect(content).toContain("QuickSignupModal");
   });
 
   it('checks isAuthenticated state to determine review prompt', () => {
@@ -62,7 +62,7 @@ describe('ReviewSystem - Auth-Aware Prompts', () => {
     expect(content).toContain('UserPlus');
   });
 
-  it('redirects to login with current path as return URL', () => {
-    expect(content).toContain('getLoginUrl(window.location.pathname)');
+  it('shows QuickSignupModal for unauthenticated users to sign in', () => {
+    expect(content).toContain('<QuickSignupModal');
   });
 });

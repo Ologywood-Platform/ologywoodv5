@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Music, Briefcase, CheckCircle, MessageSquare, CreditCard, Star } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import Footer from '@/components/Footer';
 
 export default function HowItWorks() {
   const [activeTab, setActiveTab] = useState<'artists' | 'venues'>('artists');
@@ -490,6 +491,7 @@ export default function HowItWorks() {
         </div>
       </div>
       </div>
+          <Footer />
     </div>
   );
 }

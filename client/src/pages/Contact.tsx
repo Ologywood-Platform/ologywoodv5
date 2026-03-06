@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle, Loader2 } from 'lu
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { trpc } from '@/lib/trpc';
+import Footer from '@/components/Footer';
 
 const SUBJECTS = [
   'General Inquiry',
@@ -220,6 +221,7 @@ export default function Contact() {
           )}
         </div>
       </div>
+          <Footer />
     </div>
   );
 }

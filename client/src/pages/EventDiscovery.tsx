@@ -12,6 +12,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import Footer from '@/components/Footer';
 
 export default function EventDiscovery() {
   const [, navigate] = useLocation();
@@ -274,6 +275,7 @@ export default function EventDiscovery() {
           </Card>
         )}
       </div>
+          <Footer />
     </div>
   );
 }

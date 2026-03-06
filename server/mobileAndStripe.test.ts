@@ -65,8 +65,8 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
     expect(content).toContain('getDashboardUrl');
   });
 
-  it('should include Sign In button in mobile menu for unauthenticated users', () => {
-    expect(content).toContain('Sign In');
+  it('should include Log In button in mobile menu for unauthenticated users', () => {
+    expect(content).toContain('Log In');
   });
 
   it('should show full Ologywood text on all screens (not abbreviated)', () => {

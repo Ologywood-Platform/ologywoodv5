@@ -2105,11 +2105,6 @@ export const appRouter = router({
     revertChange: publicProcedure.mutation(() => ({ success: false })),
   } as any),
   
-  earnings: router({
-    getArtistEarnings: publicProcedure.query(() => null),
-    getRecentTransactions: publicProcedure.query(() => []),
-  } as any),
-  
   emailTesting: emailTestingRouter,
   
   newsletter: router({

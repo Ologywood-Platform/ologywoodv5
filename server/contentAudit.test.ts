@@ -147,7 +147,7 @@ describe('Platform Content Audit', () => {
 
     it('should include Earnings link for artists', () => {
       expect(content).toContain("'Earnings'");
-      expect(content).toContain("'/earnings-dashboard'");
+      expect(content).toContain("'/earnings'");
     });
 
     it('should include Invoices link for venues', () => {
@@ -165,7 +165,6 @@ describe('Platform Content Audit', () => {
     });
 
     it('should use correct email addresses', () => {
-      expect(content).toContain('hello@ologywood.com');
       expect(content).toContain('support@ologywood.com');
       expect(content).not.toContain('info@ologywood.com');
     });

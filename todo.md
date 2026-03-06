@@ -1125,3 +1125,35 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build review form on release page (only visible to purchasers)
 - [x] Build review list display with average rating
 - [x] Write tests for review endpoints (27 tests passing)
+
+## COMPREHENSIVE PLATFORM AUDIT (Mar 5, 2026)
+### Phase 1: Codebase Structure Audit
+- [x] Scan for dead/unused imports and files
+- [x] Find duplicate logic across server and client
+- [x] Check for stale routes and deprecated code
+- [x] Verify all database tables are used and indexed properly
+
+### Phase 2: Functional Flow Audit
+- [x] Auth flow: signup, login, logout, forgot password, reset password
+- [x] Artist dashboard: profile setup, releases, bookings, settings
+- [x] Release flow: create, publish, purchase, download, review
+- [x] Payment flow: Stripe checkout, webhooks, purchase records
+- [x] Email flow: verification, password reset, notifications, unsubscribe links
+- [x] Communication flow: messages, contact forms, notifications
+
+### Phase 3: Fix Issues Found
+- [x] Fix all broken flows identified in audit
+- [x] Cleaned up: 48 disabled files, 6 deprecated tests, duplicate earnings page, stub router
+
+### Phase 4: Test Suite
+- [x] Run full test suite — 1527 passing, 0 failures
+- [x] All 12 previously failing tests fixed (stale references updated)
+
+### Phase 5: UX/Navigation Audit
+- [x] Verified consistent navigation and breadcrumbs across all pages
+- [x] Checked mobile responsiveness — SiteHeader has hamburger menu, pages use responsive grids
+- [x] Verified intuitive user flows — added Footer to 15 pages, SiteHeader to VenueBrowse, standardized email to support@ologywood.com
+
+### Phase 6: Documentation
+- [x] Updated ARCHITECTURE.md with current stats (41 tables, 54 pages, 1527 tests)
+- [x] Created PLATFORM_AUDIT_REPORT.md with full audit findings and resolutions

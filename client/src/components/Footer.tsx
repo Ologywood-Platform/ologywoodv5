@@ -40,7 +40,7 @@ const Footer = () => {
         { label: 'Artist Dashboard', path: '/dashboard' },
         { label: 'Browse Venues', path: '/venues' },
         { label: 'My Bookings', path: '/bookings' },
-        { label: 'Earnings', path: '/earnings-dashboard' },
+        { label: 'Earnings', path: '/earnings' },
         { label: 'Releases', path: '/releases' },
         { label: 'Riders', path: '/riders' },
         { label: 'Availability', path: '/availability' },
@@ -171,8 +171,8 @@ const Footer = () => {
                 <Mail className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
-                  <a href="mailto:hello@ologywood.com" className="text-white hover:text-blue-400 transition">
-                    hello@ologywood.com
+                  <a href="mailto:support@ologywood.com" className="text-white hover:text-blue-400 transition">
+                    support@ologywood.com
                   </a>
                 </div>
               </div>

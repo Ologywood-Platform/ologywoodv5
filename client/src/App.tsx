@@ -53,7 +53,6 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe").then(m => ({ defaul
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const RevertEmail = lazy(() => import("./pages/RevertEmail"));
 const ArtistEarnings = lazy(() => import("./pages/ArtistEarnings"));
-const ArtistEarningsDashboard = lazy(() => import("./pages/ArtistEarningsDashboard"));
 const VenueInvoiceDashboard = lazy(() => import("./pages/VenueInvoiceDashboard"));
 const Help = lazy(() => import("./pages/Help"));
 const Following = lazy(() => import("./pages/Following"));
@@ -109,7 +108,7 @@ function Router() {
           <Route path="/revert-email" component={RevertEmail} />
           <Route path="/reset-password" component={ResetPassword} />
           <Route path="/earnings" component={ArtistEarnings} />
-          <Route path="/earnings-dashboard" component={ArtistEarningsDashboard} />
+          <Route path="/earnings-dashboard">{() => <Redirect to="/earnings" />}</Route>
           <Route path="/venue-invoices" component={VenueInvoiceDashboard} />
           <Route path="/help" component={Help} />
           <Route path="/admin" component={AdminDashboard} />

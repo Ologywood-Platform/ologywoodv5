@@ -28,6 +28,7 @@ import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
+import Footer from '@/components/Footer';
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -852,6 +853,7 @@ export default function ArtistProfile() {
         defaultTab="signup"
         actionType="general"
       />
+          <Footer />
     </div>
   );
 }

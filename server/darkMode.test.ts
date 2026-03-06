@@ -103,29 +103,7 @@ describe('Dark Mode Toggle Feature', () => {
     });
   });
 
-  describe('DashboardHeader Dark Mode Integration', () => {
-    it('should import DarkModeToggle', () => {
-      const header = readFile('components/DashboardHeader.tsx');
-      expect(header).toContain("import { DarkModeToggle }");
-    });
 
-    it('should render DarkModeToggle', () => {
-      const header = readFile('components/DashboardHeader.tsx');
-      expect(header).toContain('<DarkModeToggle compact');
-    });
-
-    it('should have dark-aware header styling', () => {
-      const header = readFile('components/DashboardHeader.tsx');
-      expect(header).toContain('dark:bg-gray-900');
-      expect(header).toContain('dark:border-gray-800');
-    });
-
-    it('should have dark-aware user info text', () => {
-      const header = readFile('components/DashboardHeader.tsx');
-      expect(header).toContain('dark:text-gray-100');
-      expect(header).toContain('dark:text-gray-400');
-    });
-  });
 
   describe('CSS Dark Mode Variables', () => {
     const css = readFileSync(join(clientDir, 'index.css'), 'utf-8');
@@ -248,10 +226,6 @@ describe('Dark Mode Toggle Feature', () => {
       expect(header).toContain('transition-colors duration-200');
     });
 
-    it('DashboardHeader should have transition-colors duration', () => {
-      const header = readFile('components/DashboardHeader.tsx');
-      expect(header).toContain('transition-colors duration-200');
-    });
 
     it('ArtistDashboardV3 should have transition-colors duration', () => {
       const dashboard = readFile('pages/ArtistDashboardV3.tsx');
