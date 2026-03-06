@@ -1248,3 +1248,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fixed RoleSelection.tsx to await cache invalidation + refetch before navigating
 - [x] Added pendingRole state to prevent redirect useEffect from firing during mutation
 - [x] All 1,549 tests passing, 0 TypeScript errors
+
+## ANDROID USER OBSERVATIONS: BROWSE PAGE (Mar 6, 2026)
+
+- [x] Fixed: Added placeholder image area (music icon + 'No photo yet') for artists without profile photos
+- [x] Improved: Made filters collapsible (collapsed by default), added Filters toggle button next to search bar
+- [x] Added Reset button to clear all search + filters at once
+- [x] Added loading skeleton for better perceived performance
+- [x] All 1,549 tests passing
