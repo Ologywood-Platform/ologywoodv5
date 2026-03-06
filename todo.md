@@ -1273,3 +1273,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Updated FeaturedArtistsCarousel to use aspect-[3/4] with object-top
 - [x] Updated ArtistProfile hero to use responsive aspect-[16/9] md:aspect-[21/9] with object-top
 - [x] Ensure images display well on both mobile and desktop
+
+## FIX BOOKING FORM - DATE PICKER AND ADDRESS FIELDS (Mar 6, 2026)
+
+- [x] Fix Event Date field - use native <input type=date> with min date, explicit styling, and appearance-none
+- [x] Fix Event Time field - use native <input type=time> with explicit styling
+- [x] Break down Venue Address into separate fields: Street, City, State, Zip (ArtistProfile booking dialog)
+- [x] Update RiderContractTemplate with same address breakdown + legacy address parser
+- [x] Address fields combine into single string for API (backward compatible)
+- [x] All 1549 tests passing, zero TypeScript errors

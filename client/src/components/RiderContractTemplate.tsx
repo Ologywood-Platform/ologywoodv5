@@ -15,7 +15,10 @@ export interface RiderContractData {
   eventDate: string;
   eventTime: string;
   venue: string;
-  venueAddress: string;
+  venueStreet: string;
+  venueCity: string;
+  venueState: string;
+  venueZip: string;
   
   // Artist Requirements
   artistName: string;
@@ -41,8 +44,9 @@ export interface RiderContractData {
   additionalNotes: string;
 }
 
+// Keep backward compatibility with old venueAddress field
 interface RiderContractTemplateProps {
-  initialData?: Partial<RiderContractData>;
+  initialData?: Partial<RiderContractData> & { venueAddress?: string };
   onSave?: (data: RiderContractData) => void;
   readOnly?: boolean;
 }
@@ -52,12 +56,18 @@ export function RiderContractTemplate({
   onSave,
   readOnly = false 
 }: RiderContractTemplateProps) {
+  // Parse legacy venueAddress into separate fields if needed
+  const parsedAddress = parseAddress(initialData?.venueAddress || "");
+  
   const [formData, setFormData] = useState<RiderContractData>({
     eventName: initialData?.eventName || "",
     eventDate: initialData?.eventDate || "",
     eventTime: initialData?.eventTime || "",
     venue: initialData?.venue || "",
-    venueAddress: initialData?.venueAddress || "",
+    venueStreet: initialData?.venueStreet || parsedAddress.street,
+    venueCity: initialData?.venueCity || parsedAddress.city,
+    venueState: initialData?.venueState || parsedAddress.state,
+    venueZip: initialData?.venueZip || parsedAddress.zip,
     artistName: initialData?.artistName || "",
     artistFee: initialData?.artistFee || 0,
     performanceDuration: initialData?.performanceDuration || 60,
@@ -100,6 +110,12 @@ export function RiderContractTemplate({
     toast.success("Rider contract saved successfully");
   };
 
+  const getFullAddress = () => {
+    return [formData.venueStreet, formData.venueCity, formData.venueState, formData.venueZip]
+      .filter(Boolean)
+      .join(', ');
+  };
+
   const downloadPDF = () => {
     // Generate PDF content
     const pdfContent = generatePDFContent(formData);
@@ -114,6 +130,10 @@ export function RiderContractTemplate({
   };
 
   const generatePDFContent = (data: RiderContractData): string => {
+    const fullAddress = [data.venueStreet, data.venueCity, data.venueState, data.venueZip]
+      .filter(Boolean)
+      .join(', ');
+    
     return `
 ARTIST RIDER CONTRACT
 =====================
@@ -123,7 +143,7 @@ Event Name: ${data.eventName}
 Date: ${data.eventDate}
 Time: ${data.eventTime}
 Venue: ${data.venue}
-Address: ${data.venueAddress}
+Address: ${fullAddress}
 
 ARTIST INFORMATION
 Artist Name: ${data.artistName}
@@ -188,23 +208,26 @@ Generated on ${new Date().toLocaleDateString()}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="eventDate">Event Date *</Label>
-                    <Input
-                      id="eventDate"
+                    <Label htmlFor="riderEventDate">Event Date *</Label>
+                    <input
+                      id="riderEventDate"
                       type="date"
                       value={formData.eventDate}
                       onChange={(e) => handleInputChange("eventDate", e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
                       disabled={readOnly}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base sm:text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="eventTime">Event Time</Label>
-                    <Input
-                      id="eventTime"
+                    <Label htmlFor="riderEventTime">Event Time</Label>
+                    <input
+                      id="riderEventTime"
                       type="time"
                       value={formData.eventTime}
                       onChange={(e) => handleInputChange("eventTime", e.target.value)}
                       disabled={readOnly}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base sm:text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
                     />
                   </div>
                   <div>
@@ -217,13 +240,40 @@ Generated on ${new Date().toLocaleDateString()}
                       disabled={readOnly}
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="venueAddress">Venue Address</Label>
+                </div>
+                
+                {/* Venue Address - broken into separate fields */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Venue Address</Label>
+                  <div>
                     <Input
-                      id="venueAddress"
-                      value={formData.venueAddress}
-                      onChange={(e) => handleInputChange("venueAddress", e.target.value)}
-                      placeholder="Full venue address"
+                      id="venueStreet"
+                      value={formData.venueStreet}
+                      onChange={(e) => handleInputChange("venueStreet", e.target.value)}
+                      placeholder="Street address"
+                      disabled={readOnly}
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input
+                      id="venueCity"
+                      value={formData.venueCity}
+                      onChange={(e) => handleInputChange("venueCity", e.target.value)}
+                      placeholder="City"
+                      disabled={readOnly}
+                    />
+                    <Input
+                      id="venueState"
+                      value={formData.venueState}
+                      onChange={(e) => handleInputChange("venueState", e.target.value)}
+                      placeholder="State"
+                      disabled={readOnly}
+                    />
+                    <Input
+                      id="venueZip"
+                      value={formData.venueZip}
+                      onChange={(e) => handleInputChange("venueZip", e.target.value)}
+                      placeholder="Zip"
                       disabled={readOnly}
                     />
                   </div>
@@ -458,4 +508,32 @@ Generated on ${new Date().toLocaleDateString()}
       </Card>
     </div>
   );
+}
+
+/** Parse a legacy single-line address string into components */
+function parseAddress(address: string): { street: string; city: string; state: string; zip: string } {
+  if (!address) return { street: '', city: '', state: '', zip: '' };
+  
+  const parts = address.split(',').map(s => s.trim());
+  if (parts.length >= 3) {
+    // Try to parse "Street, City, State Zip"
+    const lastPart = parts[parts.length - 1];
+    const stateZipMatch = lastPart.match(/^([A-Z]{2})\s+(\d{5}(-\d{4})?)$/);
+    if (stateZipMatch) {
+      return {
+        street: parts.slice(0, -2).join(', '),
+        city: parts[parts.length - 2],
+        state: stateZipMatch[1],
+        zip: stateZipMatch[2],
+      };
+    }
+    return {
+      street: parts[0],
+      city: parts[1],
+      state: parts.slice(2).join(', '),
+      zip: '',
+    };
+  }
+  
+  return { street: address, city: '', state: '', zip: '' };
 }

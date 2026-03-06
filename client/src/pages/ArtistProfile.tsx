@@ -118,7 +118,10 @@ export default function ArtistProfile() {
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [venueName, setVenueName] = useState("");
-  const [venueAddress, setVenueAddress] = useState("");
+  const [venueStreet, setVenueStreet] = useState("");
+  const [venueCity, setVenueCity] = useState("");
+  const [venueState, setVenueState] = useState("");
+  const [venueZip, setVenueZip] = useState("");
   const [eventDetails, setEventDetails] = useState("");
   const [totalFee, setTotalFee] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
@@ -154,7 +157,11 @@ export default function ArtistProfile() {
     if (template) {
       setSelectedTemplate(template.id);
       setVenueName((template as any).templateData?.venueName || "");
-      setVenueAddress((template as any).templateData?.venueAddress || "");
+      // Parse template address if available
+      const templateAddr = (template as any).templateData?.venueAddress || "";
+      if (templateAddr) {
+        setVenueStreet(templateAddr);
+      }
       
       // Build event details from template
       let details = "";
@@ -198,12 +205,15 @@ export default function ArtistProfile() {
       return;
     }
     
+    // Combine address fields into a single string for the API
+    const fullAddress = [venueStreet, venueCity, venueState, venueZip].filter(Boolean).join(', ');
+    
     createBooking.mutate({
       artistId,
       eventDate,
       eventTime,
       venueName,
-      venueAddress,
+      venueAddress: fullAddress || undefined,
       eventDetails,
       totalFee: totalFee ? parseFloat(totalFee) : undefined,
     });
@@ -406,23 +416,24 @@ export default function ArtistProfile() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="eventDate" className="text-sm font-medium">Event Date *</Label>
-                      <Input
+                      <input
                         id="eventDate"
                         type="date"
                         value={eventDate}
                         onChange={(e) => setEventDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
                         required
-                        className="h-11 sm:h-10 text-base sm:text-sm"
+                        className="flex h-11 sm:h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base sm:text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] appearance-none"
                       />
                     </div>
                     <div>
                       <Label htmlFor="eventTime" className="text-sm font-medium">Event Time</Label>
-                      <Input
+                      <input
                         id="eventTime"
                         type="time"
                         value={eventTime}
                         onChange={(e) => setEventTime(e.target.value)}
-                        className="h-11 sm:h-10 text-base sm:text-sm"
+                        className="flex h-11 sm:h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base sm:text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] appearance-none"
                       />
                     </div>
                   </div>
@@ -439,15 +450,41 @@ export default function ArtistProfile() {
                     />
                   </div>
                   
-                  <div>
-                    <Label htmlFor="venueAddress" className="text-sm font-medium">Venue Address</Label>
-                    <Input
-                      id="venueAddress"
-                      value={venueAddress}
-                      onChange={(e) => setVenueAddress(e.target.value)}
-                      placeholder="Enter venue address"
-                      className="h-11 sm:h-10 text-base sm:text-sm"
-                    />
+                  {/* Venue Address - broken into separate fields */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Venue Address</Label>
+                    <div>
+                      <Input
+                        id="venueStreet"
+                        value={venueStreet}
+                        onChange={(e) => setVenueStreet(e.target.value)}
+                        placeholder="Street address"
+                        className="h-11 sm:h-10 text-base sm:text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Input
+                        id="venueCity"
+                        value={venueCity}
+                        onChange={(e) => setVenueCity(e.target.value)}
+                        placeholder="City"
+                        className="h-11 sm:h-10 text-base sm:text-sm"
+                      />
+                      <Input
+                        id="venueState"
+                        value={venueState}
+                        onChange={(e) => setVenueState(e.target.value)}
+                        placeholder="State"
+                        className="h-11 sm:h-10 text-base sm:text-sm"
+                      />
+                      <Input
+                        id="venueZip"
+                        value={venueZip}
+                        onChange={(e) => setVenueZip(e.target.value)}
+                        placeholder="Zip"
+                        className="h-11 sm:h-10 text-base sm:text-sm"
+                      />
+                    </div>
                   </div>
                   
                   <div>
