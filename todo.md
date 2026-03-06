@@ -1190,3 +1190,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove or deduplicate so only one FAQPage schema exists per page (removed client-side buildFaqPageJsonLd from Pricing.tsx)
 - [x] Synced server-side FAQ content to match visible Pricing page FAQs (7 items)
 - [x] All 1,548 tests passing, 0 regressions
+
+## SITEMAP AUDIT AND FIX (Mar 6, 2026)
+
+- [x] Investigated: live site running older code; dev server sitemap is correct with only public pages + dynamic content
+- [x] sitemapRoutes.ts already correct — only public pages included
+- [x] No duplicates in sitemapRoutes.ts — old production version had them
+- [x] Dynamic artist/venue/event pages already included in sitemapRoutes.ts
+- [x] robots.txt properly allows public pages, disallows private pages
+- [x] Synced FAQ data in vite.ts to match Pricing page (was out of date)
+- [x] All 1,548 tests passing

@@ -256,11 +256,12 @@ async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgDa
 
       const faqSchema = generateFaqPageJsonLd([
         { question: 'Can I change my plan anytime?', answer: 'Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.' },
-        { question: 'Is there a free trial?', answer: 'Yes! Professional plan includes a 14-day free trial. No credit card required.' },
         { question: 'What payment methods do you accept?', answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe.' },
         { question: 'Can I cancel anytime?', answer: 'Absolutely! Cancel your subscription anytime with no penalties or hidden fees.' },
-        { question: 'Do you offer discounts for annual billing?', answer: 'Yes! Annual billing saves you 20% compared to monthly. Contact our sales team for details.' },
-        { question: 'What about refunds?', answer: 'We offer a 30-day money-back guarantee if you\'re not satisfied with our service.' },
+        { question: 'How does the booking limit work on the Free plan?', answer: 'Free plan users can send up to 2 booking requests per month. Upgrade to Starter or Professional for unlimited bookings.' },
+        { question: 'What is the Rider Builder?', answer: 'The Rider Builder lets artists create professional technical riders with equipment needs, hospitality requirements, and stage specifications. Available on Starter and Professional plans.' },
+        { question: 'Can I send email updates to my fans?', answer: 'Yes! Artists on Starter and Professional plans can send branded email updates to all their followers, up to once per day.' },
+        { question: 'What are White Label Releases?', answer: 'White Label Releases let artists sell singles directly from their Ologywood profile. Starter plans include up to 2 active singles with pay-what-you-want pricing. Professional plans get unlimited releases. Ologywood takes just a 1% platform fee on each sale.' },
       ]);
 
       return {
