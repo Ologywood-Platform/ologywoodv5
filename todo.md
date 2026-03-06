@@ -1299,3 +1299,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Smart URL generation for Cash App, Venmo, PayPal links; Zelle shown as text
 - [x] Write 17 tests for tip links feature (all passing)
 - [x] All 1566 tests passing, zero TypeScript errors
+
+## BUG: Artist viewing own profile page from Browse causes error (Mar 6, 2026)
+
+- [x] Root cause: release_purchases schema had `createdAt` but DB column is `purchasedAt` — caused release.canReview query to fail
+- [x] Fixed schema.ts: renamed createdAt → purchasedAt in releasePurchases table
+- [x] Fixed db.ts: updated getPurchasesByReleaseId orderBy to use purchasedAt
+- [x] All 1566 tests passing

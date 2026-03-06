@@ -884,7 +884,7 @@ export const releasePurchases = mysqlTable("release_purchases", {
   maxDownloads: int("maxDownloads").default(5).notNull(),
   lastDownloadedAt: timestamp("lastDownloadedAt"),
 
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  purchasedAt: timestamp("purchasedAt").defaultNow().notNull(),
 }, (table) => ({
   releaseIdx: index("idx_purchases_release").on(table.releaseId),
   buyerEmailIdx: index("idx_purchases_buyer_email").on(table.buyerEmail),

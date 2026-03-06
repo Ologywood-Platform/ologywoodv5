@@ -2039,7 +2039,7 @@ export async function getPurchasesByReleaseId(releaseId: number): Promise<Releas
   if (!db) return [];
   return await db.select().from(releasePurchases)
     .where(eq(releasePurchases.releaseId, releaseId))
-    .orderBy(desc(releasePurchases.createdAt));
+    .orderBy(desc(releasePurchases.purchasedAt));
 }
 
 /**
