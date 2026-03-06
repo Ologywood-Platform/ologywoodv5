@@ -39,7 +39,7 @@ export const authRouter = router({
     .input(z.object({ token: z.string() }))
     .mutation(async ({ input }) => {
       try {
-        const result = emailConfirmationService.verifyConfirmationToken(input.token);
+        const result = await emailConfirmationService.verifyConfirmationToken(input.token);
 
         if (!result.valid) {
           throw new Error('Invalid or expired confirmation token');
@@ -97,7 +97,11 @@ export const authRouter = router({
         const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
         if (userResult.length === 0) {
-          throw new Error('User not found');
+          // Don't reveal whether email exists — always show success
+          return {
+            success: true,
+            message: 'If an account exists with that email, a verification link has been sent.',
+          };
         }
 
         const user = userResult[0];
@@ -110,8 +114,8 @@ export const authRouter = router({
           };
         }
 
-        const token = emailConfirmationService.generateConfirmationToken(input.email, user.id);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const token = await emailConfirmationService.generateConfirmationToken(input.email, user.id);
+        const frontendUrl = process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
         const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
 
         await emailConfirmationService.sendResendConfirmationEmail({
@@ -218,7 +222,7 @@ export const authRouter = router({
         }
 
         // Generate verification token and send email
-        const token = emailConfirmationService.generateConfirmationToken(input.email, newUserId);
+        const token = await emailConfirmationService.generateConfirmationToken(input.email, newUserId);
         const frontendUrl = process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
         const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
 

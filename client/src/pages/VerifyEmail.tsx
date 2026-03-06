@@ -4,25 +4,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, CheckCircle, Mail, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Mail, Loader2, XCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
 export function VerifyEmail() {
   const [, navigate] = useLocation();
   const search = useSearch();
-  const [verificationCode, setVerificationCode] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error' | 'resend'>('verifying');
+  const [errorMessage, setErrorMessage] = useState('');
   const [email, setEmail] = useState('');
+  const [resendEmail, setResendEmail] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
 
-  // Extract email from query params
+  const verifyMutation = (trpc.auth as any).verifyEmail.useMutation();
+  const resendMutation = (trpc.auth as any).resendConfirmationEmail.useMutation();
+
+  // Extract token and email from query params
   useEffect(() => {
     const params = new URLSearchParams(search);
+    const token = params.get('token');
     const emailParam = params.get('email');
+
     if (emailParam) {
       setEmail(decodeURIComponent(emailParam));
+      setResendEmail(decodeURIComponent(emailParam));
+    }
+
+    if (token) {
+      // Auto-verify using the token from the email link
+      verifyMutation.mutateAsync({ token })
+        .then((result: any) => {
+          if (result.success) {
+            setStatus('success');
+            if (result.email) setEmail(result.email);
+            toast.success('Email verified successfully!');
+            // Redirect to homepage after 3 seconds
+            setTimeout(() => {
+              navigate('/');
+            }, 3000);
+          } else {
+            setStatus('error');
+            setErrorMessage('Verification failed. The link may have expired.');
+          }
+        })
+        .catch((err: any) => {
+          setStatus('error');
+          setErrorMessage(err?.message || 'Invalid or expired verification link. Please request a new one.');
+        });
+    } else {
+      // No token — show resend form
+      setStatus('resend');
     }
   }, [search]);
 
@@ -34,60 +66,49 @@ export function VerifyEmail() {
     }
   }, [resendCountdown]);
 
-  // Email verification is handled by OAuth provider
-  // This page is kept for legacy compatibility
-  const verifyMutation = { mutateAsync: async () => {}, isPending: false };
-  const resendMutation = { mutateAsync: async () => {}, isPending: false };
-
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!verificationCode.trim()) {
-      toast.error('Please enter the verification code');
-      return;
-    }
-
-    if (!email) {
-      toast.error('Email address not found. Please try again.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Email already verified by OAuth
-      // Just redirect to dashboard
-
-      setVerificationSuccess(true);
-      toast.success('Email verified successfully!');
-
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
-    } catch (error: any) {
-      toast.error(error?.message || 'Verification failed. Please check the code and try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    if (!email) {
-      toast.error('Email address not found');
+    if (!resendEmail.trim()) {
+      toast.error('Please enter your email address');
       return;
     }
 
     try {
-      // Resend handled by OAuth provider
-      toast.success('Verification code sent to your email');
-      setResendCountdown(60); // 60 second cooldown
-      setVerificationCode('');
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to resend code');
+      const result = await resendMutation.mutateAsync({ email: resendEmail });
+      if (result.success) {
+        toast.success('Verification email sent! Check your inbox.');
+        setResendCountdown(60);
+      } else {
+        toast.error(result.message || 'Failed to send verification email');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to send verification email. Please try again.');
     }
   };
 
-  if (verificationSuccess) {
+  // Verifying state — auto-verifying via token
+  if (status === 'verifying') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Loader2 className="h-8 w-8 text-purple-600 animate-spin" />
+              </div>
+            </div>
+            <CardTitle>Verifying Your Email</CardTitle>
+            <CardDescription>
+              Please wait while we confirm your email address...
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Success state
+  if (status === 'success') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md border-green-200 bg-green-50">
@@ -101,11 +122,82 @@ export function VerifyEmail() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-sm text-green-700">
-              Redirecting you to your dashboard...
+            {email && (
+              <p className="text-sm text-green-700">
+                <strong>{email}</strong> is now verified.
+              </p>
+            )}
+            <p className="text-sm text-green-600">
+              Redirecting you to the homepage...
             </p>
             <div className="flex justify-center">
               <Loader2 className="h-5 w-5 text-green-600 animate-spin" />
+            </div>
+            <Button
+              variant="outline"
+              className="mt-2"
+              onClick={() => navigate('/')}
+            >
+              Go to Homepage Now
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state — token was invalid or expired
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-red-100 rounded-full">
+                <XCircle className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+            <CardTitle className="text-red-900">Verification Failed</CardTitle>
+            <CardDescription className="text-red-600">
+              {errorMessage}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600 text-center">
+              Enter your email below to receive a new verification link.
+            </p>
+            <form onSubmit={handleResend} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resend-email">Email Address</Label>
+                <Input
+                  id="resend-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                disabled={resendMutation.isPending || resendCountdown > 0 || !resendEmail.trim()}
+              >
+                {resendMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : resendCountdown > 0 ? (
+                  `Resend in ${resendCountdown}s`
+                ) : (
+                  'Send New Verification Link'
+                )}
+              </Button>
+            </form>
+            <div className="text-center pt-2">
+              <Button variant="link" onClick={() => navigate('/')}>
+                Back to Homepage
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -113,6 +205,7 @@ export function VerifyEmail() {
     );
   }
 
+  // Resend state — no token in URL, user needs to request a new link
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -124,76 +217,73 @@ export function VerifyEmail() {
           </div>
           <CardTitle>Verify Your Email</CardTitle>
           <CardDescription>
-            Enter the verification code sent to your email
+            Check your inbox for a verification link from Ologywood
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
           {email && (
-            <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700">
-                Verification code sent to: <strong>{email}</strong>
+                Verification link sent to: <strong>{email}</strong>
               </p>
             </div>
           )}
 
-          <form onSubmit={handleVerify} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Verification Code</Label>
-              <Input
-                id="code"
-                type="text"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
-                maxLength={6}
-                disabled={isSubmitting}
-                className="text-center text-lg tracking-widest font-mono"
-              />
-              <p className="text-xs text-gray-500">
-                Check your email for the verification code. It expires in 24 hours.
-              </p>
-            </div>
+          <p className="text-sm text-gray-600 text-center">
+            Click the "Confirm Email Address" button in the email we sent you.
+            If you don't see it, check your spam folder.
+          </p>
 
-            <Button
-              type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              disabled={isSubmitting || !verificationCode.trim()}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                'Verify Email'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t space-y-3">
+          <div className="pt-4 border-t space-y-3">
             <p className="text-sm text-gray-600 text-center">
-              Didn't receive the code?
+              Didn't receive the email?
             </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleResendCode}
-              disabled={resendCountdown > 0 || resendMutation.isPending}
-            >
-              {resendCountdown > 0
-                ? `Resend in ${resendCountdown}s`
-                : 'Resend Code'}
-            </Button>
+            <form onSubmit={handleResend} className="space-y-3">
+              {!email && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                  />
+                </div>
+              )}
+              <Button
+                type="submit"
+                variant="outline"
+                className="w-full"
+                disabled={resendMutation.isPending || resendCountdown > 0 || !resendEmail.trim()}
+              >
+                {resendMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : resendCountdown > 0 ? (
+                  `Resend in ${resendCountdown}s`
+                ) : (
+                  'Resend Verification Email'
+                )}
+              </Button>
+            </form>
           </div>
 
-          <div className="mt-6 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">
             <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-amber-700">
               <p className="font-semibold mb-1">Having trouble?</p>
-              <p>Check your spam folder or try requesting a new code.</p>
+              <p>Check your spam folder or contact support@ologywood.com for help.</p>
             </div>
+          </div>
+
+          <div className="text-center">
+            <Button variant="link" onClick={() => navigate('/')}>
+              Back to Homepage
+            </Button>
           </div>
         </CardContent>
       </Card>

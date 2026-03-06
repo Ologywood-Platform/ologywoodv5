@@ -1162,3 +1162,23 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Investigated: HTML response from SPA fallback during server restart/network issues
 - [x] Added HTML response guard in tRPC fetch wrapper (converts HTML to JSON error)
 - [x] Suppressed noisy "is not valid JSON" console errors (auto-retry handles recovery)
+
+## FIX: EMAIL VERIFICATION FLOW (Mar 6, 2026)
+- [ ] Fix mismatch: email sends "Confirm Email Address" link but page asks for 6-digit code
+- [ ] Fix "Email address not found" error during verification
+- [ ] Ensure signup -> email -> verify -> login flow works end-to-end
+
+## EMAIL VERIFICATION FLOW FIX (Mar 6, 2026)
+
+- [x] Identified root cause: verification tokens stored in-memory Map, lost on server restart/deploy
+- [x] Rewrote emailConfirmationService to persist tokens in database (users.emailVerificationToken column)
+- [x] Updated generateConfirmationToken to async — stores token + timestamp in users table
+- [x] Updated verifyConfirmationToken to async — looks up token in DB, checks 24h expiry, clears after use
+- [x] Added await to all callers in auth router (signup, resendConfirmationEmail, verifyEmail)
+- [x] Fixed resendConfirmationEmail to use BASE_URL (was using FRONTEND_URL inconsistently)
+- [x] Fixed resendConfirmationEmail to not reveal whether email exists (prevents email enumeration)
+- [x] Updated QuickSignupModal to redirect to /verify-email?email=... after signup (instead of page reload)
+- [x] VerifyEmail page handles: token auto-verify, email-only "check inbox" view, and resend form
+- [x] Removed in-memory Map and cleanup interval (no longer needed)
+- [x] 21 new tests passing for email verification flow
+- [x] All 1,548 tests passing, 0 TypeScript errors

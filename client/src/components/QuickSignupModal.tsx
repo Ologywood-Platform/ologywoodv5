@@ -87,7 +87,7 @@ export function QuickSignupModal({
         name: signupData.name,
       });
       
-      toast.success(result.message || 'Account created successfully!');
+      toast.success(result.message || 'Account created successfully! Check your email to verify.');
       
       if (result.trial?.isTrialUser) {
         toast.success(`Welcome! You've got 3 months of premium access free!`);
@@ -99,7 +99,12 @@ export function QuickSignupModal({
         onSignupSuccess();
       }
       
-      setTimeout(() => window.location.reload(), 500);
+      // Redirect to verify-email page so user knows to check their inbox
+      if (result.requiresEmailVerification) {
+        window.location.href = `/verify-email?email=${encodeURIComponent(signupData.email)}`;
+      } else {
+        setTimeout(() => window.location.reload(), 500);
+      }
     } catch (error: any) {
       const errorMessage = error?.message || 'Signup failed. Please try again.';
       toast.error(errorMessage);

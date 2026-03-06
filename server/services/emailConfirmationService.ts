@@ -1,6 +1,9 @@
 import sgMail from "@sendgrid/mail";
 import { ENV } from "../_core/env";
 import { randomBytes } from 'crypto';
+import { getDb } from '../db';
+import { users } from '../../drizzle/schema';
+import { eq } from 'drizzle-orm';
 
 interface ConfirmationEmailData {
   recipientEmail: string;
@@ -8,14 +11,6 @@ interface ConfirmationEmailData {
   verificationLink: string;
   expiresIn?: string;
 }
-
-// In-memory store for confirmation tokens
-const confirmationTokens = new Map<string, {
-  email: string;
-  userId: number;
-  expiresAt: Date;
-  confirmed: boolean;
-}>();
 
 class EmailConfirmationService {
   private sgMail: typeof sgMail;
@@ -28,47 +23,89 @@ class EmailConfirmationService {
   }
 
   /**
-   * Generate confirmation token for email verification
+   * Generate confirmation token for email verification.
+   * Stores the token in the database on the user's row so it survives server restarts.
    */
-  generateConfirmationToken(email: string, userId: number): string {
+  async generateConfirmationToken(email: string, userId: number): Promise<string> {
     const token = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    confirmationTokens.set(token, {
-      email,
-      userId,
-      expiresAt,
-      confirmed: false,
-    });
+    try {
+      const db = await getDb();
+      if (db) {
+        await db.update(users).set({
+          emailVerificationToken: token,
+          emailVerificationSentAt: new Date(),
+        }).where(eq(users.id, userId));
+      }
+    } catch (error) {
+      console.error('[EmailConfirmation] Failed to persist token to DB:', error);
+      // Token was generated but not persisted — verification will fail later
+    }
 
     return token;
   }
 
   /**
-   * Verify confirmation token
+   * Verify confirmation token by looking it up in the database.
+   * Tokens expire after 24 hours.
    */
-  verifyConfirmationToken(token: string): { valid: boolean; email?: string; userId?: number } {
-    const confirmation = confirmationTokens.get(token);
+  async verifyConfirmationToken(token: string): Promise<{ valid: boolean; email?: string; userId?: number }> {
+    try {
+      const db = await getDb();
+      if (!db) {
+        return { valid: false };
+      }
 
-    if (!confirmation) {
+      // Find user with this token
+      const result = await db.select({
+        id: users.id,
+        email: users.email,
+        emailVerified: users.emailVerified,
+        emailVerificationToken: users.emailVerificationToken,
+        emailVerificationSentAt: users.emailVerificationSentAt,
+      }).from(users).where(eq(users.emailVerificationToken, token)).limit(1);
+
+      if (result.length === 0) {
+        return { valid: false };
+      }
+
+      const user = result[0];
+
+      // Check if already verified
+      if (user.emailVerified) {
+        // Clear the token since it's already used
+        await db.update(users).set({
+          emailVerificationToken: null,
+        }).where(eq(users.id, user.id));
+        return { valid: false };
+      }
+
+      // Check if token has expired (24 hours)
+      if (user.emailVerificationSentAt) {
+        const expiresAt = new Date(user.emailVerificationSentAt.getTime() + 24 * 60 * 60 * 1000);
+        if (new Date() > expiresAt) {
+          // Clear expired token
+          await db.update(users).set({
+            emailVerificationToken: null,
+          }).where(eq(users.id, user.id));
+          return { valid: false };
+        }
+      }
+
+      // Token is valid — clear it so it can't be reused
+      await db.update(users).set({
+        emailVerificationToken: null,
+      }).where(eq(users.id, user.id));
+
+      return {
+        valid: true,
+        email: user.email || undefined,
+        userId: user.id,
+      };
+    } catch (error) {
+      console.error('[EmailConfirmation] Failed to verify token:', error);
       return { valid: false };
     }
-
-    if (new Date() > confirmation.expiresAt) {
-      confirmationTokens.delete(token);
-      return { valid: false };
-    }
-
-    if (confirmation.confirmed) {
-      return { valid: false };
-    }
-
-    confirmation.confirmed = true;
-    return {
-      valid: true,
-      email: confirmation.email,
-      userId: confirmation.userId,
-    };
   }
 
   /**
@@ -122,7 +159,7 @@ class EmailConfirmationService {
         </div>
         
         <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666;">
-          <p style="margin: 0;">© 2026 Ologywood. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 Ologywood. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -173,7 +210,7 @@ class EmailConfirmationService {
         </div>
         
         <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666;">
-          <p style="margin: 0;">© 2026 Ologywood. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 Ologywood. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -209,7 +246,7 @@ class EmailConfirmationService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">✓ Email Change Confirmed</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">Email Change Confirmed</h1>
         </div>
         
         <div style="padding: 30px; background-color: #f9f9f9;">
@@ -244,7 +281,7 @@ class EmailConfirmationService {
           </div>
           
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
-            <p style="font-size: 12px; margin: 0;"><strong>⚠️ Important:</strong> The revert link will expire in 48 hours. If you need to revert after that, please contact our support team.</p>
+            <p style="font-size: 12px; margin: 0;"><strong>Important:</strong> The revert link will expire in 48 hours. If you need to revert after that, please contact our support team.</p>
           </div>
           
           <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
@@ -253,7 +290,7 @@ class EmailConfirmationService {
         </div>
         
         <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666;">
-          <p style="margin: 0;">© 2026 Ologywood. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 Ologywood. All rights reserved.</p>
           <p style="margin: 5px 0 0 0;">This is an automated message. Please do not reply to this email.</p>
         </div>
       </div>
@@ -286,7 +323,7 @@ class EmailConfirmationService {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <div style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%); padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">✓ Email Change Reverted</h1>
+          <h1 style="color: white; margin: 0; font-size: 28px;">Email Change Reverted</h1>
         </div>
         
         <div style="padding: 30px; background-color: #f9f9f9;">
@@ -307,7 +344,7 @@ class EmailConfirmationService {
         </div>
         
         <div style="background-color: #f0f0f0; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px; color: #666;">
-          <p style="margin: 0;">© 2026 Ologywood. All rights reserved.</p>
+          <p style="margin: 0;">&copy; 2026 Ologywood. All rights reserved.</p>
           <p style="margin: 5px 0 0 0;">This is an automated message. Please do not reply to this email.</p>
         </div>
       </div>
@@ -325,30 +362,6 @@ class EmailConfirmationService {
       throw error;
     }
   }
-
-  /**
-   * Clean up expired tokens
-   */
-  cleanupExpiredTokens(): number {
-    let cleanedCount = 0;
-    const now = new Date();
-
-    for (const [token, confirmation] of confirmationTokens.entries()) {
-      if (now > confirmation.expiresAt) {
-        confirmationTokens.delete(token);
-        cleanedCount++;
-      }
-    }
-
-    return cleanedCount;
-  }
 }
 
 export const emailConfirmationService = new EmailConfirmationService();
-
-// Run cleanup every hour
-setInterval(() => {
-  const cleaned = emailConfirmationService.cleanupExpiredTokens();
-  if (cleaned > 0) {
-  }
-}, 60 * 60 * 1000);
