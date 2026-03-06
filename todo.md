@@ -1114,3 +1114,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Investigate why session cookie isn't being set after email/password login
 - [x] Fix verifySession to not require name field to be non-empty (root cause: email/password users with no name had empty string in JWT)
 - [x] Verify login + auth.me flow works end-to-end on dev server (production needs publish)
+
+## PURCHASE-GATED TRACK REVIEWS (Mar 5, 2026)
+- [x] Audit existing release/purchase schema
+- [x] Create track_reviews table (userId, releaseId, rating 1-5, reviewText max 280 chars)
+- [x] Add createReview endpoint (purchase-gated, one review per user per release)
+- [x] Add getReviewsByRelease endpoint (public, with user name and avatar)
+- [x] Add deleteReview endpoint (own reviews only or artist can delete)
+- [x] Build star rating input component (StarRating)
+- [x] Build review form on release page (only visible to purchasers)
+- [x] Build review list display with average rating
+- [x] Write tests for review endpoints (27 tests passing)

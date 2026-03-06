@@ -411,4 +411,148 @@ export const releaseRouter = router({
 
       return await db.getPurchasesByReleaseId(input.releaseId);
     }),
+
+  // ============= TRACK REVIEW ENDPOINTS =============
+
+  /**
+   * Get reviews for a release (public).
+   * Returns reviews with reviewer info and aggregate stats.
+   */
+  getReviews: publicProcedure
+    .input(z.object({ releaseId: z.number() }))
+    .query(async ({ input }) => {
+      const [reviews, stats] = await Promise.all([
+        db.getReviewsByReleaseId(input.releaseId),
+        db.getReleaseReviewStats(input.releaseId),
+      ]);
+
+      // Enrich reviews with user info
+      const enrichedReviews = await Promise.all(
+        reviews.map(async (review) => {
+          const user = await db.getUserById(review.userId);
+          return {
+            ...review,
+            reviewerName: user?.name || user?.email?.split('@')[0] || 'Anonymous',
+          };
+        })
+      );
+
+      return {
+        reviews: enrichedReviews,
+        avgRating: Math.round(stats.avgRating * 10) / 10,
+        reviewCount: stats.reviewCount,
+      };
+    }),
+
+  /**
+   * Check if the current user can review a release (has purchased + hasn't reviewed yet).
+   */
+  canReview: protectedProcedure
+    .input(z.object({ releaseId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const hasPurchased = await db.hasUserPurchasedRelease(ctx.user.id, input.releaseId);
+      if (!hasPurchased) {
+        return { canReview: false, reason: 'purchase_required', existingReview: null };
+      }
+
+      const existingReview = await db.getUserReviewForRelease(ctx.user.id, input.releaseId);
+      if (existingReview) {
+        return { canReview: false, reason: 'already_reviewed', existingReview };
+      }
+
+      return { canReview: true, reason: null, existingReview: null };
+    }),
+
+  /**
+   * Create a review (purchase-gated, one per user per release).
+   */
+  createReview: protectedProcedure
+    .input(
+      z.object({
+        releaseId: z.number(),
+        rating: z.number().int().min(1).max(5),
+        reviewText: z.string().max(280).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify purchase
+      const hasPurchased = await db.hasUserPurchasedRelease(ctx.user.id, input.releaseId);
+      if (!hasPurchased) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You must purchase this release before leaving a review.',
+        });
+      }
+
+      // Check for existing review
+      const existing = await db.getUserReviewForRelease(ctx.user.id, input.releaseId);
+      if (existing) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'You have already reviewed this release.',
+        });
+      }
+
+      const review = await db.createTrackReview({
+        releaseId: input.releaseId,
+        userId: ctx.user.id,
+        rating: input.rating,
+        reviewText: input.reviewText,
+      });
+
+      return review;
+    }),
+
+  /**
+   * Update your own review.
+   */
+  updateReview: protectedProcedure
+    .input(
+      z.object({
+        reviewId: z.number(),
+        rating: z.number().int().min(1).max(5).optional(),
+        reviewText: z.string().max(280).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const review = await db.getTrackReviewById(input.reviewId);
+      if (!review) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' });
+      }
+      if (review.userId !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only edit your own reviews' });
+      }
+
+      const updateData: { rating?: number; reviewText?: string } = {};
+      if (input.rating !== undefined) updateData.rating = input.rating;
+      if (input.reviewText !== undefined) updateData.reviewText = input.reviewText;
+
+      await db.updateTrackReview(input.reviewId, updateData);
+      return await db.getTrackReviewById(input.reviewId);
+    }),
+
+  /**
+   * Delete your own review (or artist can delete reviews on their releases).
+   */
+  deleteReview: protectedProcedure
+    .input(z.object({ reviewId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const review = await db.getTrackReviewById(input.reviewId);
+      if (!review) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' });
+      }
+
+      // Allow deletion by the reviewer or the release artist
+      if (review.userId !== ctx.user.id) {
+        // Check if the current user is the artist who owns this release
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        const release = await db.getReleaseById(review.releaseId);
+        if (!profile || !release || release.artistId !== profile.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only delete your own reviews' });
+        }
+      }
+
+      await db.deleteTrackReview(input.reviewId);
+      return { success: true };
+    }),
 });

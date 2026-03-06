@@ -2153,3 +2153,111 @@ export async function getArtistRecentPhotos(artistId: number, limit: number = 3)
     .limit(limit);
   return photos;
 }
+
+
+// ============= TRACK REVIEW FUNCTIONS =============
+
+import { trackReviews, type TrackReview, type InsertTrackReview } from "../drizzle/schema";
+
+/**
+ * Check if a user has purchased a specific release.
+ */
+export async function hasUserPurchasedRelease(userId: number, releaseId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(releasePurchases)
+    .where(and(
+      eq(releasePurchases.buyerUserId, userId),
+      eq(releasePurchases.releaseId, releaseId),
+    ))
+    .limit(1);
+  return result.length > 0;
+}
+
+/**
+ * Get a user's review for a specific release (if any).
+ */
+export async function getUserReviewForRelease(userId: number, releaseId: number): Promise<TrackReview | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(trackReviews)
+    .where(and(
+      eq(trackReviews.userId, userId),
+      eq(trackReviews.releaseId, releaseId),
+    ))
+    .limit(1);
+  return result[0] || null;
+}
+
+/**
+ * Create a track review (one per user per release, enforced by unique constraint).
+ */
+export async function createTrackReview(data: { releaseId: number; userId: number; rating: number; reviewText?: string }): Promise<TrackReview> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(trackReviews).values({
+    releaseId: data.releaseId,
+    userId: data.userId,
+    rating: data.rating,
+    reviewText: data.reviewText || null,
+  }).$returningId();
+  const review = await db.select().from(trackReviews).where(eq(trackReviews.id, result.id)).limit(1);
+  return review[0];
+}
+
+/**
+ * Update an existing track review.
+ */
+export async function updateTrackReview(reviewId: number, data: { rating?: number; reviewText?: string }): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(trackReviews).set(data).where(eq(trackReviews.id, reviewId));
+}
+
+/**
+ * Delete a track review.
+ */
+export async function deleteTrackReview(reviewId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(trackReviews).where(eq(trackReviews.id, reviewId));
+}
+
+/**
+ * Get all reviews for a release, ordered by newest first.
+ */
+export async function getReviewsByReleaseId(releaseId: number): Promise<TrackReview[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(trackReviews)
+    .where(eq(trackReviews.releaseId, releaseId))
+    .orderBy(sql`${trackReviews.createdAt} DESC`);
+}
+
+/**
+ * Get average rating and review count for a release.
+ */
+export async function getReleaseReviewStats(releaseId: number): Promise<{ avgRating: number; reviewCount: number }> {
+  const db = await getDb();
+  if (!db) return { avgRating: 0, reviewCount: 0 };
+  const result = await db.select({
+    avgRating: sql<number>`COALESCE(AVG(${trackReviews.rating}), 0)`,
+    reviewCount: sql<number>`COUNT(*)`,
+  }).from(trackReviews)
+    .where(eq(trackReviews.releaseId, releaseId));
+  return {
+    avgRating: Number(result[0]?.avgRating || 0),
+    reviewCount: Number(result[0]?.reviewCount || 0),
+  };
+}
+
+
+/**
+ * Get a single track review by ID.
+ */
+export async function getTrackReviewById(reviewId: number): Promise<TrackReview | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(trackReviews).where(eq(trackReviews.id, reviewId)).limit(1);
+  return result[0] || null;
+}

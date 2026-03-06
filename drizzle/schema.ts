@@ -1,4 +1,4 @@
-import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date } from "drizzle-orm/mysql-core";
+import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date, unique } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -939,3 +939,24 @@ export const passwordResetTokens = mysqlTable("password_reset_tokens", {
 }));
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
+
+/**
+ * Track Reviews — purchase-gated reviews for singles/releases.
+ * Only users who purchased a release can leave one review (1-5 stars + short text).
+ */
+export const trackReviews = mysqlTable("track_reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  releaseId: int("releaseId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating").notNull(), // 1-5
+  reviewText: varchar("reviewText", { length: 280 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  releaseIdx: index("idx_track_reviews_release").on(table.releaseId),
+  userIdx: index("idx_track_reviews_user").on(table.userId),
+  uniqueReview: unique("uniq_user_release_review").on(table.userId, table.releaseId),
+}));
+export type TrackReview = typeof trackReviews.$inferSelect;
+export type InsertTrackReview = typeof trackReviews.$inferInsert;

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Music, Play, Pause, ShoppingCart, Download, Loader2, Volume2, Heart } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
+import { TrackReviewSection } from "@/components/TrackReviewSection";
 
 const PREVIEW_MAX_SECONDS = 30;
 
@@ -436,6 +437,13 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
               </Button>
             ) : null}
           </div>
+
+          {/* Track Reviews Section */}
+          <TrackReviewSection
+            releaseId={release.id}
+            releaseTitle={release.title}
+            isOwner={isOwner}
+          />
         </CardContent>
       </div>
     </Card>
