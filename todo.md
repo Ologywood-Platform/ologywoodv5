@@ -1203,3 +1203,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Created static sitemap.xml in client/public/ to override hosting platform's auto-generated sitemap
 - [x] Static sitemap includes only 16 public pages (no private/protected pages)
 - [x] Verified static sitemap is included in dist/public/ after build
+
+## GOOGLE SEARCH CONSOLE: PAGE WITH REDIRECT (Mar 6, 2026)
+
+- [x] Investigated: hosting platform auto-generates sitemap with ALL 48 client routes (including private pages)
+- [x] Tested all 48 URLs — no server-side redirects, but private pages do JS redirects to login (Googlebot sees as soft redirect)
+- [x] Created RobotsMetaTag component that adds noindex/nofollow to 30+ private pages
+- [x] Added default robots meta tag to index.html
+- [x] Set canonical URLs for duplicate pages (/home→/, /privacy→/privacy-policy, /terms→/terms-of-service)
+- [x] Static sitemap.xml in client/public/ as fallback (hosting platform overrides it)
+- [x] All 1,548 tests passing, 0 TypeScript errors

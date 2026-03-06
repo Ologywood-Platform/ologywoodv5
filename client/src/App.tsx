@@ -7,6 +7,7 @@ import { Route, Switch, Redirect } from "wouter";
 import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { CanonicalUpdater } from "./components/CanonicalUpdater";
+import { RobotsMetaTag } from "./components/RobotsMetaTag";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
@@ -194,6 +195,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <CanonicalUpdater />
+          <RobotsMetaTag />
           <Router />
           <AIChatWidget />
           <PWAInstallBanner />
