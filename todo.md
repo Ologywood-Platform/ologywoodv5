@@ -1256,3 +1256,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added Reset button to clear all search + filters at once
 - [x] Added loading skeleton for better perceived performance
 - [x] All 1,549 tests passing
+
+## BUG: ROLE SELECTION REDIRECT LOOP V3 FIX (Mar 6, 2026)
+
+- [x] Root cause: Race condition between RoleSelection cache invalidation and Home.tsx auth.me refetch
+- [x] Previous fix (invalidate + refetch + pendingRole) was insufficient — Home.tsx has staleTime:0 and fires its own auth.me query
+- [x] Fix: Optimistic cache update using setData() to immediately write new role into auth.me cache before navigating
+- [x] Added navigatingRef to prevent redirect useEffect from re-triggering during navigation
+- [x] Added double-click prevention in handleSelectRole
+- [x] All 1,549 tests passing, 0 TypeScript errors

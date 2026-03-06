@@ -5,22 +5,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Building2, Heart, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { SkeletonRoleSelection } from "@/components/SkeletonLoaders";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 
+// Role selection with optimistic cache update to prevent redirect loop - v3
 export default function RoleSelection() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
   const [pendingRole, setPendingRole] = useState<string | null>(null);
+  const navigatingRef = useRef(false);
 
   const updateRole = (trpc.auth.updateRole as any).useMutation?.({
     onSuccess: async (data: any) => {
-      // Invalidate the auth.me cache so the user data refreshes with the new role
-      await (utils.auth.me as any).invalidate();
-      // Refetch to get fresh data
-      await (utils.auth.me as any).refetch();
+      navigatingRef.current = true;
+
+      // CRITICAL: Optimistically update the auth.me cache with the new role
+      // This prevents the race condition where the next page reads stale cache
+      // and redirects back to /get-started
+      (utils.auth.me as any).setData?.(undefined, (oldData: any) => {
+        if (!oldData) return oldData;
+        return { ...oldData, role: data.role };
+      });
+
+      // Also invalidate so a background refetch will confirm the DB state
+      (utils.auth.me as any).invalidate();
 
       if (data.role === 'artist') {
         toast.success("Welcome! Let's set up your artist profile.");
@@ -35,6 +45,7 @@ export default function RoleSelection() {
     },
     onError: (error: any) => {
       setPendingRole(null);
+      navigatingRef.current = false;
       toast.error(error.message || "Failed to update role. Please try again.");
     },
   });
@@ -47,7 +58,8 @@ export default function RoleSelection() {
 
   useEffect(() => {
     // If user already has a proper role, redirect to their dashboard
-    if (!loading && user && !pendingRole) {
+    // Skip if we're in the middle of updating role or navigating away
+    if (!loading && user && !pendingRole && !navigatingRef.current) {
       const url = getDashboardUrl(user);
       if (url !== '/get-started') {
         navigate(url);
@@ -64,6 +76,7 @@ export default function RoleSelection() {
   }
 
   const handleSelectRole = (role: 'artist' | 'venue' | 'fan') => {
+    if (pendingRole || navigatingRef.current) return; // Prevent double-clicks
     setPendingRole(role);
     updateRole.mutate({ role });
   };
