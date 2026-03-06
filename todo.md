@@ -1232,3 +1232,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added 'Continue to Account Setup' button on VerifyEmail page so users aren't stuck
 - [x] After email verification success, redirects to /get-started instead of homepage
 - [x] All 1,548 tests passing, 0 TypeScript errors
+
+## FAN ROLE SIGNUP FLOW (Mar 6, 2026)
+
+- [x] Updated server updateRole mutation and db.ts to accept 'fan' role
+- [x] Added Fan card to RoleSelection page (clean 3-option layout: Artist, Venue, Fan)
+- [x] Updated getDashboardUrl to route fans to homepage
+- [x] Updated all client-side role checks (ArtistDashboardV3, VenueDashboard, Home, types/index.ts)
+- [x] Updated content audit tests for new RoleSelection content
+- [x] All 1,549 tests passing, 0 TypeScript errors

@@ -2,12 +2,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Building2, Check } from "lucide-react";
+import { Music, Building2, Heart, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-
 import { useEffect } from "react";
 import { SkeletonRoleSelection } from "@/components/SkeletonLoaders";
+import { getDashboardUrl } from "@/utils/dashboardUrl";
 
 export default function RoleSelection() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -15,12 +15,15 @@ export default function RoleSelection() {
 
   const updateRole = (trpc.auth.updateRole as any).useMutation?.({
     onSuccess: (data: any) => {
-      toast.success(`Account set up as ${data.role}`);
-      // Navigate to appropriate onboarding
       if (data.role === 'artist') {
+        toast.success("Welcome! Let's set up your artist profile.");
         navigate("/onboarding/artist");
       } else if (data.role === 'venue') {
+        toast.success("Welcome! Let's set up your venue profile.");
         navigate("/onboarding/venue");
+      } else if (data.role === 'fan') {
+        toast.success("You're all set! Start discovering artists.");
+        navigate("/");
       }
     },
     onError: (error: any) => {
@@ -36,12 +39,11 @@ export default function RoleSelection() {
 
   useEffect(() => {
     // If user already has a proper role, redirect to their dashboard
-    if (!loading && user && user.role === 'artist') {
-      navigate("/dashboard");
-    } else if (!loading && user && user.role === 'venue') {
-      navigate("/venue-dashboard");
-    } else if (!loading && user && user.role === 'admin') {
-      navigate("/admin");
+    if (!loading && user) {
+      const url = getDashboardUrl(user);
+      if (url !== '/get-started') {
+        navigate(url);
+      }
     }
   }, [user, loading, navigate]);
 
@@ -53,62 +55,62 @@ export default function RoleSelection() {
     return null;
   }
 
-  const handleSelectRole = (role: 'artist' | 'venue') => {
+  const handleSelectRole = (role: 'artist' | 'venue' | 'fan') => {
     updateRole.mutate({ role });
   };
 
-  // Show skeleton while mutation is pending
   if (updateRole.isPending) {
     return <SkeletonRoleSelection />;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-5xl">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-xl sm:text-2xl md:text-3xl md:text-4xl font-bold mb-2">Welcome to Ologywood!</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Welcome to Ologywood!</h1>
           <p className="text-lg text-muted-foreground">
-            Let's get you set up. Are you an artist or a venue?
+            How will you be using the platform?
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-3 sm:gap-4 md:gap-3 sm:p-4 md:p-6">
+        <div className="grid md:grid-cols-3 gap-3 sm:gap-4 md:gap-5 sm:p-4 md:p-6">
           {/* Artist Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Music className="h-10 w-10 text-primary" />
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary group"
+                onClick={() => handleSelectRole('artist')}>
+            <CardHeader className="pb-3">
+              <div className="flex justify-center mb-3">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Music className="h-8 w-8 text-primary" />
                 </div>
               </div>
-              <CardTitle className="text-center text-2xl">I'm an Artist</CardTitle>
-              <CardDescription className="text-center">
-                Create a profile to showcase your talent and receive booking requests
+              <CardTitle className="text-center text-xl">I'm an Artist</CardTitle>
+              <CardDescription className="text-center text-sm">
+                Showcase your talent and get booked
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 mb-5">
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Build your artist profile with photos, bio, and music links</span>
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Build your artist profile</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Manage your availability calendar</span>
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Manage availability & bookings</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Receive and manage booking requests</span>
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Create rider contracts</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Follow artists and discover events</span>
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Sell music & grow your fan base</span>
                 </li>
               </ul>
               <Button 
                 className="w-full" 
                 size="lg"
-                onClick={() => handleSelectRole('artist')}
+                onClick={(e) => { e.stopPropagation(); handleSelectRole('artist'); }}
                 disabled={updateRole.isPending}
               >
                 {updateRole.isPending ? "Setting up..." : "Continue as Artist"}
@@ -117,52 +119,98 @@ export default function RoleSelection() {
           </Card>
 
           {/* Venue Card */}
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <div className="h-20 w-20 rounded-full bg-accent/10 flex items-center justify-center">
-                  <Building2 className="h-10 w-10 text-accent" />
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-accent group"
+                onClick={() => handleSelectRole('venue')}>
+            <CardHeader className="pb-3">
+              <div className="flex justify-center mb-3">
+                <div className="h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <Building2 className="h-8 w-8 text-accent" />
                 </div>
               </div>
-              <CardTitle className="text-center text-2xl">I'm a Venue</CardTitle>
-              <CardDescription className="text-center">
-                Find and book talented artists for your events
+              <CardTitle className="text-center text-xl">I'm a Venue</CardTitle>
+              <CardDescription className="text-center text-sm">
+                Find and book artists for your events
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 mb-5">
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Browse and search for artists by genre and location</span>
+                  <Check className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Browse artists by genre & location</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Send booking requests with event details</span>
+                  <Check className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Send booking requests</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Manage all your bookings in one place</span>
+                  <Check className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Manage events & contracts</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">Create events and communicate directly with artists</span>
+                  <Check className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Communicate directly with artists</span>
                 </li>
               </ul>
               <Button 
                 className="w-full" 
                 size="lg"
                 variant="outline"
-                onClick={() => handleSelectRole('venue')}
+                onClick={(e) => { e.stopPropagation(); handleSelectRole('venue'); }}
                 disabled={updateRole.isPending}
               >
                 {updateRole.isPending ? "Setting up..." : "Continue as Venue"}
               </Button>
             </CardContent>
           </Card>
+
+          {/* Fan Card */}
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-pink-500 group"
+                onClick={() => handleSelectRole('fan')}>
+            <CardHeader className="pb-3">
+              <div className="flex justify-center mb-3">
+                <div className="h-16 w-16 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                  <Heart className="h-8 w-8 text-pink-500" />
+                </div>
+              </div>
+              <CardTitle className="text-center text-xl">I'm a Fan</CardTitle>
+              <CardDescription className="text-center text-sm">
+                Discover artists and follow the scene
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-5">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-pink-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Follow your favorite artists</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-pink-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Get updates on new shows</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-pink-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Discover events near you</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-pink-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Buy music directly from artists</span>
+                </li>
+              </ul>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="w-full border-pink-500 text-pink-500 hover:bg-pink-500/10"
+                onClick={(e) => { e.stopPropagation(); handleSelectRole('fan'); }}
+                disabled={updateRole.isPending}
+              >
+                {updateRole.isPending ? "Setting up..." : "Continue as Fan"}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          You can always update your account type later by contacting support
+          You can always update your account type later in your settings.
         </p>
       </div>
     </div>

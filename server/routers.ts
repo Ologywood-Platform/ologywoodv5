@@ -243,7 +243,7 @@ export const appRouter = router({
       } as const;
     }),
     updateRole: protectedProcedure
-      .input(z.object({ role: z.enum(['artist', 'venue']) }))
+      .input(z.object({ role: z.enum(['artist', 'venue', 'fan']) }))
       .mutation(async ({ ctx, input }) => {
         await db.updateUserRole(ctx.user.id, input.role);
         return { role: input.role };

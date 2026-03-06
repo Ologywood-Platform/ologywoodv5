@@ -23,6 +23,8 @@ export function ArtistDashboardV3() {
     if (user) {
       if (user.role === 'venue') {
         navigate('/venue-dashboard');
+      } else if (user.role === 'fan') {
+        navigate('/');
       } else if (!user.role || user.role === 'user') {
         // No role selected yet — send to role selection
         window.location.href = '/get-started';

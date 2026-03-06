@@ -274,12 +274,17 @@ describe('Platform Content Audit', () => {
       expect(content).not.toContain('Save rider templates for technical requirements');
     });
 
-    it('should mention following and events for artists', () => {
-      expect(content).toContain('Follow artists and discover events');
+    it('should mention fan base growth for artists', () => {
+      expect(content).toContain('Sell music & grow your fan base');
     });
 
     it('should mention events for venues', () => {
-      expect(content).toContain('Create events');
+      expect(content).toContain('Manage events & contracts');
+    });
+
+    it('should include fan role option', () => {
+      expect(content).toContain("I'm a Fan");
+      expect(content).toContain('Follow your favorite artists');
     });
   });
 });

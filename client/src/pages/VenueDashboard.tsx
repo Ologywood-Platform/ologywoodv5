@@ -58,6 +58,8 @@ export function VenueDashboard() {
     if (!loading && user) {
       if (!user.role || user.role === 'user') {
         window.location.href = '/get-started';
+      } else if (user.role === 'fan') {
+        navigate('/');
       } else if (user.role === 'artist') {
         navigate('/dashboard');
       }

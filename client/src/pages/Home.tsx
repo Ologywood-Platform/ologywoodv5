@@ -45,6 +45,7 @@ export default function Home() {
   };
 
   // Redirect authenticated users without a proper role to role selection
+  // Fans (role='fan') stay on the homepage — it's their home base
   useEffect(() => {
     if (isAuthenticated && user && (!user.role || user.role === 'user')) {
       window.location.href = '/get-started';
