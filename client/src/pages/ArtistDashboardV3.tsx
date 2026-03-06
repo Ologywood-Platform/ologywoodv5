@@ -18,10 +18,15 @@ export function ArtistDashboardV3() {
 
   const isArtist = user?.role === 'artist';
 
-  // Redirect venue users to their dashboard
+  // Redirect non-artist users to appropriate destination
   useEffect(() => {
-    if (user && user.role === 'venue') {
-      navigate('/venue-dashboard');
+    if (user) {
+      if (user.role === 'venue') {
+        navigate('/venue-dashboard');
+      } else if (!user.role || user.role === 'user') {
+        // No role selected yet — send to role selection
+        window.location.href = '/get-started';
+      }
     }
   }, [user, navigate]);
 
@@ -37,18 +42,21 @@ export function ArtistDashboardV3() {
   const updateEventStatus = trpc.events.update.useMutation();
   // Messages are accessed from the Messages page, not dashboard
 
-  // Verify user is an artist
+  // Verify user is an artist — show loading while redirect happens
   if (!isArtist) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Redirecting...</CardTitle>
-            <CardDescription>Taking you to your dashboard.</CardDescription>
+            <CardDescription>Taking you to the right place.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate('/')} className="w-full">
-              Back to Home
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+            <Button onClick={() => window.location.href = '/get-started'} variant="outline" className="w-full">
+              Select Your Role
             </Button>
           </CardContent>
         </Card>

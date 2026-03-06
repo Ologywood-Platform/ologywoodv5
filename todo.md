@@ -1213,3 +1213,22 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Set canonical URLs for duplicate pages (/home→/, /privacy→/privacy-policy, /terms→/terms-of-service)
 - [x] Static sitemap.xml in client/public/ as fallback (hosting platform overrides it)
 - [x] All 1,548 tests passing, 0 TypeScript errors
+
+## TEST MODE BANNER FOR STRIPE (Mar 6, 2026)
+
+- [ ] Create TestModeBanner component showing test card info (4242 4242 4242 4242)
+- [ ] Add banner to pricing/checkout pages where payment is triggered
+- [ ] Ensure banner only shows when Stripe is in test mode (not live)
+
+## CRITICAL: SIGNUP/SIGNIN FLOW BROKEN (Mar 6, 2026)
+
+- [x] Root cause: All users have role='user' instead of 'artist'/'venue', system treated 'user' as valid role
+- [x] Fixed getDashboardUrl to redirect role='user' to /get-started
+- [x] Fixed Home.tsx to redirect role='user' to /get-started
+- [x] Fixed RoleSelection.tsx to redirect to correct dashboard per role
+- [x] Fixed ArtistDashboardV3 dead-end 'Redirecting' screen — now actually redirects to /get-started
+- [x] Fixed VenueDashboard to redirect role='user' to /get-started
+- [x] Fixed ArtistEditProfile, Availability, Riders, BookingsList for role='user'
+- [x] Added 'Continue to Account Setup' button on VerifyEmail page so users aren't stuck
+- [x] After email verification success, redirects to /get-started instead of homepage
+- [x] All 1,548 tests passing, 0 TypeScript errors

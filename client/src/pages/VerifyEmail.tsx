@@ -39,9 +39,9 @@ export function VerifyEmail() {
             setStatus('success');
             if (result.email) setEmail(result.email);
             toast.success('Email verified successfully!');
-            // Redirect to homepage after 3 seconds
+            // Redirect to role selection / account setup after 3 seconds
             setTimeout(() => {
-              navigate('/');
+              window.location.href = '/get-started';
             }, 3000);
           } else {
             setStatus('error');
@@ -128,17 +128,16 @@ export function VerifyEmail() {
               </p>
             )}
             <p className="text-sm text-green-600">
-              Redirecting you to the homepage...
+              Redirecting you to set up your account...
             </p>
             <div className="flex justify-center">
               <Loader2 className="h-5 w-5 text-green-600 animate-spin" />
             </div>
             <Button
-              variant="outline"
-              className="mt-2"
-              onClick={() => navigate('/')}
+              className="mt-2 bg-purple-600 hover:bg-purple-700"
+              onClick={() => window.location.href = '/get-started'}
             >
-              Go to Homepage Now
+              Continue to Account Setup
             </Button>
           </CardContent>
         </Card>
@@ -270,6 +269,18 @@ export function VerifyEmail() {
                 )}
               </Button>
             </form>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              onClick={() => window.location.href = '/get-started'}
+            >
+              Continue to Account Setup
+            </Button>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              You can verify your email later. Let's get your profile set up first!
+            </p>
           </div>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">

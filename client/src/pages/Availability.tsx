@@ -75,6 +75,9 @@ export default function Availability() {
   }
 
   if (!isAuthenticated || !user || user.role !== 'artist') {
+    if (user && (!user.role || user.role === 'user')) {
+      window.location.href = '/get-started';
+    }
     return null;
   }
 

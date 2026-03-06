@@ -44,9 +44,9 @@ export default function Home() {
     setAuthModalOpen(true);
   };
 
-  // Redirect authenticated users without a role to role selection
+  // Redirect authenticated users without a proper role to role selection
   useEffect(() => {
-    if (isAuthenticated && user && !user.role) {
+    if (isAuthenticated && user && (!user.role || user.role === 'user')) {
       window.location.href = '/get-started';
     }
   }, [isAuthenticated, user]);

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2, Clock, CreditCard, DollarSign, ArrowRight, Shield, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
+import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
 
 interface PaymentSectionProps {
   bookingId: number;
@@ -142,6 +143,7 @@ export default function PaymentSection({
       </CardHeader>
 
       <CardContent className="space-y-6">
+        <StripeTestModeBanner />
         {/* Payment Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 bg-gray-50 rounded-lg text-center">

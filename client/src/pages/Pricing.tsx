@@ -10,6 +10,7 @@ import SiteHeader from "@/components/SiteHeader";
 import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import Footer from '@/components/Footer';
+import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
 
 const PRICING_FAQS = [
   {
@@ -296,6 +297,7 @@ export default function Pricing() {
           ]}
         />
         <div className="max-w-7xl mx-auto">
+          <StripeTestModeBanner />
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">

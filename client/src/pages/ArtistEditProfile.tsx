@@ -95,8 +95,12 @@ export default function ArtistEditProfile() {
   // Redirect if not an artist
   useEffect(() => {
     if (user && user.role !== "artist") {
-      toast.error("Only artists can edit their profile");
-      navigate("/dashboard");
+      if (!user.role || user.role === 'user') {
+        window.location.href = '/get-started';
+      } else {
+        toast.error("Only artists can edit their profile");
+        navigate("/");
+      }
     }
   }, [user, navigate]);
 

@@ -53,6 +53,11 @@ export default function BookingsList() {
     return null;
   }
 
+  if (!user.role || user.role === 'user') {
+    window.location.href = '/get-started';
+    return null;
+  }
+
   const isArtist = user.role === "artist";
   const bookings = (isArtist ? artistBookings : venueBookings) || [];
   const isLoading = isArtist ? artistLoading : venueLoading;

@@ -53,10 +53,14 @@ export function VenueDashboard() {
     }
   }, [profile]);
 
-  // Role check
+  // Role check — redirect users without proper role to role selection
   useEffect(() => {
-    if (!loading && user && user.role !== 'venue' && user.role !== 'admin') {
-      navigate('/');
+    if (!loading && user) {
+      if (!user.role || user.role === 'user') {
+        window.location.href = '/get-started';
+      } else if (user.role === 'artist') {
+        navigate('/dashboard');
+      }
     }
   }, [user, loading]);
 

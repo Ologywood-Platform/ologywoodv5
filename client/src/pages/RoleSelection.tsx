@@ -35,9 +35,13 @@ export default function RoleSelection() {
   }, [isAuthenticated, loading]);
 
   useEffect(() => {
-    // If user already has a role, redirect to dashboard
-    if (!loading && user && (user.role === 'artist' || user.role === 'venue')) {
+    // If user already has a proper role, redirect to their dashboard
+    if (!loading && user && user.role === 'artist') {
       navigate("/dashboard");
+    } else if (!loading && user && user.role === 'venue') {
+      navigate("/venue-dashboard");
+    } else if (!loading && user && user.role === 'admin') {
+      navigate("/admin");
     }
   }, [user, loading, navigate]);
 
