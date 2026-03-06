@@ -1157,3 +1157,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### Phase 6: Documentation
 - [x] Updated ARCHITECTURE.md with current stats (41 tables, 54 pages, 1527 tests)
 - [x] Created PLATFORM_AUDIT_REPORT.md with full audit findings and resolutions
+
+## FIX: tRPC API RETURNING HTML INSTEAD OF JSON (Mar 5, 2026)
+- [x] Investigated: HTML response from SPA fallback during server restart/network issues
+- [x] Added HTML response guard in tRPC fetch wrapper (converts HTML to JSON error)
+- [x] Suppressed noisy "is not valid JSON" console errors (auto-retry handles recovery)
