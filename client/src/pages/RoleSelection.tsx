@@ -5,16 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Building2, Heart, Check } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SkeletonRoleSelection } from "@/components/SkeletonLoaders";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 
 export default function RoleSelection() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
+  const [pendingRole, setPendingRole] = useState<string | null>(null);
 
   const updateRole = (trpc.auth.updateRole as any).useMutation?.({
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
+      // Invalidate the auth.me cache so the user data refreshes with the new role
+      await (utils.auth.me as any).invalidate();
+      // Refetch to get fresh data
+      await (utils.auth.me as any).refetch();
+
       if (data.role === 'artist') {
         toast.success("Welcome! Let's set up your artist profile.");
         navigate("/onboarding/artist");
@@ -27,7 +34,8 @@ export default function RoleSelection() {
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update role");
+      setPendingRole(null);
+      toast.error(error.message || "Failed to update role. Please try again.");
     },
   });
 
@@ -39,13 +47,13 @@ export default function RoleSelection() {
 
   useEffect(() => {
     // If user already has a proper role, redirect to their dashboard
-    if (!loading && user) {
+    if (!loading && user && !pendingRole) {
       const url = getDashboardUrl(user);
       if (url !== '/get-started') {
         navigate(url);
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, pendingRole]);
 
   if (loading) {
     return <SkeletonRoleSelection />;
@@ -56,10 +64,11 @@ export default function RoleSelection() {
   }
 
   const handleSelectRole = (role: 'artist' | 'venue' | 'fan') => {
+    setPendingRole(role);
     updateRole.mutate({ role });
   };
 
-  if (updateRole.isPending) {
+  if (updateRole.isPending || pendingRole) {
     return <SkeletonRoleSelection />;
   }
 
@@ -111,9 +120,9 @@ export default function RoleSelection() {
                 className="w-full" 
                 size="lg"
                 onClick={(e) => { e.stopPropagation(); handleSelectRole('artist'); }}
-                disabled={updateRole.isPending}
+                disabled={updateRole.isPending || !!pendingRole}
               >
-                {updateRole.isPending ? "Setting up..." : "Continue as Artist"}
+                {pendingRole === 'artist' ? "Setting up..." : "Continue as Artist"}
               </Button>
             </CardContent>
           </Card>
@@ -156,9 +165,9 @@ export default function RoleSelection() {
                 size="lg"
                 variant="outline"
                 onClick={(e) => { e.stopPropagation(); handleSelectRole('venue'); }}
-                disabled={updateRole.isPending}
+                disabled={updateRole.isPending || !!pendingRole}
               >
-                {updateRole.isPending ? "Setting up..." : "Continue as Venue"}
+                {pendingRole === 'venue' ? "Setting up..." : "Continue as Venue"}
               </Button>
             </CardContent>
           </Card>
@@ -201,9 +210,9 @@ export default function RoleSelection() {
                 variant="outline"
                 className="w-full border-pink-500 text-pink-500 hover:bg-pink-500/10"
                 onClick={(e) => { e.stopPropagation(); handleSelectRole('fan'); }}
-                disabled={updateRole.isPending}
+                disabled={updateRole.isPending || !!pendingRole}
               >
-                {updateRole.isPending ? "Setting up..." : "Continue as Fan"}
+                {pendingRole === 'fan' ? "Setting up..." : "Continue as Fan"}
               </Button>
             </CardContent>
           </Card>

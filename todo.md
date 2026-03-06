@@ -1241,3 +1241,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Updated all client-side role checks (ArtistDashboardV3, VenueDashboard, Home, types/index.ts)
 - [x] Updated content audit tests for new RoleSelection content
 - [x] All 1,549 tests passing, 0 TypeScript errors
+
+## BUG: ROLE SELECTION LOOPS BACK (Mar 6, 2026)
+
+- [x] Root cause: auth.me query cache not invalidated after updateRole mutation — stale role='user' caused redirect loop
+- [x] Fixed RoleSelection.tsx to await cache invalidation + refetch before navigating
+- [x] Added pendingRole state to prevent redirect useEffect from firing during mutation
+- [x] All 1,549 tests passing, 0 TypeScript errors
