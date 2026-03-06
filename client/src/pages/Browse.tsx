@@ -204,7 +204,7 @@ export default function Browse() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <Card key={i} className="h-full animate-pulse">
-                    <div className="h-40 sm:h-48 bg-muted" />
+                    <div className="aspect-[4/3] bg-muted rounded-t-lg" />
                     <CardContent className="p-3 sm:p-4">
                       <div className="space-y-2">
                         <div className="h-4 bg-muted rounded w-3/4" />
@@ -222,15 +222,15 @@ export default function Browse() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredArtists.map(artist => (
                   <Link key={artist.id} href={`/artist/${artist.id}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
                       {/* Always show image area — with photo or placeholder */}
-                      <div className="h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
+                      <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg">
                         {artist.profilePhotoUrl ? (
                           <LazyImage
                             src={artist.profilePhotoUrl}
                             alt={artist.artistName}
                             containerClassName="w-full h-full"
-                            imageClassName="w-full h-full object-cover hover:scale-105 transition-transform"
+                            imageClassName="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center gap-2">

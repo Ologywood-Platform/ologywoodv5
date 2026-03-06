@@ -89,20 +89,20 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
               visibleArtists.map((artist, index) => (
                 <Link key={`${artist.id}-${index}`} href={`/artist/${artist.id}`}>
                   <div className="group cursor-pointer">
-                    <div className="relative overflow-hidden rounded-lg bg-muted h-64 sm:h-72 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
+                    <div className="relative overflow-hidden rounded-lg bg-muted aspect-[3/4] flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {artist.profilePhotoUrl ? (
                         <LazyImage
                           src={artist.profilePhotoUrl}
                           alt={artist.artistName || 'Artist'}
                           containerClassName="w-full h-full"
-                          imageClassName="w-full h-full object-cover"
+                          imageClassName="w-full h-full object-cover object-top"
                         />
                       ) : (
                         <LazyImage
                           src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
                           alt={artist.artistName || 'Artist'}
                           containerClassName="w-full h-full"
-                          imageClassName="w-full h-full object-cover opacity-60"
+                          imageClassName="w-full h-full object-cover object-top opacity-60"
                         />
                       )}
                     </div>

@@ -1265,3 +1265,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added navigatingRef to prevent redirect useEffect from re-triggering during navigation
 - [x] Added double-click prevention in handleSelectRole
 - [x] All 1,549 tests passing, 0 TypeScript errors
+
+## IMPROVE ARTIST IMAGE DISPLAY ON BROWSE CARDS (Mar 6, 2026)
+
+- [x] Fix artist profile image cropping on browse cards — changed from fixed h-40/h-48 to aspect-[4/3]
+- [x] Improve aspect ratio and object-fit — added object-top to prioritize faces/upper body
+- [x] Updated FeaturedArtistsCarousel to use aspect-[3/4] with object-top
+- [x] Updated ArtistProfile hero to use responsive aspect-[16/9] md:aspect-[21/9] with object-top
+- [x] Ensure images display well on both mobile and desktop
