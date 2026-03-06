@@ -1200,3 +1200,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] robots.txt properly allows public pages, disallows private pages
 - [x] Synced FAQ data in vite.ts to match Pricing page (was out of date)
 - [x] All 1,548 tests passing
+- [x] Created static sitemap.xml in client/public/ to override hosting platform's auto-generated sitemap
+- [x] Static sitemap includes only 16 public pages (no private/protected pages)
+- [x] Verified static sitemap is included in dist/public/ after build
