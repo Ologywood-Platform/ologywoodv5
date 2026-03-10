@@ -1404,3 +1404,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Include booking reference, event type, date, location, fee, and links to My Bookings/Messages
 - [x] Include unsubscribe link in all emails
 - [x] Write 40 tests for all three follow-ups (1642 total passing)
+
+
+## PURCHASE EMAIL & DOWNLOAD FLOW FIX (Mar 10, 2026)
+
+- [x] Investigate why purchase confirmation emails are not being received
+  - Root cause: webhook bailed early with `if (!userId) return` but release purchases use `buyerUserId` not `userId`
+  - Fix: allow release purchases to proceed when `releaseId` is present even without `userId`
+- [x] Verify download links are accessible and clearly visible after purchase
+- [x] Ensure My Purchases page shows download buttons correctly
+- [x] Check PurchaseSuccess page has clear download instructions
+- [x] Upgrade purchase confirmation email to branded Ologywood template with download instructions and unsubscribe link

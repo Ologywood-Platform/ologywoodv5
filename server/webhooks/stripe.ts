@@ -120,12 +120,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   const subscriptionId = session.subscription as string;
   const platformFeeAmount = session.metadata?.platformFeeAmount ? parseInt(session.metadata.platformFeeAmount) : 0;
 
-  if (!userId) {
+  // Release purchases use buyerUserId, not userId — don't bail early for those
+  const isReleasePurchase = !!session.metadata?.releaseId;
+  if (!userId && !isReleasePurchase) {
     console.error('[Stripe Webhook] No userId in session metadata');
     return;
   }
 
-  console.log(`[Stripe Webhook] Checkout completed for user ${userId}`);
+  console.log(`[Stripe Webhook] Checkout completed for user ${userId || session.metadata?.buyerUserId || 'guest'}`);
 
   // If this is a booking payment
   if (bookingId) {
@@ -198,24 +200,45 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         const artistProfile = await db.getArtistProfileById(release.artistId);
         if (buyerEmail && artistProfile) {
           const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+          const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
           await email.sendEmail({
             to: buyerEmail,
-            subject: `Your purchase: "${release.title}" by ${artistProfile.artistName}`,
-            html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: #6c47ff; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+            subject: `Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`,
+            html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+              <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
                 <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
               </div>
-              <div style="padding: 24px; background: #f9fafb; border-radius: 0 0 8px 8px;">
-                <p style="font-size: 16px; color: #374151;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
-                <div style="text-align: center; margin: 24px 0;">
-                  <a href="${baseUrl}/my-purchases" style="display: inline-block; background: #6c47ff; color: white; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+              <div style="padding: 30px 24px;">
+                <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
+                
+                <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+                  <p style="color: #374151; margin: 0 0 8px 0; font-size: 14px;"><strong>How to download your track:</strong></p>
+                  <ol style="color: #374151; margin: 0; padding-left: 20px; font-size: 14px;">
+                    <li style="margin-bottom: 4px;">Click the button below to go to My Purchases</li>
+                    <li style="margin-bottom: 4px;">Find your release and click the Download button</li>
+                    <li>You have up to 5 downloads available</li>
+                  </ol>
                 </div>
-                <p style="font-size: 14px; color: #6b7280;">You have up to 5 downloads available. Visit <a href="${baseUrl}/my-purchases" style="color: #6c47ff;">My Purchases</a> anytime to download your music.</p>
-                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-                <p style="font-size: 14px; color: #6b7280; text-align: center;">Thank you for supporting independent artists on Ologywood!</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${baseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                </div>
+                
+                <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${baseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a> (click "Purchases" in the navigation bar).</p>
+              </div>
+              <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+                <p style="font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 10px 0;">Thank you for supporting independent artists on Ologywood!</p>
+                <p style="color: #6b7280; font-size: 12px; margin: 0; text-align: center;">
+                  <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+                  <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+                  <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+                </p>
+                <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0; text-align: center;">&copy; 2026 Ologywood. All rights reserved.</p>
               </div>
             </div>`,
           });
+          console.log(`[Stripe Webhook] Purchase confirmation email sent to ${buyerEmail}`);
         }
       } catch (emailErr) {
         console.error('[Stripe Webhook] Error sending purchase confirmation email:', emailErr);
@@ -223,7 +246,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (error) {
       console.error('[Stripe Webhook] Error processing release purchase:', error);
     }
-  } else if (subscriptionId) {
+  } else if (subscriptionId && userId) {
     // Handle subscription checkout
     // Update or create subscription record
     await db.upsertSubscription({
