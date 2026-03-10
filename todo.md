@@ -1328,3 +1328,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Mount notification bell in SiteHeader for desktop and mobile (logged-in users only)
 - [x] Write 13 tests for notification system (schema, service, router, DB functions)
 - [x] All 1579 tests passing, zero TypeScript errors
+
+## FIX: Mount release checkout and download routes (Mar 10, 2026)
+
+- [x] Mount releaseCheckout route at /api/release/checkout in server/index.ts
+- [x] Mount releaseDownload route at /api/release/download in server/index.ts
+- [x] Verified Stripe webhook handles release_purchase checkout completions (creates purchase record, increments sales, sends email)
+- [x] Tested: checkout returns Stripe URL, download returns auth error (correct), all 1579 tests passing

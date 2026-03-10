@@ -13,6 +13,8 @@ import { logEvent, LogLevel, LogEventType } from './middleware/logging';
 import { socketService } from './services/socketService';
 import sitemapRoutes from './routes/sitemapRoutes';
 import emailRoutes from './routes/emailRoutes';
+import releaseCheckoutRoutes from './routes/releaseCheckout';
+import releaseDownloadRoutes from './routes/releaseDownload';
 import path from 'path';
 import http from 'http';
 
@@ -47,6 +49,8 @@ async function initializeServer(): Promise<void> {
 
   // Mount API routes BEFORE static files (important: API routes must come before static middleware)
   app.use('/api/email', emailRoutes);
+  app.use('/api/release/checkout', releaseCheckoutRoutes);
+  app.use('/api/release/download', releaseDownloadRoutes);
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');
