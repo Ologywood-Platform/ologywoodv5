@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X } from 'lucide-react';
+import { Heart, LogOut, Menu, X, ShoppingBag } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -143,6 +143,13 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   </Button>
                 </Link>
 
+                <Link href="/my-purchases">
+                  <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
+                    <ShoppingBag className="h-4 w-4 mr-1" />
+                    Purchases
+                  </Button>
+                </Link>
+
                 <span className="text-sm text-muted-foreground max-w-[150px] truncate">
                   {user?.name || user?.email}
                 </span>
@@ -236,6 +243,13 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                 <Link href={getDashboardUrl(user)} onClick={closeMobile} className="block">
                   <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
                     Dashboard
+                  </Button>
+                </Link>
+
+                <Link href="/my-purchases" onClick={closeMobile} className="block">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                    <ShoppingBag className="h-4 w-4" />
+                    My Purchases
                   </Button>
                 </Link>
 

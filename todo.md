@@ -1335,3 +1335,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Mount releaseDownload route at /api/release/download in server/index.ts
 - [x] Verified Stripe webhook handles release_purchase checkout completions (creates purchase record, increments sales, sends email)
 - [x] Tested: checkout returns Stripe URL, download returns auth error (correct), all 1579 tests passing
+
+## RELEASE PURCHASE FOLLOW-UPS (Mar 10, 2026)
+
+- [x] Add getUserPurchases and getPurchaseBySessionIdWithRelease functions to db.ts
+- [x] Add myPurchases and purchaseBySession tRPC endpoints to release router
+- [x] Build /my-purchases page with purchase list, cover art, download buttons, download limits
+- [x] Build /purchase-success page with confirmation, download button, artist link, and processing state
+- [x] Update releaseCheckout success_url to redirect to /purchase-success?session_id={CHECKOUT_SESSION_ID}
+- [x] Update purchase confirmation email with styled branded template and download link to /my-purchases
+- [x] Add My Purchases link (with ShoppingBag icon) to SiteHeader for desktop and mobile
+- [x] Wire routes in App.tsx (lazy loaded)
+- [x] All 1579 tests passing, zero TypeScript errors

@@ -60,6 +60,8 @@ const Following = lazy(() => import("./pages/Following"));
 const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const ArtistTaxReporting = lazy(() => import("./pages/ArtistTaxReporting"));
 const ReleaseManager = lazy(() => import("./pages/ReleaseManager"));
+const MyPurchases = lazy(() => import("./pages/MyPurchases"));
+const PurchaseSuccess = lazy(() => import("./pages/PurchaseSuccess"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 
 // Legal & marketing pages
@@ -138,6 +140,8 @@ function Router() {
           
           {/* White Label Release */}
           <Route path="/releases">{() => <PageErrorBoundary><ReleaseManager /></PageErrorBoundary>}</Route>
+          <Route path="/my-purchases" component={MyPurchases} />
+          <Route path="/purchase-success" component={PurchaseSuccess} />
           
           {/* Rider System */}
           <Route path="/rider-builder">{() => <PageErrorBoundary><RiderBuilder /></PageErrorBoundary>}</Route>

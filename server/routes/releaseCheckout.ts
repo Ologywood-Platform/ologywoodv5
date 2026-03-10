@@ -127,7 +127,7 @@ router.post("/", async (req: Request, res: Response) => {
         platformFeeCents: platformFeeCents.toString(),
         hasConnectAccount: artistStripeAccountId ? "true" : "false",
       },
-      success_url: `${origin}/artist/${release.artistId}?purchase=success&release=${release.id}`,
+      success_url: `${origin}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/artist/${release.artistId}?purchase=cancelled`,
       allow_promotion_codes: true,
     };

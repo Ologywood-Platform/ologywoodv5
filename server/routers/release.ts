@@ -555,4 +555,77 @@ export const releaseRouter = router({
       await db.deleteTrackReview(input.reviewId);
       return { success: true };
     }),
+
+  /**
+   * Get all purchases for the current user (My Purchases page).
+   */
+  myPurchases: protectedProcedure.query(async ({ ctx }) => {
+    const purchases = await db.getUserPurchases(ctx.user.id);
+    // Resolve cover art URLs for each release
+    const results = await Promise.all(
+      purchases.map(async (p) => {
+        let coverArtUrl: string | null = null;
+        if (p.release?.coverArtKey) {
+          try {
+            const { url } = await storageGet(p.release.coverArtKey);
+            coverArtUrl = url;
+          } catch {}
+        }
+        return {
+          id: p.id,
+          releaseId: p.releaseId,
+          amountPaidCents: p.amountPaidCents,
+          downloadCount: p.downloadCount,
+          maxDownloads: p.maxDownloads,
+          purchasedAt: p.purchasedAt,
+          release: p.release ? {
+            title: p.release.title,
+            artistId: p.release.artistId,
+            genre: p.release.genre,
+            fileFormat: p.release.fileFormat,
+            durationSeconds: p.release.durationSeconds,
+            coverArtUrl,
+          } : null,
+        };
+      })
+    );
+    return results;
+  }),
+
+  /**
+   * Get purchase details by Stripe session ID (for success page).
+   */
+  purchaseBySession: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const purchase = await db.getPurchaseBySessionIdWithRelease(input.sessionId);
+      if (!purchase) return null;
+      // Verify ownership
+      if (purchase.buyerUserId !== ctx.user.id && purchase.buyerEmail?.toLowerCase() !== ctx.user.email?.toLowerCase()) {
+        return null;
+      }
+      let coverArtUrl: string | null = null;
+      if (purchase.release?.coverArtKey) {
+        try {
+          const { url } = await storageGet(purchase.release.coverArtKey);
+          coverArtUrl = url;
+        } catch {}
+      }
+      return {
+        id: purchase.id,
+        releaseId: purchase.releaseId,
+        amountPaidCents: purchase.amountPaidCents,
+        downloadCount: purchase.downloadCount,
+        maxDownloads: purchase.maxDownloads,
+        purchasedAt: purchase.purchasedAt,
+        release: purchase.release ? {
+          title: purchase.release.title,
+          artistId: purchase.release.artistId,
+          genre: purchase.release.genre,
+          fileFormat: purchase.release.fileFormat,
+          durationSeconds: purchase.release.durationSeconds,
+          coverArtUrl,
+        } : null,
+      };
+    }),
 });

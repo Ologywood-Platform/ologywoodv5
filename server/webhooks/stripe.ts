@@ -197,13 +197,24 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
         const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail;
         const artistProfile = await db.getArtistProfileById(release.artistId);
         if (buyerEmail && artistProfile) {
+          const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
           await email.sendEmail({
             to: buyerEmail,
             subject: `Your purchase: "${release.title}" by ${artistProfile.artistName}`,
-            html: `<h2>Thank you for your purchase!</h2>
-            <p>You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for $${(amountPaid / 100).toFixed(2)}.</p>
-            <p>You can download your track from the artist's profile on Ologywood.</p>
-            <p>Thank you for supporting independent artists!</p>`,
+            html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: #6c47ff; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
+              </div>
+              <div style="padding: 24px; background: #f9fafb; border-radius: 0 0 8px 8px;">
+                <p style="font-size: 16px; color: #374151;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
+                <div style="text-align: center; margin: 24px 0;">
+                  <a href="${baseUrl}/my-purchases" style="display: inline-block; background: #6c47ff; color: white; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                </div>
+                <p style="font-size: 14px; color: #6b7280;">You have up to 5 downloads available. Visit <a href="${baseUrl}/my-purchases" style="color: #6c47ff;">My Purchases</a> anytime to download your music.</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="font-size: 14px; color: #6b7280; text-align: center;">Thank you for supporting independent artists on Ologywood!</p>
+              </div>
+            </div>`,
           });
         }
       } catch (emailErr) {

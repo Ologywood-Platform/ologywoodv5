@@ -2364,3 +2364,39 @@ export async function upsertNotificationPreferences(
     return (await db.select().from(notificationPreferences).where(eq(notificationPreferences.id, id)).limit(1))[0];
   }
 }
+
+
+/**
+ * Get all purchases for a user (for My Purchases page).
+ * Joins with artistReleases to include release details.
+ */
+export async function getUserPurchases(userId: number): Promise<Array<ReleasePurchase & { release: ArtistRelease | null }>> {
+  const db = await getDb();
+  if (!db) return [];
+  const purchases = await db.select().from(releasePurchases)
+    .where(eq(releasePurchases.buyerUserId, userId))
+    .orderBy(desc(releasePurchases.purchasedAt));
+  
+  // Fetch release details for each purchase
+  const results = await Promise.all(
+    purchases.map(async (purchase) => {
+      const release = await getReleaseById(purchase.releaseId);
+      return { ...purchase, release };
+    })
+  );
+  return results;
+}
+
+/**
+ * Get a purchase by Stripe checkout session ID with release details (for success page).
+ */
+export async function getPurchaseBySessionIdWithRelease(sessionId: string): Promise<(ReleasePurchase & { release: ArtistRelease | null }) | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(releasePurchases)
+    .where(eq(releasePurchases.stripeCheckoutSessionId, sessionId))
+    .limit(1);
+  if (!result[0]) return null;
+  const release = await getReleaseById(result[0].releaseId);
+  return { ...result[0], release };
+}
