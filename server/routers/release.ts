@@ -628,4 +628,35 @@ export const releaseRouter = router({
         } : null,
       };
     }),
+
+  /**
+   * Get sales analytics for the artist's releases.
+   * Returns per-release stats and overall summary.
+   */
+  salesAnalytics: artistProcedure.query(async ({ ctx }) => {
+    const profile = await db.getArtistProfileByUserId(ctx.user.id);
+    if (!profile) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Artist profile not found" });
+    }
+    const analytics = await db.getReleaseSalesAnalytics(profile.id);
+
+    // Resolve cover art URLs
+    const releasesWithUrls = await Promise.all(
+      analytics.releases.map(async (r) => {
+        let coverArtUrl: string | null = null;
+        if (r.coverArtKey) {
+          try {
+            const { url } = await storageGet(r.coverArtKey);
+            coverArtUrl = url;
+          } catch {}
+        }
+        return { ...r, coverArtUrl };
+      })
+    );
+
+    return {
+      summary: analytics.summary,
+      releases: releasesWithUrls,
+    };
+  }),
 });

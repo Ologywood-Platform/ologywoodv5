@@ -1347,3 +1347,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add My Purchases link (with ShoppingBag icon) to SiteHeader for desktop and mobile
 - [x] Wire routes in App.tsx (lazy loaded)
 - [x] All 1579 tests passing, zero TypeScript errors
+
+## RELEASE PURCHASE ANALYTICS FOR ARTISTS (Mar 10, 2026)
+
+- [x] Add getReleaseSalesAnalytics DB function (per-release sales count, revenue, total summary)
+- [x] Add release.salesAnalytics tRPC endpoint (artist-only, with cover art URL resolution)
+- [x] Build ReleaseSalesAnalytics component in ArtistEarnings page (4 summary cards + per-release table)
+- [x] Write 10 tests for analytics (schema, data structure, router, DB function)
+- [x] All 1589 tests passing, zero TypeScript errors

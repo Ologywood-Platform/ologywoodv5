@@ -2400,3 +2400,94 @@ export async function getPurchaseBySessionIdWithRelease(sessionId: string): Prom
   const release = await getReleaseById(result[0].releaseId);
   return { ...result[0], release };
 }
+
+
+/**
+ * Get release sales analytics for an artist.
+ * Returns per-release stats (sales count, gross revenue, platform fees, net revenue)
+ * plus an overall summary. Uses denormalized counters on artist_releases for performance,
+ * with detailed per-purchase data from release_purchases for time-series.
+ */
+export async function getReleaseSalesAnalytics(artistProfileId: number): Promise<{
+  summary: { totalSales: number; totalGrossRevenueCents: number; totalPlatformFeeCents: number; totalNetRevenueCents: number; releaseCount: number };
+  releases: Array<{
+    id: number;
+    title: string;
+    genre: string | null;
+    priceInCents: number;
+    status: string;
+    publishedAt: Date | null;
+    totalSales: number;
+    totalRevenueCents: number;
+    coverArtKey: string;
+    recentPurchases: Array<{
+      amountPaidCents: number;
+      platformFeeCents: number;
+      artistNetCents: number;
+      purchasedAt: Date;
+    }>;
+  }>;
+}> {
+  const db = await getDb();
+  if (!db) return { summary: { totalSales: 0, totalGrossRevenueCents: 0, totalPlatformFeeCents: 0, totalNetRevenueCents: 0, releaseCount: 0 }, releases: [] };
+
+  // Get all releases for this artist
+  const releases = await db.select().from(artistReleases)
+    .where(eq(artistReleases.artistId, artistProfileId))
+    .orderBy(desc(artistReleases.createdAt));
+
+  let totalSales = 0;
+  let totalGrossRevenueCents = 0;
+  let totalPlatformFeeCents = 0;
+  let totalNetRevenueCents = 0;
+
+  const releasesWithStats = await Promise.all(
+    releases.map(async (release) => {
+      // Get recent purchases for this release (last 50 for time-series)
+      const purchases = await db.select({
+        amountPaidCents: releasePurchases.amountPaidCents,
+        platformFeeCents: releasePurchases.platformFeeCents,
+        artistNetCents: releasePurchases.artistNetCents,
+        purchasedAt: releasePurchases.purchasedAt,
+      }).from(releasePurchases)
+        .where(eq(releasePurchases.releaseId, release.id))
+        .orderBy(desc(releasePurchases.purchasedAt))
+        .limit(50);
+
+      // Calculate totals from purchases for accuracy
+      const grossFromPurchases = purchases.reduce((sum, p) => sum + p.amountPaidCents, 0);
+      const feesFromPurchases = purchases.reduce((sum, p) => sum + p.platformFeeCents, 0);
+      const netFromPurchases = purchases.reduce((sum, p) => sum + p.artistNetCents, 0);
+
+      // Use denormalized counters for totals (more accurate for all-time)
+      totalSales += release.totalSales;
+      totalGrossRevenueCents += release.totalRevenueCents;
+      totalPlatformFeeCents += feesFromPurchases;
+      totalNetRevenueCents += netFromPurchases;
+
+      return {
+        id: release.id,
+        title: release.title,
+        genre: release.genre,
+        priceInCents: release.priceInCents,
+        status: release.status,
+        publishedAt: release.publishedAt,
+        totalSales: release.totalSales,
+        totalRevenueCents: release.totalRevenueCents,
+        coverArtKey: release.coverArtKey,
+        recentPurchases: purchases,
+      };
+    })
+  );
+
+  return {
+    summary: {
+      totalSales,
+      totalGrossRevenueCents,
+      totalPlatformFeeCents,
+      totalNetRevenueCents,
+      releaseCount: releases.length,
+    },
+    releases: releasesWithStats,
+  };
+}

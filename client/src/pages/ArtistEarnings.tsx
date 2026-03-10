@@ -23,7 +23,179 @@ import {
   AlertTriangle,
   Loader2,
   CreditCard,
+  Music,
+  BarChart3,
+  ShoppingCart,
 } from 'lucide-react';
+
+function ReleaseSalesAnalytics() {
+  const { data: analytics, isLoading } = trpc.release.salesAnalytics.useQuery();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Release Sales
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8 gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="text-gray-500">Loading analytics...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!analytics || analytics.summary.releaseCount === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Release Sales
+          </CardTitle>
+          <CardDescription>Track sales and revenue for your releases</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-500 text-center py-8">No releases yet. Publish a release to start tracking sales.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { summary, releases } = analytics;
+  const formatCents = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+  return (
+    <>
+      {/* Release Sales Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Release Sales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">{summary.totalSales}</div>
+              <ShoppingCart className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Gross Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">{formatCents(summary.totalGrossRevenueCents)}</div>
+              <TrendingUp className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Your Net Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">{formatCents(summary.totalNetRevenueCents)}</div>
+              <DollarSign className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 bg-gray-50/50 dark:bg-gray-950/20 dark:border-gray-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Platform Fee (1%)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold">{formatCents(summary.totalPlatformFeeCents)}</div>
+              <BarChart3 className="h-8 w-8 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Per-Release Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Music className="h-5 w-5" />
+            Release Breakdown
+          </CardTitle>
+          <CardDescription>
+            Sales and revenue per release ({summary.releaseCount} release{summary.releaseCount !== 1 ? 's' : ''})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Release</TableHead>
+                <TableHead className="text-center">Price</TableHead>
+                <TableHead className="text-center">Sales</TableHead>
+                <TableHead className="text-center">Gross</TableHead>
+                <TableHead className="text-center">Net</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {releases.map((release: any) => (
+                <TableRow key={release.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {release.coverArtUrl ? (
+                        <img
+                          src={release.coverArtUrl}
+                          alt={release.title}
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                          <Music className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium">{release.title}</div>
+                        {release.genre && (
+                          <div className="text-xs text-gray-500">{release.genre}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">{formatCents(release.priceInCents)}</TableCell>
+                  <TableCell className="text-center font-semibold">{release.totalSales}</TableCell>
+                  <TableCell className="text-center">{formatCents(release.totalRevenueCents)}</TableCell>
+                  <TableCell className="text-center font-semibold text-green-600">
+                    {formatCents(release.totalRevenueCents - (release.totalRevenueCents * 0.01))}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      release.status === 'published'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : release.status === 'draft'
+                        ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      {release.status}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
 
 export default function ArtistEarnings() {
   const [, navigate] = useLocation();
@@ -296,6 +468,9 @@ export default function ArtistEarnings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Release Sales Analytics */}
+      <ReleaseSalesAnalytics />
 
       {/* Info about earnings source */}
       {!isConnected && (
