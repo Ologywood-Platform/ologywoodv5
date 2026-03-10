@@ -1055,3 +1055,243 @@ export async function sendVenueVerificationConfirmationEmail(params: {
     html,
   });
 }
+
+
+/**
+ * Send client booking confirmation email to the client/fan who booked
+ */
+export async function sendClientBookingConfirmationEmail(params: {
+  clientEmail: string;
+  clientName: string;
+  artistName: string;
+  artistId: number;
+  bookingId: number;
+  eventType: string;
+  eventDate: string;
+  eventTime?: string;
+  venueName: string;
+  venueAddress?: string;
+  totalFee?: number;
+  eventDetails?: string;
+}): Promise<boolean> {
+  const {
+    clientEmail, clientName, artistName, artistId, bookingId,
+    eventType, eventDate, eventTime, venueName, venueAddress, totalFee, eventDetails,
+  } = params;
+
+  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(clientEmail)}&type=booking`;
+  const eventTypeLabel = eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Booking Request Sent!</h1>
+      </div>
+      <div style="padding: 30px 24px;">
+        <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${clientName},</p>
+        
+        <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+          Your booking request has been sent to <strong>${artistName}</strong>. You'll be notified when the artist responds.
+        </p>
+
+        <div style="background: #f5f3ff; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+          <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px;">Booking Details</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px; width: 120px;">Reference</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">#${bookingId}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Artist</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">${artistName}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Event Type</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventTypeLabel}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Date</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventDate}</td>
+            </tr>
+            ${eventTime ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Time</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventTime}</td>
+            </tr>` : ''}
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Venue</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${venueName}</td>
+            </tr>
+            ${venueAddress ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Address</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${venueAddress}</td>
+            </tr>` : ''}
+            ${totalFee ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Offered Fee</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">$${totalFee.toLocaleString()}</td>
+            </tr>` : ''}
+          </table>
+          ${eventDetails ? `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd5f5;">
+              <p style="color: #6b7280; margin: 0 0 4px 0; font-size: 13px;">Event Details</p>
+              <p style="color: #374151; margin: 0; font-size: 14px;">${eventDetails}</p>
+            </div>
+          ` : ''}
+        </div>
+
+        <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0;">
+          <p style="color: #1e40af; margin: 0; font-size: 14px;">
+            <strong>What happens next?</strong> The artist will review your request and respond. You'll receive an email and in-app notification when they accept or decline.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${baseUrl}/my-bookings" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View My Bookings</a>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+          Need to make changes? <a href="${baseUrl}/messages?bookingId=${bookingId}" style="color: #6D28D9; text-decoration: none;">Message the artist</a> directly through Ologywood.
+        </p>
+      </div>
+      <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
+          You're receiving this email because you submitted a booking request on Ologywood.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+          <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+          <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+        </p>
+        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+          &copy; 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: clientEmail,
+    subject: `Booking Request Sent — ${artistName} for ${eventTypeLabel} on ${eventDate}`,
+    html,
+  });
+}
+
+/**
+ * Send notification to artist when they receive a client booking request
+ * (Enhanced version of sendBookingRequestEmail with client booking details)
+ */
+export async function sendClientBookingNotificationToArtist(params: {
+  artistEmail: string;
+  artistName: string;
+  clientName: string;
+  clientEmail: string;
+  bookingId: number;
+  eventType: string;
+  eventDate: string;
+  eventTime?: string;
+  venueName: string;
+  venueAddress?: string;
+  totalFee?: number;
+  eventDetails?: string;
+}): Promise<boolean> {
+  const {
+    artistEmail, artistName, clientName, clientEmail: clientEmailAddr, bookingId,
+    eventType, eventDate, eventTime, venueName, venueAddress, totalFee, eventDetails,
+  } = params;
+
+  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(artistEmail)}&type=booking`;
+  const eventTypeLabel = eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">New Booking Request!</h1>
+      </div>
+      <div style="padding: 30px 24px;">
+        <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+        
+        <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+          You have a new booking request from <strong>${clientName}</strong> for a <strong>${eventTypeLabel}</strong>.
+        </p>
+
+        <div style="background: #f5f3ff; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+          <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px;">Booking Details</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px; width: 120px;">Reference</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">#${bookingId}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Client</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">${clientName}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Email</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${clientEmailAddr}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Event Type</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventTypeLabel}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Date</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventDate}</td>
+            </tr>
+            ${eventTime ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Time</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${eventTime}</td>
+            </tr>` : ''}
+            <tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Venue</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${venueName}</td>
+            </tr>
+            ${venueAddress ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Address</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px;">${venueAddress}</td>
+            </tr>` : ''}
+            ${totalFee ? `<tr>
+              <td style="color: #6b7280; padding: 6px 0; font-size: 14px;">Offered Fee</td>
+              <td style="color: #1f2937; padding: 6px 0; font-size: 14px; font-weight: 600;">$${totalFee.toLocaleString()}</td>
+            </tr>` : ''}
+          </table>
+          ${eventDetails ? `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd5f5;">
+              <p style="color: #6b7280; margin: 0 0 4px 0; font-size: 13px;">Event Details</p>
+              <p style="color: #374151; margin: 0; font-size: 14px;">${eventDetails}</p>
+            </div>
+          ` : ''}
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Review & Respond</a>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+          Log in to your dashboard to accept or decline this booking request.
+        </p>
+      </div>
+      <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
+          You're receiving this email because you have an Ologywood artist account.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+          <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+          <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+        </p>
+        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
+          &copy; 2026 Ologywood. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: artistEmail,
+    subject: `New Booking Request: ${eventTypeLabel} on ${eventDate} — ${clientName}`,
+    html,
+  });
+}

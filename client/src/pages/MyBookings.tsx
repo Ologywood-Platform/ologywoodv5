@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '../_core/hooks/useAuth';
-import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox, MessageCircle, CreditCard, Loader2 } from 'lucide-react';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', label: 'Pending' },
@@ -24,6 +25,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 export default function MyBookings() {
   const [, navigate] = useLocation();
   const { user, loading } = useAuth();
+  const [payingBookingId, setPayingBookingId] = useState<number | null>(null);
 
   const { data: bookings, isLoading } = trpc.booking.getMyClientBookings.useQuery(
     undefined,
@@ -77,9 +79,86 @@ export default function MyBookings() {
     return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const handlePayDeposit = async (bookingId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPayingBookingId(bookingId);
+    try {
+      const response = await fetch('/api/booking-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ bookingId, paymentType: 'deposit' }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('[MyBookings] No checkout URL returned:', data.error);
+        alert(data.error || 'Failed to start payment. Please try again.');
+      }
+    } catch (err) {
+      console.error('[MyBookings] Payment error:', err);
+      alert('Failed to start payment. Please try again.');
+    } finally {
+      setPayingBookingId(null);
+    }
+  };
+
+  const handlePayFinal = async (bookingId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPayingBookingId(bookingId);
+    try {
+      const response = await fetch('/api/booking-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ bookingId, paymentType: 'final' }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('[MyBookings] No checkout URL returned:', data.error);
+        alert(data.error || 'Failed to start payment. Please try again.');
+      }
+    } catch (err) {
+      console.error('[MyBookings] Payment error:', err);
+      alert('Failed to start payment. Please try again.');
+    } finally {
+      setPayingBookingId(null);
+    }
+  };
+
   const BookingCard = ({ booking }: { booking: any }) => {
     const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending;
     const eventType = EVENT_TYPE_LABELS[booking.eventType] || booking.eventType || 'Booking';
+    const hasFee = booking.totalFee && parseFloat(booking.totalFee) > 0;
+    const isConfirmed = booking.status === 'confirmed';
+    const isPending = booking.status === 'pending';
+    const isPayable = hasFee && (isConfirmed || isPending);
+    const isPaying = payingBookingId === booking.id;
+
+    // Payment status display
+    const paymentStatusLabel = (() => {
+      switch (booking.paymentStatus) {
+        case 'fully_paid': return 'Paid in Full';
+        case 'deposit_paid': return 'Deposit Paid';
+        case 'refunded': return 'Refunded';
+        default: return null;
+      }
+    })();
+
+    const paymentStatusStyle = (() => {
+      switch (booking.paymentStatus) {
+        case 'fully_paid':
+        case 'deposit_paid':
+          return 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20';
+        case 'refunded':
+          return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20';
+        default:
+          return '';
+      }
+    })();
 
     return (
       <div
@@ -126,7 +205,7 @@ export default function MyBookings() {
                   {booking.venueName}{booking.venueAddress ? `, ${booking.venueAddress}` : ''}
                 </span>
               )}
-              {booking.totalFee && (
+              {hasFee && (
                 <span className="flex items-center gap-1">
                   <DollarSign className="w-3.5 h-3.5" />
                   ${parseFloat(booking.totalFee).toLocaleString()}
@@ -136,6 +215,63 @@ export default function MyBookings() {
           </div>
 
           <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/messages?bookingId=${booking.id}`);
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-3 py-1.5 rounded-lg transition"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            Message Artist
+          </button>
+
+          {/* Payment status badge */}
+          {paymentStatusLabel && (
+            <span className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg ${paymentStatusStyle}`}>
+              <CreditCard className="w-3.5 h-3.5" />
+              {paymentStatusLabel}
+            </span>
+          )}
+
+          {/* Pay Deposit button — show when fee exists, booking is confirmed, and no deposit paid yet */}
+          {isPayable && booking.paymentStatus === 'unpaid' && (
+            <button
+              onClick={(e) => handlePayDeposit(booking.id, e)}
+              disabled={isPaying}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 px-3 py-1.5 rounded-lg transition"
+            >
+              {isPaying ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <CreditCard className="w-3.5 h-3.5" />
+              )}
+              Pay Deposit (50%)
+            </button>
+          )}
+
+          {/* Pay Remaining button — show when deposit is paid but not fully paid */}
+          {isPayable && booking.paymentStatus === 'deposit_paid' && (
+            <button
+              onClick={(e) => handlePayFinal(booking.id, e)}
+              disabled={isPaying}
+              className="flex items-center gap-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-3 py-1.5 rounded-lg transition"
+            >
+              {isPaying ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <CreditCard className="w-3.5 h-3.5" />
+              )}
+              Pay Remaining Balance
+            </button>
+          )}
+
+          <span className="flex-1" />
+          <span className="text-xs text-gray-400 dark:text-gray-500">View Details →</span>
         </div>
       </div>
     );

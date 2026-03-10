@@ -61,9 +61,10 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
       return res.status(404).json({ error: 'Booking not found' });
     }
 
-    // Verify the user is the venue for this booking
+    // Verify the user is the venue/client for this booking
+    // For client bookings, venueId stores the client's user ID
     if (booking.venueId !== userId) {
-      return res.status(403).json({ error: 'Only the venue can make payments for this booking' });
+      return res.status(403).json({ error: 'Only the booking owner can make payments for this booking' });
     }
 
     // Validate booking status

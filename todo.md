@@ -1383,3 +1383,24 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "My Bookings" link (CalendarCheck icon) to SiteHeader for desktop and mobile
 - [x] Write 13 tests for client booking system
 - [x] All 1602 tests passing, zero TypeScript errors
+
+## CLIENT BOOKING FOLLOW-UPS (Mar 10, 2026)
+
+### Follow-up 1: Messaging from My Bookings
+- [x] Add "Message Artist" button to each booking card on /my-bookings
+- [x] Navigate to existing messaging thread for that booking, or create one if none exists
+- [x] Ensure message thread links back to booking context
+
+### Follow-up 2: Stripe Deposit/Payment for Client Bookings
+- [x] Add Pay Deposit (50%) and Pay Remaining Balance buttons to My Bookings cards
+- [x] Wire buttons to existing /api/booking-checkout endpoint (supports both venue and client bookings)
+- [x] Existing webhook handles client booking payment completion (deposit_paid, fully_paid)
+- [x] Show payment status badges (Paid in Full, Deposit Paid, Refunded) on My Bookings cards
+- [x] Loading state and error handling during payment flow
+
+### Follow-up 3: Email Confirmations for Client Bookings
+- [x] Send branded confirmation email to client after booking submission (sendClientBookingConfirmationEmail)
+- [x] Send enhanced notification email to artist with full client booking details (sendClientBookingNotificationToArtist)
+- [x] Include booking reference, event type, date, location, fee, and links to My Bookings/Messages
+- [x] Include unsubscribe link in all emails
+- [x] Write 40 tests for all three follow-ups (1642 total passing)

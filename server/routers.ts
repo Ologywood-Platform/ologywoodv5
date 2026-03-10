@@ -694,18 +694,28 @@ export const appRouter = router({
           clientPhone: input.clientPhone,
         });
         
-        // Send email notification to artist
+        const formattedDate = new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const addressParts = input.venueAddress;
+        
+        // Send enhanced email notification to artist
         const artistProfile = await db.getArtistProfileById(input.artistId);
         if (artistProfile) {
           const artistUser = await db.getUserById(artistProfile.userId);
           if (artistUser?.email) {
-            await email.sendBookingRequestEmail({
+            await email.sendClientBookingNotificationToArtist({
               artistEmail: artistUser.email,
               artistName: artistProfile.artistName,
-              venueName: `${input.clientName} (${input.eventType.replace('_', ' ')})`,
-              eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              clientName: input.clientName,
+              clientEmail: input.clientEmail,
+              bookingId: booking.id,
+              eventType: input.eventType,
+              eventDate: formattedDate,
+              eventTime: input.eventTime,
+              venueName: input.venueName,
+              venueAddress: addressParts,
+              totalFee: input.totalFee,
               eventDetails: input.eventDetails,
-            });
+            }).catch((err) => console.error('[ClientBooking] Artist email failed:', err));
           }
           
           // In-app notification to artist
@@ -713,9 +723,25 @@ export const appRouter = router({
             artistUserId: artistProfile.userId,
             venueName: `${input.clientName} (${input.eventType.replace('_', ' ')})`,
             bookingId: booking.id,
-            eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+            eventDate: formattedDate,
           }).catch(() => {});
         }
+        
+        // Send confirmation email to the client who booked
+        email.sendClientBookingConfirmationEmail({
+          clientEmail: input.clientEmail,
+          clientName: input.clientName,
+          artistName: artistProfile?.artistName || 'Artist',
+          artistId: input.artistId,
+          bookingId: booking.id,
+          eventType: input.eventType,
+          eventDate: formattedDate,
+          eventTime: input.eventTime,
+          venueName: input.venueName,
+          venueAddress: addressParts,
+          totalFee: input.totalFee,
+          eventDetails: input.eventDetails,
+        }).catch((err) => console.error('[ClientBooking] Client confirmation email failed:', err));
         
         return { success: true, bookingId: booking.id };
       }),
