@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star } from 'lucide-react';
 import { trpc } from '../lib/trpc';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 function timeAgo(date: string | Date): string {
   const now = new Date();
@@ -43,7 +43,7 @@ const typeConfig: Record<string, { icon: React.ReactNode; accent: string }> = {
 export default function RealtimeNotifications() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   // Fetch unread count (polls every 30s)
   const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery(undefined, {
@@ -104,7 +104,7 @@ export default function RealtimeNotifications() {
     if (!n.isRead) markReadMutation.mutate({ id: n.id });
     if (n.actionUrl) {
       setIsOpen(false);
-      navigate(n.actionUrl);
+      setLocation(n.actionUrl);
     }
   };
 
@@ -193,7 +193,7 @@ export default function RealtimeNotifications() {
               <button
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/notifications');
+                  setLocation('/notifications');
                 }}
                 className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium"
               >
