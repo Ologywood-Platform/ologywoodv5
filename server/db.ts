@@ -30,7 +30,9 @@ import {
   eventPhotos, InsertEventPhoto, EventPhoto,
   savedEvents, InsertSavedEvent, SavedEvent,
   artistReleases, InsertArtistRelease, ArtistRelease,
-  releasePurchases, InsertReleasePurchase, ReleasePurchase
+  releasePurchases, InsertReleasePurchase, ReleasePurchase,
+  notifications, InsertNotification, Notification,
+  notificationPreferences, InsertNotificationPreference, NotificationPreference
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2260,4 +2262,105 @@ export async function getTrackReviewById(reviewId: number): Promise<TrackReview 
   if (!db) return null;
   const result = await db.select().from(trackReviews).where(eq(trackReviews.id, reviewId)).limit(1);
   return result[0] || null;
+}
+
+
+// ============= NOTIFICATION FUNCTIONS =============
+
+export async function createNotification(data: InsertNotification): Promise<Notification> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(notifications).values(data);
+  const id = Number(result[0].insertId);
+  return (await db.select().from(notifications).where(eq(notifications.id, id)).limit(1))[0];
+}
+
+export async function getNotificationsByUserId(
+  userId: number,
+  opts: { limit?: number; offset?: number } = {}
+): Promise<Notification[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const limit = opts.limit || 50;
+  const offset = opts.offset || 0;
+  return await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getUnreadNotificationCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  return result[0]?.count || 0;
+}
+
+export async function markNotificationRead(id: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  return true;
+}
+
+export async function markAllNotificationsRead(userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  return true;
+}
+
+export async function deleteNotification(id: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db
+    .delete(notifications)
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  return true;
+}
+
+// ============= NOTIFICATION PREFERENCE FUNCTIONS =============
+
+export async function getNotificationPreferences(userId: number): Promise<NotificationPreference | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return result[0];
+}
+
+export async function upsertNotificationPreferences(
+  userId: number,
+  data: Partial<InsertNotificationPreference>
+): Promise<NotificationPreference> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  const existing = await getNotificationPreferences(userId);
+  if (existing) {
+    await db
+      .update(notificationPreferences)
+      .set(data)
+      .where(eq(notificationPreferences.userId, userId));
+    return (await getNotificationPreferences(userId))!;
+  } else {
+    const result = await db.insert(notificationPreferences).values({ userId, ...data });
+    const id = Number(result[0].insertId);
+    return (await db.select().from(notificationPreferences).where(eq(notificationPreferences.id, id)).limit(1))[0];
+  }
 }

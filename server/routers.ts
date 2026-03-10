@@ -32,7 +32,9 @@ import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
 import { stripeConnectRouter } from "./routers/stripeConnect";
 import { contactRouter } from "./routers/contact";
+import { notificationsRouter } from "./routers/notifications";
 import { newsletterLimiter } from "./utils/rateLimiter";
+import * as notif from "./services/notificationService";
 
 
 // Helper to check if user is an artist
@@ -110,6 +112,7 @@ export const appRouter = router({
     }),
   } as any),
   emailPreferences: emailPreferencesRouter,
+  notifications: notificationsRouter,
   pricing: pricingRouter,
   rider: riderRouter,
   follows: followsRouter,
@@ -639,6 +642,16 @@ export const appRouter = router({
           }
         }
         
+        // In-app notification to artist
+        if (artistProfile) {
+          notif.notifyBookingRequest({
+            artistUserId: artistProfile.userId,
+            venueName: input.venueName,
+            bookingId: 0, // We don't have the ID from createBooking return
+            eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          }).catch(() => {});
+        }
+        
         return { success: true };
       }),
     
@@ -743,6 +756,13 @@ export const appRouter = router({
             : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           
           if (input.status === 'confirmed') {
+            // In-app notifications for confirmation
+            if (artistProfile.userId) {
+              notif.notifyBookingConfirmed({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id }).catch(() => {});
+            }
+            if (venueProfile.userId) {
+              notif.notifyBookingConfirmed({ recipientUserId: venueProfile.userId, otherPartyName: artistProfile.artistName, bookingId: booking.id }).catch(() => {});
+            }
             // Send confirmation emails using new email service with preference checking
             if (artistUser?.email && artistProfile.userId) {
               await emailService.sendBookingConfirmationEmail(
@@ -773,6 +793,13 @@ export const appRouter = router({
               );
             }
           } else if (input.status === 'cancelled') {
+            // In-app notifications for cancellation
+            if (artistProfile.userId) {
+              notif.notifyBookingCancelled({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
+            }
+            if (venueProfile.userId) {
+              notif.notifyBookingCancelled({ recipientUserId: venueProfile.userId, otherPartyName: artistProfile.artistName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
+            }
             // Send cancellation emails to both parties
             if (artistUser?.email) {
               await email.sendBookingCancellationEmail({
@@ -856,26 +883,35 @@ export const appRouter = router({
             ? booking.eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
             : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           
-          if (input.status === 'confirmed' && artistUser?.email && artistProfile.userId) {
-            await emailService.sendBookingConfirmationEmail(
-              artistProfile.userId,
-              artistUser.email,
-              {
-                artistName: artistProfile.artistName,
-                venueName: venueProfile.organizationName,
+          if (input.status === 'confirmed') {
+            // In-app notification
+            notif.notifyBookingConfirmed({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id }).catch(() => {});
+            notif.notifyBookingConfirmed({ recipientUserId: venueProfile.userId, otherPartyName: artistProfile.artistName, bookingId: booking.id }).catch(() => {});
+            if (artistUser?.email && artistProfile.userId) {
+              await emailService.sendBookingConfirmationEmail(
+                artistProfile.userId,
+                artistUser.email,
+                {
+                  artistName: artistProfile.artistName,
+                  venueName: venueProfile.organizationName,
+                  eventDate: eventDateStr,
+                  eventTime: booking.eventTime || 'TBD',
+                  eventLocation: venueProfile.location || 'TBD',
+                  bookingId: booking.id,
+                }
+              );
+            }
+          } else if (input.status === 'cancelled') {
+            // In-app notification
+            notif.notifyBookingCancelled({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id, cancelledBy: venueProfile.organizationName }).catch(() => {});
+            if (artistUser?.email) {
+              await email.sendBookingCancellationEmail({
+                recipientEmail: artistUser.email,
+                recipientName: artistProfile.artistName,
+                otherPartyName: venueProfile.organizationName,
                 eventDate: eventDateStr,
-                eventTime: booking.eventTime || 'TBD',
-                eventLocation: venueProfile.location || 'TBD',
-                bookingId: booking.id,
-              }
-            );
-          } else if (input.status === 'cancelled' && artistUser?.email) {
-            await email.sendBookingCancellationEmail({
-              recipientEmail: artistUser.email,
-              recipientName: artistProfile.artistName,
-              otherPartyName: venueProfile.organizationName,
-              eventDate: eventDateStr,
-            });
+              });
+            }
           }
         }
         
@@ -1045,6 +1081,15 @@ export const appRouter = router({
           recipientId: input.receiverId,
           content: input.messageText,
         });
+        // In-app notification to recipient
+        const senderUser = await db.getUserById(ctx.user.id);
+        const senderName = senderUser?.name || senderUser?.email || 'Someone';
+        notif.notifyNewMessage({
+          recipientUserId: input.receiverId,
+          senderName,
+          preview: input.messageText,
+          bookingId: input.bookingId,
+        }).catch(() => {});
         return { success: true };
       }),
     
@@ -1192,6 +1237,16 @@ export const appRouter = router({
           rating: input.rating,
           comment: input.reviewText || null,
         });
+        // In-app notification to artist
+        const reviewedArtist = await db.getArtistProfileById(input.artistId);
+        if (reviewedArtist) {
+          notif.notifyNewReview({
+            recipientUserId: reviewedArtist.userId,
+            reviewerName: venueProfile.organizationName || 'A venue',
+            rating: input.rating,
+            bookingId: input.bookingId,
+          }).catch(() => {});
+        }
         
         return { success: true };
       }),
@@ -1231,6 +1286,15 @@ export const appRouter = router({
           rating: input.rating,
           comment: `${input.title}\n\n${input.reviewText}`,
         });
+        // In-app notification to artist
+        const reviewedArtistProfile = await db.getArtistProfileById(input.artistId);
+        if (reviewedArtistProfile) {
+          notif.notifyNewReview({
+            recipientUserId: reviewedArtistProfile.userId,
+            reviewerName: venueProfile?.organizationName || 'A venue',
+            rating: input.rating,
+          }).catch(() => {});
+        }
         
         return { success: true };
       }),

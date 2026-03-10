@@ -5,6 +5,7 @@ import * as db from "../db";
 import { getRiderTemplate } from "../services/riderTemplateService";
 import { generateRiderHTML, getRiderTemplateById } from "../services/riderContractTemplate";
 import { sendContractSigned, sendContractForSignature } from "../email";
+import * as notif from "../services/notificationService";
 import crypto from "crypto";
 
 export const riderContractRouter = router({
@@ -226,7 +227,15 @@ export const riderContractRouter = router({
           riderStatus: "signed",
         });
 
-        // Send "fully signed" notification to both parties
+        // In-app notifications for fully signed
+        try {
+          const artistProf2 = await db.getArtistProfileById(booking.artistId);
+          const venueProf2 = await db.getVenueProfileById(booking.venueId);
+          if (artistProf2) notif.notifyContractFullySigned({ recipientUserId: artistProf2.userId, bookingId: input.bookingId }).catch(() => {});
+          if (venueProf2) notif.notifyContractFullySigned({ recipientUserId: venueProf2.userId, bookingId: input.bookingId }).catch(() => {});
+        } catch (_) {}
+
+        // Send "fully signed" email notification to both parties
         try {
           const artistProf = await db.getArtistProfileById(booking.artistId);
           const venueProf = await db.getVenueProfileById(booking.venueId);
@@ -255,7 +264,18 @@ export const riderContractRouter = router({
           console.error('[RiderContract] Error sending fully-signed emails:', emailErr);
         }
       } else {
-        // One party signed — notify the other party to countersign
+        // In-app notification: one party signed, notify other to countersign
+        try {
+          const ap = await db.getArtistProfileById(booking.artistId);
+          const vp = await db.getVenueProfileById(booking.venueId);
+          if (signerRole === 'artist' && vp) {
+            notif.notifyContractReadyToSign({ recipientUserId: vp.userId, otherPartyName: ap?.artistName || 'Artist', bookingId: input.bookingId }).catch(() => {});
+          } else if (signerRole === 'venue' && ap) {
+            notif.notifyContractReadyToSign({ recipientUserId: ap.userId, otherPartyName: vp?.organizationName || 'Venue', bookingId: input.bookingId }).catch(() => {});
+          }
+        } catch (_) {}
+
+        // Email: one party signed — notify the other party to countersign
         try {
           const artistProf = await db.getArtistProfileById(booking.artistId);
           const venueProf = await db.getVenueProfileById(booking.venueId);

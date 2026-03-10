@@ -7,6 +7,7 @@ import { trpc } from '@/lib/trpc';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { QuickSignupModal } from './QuickSignupModal';
+import RealtimeNotifications from './RealtimeNotifications';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -146,6 +147,8 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   {user?.name || user?.email}
                 </span>
 
+                <RealtimeNotifications />
+
                 <DarkModeToggle compact />
 
                 <LogoutButton />
@@ -165,6 +168,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
           {/* Mobile: Dark mode toggle + Hamburger */}
           <div className="md:hidden flex items-center gap-1">
+            {isAuthenticated && <RealtimeNotifications />}
             <DarkModeToggle compact />
             <button
               className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"

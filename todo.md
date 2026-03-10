@@ -1306,3 +1306,25 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fixed schema.ts: renamed createdAt → purchasedAt in releasePurchases table
 - [x] Fixed db.ts: updated getPurchasesByReleaseId orderBy to use purchasedAt
 - [x] All 1566 tests passing
+
+## FULL SCHEMA AUDIT - Drizzle vs Database (Mar 6, 2026)
+
+- [x] Extracted all 41 Drizzle tables and 58 DB tables
+- [x] Compared every column across all 41 shared tables
+- [x] Result: ZERO column mismatches (purchasedAt fix was the only one, already done)
+- [x] Found 17 orphaned DB tables with no schema/code references (all empty, harmless)
+- [x] All 1566 tests passing — no fixes needed
+
+## IN-APP NOTIFICATION SYSTEM (Mar 7, 2026)
+
+- [x] Add notification CRUD functions to db.ts (create, getByUserId, markRead, markAllRead, delete, getUnreadCount)
+- [x] Create notification tRPC router (list, markRead, markAllRead, delete, unreadCount)
+- [x] Create notificationService.ts with 8 trigger functions (booking, message, review, contract, payment)
+- [x] Wire notification triggers into booking create/confirm/cancel flows
+- [x] Wire notification triggers into contract signing flow (sign + fully signed)
+- [x] Wire notification triggers into message send flow
+- [x] Wire notification triggers into review create flow
+- [x] Build RealtimeNotifications component with bell icon, unread badge, dropdown with polling
+- [x] Mount notification bell in SiteHeader for desktop and mobile (logged-in users only)
+- [x] Write 13 tests for notification system (schema, service, router, DB functions)
+- [x] All 1579 tests passing, zero TypeScript errors
