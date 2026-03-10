@@ -190,6 +190,15 @@ export const bookings = mysqlTable("bookings", {
   cancelledBy: varchar("cancelledBy", { length: 20 }),
   cancellationReason: text("cancellationReason"),
   
+  // Client booking fields
+  eventType: varchar("eventType", { length: 50 }), // wedding, corporate, birthday, church, festival, house_party, restaurant, other
+  bookingSource: varchar("bookingSource", { length: 30 }).default("venue_dashboard"), // venue_dashboard, client_booking
+  venueName: varchar("venueName", { length: 255 }), // For client bookings where booker provides venue name
+  venueAddress: text("venueAddress"), // Full address for client bookings
+  clientName: varchar("clientName", { length: 255 }), // Name of the person booking (for client bookings)
+  clientEmail: varchar("clientEmail", { length: 320 }), // Contact email for client bookings
+  clientPhone: varchar("clientPhone", { length: 20 }), // Optional phone for client bookings
+
   // Rider template linked to this booking
   riderTemplateId: int("riderTemplateId"),
   riderStatus: varchar("riderStatus", { length: 50 }).default("pending"),

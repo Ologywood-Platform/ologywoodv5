@@ -1363,3 +1363,23 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "For Fans" tab to How It Works page with 6 fan-specific steps (pink theme)
 - [x] Update artist steps: added Step 7 (Grow Your Fan Base) with tip links, music sales, fan engagement
 - [x] All 53 content audit tests passing, all 1589 tests passing
+
+## CLIENT BOOKING SYSTEM - Tier 1 & Tier 2 (Mar 10, 2026)
+
+### Tier 1: Client Booking Flow
+- [x] Add eventType, bookingSource, venueName, venueAddress columns to bookings schema
+- [x] Push schema migration (direct SQL for new columns)
+- [x] Add booking.clientCreate mutation (protectedProcedure, any logged-in user)
+- [x] Build /book/:artistId 4-step wizard page (Event Info → Location → Budget & Details → Review & Submit)
+- [x] Event type dropdown: Wedding, Corporate, Birthday, Church, Festival, House Party, Restaurant, Other
+- [x] Client bookings route into same booking system as venue bookings
+- [x] Artist profile: non-venue users get "Book This Artist" → /book/:artistId, venues keep dialog
+- [x] StickyBookingBar updated for non-venue users
+- [x] Booking confirmation with reference number and artist link
+
+### Tier 2: My Bookings for Clients
+- [x] Build /my-bookings page with upcoming/past sections, artist photos, status badges
+- [x] Add booking.getMyClientBookings query for fans/clients
+- [x] Add "My Bookings" link (CalendarCheck icon) to SiteHeader for desktop and mobile
+- [x] Write 13 tests for client booking system
+- [x] All 1602 tests passing, zero TypeScript errors

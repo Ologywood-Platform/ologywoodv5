@@ -349,6 +349,7 @@ export default function ArtistProfile() {
             
             <div className="flex flex-col gap-3">
               {/* Primary action - full width on mobile */}
+              {user?.role === 'venue' ? (
               <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="lg" className="w-full sm:w-auto md:min-w-[200px]">
@@ -521,8 +522,19 @@ export default function ArtistProfile() {
                     </Button>
                   </div>
                 </form>
-              </DialogContent>
+                </DialogContent>
               </Dialog>
+              ) : (
+                <Button size="lg" className="w-full sm:w-auto md:min-w-[200px]" onClick={() => {
+                  if (!isAuthenticated) {
+                    setShowAuthModal(true);
+                    return;
+                  }
+                  navigate(`/book/${artistId}`);
+                }}>
+                  Book This Artist
+                </Button>
+              )}
 
               {/* Secondary actions row */}
               <div className="flex items-center gap-2 flex-wrap">
@@ -928,7 +940,17 @@ export default function ArtistProfile() {
           artistName={artist.artistName}
           feeRangeMin={artist.feeRangeMin}
           feeRangeMax={artist.feeRangeMax}
-          onBookClick={() => setBookingDialogOpen(true)}
+          onBookClick={() => {
+            if (!isAuthenticated) {
+              setShowAuthModal(true);
+              return;
+            }
+            if (user?.role === 'venue') {
+              setBookingDialogOpen(true);
+            } else {
+              navigate(`/book/${artistId}`);
+            }
+          }}
           heroRef={heroRef}
         />
       )}

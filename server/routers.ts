@@ -655,6 +655,94 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    // Create booking request (client/fan - anyone logged in)
+    clientCreate: protectedProcedure
+      .input(z.object({
+        artistId: z.number(),
+        eventDate: z.string(),
+        eventTime: z.string().optional(),
+        eventType: z.enum(['wedding', 'corporate', 'birthday', 'church', 'festival', 'house_party', 'restaurant', 'other']),
+        venueName: z.string().min(1),
+        venueAddress: z.string().optional(),
+        eventDetails: z.string().optional(),
+        totalFee: z.number().optional(),
+        clientName: z.string().min(1),
+        clientEmail: z.string().email(),
+        clientPhone: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Check if artist is available on this date
+        const avail = await db.getAvailabilityForDate(input.artistId, new Date(input.eventDate));
+        if (avail && avail.status !== 'available') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
+        }
+        
+        const booking = await db.createBooking({
+          artistId: input.artistId,
+          venueId: ctx.user.id, // Use the client's user ID as the booker
+          eventDate: new Date(input.eventDate),
+          eventTime: input.eventTime,
+          eventDetails: input.eventDetails,
+          totalFee: input.totalFee?.toString(),
+          status: 'pending',
+          eventType: input.eventType,
+          bookingSource: 'client_booking',
+          venueName: input.venueName,
+          venueAddress: input.venueAddress,
+          clientName: input.clientName,
+          clientEmail: input.clientEmail,
+          clientPhone: input.clientPhone,
+        });
+        
+        // Send email notification to artist
+        const artistProfile = await db.getArtistProfileById(input.artistId);
+        if (artistProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          if (artistUser?.email) {
+            await email.sendBookingRequestEmail({
+              artistEmail: artistUser.email,
+              artistName: artistProfile.artistName,
+              venueName: `${input.clientName} (${input.eventType.replace('_', ' ')})`,
+              eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              eventDetails: input.eventDetails,
+            });
+          }
+          
+          // In-app notification to artist
+          notif.notifyBookingRequest({
+            artistUserId: artistProfile.userId,
+            venueName: `${input.clientName} (${input.eventType.replace('_', ' ')})`,
+            bookingId: booking.id,
+            eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          }).catch(() => {});
+        }
+        
+        return { success: true, bookingId: booking.id };
+      }),
+
+    // Get bookings created by current user as a client (non-venue bookings)
+    getMyClientBookings: protectedProcedure.query(async ({ ctx }) => {
+      const allBookings = await db.getBookingsByVenueId(ctx.user.id);
+      // Filter to only client bookings (bookingSource = client_booking) or all if user is not a venue
+      const clientBookings = allBookings.filter(b => b.bookingSource === 'client_booking');
+      // Enrich with artist info
+      const enriched = await Promise.all(
+        clientBookings.map(async (booking) => {
+          let artistName = `Artist #${booking.artistId}`;
+          let artistPhoto: string | null = null;
+          try {
+            const artistProfile = await db.getArtistProfileById(booking.artistId);
+            if (artistProfile) {
+              artistName = artistProfile.artistName || artistName;
+              artistPhoto = artistProfile.profilePhotoUrl || null;
+            }
+          } catch (_) { /* fallback */ }
+          return { ...booking, artistName, artistPhoto };
+        })
+      );
+      return enriched;
+    }),
+
     // Get booking by ID
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
