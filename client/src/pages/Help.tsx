@@ -12,53 +12,70 @@ interface FAQItem {
 }
 
 const faqItems: FAQItem[] = [
+  // Getting Started
   {
     id: 'getting-started-1',
     category: 'Getting Started',
     question: 'How do I create an account?',
-    answer: 'Click the "Sign Up" button on the homepage. Choose whether you\'re an artist or venue, fill in your details, and verify your email. Your account will be ready to use immediately.',
+    answer: 'Click the "Sign Up" button on the homepage. You can sign up with your email or use Google/social login. After verifying your email, choose your role: Artist, Venue, or Fan. Each role unlocks different features tailored to your needs.',
   },
   {
     id: 'getting-started-2',
     category: 'Getting Started',
-    question: 'What\'s the difference between Artist and Venue accounts?',
-    answer: 'Artist accounts are for performers, musicians, and entertainers who want to book gigs. Venue accounts are for event organizers, clubs, and venues looking to book talent. Each has tailored features for their needs.',
+    question: 'What are the different account types?',
+    answer: 'Ologywood has three account types. Artist accounts are for performers and musicians who want to get booked, sell music, and grow their fanbase. Venue accounts are for event organizers and clubs looking to book talent. Fan accounts let you follow artists, buy releases, leave reviews, and tip your favorite performers.',
   },
   {
     id: 'getting-started-3',
     category: 'Getting Started',
     question: 'Is there a fee to join Ologywood?',
-    answer: 'Joining is free! We offer a Free tier with basic features. Premium subscriptions unlock advanced features like priority booking, analytics, and custom branding.',
+    answer: 'Joining is free! The Free tier includes basic features and up to 2 bookings per month. Premium subscriptions (Starter at $9/month and Professional at $29/month) unlock advanced features like unlimited bookings, Rider Builder, contracts, e-signatures, analytics, and more.',
   },
+  {
+    id: 'getting-started-4',
+    category: 'Getting Started',
+    question: 'How do I set up my artist profile?',
+    answer: 'After selecting the Artist role, complete the onboarding form with your bio, genres, location, and pricing. Upload a professional profile photo. Then visit Edit Profile from your Dashboard to add social links, tip links (Cash App, Venmo, etc.), and media. Set your availability calendar so venues can see when you are free.',
+  },
+
+  // Booking & Contracts
   {
     id: 'booking-1',
     category: 'Booking & Contracts',
     question: 'How do I book an artist?',
-    answer: 'Browse our artist directory, view their profiles and availability, and send a booking request. Artists will review your request and respond within 24-48 hours. Once accepted, you\'ll receive a contract to sign.',
+    answer: 'Browse the artist directory, view profiles and availability, and click the booking button. Fill in the event date, time, venue address (street, city, state, zip), offered fee, and event details. The artist will review your request and respond. Once accepted, a digital contract can be generated for both parties to sign.',
   },
   {
     id: 'booking-2',
     category: 'Booking & Contracts',
     question: 'What happens after I send a booking request?',
-    answer: 'The artist will receive your request and can accept, decline, or propose modifications. Once accepted, a digital contract is generated. Both parties sign electronically, and the booking is confirmed.',
+    answer: 'The artist receives an in-app notification and email about your request. They can accept, decline, or message you to discuss details. Once accepted, you can attach a rider contract with technical requirements. Both parties sign electronically, and the booking is confirmed.',
   },
   {
     id: 'booking-3',
     category: 'Booking & Contracts',
     question: 'Can I modify a booking after it\'s confirmed?',
-    answer: 'Yes, you can request modifications to date, time, or terms. The other party will review and approve or counter-propose. Changes require mutual agreement.',
+    answer: 'Yes, you can request modifications to date, time, or terms through the booking detail page. The other party will review and approve or counter-propose. Changes require mutual agreement. You can also cancel a booking from your dashboard.',
   },
   {
     id: 'booking-4',
     category: 'Booking & Contracts',
-    question: 'What is a rider and how do I use it?',
-    answer: 'A rider is a document with technical requirements, hospitality needs, and special requests. Artists can create rider templates, and venues acknowledge them before confirming bookings. This ensures everyone is on the same page.',
+    question: 'What is a rider and how do I create one?',
+    answer: 'A rider is a document listing technical requirements (sound, lighting, stage specs), hospitality needs, and special requests. Artists can build rider templates using the Rider Builder in their Dashboard. Choose from structured templates or create custom ones. When a booking is confirmed, attach your rider so the venue knows exactly what you need. Available on Starter and Professional plans.',
   },
+  {
+    id: 'booking-5',
+    category: 'Booking & Contracts',
+    question: 'How do contracts and e-signatures work?',
+    answer: 'When a booking is confirmed, a digital contract is generated with all agreed terms including event details, fees, and rider requirements. Both the artist and venue sign electronically with drawn or typed signatures. Signatures are verified with IP logging and timestamps. Contracts are stored securely and accessible from your dashboard. Available on the Professional plan.',
+  },
+
+  // Payments & Billing
   {
     id: 'payment-1',
     category: 'Payments & Billing',
     question: 'How are payments handled?',
-    answer: 'We use Stripe for secure payment processing. Deposits are collected upfront, and final payments are processed after the event. All transactions are encrypted and secure.',
+    answer: 'We use Stripe for secure payment processing. Artists can connect their Stripe account from the Earnings & Payouts page in their Dashboard to receive payments directly. All transactions are encrypted and secure.',
   },
   {
     id: 'payment-2',
@@ -70,79 +87,147 @@ const faqItems: FAQItem[] = [
     id: 'payment-3',
     category: 'Payments & Billing',
     question: 'Can I get a refund?',
-    answer: 'Refund policies depend on when the cancellation occurs. Cancellations 30+ days before the event receive full refunds. Cancellations within 30 days may have reduced refunds. Check your booking terms for specifics.',
+    answer: 'Refund policies depend on when the cancellation occurs. Cancellations 30+ days before the event typically receive full refunds. Cancellations within 30 days may have reduced refunds. Check your booking terms for specifics.',
   },
+  {
+    id: 'payment-4',
+    category: 'Payments & Billing',
+    question: 'How do I view my earnings and sales analytics?',
+    answer: 'Artists can view their earnings from Dashboard > Earnings & Payouts. This page shows total earnings, completed payments, pending amounts, and paid out totals. It also includes Release Sales Analytics with per-release breakdowns showing sales count, gross revenue, net revenue (after 1% platform fee), and release status.',
+  },
+
+  // Music & Releases
+  {
+    id: 'music-1',
+    category: 'Music & Releases',
+    question: 'How do I sell my music on Ologywood?',
+    answer: 'Go to your Artist Dashboard and navigate to the Releases section. Upload your track, add cover art, set your price, and publish. Fans can purchase and download your music directly from your artist profile. You keep 99% of each sale (1% platform fee).',
+  },
+  {
+    id: 'music-2',
+    category: 'Music & Releases',
+    question: 'How do fans purchase and download releases?',
+    answer: 'Fans click the "Buy" button on a release card, which opens a secure Stripe checkout. After payment, they are redirected to a Purchase Success page with a download button. Fans can also re-download from the "My Purchases" page (accessible from the Purchases link in the navigation bar). Each purchase allows up to 5 downloads.',
+  },
+  {
+    id: 'music-3',
+    category: 'Music & Releases',
+    question: 'Where can I see my purchased music?',
+    answer: 'Click "Purchases" in the navigation bar to visit the My Purchases page. This shows all your purchased releases with cover art, artist name, purchase date, and download buttons. You can also access the download link from the confirmation email sent after each purchase.',
+  },
+
+  // Tips & Support Artists
+  {
+    id: 'tips-1',
+    category: 'Tips & Support',
+    question: 'How do tip links work?',
+    answer: 'Artists can add their Cash App, Venmo, PayPal, and Zelle handles in Edit Profile under the "Support This Artist" section. These appear on the artist\'s public profile as subtle branded badges. Fans can click to tip directly through their preferred payment app. Tips go directly to the artist with zero platform fees.',
+  },
+  {
+    id: 'tips-2',
+    category: 'Tips & Support',
+    question: 'How do I set up my tip links as an artist?',
+    answer: 'Go to Dashboard > Edit Profile and scroll to the "Support This Artist" card. Enter your username or handle for Cash App, Venmo, PayPal, and/or Zelle. Click Save. Your tip links will appear on your public profile for fans to use.',
+  },
+  {
+    id: 'tips-3',
+    category: 'Tips & Support',
+    question: 'Does Ologywood take a cut from tips?',
+    answer: 'No. Tips go directly from the fan to the artist through their chosen payment app (Cash App, Venmo, PayPal, or Zelle). Ologywood does not process or take any fees from tips.',
+  },
+
+  // Notifications
+  {
+    id: 'notifications-1',
+    category: 'Notifications',
+    question: 'How do notifications work?',
+    answer: 'Ologywood has both in-app and email notifications. The bell icon in the navigation bar shows your in-app notifications with an unread count badge. You receive notifications for new booking requests, booking confirmations and cancellations, new messages, contract signings, reviews, and payment events. Click any notification to go directly to the relevant page.',
+  },
+  {
+    id: 'notifications-2',
+    category: 'Notifications',
+    question: 'How do I manage my notifications?',
+    answer: 'Click the bell icon in the top navigation to see your notifications. You can mark individual notifications as read, mark all as read, or delete them. Email notifications are sent automatically for important events like booking requests and payment confirmations.',
+  },
+
+  // Following & Fans
+  {
+    id: 'fans-1',
+    category: 'Following & Fans',
+    question: 'How do I follow an artist?',
+    answer: 'Visit any artist\'s profile page and click the "Follow" button. View all artists you follow from the "Following" link in the navigation bar. You will receive email updates when artists you follow post new events or update their profiles.',
+  },
+  {
+    id: 'fans-2',
+    category: 'Following & Fans',
+    question: 'What is the Send Update feature?',
+    answer: 'Artists on paid plans can compose and send branded email updates to all their followers. Go to your Artist Dashboard, find the Fans section, and click "Send Update" to compose a message with a subject and body. This is a great way to announce upcoming shows, new releases, or special news.',
+  },
+  {
+    id: 'fans-3',
+    category: 'Following & Fans',
+    question: 'How do I leave a review for an artist?',
+    answer: 'After attending a performance or purchasing a release, visit the artist\'s profile and scroll to the Reviews section. Click "Write a Review" to rate the artist and share your experience. Reviews help other fans and venues make informed booking decisions.',
+  },
+
+  // Profile & Settings
   {
     id: 'profile-1',
     category: 'Profile & Settings',
     question: 'How do I upload photos to my profile?',
-    answer: 'Go to Account Settings > Profile > Media Gallery. Click "Add Photos" to upload images. You can add up to 10 photos. We automatically optimize images for performance.',
+    answer: 'Go to Dashboard > Edit Profile > Media Gallery. Click "Add Photos" to upload images. We automatically optimize images for performance. Your profile photo appears on browse cards, search results, and your public profile.',
   },
   {
     id: 'profile-2',
     category: 'Profile & Settings',
     question: 'How do I manage my availability?',
-    answer: 'Artists can set their availability calendar in Dashboard > Availability. Mark dates when you\'re available to perform. Venues will only see available dates when booking.',
+    answer: 'Artists can set their availability calendar in Dashboard > Availability. Mark dates when you are available to perform and block out unavailable dates. Venues will see your availability when browsing your profile, preventing scheduling conflicts.',
   },
   {
     id: 'profile-3',
     category: 'Profile & Settings',
     question: 'Can I change my subscription plan?',
-    answer: 'Yes, you can upgrade or downgrade anytime in Account Settings > Billing. Changes take effect immediately. Upgrades are prorated; downgrades apply at the next billing cycle.',
+    answer: 'Yes, you can upgrade or downgrade your subscription tiers anytime from your Dashboard or Account Settings. Changes take effect immediately. Upgrades are prorated; downgrades apply at the next billing cycle. Visit the Pricing page to compare plans.',
   },
+  {
+    id: 'profile-4',
+    category: 'Profile & Settings',
+    question: 'How do I add social media links to my profile?',
+    answer: 'Go to Dashboard > Edit Profile and scroll to the Social Links section. Add your Instagram, Twitter/X, Facebook, YouTube, Spotify, SoundCloud, TikTok, or website URL. These appear as clickable icons on your public artist profile.',
+  },
+
+  // Events
+  {
+    id: 'events-1',
+    category: 'Events',
+    question: 'How do events work on Ologywood?',
+    answer: 'Venues can create events from their Dashboard with details like date, time, location, description, and ticket info. Events appear on the Events page where artists and fans can discover them. Browse upcoming events, view details, and connect with organizers directly through the platform.',
+  },
+  {
+    id: 'events-2',
+    category: 'Events',
+    question: 'How do I create an event as a venue?',
+    answer: 'Go to your Venue Dashboard and click "Create Event". Fill in the event name, date, time, description, and any ticket information. Once published, your event will be visible on the Events page and discoverable by artists and fans.',
+  },
+
+  // Support & Contact
   {
     id: 'support-1',
     category: 'Support & Contact',
     question: 'How do I contact support?',
-    answer: 'Use the Contact Us form on this page, email support@ologywood.com, or message us through the in-app chat. We typically respond within 24 hours.',
+    answer: 'Use the Contact Us form, email support@ologywood.com, or use the chat widget in the bottom-right corner of any page. We typically respond within 24 hours.',
   },
   {
     id: 'support-2',
     category: 'Support & Contact',
     question: 'What are your support hours?',
-    answer: 'Our support team is available Monday-Friday, 9 AM - 6 PM EST. For urgent issues, use the in-app chat for faster response.',
+    answer: 'Our support team is available Monday through Friday, 9 AM to 6 PM EST. For urgent issues, use the in-app chat for faster response.',
   },
   {
     id: 'support-3',
     category: 'Support & Contact',
     question: 'How do I report a problem or issue?',
-    answer: 'Click the "Report Issue" button in your dashboard or contact support@ologywood.com. Include details about what happened, and we\'ll investigate right away.',
-  },
-  {
-    id: 'features-1',
-    category: 'Features',
-    question: 'How do I follow an artist?',
-    answer: 'Visit any artist\'s profile page and click the "Follow" button. You can view all artists you follow from the "Following" link in the navigation bar. Artists can send email updates to their followers.',
-  },
-  {
-    id: 'features-2',
-    category: 'Features',
-    question: 'What is the Send Update feature?',
-    answer: 'Artists on paid plans can compose and send branded email updates to all their followers. Go to your Artist Dashboard, find the Fans section, and click "Send Update" to compose a message with a subject and body.',
-  },
-  {
-    id: 'features-3',
-    category: 'Features',
-    question: 'How do events work on Ologywood?',
-    answer: 'Venues can create events and artists can discover them through the Events page. Browse upcoming events, view details, and connect with organizers directly through the platform.',
-  },
-  {
-    id: 'features-4',
-    category: 'Features',
-    question: 'How do contracts and e-signatures work?',
-    answer: 'When a booking is confirmed, a digital contract is generated with all the agreed terms. Both the artist and venue can sign electronically. Contracts are stored securely and accessible from your dashboard. This feature is available on the Professional plan.',
-  },
-  {
-    id: 'features-5',
-    category: 'Features',
-    question: 'What are the subscription tiers?',
-    answer: 'Ologywood offers three plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit the Pricing page for full details.',
-  },
-  {
-    id: 'features-6',
-    category: 'Features',
-    question: 'How does the availability calendar work?',
-    answer: 'Artists can set their availability from the Dashboard. Mark dates when you\'re available for bookings and block out unavailable dates. Venues will see your availability when browsing your profile, preventing scheduling conflicts.',
+    answer: 'Contact support@ologywood.com with details about what happened, including screenshots if possible. You can also use the Contact Us page or the chat widget. We will investigate and respond within 24 hours.',
   },
 ];
 

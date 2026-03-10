@@ -1355,3 +1355,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build ReleaseSalesAnalytics component in ArtistEarnings page (4 summary cards + per-release table)
 - [x] Write 10 tests for analytics (schema, data structure, router, DB function)
 - [x] All 1589 tests passing, zero TypeScript errors
+
+## UPDATE HELP/FAQ/HOW-IT-WORKS CONTENT (Mar 10, 2026)
+
+- [x] Update Help Center: expanded to 35 FAQs across 10 categories (added Music & Releases, Tips & Support, Notifications, Earnings & Analytics)
+- [x] Update FAQ page: expanded to 22 Q&As covering all new features (tips, releases, downloads, notifications, analytics)
+- [x] Add "For Fans" tab to How It Works page with 6 fan-specific steps (pink theme)
+- [x] Update artist steps: added Step 7 (Grow Your Fan Base) with tip links, music sales, fan engagement
+- [x] All 53 content audit tests passing, all 1589 tests passing

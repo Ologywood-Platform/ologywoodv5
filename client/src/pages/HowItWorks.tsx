@@ -1,11 +1,256 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Briefcase, CheckCircle, MessageSquare, CreditCard, Star } from 'lucide-react';
+import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import Footer from '@/components/Footer';
 
+interface Step {
+  number: number;
+  title: string;
+  description: string;
+  items: string[];
+}
+
+const artistSteps: Step[] = [
+  {
+    number: 1,
+    title: 'Create Your Profile',
+    description: 'Sign up and build your artist profile with your bio, genres, photos, and pricing. Show venues exactly what you offer.',
+    items: [
+      'Upload professional photos and videos',
+      'List your genres and performance style',
+      'Set your booking rates',
+      'Add social links (Instagram, Spotify, etc.)',
+    ],
+  },
+  {
+    number: 2,
+    title: 'Set Your Availability',
+    description: 'Use the interactive calendar to mark when you are available for bookings. Update it anytime as your schedule changes.',
+    items: [
+      'Mark available dates on your calendar',
+      'Block out unavailable dates',
+      'Real-time sync prevents double-bookings',
+    ],
+  },
+  {
+    number: 3,
+    title: 'Receive Booking Requests',
+    description: 'Venues discover your profile and send booking requests. Review event details, venue information, and requirements.',
+    items: [
+      'In-app and email notifications for new requests',
+      'See full event details and venue info',
+      'Review technical requirements',
+    ],
+  },
+  {
+    number: 4,
+    title: 'Communicate & Confirm',
+    description: 'Message venues directly to discuss details, negotiate terms, and finalize arrangements before confirming the booking.',
+    items: [
+      'In-platform messaging with venues',
+      'Negotiate rates and requirements',
+      'Accept or decline bookings',
+    ],
+  },
+  {
+    number: 5,
+    title: 'Build & Attach Riders',
+    description: 'Create professional rider templates with your technical and hospitality requirements using the Rider Builder tool.',
+    items: [
+      'Choose from structured templates or build custom',
+      'List sound, lighting, and stage specs',
+      'Attach riders to confirmed bookings',
+      'Digital contracts with e-signatures',
+    ],
+  },
+  {
+    number: 6,
+    title: 'Get Paid & Sell Music',
+    description: 'Receive payment securely after performances. Upload and sell your music directly to fans through your profile.',
+    items: [
+      'Secure Stripe payment processing',
+      'Upload releases with cover art and pricing',
+      'Keep 99% of each music sale',
+      'View earnings and sales analytics in your Dashboard',
+    ],
+  },
+  {
+    number: 7,
+    title: 'Grow Your Fan Base',
+    description: 'Build a following on Ologywood. Fans can follow you, tip you, and buy your music. Keep them engaged with direct updates.',
+    items: [
+      'Fans can follow your profile',
+      'Set up tip links (Cash App, Venmo, PayPal, Zelle)',
+      'Send branded email updates to followers',
+      'Receive reviews and ratings from fans and venues',
+    ],
+  },
+];
+
+const venueSteps: Step[] = [
+  {
+    number: 1,
+    title: 'Create Your Venue Profile',
+    description: 'Set up your venue profile with details about your space, capacity, and the types of events you host.',
+    items: [
+      'Add venue photos and details',
+      'Describe your space and capacity',
+      'List event types you host',
+    ],
+  },
+  {
+    number: 2,
+    title: 'Browse & Discover Artists',
+    description: 'Search through our artist directory by genre, location, availability, and pricing to find the right fit for your event.',
+    items: [
+      'Filter by genre, location, and availability',
+      'View artist profiles, media, and reviews',
+      'Check real-time availability calendars',
+    ],
+  },
+  {
+    number: 3,
+    title: 'Send Booking Requests',
+    description: 'Found the right artist? Send a booking request with your event date, time, venue address, offered fee, and event details.',
+    items: [
+      'Fill in event date and time',
+      'Enter venue address (street, city, state, zip)',
+      'Set your offered fee',
+      'Describe your event details',
+    ],
+  },
+  {
+    number: 4,
+    title: 'Communicate & Finalize',
+    description: 'Message artists directly to discuss details, review their rider requirements, and finalize all arrangements.',
+    items: [
+      'In-platform messaging with artists',
+      'Review and acknowledge rider requirements',
+      'Negotiate terms and finalize details',
+    ],
+  },
+  {
+    number: 5,
+    title: 'Sign Contracts & Pay',
+    description: 'Sign digital contracts with e-signatures and process payments securely through Stripe.',
+    items: [
+      'Digital contracts with all agreed terms',
+      'Electronic signatures with verification',
+      'Secure Stripe payment processing',
+      'In-app notifications at every step',
+    ],
+  },
+  {
+    number: 6,
+    title: 'Create Events & Build Reputation',
+    description: 'Create events for your venue and build your reputation with reviews. Attract top talent with a strong venue profile.',
+    items: [
+      'Create and publish events',
+      'Leave reviews for artists after performances',
+      'Build your venue reputation',
+      'Get verified for added credibility',
+    ],
+  },
+];
+
+const fanSteps: Step[] = [
+  {
+    number: 1,
+    title: 'Create Your Account',
+    description: 'Sign up for free and select "Fan" as your role. Your account is ready immediately to start discovering artists.',
+    items: [
+      'Sign up with email or social login',
+      'Select the Fan role during onboarding',
+      'No subscription required for fan features',
+    ],
+  },
+  {
+    number: 2,
+    title: 'Discover & Follow Artists',
+    description: 'Browse the artist directory to find performers you love. Follow them to stay updated on their latest shows and releases.',
+    items: [
+      'Browse artists by genre, location, and style',
+      'Click "Follow" on any artist profile',
+      'View all followed artists from "Following" in the nav',
+      'Get email updates when artists post events or updates',
+    ],
+  },
+  {
+    number: 3,
+    title: 'Buy & Download Music',
+    description: 'Purchase releases directly from artist profiles. After payment, download your tracks instantly from the success page or My Purchases.',
+    items: [
+      'Click "Buy" on any release card',
+      'Secure checkout through Stripe',
+      'Download from the success page or My Purchases',
+      'Up to 5 downloads per purchase',
+    ],
+  },
+  {
+    number: 4,
+    title: 'Request Bookings',
+    description: 'Want to book an artist for your private event, party, or gathering? Send a booking request directly from their profile.',
+    items: [
+      'Fill in event date, time, and venue details',
+      'Set your offered fee',
+      'Communicate with artists through messaging',
+    ],
+  },
+  {
+    number: 5,
+    title: 'Support Artists with Tips',
+    description: 'Show your appreciation by tipping artists directly through their preferred payment apps. Zero platform fees on tips.',
+    items: [
+      'Tip via Cash App, Venmo, PayPal, or Zelle',
+      'Find tip links on artist profiles under "Support This Artist"',
+      'Tips go 100% to the artist',
+    ],
+  },
+  {
+    number: 6,
+    title: 'Leave Reviews & Stay Connected',
+    description: 'Share your experience by leaving reviews. Stay connected through notifications about bookings, purchases, and artist updates.',
+    items: [
+      'Rate and review artists after events or purchases',
+      'In-app notifications via the bell icon',
+      'Email notifications for important updates',
+      'Browse upcoming events in your area',
+    ],
+  },
+];
+
+function StepCard({ step, color }: { step: Step; color: string }) {
+  const bgColor = color === 'purple' ? 'bg-purple-600' : color === 'blue' ? 'bg-blue-600' : 'bg-pink-600';
+  const borderColor = color === 'purple' ? 'border-purple-600' : color === 'blue' ? 'border-blue-600' : 'border-pink-600';
+
+  return (
+    <div className={`bg-white rounded-lg shadow-md p-8 border-l-4 ${borderColor}`}>
+      <div className="flex items-start gap-6">
+        <div className="flex-shrink-0">
+          <div className={`flex items-center justify-center h-12 w-12 rounded-md ${bgColor} text-white`}>
+            <span className="text-xl font-bold">{step.number}</span>
+          </div>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">{step.title}</h3>
+          <p className="text-gray-600 text-lg mb-4">{step.description}</p>
+          <ul className="space-y-2 text-gray-600">
+            {step.items.map((item, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HowItWorks() {
-  const [activeTab, setActiveTab] = useState<'artists' | 'venues'>('artists');
+  const [activeTab, setActiveTab] = useState<'artists' | 'venues' | 'fans'>('artists');
 
   // Set SEO meta tags
   useEffect(() => {
@@ -21,17 +266,17 @@ export default function HowItWorks() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">How Ologywood Works</h1>
           <p className="text-xl text-purple-100">
-            Connect talented artists with venues. Simple, secure, and seamless.
+            Connect talented artists with venues and fans. Simple, secure, and seamless.
           </p>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex gap-4 justify-center mb-12">
+        <div className="flex gap-3 justify-center mb-12 flex-wrap">
           <button
             onClick={() => setActiveTab('artists')}
-            className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
               activeTab === 'artists'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -42,7 +287,7 @@ export default function HowItWorks() {
           </button>
           <button
             onClick={() => setActiveTab('venues')}
-            className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
               activeTab === 'venues'
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -51,200 +296,29 @@ export default function HowItWorks() {
             <Briefcase className="inline mr-2" size={20} />
             For Venues
           </button>
+          <button
+            onClick={() => setActiveTab('fans')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'fans'
+                ? 'bg-pink-600 text-white shadow-lg'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            <Heart className="inline mr-2" size={20} />
+            For Fans
+          </button>
         </div>
 
         {/* Artists Section */}
         {activeTab === 'artists' && (
           <div className="space-y-8">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-              Get Booked. Grow Your Career.
+              Get Booked. Sell Music. Grow Your Career.
             </h2>
 
-            {/* Step 1 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">1</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Create Your Profile</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Sign up and build your artist profile with your bio, genres, photos, and pricing. Show venues exactly what you offer.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Upload professional photos and videos
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      List your genres and performance style
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Set your booking rates
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">2</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Set Your Availability</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Use the interactive calendar to mark when you're available for bookings. Update it anytime as your schedule changes.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Mark available dates on your calendar
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Block out unavailable dates
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Real-time sync prevents double-bookings
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">3</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Receive Booking Requests</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Venues discover your profile and send booking requests. Review the event details, venue information, and requirements.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      See full event details and venue info
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Review technical requirements
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Instant notifications on new requests
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">4</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Communicate & Confirm</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Message venues directly to discuss details, negotiate terms, and finalize arrangements before confirming the booking.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      In-platform messaging with venues
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Negotiate rates and requirements
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Accept or decline bookings
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">5</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Get Paid & Build Your Reputation</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    After your performance, receive payment securely and build your reputation with reviews from venues.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Secure payment processing
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Receive venue reviews and ratings
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Build your portfolio
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 6 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-purple-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-purple-600 text-white">
-                    <span className="text-xl font-bold">6</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Grow Your Fan Base</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Build a following on Ologywood and keep your fans engaged with direct email updates about upcoming shows and news.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Fans can follow your profile
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Send branded email updates to followers
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Track your fan engagement
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+            {artistSteps.map((step) => (
+              <StepCard key={step.number} step={step} color="purple" />
+            ))}
 
             {/* Key Features */}
             <div className="mt-12 pt-12 border-t-2 border-gray-200">
@@ -256,19 +330,19 @@ export default function HowItWorks() {
                   <p className="text-gray-600">Get discovered by venues looking for talent like you.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
-                  <MessageSquare className="text-purple-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Direct Communication</h4>
-                  <p className="text-gray-600">Message venues directly to discuss every detail.</p>
+                  <DollarSign className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Multiple Revenue Streams</h4>
+                  <p className="text-gray-600">Earn from bookings, music sales, and fan tips all in one place.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
                   <CreditCard className="text-purple-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Secure Payments</h4>
-                  <p className="text-gray-600">Get paid safely through our secure payment system.</p>
+                  <p className="text-gray-600">Get paid safely through Stripe with detailed earnings analytics.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
-                  <CheckCircle className="text-purple-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Build Your Reputation</h4>
-                  <p className="text-gray-600">Earn reviews and ratings to attract more bookings.</p>
+                  <Bell className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Never Miss an Opportunity</h4>
+                  <p className="text-gray-600">In-app and email notifications keep you updated on every booking and message.</p>
                 </div>
               </div>
             </div>
@@ -282,184 +356,73 @@ export default function HowItWorks() {
               Find & Book Amazing Talent
             </h2>
 
-            {/* Step 1 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    <span className="text-xl font-bold">1</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Create Your Venue Profile</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Set up your venue profile with details about your space, capacity, and the types of events you host.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Add venue photos and details
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Describe your space and capacity
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      List event types you host
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    <span className="text-xl font-bold">2</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Browse & Search Artists</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Search our database of talented artists by genre, location, availability, and price. Save your favorites for quick access.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Filter by genre, location, and price
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      View artist profiles and ratings
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Save favorite artists
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    <span className="text-xl font-bold">3</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Send Booking Requests</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Found the perfect artist? Send a booking request with your event details, requirements, and offer.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Specify event date and time
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Include technical requirements
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Make your offer
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    <span className="text-xl font-bold">4</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Negotiate & Confirm</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Communicate directly with artists through our messaging system. Finalize details and confirm the booking.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Message artists directly
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Review artist riders and requirements
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Confirm booking details
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="bg-white rounded-lg shadow-md p-8 border-l-4 border-blue-600">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-600 text-white">
-                    <span className="text-xl font-bold">5</span>
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Manage & Review</h3>
-                  <p className="text-gray-600 text-lg mb-4">
-                    Track your bookings, manage payments, and leave reviews for artists after their performance.
-                  </p>
-                  <ul className="space-y-2 text-gray-600">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Track all your bookings
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Manage payments securely
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle size={18} className="text-green-500" />
-                      Leave reviews for artists
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+            {venueSteps.map((step) => (
+              <StepCard key={step.number} step={step} color="blue" />
+            ))}
 
             {/* Key Features */}
             <div className="mt-12 pt-12 border-t-2 border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Why Venues Choose Ologywood</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Why Venues Love Ologywood</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 p-6 rounded-lg">
-                  <Star className="text-blue-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Talented Artists</h4>
-                  <p className="text-gray-600">Access a diverse pool of performers across all genres.</p>
+                  <Users className="text-blue-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Diverse Talent Pool</h4>
+                  <p className="text-gray-600">Access artists across every genre and style for any event.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <MessageSquare className="text-blue-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Direct Communication</h4>
-                  <p className="text-gray-600">Negotiate directly with artists without intermediaries.</p>
+                  <p className="text-gray-600">Message artists directly to discuss every detail.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <CreditCard className="text-blue-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Secure Payments</h4>
-                  <p className="text-gray-600">Safe and transparent payment processing.</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Secure Contracts</h4>
+                  <p className="text-gray-600">Digital contracts with e-signatures protect both parties.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <CheckCircle className="text-blue-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Verified Artists</h4>
                   <p className="text-gray-600">Book with confidence using ratings and reviews.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fans Section */}
+        {activeTab === 'fans' && (
+          <div className="space-y-8">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+              Discover. Support. Connect.
+            </h2>
+
+            {fanSteps.map((step) => (
+              <StepCard key={step.number} step={step} color="pink" />
+            ))}
+
+            {/* Key Features */}
+            <div className="mt-12 pt-12 border-t-2 border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-8 text-center">Why Fans Love Ologywood</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-pink-50 p-6 rounded-lg">
+                  <Music className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Discover New Artists</h4>
+                  <p className="text-gray-600">Browse artists by genre, location, and style to find your next favorite performer.</p>
+                </div>
+                <div className="bg-pink-50 p-6 rounded-lg">
+                  <Download className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Buy Music Directly</h4>
+                  <p className="text-gray-600">Purchase and download releases directly from artists. 99% goes to the artist.</p>
+                </div>
+                <div className="bg-pink-50 p-6 rounded-lg">
+                  <DollarSign className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Tip Your Favorites</h4>
+                  <p className="text-gray-600">Support artists directly through Cash App, Venmo, PayPal, or Zelle.</p>
+                </div>
+                <div className="bg-pink-50 p-6 rounded-lg">
+                  <Heart className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Stay Connected</h4>
+                  <p className="text-gray-600">Follow artists, get updates on shows, and never miss a performance.</p>
                 </div>
               </div>
             </div>
@@ -472,7 +435,7 @@ export default function HowItWorks() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-purple-100 mb-8">
-            Join thousands of artists and venues already using Ologywood.
+            Join thousands of artists, venues, and fans already using Ologywood.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a

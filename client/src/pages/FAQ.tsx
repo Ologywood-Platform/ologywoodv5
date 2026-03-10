@@ -14,34 +14,48 @@ export default function FAQ() {
 
   const faqs = [
     // Getting Started
-    { q: 'How do I book an artist?', a: 'Browse artists, select one, and create a booking request with your event details. Communicate directly through in-platform messaging to finalize the arrangement.' },
-    { q: 'How do I create an artist profile?', a: 'Sign up and select "I\'m an Artist" during onboarding. Complete your profile with a bio, genres, photos, and pricing. Set your availability calendar and start receiving booking requests.' },
-    { q: 'How do I create a venue profile?', a: 'Sign up and select "I\'m a Venue" during onboarding. Add your venue details, capacity, location, and the types of events you host.' },
+    { q: 'How do I book an artist?', a: 'Browse artists, select one, and click the booking button. Fill in the event date, time, venue address (street, city, state, zip), offered fee, and event details. The artist will review your request and respond via in-app notification and email.' },
+    { q: 'How do I create an artist profile?', a: 'Sign up and select "Artist" during role selection. Complete your profile with a bio, genres, photos, and pricing. Add social links and tip links (Cash App, Venmo, etc.) from Edit Profile. Set your availability calendar and start receiving booking requests.' },
+    { q: 'How do I create a venue profile?', a: 'Sign up and select "Venue" during role selection. Add your venue details, capacity, location, and the types of events you host. Start browsing and booking artists immediately.' },
+    { q: 'What can I do as a fan?', a: 'Fans can follow artists to get updates, purchase and download music releases, leave reviews, and tip artists directly through Cash App, Venmo, PayPal, or Zelle. Access your purchases from the "Purchases" link in the navigation.' },
     
     // Booking & Payments
-    { q: 'What payment methods are accepted?', a: 'We accept all major credit cards (Visa, Mastercard, American Express) through secure Stripe payment processing.' },
-    { q: 'Can I cancel a booking?', a: 'Yes, you can cancel through your dashboard. Cancellation policies vary by artist and are outlined in the booking contract.' },
-    { q: 'How do artists set pricing?', a: 'Artists set their own pricing based on event type, duration, and location from their dashboard profile settings.' },
+    { q: 'What payment methods are accepted?', a: 'We accept all major credit cards (Visa, Mastercard, American Express), debit cards, and digital wallets through secure Stripe payment processing.' },
+    { q: 'Can I cancel a booking?', a: 'Yes, you can cancel through your dashboard. Both artists and venues receive notifications when a booking is cancelled. Cancellation policies vary by artist and are outlined in the booking contract.' },
+    { q: 'How do artists set pricing?', a: 'Artists set their own pricing based on event type, duration, and location from their dashboard profile settings. Pricing appears on your public profile for venues to see.' },
     { q: 'Is there a booking fee?', a: 'Ologywood charges a small service fee on bookings to maintain the platform. The fee is transparently shown before you confirm.' },
     { q: 'How many bookings can I make on the Free plan?', a: 'Free plan users can send up to 2 booking requests per month. Upgrade to Starter ($9/month) or Professional ($29/month) for unlimited bookings.' },
     
     // Riders & Contracts
-    { q: 'What is a rider?', a: 'A rider is a document listing an artist\'s technical requirements (sound, lighting, stage specs) and hospitality needs. Artists can build riders using the Rider Builder tool, available on Starter and Professional plans.' },
-    { q: 'How do contracts and e-signatures work?', a: 'When a booking is confirmed, a digital contract is generated. Both the artist and venue sign electronically through the platform. Contracts are stored securely and accessible from your dashboard. Available on the Professional plan.' },
+    { q: 'What is a rider?', a: 'A rider is a document listing an artist\'s technical requirements (sound, lighting, stage specs) and hospitality needs. Artists can build riders using the Rider Builder tool in their Dashboard. Choose from structured templates or create custom ones. Available on Starter and Professional plans.' },
+    { q: 'How do contracts and e-signatures work?', a: 'When a booking is confirmed, a digital contract is generated with all agreed terms. Both parties sign electronically with drawn or typed signatures, verified with IP logging and timestamps. Contracts are stored securely and accessible from your dashboard. Available on the Professional plan.' },
+    
+    // Music & Releases
+    { q: 'How do I sell my music on Ologywood?', a: 'Go to your Artist Dashboard > Releases. Upload your track, add cover art, set your price, and publish. Fans can purchase and download directly from your profile. You keep 99% of each sale (1% platform fee).' },
+    { q: 'How do I buy and download music?', a: 'Click "Buy" on any release card to open Stripe checkout. After payment, you land on a success page with a download button. You can also re-download from "Purchases" in the navigation bar. Each purchase allows up to 5 downloads. A confirmation email with a download link is also sent.' },
+    
+    // Tips & Support
+    { q: 'How do tip links work?', a: 'Artists can add their Cash App, Venmo, PayPal, and Zelle handles in Edit Profile under "Support This Artist". These appear on the artist\'s public profile as branded badges. Fans click to tip directly. Tips go straight to the artist with zero platform fees.' },
+    
+    // Notifications
+    { q: 'How do notifications work?', a: 'The bell icon in the navigation bar shows your in-app notifications with an unread count. You receive notifications for booking requests, confirmations, cancellations, messages, contract signings, reviews, and payments. Click any notification to go to the relevant page. Email notifications are also sent for important events.' },
     
     // Following & Fan Updates
-    { q: 'How do I follow an artist?', a: 'Visit any artist\'s profile and click the "Follow" button. Access all your followed artists from the "Following" link in the navigation bar.' },
+    { q: 'How do I follow an artist?', a: 'Visit any artist\'s profile and click the "Follow" button. View all followed artists from "Following" in the navigation. You will receive email updates when artists post new events or update their profiles.' },
     { q: 'Can artists send updates to their followers?', a: 'Yes! Artists on paid plans can compose and send branded email updates to all their followers using the "Send Update" feature in the Fans section of their dashboard.' },
     
     // Events
-    { q: 'How do events work?', a: 'Venues can create events and artists can discover them through the Events page. Browse upcoming events, view details, and connect with organizers directly.' },
+    { q: 'How do events work?', a: 'Venues can create events from their Dashboard with date, time, location, and details. Events appear on the Events page where artists and fans can discover them, view details, and connect with organizers.' },
+    
+    // Earnings & Analytics
+    { q: 'How do I view my earnings and analytics?', a: 'Artists can view earnings from Dashboard > Earnings & Payouts. See total earnings, completed payments, pending amounts, and payouts. The Release Sales section shows per-release analytics including sales count, gross revenue, net revenue, and platform fees.' },
     
     // Subscription & Pricing
-    { q: 'What subscription plans are available?', a: 'We offer three plans: Free (basic features, 2 bookings/month), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit our Pricing page for full details.' },
-    { q: 'Can I change my plan?', a: 'Yes! You can upgrade or downgrade your plan at any time from your dashboard. Changes take effect immediately.' },
+    { q: 'What subscription plans are available?', a: 'We offer three plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit our Pricing page for full details.' },
+    { q: 'Can I change my plan?', a: 'Yes! Upgrade or downgrade anytime from your Dashboard. Changes take effect immediately. Upgrades are prorated; downgrades apply at the next billing cycle.' },
     
     // Support
-    { q: 'How do I contact support?', a: 'Email support@ologywood.com or use our contact form. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
+    { q: 'How do I contact support?', a: 'Email support@ologywood.com, use the Contact Us page, or the chat widget in the bottom-right corner. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
   ];
 
   return (
