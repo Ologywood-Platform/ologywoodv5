@@ -1647,3 +1647,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Also send dispute status email to the respondent (not just the reporter)
 - [x] Customize email content for respondent vs reporter perspective ("Filed By" vs "Against", role-specific descriptions)
+
+## UX: My Disputes in User Dropdown (Mar 11, 2026)
+
+- [x] Add "My Disputes" link to user dropdown menu linking to /disputes (desktop and mobile)
+
+## FEATURE: Dispute Filed Email Notification (Mar 11, 2026)
+
+- [x] Add sendDisputeFiled email function for when a dispute is first created
+- [x] Send notification to the respondent when a dispute is filed against them
+- [x] Send confirmation to the reporter that their dispute was received
+- [x] Wire into the dispute.create endpoint in dispute router

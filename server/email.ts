@@ -1532,3 +1532,149 @@ export async function sendDisputeStatusUpdate(params: {
     html,
   });
 }
+
+
+/**
+ * Send email notification when a dispute is first filed.
+ * Sends to both the reporter (confirmation) and respondent (notice).
+ */
+export async function sendDisputeFiled(params: {
+  reporterEmail: string;
+  reporterName: string;
+  respondentEmail: string;
+  respondentName: string;
+  disputeType: string;
+  bookingEventDate: string;
+  disputeId: number;
+  description: string;
+}): Promise<void> {
+  const {
+    reporterEmail,
+    reporterName,
+    respondentEmail,
+    respondentName,
+    disputeType,
+    bookingEventDate,
+    disputeId,
+    description: disputeDescription,
+  } = params;
+
+  const typeLabels: Record<string, string> = {
+    payment_issue: 'Payment Issue',
+    no_show: 'No Show',
+    contract_violation: 'Contract Violation',
+    quality_issue: 'Quality Issue',
+    cancellation_dispute: 'Cancellation Dispute',
+    harassment: 'Harassment',
+    other: 'Other',
+  };
+
+  const typeLabel = typeLabels[disputeType] || disputeType;
+
+  const footerLinks = `
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #9ca3af;">
+      <p style="margin: 0;">
+        <a href="${ENV.baseUrl}/settings" style="color: #6b7280; text-decoration: underline;">Manage Preferences</a> · 
+        <a href="${ENV.baseUrl}/unsubscribe" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> · 
+        <a href="${ENV.baseUrl}/privacy" style="color: #6b7280; text-decoration: underline;">Privacy Policy</a>
+      </p>
+      <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} Ologywood. All rights reserved.</p>
+    </div>
+  `;
+
+  // --- Reporter confirmation email ---
+  const reporterSubject = `Dispute Received: ${typeLabel} — Booking on ${bookingEventDate}`;
+  const reporterHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #7c3aed; margin: 0; font-size: 24px;">Ologywood</h1>
+      </div>
+
+      <div style="background: #eff6ff; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 36px; margin-bottom: 8px;">📋</div>
+        <h2 style="margin: 0; color: #1e40af; font-size: 20px;">Dispute Received</h2>
+        <p style="color: #3b82f6; margin: 8px 0 0; font-size: 14px;">We've received your dispute and will review it shortly.</p>
+      </div>
+
+      <p style="color: #333; font-size: 15px;">Hi ${reporterName},</p>
+      <p style="color: #333; font-size: 15px;">Thank you for submitting your dispute. Our team will carefully review the details and get back to you within 3–5 business days.</p>
+
+      <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr><td style="padding: 6px 0; color: #6b7280; width: 120px;">Dispute ID</td><td style="padding: 6px 0; color: #111;">#${disputeId}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Type</td><td style="padding: 6px 0; color: #111;">${typeLabel}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Event Date</td><td style="padding: 6px 0; color: #111;">${bookingEventDate}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Against</td><td style="padding: 6px 0; color: #111;">${respondentName}</td></tr>
+        </table>
+      </div>
+
+      <div style="background: #fefce8; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+        <h4 style="margin: 0 0 8px; color: #92400e; font-size: 14px;">What Happens Next</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #92400e; font-size: 13px;">
+          <li>Our team will review all evidence and details</li>
+          <li>We may contact you or the other party for more information</li>
+          <li>You'll receive an email when the status changes</li>
+          <li>You can track your dispute at any time from <a href="${ENV.baseUrl}/disputes" style="color: #7c3aed;">My Disputes</a></li>
+        </ul>
+      </div>
+
+      ${footerLinks}
+    </div>
+  `;
+
+  // --- Respondent notice email ---
+  const respondentSubject = `Dispute Notice: ${typeLabel} — Booking on ${bookingEventDate}`;
+  const respondentHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #7c3aed; margin: 0; font-size: 24px;">Ologywood</h1>
+      </div>
+
+      <div style="background: #fef2f2; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 36px; margin-bottom: 8px;">⚠️</div>
+        <h2 style="margin: 0; color: #991b1b; font-size: 20px;">Dispute Filed</h2>
+        <p style="color: #dc2626; margin: 8px 0 0; font-size: 14px;">A dispute has been filed regarding one of your bookings.</p>
+      </div>
+
+      <p style="color: #333; font-size: 15px;">Hi ${respondentName},</p>
+      <p style="color: #333; font-size: 15px;">We're writing to let you know that a dispute has been filed regarding a booking you were involved in. Our team will review the matter carefully and fairly.</p>
+
+      <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr><td style="padding: 6px 0; color: #6b7280; width: 120px;">Dispute ID</td><td style="padding: 6px 0; color: #111;">#${disputeId}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Type</td><td style="padding: 6px 0; color: #111;">${typeLabel}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Event Date</td><td style="padding: 6px 0; color: #111;">${bookingEventDate}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Filed By</td><td style="padding: 6px 0; color: #111;">${reporterName}</td></tr>
+        </table>
+      </div>
+
+      <div style="background: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+        <h4 style="margin: 0 0 8px; color: #1e40af; font-size: 14px;">What You Should Know</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 13px;">
+          <li>No action is required from you at this time</li>
+          <li>Our team will review all evidence before making a decision</li>
+          <li>We may reach out to you for your side of the story</li>
+          <li>You'll receive an email when the status is updated</li>
+          <li>You can view dispute details from <a href="${ENV.baseUrl}/disputes" style="color: #7c3aed;">My Disputes</a></li>
+        </ul>
+      </div>
+
+      ${footerLinks}
+    </div>
+  `;
+
+  // Send both emails (best-effort, don't block the dispute creation)
+  try {
+    await sendEmail({ to: reporterEmail, subject: reporterSubject, html: reporterHtml });
+    console.log(`[DisputeFiled] Reporter confirmation sent to ${reporterEmail} for dispute #${disputeId}`);
+  } catch (err) {
+    console.error(`[DisputeFiled] Failed to send reporter confirmation for dispute #${disputeId}:`, err);
+  }
+
+  try {
+    await sendEmail({ to: respondentEmail, subject: respondentSubject, html: respondentHtml });
+    console.log(`[DisputeFiled] Respondent notice sent to ${respondentEmail} for dispute #${disputeId}`);
+  } catch (err) {
+    console.error(`[DisputeFiled] Failed to send respondent notice for dispute #${disputeId}:`, err);
+  }
+}

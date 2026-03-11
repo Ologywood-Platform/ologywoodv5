@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings } from 'lucide-react';
+import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -204,6 +204,13 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                           </button>
                         </Link>
 
+                        <Link href="/disputes" onClick={() => setUserMenuOpen(false)} className="block">
+                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
+                            <AlertTriangle className="h-4 w-4" />
+                            My Disputes
+                          </button>
+                        </Link>
+
                         <Link href="/settings" onClick={() => setUserMenuOpen(false)} className="block">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
                             <Settings className="h-4 w-4" />
@@ -318,6 +325,13 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
                     <ShoppingBag className="h-4 w-4" />
                     My Purchases
+                  </Button>
+                </Link>
+
+                <Link href="/disputes" onClick={closeMobile} className="block">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                    <AlertTriangle className="h-4 w-4" />
+                    My Disputes
                   </Button>
                 </Link>
 

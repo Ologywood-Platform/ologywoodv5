@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { storagePut } from "../storage";
-import { sendDisputeStatusUpdate } from "../email";
+import { sendDisputeStatusUpdate, sendDisputeFiled } from "../email";
 
 export const disputeRouter = router({
   /**
@@ -74,6 +74,36 @@ export const disputeRouter = router({
         evidenceUrls: input.evidenceUrls ? JSON.stringify(input.evidenceUrls) : null,
         status: "open",
       });
+
+      // Send email notifications to both reporter and respondent (best-effort)
+      try {
+        const reporter = await db.getUserById(ctx.user.id);
+        const respondent = await db.getUserById(respondentId);
+        const booking_data = await db.getBookingById(input.bookingId);
+
+        const eventDateFormatted = booking_data?.eventDate
+          ? new Date(booking_data.eventDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+          : 'N/A';
+
+        if (reporter?.email && respondent?.email) {
+          await sendDisputeFiled({
+            reporterEmail: reporter.email,
+            reporterName: reporter.name || 'User',
+            respondentEmail: respondent.email,
+            respondentName: respondent.name || 'Other Party',
+            disputeType: input.type,
+            bookingEventDate: eventDateFormatted,
+            disputeId: dispute.id,
+            description: input.description,
+          });
+        }
+      } catch (emailError) {
+        console.error(`[Dispute] Failed to send dispute filed emails for dispute #${dispute.id}:`, emailError);
+      }
 
       return { success: true, disputeId: dispute.id };
     }),

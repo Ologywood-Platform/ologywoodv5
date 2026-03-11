@@ -101,7 +101,7 @@ describe("Dispute Email Notifications", () => {
         "utf-8"
       );
       
-      expect(routerSource).toContain('import { sendDisputeStatusUpdate } from "../email"');
+      expect(routerSource).toContain('import { sendDisputeStatusUpdate, sendDisputeFiled } from "../email"');
     });
 
     it("should call sendDisputeStatusUpdate in adminResolve mutation", async () => {
