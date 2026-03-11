@@ -1450,3 +1450,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: getUserPurchases now matches by email too, so once logged in purchases show
 - [x] Fix non-www to www redirect so sessions are consistent across devices
   - Already implemented in server/_core/index.ts (301 redirect ologywood.com → www.ologywood.com)
+
+
+## TEXT OVERLAP ON HOMEPAGE - DESKTOP SIGNED IN (Mar 10, 2026)
+
+- [x] Fix text overlap on homepage when signed in on desktop
+  - Root cause: too many nav items (Browse, Events, Blog, Following, Dashboard, Bookings, Purchases, email, Logout) crowding the header
+  - Fix: consolidated Dashboard, Bookings, Purchases, Logout into a user dropdown menu with chevron icon

@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck } from 'lucide-react';
+import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -22,7 +22,7 @@ function LogoutButton({ onAction }: { onAction?: () => void }) {
     <Button
       variant="ghost"
       size="sm"
-      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm px-4"
+      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm w-full justify-start"
       onClick={handleLogout}
       disabled={logoutMutation.isPending}
     >
@@ -45,9 +45,11 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('login');
   const menuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu on outside click
   useEffect(() => {
@@ -61,9 +63,22 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
     return () => document.removeEventListener('mousedown', handleClick);
   }, [mobileOpen]);
 
+  // Close user dropdown on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [userMenuOpen]);
+
   // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
+    setUserMenuOpen(false);
   }, [location]);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
@@ -82,12 +97,16 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
   const isFollowingPage = location === '/following';
 
+  // Truncate display name for the dropdown trigger
+  const displayName = user?.name || user?.email || 'Account';
+  const shortName = displayName.length > 16 ? displayName.slice(0, 14) + '...' : displayName;
+
   return (
     <>
       <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-200" ref={menuRef}>
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary dark:text-purple-400">
+          <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary dark:text-purple-400 shrink-0">
             {largeLogo ? (
               <img src="/logo-lg.png" alt="Ologywood" className="h-8 sm:h-10 w-auto object-contain" />
             ) : (
@@ -97,25 +116,25 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-3">
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             {extraNav}
 
             {!hideBrowse && (
               <Link href="/browse">
-                <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
+                <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
                   Browse
                 </Button>
               </Link>
             )}
 
             <Link href="/events">
-              <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
                 Events
               </Button>
             </Link>
 
             <Link href="/blog">
-              <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
                 Blog
               </Button>
             </Link>
@@ -126,7 +145,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   <Button
                     variant={isFollowingPage ? 'default' : 'ghost'}
                     size="sm"
-                    className={`text-sm px-4 gap-1 ${
+                    className={`text-sm px-3 gap-1 ${
                       isFollowingPage
                         ? 'bg-purple-600 hover:bg-purple-700 text-white'
                         : 'dark:text-gray-300 dark:hover:text-white'
@@ -137,40 +156,67 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   </Button>
                 </Link>
 
-                <Link href={getDashboardUrl(user)}>
-                  <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
-                    Dashboard
-                  </Button>
-                </Link>
-
-                <Link href="/my-bookings">
-                  <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
-                    <CalendarCheck className="h-4 w-4 mr-1" />
-                    Bookings
-                  </Button>
-                </Link>
-
-                <Link href="/my-purchases">
-                  <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white">
-                    <ShoppingBag className="h-4 w-4 mr-1" />
-                    Purchases
-                  </Button>
-                </Link>
-
-                <span className="text-sm text-muted-foreground max-w-[150px] truncate">
-                  {user?.name || user?.email}
-                </span>
-
                 <RealtimeNotifications />
 
                 <DarkModeToggle compact />
 
-                <LogoutButton />
+                {/* User dropdown menu — consolidates Dashboard, Bookings, Purchases, Logout */}
+                <div className="relative" ref={userMenuRef}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-sm px-3 gap-1 dark:text-gray-300 dark:hover:text-white"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="hidden lg:inline max-w-[120px] truncate">{shortName}</span>
+                    <ChevronDown className={`h-3 w-3 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1 w-64 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                      {/* User info */}
+                      <div className="px-4 py-2 border-b dark:border-gray-700">
+                        <p className="text-sm font-medium truncate dark:text-gray-200">{user?.name || 'User'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      </div>
+
+                      {/* Nav links */}
+                      <div className="py-1">
+                        <Link href={getDashboardUrl(user)} onClick={() => setUserMenuOpen(false)} className="block">
+                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
+                            <LayoutDashboard className="h-4 w-4" />
+                            Dashboard
+                          </button>
+                        </Link>
+
+                        <Link href="/my-bookings" onClick={() => setUserMenuOpen(false)} className="block">
+                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
+                            <CalendarCheck className="h-4 w-4" />
+                            My Bookings
+                          </button>
+                        </Link>
+
+                        <Link href="/my-purchases" onClick={() => setUserMenuOpen(false)} className="block">
+                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
+                            <ShoppingBag className="h-4 w-4" />
+                            My Purchases
+                          </button>
+                        </Link>
+                      </div>
+
+                      {/* Logout */}
+                      <div className="border-t dark:border-gray-700 py-1">
+                        <LogoutButton onAction={() => setUserMenuOpen(false)} />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
                 <DarkModeToggle compact />
-                <Button variant="ghost" size="sm" className="text-sm px-4 dark:text-gray-300 dark:hover:text-white" onClick={openSignUp}>
+                <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white" onClick={openSignUp}>
                   Sign Up
                 </Button>
                 <Button size="sm" className="text-sm px-4" onClick={openSignIn}>
@@ -248,7 +294,8 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                 </Link>
 
                 <Link href={getDashboardUrl(user)} onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                    <LayoutDashboard className="h-4 w-4" />
                     Dashboard
                   </Button>
                 </Link>
