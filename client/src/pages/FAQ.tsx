@@ -25,6 +25,8 @@ export default function FAQ() {
     { q: 'How do artists set pricing?', a: 'Artists set their own pricing based on event type, duration, and location from their dashboard profile settings. Pricing appears on your public profile for venues to see.' },
     { q: 'Is there a booking fee?', a: 'Ologywood charges a small service fee on bookings to maintain the platform. The fee is transparently shown before you confirm.' },
     { q: 'How many bookings can I make on the Free plan?', a: 'Free plan users can send up to 2 booking requests per month. Upgrade to Starter ($9/month) or Professional ($29/month) for unlimited bookings.' },
+    { q: 'How does the deposit payment work?', a: 'Booking payments are split into two stages. First, pay a 50% deposit to secure your booking. Then, pay the remaining 50% balance before the event. Both payments are processed securely through Stripe. You can manage payments from the My Bookings page, where each booking shows its current payment status: Deposit Paid, Paid in Full, or Refunded.' },
+    { q: 'Where do I find My Bookings?', a: 'Click your name or email in the top navigation bar to open the user dropdown menu, then select "My Bookings." This page shows all your booking requests with status, payment badges, and action buttons for messaging the artist or making payments.' },
     
     // Riders & Contracts
     { q: 'What is a rider?', a: 'A rider is a document listing an artist\'s technical requirements (sound, lighting, stage specs) and hospitality needs. Artists can build riders using the Rider Builder tool in their Dashboard. Choose from structured templates or create custom ones. Available on Starter and Professional plans.' },
@@ -32,7 +34,9 @@ export default function FAQ() {
     
     // Music & Releases
     { q: 'How do I sell my music on Ologywood?', a: 'Go to your Artist Dashboard > Releases. Upload your track, add cover art, set your price, and publish. Fans can purchase and download directly from your profile. You keep 99% of each sale (1% platform fee).' },
-    { q: 'How do I buy and download music?', a: 'Click "Buy" on any release card to open Stripe checkout. After payment, you land on a success page with a download button. You can also re-download from "Purchases" in the navigation bar. Each purchase allows up to 5 downloads. A confirmation email with a download link is also sent.' },
+    { q: 'How do I buy and download music?', a: 'Click "Buy" on any release card to open Stripe checkout. After payment, you land on a success page with a download button. You can also re-download from "My Purchases" in the user dropdown menu. Each purchase allows up to 5 downloads. A branded confirmation email with download instructions is also sent to your email.' },
+    { q: 'Where do I find My Purchases?', a: 'Click your name or email in the top navigation bar to open the user dropdown menu, then select "My Purchases." This page lists all your purchased releases with cover art, artist name, purchase date, and download buttons. You can also access downloads from the confirmation email sent after each purchase.' },
+    { q: 'My purchase page says "Processing" and won\'t load. What do I do?', a: 'Wait a few seconds for automatic verification. If it takes longer, click the "Verify Payment Now" button on the page. This confirms your payment directly with Stripe and unlocks your download. You will also receive a confirmation email with a link to My Purchases.' },
     
     // Tips & Support
     { q: 'How do tip links work?', a: 'Artists can add their Cash App, Venmo, PayPal, and Zelle handles in Edit Profile under "Support This Artist". These appear on the artist\'s public profile as branded badges. Fans click to tip directly. Tips go straight to the artist with zero platform fees.' },

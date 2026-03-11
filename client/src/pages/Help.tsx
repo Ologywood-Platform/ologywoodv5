@@ -95,6 +95,18 @@ const faqItems: FAQItem[] = [
     question: 'How do I view my earnings and sales analytics?',
     answer: 'Artists can view their earnings from Dashboard > Earnings & Payouts. This page shows total earnings, completed payments, pending amounts, and paid out totals. It also includes Release Sales Analytics with per-release breakdowns showing sales count, gross revenue, net revenue (after 1% platform fee), and release status.',
   },
+  {
+    id: 'payment-5',
+    category: 'Payments & Billing',
+    question: 'How does the deposit payment work for bookings?',
+    answer: 'When you book an artist, you can pay in two stages. First, pay a 50% deposit to secure the booking. The artist is notified and the booking status updates to "Deposit Paid." Before the event, you can pay the remaining 50% balance. Once both payments are complete, the booking status updates to "Paid in Full." You can manage all payments from the My Bookings page by clicking the "Pay Deposit" or "Pay Remaining Balance" buttons.',
+  },
+  {
+    id: 'payment-6',
+    category: 'Payments & Billing',
+    question: 'Where can I see my booking payment status?',
+    answer: 'Go to My Bookings from the user dropdown menu in the navigation bar. Each booking card shows a payment status badge: "Deposit Paid" (50% paid), "Paid in Full" (100% paid), or "Refunded" if applicable. You can also pay outstanding balances directly from this page.',
+  },
 
   // Music & Releases
   {
@@ -107,13 +119,25 @@ const faqItems: FAQItem[] = [
     id: 'music-2',
     category: 'Music & Releases',
     question: 'How do fans purchase and download releases?',
-    answer: 'Fans click the "Buy" button on a release card, which opens a secure Stripe checkout. After payment, they are redirected to a Purchase Success page with a download button. Fans can also re-download from the "My Purchases" page (accessible from the Purchases link in the navigation bar). Each purchase allows up to 5 downloads.',
+    answer: 'Fans click the "Buy" button on a release card, which opens a secure Stripe checkout. After payment, they are redirected to a Purchase Success page with a download button. Fans can also re-download from the "My Purchases" page (accessible from the user dropdown menu in the navigation bar). Each purchase allows up to 5 downloads. A branded confirmation email with download instructions is also sent to the buyer.',
   },
   {
     id: 'music-3',
     category: 'Music & Releases',
     question: 'Where can I see my purchased music?',
-    answer: 'Click "Purchases" in the navigation bar to visit the My Purchases page. This shows all your purchased releases with cover art, artist name, purchase date, and download buttons. You can also access the download link from the confirmation email sent after each purchase.',
+    answer: 'Click your name or email in the top navigation bar to open the user dropdown menu, then select "My Purchases." This page shows all your purchased releases with cover art, artist name, purchase date, and a download button. You can also access the download link from the confirmation email sent after each purchase.',
+  },
+  {
+    id: 'music-4',
+    category: 'Music & Releases',
+    question: 'I completed a purchase but the page is stuck on "Processing." What should I do?',
+    answer: 'If the Purchase Success page shows "Processing your purchase," wait a few seconds for automatic verification. If it takes longer, click the "Verify Payment Now" button. The system will confirm your payment directly with Stripe and unlock your download. You will also receive a confirmation email with a link to My Purchases where you can download your track anytime.',
+  },
+  {
+    id: 'music-5',
+    category: 'Music & Releases',
+    question: 'How many times can I download a purchased release?',
+    answer: 'Each purchase allows up to 5 downloads. You can download from the Purchase Success page immediately after buying, or return to My Purchases anytime to download again. The remaining download count is shown on each purchase card.',
   },
 
   // Tips & Support Artists

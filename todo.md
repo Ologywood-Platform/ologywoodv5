@@ -1457,3 +1457,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix text overlap on homepage when signed in on desktop
   - Root cause: too many nav items (Browse, Events, Blog, Following, Dashboard, Bookings, Purchases, email, Logout) crowding the header
   - Fix: consolidated Dashboard, Bookings, Purchases, Logout into a user dropdown menu with chevron icon
+
+
+## DOCUMENTATION UPDATES - DEPOSIT & DOWNLOAD (Mar 10, 2026)
+
+- [x] Update Help Center with deposit payment flow (50% deposit, remaining balance)
+  - Added: "How does the deposit payment work for bookings?" and "Where can I see my booking payment status?"
+- [x] Update Help Center with My Purchases download process
+  - Added: "Processing stuck" troubleshooting, download count info, updated nav references to user dropdown
+- [x] Update FAQ with deposit and download questions
+  - Added: deposit payment, My Bookings location, My Purchases location, processing troubleshooting
+- [x] Update How It Works with client booking payment steps
+  - Updated Fan step 4: "Request Bookings & Pay Deposits" with deposit/balance flow
+  - Updated Venue step 5: "Sign Contracts & Pay" with deposit/balance details
+  - Updated Fan step 3: added confirmation email mention

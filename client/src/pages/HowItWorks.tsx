@@ -133,12 +133,13 @@ const venueSteps: Step[] = [
   {
     number: 5,
     title: 'Sign Contracts & Pay',
-    description: 'Sign digital contracts with e-signatures and process payments securely through Stripe.',
+    description: 'Sign digital contracts with e-signatures and process payments securely through Stripe. Pay a 50% deposit to confirm, then the remaining balance before the event.',
     items: [
       'Digital contracts with all agreed terms',
       'Electronic signatures with verification',
-      'Secure Stripe payment processing',
-      'In-app notifications at every step',
+      'Pay 50% deposit to secure the booking',
+      'Pay remaining balance before the event',
+      'Track payment status from My Bookings',
     ],
   },
   {
@@ -185,16 +186,19 @@ const fanSteps: Step[] = [
       'Secure checkout through Stripe',
       'Download from the success page or My Purchases',
       'Up to 5 downloads per purchase',
+      'Branded confirmation email with download instructions',
     ],
   },
   {
     number: 4,
-    title: 'Request Bookings',
-    description: 'Want to book an artist for your private event, party, or gathering? Send a booking request directly from their profile.',
+    title: 'Request Bookings & Pay Deposits',
+    description: 'Book an artist for your private event, party, or gathering. Pay a 50% deposit to secure the booking, then pay the remaining balance before the event.',
     items: [
       'Fill in event date, time, and venue details',
-      'Set your offered fee',
-      'Communicate with artists through messaging',
+      'Set your offered fee and communicate with artists',
+      'Pay a 50% deposit to secure your booking',
+      'Pay the remaining 50% balance before the event',
+      'Track payment status from My Bookings',
     ],
   },
   {
