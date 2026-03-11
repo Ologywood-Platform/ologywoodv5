@@ -1423,3 +1423,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Investigate why purchase confirmation emails are still not being received
 - [ ] Trace email delivery path end-to-end (SendGrid/Forge API)
 - [ ] Verify release purchase flow works on production
+
+
+## PURCHASE FLOW BUG - WEBHOOK NOT FIRING (Mar 10, 2026)
+
+- [x] Stripe webhook not recording release purchases after checkout
+  - Root cause: webhook may not be receiving events from Stripe (infrastructure/config issue)
+  - Fix: added server-side verifyPurchase fallback that queries Stripe directly
+- [x] PurchaseSuccess page stuck on "Processing your purchase..."
+  - Fix: auto-triggers verifyPurchase after 3s, also has manual "Verify Payment Now" button
+- [x] No confirmation email sent to buyer after purchase
+  - Fix: verifyPurchase fallback also sends the branded confirmation email
+- [x] Add fallback purchase verification on PurchaseSuccess page
+  - Implemented as release.verifyPurchase mutation in release router

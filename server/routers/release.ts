@@ -8,9 +8,15 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../db";
+import * as email from "../email";
 import { hasFeatureAccess, canCreateRelease, getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 import { sendArtistUpdate } from "../services/artistUpdateService";
 import { storageGet } from "../storage";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-12-15.clover",
+});
 
 // Helper to resolve S3 keys to presigned URLs for a release
 async function withUrls(release: any) {
@@ -595,6 +601,115 @@ export const releaseRouter = router({
   /**
    * Get purchase details by Stripe session ID (for success page).
    */
+  /**
+   * Verify and create purchase from Stripe session (webhook fallback).
+   * If the webhook hasn't processed the event yet, this queries Stripe directly.
+   */
+  verifyPurchase: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // First check if purchase already exists
+      const existing = await db.getPurchaseBySessionId(input.sessionId);
+      if (existing) {
+        return { status: 'already_exists' as const, purchaseId: existing.id };
+      }
+
+      // Query Stripe for the session
+      try {
+        const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+        
+        if (session.payment_status !== 'paid') {
+          return { status: 'not_paid' as const, purchaseId: null };
+        }
+
+        const releaseId = session.metadata?.releaseId ? parseInt(session.metadata.releaseId) : null;
+        if (!releaseId || session.metadata?.type !== 'release_purchase') {
+          return { status: 'not_release_purchase' as const, purchaseId: null };
+        }
+
+        // Double-check idempotency
+        const doubleCheck = await db.getPurchaseBySessionId(session.id);
+        if (doubleCheck) {
+          return { status: 'already_exists' as const, purchaseId: doubleCheck.id };
+        }
+
+        const release = await db.getReleaseById(releaseId);
+        if (!release) {
+          return { status: 'release_not_found' as const, purchaseId: null };
+        }
+
+        const amountPaid = session.amount_total || release.priceInCents;
+        const platformFeeCents = Math.max(1, Math.round(amountPaid * 0.01));
+
+        // Create the purchase record
+        const purchase = await db.createReleasePurchase({
+          releaseId,
+          buyerEmail: session.customer_details?.email || session.metadata?.buyerEmail || ctx.user.email || 'unknown',
+          buyerName: session.customer_details?.name || session.metadata?.buyerName || ctx.user.name || null,
+          buyerUserId: ctx.user.id,
+          stripeCheckoutSessionId: session.id,
+          amountPaidCents: amountPaid,
+          platformFeeCents,
+          artistNetCents: amountPaid - platformFeeCents,
+        });
+
+        // Increment sales counters
+        await db.incrementReleaseSales(releaseId, amountPaid);
+
+        console.log(`[Release VerifyPurchase] Fallback purchase created: release=${releaseId}, amount=$${(amountPaid / 100).toFixed(2)}`);
+
+        // Send purchase confirmation email
+        try {
+          const buyerEmail = session.customer_details?.email || session.metadata?.buyerEmail || ctx.user.email;
+          const artistProfile = await db.getArtistProfileById(release.artistId);
+          if (buyerEmail && artistProfile) {
+            const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+            const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=purchase`;
+            await email.sendEmail({
+              to: buyerEmail,
+              subject: `Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`,
+              html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                  <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+                  <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
+                </div>
+                <div style="padding: 30px 24px;">
+                  <p style="font-size: 16px; color: #374151; margin: 0 0 20px 0;">You purchased <strong>"${release.title}"</strong> by <strong>${artistProfile.artistName}</strong> for <strong>$${(amountPaid / 100).toFixed(2)}</strong>.</p>
+                  <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+                    <p style="color: #374151; margin: 0 0 8px 0; font-size: 14px;"><strong>How to download your track:</strong></p>
+                    <ol style="color: #374151; margin: 0; padding-left: 20px; font-size: 14px;">
+                      <li style="margin-bottom: 4px;">Click the button below to go to My Purchases</li>
+                      <li style="margin-bottom: 4px;">Find your release and click the Download button</li>
+                      <li>You have up to 5 downloads available</li>
+                    </ol>
+                  </div>
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${baseUrl}/my-purchases" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Download Your Track</a>
+                  </div>
+                  <p style="font-size: 14px; color: #6b7280; margin: 20px 0 0 0;">You can also re-download anytime from <a href="${baseUrl}/my-purchases" style="color: #6D28D9; text-decoration: none;">My Purchases</a>.</p>
+                </div>
+                <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+                  <p style="font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 10px 0;">Thank you for supporting independent artists on Ologywood!</p>
+                  <p style="color: #6b7280; font-size: 12px; margin: 0; text-align: center;">
+                    <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+                    <a href="${baseUrl}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+                  </p>
+                </div>
+              </div>`,
+            });
+            console.log(`[Release VerifyPurchase] Confirmation email sent to ${buyerEmail}`);
+          }
+        } catch (emailErr) {
+          console.error('[Release VerifyPurchase] Email error:', emailErr);
+        }
+
+        return { status: 'created' as const, purchaseId: purchase.id };
+      } catch (err: any) {
+        console.error('[Release VerifyPurchase] Stripe error:', err);
+        return { status: 'error' as const, purchaseId: null };
+      }
+    }),
+
   purchaseBySession: protectedProcedure
     .input(z.object({ sessionId: z.string() }))
     .query(async ({ ctx, input }) => {
