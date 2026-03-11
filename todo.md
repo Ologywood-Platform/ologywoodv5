@@ -1415,3 +1415,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Ensure My Purchases page shows download buttons correctly
 - [x] Check PurchaseSuccess page has clear download instructions
 - [x] Upgrade purchase confirmation email to branded Ologywood template with download instructions and unsubscribe link
+
+
+## ARTIST PROFILE RELEASES & EMAIL DELIVERY (Mar 10, 2026)
+
+- [ ] Investigate why releases/downloads are not visible on artist profile page
+- [ ] Investigate why purchase confirmation emails are still not being received
+- [ ] Trace email delivery path end-to-end (SendGrid/Forge API)
+- [ ] Verify release purchase flow works on production
