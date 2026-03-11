@@ -988,3 +988,44 @@ export const unsubscribeFeedback = mysqlTable("unsubscribe_feedback", {
 }));
 export type UnsubscribeFeedback = typeof unsubscribeFeedback.$inferSelect;
 export type InsertUnsubscribeFeedback = typeof unsubscribeFeedback.$inferInsert;
+
+
+/**
+ * Booking Disputes — allows artists or venues to report issues with bookings.
+ * Admin reviews and resolves disputes.
+ */
+export const bookingDisputes = mysqlTable("booking_disputes", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  reporterId: int("reporterId").notNull(),       // user who filed the dispute
+  respondentId: int("respondentId").notNull(),    // the other party
+  type: mysqlEnum("type", [
+    "payment_issue",
+    "no_show",
+    "contract_violation",
+    "quality_issue",
+    "cancellation_dispute",
+    "harassment",
+    "other",
+  ]).notNull(),
+  description: text("description").notNull(),
+  evidenceUrls: text("evidenceUrls"),             // JSON array of S3 URLs
+  status: mysqlEnum("status", [
+    "open",
+    "under_review",
+    "resolved",
+    "dismissed",
+  ]).default("open").notNull(),
+  resolution: text("resolution"),                 // admin's resolution notes
+  adminNotes: text("adminNotes"),                 // internal admin notes
+  resolvedById: int("resolvedById"),              // admin who resolved it
+  resolvedAt: timestamp("resolvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_disputes_booking").on(table.bookingId),
+  reporterIdx: index("idx_disputes_reporter").on(table.reporterId),
+  statusIdx: index("idx_disputes_status").on(table.status),
+}));
+export type BookingDispute = typeof bookingDisputes.$inferSelect;
+export type InsertBookingDispute = typeof bookingDisputes.$inferInsert;

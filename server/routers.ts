@@ -33,6 +33,7 @@ import { blogRouter } from "./routers/blog";
 import { stripeConnectRouter } from "./routers/stripeConnect";
 import { contactRouter } from "./routers/contact";
 import { notificationsRouter } from "./routers/notifications";
+import { disputeRouter } from "./routers/dispute";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -1886,6 +1887,22 @@ export const appRouter = router({
         }
         return await db.getRevenueByMonth(profile.id, input.months);
       }),
+
+    getCalendarFeedUrl: artistProcedure
+      .query(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const { generateCalendarToken } = await import('./routes/calendarFeed');
+        const token = generateCalendarToken(profile.id);
+        const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+        return {
+          feedUrl: `${baseUrl}/api/calendar/${profile.id}/bookings.ics?token=${token}`,
+          artistId: profile.id,
+          token,
+        };
+      }),
   }),
   
   // Reminders router (for testing/manual trigger)
@@ -2338,5 +2355,6 @@ export const appRouter = router({
   }),
   
   admin: adminRouter,
+  dispute: disputeRouter,
 });
 export type AppRouter = typeof appRouter;

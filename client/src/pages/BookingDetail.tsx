@@ -14,6 +14,7 @@ import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import ReportIssueDialog from '@/components/ReportIssueDialog';
 import { useParams, useLocation } from 'wouter';
 import { useEffect, useRef } from 'react';
 
@@ -142,7 +143,7 @@ export default function BookingDetail() {
         <PageBreadcrumb
           className="mb-6"
           segments={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
             { label: 'Bookings', href: '/bookings' },
             { label: `Booking #${id}` },
           ]}
@@ -208,12 +209,7 @@ export default function BookingDetail() {
               )}
             </div>
 
-            {booking.eventDetails && (
-              <div className="mt-6">
-                <p className="text-sm text-muted-foreground mb-2">Event Details</p>
-                <p className="text-sm">{booking.eventDetails}</p>
-              </div>
-            )}
+
 
             {/* Action Buttons */}
             {canUpdateStatus && booking.status === 'pending' && (
@@ -237,7 +233,7 @@ export default function BookingDetail() {
             )}
 
             {booking.status === 'confirmed' && canUpdateStatus && (
-              <div className="mt-6">
+              <div className="mt-6 flex items-center gap-3">
                 <Button
                   variant="destructive"
                   onClick={() => handleStatusUpdate('cancelled')}
@@ -245,6 +241,14 @@ export default function BookingDetail() {
                 >
                   Cancel Booking
                 </Button>
+                <ReportIssueDialog bookingId={bookingId} onDisputeFiled={() => refetch()} />
+              </div>
+            )}
+
+            {/* Report Issue - available on completed or cancelled bookings */}
+            {(booking.status === 'completed' || booking.status === 'cancelled') && (
+              <div className="mt-6">
+                <ReportIssueDialog bookingId={bookingId} onDisputeFiled={() => refetch()} />
               </div>
             )}
           </Card>

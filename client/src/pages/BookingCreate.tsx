@@ -82,7 +82,7 @@ export default function BookingCreate() {
 
     if (!venueProfile) {
       toast.error('Please complete your venue profile first');
-      navigate('/venue/profile');
+      navigate('/onboarding/venue');
       return;
     }
 
@@ -121,7 +121,7 @@ export default function BookingCreate() {
         <PageBreadcrumb
           className="mb-4"
           segments={[
-            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Dashboard', href: '/venue-dashboard' },
             { label: 'Bookings', href: '/bookings' },
             { label: 'New Booking' },
           ]}

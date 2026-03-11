@@ -15,6 +15,7 @@ import sitemapRoutes from './routes/sitemapRoutes';
 import emailRoutes from './routes/emailRoutes';
 import releaseCheckoutRoutes from './routes/releaseCheckout';
 import releaseDownloadRoutes from './routes/releaseDownload';
+import calendarFeedRoutes from './routes/calendarFeed';
 import path from 'path';
 import http from 'http';
 
@@ -51,6 +52,7 @@ async function initializeServer(): Promise<void> {
   app.use('/api/email', emailRoutes);
   app.use('/api/release/checkout', releaseCheckoutRoutes);
   app.use('/api/release/download', releaseDownloadRoutes);
+  app.use('/api/calendar', calendarFeedRoutes);
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');

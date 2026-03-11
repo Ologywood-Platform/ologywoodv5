@@ -80,6 +80,7 @@ const Contracts = lazy(() => import("./pages/Contracts"));
 const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Settings = lazy(() => import("./pages/Settings"));
+const MyDisputes = lazy(() => import("./pages/MyDisputes"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -172,6 +173,7 @@ function Router() {
           <Route path="/faq" component={FAQ} />
           <Route path="/unsubscribe" component={Unsubscribe} />
           <Route path="/settings" component={Settings} />
+          <Route path="/disputes" component={MyDisputes} />
           
           {/* Legal Pages (compliance only) */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />

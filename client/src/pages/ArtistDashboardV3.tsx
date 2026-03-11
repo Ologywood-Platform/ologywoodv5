@@ -10,6 +10,7 @@ import { EventStatusManager } from '@/components/EventStatusManager';
 import { FansSection } from '@/components/FansSection';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { CalendarSync } from '@/components/CalendarSync';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -320,6 +321,9 @@ export function ArtistDashboardV3() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Calendar Sync */}
+            <CalendarSync />
 
             {/* Events Section */}
             <Card>

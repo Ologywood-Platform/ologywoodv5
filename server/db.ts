@@ -33,7 +33,8 @@ import {
   releasePurchases, InsertReleasePurchase, ReleasePurchase,
   notifications, InsertNotification, Notification,
   notificationPreferences, InsertNotificationPreference, NotificationPreference,
-  unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback
+  unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback,
+  bookingDisputes, InsertBookingDispute, BookingDispute
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2530,4 +2531,58 @@ export async function getUnsubscribeFeedbackStats() {
     .groupBy(unsubscribeFeedback.reason)
     .orderBy(desc(sql`COUNT(*)`));
   return rows;
+}
+
+
+// ============= BOOKING DISPUTE FUNCTIONS =============
+
+export async function createDispute(data: InsertBookingDispute): Promise<BookingDispute> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(bookingDisputes).values(data);
+  const id = (result as any)[0].insertId;
+  const dispute = await db.select().from(bookingDisputes).where(eq(bookingDisputes.id, id)).limit(1);
+  return dispute[0] as BookingDispute;
+}
+
+export async function getDisputeById(id: number): Promise<BookingDispute | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(bookingDisputes).where(eq(bookingDisputes.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getDisputesByUserId(userId: number): Promise<BookingDispute[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookingDisputes)
+    .where(or(eq(bookingDisputes.reporterId, userId), eq(bookingDisputes.respondentId, userId)))
+    .orderBy(desc(bookingDisputes.createdAt));
+}
+
+export async function getDisputeByBookingId(bookingId: number): Promise<BookingDispute | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(bookingDisputes).where(eq(bookingDisputes.bookingId, bookingId)).limit(1);
+  return result[0];
+}
+
+export async function getAllDisputes(statusFilter?: string): Promise<BookingDispute[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (statusFilter && statusFilter !== 'all') {
+    return db.select().from(bookingDisputes)
+      .where(eq(bookingDisputes.status, statusFilter as any))
+      .orderBy(desc(bookingDisputes.createdAt));
+  }
+  return db.select().from(bookingDisputes).orderBy(desc(bookingDisputes.createdAt));
+}
+
+export async function updateDisputeStatus(
+  id: number,
+  data: { status: string; resolution?: string; adminNotes?: string; resolvedById?: number; resolvedAt?: Date }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.update(bookingDisputes).set(data as any).where(eq(bookingDisputes.id, id));
 }

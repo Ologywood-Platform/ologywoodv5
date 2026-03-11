@@ -1569,3 +1569,29 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Add getUnsubscribeFeedback endpoint to admin router
 - [x] Add Feedback tab to admin dashboard with reason breakdown chart and recent feedback table
+
+## CRITICAL GAPS — Blocks Real-World Usage (Mar 11, 2026)
+
+### Critical Gap 1: Venue E2E Test & Fixes
+- [x] Fix VenueOnboarding dead-end placeholder — replaced with full onboarding form
+- [x] Fix BookingDetail breadcrumb for venue users — dynamic based on role
+- [x] Fix BookingCreate redirect for venue users — navigates to venue-dashboard
+- [x] Fix BookingsList back button for venue users — dynamic based on role
+- [x] Fix duplicate event details display in BookingDetail
+
+### Critical Gap 2: Dispute Resolution System
+- [x] Create booking_disputes database table with full schema
+- [x] Create dispute tRPC router (create, getMyDisputes, getById, admin review/resolve)
+- [x] Create ReportIssueDialog component on BookingDetail page
+- [x] Create MyDisputes page at /disputes for tracking disputes
+- [x] Register dispute route in App.tsx
+- [ ] Add admin dispute review tab to AdminDashboard (future)
+- [ ] Send email notifications when dispute is filed and resolved (future)
+
+### Critical Gap 3: Calendar Integration
+- [x] Auto-block artist availability dates when booking is confirmed (already implemented)
+- [x] Auto-unblock dates when booking is cancelled (already implemented)
+- [x] Build iCal feed endpoint at /api/calendar/:artistId/bookings.ics with HMAC token auth
+- [x] Create CalendarSync UI component on artist dashboard (Google Calendar, Apple/Outlook, copy URL)
+- [x] Add getCalendarFeedUrl tRPC endpoint for generating secure feed URLs
+- [ ] Add "Add to Calendar" button on individual booking detail pages (future)

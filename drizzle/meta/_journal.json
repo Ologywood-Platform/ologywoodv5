@@ -421,6 +421,13 @@
       "when": 1773252705364,
       "tag": "0059_glamorous_pepper_potts",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1773263630054,
+      "tag": "0060_colorful_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }
