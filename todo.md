@@ -1471,3 +1471,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Updated Fan step 4: "Request Bookings & Pay Deposits" with deposit/balance flow
   - Updated Venue step 5: "Sign Contracts & Pay" with deposit/balance details
   - Updated Fan step 3: added confirmation email mention
+
+
+## PHONE NUMBER UPDATE (Mar 10, 2026)
+
+- [x] Update phone number across site to 678-525-0891
+  - Updated: Footer.tsx, AccountSettings.tsx, Help.tsx (3 files, all instances replaced)

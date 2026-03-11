@@ -180,8 +180,8 @@ const Footer = () => {
                 <Phone className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-gray-400 text-sm">Phone</p>
-                  <a href="tel:+1-800-OLOGYWOOD" className="text-white hover:text-blue-400 transition">
-                    +1 (800) 654-9963
+                  <a href="tel:+1-678-525-0891" className="text-white hover:text-blue-400 transition">
+                    +1 (678) 525-0891
                   </a>
                 </div>
               </div>

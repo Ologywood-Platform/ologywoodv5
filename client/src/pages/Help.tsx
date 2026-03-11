@@ -386,7 +386,7 @@ export default function Help() {
                 <Phone className="text-purple-600" size={24} />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone Support</h3>
-              <p className="text-gray-600 mb-4">+1 (800) 654-9963</p>
+              <p className="text-gray-600 mb-4">+1 (678) 525-0891</p>
               <p className="text-sm text-gray-500">Mon-Fri, 9 AM - 6 PM EST</p>
             </div>
           </div>

@@ -722,7 +722,7 @@ export function AccountSettings() {
                 disabled
               >
                 <Phone className="h-4 w-4 mr-2" />
-                Call Us: +1 (800) 654-9963
+                Call Us: +1 (678) 525-0891
               </Button>
             </CardContent>
           </Card>
