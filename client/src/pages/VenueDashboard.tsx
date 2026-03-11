@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText } from 'lucide-react';
@@ -262,6 +263,18 @@ export function VenueDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Profile Completeness */}
+            {profile && (
+              <ProfileCompletenessCard
+                profile={profile}
+                type="venue"
+                onEditProfile={() => {
+                  const el = document.getElementById('venue-profile-tab');
+                  if (el) el.click();
+                }}
+              />
+            )}
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

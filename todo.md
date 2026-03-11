@@ -1595,3 +1595,31 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create CalendarSync UI component on artist dashboard (Google Calendar, Apple/Outlook, copy URL)
 - [x] Add getCalendarFeedUrl tRPC endpoint for generating secure feed URLs
 - [ ] Add "Add to Calendar" button on individual booking detail pages (future)
+
+## HIGH PRIORITY GAPS — Significantly Impacts User Experience (Mar 11, 2026)
+
+### Gap 4: Available on Date Search Filter
+- [x] Add date picker filter to Browse page for "Available on Date"
+- [x] Cross-reference availability table to filter artists by date (fixed to exclude booked/unavailable)
+- [x] Add "Verified Artists Only" toggle to Browse page
+- [x] Ensure filters combine correctly (genre + location + date + verified)
+
+### Gap 5: Invoice Generation with PDF Download
+- [x] Invoice service already generates PDFs (invoice-service.ts)
+- [x] Include invoice number, date, parties, event details, amount breakdown
+- [x] Build PDF invoice download endpoint at /api/invoice/:bookingId/download
+- [x] Add Download PDF button to VenueInvoiceDashboard
+
+### Gap 6: Browser Notifications (Pragmatic Approach)
+- [x] Create useBrowserNotifications hook with permission management
+- [x] Integrate browser Notification API with existing in-app notification system
+- [x] Auto-trigger desktop notifications when new in-app notifications arrive
+- [ ] Full Web Push with VAPID keys (deferred — requires push service infrastructure)
+
+### Gap 7: Profile Completeness Tracking
+- [x] Calculate profile completeness score (0-100%) with weighted fields
+- [x] Show completeness progress bar on artist dashboard (ProfileCompletenessCard)
+- [x] Show completeness progress bar on venue dashboard
+- [x] Highlight missing fields sorted by importance (next steps)
+- [x] Set minimum threshold of 40% for search visibility
+- [x] Tier system: incomplete (<40%), basic (40-64%), good (65-84%), excellent (85%+)

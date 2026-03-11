@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import { useLocation } from 'wouter';
+import { useNotificationWatcher } from '../hooks/useBrowserNotifications';
 
 function timeAgo(date: string | Date): string {
   const now = new Date();
@@ -99,6 +100,9 @@ export default function RealtimeNotifications() {
   }, [isOpen, refetchList]);
 
   const notifications = listData?.items || [];
+
+  // Trigger browser notifications when new in-app notifications arrive
+  useNotificationWatcher(unreadCount);
 
   const handleNotificationClick = (n: any) => {
     if (!n.isRead) markReadMutation.mutate({ id: n.id });

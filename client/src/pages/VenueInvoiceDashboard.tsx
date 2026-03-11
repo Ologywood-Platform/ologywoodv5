@@ -300,6 +300,17 @@ export default function VenueInvoiceDashboard() {
                           <ExternalLink className="h-3 w-3" />
                           View Booking
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => {
+                            window.open(`/api/invoice/${invoice.bookingId}/download`, '_blank');
+                          }}
+                        >
+                          <Download className="h-3 w-3" />
+                          Download PDF
+                        </Button>
                         {invoice.paymentStatus !== 'fully_paid' && invoice.paymentStatus !== 'unpaid' && (
                           <Button
                             size="sm"

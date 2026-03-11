@@ -9,6 +9,7 @@ import {
   venueProfiles, InsertVenueProfile, VenueProfile,
   riderTemplates, InsertRiderTemplate, RiderTemplate,
   availability, InsertAvailability, Availability,
+  verificationBadges,
   bookings, InsertBooking, Booking,
   messages, InsertMessage, Message,
   reviews, InsertReview, Review,
@@ -347,6 +348,8 @@ export async function searchArtists(filters: {
   maxFee?: number;
   availableFrom?: string;
   availableTo?: string;
+  availableDate?: string;
+  verifiedOnly?: boolean;
 }) {
   let results: any[] = [];
   try {
@@ -399,23 +402,71 @@ export async function searchArtists(filters: {
       sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
     );
     
-    // Filter artists who have availability in the requested date range
+    // Filter artists who are AVAILABLE (not booked/unavailable) in the requested date range
     filtered = filtered.filter(artist => {
       const artistAvailability = availabilities.filter((av: any) => av.artistId === artist.id);
-      // Only exclude if no availability records AND user requested availability filtering
-      // This prevents filtering out artists who just haven't set availability yet
-      if (artistAvailability.length === 0) return false;
+      // If artist has no availability records, they haven't set their calendar yet
+      // Include them (they might be available) unless they have a "booked" entry for the date
+      if (artistAvailability.length === 0) return true;
       
       return artistAvailability.some((av: any) => {
-        const avDate = new Date(av.date);
-        const fromDate = filters.availableFrom ? new Date(filters.availableFrom) : null;
-        const toDate = filters.availableTo ? new Date(filters.availableTo) : null;
+        const avDate = av.date; // YYYY-MM-DD string
+        const fromDate = filters.availableFrom || null;
+        const toDate = filters.availableTo || null;
         
         if (fromDate && avDate < fromDate) return false;
         if (toDate && avDate > toDate) return false;
-        return true;
+        // Only include if the status is "available" (exclude "booked" and "unavailable")
+        return av.status === 'available';
       });
     });
+  }
+  
+  // Filter by single available date
+  if (filters.availableDate) {
+    const dbInstance = await getDb();
+    const artistIds = filtered.map(a => a.id);
+    if (!dbInstance || artistIds.length === 0) return filtered;
+    
+    // Get availability records for the specific date
+    const dateAvailabilities = await dbInstance.select().from(availability).where(
+      sql`${availability.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)}) AND ${availability.date} = ${filters.availableDate}`
+    );
+    
+    // Build a map of artistId -> status for the requested date
+    const dateStatusMap = new Map<number, string>();
+    dateAvailabilities.forEach((av: any) => {
+      dateStatusMap.set(av.artistId, av.status);
+    });
+    
+    filtered = filtered.filter(artist => {
+      const status = dateStatusMap.get(artist.id);
+      // If no record for this date, artist hasn't blocked it — consider them available
+      if (!status) return true;
+      // If explicitly "available", include them
+      if (status === 'available') return true;
+      // If "booked" or "unavailable", exclude them
+      return false;
+    });
+  }
+  
+  // Filter by verified status
+  if (filters.verifiedOnly) {
+    const dbInstance = await getDb();
+    const artistIds = filtered.map(a => a.id);
+    if (!dbInstance || artistIds.length === 0) return filtered;
+    
+    const badges = await dbInstance.select().from(verificationBadges).where(
+      sql`${verificationBadges.artistId} IN (${sql.join(artistIds.map(id => sql`${id}`), sql`, `)})`
+    );
+    
+    const verifiedArtistIds = new Set(
+      badges
+        .filter((b: any) => b.verificationStatus !== 'bronze') // bronze = unverified baseline
+        .map((b: any) => b.artistId)
+    );
+    
+    filtered = filtered.filter(artist => verifiedArtistIds.has(artist.id));
   }
   
   return filtered;

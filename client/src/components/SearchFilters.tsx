@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Search } from 'lucide-react';
+import { X, Search, CalendarCheck, ShieldCheck } from 'lucide-react';
 import { ClearableInput } from '@/components/ui/clearable-input';
 
 interface SearchFiltersProps {
@@ -16,6 +16,8 @@ interface SearchFiltersProps {
     maxFee?: number;
     availableFrom?: string;
     availableTo?: string;
+    availableDate?: string;
+    verifiedOnly?: boolean;
     eventType?: string[];
     minCapacity?: number;
     maxCapacity?: number;
@@ -46,6 +48,8 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
   const [rateRange, setRateRange] = useState([0, 5000]);
   const [availableFrom, setAvailableFrom] = useState('');
   const [availableTo, setAvailableTo] = useState('');
+  const [availableDate, setAvailableDate] = useState('');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   const handleGenreToggle = (genre: string) => {
     const newGenres = selectedGenres.includes(genre)
@@ -74,6 +78,8 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
       maxRate: rateRange[1] < 5000 ? rateRange[1] : undefined,
       availableFrom: availableFrom || undefined,
       availableTo: availableTo || undefined,
+      availableDate: availableDate || undefined,
+      verifiedOnly: verifiedOnly || undefined,
     });
   };
 
@@ -86,6 +92,8 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     setRateRange([0, 5000]);
     setAvailableFrom('');
     setAvailableTo('');
+    setAvailableDate('');
+    setVerifiedOnly(false);
     onFilterChange({});
   };
 
@@ -98,7 +106,12 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     rateRange[0] > 0 || rateRange[1] < 5000,
     availableFrom,
     availableTo,
+    availableDate,
+    verifiedOnly,
   ].filter(Boolean).length;
+
+  // Get today's date in YYYY-MM-DD format for min date
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <Card className="mb-6 sm:mb-8">
@@ -114,6 +127,67 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Available on Date - Most important filter for booking platforms */}
+        {isArtistFilter && (
+        <div className="space-y-2 p-4 rounded-lg bg-primary/5 border border-primary/10">
+          <Label htmlFor="available-date" className="flex items-center gap-2 font-semibold">
+            <CalendarCheck className="h-4 w-4 text-primary" />
+            Available on Date
+          </Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Find artists who are available for your event date
+          </p>
+          <Input
+            id="available-date"
+            type="date"
+            value={availableDate}
+            onChange={(e) => setAvailableDate(e.target.value)}
+            min={today}
+            className="bg-background"
+          />
+          {availableDate && (
+            <button
+              onClick={() => setAvailableDate('')}
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
+            >
+              <X size={12} /> Clear date
+            </button>
+          )}
+        </div>
+        )}
+
+        {/* Verified Artists Toggle */}
+        {isArtistFilter && (
+        <div className="flex items-center justify-between p-3 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <div>
+              <Label htmlFor="verified-toggle" className="text-sm font-medium cursor-pointer">
+                Verified Artists Only
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Show only artists with Silver+ verification
+              </p>
+            </div>
+          </div>
+          <button
+            id="verified-toggle"
+            role="switch"
+            aria-checked={verifiedOnly}
+            onClick={() => setVerifiedOnly(!verifiedOnly)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              verifiedOnly ? 'bg-primary' : 'bg-muted'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                verifiedOnly ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        )}
+
         {/* Genre Filter (Artists Only) */}
         {isArtistFilter && (
         <div className="space-y-3">
@@ -297,10 +371,13 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         </div>
         )}
 
-        {/* Availability Date Range (Artists Only) */}
+        {/* Availability Date Range (Artists Only) - kept for range filtering */}
         {isArtistFilter && (
         <div className="space-y-4">
-          <Label>Availability Dates</Label>
+          <Label>Availability Date Range</Label>
+          <p className="text-xs text-muted-foreground -mt-2">
+            Filter by a range of dates (optional, use "Available on Date" above for a single date)
+          </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date-from" className="text-xs text-muted-foreground">
@@ -311,6 +388,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
                 type="date"
                 value={availableFrom}
                 onChange={(e) => setAvailableFrom(e.target.value)}
+                min={today}
               />
             </div>
             <div className="space-y-2">
@@ -322,7 +400,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
                 type="date"
                 value={availableTo}
                 onChange={(e) => setAvailableTo(e.target.value)}
-                min={availableFrom}
+                min={availableFrom || today}
               />
             </div>
           </div>
@@ -346,4 +424,3 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     </Card>
   );
 }
-

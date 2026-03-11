@@ -443,6 +443,8 @@ export const appRouter = router({
         maxFee: z.number().optional(),
         availableFrom: z.string().optional(),
         availableTo: z.string().optional(),
+        availableDate: z.string().optional(),
+        verifiedOnly: z.boolean().optional(),
       }).optional().default({}))
       .query(async ({ input }) => {
         return await db.searchArtists(input || {});

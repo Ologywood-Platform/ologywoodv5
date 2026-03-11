@@ -11,6 +11,7 @@ import { FansSection } from '@/components/FansSection';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { CalendarSync } from '@/components/CalendarSync';
+import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -196,6 +197,15 @@ export function ArtistDashboardV3() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Profile Completeness */}
+            {artistProfile && (
+              <ProfileCompletenessCard
+                profile={artistProfile}
+                type="artist"
+                onEditProfile={() => navigate('/rider-builder')}
+              />
+            )}
 
             {/* Quick Actions */}
             <Card id="quick-actions">
