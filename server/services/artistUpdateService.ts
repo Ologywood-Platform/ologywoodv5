@@ -58,9 +58,9 @@ async function getArtistFans(artistUserId: number): Promise<FanRecipient[]> {
 /**
  * Get the artist's display name and profile ID from their profile
  */
-async function getArtistInfo(artistUserId: number): Promise<{ name: string; profileId: number }> {
+async function getArtistInfo(artistUserId: number): Promise<{ name: string; profileId: number | null }> {
   const db = await getDb();
-  if (!db) return { name: 'Artist', profileId: artistUserId };
+  if (!db) return { name: 'Artist', profileId: null };
 
   const profile = await db
     .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
@@ -71,7 +71,7 @@ async function getArtistInfo(artistUserId: number): Promise<{ name: string; prof
   if (profile.length > 0) {
     return { name: profile[0].artistName || 'Artist', profileId: profile[0].id };
   }
-  return { name: 'Artist', profileId: artistUserId };
+  return { name: 'Artist', profileId: null };
 }
 
 /**
@@ -201,6 +201,11 @@ export async function sendArtistUpdate(
   ]);
   const artistName = artistInfo.name;
   const artistProfileId = artistInfo.profileId;
+
+  if (!artistProfileId) {
+    console.error(`[ArtistUpdate] Could not find artist profile ID for userId ${artistUserId}, aborting update`);
+    throw new Error('Artist profile not found');
+  }
 
   // Create the update record
   const insertResult = await db.insert(artistUpdates).values({

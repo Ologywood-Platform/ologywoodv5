@@ -1529,3 +1529,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Replaced ALL 8 hardcoded manus.space URLs in email.ts with ENV.baseUrl
 - [x] Added ENV.baseUrl to env.ts (uses BASE_URL env var, falls back to manus.space)
 - [x] Zero TypeScript errors, 1,664 tests passing
+
+
+## ARTIST NOT FOUND - STILL BROKEN AFTER PUBLISH (Mar 11, 2026)
+
+- [ ] Email "View Profile" link still leads to "Artist not found" after publishing fix
+- [ ] Deep investigate: check actual URL generated, DB artist_profiles data, ArtistProfile.tsx lookup logic
+
+
+## EMAIL NOTIFICATION COMPREHENSIVE AUDIT (Mar 11, 2026)
+
+- [x] Audit all email notifications for correct artist profile URLs (profileId vs userId)
+- [x] Audit all email links use BASE_URL (not hardcoded domains)
+  - Fixed 8 hardcoded manus.space URLs → ENV.baseUrl
+- [x] Audit all email functions receive correct parameters from callers
+  - Fixed fanNotificationService and artistUpdateService to skip if no profileId found
+- [x] Audit all unsubscribe links work correctly
+  - Added unsubscribe + privacy links to 11 email functions missing them
+- [x] Fix all identified issues

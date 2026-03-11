@@ -134,7 +134,12 @@ export async function notifyFansNewEvent(
       getArtistInfo(artistUserId),
     ]);
     const artistName = artistInfo.name;
-    const profileId = artistInfo.profileId || artistUserId;
+    const profileId = artistInfo.profileId;
+
+    if (!profileId) {
+      console.error(`[FanNotification] Could not find artist profile ID for userId ${artistUserId}, skipping notifications`);
+      return result;
+    }
 
     if (fans.length === 0) {
       console.log(`[FanNotification] No fans to notify for artist ${artistUserId}`);
@@ -226,7 +231,12 @@ export async function notifyFansProfileUpdate(
       getArtistInfo(artistUserId),
     ]);
     const artistName = artistInfo.name;
-    const profileId = artistInfo.profileId || artistUserId;
+    const profileId = artistInfo.profileId;
+
+    if (!profileId) {
+      console.error(`[FanNotification] Could not find artist profile ID for userId ${artistUserId}, skipping notifications`);
+      return result;
+    }
 
     if (fans.length === 0) {
       return result;

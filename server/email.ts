@@ -69,7 +69,7 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
             },
           ],
           headers: {
-            "List-Unsubscribe": `<https://ologywood.com/unsubscribe?email=${encodeURIComponent(to)}>`,
+            "List-Unsubscribe": `<${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}>`,
           },
         }),
       });
@@ -116,12 +116,16 @@ export async function sendBookingRequestEmail(params: {
       
       <p>Please log in to your Ologywood dashboard to review and respond to this request.</p>
       
-      <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      <a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         View Dashboard
       </a>
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(artistEmail)}&type=booking" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -160,12 +164,16 @@ export async function sendBookingConfirmationEmail(params: {
       
       <p>You can view all booking details in your dashboard.</p>
       
-      <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      <a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         View Dashboard
       </a>
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=booking" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -202,12 +210,16 @@ export async function sendBookingCancellationEmail(params: {
       
       <p>If you have any questions, please contact the other party directly or reach out to Ologywood support.</p>
       
-      <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      <a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         View Dashboard
       </a>
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=booking" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -333,12 +345,16 @@ export async function sendTrialEndingEmail(params: {
       
       <p>We hope you're enjoying Ologywood! If you have any questions or feedback, please don't hesitate to reach out.</p>
       
-      <a href="https://ologywood.com/subscription" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      <a href="${ENV.baseUrl}/subscription" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         Manage Subscription
       </a>
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(artistEmail)}&type=subscription" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -480,12 +496,18 @@ export async function sendReviewResponseEmail(params: {
       
       <p>Thank you for being part of the Ologywood community and helping artists improve their services!</p>
       
-      <a href="${ENV.baseUrl}/artist/${artistProfileId || ''}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      ${artistProfileId ? `<a href="${ENV.baseUrl}/artist/${artistProfileId}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         View Artist Profile
-      </a>
+      </a>` : `<a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        View Dashboard
+      </a>`}
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=reviews" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -531,6 +553,10 @@ export async function sendVenueReviewNotificationEmail(params: {
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=reviews" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -580,6 +606,10 @@ export async function sendAvailabilityUpdateNotification(
       <p style="color: #666; font-size: 14px; margin-top: 30px;">
         You're receiving this because you saved ${artistName} to your favorites. 
         You can manage your saved artists in your dashboard.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=availability" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
@@ -663,6 +693,10 @@ export async function sendBookingReminder(
     </a>
     
     <p>Best regards,<br>The Ologywood Team</p>
+    <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+      <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=reminders" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+      <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+    </p>
   `;
   
   await sendEmail({ to: recipientEmail, subject, html });
@@ -709,6 +743,10 @@ export async function sendPaymentReceipt(
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           This is an automated receipt. Please keep this email for your records. If you have any questions about this payment, please contact us.
         </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}&type=payments" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
       </div>
     </div>
   `;
@@ -749,6 +787,10 @@ export async function sendRefundNotification(
         
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           The refund will appear in your account within 3-5 business days, depending on your bank.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}&type=payments" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
         </p>
       </div>
     </div>
@@ -810,6 +852,10 @@ export async function sendContractSigned(params: {
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           A copy of the signed contract has been stored securely in your account for future reference.
         </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}&type=contracts" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
       </div>
     </div>
   `;
@@ -862,6 +908,10 @@ export async function sendContractForSignature(params: {
         <p style="color: #666; font-size: 12px; margin-top: 30px;">
           Please review the contract carefully before signing. Once both parties have signed, the contract becomes legally binding.
         </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}&type=contracts" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
       </div>
     </div>
   `;
@@ -905,11 +955,11 @@ export async function sendNewsletterSubscriptionEmail(email: string): Promise<bo
         </div>
         
         <p style="color: #666; font-size: 14px;">
-          We respect your inbox and promise to send only valuable content. You can unsubscribe anytime. <a href="https://ologywood.com/unsubscribe?email=${email}" style="color: #8b5cf6; text-decoration: none;">Click here to unsubscribe</a>.
+          We respect your inbox and promise to send only valuable content. You can unsubscribe anytime. <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #8b5cf6; text-decoration: none;">Click here to unsubscribe</a>.
         </p>
         
         <p style="text-align: center; margin: 30px 0;">
-          <a href="https://ologywood.com" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          <a href="${ENV.baseUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
             Visit Ologywood
           </a>
         </p>
@@ -1033,13 +1083,13 @@ export async function sendVenueVerificationConfirmationEmail(params: {
         </div>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://ologywood.com/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+          <a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
             Go to Dashboard
           </a>
         </div>
         
         <p style="color: #666; font-size: 14px;">
-          If you have any questions or need assistance, our support team is here to help. Visit our <a href="https://ologywood.com/help" style="color: #8b5cf6; text-decoration: none;">Help Center</a> for more information.
+          If you have any questions or need assistance, our support team is here to help. Visit our <a href="${ENV.baseUrl}/help" style="color: #8b5cf6; text-decoration: none;">Help Center</a> for more information.
         </p>
         
         <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
