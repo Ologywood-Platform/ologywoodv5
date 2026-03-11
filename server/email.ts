@@ -223,7 +223,7 @@ export async function sendBookingCancellationEmail(params: {
  * Branded email wrapper for subscription emails
  */
 function subscriptionEmailWrapper(content: string, recipientEmail: string): string {
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
   const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=subscription`;
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
@@ -272,7 +272,7 @@ export async function sendSubscriptionCreatedEmail(params: {
     'In-platform messaging',
     'Availability calendar',
   ];
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
 
   const content = `
     <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
@@ -361,7 +361,7 @@ export async function sendSubscriptionCanceledEmail(params: {
 }) {
   const { artistEmail, artistName, planName, endDate } = params;
   const displayPlan = planName || 'your plan';
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
 
   const content = `
     <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
@@ -412,7 +412,7 @@ export async function sendSubscriptionReactivatedEmail(params: {
   const { artistEmail, artistName, planName, planPrice, nextBillingDate } = params;
   const displayPlan = planName || 'your plan';
   const displayPrice = planPrice || '';
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
 
   const content = `
     <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
@@ -453,11 +453,12 @@ export async function sendReviewResponseEmail(params: {
   venueEmail: string;
   venueName: string;
   artistName: string;
+  artistProfileId?: number;
   originalReview: string;
   artistResponse: string;
   rating: number;
 }) {
-  const { venueEmail, venueName, artistName, originalReview, artistResponse, rating } = params;
+  const { venueEmail, venueName, artistName, artistProfileId, originalReview, artistResponse, rating } = params;
 
   const stars = '⭐'.repeat(rating);
 
@@ -479,7 +480,7 @@ export async function sendReviewResponseEmail(params: {
       
       <p>Thank you for being part of the Ologywood community and helping artists improve their services!</p>
       
-      <a href="https://ologywood.com/artist/${artistName}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+      <a href="${ENV.baseUrl}/artist/${artistProfileId || ''}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
         View Artist Profile
       </a>
       
@@ -571,7 +572,7 @@ export async function sendAvailabilityUpdateNotification(
       
       <p>Don't miss this opportunity to book them for your venue!</p>
       
-      <a href="https://${ENV.appId}.manus.space/artist/${artistId}" 
+      <a href="${ENV.baseUrl}/artist/${artistId}" 
          style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
         View ${artistName}'s Profile
       </a>
@@ -656,7 +657,7 @@ export async function sendBookingReminder(
     
     <p>If you need to make any changes or have questions, please log in to your dashboard to contact the ${isArtist ? 'venue' : 'artist'}.</p>
     
-    <a href="https://${ENV.appId}.manus.space/dashboard" 
+    <a href="${ENV.baseUrl}/dashboard" 
        style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
       View Dashboard
     </a>
@@ -1079,7 +1080,7 @@ export async function sendClientBookingConfirmationEmail(params: {
     eventType, eventDate, eventTime, venueName, venueAddress, totalFee, eventDetails,
   } = params;
 
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
   const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(clientEmail)}&type=booking`;
   const eventTypeLabel = eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
@@ -1200,7 +1201,7 @@ export async function sendClientBookingNotificationToArtist(params: {
     eventType, eventDate, eventTime, venueName, venueAddress, totalFee, eventDetails,
   } = params;
 
-  const baseUrl = `https://${ENV.appId}.manus.space`;
+  const baseUrl = ENV.baseUrl;
   const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(artistEmail)}&type=booking`;
   const eventTypeLabel = eventType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 

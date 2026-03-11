@@ -1515,3 +1515,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: fanNotificationService now looks up artist profile ID and uses it in email links
 - [x] Investigate email template URL generation for artist profile links
   - Fixed both notifyFansNewEvent and notifyFansProfileUpdate to use correct profile ID
+
+
+## ARTIST LINK STILL BROKEN - COMPREHENSIVE FIX (Mar 11, 2026)
+
+- [x] Email link still sent to /artist/26015 (userId) instead of correct profileId
+  - Root cause: multiple code paths generating artist URLs, not just fanNotificationService
+- [x] Fixed artistUpdateService.ts: getArtistDisplayName → getArtistInfo (returns profileId)
+  - buildUpdateEmail now uses artistProfileId instead of artistUserId
+- [x] Fixed email.ts sendReviewResponseEmail: added artistProfileId param, fixed URL from artistName to profileId
+- [x] Fixed email.ts sendAvailabilityUpdateNotification: URL already passes profile.id (correct)
+- [x] Fixed routers.ts: passes artistProfile.id to sendReviewResponseEmail
+- [x] Replaced ALL 8 hardcoded manus.space URLs in email.ts with ENV.baseUrl
+- [x] Added ENV.baseUrl to env.ts (uses BASE_URL env var, falls back to manus.space)
+- [x] Zero TypeScript errors, 1,664 tests passing

@@ -56,19 +56,22 @@ async function getArtistFans(artistUserId: number): Promise<FanRecipient[]> {
 }
 
 /**
- * Get the artist's display name from their profile
+ * Get the artist's display name and profile ID from their profile
  */
-async function getArtistDisplayName(artistUserId: number): Promise<string> {
+async function getArtistInfo(artistUserId: number): Promise<{ name: string; profileId: number }> {
   const db = await getDb();
-  if (!db) return 'Artist';
+  if (!db) return { name: 'Artist', profileId: artistUserId };
 
   const profile = await db
-    .select({ artistName: artistProfiles.artistName })
+    .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
     .from(artistProfiles)
     .where(eq(artistProfiles.userId, artistUserId))
     .limit(1);
 
-  return profile.length > 0 ? (profile[0].artistName || 'Artist') : 'Artist';
+  if (profile.length > 0) {
+    return { name: profile[0].artistName || 'Artist', profileId: profile[0].id };
+  }
+  return { name: 'Artist', profileId: artistUserId };
 }
 
 /**
@@ -126,11 +129,11 @@ function buildUpdateEmail(
   fanName: string,
   fanId: number,
   artistName: string,
-  artistUserId: number,
+  artistProfileId: number,
   subject: string,
   body: string
 ): string {
-  const artistProfileUrl = `${BASE_URL}/artist/${artistUserId}`;
+  const artistProfileUrl = `${BASE_URL}/artist/${artistProfileId}`;
   const unsubscribeUrl = `${BASE_URL}/unsubscribe?userId=${fanId}&type=fan_updates`;
 
   // Convert plain text body to HTML paragraphs (preserve line breaks)
@@ -191,11 +194,13 @@ export async function sendArtistUpdate(
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  // Get fans and artist name
-  const [fans, artistName] = await Promise.all([
+  // Get fans and artist info
+  const [fans, artistInfo] = await Promise.all([
     getArtistFans(artistUserId),
-    getArtistDisplayName(artistUserId),
+    getArtistInfo(artistUserId),
   ]);
+  const artistName = artistInfo.name;
+  const artistProfileId = artistInfo.profileId;
 
   // Create the update record
   const insertResult = await db.insert(artistUpdates).values({
@@ -236,7 +241,7 @@ export async function sendArtistUpdate(
   // Send emails to each fan
   for (const fan of fans) {
     try {
-      const html = buildUpdateEmail(fan.name, fan.id, artistName, artistUserId, subject, body);
+      const html = buildUpdateEmail(fan.name, fan.id, artistName, artistProfileId, subject, body);
       const message = {
         to: fan.email,
         from: SENDGRID_FROM_EMAIL,
