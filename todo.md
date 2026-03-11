@@ -1623,3 +1623,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Highlight missing fields sorted by importance (next steps)
 - [x] Set minimum threshold of 40% for search visibility
 - [x] Tier system: incomplete (<40%), basic (40-64%), good (65-84%), excellent (85%+)
+
+## FEATURE: Admin Disputes Tab (Mar 11, 2026)
+
+- [x] Add Disputes tab to AdminDashboard with dispute list, filters, and detail view
+- [x] Wire up admin review/resolve endpoints (dispute.adminGetAll, dispute.adminResolve)
+- [x] Show dispute status badges, reporter/respondent info, booking context
+- [x] Add admin notes and resolution form (resolution required for resolve, optional for dismiss)
+- [x] Add dispute count badge on tab header (red badge with open + under_review count)

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -17,6 +17,7 @@ export function AdminDashboard() {
   const payoutsQuery = trpc.admin.getPayouts.useQuery({ limit: 50 });
   const releasesQuery = trpc.admin.getReleases.useQuery({ limit: 50 });
   const feedbackQuery = trpc.admin.getUnsubscribeFeedback.useQuery();
+  const disputesQuery = trpc.dispute.adminGetAll.useQuery();
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -84,7 +85,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -94,7 +95,15 @@ export function AdminDashboard() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                <span className="flex items-center gap-1">
+                  {tab === 'disputes' && <Shield className="w-4 h-4" />}
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'disputes' && disputesQuery.data && disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                      {disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length}
+                    </span>
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -127,6 +136,13 @@ export function AdminDashboard() {
               stats={feedbackQuery.data?.stats || []}
               totalCount={feedbackQuery.data?.totalCount || 0}
               isLoading={feedbackQuery.isLoading}
+            />
+          )}
+          {activeTab === 'disputes' && (
+            <DisputesTab
+              disputes={disputesQuery.data || []}
+              isLoading={disputesQuery.isLoading}
+              refetch={disputesQuery.refetch}
             />
           )}
         </div>
@@ -963,6 +979,435 @@ function PayoutsTab({ payouts, isLoading }: { payouts: any[]; isLoading: boolean
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// Dispute type/status labels and colors
+const DISPUTE_TYPE_LABELS: Record<string, string> = {
+  payment_issue: 'Payment Issue',
+  no_show: 'No Show',
+  contract_violation: 'Contract Violation',
+  quality_issue: 'Quality Issue',
+  cancellation_dispute: 'Cancellation Dispute',
+  harassment: 'Harassment',
+  other: 'Other',
+};
+
+const DISPUTE_STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  open: { label: 'Open', color: 'bg-red-100 text-red-700', icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+  under_review: { label: 'Under Review', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="w-3.5 h-3.5" /> },
+  resolved: { label: 'Resolved', color: 'bg-green-100 text-green-700', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  dismissed: { label: 'Dismissed', color: 'bg-gray-100 text-gray-600', icon: <XCircle className="w-3.5 h-3.5" /> },
+};
+
+function DisputesTab({
+  disputes,
+  isLoading,
+  refetch,
+}: {
+  disputes: any[];
+  isLoading: boolean;
+  refetch: () => void;
+}) {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [resolveForm, setResolveForm] = useState<{
+    id: number;
+    status: 'under_review' | 'resolved' | 'dismissed';
+    resolution: string;
+    adminNotes: string;
+  } | null>(null);
+
+  const resolveMutation = trpc.dispute.adminResolve.useMutation({
+    onSuccess: () => {
+      setResolveForm(null);
+      setExpandedId(null);
+      refetch();
+    },
+  });
+
+  const filtered = statusFilter === 'all'
+    ? disputes
+    : disputes.filter((d) => d.status === statusFilter);
+
+  // Stats
+  const openCount = disputes.filter((d) => d.status === 'open').length;
+  const reviewCount = disputes.filter((d) => d.status === 'under_review').length;
+  const resolvedCount = disputes.filter((d) => d.status === 'resolved').length;
+  const dismissedCount = disputes.filter((d) => d.status === 'dismissed').length;
+
+  if (isLoading) {
+    return <div className="p-6 text-gray-500">Loading disputes...</div>;
+  }
+
+  if (disputes.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+        <p className="text-gray-500 font-medium">No disputes filed yet</p>
+        <p className="text-gray-400 text-sm mt-1">Disputes will appear here when users report issues with bookings.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {/* Header with stats */}
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Shield className="w-5 h-5" /> Dispute Management
+        </h3>
+        <span className="text-sm text-gray-500">{disputes.length} total dispute{disputes.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      {/* Status summary cards */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
+        <button
+          onClick={() => setStatusFilter('open')}
+          className={`p-3 rounded-lg border text-left transition-colors ${statusFilter === 'open' ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:bg-gray-50'}`}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-red-700">
+            <AlertTriangle className="w-4 h-4" /> Open
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{openCount}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('under_review')}
+          className={`p-3 rounded-lg border text-left transition-colors ${statusFilter === 'under_review' ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200 hover:bg-gray-50'}`}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-yellow-700">
+            <Clock className="w-4 h-4" /> Under Review
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{reviewCount}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('resolved')}
+          className={`p-3 rounded-lg border text-left transition-colors ${statusFilter === 'resolved' ? 'border-green-300 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+            <CheckCircle className="w-4 h-4" /> Resolved
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{resolvedCount}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter(statusFilter === 'dismissed' ? 'all' : 'dismissed')}
+          className={`p-3 rounded-lg border text-left transition-colors ${statusFilter === 'dismissed' ? 'border-gray-300 bg-gray-50' : 'border-gray-200 hover:bg-gray-50'}`}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+            <XCircle className="w-4 h-4" /> Dismissed
+          </div>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{dismissedCount}</p>
+        </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="under_review">Under Review</option>
+          <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
+        <span className="text-sm text-gray-500">
+          Showing {filtered.length} of {disputes.length}
+        </span>
+      </div>
+
+      {/* Disputes list */}
+      <div className="space-y-3">
+        {filtered.map((dispute) => {
+          const statusConfig = DISPUTE_STATUS_CONFIG[dispute.status] || DISPUTE_STATUS_CONFIG.open;
+          const isExpanded = expandedId === dispute.id;
+          const isResolving = resolveForm?.id === dispute.id;
+
+          return (
+            <div key={dispute.id} className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* Dispute row */}
+              <button
+                onClick={() => setExpandedId(isExpanded ? null : dispute.id)}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 text-left"
+              >
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap ${statusConfig.color}`}>
+                    {statusConfig.icon} {statusConfig.label}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      #{dispute.id} — {DISPUTE_TYPE_LABELS[dispute.type] || dispute.type}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Booking #{dispute.bookingId} • Reported by {dispute.reporterName} ({dispute.reporterEmail})
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 ml-4">
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    {new Date(dispute.createdAt).toLocaleDateString()}
+                  </span>
+                  {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </div>
+              </button>
+
+              {/* Expanded detail */}
+              {isExpanded && (
+                <div className="border-t border-gray-200 p-4 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Left: Dispute details */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Dispute Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-500">Type:</span>{' '}
+                          <span className="font-medium">{DISPUTE_TYPE_LABELS[dispute.type] || dispute.type}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Reporter:</span>{' '}
+                          <span className="font-medium">{dispute.reporterName}</span>
+                          <span className="text-gray-400 ml-1">({dispute.reporterEmail})</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Respondent:</span>{' '}
+                          <span className="font-medium">{dispute.respondentName}</span>
+                          <span className="text-gray-400 ml-1">({dispute.respondentEmail})</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Filed:</span>{' '}
+                          <span className="font-medium">{new Date(dispute.createdAt).toLocaleString()}</span>
+                        </div>
+                        {dispute.resolvedAt && (
+                          <div>
+                            <span className="text-gray-500">Resolved:</span>{' '}
+                            <span className="font-medium">{new Date(dispute.resolvedAt).toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <h4 className="text-sm font-semibold text-gray-700 mt-4 mb-2">Description</h4>
+                      <p className="text-sm text-gray-700 bg-white p-3 rounded border border-gray-200">
+                        {dispute.description}
+                      </p>
+
+                      {dispute.evidenceUrls && dispute.evidenceUrls.length > 0 && (
+                        <>
+                          <h4 className="text-sm font-semibold text-gray-700 mt-4 mb-2">Evidence ({dispute.evidenceUrls.length})</h4>
+                          <div className="flex gap-2 flex-wrap">
+                            {dispute.evidenceUrls.map((url: string, i: number) => (
+                              <a
+                                key={i}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-xs text-blue-600 hover:bg-blue-50"
+                              >
+                                <FileText className="w-3 h-3" /> Evidence {i + 1}
+                              </a>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {dispute.resolution && (
+                        <>
+                          <h4 className="text-sm font-semibold text-gray-700 mt-4 mb-2">Resolution</h4>
+                          <p className="text-sm text-gray-700 bg-green-50 p-3 rounded border border-green-200">
+                            {dispute.resolution}
+                          </p>
+                        </>
+                      )}
+
+                      {dispute.adminNotes && (
+                        <>
+                          <h4 className="text-sm font-semibold text-gray-700 mt-4 mb-2">Admin Notes</h4>
+                          <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded border border-blue-200">
+                            {dispute.adminNotes}
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Right: Booking context + Actions */}
+                    <div>
+                      {dispute.booking && (
+                        <>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">Booking Context</h4>
+                          <div className="bg-white p-3 rounded border border-gray-200 space-y-2 text-sm">
+                            <div>
+                              <span className="text-gray-500">Booking ID:</span>{' '}
+                              <span className="font-medium">#{dispute.booking.id}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Event Date:</span>{' '}
+                              <span className="font-medium">
+                                {dispute.booking.eventDate
+                                  ? new Date(dispute.booking.eventDate).toLocaleDateString()
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Total Fee:</span>{' '}
+                              <span className="font-medium">
+                                ${dispute.booking.totalFee ? Number(dispute.booking.totalFee).toFixed(2) : '0.00'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Booking Status:</span>{' '}
+                              <span className="font-medium capitalize">{dispute.booking.status}</span>
+                            </div>
+                            {dispute.booking.eventDetails && (
+                              <div>
+                                <span className="text-gray-500">Event:</span>{' '}
+                                <span className="font-medium">{dispute.booking.eventDetails}</span>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Admin Actions */}
+                      {(dispute.status === 'open' || dispute.status === 'under_review') && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">Admin Actions</h4>
+
+                          {!isResolving ? (
+                            <div className="flex gap-2">
+                              {dispute.status === 'open' && (
+                                <button
+                                  onClick={() =>
+                                    setResolveForm({
+                                      id: dispute.id,
+                                      status: 'under_review',
+                                      resolution: '',
+                                      adminNotes: '',
+                                    })
+                                  }
+                                  className="flex items-center gap-1.5 px-3 py-2 bg-yellow-500 text-white rounded-lg text-sm font-medium hover:bg-yellow-600"
+                                >
+                                  <Clock className="w-4 h-4" /> Start Review
+                                </button>
+                              )}
+                              <button
+                                onClick={() =>
+                                  setResolveForm({
+                                    id: dispute.id,
+                                    status: 'resolved',
+                                    resolution: '',
+                                    adminNotes: '',
+                                  })
+                                }
+                                className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                              >
+                                <CheckCircle className="w-4 h-4" /> Resolve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  setResolveForm({
+                                    id: dispute.id,
+                                    status: 'dismissed',
+                                    resolution: '',
+                                    adminNotes: '',
+                                  })
+                                }
+                                className="flex items-center gap-1.5 px-3 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600"
+                              >
+                                <XCircle className="w-4 h-4" /> Dismiss
+                              </button>
+                            </div>
+                          ) : resolveForm && (
+                            <div className="bg-white p-4 rounded-lg border border-gray-200 space-y-3">
+                              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                {resolveForm.status === 'under_review' && (
+                                  <><Clock className="w-4 h-4 text-yellow-600" /> Mark as Under Review</>
+                                )}
+                                {resolveForm.status === 'resolved' && (
+                                  <><CheckCircle className="w-4 h-4 text-green-600" /> Resolve Dispute</>
+                                )}
+                                {resolveForm.status === 'dismissed' && (
+                                  <><XCircle className="w-4 h-4 text-gray-600" /> Dismiss Dispute</>
+                                )}
+                              </div>
+
+                              {(resolveForm.status === 'resolved' || resolveForm.status === 'dismissed') && (
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    Resolution {resolveForm.status === 'resolved' ? '(required)' : '(optional)'}
+                                  </label>
+                                  <textarea
+                                    value={resolveForm.resolution}
+                                    onChange={(e) =>
+                                      setResolveForm({ ...resolveForm, resolution: e.target.value })
+                                    }
+                                    placeholder="Describe the resolution or reason for dismissal..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows={3}
+                                  />
+                                </div>
+                              )}
+
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Admin Notes (internal, not visible to users)
+                                </label>
+                                <textarea
+                                  value={resolveForm.adminNotes}
+                                  onChange={(e) =>
+                                    setResolveForm({ ...resolveForm, adminNotes: e.target.value })
+                                  }
+                                  placeholder="Internal notes about this dispute..."
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  rows={2}
+                                />
+                              </div>
+
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    resolveMutation.mutate({
+                                      id: resolveForm.id,
+                                      status: resolveForm.status,
+                                      resolution: resolveForm.resolution || undefined,
+                                      adminNotes: resolveForm.adminNotes || undefined,
+                                    });
+                                  }}
+                                  disabled={
+                                    resolveMutation.isPending ||
+                                    (resolveForm.status === 'resolved' && !resolveForm.resolution.trim())
+                                  }
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {resolveMutation.isPending ? 'Saving...' : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => setResolveForm(null)}
+                                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+
+                              {resolveMutation.isError && (
+                                <p className="text-sm text-red-600">
+                                  Error: {resolveMutation.error?.message || 'Failed to update dispute'}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
