@@ -1506,3 +1506,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - PrivacyPolicy.tsx: added zip code 30548 to address
   - contentAudit.test.ts: updated test to expect new phone number
 - [x] All 1,664 tests passing, zero TypeScript errors
+
+
+## ARTIST NOT FOUND FROM EMAIL LINK (Mar 11, 2026)
+
+- [x] Fix "Artist not found" when clicking "View Profile" in LOOSE CHAIN profile update email
+  - Root cause: email used userId in URL (/artist/{userId}) but ArtistProfile page expects profileId (/artist/{profileId})
+  - Fix: fanNotificationService now looks up artist profile ID and uses it in email links
+- [x] Investigate email template URL generation for artist profile links
+  - Fixed both notifyFansNewEvent and notifyFansProfileUpdate to use correct profile ID

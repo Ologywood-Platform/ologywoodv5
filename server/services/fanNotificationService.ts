@@ -57,19 +57,22 @@ async function getArtistFans(artistUserId: number): Promise<FanNotificationRecip
 }
 
 /**
- * Get the artist's display name from their profile
+ * Get the artist's display name and profile ID from their profile
  */
-async function getArtistDisplayName(artistUserId: number): Promise<string> {
+async function getArtistInfo(artistUserId: number): Promise<{ name: string; profileId: number | null }> {
   const db = await getDb();
-  if (!db) return 'Artist';
+  if (!db) return { name: 'Artist', profileId: null };
 
   const profile = await db
-    .select({ artistName: artistProfiles.artistName })
+    .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
     .from(artistProfiles)
     .where(eq(artistProfiles.userId, artistUserId))
     .limit(1);
 
-  return profile.length > 0 ? (profile[0].artistName || 'Artist') : 'Artist';
+  if (profile.length > 0) {
+    return { name: profile[0].artistName || 'Artist', profileId: profile[0].id };
+  }
+  return { name: 'Artist', profileId: null };
 }
 
 /**
@@ -126,17 +129,19 @@ export async function notifyFansNewEvent(
   }
 
   try {
-    const [fans, artistName] = await Promise.all([
+    const [fans, artistInfo] = await Promise.all([
       getArtistFans(artistUserId),
-      getArtistDisplayName(artistUserId),
+      getArtistInfo(artistUserId),
     ]);
+    const artistName = artistInfo.name;
+    const profileId = artistInfo.profileId || artistUserId;
 
     if (fans.length === 0) {
       console.log(`[FanNotification] No fans to notify for artist ${artistUserId}`);
       return result;
     }
 
-    const artistProfileUrl = `${BASE_URL}/artist/${artistUserId}`;
+    const artistProfileUrl = `${BASE_URL}/artist/${profileId}`;
     const eventUrl = eventDetails.eventId 
       ? `${BASE_URL}/events/${eventDetails.eventId}` 
       : artistProfileUrl;
@@ -216,16 +221,18 @@ export async function notifyFansProfileUpdate(
   }
 
   try {
-    const [fans, artistName] = await Promise.all([
+    const [fans, artistInfo] = await Promise.all([
       getArtistFans(artistUserId),
-      getArtistDisplayName(artistUserId),
+      getArtistInfo(artistUserId),
     ]);
+    const artistName = artistInfo.name;
+    const profileId = artistInfo.profileId || artistUserId;
 
     if (fans.length === 0) {
       return result;
     }
 
-    const artistProfileUrl = `${BASE_URL}/artist/${artistUserId}`;
+    const artistProfileUrl = `${BASE_URL}/artist/${profileId}`;
 
     for (const fan of fans) {
       try {
