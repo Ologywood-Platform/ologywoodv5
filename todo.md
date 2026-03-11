@@ -1638,3 +1638,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Wire dispute email into adminResolve endpoint in dispute router
 - [x] Include unsubscribe + manage preferences + privacy links in dispute emails
 - [x] Write tests for dispute email notifications (11 tests passing)
+
+## UX: Manage Preferences in User Dropdown (Mar 11, 2026)
+
+- [x] Add "Manage Preferences" link to user dropdown menu linking to /settings (with Settings icon)
