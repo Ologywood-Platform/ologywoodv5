@@ -272,30 +272,49 @@ export const disputeRouter = router({
           input.status === "resolved" || input.status === "dismissed" ? new Date() : undefined,
       });
 
-      // Send email notification to the reporter
+      // Send email notifications to both reporter and respondent
       try {
         const reporter = await db.getUserById(dispute.reporterId);
         const respondent = await db.getUserById(dispute.respondentId);
         const booking = await db.getBookingById(dispute.bookingId);
 
+        const eventDateFormatted = booking?.eventDate
+          ? new Date(booking.eventDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+          : 'N/A';
+
+        const commonParams = {
+          reporterEmail: reporter?.email || '',
+          reporterName: reporter?.name || 'User',
+          respondentName: respondent?.name || 'Other Party',
+          disputeType: dispute.type,
+          bookingEventDate: eventDateFormatted,
+          newStatus: input.status,
+          resolution: input.resolution,
+          disputeId: dispute.id,
+        };
+
+        // Notify the reporter
         if (reporter?.email) {
           await sendDisputeStatusUpdate({
-            reporterEmail: reporter.email,
-            reporterName: reporter.name || 'User',
-            respondentName: respondent?.name || 'Other Party',
-            disputeType: dispute.type,
-            bookingEventDate: booking?.eventDate
-              ? new Date(booking.eventDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })
-              : 'N/A',
-            newStatus: input.status,
-            resolution: input.resolution,
-            disputeId: dispute.id,
+            ...commonParams,
+            recipientRole: 'reporter',
           });
-          console.log(`[Dispute] Email notification sent to reporter ${reporter.email} for dispute #${dispute.id} -> ${input.status}`);
+          console.log(`[Dispute] Email sent to reporter ${reporter.email} for dispute #${dispute.id} -> ${input.status}`);
+        }
+
+        // Notify the respondent
+        if (respondent?.email) {
+          await sendDisputeStatusUpdate({
+            ...commonParams,
+            recipientRole: 'respondent',
+            recipientEmail: respondent.email,
+            recipientName: respondent.name || 'User',
+          });
+          console.log(`[Dispute] Email sent to respondent ${respondent.email} for dispute #${dispute.id} -> ${input.status}`);
         }
       } catch (emailError) {
         // Don't fail the mutation if email fails — log and continue

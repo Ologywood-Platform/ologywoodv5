@@ -113,7 +113,7 @@ describe("Dispute Email Notifications", () => {
       
       expect(routerSource).toContain("sendDisputeStatusUpdate");
       expect(routerSource).toContain("reporter?.email");
-      expect(routerSource).toContain("[Dispute] Email notification sent");
+      expect(routerSource).toContain("[Dispute] Email sent to reporter");
     });
 
     it("should gracefully handle email failures without failing the mutation", async () => {

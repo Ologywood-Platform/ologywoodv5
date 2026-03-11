@@ -1642,3 +1642,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## UX: Manage Preferences in User Dropdown (Mar 11, 2026)
 
 - [x] Add "Manage Preferences" link to user dropdown menu linking to /settings (with Settings icon)
+
+## FEATURE: Notify Respondent on Dispute Status Changes (Mar 11, 2026)
+
+- [x] Also send dispute status email to the respondent (not just the reporter)
+- [x] Customize email content for respondent vs reporter perspective ("Filed By" vs "Against", role-specific descriptions)

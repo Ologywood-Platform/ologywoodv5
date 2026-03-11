@@ -1361,6 +1361,9 @@ export async function sendDisputeStatusUpdate(params: {
   newStatus: 'under_review' | 'resolved' | 'dismissed';
   resolution?: string;
   disputeId: number;
+  recipientRole?: 'reporter' | 'respondent';
+  recipientEmail?: string;
+  recipientName?: string;
 }): Promise<boolean> {
   const {
     reporterEmail,
@@ -1371,7 +1374,16 @@ export async function sendDisputeStatusUpdate(params: {
     newStatus,
     resolution,
     disputeId,
+    recipientRole = 'reporter',
+    recipientEmail,
+    recipientName,
   } = params;
+
+  // Determine who this email is going to
+  const toEmail = recipientRole === 'respondent' && recipientEmail ? recipientEmail : reporterEmail;
+  const toName = recipientRole === 'respondent' && recipientName ? recipientName : reporterName;
+  const otherPartyName = recipientRole === 'respondent' ? reporterName : respondentName;
+  const isRespondent = recipientRole === 'respondent';
 
   const typeLabels: Record<string, string> = {
     payment_issue: 'Payment Issue',
@@ -1407,7 +1419,24 @@ export async function sendDisputeStatusUpdate(params: {
   const config = statusConfig[newStatus];
   const typeLabel = typeLabels[disputeType] || disputeType;
 
-  const subject = `Dispute Update: ${config.label} — ${typeLabel} (Booking on ${bookingEventDate})`;
+  // Customize descriptions for respondent
+  const respondentStatusConfig: Record<string, { description: string }> = {
+    under_review: {
+      description: 'A dispute has been filed regarding a booking you were involved in. Our team is actively reviewing the matter.',
+    },
+    resolved: {
+      description: 'A dispute regarding a booking you were involved in has been reviewed and resolved. Please see the resolution details below.',
+    },
+    dismissed: {
+      description: 'A dispute that was filed regarding a booking you were involved in has been dismissed after careful review.',
+    },
+  };
+
+  const description = isRespondent ? respondentStatusConfig[newStatus].description : config.description;
+
+  const subject = isRespondent
+    ? `Dispute Notice: ${config.label} — ${typeLabel} (Booking on ${bookingEventDate})`
+    : `Dispute Update: ${config.label} — ${typeLabel} (Booking on ${bookingEventDate})`;
 
   const resolutionBlock = resolution
     ? `
@@ -1462,14 +1491,14 @@ export async function sendDisputeStatusUpdate(params: {
       </div>
       
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
-        <p>Hi ${reporterName},</p>
-        <p>${config.description}</p>
+        <p>Hi ${toName},</p>
+        <p>${description}</p>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
           <h3 style="margin-top: 0;">Dispute Details</h3>
           <p><strong>Dispute ID:</strong> #${disputeId}</p>
           <p><strong>Type:</strong> ${typeLabel}</p>
-          <p><strong>Against:</strong> ${respondentName}</p>
+          <p><strong>${isRespondent ? 'Filed By' : 'Against'}:</strong> ${otherPartyName}</p>
           <p><strong>Event Date:</strong> ${bookingEventDate}</p>
           <p><strong>Status:</strong> <span style="color: ${config.color}; font-weight: bold;">${config.label}</span></p>
         </div>
@@ -1489,7 +1518,7 @@ export async function sendDisputeStatusUpdate(params: {
           If you need further assistance, please contact our support team.
         </p>
         <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
-          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(reporterEmail)}&type=disputes" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(toEmail)}&type=disputes" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
           <a href="${ENV.baseUrl}/settings" style="color: #8b5cf6; text-decoration: none;">Manage Preferences</a> | 
           <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
         </p>
@@ -1498,7 +1527,7 @@ export async function sendDisputeStatusUpdate(params: {
   `;
 
   return sendEmail({
-    to: reporterEmail,
+    to: toEmail,
     subject,
     html,
   });
