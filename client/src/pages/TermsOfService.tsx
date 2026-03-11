@@ -230,7 +230,7 @@ export default function TermsOfService() {
               <p>Email: <a href="mailto:hello@ologywood.com" className="text-primary hover:underline">hello@ologywood.com</a></p>
               <p>Support: <a href="mailto:support@ologywood.com" className="text-primary hover:underline">support@ologywood.com</a></p>
               <p>Phone: <a href="tel:678-525-0891" className="text-primary hover:underline">678-525-0891</a></p>
-              <p>Address: 171 Prestwick Dr, Hoschton, GA</p>
+              <p>Address: 171 Prestwick Dr, Hoschton, GA 30548</p>
             </div>
           </section>
         </div>

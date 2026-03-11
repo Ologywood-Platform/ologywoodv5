@@ -160,7 +160,7 @@ describe('Platform Content Audit', () => {
     const content = readFile('client/src/pages/Help.tsx');
 
     it('should use correct phone number', () => {
-      expect(content).toContain('+1 (800) 654-9963');
+      expect(content).toContain('+1 (678) 525-0891');
       expect(content).not.toContain('(555) 123-4567');
     });
 

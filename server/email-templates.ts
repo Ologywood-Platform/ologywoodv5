@@ -113,7 +113,7 @@ export function getSubscriptionUpgradedEmailTemplate(params: {
           <li>Advanced analytics and insights</li>
           <li>Unlimited media gallery</li>
           <li>Custom branding options</li>
-          <li>24/7 priority support</li>
+          <li>Dedicated priority support</li>
         </ul>
         
         <a href="${baseUrl}/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">

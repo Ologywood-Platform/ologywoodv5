@@ -1492,3 +1492,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Fix inconsistency between Footer "24/7 Support" and "Why Trust Ologywood?" section on homepage
   - Changed Footer from "24/7 Support" to "Dedicated Support" to match homepage (Mon-Fri)
+
+
+## FULL MESSAGING CONSISTENCY AUDIT (Mar 11, 2026)
+
+- [x] Audit all pages for messaging inconsistencies (support hours, phone, email, pricing, features, branding)
+  - Scanned: phone numbers, email addresses, support hours, pricing/fees, physical address, branding
+  - Found 6 inconsistencies across 5 files
+- [x] Fix all inconsistencies:
+  - Contact.tsx: old phone (800) 654-9963 → (678) 525-0891 + added full street address
+  - email-templates.ts: "24/7 priority support" → "Dedicated priority support"
+  - TermsOfService.tsx: added zip code 30548 to address
+  - PrivacyPolicy.tsx: added zip code 30548 to address
+  - contentAudit.test.ts: updated test to expect new phone number
+- [x] All 1,664 tests passing, zero TypeScript errors

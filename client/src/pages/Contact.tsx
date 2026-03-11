@@ -77,16 +77,16 @@ export default function Contact() {
               <p className="text-gray-600 text-sm">hello@ologywood.com</p>
             </a>
 
-            <a href="tel:+18006549963" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition group">
+            <a href="tel:+16785250891" className="bg-white p-6 rounded-lg shadow hover:shadow-md transition group">
               <Phone className="w-8 h-8 text-indigo-600 mb-3 group-hover:scale-110 transition" />
               <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-              <p className="text-gray-600 text-sm">+1 (800) 654-9963</p>
+              <p className="text-gray-600 text-sm">+1 (678) 525-0891</p>
             </a>
 
             <div className="bg-white p-6 rounded-lg shadow">
               <MapPin className="w-8 h-8 text-indigo-600 mb-3" />
               <h3 className="font-semibold text-gray-900 mb-1">Address</h3>
-              <p className="text-gray-600 text-sm">Hoschton, GA 30548</p>
+              <p className="text-gray-600 text-sm">171 Prestwick Dr<br />Hoschton, GA 30548</p>
             </div>
           </div>
 
