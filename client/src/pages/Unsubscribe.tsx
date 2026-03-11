@@ -1,18 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { Mail, MailX, ArrowLeft, CheckCircle, AlertTriangle, RefreshCw, Settings, Bell, BellOff } from 'lucide-react';
+import { Mail, MailX, ArrowLeft, CheckCircle, AlertTriangle, RefreshCw, Settings, Bell, BellOff, MessageSquare, Send } from 'lucide-react';
 
 type PageState = 'confirm' | 'loading' | 'success' | 'resubscribed' | 'error' | 'login-required';
+
+const FEEDBACK_REASONS = [
+  { id: 'too_many_emails', label: 'Too many emails' },
+  { id: 'not_relevant', label: 'Content not relevant to me' },
+  { id: 'no_longer_using', label: 'No longer using the platform' },
+  { id: 'found_alternative', label: 'Found an alternative' },
+  { id: 'privacy_concerns', label: 'Privacy concerns' },
+  { id: 'other', label: 'Other' },
+] as const;
 
 export function Unsubscribe() {
   const [state, setState] = useState<PageState>('confirm');
   const [email, setEmail] = useState('');
   const { isAuthenticated, user } = useAuth();
 
+  // Feedback form state
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+
   const unsubscribeAllMutation = trpc.emailPreferences.unsubscribeAll.useMutation();
   const resubscribeMutation = trpc.emailPreferences.resubscribe.useMutation();
   const updatePrefsMutation = trpc.emailPreferences.updatePreferences.useMutation();
+  const submitFeedbackMutation = trpc.emailPreferences.submitUnsubscribeFeedback.useMutation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -70,6 +85,20 @@ export function Unsubscribe() {
     } catch {
       setState('error');
     }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!selectedReason) return;
+    setFeedbackStatus('sending');
+    try {
+      await submitFeedbackMutation.mutateAsync({
+        reason: selectedReason,
+        comment: feedbackComment.trim() || undefined,
+      });
+    } catch {
+      // Best-effort — don't block the user
+    }
+    setFeedbackStatus('sent');
   };
 
   const displayEmail = email || user?.email || '';
@@ -205,6 +234,68 @@ export function Unsubscribe() {
                   You may still receive essential transactional emails related to active bookings and your account security.
                 </p>
               </div>
+
+              {/* ── Feedback Form ── */}
+              {feedbackStatus !== 'sent' ? (
+                <div className="border border-slate-200 rounded-xl p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MessageSquare className="h-4 w-4 text-slate-500" />
+                    <p className="text-sm font-medium text-slate-800">
+                      Quick question — what made you unsubscribe?
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {FEEDBACK_REASONS.map((reason) => (
+                      <button
+                        key={reason.id}
+                        onClick={() => setSelectedReason(reason.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                          selectedReason === reason.id
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {reason.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedReason && (
+                    <>
+                      <textarea
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        placeholder="Anything else you'd like to share? (optional)"
+                        maxLength={500}
+                        rows={2}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-slate-400"
+                      />
+                      <button
+                        onClick={handleSubmitFeedback}
+                        disabled={feedbackStatus === 'sending'}
+                        className="mt-2 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        {feedbackStatus === 'sending' ? 'Sending...' : 'Send Feedback'}
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    onClick={() => setFeedbackStatus('sent')}
+                    className="mt-2 w-full text-xs text-slate-400 hover:text-slate-500 transition-colors"
+                  >
+                    Skip
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
+                  <CheckCircle className="h-5 w-5 text-purple-600 mx-auto mb-1.5" />
+                  <p className="text-sm text-purple-800 font-medium">Thanks for your feedback!</p>
+                  <p className="text-xs text-purple-600 mt-1">It helps us improve Ologywood for everyone.</p>
+                </div>
+              )}
 
               {/* Changed your mind? */}
               <div className="border border-blue-200 bg-blue-50 rounded-xl p-4 text-center">

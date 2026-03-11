@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
@@ -111,6 +111,30 @@ export const emailPreferencesRouter = router({
       });
     }
   }),
+
+  // Submit unsubscribe feedback
+  submitUnsubscribeFeedback: protectedProcedure
+    .input(
+      z.object({
+        reason: z.string().min(1).max(100),
+        comment: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await db.insertUnsubscribeFeedback({
+          userId: ctx.user.id,
+          email: ctx.user.email || null,
+          reason: input.reason,
+          comment: input.comment || null,
+        });
+        return { success: true, message: "Thank you for your feedback" };
+      } catch (error) {
+        console.error("Error saving unsubscribe feedback:", error);
+        // Don't throw — feedback is best-effort, don't block the user
+        return { success: false, message: "Could not save feedback" };
+      }
+    }),
 
   // Delete email preferences (for account cleanup)
   deletePreferences: protectedProcedure.mutation(async ({ ctx }) => {

@@ -32,7 +32,8 @@ import {
   artistReleases, InsertArtistRelease, ArtistRelease,
   releasePurchases, InsertReleasePurchase, ReleasePurchase,
   notifications, InsertNotification, Notification,
-  notificationPreferences, InsertNotificationPreference, NotificationPreference
+  notificationPreferences, InsertNotificationPreference, NotificationPreference,
+  unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2495,4 +2496,38 @@ export async function getReleaseSalesAnalytics(artistProfileId: number): Promise
     },
     releases: releasesWithStats,
   };
+}
+
+
+// ── Unsubscribe Feedback ──────────────────────────────────────────────
+
+export async function insertUnsubscribeFeedback(data: {
+  userId: number | null;
+  email: string | null;
+  reason: string;
+  comment: string | null;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(unsubscribeFeedback).values({
+    userId: data.userId,
+    email: data.email,
+    reason: data.reason,
+    comment: data.comment,
+  });
+  return result;
+}
+
+export async function getUnsubscribeFeedbackStats() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      reason: unsubscribeFeedback.reason,
+      count: sql<number>`COUNT(*)`,
+    })
+    .from(unsubscribeFeedback)
+    .groupBy(unsubscribeFeedback.reason)
+    .orderBy(desc(sql`COUNT(*)`));
+  return rows;
 }

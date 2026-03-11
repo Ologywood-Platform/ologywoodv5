@@ -970,3 +970,21 @@ export const trackReviews = mysqlTable("track_reviews", {
 }));
 export type TrackReview = typeof trackReviews.$inferSelect;
 export type InsertTrackReview = typeof trackReviews.$inferInsert;
+
+/**
+ * Unsubscribe Feedback — captures why users unsubscribe from emails.
+ * Lightweight: one reason chip + optional free-text comment.
+ */
+export const unsubscribeFeedback = mysqlTable("unsubscribe_feedback", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),                                   // nullable for unauthenticated users
+  email: varchar("email", { length: 320 }),                // captured from URL param or session
+  reason: varchar("reason", { length: 100 }).notNull(),    // e.g. "too_many_emails", "not_relevant"
+  comment: varchar("comment", { length: 500 }),            // optional free-text
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_unsub_feedback_user").on(table.userId),
+  reasonIdx: index("idx_unsub_feedback_reason").on(table.reason),
+}));
+export type UnsubscribeFeedback = typeof unsubscribeFeedback.$inferSelect;
+export type InsertUnsubscribeFeedback = typeof unsubscribeFeedback.$inferInsert;

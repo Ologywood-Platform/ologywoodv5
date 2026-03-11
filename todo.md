@@ -1557,3 +1557,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add confirmation step to Unsubscribe page to prevent accidental unsubscribes
 - [x] Offer alternatives (reduce frequency, turn off specific categories) before full unsubscribe
 - [x] Show easy resubscribe option after unsubscribing
+
+## FEATURE: Unsubscribe Feedback Form (Mar 11, 2026)
+
+- [x] Add unsubscribe_feedback database table
+- [x] Add tRPC endpoint to submit feedback
+- [x] Add lightweight feedback form to unsubscribe success state
+- [x] Write tests for feedback feature
