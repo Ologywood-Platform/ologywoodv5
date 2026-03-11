@@ -1477,3 +1477,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Update phone number across site to 678-525-0891
   - Updated: Footer.tsx, AccountSettings.tsx, Help.tsx (3 files, all instances replaced)
+
+
+## QR CODE GENERATOR FOR TIP LINKS (Mar 11, 2026)
+
+- [x] Install QR code generation library (qrcode.react)
+- [x] Add auto-generated QR codes for each tip link on Edit Profile (preview)
+- [x] Display QR codes on Artist Profile "Support This Artist" section with "Show QR Codes" button
+- [x] Add "Print Card" button that generates a branded, print-optimized card with all tip QR codes for live shows
+- [x] 22 tests passing for QR code feature

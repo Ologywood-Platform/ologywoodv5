@@ -20,6 +20,7 @@ import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd, buildMusicRecordingJs
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
+import { TipQRSection } from "@/components/TipQRCode";
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
@@ -693,6 +694,7 @@ export default function ArtistProfile() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground pt-1">Tip directly — no platform fees</p>
+                  <TipQRSection tipLinks={tipLinks} artistName={artist.artistName} />
                 </CardContent>
               </Card>
             )}

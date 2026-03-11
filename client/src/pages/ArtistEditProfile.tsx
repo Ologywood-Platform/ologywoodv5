@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Camera, Save, X, Plus, Loader2, Globe } from "lucide-react";
+import { TipQRPreview } from "@/components/TipQRCode";
 import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
@@ -557,6 +558,7 @@ export default function ArtistEditProfile() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">Only filled fields will be shown on your profile. Fans can tip you directly — no platform fees.</p>
+              <TipQRPreview tipLinks={{ cashapp, venmo, paypal, zelle }} />
             </CardContent>
           </Card>
 
