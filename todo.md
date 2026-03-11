@@ -1547,3 +1547,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Audit all unsubscribe links work correctly
   - Added unsubscribe + privacy links to 11 email functions missing them
 - [x] Fix all identified issues
+
+## BUG FIX: Manage Preferences 404 (Mar 11, 2026)
+
+- [x] Fix "Manage preferences" link in emails returning 404 - created /settings page with EmailPreferencesCenter

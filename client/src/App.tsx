@@ -79,6 +79,7 @@ const ArtistHistory = lazy(() => import("./pages/ArtistHistory"));
 const Contracts = lazy(() => import("./pages/Contracts"));
 const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -170,6 +171,7 @@ function Router() {
           <Route path="/contact" component={Contact} />
           <Route path="/faq" component={FAQ} />
           <Route path="/unsubscribe" component={Unsubscribe} />
+          <Route path="/settings" component={Settings} />
           
           {/* Legal Pages (compliance only) */}
           <Route path="/privacy-policy" component={PrivacyPolicy} />
