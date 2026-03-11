@@ -1486,3 +1486,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Display QR codes on Artist Profile "Support This Artist" section with "Show QR Codes" button
 - [x] Add "Print Card" button that generates a branded, print-optimized card with all tip QR codes for live shows
 - [x] 22 tests passing for QR code feature
+
+
+## FOOTER / HOMEPAGE SUPPORT MESSAGING INCONSISTENCY (Mar 11, 2026)
+
+- [x] Fix inconsistency between Footer "24/7 Support" and "Why Trust Ologywood?" section on homepage
+  - Changed Footer from "24/7 Support" to "Dedicated Support" to match homepage (Mon-Fri)
