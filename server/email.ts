@@ -572,7 +572,7 @@ export async function sendAvailabilityUpdateNotification(
       
       <p>Don't miss this opportunity to book them for your venue!</p>
       
-      <a href="${ENV.baseUrl}/artist/${artistId}" 
+      <a href="${ENV.baseUrl}/artist/${artistId}"
          style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
         View ${artistName}'s Profile
       </a>
