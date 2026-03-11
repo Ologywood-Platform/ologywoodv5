@@ -1346,3 +1346,160 @@ export async function sendClientBookingNotificationToArtist(params: {
     html,
   });
 }
+
+
+/**
+ * Send email notification when a dispute status changes
+ * Notifies the reporter when their dispute moves to under_review, resolved, or dismissed
+ */
+export async function sendDisputeStatusUpdate(params: {
+  reporterEmail: string;
+  reporterName: string;
+  respondentName: string;
+  disputeType: string;
+  bookingEventDate: string;
+  newStatus: 'under_review' | 'resolved' | 'dismissed';
+  resolution?: string;
+  disputeId: number;
+}): Promise<boolean> {
+  const {
+    reporterEmail,
+    reporterName,
+    respondentName,
+    disputeType,
+    bookingEventDate,
+    newStatus,
+    resolution,
+    disputeId,
+  } = params;
+
+  const typeLabels: Record<string, string> = {
+    payment_issue: 'Payment Issue',
+    no_show: 'No Show',
+    contract_violation: 'Contract Violation',
+    quality_issue: 'Quality Issue',
+    cancellation_dispute: 'Cancellation Dispute',
+    harassment: 'Harassment',
+    other: 'Other',
+  };
+
+  const statusConfig: Record<string, { label: string; color: string; icon: string; description: string }> = {
+    under_review: {
+      label: 'Under Review',
+      color: '#f59e0b',
+      icon: '🔍',
+      description: 'Our team is actively reviewing your dispute. We will carefully examine all evidence and details provided by both parties.',
+    },
+    resolved: {
+      label: 'Resolved',
+      color: '#10b981',
+      icon: '✓',
+      description: 'Your dispute has been reviewed and resolved. Please see the resolution details below.',
+    },
+    dismissed: {
+      label: 'Dismissed',
+      color: '#6b7280',
+      icon: '—',
+      description: 'After careful review, our team has determined that this dispute does not meet the criteria for further action.',
+    },
+  };
+
+  const config = statusConfig[newStatus];
+  const typeLabel = typeLabels[disputeType] || disputeType;
+
+  const subject = `Dispute Update: ${config.label} — ${typeLabel} (Booking on ${bookingEventDate})`;
+
+  const resolutionBlock = resolution
+    ? `
+      <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
+        <h3 style="margin-top: 0; color: #166534;">Resolution</h3>
+        <p style="color: #333; margin: 0;">${resolution}</p>
+      </div>
+    `
+    : '';
+
+  const nextStepsMap: Record<string, string> = {
+    under_review: `
+      <ul style="margin: 10px 0 0 20px; color: #92400e;">
+        <li>No action is required from you at this time</li>
+        <li>We may reach out if we need additional information</li>
+        <li>You will be notified when a decision is made</li>
+        <li>Typical review time is 3–5 business days</li>
+      </ul>
+    `,
+    resolved: `
+      <ul style="margin: 10px 0 0 20px; color: #065f46;">
+        <li>Review the resolution details above</li>
+        <li>Any applicable refunds or credits will be processed separately</li>
+        <li>If you have questions about the resolution, contact our support team</li>
+      </ul>
+    `,
+    dismissed: `
+      <ul style="margin: 10px 0 0 20px; color: #374151;">
+        <li>Review the explanation provided above</li>
+        <li>If you believe this was in error, you may contact our support team</li>
+        <li>You can still leave a review for the booking on the platform</li>
+      </ul>
+    `,
+  };
+
+  const nextStepsBgColor: Record<string, string> = {
+    under_review: '#fffbeb',
+    resolved: '#ecfdf5',
+    dismissed: '#f3f4f6',
+  };
+
+  const nextStepsTextColor: Record<string, string> = {
+    under_review: '#92400e',
+    resolved: '#065f46',
+    dismissed: '#374151',
+  };
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, ${config.color} 0%, ${newStatus === 'resolved' ? '#059669' : newStatus === 'under_review' ? '#d97706' : '#4b5563'} 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 24px;">${config.icon} Dispute ${config.label}</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Hi ${reporterName},</p>
+        <p>${config.description}</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
+          <h3 style="margin-top: 0;">Dispute Details</h3>
+          <p><strong>Dispute ID:</strong> #${disputeId}</p>
+          <p><strong>Type:</strong> ${typeLabel}</p>
+          <p><strong>Against:</strong> ${respondentName}</p>
+          <p><strong>Event Date:</strong> ${bookingEventDate}</p>
+          <p><strong>Status:</strong> <span style="color: ${config.color}; font-weight: bold;">${config.label}</span></p>
+        </div>
+        
+        ${resolutionBlock}
+        
+        <div style="background: ${nextStepsBgColor[newStatus]}; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
+          <p style="margin: 0; color: ${nextStepsTextColor[newStatus]};"><strong>Next Steps:</strong></p>
+          ${nextStepsMap[newStatus]}
+        </div>
+        
+        <a href="${ENV.baseUrl}/disputes" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+          View My Disputes
+        </a>
+        
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">
+          If you need further assistance, please contact our support team.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(reporterEmail)}&type=disputes" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/settings" style="color: #8b5cf6; text-decoration: none;">Manage Preferences</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: reporterEmail,
+    subject,
+    html,
+  });
+}

@@ -1631,3 +1631,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Show dispute status badges, reporter/respondent info, booking context
 - [x] Add admin notes and resolution form (resolution required for resolve, optional for dismiss)
 - [x] Add dispute count badge on tab header (red badge with open + under_review count)
+
+## FEATURE: Dispute Email Notifications (Mar 11, 2026)
+
+- [x] Add sendDisputeStatusUpdate email function to email.ts
+- [x] Wire dispute email into adminResolve endpoint in dispute router
+- [x] Include unsubscribe + manage preferences + privacy links in dispute emails
+- [x] Write tests for dispute email notifications (11 tests passing)

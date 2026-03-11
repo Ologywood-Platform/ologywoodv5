@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { storagePut } from "../storage";
+import { sendDisputeStatusUpdate } from "../email";
 
 export const disputeRouter = router({
   /**
@@ -270,6 +271,36 @@ export const disputeRouter = router({
         resolvedAt:
           input.status === "resolved" || input.status === "dismissed" ? new Date() : undefined,
       });
+
+      // Send email notification to the reporter
+      try {
+        const reporter = await db.getUserById(dispute.reporterId);
+        const respondent = await db.getUserById(dispute.respondentId);
+        const booking = await db.getBookingById(dispute.bookingId);
+
+        if (reporter?.email) {
+          await sendDisputeStatusUpdate({
+            reporterEmail: reporter.email,
+            reporterName: reporter.name || 'User',
+            respondentName: respondent?.name || 'Other Party',
+            disputeType: dispute.type,
+            bookingEventDate: booking?.eventDate
+              ? new Date(booking.eventDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              : 'N/A',
+            newStatus: input.status,
+            resolution: input.resolution,
+            disputeId: dispute.id,
+          });
+          console.log(`[Dispute] Email notification sent to reporter ${reporter.email} for dispute #${dispute.id} -> ${input.status}`);
+        }
+      } catch (emailError) {
+        // Don't fail the mutation if email fails — log and continue
+        console.error(`[Dispute] Failed to send email notification for dispute #${dispute.id}:`, emailError);
+      }
 
       return { success: true };
     }),
