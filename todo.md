@@ -1551,3 +1551,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## BUG FIX: Manage Preferences 404 (Mar 11, 2026)
 
 - [x] Fix "Manage preferences" link in emails returning 404 - created /settings page with EmailPreferencesCenter
+
+## UX IMPROVEMENT: Unsubscribe Confirmation Flow (Mar 11, 2026)
+
+- [x] Add confirmation step to Unsubscribe page to prevent accidental unsubscribes
+- [x] Offer alternatives (reduce frequency, turn off specific categories) before full unsubscribe
+- [x] Show easy resubscribe option after unsubscribing
