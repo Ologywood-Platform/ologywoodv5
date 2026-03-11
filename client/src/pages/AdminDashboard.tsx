@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff } from 'lucide-react';
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -16,6 +16,7 @@ export function AdminDashboard() {
   const bookingsQuery = trpc.admin.getBookings.useQuery({ limit: 50 });
   const payoutsQuery = trpc.admin.getPayouts.useQuery({ limit: 50 });
   const releasesQuery = trpc.admin.getReleases.useQuery({ limit: 50 });
+  const feedbackQuery = trpc.admin.getUnsubscribeFeedback.useQuery();
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -83,7 +84,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -120,6 +121,14 @@ export function AdminDashboard() {
             <ReleasesTab releases={releasesQuery.data || []} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
           )}
           {activeTab === 'blog' && <BlogTab />}
+          {activeTab === 'feedback' && (
+            <FeedbackTab
+              feedback={feedbackQuery.data?.feedback || []}
+              stats={feedbackQuery.data?.stats || []}
+              totalCount={feedbackQuery.data?.totalCount || 0}
+              isLoading={feedbackQuery.isLoading}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -788,6 +797,124 @@ function BlogTab() {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+// Feedback Tab
+const REASON_LABELS: Record<string, string> = {
+  too_many_emails: 'Too many emails',
+  not_relevant: 'Content not relevant',
+  no_longer_using: 'No longer using platform',
+  found_alternative: 'Found an alternative',
+  privacy_concerns: 'Privacy concerns',
+  other: 'Other',
+};
+
+const REASON_COLORS: Record<string, string> = {
+  too_many_emails: 'bg-red-100 text-red-700',
+  not_relevant: 'bg-orange-100 text-orange-700',
+  no_longer_using: 'bg-gray-100 text-gray-700',
+  found_alternative: 'bg-blue-100 text-blue-700',
+  privacy_concerns: 'bg-purple-100 text-purple-700',
+  other: 'bg-yellow-100 text-yellow-700',
+};
+
+function FeedbackTab({
+  feedback,
+  stats,
+  totalCount,
+  isLoading,
+}: {
+  feedback: any[];
+  stats: { reason: string; count: number }[];
+  totalCount: number;
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return <div className="p-6 text-gray-500">Loading feedback data...</div>;
+  }
+
+  if (totalCount === 0) {
+    return (
+      <div className="p-6 text-center">
+        <MessageSquareOff className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+        <p className="text-gray-500 font-medium">No unsubscribe feedback yet</p>
+        <p className="text-gray-400 text-sm mt-1">Feedback will appear here when users unsubscribe from emails.</p>
+      </div>
+    );
+  }
+
+  const maxCount = stats.length > 0 ? stats[0].count : 1;
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <MessageSquareOff className="w-5 h-5" /> Unsubscribe Feedback
+        </h3>
+        <span className="text-sm text-gray-500">{totalCount} total response{totalCount !== 1 ? 's' : ''}</span>
+      </div>
+
+      {/* Reason breakdown */}
+      <div className="mb-8">
+        <h4 className="text-sm font-medium text-gray-700 mb-4">Top Reasons for Unsubscribing</h4>
+        <div className="space-y-3">
+          {stats.map((stat) => {
+            const pct = Math.round((stat.count / totalCount) * 100);
+            return (
+              <div key={stat.reason} className="flex items-center gap-4">
+                <div className="w-40 text-sm text-gray-700 truncate">
+                  {REASON_LABELS[stat.reason] || stat.reason}
+                </div>
+                <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 rounded-full transition-all"
+                    style={{ width: `${(stat.count / maxCount) * 100}%` }}
+                  />
+                </div>
+                <div className="w-20 text-right text-sm">
+                  <span className="font-medium text-gray-900">{stat.count}</span>
+                  <span className="text-gray-400 ml-1">({pct}%)</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent feedback table */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-4">Recent Feedback</h4>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Reason</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Comment</th>
+              </tr>
+            </thead>
+            <tbody>
+              {feedback.map((item: any) => (
+                <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-600 whitespace-nowrap">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-3 px-4 text-gray-900">{item.email || '—'}</td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${REASON_COLORS[item.reason] || 'bg-gray-100 text-gray-700'}`}>
+                      {REASON_LABELS[item.reason] || item.reason}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 max-w-xs truncate">{item.comment || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

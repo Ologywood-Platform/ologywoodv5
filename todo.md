@@ -1564,3 +1564,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add tRPC endpoint to submit feedback
 - [x] Add lightweight feedback form to unsubscribe success state
 - [x] Write tests for feedback feature
+
+## FEATURE: Unsubscribe Feedback Analytics in Admin Dashboard (Mar 11, 2026)
+
+- [x] Add getUnsubscribeFeedback endpoint to admin router
+- [x] Add Feedback tab to admin dashboard with reason breakdown chart and recent feedback table

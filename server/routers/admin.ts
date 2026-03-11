@@ -1,8 +1,8 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases } from "../../drizzle/schema";
-import { desc } from "drizzle-orm";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback } from "../../drizzle/schema";
+import { desc, sql } from "drizzle-orm";
 
 // Middleware to ensure user is admin
 const adminOnly = protectedProcedure.use(async (opts) => {
@@ -432,6 +432,41 @@ return { success: true, payoutId: input.payoutId };
       console.log(`[Admin] Release ${input.releaseId} taken down. Reason: ${input.reason}`);
       return { success: true, message: `Release ${input.releaseId} has been taken down.` };
     }),
+
+  // ============ UNSUBSCRIBE FEEDBACK ============
+
+  /**
+   * Get unsubscribe feedback analytics
+   */
+  getUnsubscribeFeedback: adminOnly.query(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    // Get all feedback entries
+    const allFeedback = await db
+      .select()
+      .from(unsubscribeFeedback)
+      .orderBy(desc(unsubscribeFeedback.createdAt))
+      .limit(100);
+
+    // Get aggregated stats by reason
+    const stats = await db
+      .select({
+        reason: unsubscribeFeedback.reason,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(unsubscribeFeedback)
+      .groupBy(unsubscribeFeedback.reason)
+      .orderBy(desc(sql`COUNT(*)`));
+
+    const totalCount = allFeedback.length;
+
+    return {
+      feedback: allFeedback,
+      stats,
+      totalCount,
+    };
+  }),
 
   /**
    * Restore a taken-down release
