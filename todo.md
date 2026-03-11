@@ -1436,3 +1436,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: verifyPurchase fallback also sends the branded confirmation email
 - [x] Add fallback purchase verification on PurchaseSuccess page
   - Implemented as release.verifyPurchase mutation in release router
+
+
+## MY PURCHASES EMPTY ON MOBILE (Mar 10, 2026)
+
+- [x] My Purchases shows "No purchases yet" on mobile despite email confirming purchase
+  - Root cause: mobile browser hits ologywood.com (non-www) while session is on www.ologywood.com
+  - Also: PWA intercepts email links and opens in a different session context
+- [x] Investigate purchase record buyerUserId linking — purchase correctly linked to userId=7
+- [x] Fix My Purchases query to also match by buyer email as fallback
+- [x] Email download link opens in desktop PWA instead of mobile browser
+  - Note: PWA behavior is OS-controlled; user needs to log in within the PWA
+  - Fix: getUserPurchases now matches by email too, so once logged in purchases show
+- [x] Fix non-www to www redirect so sessions are consistent across devices
+  - Already implemented in server/_core/index.ts (301 redirect ologywood.com → www.ologywood.com)

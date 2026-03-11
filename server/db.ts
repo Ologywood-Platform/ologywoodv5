@@ -2370,11 +2370,16 @@ export async function upsertNotificationPreferences(
  * Get all purchases for a user (for My Purchases page).
  * Joins with artistReleases to include release details.
  */
-export async function getUserPurchases(userId: number): Promise<Array<ReleasePurchase & { release: ArtistRelease | null }>> {
+export async function getUserPurchases(userId: number, userEmail?: string): Promise<Array<ReleasePurchase & { release: ArtistRelease | null }>> {
   const db = await getDb();
   if (!db) return [];
+  // Match by userId OR by email (handles cases where purchase was made before login or on different session)
+  const conditions = [eq(releasePurchases.buyerUserId, userId)];
+  if (userEmail) {
+    conditions.push(eq(releasePurchases.buyerEmail, userEmail));
+  }
   const purchases = await db.select().from(releasePurchases)
-    .where(eq(releasePurchases.buyerUserId, userId))
+    .where(or(...conditions))
     .orderBy(desc(releasePurchases.purchasedAt));
   
   // Fetch release details for each purchase

@@ -566,7 +566,7 @@ export const releaseRouter = router({
    * Get all purchases for the current user (My Purchases page).
    */
   myPurchases: protectedProcedure.query(async ({ ctx }) => {
-    const purchases = await db.getUserPurchases(ctx.user.id);
+    const purchases = await db.getUserPurchases(ctx.user.id, ctx.user.email || undefined);
     // Resolve cover art URLs for each release
     const results = await Promise.all(
       purchases.map(async (p) => {
