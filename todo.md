@@ -1752,3 +1752,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Identify missing columns in the database (7 columns missing)
 - [x] Sync the database with the Drizzle schema (all 32 columns now present)
 - [x] Verify booking.getMyArtistBookings query works (bookings page loads with data, no console errors)
+
+## FIX ARTIST CARD IMAGE ON VENUE DASHBOARD (Mar 12, 2026)
+
+- [x] Investigate why artist card on venue dashboard doesn't show profile picture (card had no img element)
+- [x] Fix artist card to display artist profile photo (circular photo with fallback icon)
+- [x] Test the fix (0 TS errors, build clean)

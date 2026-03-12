@@ -529,15 +529,26 @@ export function VenueDashboard() {
                   return (
                   <Card key={artist.id}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{artist.artistName || 'Artist'}</CardTitle>
-                      <CardDescription>
-                        {artist.genre || 'Genre not specified'} • {artist.location || 'Location not specified'}
-                      </CardDescription>
+                      <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 rounded-full overflow-hidden bg-purple-100 dark:bg-purple-900/30 flex-shrink-0 flex items-center justify-center">
+                          {artist.profilePhotoUrl ? (
+                            <img src={artist.profilePhotoUrl} alt={artist.artistName || 'Artist'} className="h-full w-full object-cover" />
+                          ) : (
+                            <Users className="h-6 w-6 text-purple-400" />
+                          )}
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{artist.artistName || 'Artist'}</CardTitle>
+                          <CardDescription>
+                            {artist.genre || 'Genre not specified'} • {artist.location || 'Location not specified'}
+                          </CardDescription>
+                        </div>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
                         {artist.bio && (
-                          <p className="text-sm text-gray-600">{artist.bio}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{artist.bio}</p>
                         )}
                         <div className="flex gap-2">
                           <Button
