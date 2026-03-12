@@ -1758,3 +1758,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Investigate why artist card on venue dashboard doesn't show profile picture (card had no img element)
 - [x] Fix artist card to display artist profile photo (circular photo with fallback icon)
 - [x] Test the fix (0 TS errors, build clean)
+
+## FIX VENUE DASHBOARD PERFORMANCE (Mar 12, 2026)
+
+- [x] Investigate slow venue dashboard load time (3 queries on load, artist.getAll fetches all artists)
+- [x] Fix tab-switch refetch/reload behavior (QueryClient had no staleTime, auth.me had staleTime:0 + refetchOnWindowFocus:true)
+- [x] Set global staleTime: 60s and refetchOnWindowFocus: false on QueryClient
+- [x] Fix auth.me to staleTime: 60s, refetchInterval: 2min (was 30s)
+- [x] Lazy-load artist.getAll only when Artists tab is active
+- [x] Add staleTime to venue dashboard queries (profile: 2min, bookings: 1min, artists: 5min)
+- [x] Test performance improvements (0 TS errors, build clean)

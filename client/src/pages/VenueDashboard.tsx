@@ -38,19 +38,19 @@ export function VenueDashboard() {
   // Fetch venue profile
   const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = trpc.venue.getMyProfile.useQuery(
     undefined,
-    { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
+    { enabled: !!user && (user.role === 'venue' || user.role === 'admin'), staleTime: 120_000 }
   );
 
   // Fetch venue bookings
   const { data: bookings, isLoading: bookingsLoading, refetch: refetchBookings } = trpc.booking.getMyVenueBookings.useQuery(
     undefined,
-    { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
+    { enabled: !!user && (user.role === 'venue' || user.role === 'admin'), staleTime: 60_000 }
   );
 
-  // Fetch artists for discovery
+  // Fetch artists for discovery — only load when Artists tab is active
   const { data: artists, isLoading: artistsLoading } = trpc.artist.getAll.useQuery(
     undefined,
-    { enabled: !!user && (user.role === 'venue' || user.role === 'admin') }
+    { enabled: !!user && (user.role === 'venue' || user.role === 'admin') && activeTab === 'artists', staleTime: 300_000 }
   );
 
   // Update profile form when profile data loads
