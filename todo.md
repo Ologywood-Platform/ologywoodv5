@@ -1719,3 +1719,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Amenities multi-select/checkbox to edit and create profile forms
 - [x] Add Operating Hours input to edit and create profile forms
 - [x] Test end-to-end (0 TS errors, build clean)
+
+## DISPLAY AMENITIES & OPERATING HOURS ON PUBLIC VENUE PROFILE (Mar 12, 2026)
+
+- [x] Add amenities display section to public VenueProfile page (dynamic from DB with icons)
+- [x] Add operating hours display to public VenueProfile page (in Venue Details card)
+- [x] Replace hardcoded venue details with dynamic data from profile
+- [x] Test the public venue profile page (0 TS errors, build clean)

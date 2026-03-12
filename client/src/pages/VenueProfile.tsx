@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -181,7 +181,7 @@ export default function VenueProfile() {
           </CardContent>
         </Card>
 
-        {/* Venue Amenities & Details for Artists */}
+        {/* Venue Details */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Venue Details</CardTitle>
@@ -189,68 +189,95 @@ export default function VenueProfile() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">Venue Type</p>
-                    <p className="text-sm text-muted-foreground">Concert Hall / Event Space</p>
+                {(venueProfile as any)?.venueType && (
+                  <div className="flex items-center gap-3">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Venue Type</p>
+                      <p className="text-sm text-muted-foreground">{(venueProfile as any).venueType}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">Capacity</p>
-                    <p className="text-sm text-muted-foreground">Up to 500 guests</p>
+                )}
+                {(venueProfile as any)?.capacity && (venueProfile as any).capacity > 0 && (
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Capacity</p>
+                      <p className="text-sm text-muted-foreground">Up to {(venueProfile as any).capacity.toLocaleString()} guests</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-sm font-semibold">Location</p>
-                    <p className="text-sm text-muted-foreground">{(venueProfile as any)?.location || 'Not specified'}</p>
+                {(venueProfile as any)?.location && (
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Location</p>
+                      <p className="text-sm text-muted-foreground">{(venueProfile as any).location}</p>
+                    </div>
                   </div>
-                </div>
+                )}
+                {(venueProfile as any)?.operatingHours && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-semibold">Operating Hours</p>
+                      <p className="text-sm text-muted-foreground">{(venueProfile as any).operatingHours}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Amenities */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Amenities & Facilities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                <span className="text-sm">Power Supply</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Wifi className="h-5 w-5 text-primary" />
-                <span className="text-sm">WiFi Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Volume2 className="h-5 w-5 text-primary" />
-                <span className="text-sm">Sound System</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Accessibility className="h-5 w-5 text-primary" />
-                <span className="text-sm">Accessible</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ParkingCircle className="h-5 w-5 text-primary" />
-                <span className="text-sm">Parking Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Music className="h-5 w-5 text-primary" />
-                <span className="text-sm">Stage Setup</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {(() => {
+          const amenities = (venueProfile as any)?.amenities;
+          const amenityList = amenities
+            ? (typeof amenities === 'object' && !Array.isArray(amenities)
+                ? Object.keys(amenities).filter(k => amenities[k])
+                : Array.isArray(amenities) ? amenities : [])
+            : [];
+          if (amenityList.length === 0) return null;
+
+          const amenityIcons: Record<string, any> = {
+            'Stage': Music,
+            'Sound System': Volume2,
+            'Lighting': Lightbulb,
+            'Parking': ParkingCircle,
+            'Green Room': Shirt,
+            'Wi-Fi': Wifi,
+            'Bar': UtensilsCrossed,
+            'Kitchen': UtensilsCrossed,
+            'Outdoor Space': TreePine,
+            'Wheelchair Accessible': Accessibility,
+            'Dressing Room': Shirt,
+            'Loading Dock': Truck,
+          };
+
+          return (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Amenities & Facilities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {amenityList.map((amenity: string) => {
+                    const IconComponent = amenityIcons[amenity] || Check;
+                    return (
+                      <div key={amenity} className="flex items-center gap-2">
+                        <IconComponent className="h-5 w-5 text-primary" />
+                        <span className="text-sm">{amenity}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Photo Gallery */}
         {(() => {
