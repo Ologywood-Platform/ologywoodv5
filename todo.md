@@ -1658,3 +1658,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Send notification to the respondent when a dispute is filed against them
 - [x] Send confirmation to the reporter that their dispute was received
 - [x] Wire into the dispute.create endpoint in dispute router
+
+
+## BLOG POST: How to Book a Live Artist for Your Event (Mar 12, 2026)
+
+- [x] Research live artist booking best practices and industry data
+- [x] Write full blog post content in Markdown
+- [x] Generate cover image for the blog post
+- [x] Ensure blog_posts table exists in production database
+- [x] Publish blog post via admin dashboard

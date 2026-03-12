@@ -17,7 +17,32 @@ import Footer from '@/components/Footer';
  * Handles headings, bold, italic, links, lists, code blocks, blockquotes, images, and paragraphs.
  */
 function renderMarkdown(md: string): string {
-  let html = md
+  // First, extract and convert Markdown tables to HTML
+  const tableRegex = /^(\|.+\|\n)(\|[-: |]+\|\n)((?:\|.+\|\n?)+)/gm;
+  let processed = md.replace(tableRegex, (_match, headerRow: string, _separatorRow: string, bodyRows: string) => {
+    const parseRow = (row: string) =>
+      row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c: string) => c.trim());
+    const headers = parseRow(headerRow);
+    const rows = bodyRows.trim().split('\n').map(parseRow);
+    let table = '<div class="overflow-x-auto my-6"><table class="min-w-full border-collapse border border-gray-200 text-sm">';
+    table += '<thead><tr>';
+    headers.forEach((h: string) => {
+      table += `<th class="border border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-semibold text-gray-900">${h}</th>`;
+    });
+    table += '</tr></thead><tbody>';
+    rows.forEach((row: string[], i: number) => {
+      const bg = i % 2 === 0 ? '' : ' bg-gray-50/50';
+      table += `<tr class="${bg}">`;
+      row.forEach((cell: string) => {
+        table += `<td class="border border-gray-200 px-4 py-2 text-gray-700">${cell}</td>`;
+      });
+      table += '</tr>';
+    });
+    table += '</tbody></table></div>';
+    return table;
+  });
+
+  let html = processed
     // Code blocks (fenced)
     .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-gray-100 rounded-lg p-4 overflow-x-auto text-sm my-4"><code>$2</code></pre>')
     // Inline code
@@ -60,6 +85,13 @@ function renderMarkdown(md: string): string {
         trimmed.startsWith("<li") ||
         trimmed.startsWith("<hr") ||
         trimmed.startsWith("<img") ||
+        trimmed.startsWith("<div") ||
+        trimmed.startsWith("<table") ||
+        trimmed.startsWith("<thead") ||
+        trimmed.startsWith("<tbody") ||
+        trimmed.startsWith("<tr") ||
+        trimmed.startsWith("<th") ||
+        trimmed.startsWith("<td") ||
         trimmed.startsWith("</")
       ) {
         return trimmed;
