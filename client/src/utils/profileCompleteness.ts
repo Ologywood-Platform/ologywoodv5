@@ -30,13 +30,13 @@ const ARTIST_FIELDS: ProfileField[] = [
 ];
 
 const VENUE_FIELDS: ProfileField[] = [
-  { key: 'name', label: 'Venue Name', weight: 3, check: (p) => !!p.name?.trim() },
-  { key: 'description', label: 'Description', weight: 3, check: (p) => !!p.description?.trim() && p.description.trim().length >= 50 },
+  { key: 'organizationName', label: 'Venue Name', weight: 3, check: (p) => !!p.organizationName?.trim() || !!p.name?.trim() },
+  { key: 'bio', label: 'Description', weight: 3, check: (p) => !!p.bio?.trim() && p.bio.trim().length >= 50 },
   { key: 'venueType', label: 'Venue Type', weight: 2, check: (p) => !!p.venueType?.trim() },
-  { key: 'profileImage', label: 'Profile Photo', weight: 3, check: (p) => !!p.profileImage?.trim() },
+  { key: 'profilePhotoUrl', label: 'Profile Photo', weight: 3, check: (p) => !!p.profilePhotoUrl?.trim() },
   { key: 'location', label: 'Location', weight: 2, check: (p) => !!p.location?.trim() || !!p.address?.trim() },
   { key: 'capacity', label: 'Capacity', weight: 2, check: (p) => p.capacity != null && p.capacity > 0 },
-  { key: 'contactEmail', label: 'Contact Email', weight: 2, check: (p) => !!p.contactEmail?.trim() },
+  { key: 'contactEmail', label: 'Contact Email', weight: 2, check: (p) => !!p.contactEmail?.trim() || !!p.email?.trim() },
   { key: 'contactPhone', label: 'Contact Phone', weight: 1, check: (p) => !!p.contactPhone?.trim() },
   { key: 'amenities', label: 'Amenities', weight: 1, check: (p) => !!p.amenities?.trim() || (Array.isArray(p.amenities) && p.amenities.length > 0) },
   { key: 'operatingHours', label: 'Operating Hours', weight: 1, check: (p) => !!p.operatingHours?.trim() },

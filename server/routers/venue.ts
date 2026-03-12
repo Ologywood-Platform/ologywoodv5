@@ -141,6 +141,7 @@ export const venueRouter = router({
         contactPhone: z.string().optional(),
         location: z.string().optional(),
         bio: z.string().optional(),
+        profilePhotoUrl: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -200,8 +201,9 @@ export const venueRouter = router({
         // Upload to S3
         const { url } = await storagePut(fileKey, buffer, input.mimeType);
 
-        // Note: Profile photo storage depends on schema having profilePhotoUrl field
-        // For now, just return the URL
+        // Save the photo URL to the venue profile
+        await db.updateVenueProfile(profile.id, { profilePhotoUrl: url });
+
         return { url, success: true };
       } catch (error) {
         console.error('[Venue] Upload photo error:', error);

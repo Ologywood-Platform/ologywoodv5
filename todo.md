@@ -1682,3 +1682,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add word count, character count, and reading time stats
 - [x] Add unsaved changes warning
 - [x] Test full create, edit, publish, archive workflow
+
+
+## VENUE PROFILE PHOTO UPLOAD (Mar 12, 2026)
+
+- [x] Investigate venue profile/dashboard for missing photo upload UI
+- [x] Add profile photo upload functionality for venue users
+- [x] Fix backend to save photo URL to venue_profiles table
+- [x] Fix venue completeness checker to use correct field names (profilePhotoUrl, organizationName, bio)
+- [x] Add photo upload UI to Edit Profile, View Profile, and Create Profile views
+- [x] Write and pass vitest tests for venue photo upload

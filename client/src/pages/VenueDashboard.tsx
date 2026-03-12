@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 
 export function VenueDashboard() {
@@ -22,6 +23,7 @@ export function VenueDashboard() {
     contactPhone: '',
     bio: '',
   });
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Fetch venue profile
   const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = trpc.venue.getMyProfile.useQuery(
@@ -93,6 +95,47 @@ export function VenueDashboard() {
       alert(error.message || 'Failed to update profile');
     },
   });
+
+  const uploadPhotoMutation = trpc.venue.uploadProfilePhoto.useMutation({
+    onSuccess: () => {
+      refetchProfile();
+      toast.success('Profile photo updated successfully');
+      setUploadingPhoto(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to upload photo');
+      setUploadingPhoto(false);
+    },
+  });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be smaller than 5MB');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      uploadPhotoMutation.mutate({
+        fileData: base64,
+        fileName: file.name,
+        mimeType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleProfileUpdate = async () => {
     try {
@@ -508,6 +551,50 @@ export function VenueDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* Profile Photo Upload */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Profile Photo</label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative group">
+                          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                            {profile?.profilePhotoUrl ? (
+                              <img src={profile.profilePhotoUrl} alt="Venue" className="w-full h-full object-cover" />
+                            ) : (
+                              <Camera className="h-8 w-8 text-gray-400" />
+                            )}
+                          </div>
+                          <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                            {uploadingPhoto ? (
+                              <Loader2 className="h-6 w-6 text-white animate-spin" />
+                            ) : (
+                              <Camera className="h-6 w-6 text-white" />
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              disabled={uploadingPhoto}
+                            />
+                          </label>
+                        </div>
+                        <div className="flex-1">
+                          <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium">
+                            <Upload className="h-4 w-4" />
+                            {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              disabled={uploadingPhoto}
+                            />
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">JPG, PNG or WebP. Max 5MB.</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Organization Name</label>
                       <input
@@ -572,6 +659,47 @@ export function VenueDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* Profile Photo */}
+                    <div className="flex items-center gap-4">
+                      <div className="relative group">
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                          {profile.profilePhotoUrl ? (
+                            <img src={profile.profilePhotoUrl} alt="Venue" className="w-full h-full object-cover" />
+                          ) : (
+                            <Camera className="h-8 w-8 text-gray-400" />
+                          )}
+                        </div>
+                        <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                          {uploadingPhoto ? (
+                            <Loader2 className="h-5 w-5 text-white animate-spin" />
+                          ) : (
+                            <Camera className="h-5 w-5 text-white" />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                            disabled={uploadingPhoto}
+                          />
+                        </label>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{profile.organizationName}</p>
+                        <label className="inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 cursor-pointer hover:text-purple-800 dark:hover:text-purple-300 mt-1">
+                          <Camera className="h-3 w-3" />
+                          {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                            disabled={uploadingPhoto}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm font-medium">Organization Name</label>
                       <p className="text-gray-700 mt-1">{profile.organizationName}</p>
@@ -610,6 +738,19 @@ export function VenueDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/* Profile Photo Upload */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Profile Photo</label>
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                          <Camera className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">You can add a photo after creating your profile.</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium mb-1">Organization Name</label>
                       <input
