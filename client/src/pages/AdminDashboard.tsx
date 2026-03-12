@@ -236,10 +236,88 @@ function UsersTab({
   users: any[];
   isLoading: boolean;
 }) {
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [confirmAction, setConfirmAction] = useState<{ type: 'promote' | 'demote'; user: any } | null>(null);
+  const utils = trpc.useUtils();
+
+  // Check if current user is the owner
+  const isOwnerQuery = trpc.admin.isOwner.useQuery();
+  const isOwner = isOwnerQuery.data?.isOwner || false;
+
+  // Get current admins
+  const adminsQuery = trpc.admin.getAdmins.useQuery();
+
+  // Promote mutation
+  const promoteMutation = trpc.admin.promoteToAdmin.useMutation({
+    onSuccess: (data) => {
+      utils.admin.getUsers.invalidate();
+      utils.admin.getAdmins.invalidate();
+      utils.admin.getAnalytics.invalidate();
+      setConfirmAction(null);
+    },
+  });
+
+  // Demote mutation
+  const demoteMutation = trpc.admin.demoteFromAdmin.useMutation({
+    onSuccess: (data) => {
+      utils.admin.getUsers.invalidate();
+      utils.admin.getAdmins.invalidate();
+      utils.admin.getAnalytics.invalidate();
+      setConfirmAction(null);
+    },
+  });
+
+  // Filter users by role
+  const filteredUsers = roleFilter === 'all' ? users : users.filter((u: any) => u.role === roleFilter);
+
+  // Check if a user is the owner
+  const ownerUserId = adminsQuery.data?.owner?.id;
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-purple-100 text-purple-700';
+      case 'artist': return 'bg-blue-100 text-blue-700';
+      case 'venue': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <div className="relative">
+      {/* Admin Summary */}
+      {adminsQuery.data && (
+        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Shield className="w-5 h-5 text-purple-600" />
+            <h4 className="font-semibold text-purple-900">Admin Team</h4>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {adminsQuery.data.owner && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-purple-200">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                <span className="text-sm text-gray-700">{adminsQuery.data.owner.name || adminsQuery.data.owner.email}</span>
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">Owner</span>
+              </div>
+            )}
+            {adminsQuery.data.admins.map((admin: any) => (
+              admin.id !== ownerUserId && (
+                <div key={admin.id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-purple-200">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                  <span className="text-sm text-gray-700">{admin.name || admin.email}</span>
+                  <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">Admin</span>
+                </div>
+              )
+            ))}
+            {adminsQuery.data.admins.filter((a: any) => a.id !== ownerUserId).length === 0 && (
+              <p className="text-sm text-purple-600">No other admins yet. Promote users below to add team members.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Search and Filter */}
+      <div className="mb-6 flex gap-4">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
           <input
             type="text"
@@ -249,39 +327,145 @@ function UsersTab({
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm"
+        >
+          <option value="all">All Roles</option>
+          <option value="admin">Admins</option>
+          <option value="artist">Artists</option>
+          <option value="venue">Venues</option>
+          <option value="user">Users</option>
+        </select>
       </div>
 
       {isLoading ? (
         <p className="text-gray-500">Loading users...</p>
-      ) : users.length === 0 ? (
+      ) : filteredUsers.length === 0 ? (
         <p className="text-gray-500">No users found</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-gray-900">{user.email}</td>
-                  <td className="py-3 px-4 text-gray-600">{user.name || '—'}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
+                  {isOwner && <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user: any) => {
+                  const isUserOwner = user.id === ownerUserId;
+                  return (
+                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {user.email}
+                          {isUserOwner && (
+                            <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">Owner</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{user.name || '—'}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      {isOwner && (
+                        <td className="py-3 px-4 text-right">
+                          {isUserOwner ? (
+                            <span className="text-xs text-gray-400">—</span>
+                          ) : user.role === 'admin' ? (
+                            <button
+                              onClick={() => setConfirmAction({ type: 'demote', user })}
+                              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                            >
+                              Remove Admin
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmAction({ type: 'promote', user })}
+                              className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                            >
+                              Make Admin
+                            </button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Confirmation Dialog */}
+          {confirmAction && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    confirmAction.type === 'promote' ? 'bg-purple-100' : 'bg-red-100'
+                  }`}>
+                    <Shield className={`w-5 h-5 ${
+                      confirmAction.type === 'promote' ? 'text-purple-600' : 'text-red-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      {confirmAction.type === 'promote' ? 'Promote to Admin' : 'Remove Admin Access'}
+                    </h3>
+                    <p className="text-sm text-gray-500">{confirmAction.user.email}</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-6">
+                  {confirmAction.type === 'promote'
+                    ? `This will give ${confirmAction.user.name || confirmAction.user.email} full admin access to the platform dashboard, including user management, booking oversight, blog management, and financial data.`
+                    : `This will remove admin access from ${confirmAction.user.name || confirmAction.user.email}. They will be restored to their previous role and lose access to the admin dashboard.`
+                  }
+                </p>
+
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setConfirmAction(null)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirmAction.type === 'promote') {
+                        promoteMutation.mutate({ userId: confirmAction.user.id });
+                      } else {
+                        demoteMutation.mutate({ userId: confirmAction.user.id });
+                      }
+                    }}
+                    disabled={promoteMutation.isPending || demoteMutation.isPending}
+                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                      confirmAction.type === 'promote'
+                        ? 'bg-purple-600 hover:bg-purple-700'
+                        : 'bg-red-600 hover:bg-red-700'
+                    }`}
+                  >
+                    {(promoteMutation.isPending || demoteMutation.isPending)
+                      ? 'Processing...'
+                      : confirmAction.type === 'promote'
+                        ? 'Confirm Promote'
+                        : 'Confirm Remove'
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

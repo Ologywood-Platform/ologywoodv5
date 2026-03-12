@@ -1768,3 +1768,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Lazy-load artist.getAll only when Artists tab is active
 - [x] Add staleTime to venue dashboard queries (profile: 2min, bookings: 1min, artists: 5min)
 - [x] Test performance improvements (0 TS errors, build clean)
+
+## ADMIN USER MANAGEMENT PANEL (Mar 12, 2026)
+
+- [x] Review existing admin dashboard and user/admin router infrastructure (UsersTab exists with basic table, admin.ts has getUsers/getUser/toggleUserStatus but no promote/demote)
+- [x] Build backend endpoints: promoteToAdmin, demoteFromAdmin, getAdmins, isOwner
+- [x] Only owner (OWNER_OPEN_ID) can promote/demote admins (ownerOnly middleware)
+- [x] Fix adminOnly middleware to also allow site owner access
+- [x] Build User Management tab in Admin Dashboard with user table, search, role filters
+- [x] Add promote/demote buttons with confirmation dialogs (owner only)
+- [x] Show admin badge and role indicators (Admin Team summary panel, color-coded role badges, Owner tag)
+- [x] Do NOT change owner's current role (still testing as artist/venue)
+- [x] Write vitest tests (14 tests passing)
+- [x] Test end-to-end (0 TS errors, build clean)

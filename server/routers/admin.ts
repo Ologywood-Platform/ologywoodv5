@@ -4,10 +4,26 @@ import { getDb } from "../db";
 import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback } from "../../drizzle/schema";
 import { desc, sql } from "drizzle-orm";
 
-// Middleware to ensure user is admin
+// Owner identification
+const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
+
+// Middleware to ensure user is admin OR site owner
 const adminOnly = protectedProcedure.use(async (opts) => {
-  if (opts.ctx.user.role !== "admin") {
+  const user = opts.ctx.user;
+  const isAdmin = user.role === 'admin';
+  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
+  if (!isAdmin && !isOwner) {
     throw new Error("Unauthorized: Admin access required");
+  }
+  return opts.next({ ctx: { ...opts.ctx, isOwner: !!isOwner } });
+});
+
+// Middleware to ensure user is the site owner (for role management)
+const ownerOnly = protectedProcedure.use(async (opts) => {
+  const user = opts.ctx.user;
+  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
+  if (!isOwner) {
+    throw new Error("Unauthorized: Only the platform owner can manage admin roles");
   }
   return opts.next();
 });
@@ -123,6 +139,104 @@ export const adminRouter = router({
       if (user.role === "admin") throw new Error("Cannot suspend admin users");
 
 return { success: true, userId: input.userId };
+    }),
+
+  /**
+   * Promote a user to admin role (owner only)
+   */
+  promoteToAdmin: ownerOnly
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const allUsers = await db.select().from(users);
+      const targetUser = allUsers.find((u: typeof users.$inferSelect) => u.id === input.userId);
+      if (!targetUser) throw new Error("User not found");
+      if (targetUser.role === 'admin') throw new Error("User is already an admin");
+
+      // Store the previous role so we can restore it on demote
+      await db.update(users).set({
+        role: 'admin',
+        updatedAt: new Date(),
+      }).where(sql`id = ${input.userId}`);
+
+      return { success: true, userId: input.userId, previousRole: targetUser.role };
+    }),
+
+  /**
+   * Demote an admin back to their original role (owner only)
+   */
+  demoteFromAdmin: ownerOnly
+    .input(z.object({
+      userId: z.number(),
+      restoreRole: z.enum(['artist', 'venue', 'user']).default('user'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const allUsers = await db.select().from(users);
+      const targetUser = allUsers.find((u: typeof users.$inferSelect) => u.id === input.userId);
+      if (!targetUser) throw new Error("User not found");
+      if (targetUser.role !== 'admin') throw new Error("User is not an admin");
+
+      // Check if this user is the owner — can't demote yourself
+      if (OWNER_OPEN_ID && targetUser.openId === OWNER_OPEN_ID) {
+        throw new Error("Cannot demote the platform owner");
+      }
+
+      // Determine restore role: check if they have an artist or venue profile
+      let restoreRole = input.restoreRole;
+      if (restoreRole === 'user') {
+        const artistProfile = await db.select().from(artistProfiles);
+        const hasArtistProfile = artistProfile.some((p: typeof artistProfiles.$inferSelect) => p.userId === input.userId);
+        if (hasArtistProfile) {
+          restoreRole = 'artist';
+        } else {
+          const venueProfile = await db.select().from(venueProfiles);
+          const hasVenueProfile = venueProfile.some((p: typeof venueProfiles.$inferSelect) => p.userId === input.userId);
+          if (hasVenueProfile) {
+            restoreRole = 'venue';
+          }
+        }
+      }
+
+      await db.update(users).set({
+        role: restoreRole,
+        updatedAt: new Date(),
+      }).where(sql`id = ${input.userId}`);
+
+      return { success: true, userId: input.userId, newRole: restoreRole };
+    }),
+
+  /**
+   * Get all current admins (owner only)
+   */
+  getAdmins: adminOnly
+    .query(async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const allUsers = await db.select().from(users);
+      const admins = allUsers.filter((u: typeof users.$inferSelect) => u.role === 'admin');
+
+      // Also include the owner
+      const owner = OWNER_OPEN_ID ? allUsers.find((u: typeof users.$inferSelect) => u.openId === OWNER_OPEN_ID) : null;
+
+      return {
+        admins,
+        owner: owner ? { id: owner.id, email: owner.email, name: owner.name, role: owner.role } : null,
+      };
+    }),
+
+  /**
+   * Check if current user is the owner
+   */
+  isOwner: adminOnly
+    .query(async ({ ctx }) => {
+      const isOwner = OWNER_OPEN_ID && ctx.user.openId === OWNER_OPEN_ID;
+      return { isOwner: !!isOwner };
     }),
 
   // ============ BOOKING MANAGEMENT ============
