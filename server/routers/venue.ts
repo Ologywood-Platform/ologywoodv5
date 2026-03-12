@@ -3,7 +3,8 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { storagePut } from "../storage";
-import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } from "../email";
+import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail, sendEmail } from "../email";
+import * as notif from "../services/notificationService";
 
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -489,6 +490,108 @@ export const venueRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to verify email',
+        });
+      }
+    }),
+
+  /**
+   * Contact venue - artist sends inquiry to venue (creates booking + first message)
+   */
+  contactVenue: protectedProcedure
+    .input(z.object({
+      venueId: z.number(),
+      inquiryType: z.enum(['booking', 'general', 'availability', 'pricing']),
+      subject: z.string().min(1).max(200),
+      message: z.string().min(10).max(2000),
+      preferredDate: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Get venue profile
+        const venueProfile = await db.getVenueProfileById(input.venueId);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue not found' });
+        }
+
+        // Get sender's artist profile (if they have one)
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const senderUser = await db.getUserById(ctx.user.id);
+        const senderName = artistProfile?.artistName || senderUser?.name || senderUser?.email || 'Someone';
+
+        // Build the full message content with inquiry metadata
+        const inquiryLabels: Record<string, string> = {
+          booking: 'Booking Inquiry',
+          general: 'General Inquiry',
+          availability: 'Availability Check',
+          pricing: 'Pricing Inquiry',
+        };
+        const inquiryLabel = inquiryLabels[input.inquiryType] || 'Inquiry';
+        const dateStr = input.preferredDate ? `\nPreferred Date: ${input.preferredDate}` : '';
+        const fullMessage = `📩 ${inquiryLabel}: ${input.subject}${dateStr}\n\n${input.message}`;
+
+        // Create a pending booking to hold this conversation
+        const booking = await db.createBooking({
+          artistId: artistProfile?.id || 0,
+          venueId: venueProfile.id,
+          eventDate: input.preferredDate ? new Date(input.preferredDate) : new Date(),
+          eventTime: null,
+          totalFee: null,
+          eventDetails: `${inquiryLabel}: ${input.subject}`,
+          status: 'pending',
+        });
+
+        // Send the first message
+        await db.createMessage({
+          bookingId: booking.id,
+          senderId: ctx.user.id,
+          recipientId: venueProfile.userId,
+          content: fullMessage,
+        });
+
+        // In-app notification
+        notif.notifyNewMessage({
+          recipientUserId: venueProfile.userId,
+          senderName,
+          preview: `${inquiryLabel}: ${input.subject}`,
+          bookingId: booking.id,
+        }).catch(() => {});
+
+        // Email notification to venue
+        const venueUser = await db.getUserById(venueProfile.userId);
+        if (venueUser?.email) {
+          sendEmail({
+            to: venueUser.email,
+            subject: `New ${inquiryLabel} from ${senderName} — Ologywood`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #7c3aed, #6d28d9); padding: 24px; border-radius: 12px 12px 0 0;">
+                  <h1 style="color: white; margin: 0; font-size: 20px;">New ${inquiryLabel}</h1>
+                </div>
+                <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                  <p style="color: #374151; margin: 0 0 16px;">Hi ${venueProfile.organizationName || 'there'},</p>
+                  <p style="color: #374151; margin: 0 0 16px;"><strong>${senderName}</strong> has sent you a ${inquiryLabel.toLowerCase()} on Ologywood.</p>
+                  <div style="background: #f9fafb; border-left: 4px solid #7c3aed; padding: 16px; margin: 16px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Subject</p>
+                    <p style="color: #111827; margin: 0 0 12px; font-weight: 600;">${input.subject}</p>
+                    ${input.preferredDate ? `<p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Preferred Date</p><p style="color: #111827; margin: 0 0 12px;">${input.preferredDate}</p>` : ''}
+                    <p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Message</p>
+                    <p style="color: #111827; margin: 0; white-space: pre-wrap;">${input.message}</p>
+                  </div>
+                  <a href="${process.env.BASE_URL || 'https://www.ologywood.com'}/messages/${booking.id}" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px;">View & Reply</a>
+                  <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">You received this because someone contacted your venue on Ologywood.</p>
+                </div>
+              </div>
+            `,
+          }).catch((err) => console.error('[Venue] Failed to send inquiry email:', err));
+        }
+
+        return { success: true, bookingId: booking.id, message: 'Inquiry sent successfully' };
+      } catch (error) {
+        console.error('[Venue] Contact venue error:', error);
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to send inquiry',
         });
       }
     }),

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check, MessageSquare, Send, Loader2, CalendarDays } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -37,6 +37,46 @@ export default function VenueProfile() {
   const [responseText, setResponseText] = useState('');
   const [shareVenueOpen, setShareVenueOpen] = useState(false);
   const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    inquiryType: 'booking' as 'booking' | 'general' | 'availability' | 'pricing',
+    subject: '',
+    message: '',
+    preferredDate: '',
+  });
+
+  const contactVenueMutation = trpc.venue.contactVenue.useMutation({
+    onSuccess: (data) => {
+      toast.success('Inquiry sent! The venue will be notified.');
+      setContactModalOpen(false);
+      setContactForm({ inquiryType: 'booking', subject: '', message: '', preferredDate: '' });
+      // Optionally navigate to the conversation
+      if (data.bookingId) {
+        navigate(`/messages/${data.bookingId}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send inquiry');
+    },
+  });
+
+  const handleContactSubmit = () => {
+    if (!contactForm.subject.trim()) {
+      toast.error('Please enter a subject');
+      return;
+    }
+    if (contactForm.message.trim().length < 10) {
+      toast.error('Message must be at least 10 characters');
+      return;
+    }
+    contactVenueMutation.mutate({
+      venueId,
+      inquiryType: contactForm.inquiryType,
+      subject: contactForm.subject.trim(),
+      message: contactForm.message.trim(),
+      preferredDate: contactForm.preferredDate || undefined,
+    });
+  };
 
   const respondMutation = trpc.venueReview.respondToReview.useMutation({
     onSuccess: () => {
@@ -175,6 +215,23 @@ export default function VenueProfile() {
             {venueProfile.bio && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm text-muted-foreground">{venueProfile.bio}</p>
+              </div>
+            )}
+
+            {/* Contact Venue Button */}
+            {!isVenueOwner && (
+              <div className="mt-4 pt-4 border-t">
+                {user ? (
+                  <Button onClick={() => setContactModalOpen(true)} className="w-full sm:w-auto gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Contact Venue
+                  </Button>
+                ) : (
+                  <Button onClick={() => navigate('/login')} variant="outline" className="w-full sm:w-auto gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Log in to Contact Venue
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
@@ -510,6 +567,117 @@ export default function VenueProfile() {
           venueCapacity={(venueProfile as any)?.capacity}
         />
       )}
+
+      {/* Contact Venue Modal */}
+      {contactModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setContactModalOpen(false)}>
+          <div className="bg-background rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold">Contact {venueProfile?.organizationName}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Send an inquiry directly to this venue</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setContactModalOpen(false)}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Inquiry Type */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Inquiry Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'booking', label: 'Booking Request', icon: '🎵' },
+                      { value: 'availability', label: 'Check Availability', icon: '📅' },
+                      { value: 'pricing', label: 'Pricing Info', icon: '💰' },
+                      { value: 'general', label: 'General Question', icon: '💬' },
+                    ].map((type) => (
+                      <button
+                        key={type.value}
+                        onClick={() => setContactForm({ ...contactForm, inquiryType: type.value as any })}
+                        className={`flex items-center gap-2 p-3 rounded-lg border text-sm text-left transition-colors ${
+                          contactForm.inquiryType === type.value
+                            ? 'border-primary bg-primary/5 text-primary font-medium'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <span>{type.icon}</span>
+                        <span>{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preferred Date (optional) */}
+                {(contactForm.inquiryType === 'booking' || contactForm.inquiryType === 'availability') && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Preferred Date (optional)</label>
+                    <div className="relative">
+                      <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="date"
+                        value={contactForm.preferredDate}
+                        onChange={(e) => setContactForm({ ...contactForm, preferredDate: e.target.value })}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full pl-10 pr-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Subject */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Subject</label>
+                  <input
+                    type="text"
+                    value={contactForm.subject}
+                    onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                    placeholder="e.g., Live band for Saturday night event"
+                    maxLength={200}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1 text-right">{contactForm.subject.length}/200</p>
+                </div>
+
+                {/* Message */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Message</label>
+                  <Textarea
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    placeholder="Tell the venue about your event, what you're looking for, and any specific requirements..."
+                    rows={5}
+                    maxLength={2000}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1 text-right">{contactForm.message.length}/2000</p>
+                </div>
+
+                {/* Submit */}
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setContactModalOpen(false)} className="flex-1">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleContactSubmit}
+                    disabled={contactVenueMutation.isPending || !contactForm.subject.trim() || contactForm.message.trim().length < 10}
+                    className="flex-1 gap-2"
+                  >
+                    {contactVenueMutation.isPending ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</>
+                    ) : (
+                      <><Send className="h-4 w-4" /> Send Inquiry</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
           <Footer />
     </div>
   );

@@ -1733,3 +1733,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Button opens public venue profile page in new tab
 - [x] Fix VenueProfile.tsx to actually fetch venue data via trpc venue.getById
 - [x] Test the preview button (0 TS errors, build clean)
+
+## CONTACT VENUE BUTTON ON PUBLIC PROFILE (Mar 12, 2026)
+
+- [x] Review existing messaging/inquiry infrastructure (messages table + booking-based messaging exists)
+- [x] Build backend endpoint for venue inquiries (venue.contactVenue with booking + message + email)
+- [x] Build Contact Venue modal with inquiry type, subject, preferred date, and message fields
+- [x] Add Contact Venue button to public venue profile page (hidden for venue owner)
+- [x] Send email notification to venue on new inquiry
+- [x] Send in-app notification to venue on new inquiry
+- [x] Auto-redirect to conversation after sending inquiry
+- [x] Write vitest tests (23 tests passing)
+- [x] Test end-to-end (0 TS errors, build clean)
