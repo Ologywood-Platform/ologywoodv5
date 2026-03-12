@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 
@@ -24,6 +24,11 @@ export function VenueDashboard() {
     bio: '',
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [editingCaption, setEditingCaption] = useState<string | null>(null);
+  const [captionText, setCaptionText] = useState('');
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<any>(null);
 
   // Fetch venue profile
   const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = trpc.venue.getMyProfile.useQuery(
@@ -95,6 +100,11 @@ export function VenueDashboard() {
       alert(error.message || 'Failed to update profile');
     },
   });
+
+  // Gallery mutations
+  const uploadGalleryPhoto = trpc.venue.uploadGalleryPhoto.useMutation();
+  const deleteGalleryPhoto = trpc.venue.deleteGalleryPhoto.useMutation();
+  const updateGalleryCaption = trpc.venue.updateGalleryCaption.useMutation();
 
   const uploadPhotoMutation = trpc.venue.uploadProfilePhoto.useMutation({
     onSuccess: () => {
@@ -240,7 +250,7 @@ export function VenueDashboard() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Overview</span>
@@ -252,6 +262,10 @@ export function VenueDashboard() {
             <TabsTrigger value="artists" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Artists</span>
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Gallery</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -540,6 +554,267 @@ export function VenueDashboard() {
               </Card>
             )}
           </TabsContent>
+
+          {/* Gallery Tab */}
+          <TabsContent value="gallery" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <ImageIcon className="h-5 w-5 text-purple-600" />
+                      Venue Gallery
+                    </CardTitle>
+                    <CardDescription>
+                      Showcase your space with up to 20 photos. Artists will see these when considering your venue.
+                    </CardDescription>
+                  </div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-sm font-medium">
+                    <Upload className="h-4 w-4" />
+                    {uploadingGallery ? 'Uploading...' : 'Add Photos'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files || files.length === 0) return;
+                        setUploadingGallery(true);
+                        let successCount = 0;
+                        for (const file of Array.from(files)) {
+                          if (file.size > 10 * 1024 * 1024) {
+                            toast.error(`${file.name} is too large (max 10MB)`);
+                            continue;
+                          }
+                          try {
+                            const reader = new FileReader();
+                            const fileData = await new Promise<string>((resolve) => {
+                              reader.onload = () => resolve(reader.result as string);
+                              reader.readAsDataURL(file);
+                            });
+                            await uploadGalleryPhoto.mutateAsync({
+                              fileData,
+                              fileName: file.name,
+                              mimeType: file.type,
+                            });
+                            successCount++;
+                          } catch (err: any) {
+                            toast.error(err?.message || `Failed to upload ${file.name}`);
+                          }
+                        }
+                        if (successCount > 0) {
+                          toast.success(`${successCount} photo${successCount > 1 ? 's' : ''} uploaded`);
+                          refetchProfile();
+                        }
+                        setUploadingGallery(false);
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                      disabled={uploadingGallery}
+                    />
+                  </label>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const photos = (profile?.mediaGallery as any)?.photos || [];
+                  if (photos.length === 0) {
+                    return (
+                      <div className="text-center py-16 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">No photos yet</h3>
+                        <p className="text-sm text-gray-500 mb-4">Upload photos of your venue to attract artists</p>
+                        <label className="inline-flex items-center gap-2 px-6 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium">
+                          <Upload className="h-4 w-4" />
+                          Upload Your First Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={async (e) => {
+                              const files = e.target.files;
+                              if (!files || files.length === 0) return;
+                              setUploadingGallery(true);
+                              let successCount = 0;
+                              for (const file of Array.from(files)) {
+                                if (file.size > 10 * 1024 * 1024) {
+                                  toast.error(`${file.name} is too large (max 10MB)`);
+                                  continue;
+                                }
+                                try {
+                                  const reader = new FileReader();
+                                  const fileData = await new Promise<string>((resolve) => {
+                                    reader.onload = () => resolve(reader.result as string);
+                                    reader.readAsDataURL(file);
+                                  });
+                                  await uploadGalleryPhoto.mutateAsync({
+                                    fileData,
+                                    fileName: file.name,
+                                    mimeType: file.type,
+                                  });
+                                  successCount++;
+                                } catch (err: any) {
+                                  toast.error(err?.message || `Failed to upload ${file.name}`);
+                                }
+                              }
+                              if (successCount > 0) {
+                                toast.success(`${successCount} photo${successCount > 1 ? 's' : ''} uploaded`);
+                                refetchProfile();
+                              }
+                              setUploadingGallery(false);
+                              e.target.value = '';
+                            }}
+                            className="hidden"
+                            disabled={uploadingGallery}
+                          />
+                        </label>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div>
+                      <p className="text-sm text-gray-500 mb-4">{photos.length} of 20 photos used</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {photos.map((photo: any) => (
+                          <div key={photo.id} className="group relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-square">
+                            <img
+                              src={photo.url}
+                              alt={photo.caption || 'Venue photo'}
+                              className="w-full h-full object-cover cursor-pointer"
+                              onClick={() => setLightboxPhoto(photo)}
+                            />
+                            {/* Hover overlay with actions */}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-end">
+                              <div className="w-full p-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingCaption(photo.id);
+                                    setCaptionText(photo.caption || '');
+                                  }}
+                                  className="p-1.5 bg-white/90 rounded-md hover:bg-white text-gray-700 transition-colors"
+                                  title="Edit caption"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeletingPhotoId(photo.id);
+                                  }}
+                                  className="p-1.5 bg-red-500/90 rounded-md hover:bg-red-600 text-white transition-colors"
+                                  title="Delete photo"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                            {/* Caption display */}
+                            {photo.caption && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 group-hover:opacity-0 transition-opacity">
+                                <p className="text-white text-xs truncate">{photo.caption}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Caption Edit Modal */}
+          {editingCaption && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setEditingCaption(null)}>
+              <div className="bg-white dark:bg-gray-900 rounded-xl max-w-md w-full shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+                <h3 className="font-semibold mb-3">Edit Caption</h3>
+                <input
+                  type="text"
+                  value={captionText}
+                  onChange={(e) => setCaptionText(e.target.value)}
+                  placeholder="Add a caption for this photo..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
+                  maxLength={200}
+                  autoFocus
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setEditingCaption(null)}>Cancel</Button>
+                  <Button
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={async () => {
+                      try {
+                        await updateGalleryCaption.mutateAsync({ photoId: editingCaption, caption: captionText });
+                        toast.success('Caption updated');
+                        refetchProfile();
+                        setEditingCaption(null);
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Failed to update caption');
+                      }
+                    }}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {deletingPhotoId && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setDeletingPhotoId(null)}>
+              <div className="bg-white dark:bg-gray-900 rounded-xl max-w-sm w-full shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                    <Trash2 className="h-5 w-5 text-red-600" />
+                  </div>
+                  <h3 className="font-semibold">Delete Photo</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Are you sure you want to delete this photo? This action cannot be undone.</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setDeletingPhotoId(null)}>Cancel</Button>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={async () => {
+                      try {
+                        await deleteGalleryPhoto.mutateAsync({ photoId: deletingPhotoId });
+                        toast.success('Photo deleted');
+                        refetchProfile();
+                        setDeletingPhotoId(null);
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Failed to delete photo');
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Lightbox Modal */}
+          {lightboxPhoto && (
+            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+              <button
+                onClick={() => setLightboxPhoto(null)}
+                className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 text-white"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="max-w-4xl max-h-[85vh] w-full" onClick={(e) => e.stopPropagation()}>
+                <img
+                  src={lightboxPhoto.url}
+                  alt={lightboxPhoto.caption || 'Venue photo'}
+                  className="w-full h-full object-contain rounded-lg"
+                />
+                {lightboxPhoto.caption && (
+                  <p className="text-white text-center mt-3 text-sm">{lightboxPhoto.caption}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-4" id="venue-profile-section">

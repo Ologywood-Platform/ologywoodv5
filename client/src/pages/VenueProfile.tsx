@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -37,6 +37,7 @@ export default function VenueProfile() {
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState('');
   const [shareVenueOpen, setShareVenueOpen] = useState(false);
+  const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
 
   const respondMutation = trpc.venueReview.respondToReview.useMutation({
     onSuccess: () => {
@@ -252,25 +253,74 @@ export default function VenueProfile() {
         </Card>
 
         {/* Photo Gallery */}
-        {(venueProfile as any)?.mediaGallery && (venueProfile as any)?.mediaGallery.photos && (venueProfile as any)?.mediaGallery.photos.length > 0 && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Photo Gallery</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {(venueProfile as any)?.mediaGallery.photos.map((photo: string, idx: number) => (
+        {(() => {
+          const gallery = (venueProfile as any)?.mediaGallery;
+          const photos = gallery?.photos || [];
+          if (photos.length === 0) return null;
+          return (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  Photo Gallery
+                  <Badge variant="secondary" className="ml-2">{photos.length} photos</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Hero image + grid layout */}
+                {photos.length === 1 ? (
                   <img
-                    key={idx}
-                    src={photo}
-                    alt={`${(venueProfile as any)?.organizationName} photo ${idx + 1}`}
-                    className="w-full h-40 object-cover rounded-lg"
+                    src={photos[0].url || photos[0]}
+                    alt={photos[0].caption || `${(venueProfile as any)?.organizationName} photo`}
+                    className="w-full h-64 sm:h-80 object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
+                    onClick={() => setGalleryLightbox(0)}
                   />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                ) : photos.length <= 3 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {photos.map((photo: any, idx: number) => (
+                      <img
+                        key={photo.id || idx}
+                        src={photo.url || photo}
+                        alt={photo.caption || `${(venueProfile as any)?.organizationName} photo ${idx + 1}`}
+                        className="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
+                        onClick={() => setGalleryLightbox(idx)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="col-span-2 row-span-2">
+                      <img
+                        src={photos[0].url || photos[0]}
+                        alt={photos[0].caption || `${(venueProfile as any)?.organizationName} featured photo`}
+                        className="w-full h-full min-h-[280px] object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
+                        onClick={() => setGalleryLightbox(0)}
+                      />
+                    </div>
+                    {photos.slice(1, 5).map((photo: any, idx: number) => (
+                      <div key={photo.id || idx} className="relative">
+                        <img
+                          src={photo.url || photo}
+                          alt={photo.caption || `${(venueProfile as any)?.organizationName} photo ${idx + 2}`}
+                          className="w-full h-[136px] object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
+                          onClick={() => setGalleryLightbox(idx + 1)}
+                        />
+                        {idx === 3 && photos.length > 5 && (
+                          <div
+                            className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center cursor-pointer hover:bg-black/60 transition-colors"
+                            onClick={() => setGalleryLightbox(4)}
+                          >
+                            <span className="text-white text-lg font-semibold">+{photos.length - 5} more</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Artist Reviews Section */}
         <Card className="mb-6">
@@ -376,6 +426,50 @@ export default function VenueProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gallery Lightbox */}
+      {galleryLightbox !== null && (() => {
+        const photos = ((venueProfile as any)?.mediaGallery?.photos || []);
+        if (photos.length === 0) return null;
+        const currentPhoto = photos[galleryLightbox];
+        return (
+          <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setGalleryLightbox(null)}>
+            <button
+              onClick={() => setGalleryLightbox(null)}
+              className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 text-white z-10"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            {galleryLightbox > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryLightbox(galleryLightbox - 1); }}
+                className="absolute left-4 p-2 bg-white/10 rounded-full hover:bg-white/20 text-white z-10"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            )}
+            {galleryLightbox < photos.length - 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryLightbox(galleryLightbox + 1); }}
+                className="absolute right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 text-white z-10"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
+            <div className="max-w-4xl max-h-[85vh] w-full px-12" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={currentPhoto?.url || currentPhoto}
+                alt={currentPhoto?.caption || 'Venue photo'}
+                className="w-full h-full object-contain rounded-lg"
+              />
+              <div className="text-center mt-3">
+                {currentPhoto?.caption && <p className="text-white text-sm">{currentPhoto.caption}</p>}
+                <p className="text-white/60 text-xs mt-1">{galleryLightbox + 1} of {photos.length}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Share Venue Modal */}
       {venueProfile && (

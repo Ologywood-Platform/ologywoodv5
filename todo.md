@@ -1692,3 +1692,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix venue completeness checker to use correct field names (profilePhotoUrl, organizationName, bio)
 - [x] Add photo upload UI to Edit Profile, View Profile, and Create Profile views
 - [x] Write and pass vitest tests for venue photo upload
+
+## VENUE GALLERY UPLOAD (Mar 12, 2026)
+
+- [x] Review existing mediaGallery schema field and venue router
+- [x] Add backend gallery endpoints (upload photo, delete photo, reorder, update caption, get gallery)
+- [x] Build gallery upload UI in venue dashboard Gallery tab
+- [x] Display gallery on public venue profile page with lightbox navigation
+- [x] Write vitest tests for gallery endpoints (12 tests passing)
+- [x] Test full upload/delete/reorder workflow
