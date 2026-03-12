@@ -96,6 +96,8 @@ export const venueRouter = router({
         contactPhone: z.string().optional(),
         location: z.string().optional(),
         bio: z.string().optional(),
+        venueType: z.string().optional(),
+        capacity: z.number().int().positive().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -116,6 +118,8 @@ export const venueRouter = router({
           contactPhone: input.contactPhone || null,
           location: input.location || null,
           bio: input.bio || null,
+          venueType: input.venueType || null,
+          capacity: input.capacity || null,
         });
 
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -142,6 +146,8 @@ export const venueRouter = router({
         location: z.string().optional(),
         bio: z.string().optional(),
         profilePhotoUrl: z.string().optional(),
+        venueType: z.string().optional(),
+        capacity: z.number().int().positive().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {

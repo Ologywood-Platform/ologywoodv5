@@ -22,6 +22,8 @@ export function VenueDashboard() {
     contactName: '',
     contactPhone: '',
     bio: '',
+    venueType: '',
+    capacity: '' as string | number,
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -57,6 +59,8 @@ export function VenueDashboard() {
         contactName: profile.contactName || '',
         contactPhone: profile.contactPhone || '',
         bio: profile.bio || '',
+        venueType: (profile as any).venueType || '',
+        capacity: (profile as any).capacity || '',
       });
     }
   }, [profile]);
@@ -158,12 +162,17 @@ export function VenueDashboard() {
         alert('Organization name is required');
         return;
       }
+      const formData = {
+        ...profileForm,
+        capacity: profileForm.capacity ? Number(profileForm.capacity) : undefined,
+        venueType: profileForm.venueType || undefined,
+      };
       if (profile) {
         // Update existing profile
-        await updateProfileMutation.mutateAsync(profileForm);
+        await updateProfileMutation.mutateAsync(formData);
       } else {
         // Create new profile
-        await createProfileMutation.mutateAsync(profileForm);
+        await createProfileMutation.mutateAsync(formData);
       }
     } catch (error) {
       console.error('Profile update error:', error);
@@ -906,6 +915,45 @@ export function VenueDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Venue Type</label>
+                        <select
+                          value={profileForm.venueType}
+                          onChange={(e) => setProfileForm({ ...profileForm, venueType: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                        >
+                          <option value="">Select venue type...</option>
+                          <option value="Concert Hall">Concert Hall</option>
+                          <option value="Nightclub">Nightclub</option>
+                          <option value="Bar / Lounge">Bar / Lounge</option>
+                          <option value="Restaurant">Restaurant</option>
+                          <option value="Theater">Theater</option>
+                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
+                          <option value="Arena / Stadium">Arena / Stadium</option>
+                          <option value="Rooftop">Rooftop</option>
+                          <option value="Event Space">Event Space</option>
+                          <option value="Banquet Hall">Banquet Hall</option>
+                          <option value="Community Center">Community Center</option>
+                          <option value="Hotel Ballroom">Hotel Ballroom</option>
+                          <option value="Private Estate">Private Estate</option>
+                          <option value="Warehouse">Warehouse</option>
+                          <option value="Church / Place of Worship">Church / Place of Worship</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Capacity</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={profileForm.capacity}
+                          onChange={(e) => setProfileForm({ ...profileForm, capacity: e.target.value })}
+                          placeholder="e.g. 500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">About</label>
                       <textarea
@@ -1066,12 +1114,51 @@ export function VenueDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Venue Type</label>
+                        <select
+                          value={profileForm.venueType}
+                          onChange={(e) => setProfileForm({ ...profileForm, venueType: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                        >
+                          <option value="">Select venue type...</option>
+                          <option value="Concert Hall">Concert Hall</option>
+                          <option value="Nightclub">Nightclub</option>
+                          <option value="Bar / Lounge">Bar / Lounge</option>
+                          <option value="Restaurant">Restaurant</option>
+                          <option value="Theater">Theater</option>
+                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
+                          <option value="Arena / Stadium">Arena / Stadium</option>
+                          <option value="Rooftop">Rooftop</option>
+                          <option value="Event Space">Event Space</option>
+                          <option value="Banquet Hall">Banquet Hall</option>
+                          <option value="Community Center">Community Center</option>
+                          <option value="Hotel Ballroom">Hotel Ballroom</option>
+                          <option value="Private Estate">Private Estate</option>
+                          <option value="Warehouse">Warehouse</option>
+                          <option value="Church / Place of Worship">Church / Place of Worship</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Capacity</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={profileForm.capacity}
+                          onChange={(e) => setProfileForm({ ...profileForm, capacity: e.target.value })}
+                          placeholder="e.g. 500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">About Your Venue</label>
                       <textarea
                         value={profileForm.bio}
                         onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                        placeholder="Describe your venue, capacity, amenities, etc."
+                        placeholder="Describe your venue, amenities, etc."
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />

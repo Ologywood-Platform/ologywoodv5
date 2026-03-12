@@ -1701,3 +1701,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Display gallery on public venue profile page with lightbox navigation
 - [x] Write vitest tests for gallery endpoints (12 tests passing)
 - [x] Test full upload/delete/reorder workflow
+
+## VENUE TYPE & CAPACITY FIELDS (Mar 12, 2026)
+
+- [x] Review schema for venueType and capacity columns (both exist in schema)
+- [x] Ensure backend router accepts venueType and capacity in updateProfile and createProfile
+- [x] Add venueType dropdown and capacity input to venue dashboard edit form
+- [x] Add venueType and capacity to create profile form
+- [x] Verify completeness checker recognizes the new fields (already tracked in profileCompleteness.ts)
+- [x] Test end-to-end (0 TS errors, build clean)
