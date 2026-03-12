@@ -22,8 +22,7 @@ export default function VenueProfile() {
   const { user } = useAuth();
   const venueId = id ? parseInt(id, 10) : 0;
 
-  // Venue router was removed during cleanup - this page needs migration
-  const { data: venueProfile, isLoading } = { data: null as any, isLoading: false };
+  const { data: venueProfile, isLoading } = trpc.venue.getById.useQuery({ id: venueId }, { enabled: venueId > 0 });
   const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
   const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
 

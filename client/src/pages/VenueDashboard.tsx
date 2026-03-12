@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 
@@ -1027,6 +1027,14 @@ export function VenueDashboard() {
                       <Button onClick={() => setEditingProfile(false)} variant="outline" className="flex-1">
                         Cancel
                       </Button>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-2"
+                        onClick={() => window.open(`/venue/${(profile as any)?.id}`, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Preview
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -1100,13 +1108,23 @@ export function VenueDashboard() {
                       <label className="text-sm font-medium">About</label>
                       <p className="text-gray-700 mt-1">{profile.bio || 'Not set'}</p>
                     </div>
-                    <Button
-                      onClick={() => setEditingProfile(true)}
-                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                      Edit Profile
-                    </Button>
+                    <div className="flex gap-3 mt-4">
+                      <Button
+                        onClick={() => setEditingProfile(true)}
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 flex items-center justify-center gap-2"
+                        onClick={() => window.open(`/venue/${(profile as any)?.id}`, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Preview Public Profile
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

@@ -1726,3 +1726,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add operating hours display to public VenueProfile page (in Venue Details card)
 - [x] Replace hardcoded venue details with dynamic data from profile
 - [x] Test the public venue profile page (0 TS errors, build clean)
+
+## VENUE PREVIEW PUBLIC PROFILE BUTTON (Mar 12, 2026)
+
+- [x] Add "Preview Public Profile" button to venue dashboard Profile tab (view + edit modes)
+- [x] Button opens public venue profile page in new tab
+- [x] Fix VenueProfile.tsx to actually fetch venue data via trpc venue.getById
+- [x] Test the preview button (0 TS errors, build clean)
