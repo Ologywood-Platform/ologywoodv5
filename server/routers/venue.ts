@@ -98,6 +98,9 @@ export const venueRouter = router({
         bio: z.string().optional(),
         venueType: z.string().optional(),
         capacity: z.number().int().positive().optional(),
+        email: z.string().email().optional(),
+        amenities: z.record(z.string(), z.any()).optional(),
+        operatingHours: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -148,6 +151,9 @@ export const venueRouter = router({
         profilePhotoUrl: z.string().optional(),
         venueType: z.string().optional(),
         capacity: z.number().int().positive().optional().nullable(),
+        email: z.string().email().optional().nullable(),
+        amenities: z.record(z.string(), z.any()).optional().nullable(),
+        operatingHours: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {

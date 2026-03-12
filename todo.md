@@ -1710,3 +1710,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add venueType and capacity to create profile form
 - [x] Verify completeness checker recognizes the new fields (already tracked in profileCompleteness.ts)
 - [x] Test end-to-end (0 TS errors, build clean)
+
+## VENUE PROFILE MISSING FIELDS FOR 100% (Mar 12, 2026)
+
+- [x] Check schema: email column exists (maps to contactEmail), amenities exists as JSON, operatingHours needs to be added
+- [x] Update backend router to accept email, amenities, operatingHours
+- [x] Add Contact Email input to edit and create profile forms
+- [x] Add Amenities multi-select/checkbox to edit and create profile forms
+- [x] Add Operating Hours input to edit and create profile forms
+- [x] Test end-to-end (0 TS errors, build clean)

@@ -114,6 +114,7 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   capacity: int("capacity"),
   venueType: varchar("venueType", { length: 100 }),
   amenities: json("amenities").$type<Record<string, any>>(),
+  operatingHours: text("operatingHours"),
   averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default("0.00"),
   reviewCount: int("reviewCount").default(0),
   listingViews: int("listingViews").default(0),

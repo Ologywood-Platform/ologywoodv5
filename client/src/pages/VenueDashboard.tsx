@@ -24,6 +24,9 @@ export function VenueDashboard() {
     bio: '',
     venueType: '',
     capacity: '' as string | number,
+    email: '',
+    amenities: {} as Record<string, boolean>,
+    operatingHours: '',
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -61,6 +64,9 @@ export function VenueDashboard() {
         bio: profile.bio || '',
         venueType: (profile as any).venueType || '',
         capacity: (profile as any).capacity || '',
+        email: (profile as any).email || '',
+        amenities: (profile as any).amenities || {},
+        operatingHours: (profile as any).operatingHours || '',
       });
     }
   }, [profile]);
@@ -166,6 +172,9 @@ export function VenueDashboard() {
         ...profileForm,
         capacity: profileForm.capacity ? Number(profileForm.capacity) : undefined,
         venueType: profileForm.venueType || undefined,
+        email: profileForm.email || undefined,
+        amenities: Object.keys(profileForm.amenities || {}).length > 0 ? profileForm.amenities : undefined,
+        operatingHours: profileForm.operatingHours || undefined,
       };
       if (profile) {
         // Update existing profile
@@ -960,8 +969,56 @@ export function VenueDashboard() {
                         value={profileForm.bio}
                         onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                         rows={4}
+                        placeholder="Describe your venue in at least 50 characters..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
+                      {profileForm.bio && profileForm.bio.length < 50 && (
+                        <p className="text-xs text-amber-600 mt-1">{50 - profileForm.bio.length} more characters needed for profile completeness</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Email</label>
+                      <input
+                        type="email"
+                        value={profileForm.email}
+                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                        placeholder="booking@yourvenue.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Operating Hours</label>
+                      <input
+                        type="text"
+                        value={profileForm.operatingHours}
+                        onChange={(e) => setProfileForm({ ...profileForm, operatingHours: e.target.value })}
+                        placeholder="e.g. Mon-Fri 6PM-2AM, Sat-Sun 4PM-2AM"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Amenities</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {['Stage', 'Sound System', 'Lighting', 'Parking', 'Green Room', 'Wi-Fi', 'Bar', 'Kitchen', 'Outdoor Space', 'Wheelchair Accessible', 'Dressing Room', 'Loading Dock'].map((amenity) => (
+                          <label key={amenity} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!(profileForm.amenities && (profileForm.amenities as Record<string, boolean>)[amenity])}
+                              onChange={(e) => {
+                                const updated = { ...(profileForm.amenities || {}) } as Record<string, boolean>;
+                                if (e.target.checked) {
+                                  updated[amenity] = true;
+                                } else {
+                                  delete updated[amenity];
+                                }
+                                setProfileForm({ ...profileForm, amenities: updated });
+                              }}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            {amenity}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={handleProfileUpdate} className="flex-1 bg-purple-600 hover:bg-purple-700">
@@ -1158,10 +1215,57 @@ export function VenueDashboard() {
                       <textarea
                         value={profileForm.bio}
                         onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                        placeholder="Describe your venue, amenities, etc."
+                        placeholder="Describe your venue in at least 50 characters..."
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
+                      {profileForm.bio && profileForm.bio.length < 50 && (
+                        <p className="text-xs text-amber-600 mt-1">{50 - profileForm.bio.length} more characters needed for profile completeness</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Contact Email</label>
+                      <input
+                        type="email"
+                        value={profileForm.email}
+                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                        placeholder="booking@yourvenue.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Operating Hours</label>
+                      <input
+                        type="text"
+                        value={profileForm.operatingHours}
+                        onChange={(e) => setProfileForm({ ...profileForm, operatingHours: e.target.value })}
+                        placeholder="e.g. Mon-Fri 6PM-2AM, Sat-Sun 4PM-2AM"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Amenities</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {['Stage', 'Sound System', 'Lighting', 'Parking', 'Green Room', 'Wi-Fi', 'Bar', 'Kitchen', 'Outdoor Space', 'Wheelchair Accessible', 'Dressing Room', 'Loading Dock'].map((amenity) => (
+                          <label key={amenity} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!(profileForm.amenities && (profileForm.amenities as Record<string, boolean>)[amenity])}
+                              onChange={(e) => {
+                                const updated = { ...(profileForm.amenities || {}) } as Record<string, boolean>;
+                                if (e.target.checked) {
+                                  updated[amenity] = true;
+                                } else {
+                                  delete updated[amenity];
+                                }
+                                setProfileForm({ ...profileForm, amenities: updated });
+                              }}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            {amenity}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <Button onClick={handleProfileUpdate} className="w-full bg-purple-600 hover:bg-purple-700">
                       Create Profile

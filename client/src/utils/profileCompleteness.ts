@@ -36,9 +36,15 @@ const VENUE_FIELDS: ProfileField[] = [
   { key: 'profilePhotoUrl', label: 'Profile Photo', weight: 3, check: (p) => !!p.profilePhotoUrl?.trim() },
   { key: 'location', label: 'Location', weight: 2, check: (p) => !!p.location?.trim() || !!p.address?.trim() },
   { key: 'capacity', label: 'Capacity', weight: 2, check: (p) => p.capacity != null && p.capacity > 0 },
-  { key: 'contactEmail', label: 'Contact Email', weight: 2, check: (p) => !!p.contactEmail?.trim() || !!p.email?.trim() },
+  { key: 'email', label: 'Contact Email', weight: 2, check: (p) => !!p.email?.trim() || !!p.contactEmail?.trim() },
   { key: 'contactPhone', label: 'Contact Phone', weight: 1, check: (p) => !!p.contactPhone?.trim() },
-  { key: 'amenities', label: 'Amenities', weight: 1, check: (p) => !!p.amenities?.trim() || (Array.isArray(p.amenities) && p.amenities.length > 0) },
+  { key: 'amenities', label: 'Amenities', weight: 1, check: (p) => {
+    if (!p.amenities) return false;
+    if (typeof p.amenities === 'string') return !!p.amenities.trim();
+    if (Array.isArray(p.amenities)) return p.amenities.length > 0;
+    if (typeof p.amenities === 'object') return Object.keys(p.amenities).length > 0;
+    return false;
+  }},
   { key: 'operatingHours', label: 'Operating Hours', weight: 1, check: (p) => !!p.operatingHours?.trim() },
 ];
 
