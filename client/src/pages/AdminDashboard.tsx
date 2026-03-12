@@ -129,7 +129,19 @@ export function AdminDashboard() {
           {activeTab === 'releases' && (
             <ReleasesTab releases={releasesQuery.data || []} isLoading={releasesQuery.isLoading} refetch={releasesQuery.refetch} />
           )}
-          {activeTab === 'blog' && <BlogTab />}
+          {activeTab === 'blog' && (
+            <div className="p-8 text-center">
+              <BookOpen className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Blog Management</h3>
+              <p className="text-sm text-gray-500 mb-4">Create, edit, and manage all blog posts from the dedicated blog admin panel.</p>
+              <a
+                href="/admin/blog"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              >
+                <BookOpen className="w-4 h-4" /> Open Blog Admin
+              </a>
+            </div>
+          )}
           {activeTab === 'feedback' && (
             <FeedbackTab
               feedback={feedbackQuery.data?.feedback || []}

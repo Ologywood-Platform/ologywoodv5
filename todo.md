@@ -1667,3 +1667,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Generate cover image for the blog post
 - [x] Ensure blog_posts table exists in production database
 - [x] Publish blog post via admin dashboard
+
+
+## BLOG ADMIN PANEL (Mar 12, 2026)
+
+- [x] Add blogPosts table to Drizzle schema (sync with existing DB table)
+- [x] Add full CRUD tRPC procedures (create, update, delete, getAll with filters)
+- [x] Build Blog Admin list page with status filters, search, table/grid views
+- [x] Build Blog Post editor with Markdown toolbar, live preview, cover image upload
+- [x] Add blog admin route at /admin/blog with link from Admin Dashboard
+- [x] Restrict blog admin to platform owner (OWNER_OPEN_ID) and admin role
+- [x] Add slug auto-generation from title
+- [x] Add draft/publish/archive status management with confirmation dialogs
+- [x] Add word count, character count, and reading time stats
+- [x] Add unsaved changes warning
+- [x] Test full create, edit, publish, archive workflow

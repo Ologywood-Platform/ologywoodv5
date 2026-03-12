@@ -5,9 +5,13 @@ import { blogPosts } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 
-// Admin-only middleware
+// Admin or site-owner middleware
+const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
 const adminOnly = protectedProcedure.use(async (opts) => {
-  if (opts.ctx.user.role !== "admin") {
+  const user = opts.ctx.user;
+  const isAdmin = user.role === 'admin';
+  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
+  if (!isAdmin && !isOwner) {
     throw new Error("Unauthorized: Admin access required");
   }
   return opts.next();
