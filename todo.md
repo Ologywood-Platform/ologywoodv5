@@ -1745,3 +1745,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Auto-redirect to conversation after sending inquiry
 - [x] Write vitest tests (23 tests passing)
 - [x] Test end-to-end (0 TS errors, build clean)
+
+## FIX BOOKING SCHEMA MISMATCH (Mar 12, 2026)
+
+- [x] Investigate Drizzle bookings schema vs actual DB columns (7 missing: eventType, bookingSource, venueName, venueAddress, clientName, clientEmail, clientPhone)
+- [x] Identify missing columns in the database (7 columns missing)
+- [x] Sync the database with the Drizzle schema (all 32 columns now present)
+- [x] Verify booking.getMyArtistBookings query works (bookings page loads with data, no console errors)
