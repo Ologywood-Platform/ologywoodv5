@@ -66,6 +66,7 @@ const ClientBooking = lazy(() => import("./pages/ClientBooking"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 const BlogAdmin = lazy(() => import("./pages/BlogAdmin"));
+const BloggerDashboard = lazy(() => import("./pages/BloggerDashboard"));
 
 // Legal & marketing pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -122,6 +123,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/payouts" component={AdminPayouts} />
           <Route path="/admin/blog" component={BlogAdmin} />
+          <Route path="/blogger-dashboard" component={BloggerDashboard} />
           <Route path="/artist-tax-reporting" component={ArtistTaxReporting} />
           
           {/* Discovery */}

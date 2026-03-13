@@ -186,7 +186,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                         <Link href={getDashboardUrl(user)} onClick={() => setUserMenuOpen(false)} className="block">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
                             <LayoutDashboard className="h-4 w-4" />
-                            Dashboard
+                            {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
                           </button>
                         </Link>
 
@@ -310,7 +310,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                 <Link href={getDashboardUrl(user)} onClick={closeMobile} className="block">
                   <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
                     <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+                    {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
                   </Button>
                 </Link>
 

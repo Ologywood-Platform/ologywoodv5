@@ -1835,3 +1835,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Frontend: Route bloggers to /admin/blog on login (dashboardUrl.ts)
 - [x] Email: Add blogger role description to role change email notification
 - [x] Tests: Write tests for blogger role permissions (17/17 passing)
+
+## FEATURE: Dedicated Blogger Dashboard (Mar 13, 2026)
+
+- [x] Create BloggerDashboard page with blog-only content (reuses BlogAdmin component with blogger header)
+- [x] Add /blogger-dashboard route in App.tsx
+- [x] Update dashboardUrl.ts to route bloggers to /blogger-dashboard instead of /admin/blog
+- [x] Add blogger-specific navigation in SiteHeader ("Blog Dashboard" label instead of "Dashboard")
+- [x] Block bloggers from accessing /admin route (redirect to /blogger-dashboard)
+- [x] Include View Live Blog quick-action button
+- [x] Tests: 10/10 passing for blogger dashboard routing and access

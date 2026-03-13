@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { trpc } from '../lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { useLocation } from 'wouter';
 import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 export function AdminDashboard() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+
+  // Redirect bloggers to their dedicated dashboard
+  if (user?.role === 'blogger') {
+    navigate('/blogger-dashboard', { replace: true });
+    return null;
+  }
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
