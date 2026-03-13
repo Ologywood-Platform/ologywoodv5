@@ -1,6 +1,6 @@
 # CI/CD & Deployment Guide
 
-**Last Updated:** February 28, 2026
+**Last Updated:** March 13, 2026
 
 ---
 
@@ -39,10 +39,11 @@ Before deploying, verify the following:
 | Check | Command | Expected |
 |-------|---------|----------|
 | TypeScript compiles | `pnpm check` | 0 errors |
-| All tests pass | `pnpm test` | 1,233+ passing |
+| All tests pass | `pnpm test` | 1,864+ passing |
 | No stale console.logs | `grep -rn "console.log" client/src/ server/` | Only essential logs |
 | todo.md updated | Review `todo.md` | All completed items marked `[x]` |
 | Database migrations applied | `pnpm db:push` | No pending changes |
+| Schema matches production | Verify all 61 tables exist | No missing tables |
 
 ### Deployment Steps
 
@@ -112,9 +113,32 @@ All environment variables are managed through **Settings > Secrets** in the Manu
 | `AWS_SECRET_ACCESS_KEY` | S3 storage | Manus (auto) |
 | `AWS_REGION` | S3 region | Manus (auto) |
 | `OAUTH_SERVER_URL` | OAuth server | Manus (auto) |
+| `VITE_OAUTH_PORTAL_URL` | OAuth portal | Manus (auto) |
+| `VITE_OAUTH_REDIRECT_BASE_URL` | OAuth callback | Manus (auto) |
 | `BASE_URL` | Production URL | Manus (auto) |
+| `OWNER_OPEN_ID` | Platform owner ID | Manus (auto) |
+| `OWNER_NAME` | Platform owner name | Manus (auto) |
 
 To add or update secrets, use the Manus Management UI **Settings > Secrets** panel.
+
+---
+
+## Database Migrations
+
+The platform uses **Drizzle ORM** with a single schema file (`drizzle/schema.ts`) containing **61 tables**. Migrations are generated and applied via:
+
+```bash
+pnpm db:push    # drizzle-kit generate && drizzle-kit migrate
+```
+
+After running `pnpm db:push`, verify the migration was applied to the production database. If the `webdev_execute_sql` tool was used to create tables manually (as was done for `booking_disputes` and `role_change_audit_log`), ensure the drizzle migration state is synced by running `pnpm db:push` again.
+
+### Migration Safety Rules
+
+- Always test migrations in the development environment first
+- Never run raw `DROP TABLE` or `DELETE FROM` without a backup
+- Never edit generated SQL files in `drizzle/` manually
+- After adding new enum values (like adding `blogger` to the role enum), verify the enum was updated on production
 
 ---
 
@@ -173,20 +197,6 @@ If a conflict is detected:
 
 ---
 
-## Legacy Infrastructure Files
-
-Legacy infrastructure files from a previous self-hosted setup have been cleaned up:
-
-| Item | Action Taken |
-|------|-------------|
-| `Dockerfile` | Removed (Manus handles containerization) |
-| `docker-compose.yml` | Removed (no local Docker stack needed) |
-| `scripts/legacy/` | Archived — all legacy deploy/backup scripts moved here |
-
-See `scripts/legacy/README.md` for a full inventory of archived scripts. The only active script in `scripts/` is `build.sh`.
-
----
-
 ## Troubleshooting
 
 ### Deployment Fails
@@ -215,6 +225,10 @@ See `scripts/legacy/README.md` for a full inventory of archived scripts. The onl
 2. Local files in the project directory may cause deployment timeouts
 3. Reference assets by their CDN URL, not local paths
 
+### Missing Tables on Production
+
+If `pnpm db:push` reports "No schema changes" but tables are missing on production, create them manually via SQL. This can happen when the drizzle migration state is out of sync with the actual database. After manual creation, run `pnpm db:push` again to sync the state.
+
 ---
 
 ## Related Documentation
@@ -222,6 +236,7 @@ See `scripts/legacy/README.md` for a full inventory of archived scripts. The onl
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture and folder structure |
-| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Development setup and coding standards |
 | [API.md](./API.md) | API endpoint documentation |
+| [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Development setup and coding standards |
 | [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | Backup and recovery procedures |
+| [ROADMAP.md](../ROADMAP.md) | Feature roadmap and completed work |

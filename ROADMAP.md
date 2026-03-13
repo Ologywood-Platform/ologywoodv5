@@ -1,24 +1,24 @@
 # Ologywood — Feature Roadmap
 
-**Last Updated:** March 4, 2026
-**Current State:** MVP Golden Path — Complete
+**Last Updated:** March 13, 2026  
+**Current State:** Production — MVP Golden Path Complete  
+**Platform:** [www.ologywood.com](https://www.ologywood.com)
 
-This roadmap outlines features and improvements organized by priority. The MVP is fully functional with end-to-end booking, payments, rider management, messaging, and fan engagement.
+This roadmap organizes upcoming features by priority and documents all completed work. The MVP is fully operational with end-to-end booking, two-phase Stripe payments, rider contract management with e-signatures, in-platform messaging, fan engagement, music release sales, blog management, dispute resolution, and a comprehensive admin dashboard.
 
 ---
 
-## Priority 1 — Critical for Launch
+## Priority 1 — Next Up
 
-These items should be addressed before inviting real artists and venues to the platform.
+These features have the highest impact on platform usability and growth.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
-| Role Switching UI | Users with both artist and venue profiles need an in-app toggle to switch roles without database changes. Currently requires manual DB update. | Medium |
-| Stripe Connect Onboarding UX | Add a clear "Connect Bank Account" CTA on the artist dashboard with status indicators (pending, verified, active). Artists cannot receive payouts without this. | Medium |
+| Bulk Role Assignment | Select multiple users in the admin Users tab and assign them the same role at once, useful for onboarding batches of artists or venues. | Medium |
+| Content Calendar for Bloggers | Visual calendar view on the Blogger Dashboard for scheduling posts for future publication with draft-to-publish workflow. | Medium |
 | Booking Cancellation Flow | Allow either party to cancel a booking with proper refund handling via Stripe. Currently bookings can only move forward. | Medium |
-| Payment Receipt Emails | Verify that SendGrid payment receipt emails are delivered correctly for both deposit and final payments. Test with real email addresses. | Small |
-| Webhook Reliability | Add idempotency keys and retry logic for Stripe webhook events. Currently relies on `verifyPayment` fallback. | Medium |
-| Profile Completeness Validation | Prevent artists from accepting bookings without a complete profile (photo, bio, at least one rider template). | Small |
+| Downloadable PDF Invoices | Generate printable PDF invoices for each booking that venues can download. The invoice PDF service exists but is not wired to the UI. | Medium |
+| Calendar Integration | Allow artists and venues to export bookings to Google Calendar or iCal. The availability calendar exists but lacks export. | Medium |
 
 ---
 
@@ -30,11 +30,10 @@ These features significantly improve the user experience and platform stickiness
 |---------|-------------|--------|
 | Rider Acknowledgment | Add "Acknowledge Rider" button in the rider modal so artists get notified when the venue has reviewed and accepted rider terms. | Small |
 | Booking Status Filters | Add filter tabs (All / Pending / Confirmed / Completed / Cancelled) to both artist and venue dashboard Bookings tabs. | Small |
-| Downloadable PDF Invoices | Generate printable PDF invoices for each booking that venues can download for their records. Invoice PDF service exists but is not wired to the UI. | Medium |
-| Artist Earnings Page (Real Data) | The earnings dashboard exists but may use placeholder data. Wire it to real booking payment records from Stripe. | Medium |
-| Notification Center | Build an in-app notification bell with real-time updates for new bookings, payments, messages, and reviews. The `notifications` table and services exist. | Large |
-| Calendar Integration | Allow artists and venues to export bookings to Google Calendar / iCal. The availability calendar exists but lacks export. | Medium |
+| Artist Earnings (Real Data) | Wire the earnings dashboard to real booking payment records from Stripe instead of aggregated data. | Medium |
 | Booking Negotiation | Allow venues and artists to counter-propose dates, fees, or rider terms within the booking thread before accepting. | Large |
+| Blog Post Analytics | Show view counts, read time stats, and most popular posts on the Blogger Dashboard header. | Medium |
+| Audit Log Export | Add a CSV export button to the Audit Log tab for compliance and record-keeping. | Small |
 
 ---
 
@@ -50,7 +49,6 @@ Features that drive user acquisition, retention, and platform growth.
 | Advanced Search Filters | Add filters for availability dates, rating, verified status, and price range to the artist browse page. | Medium |
 | Booking Analytics | Dashboard showing booking trends, popular genres, peak booking times, and revenue analytics for admin. | Large |
 | Multi-Photo Gallery | Allow artists to upload multiple profile/performance photos in a gallery format with drag-to-reorder. | Medium |
-| Venue Reviews by Artists | Allow artists to review venues after completing a booking (reverse of the current venue-reviews-artist flow). | Small |
 
 ---
 
@@ -60,47 +58,90 @@ Quality-of-life improvements and technical debt cleanup.
 
 | Feature | Description | Effort |
 |---------|-------------|--------|
-| Disabled Service Cleanup | Remove or properly archive the 15+ `.disabled` service and router files that are no longer needed. | Small |
 | Consistent Error Handling | Standardize error messages and toast notifications across all pages. Some pages show raw error objects. | Medium |
 | Loading State Skeletons | Replace spinner-only loading states with skeleton screens for profile pages, browse, and dashboards. | Medium |
 | Image Optimization | Add lazy loading, responsive srcset, and WebP format for all S3-hosted images. | Medium |
 | Accessibility Audit | Run a full WCAG 2.1 AA audit and fix any issues. Accessibility page exists but actual compliance needs verification. | Large |
 | E2E Testing | Add Playwright or Cypress end-to-end tests for the critical booking and payment flows. | Large |
-| Rate Limiting | Implement rate limiting on public API endpoints (browse, search, profile views) to prevent abuse. | Small |
+| Duplicate Table Consolidation | Both `follows` and `artist_follows` tables exist — consolidate into one. | Small |
 
 ---
 
-## Completed (March 4, 2026)
+## Completed Features
 
-These features were recently built and verified working:
+### March 13, 2026
 
-- **Two-Phase Stripe Payments** — Deposit (50%) + remaining balance, both via Stripe Checkout with auto-verification
-- **View Rider Shortcut** — Purple "View Rider" button on venue dashboard booking cards with full modal display
-- **Artist Name on Booking Cards** — Venue dashboard shows artist name and photo instead of "Artist #ID"
-- **Real Invoice Dashboard** — Venue invoices page pulls real booking payment data with summary cards
-- **Messages Scroll Fix** — Auto-scroll respects manual scrolling, only triggers on new messages
-- **Self-Follow/Favorite Prevention** — Follow and Favorite buttons hidden on own profile
-- **Payment Metadata Fix** — Checkout session metadata aligned with webhook handler field names
-- **Stripe ESM Import Fix** — Replaced `require('stripe')` with proper ESM import
+| Feature | Description |
+|---------|-------------|
+| **Change Role Dropdown** | Replaced Make Admin/Remove Admin buttons with a full role dropdown (Admin, Blogger, Artist, Venue, User) in the admin Users tab. |
+| **Blogger Role** | New lightweight role for blog content management without admin access. Includes dedicated Blogger Dashboard at `/blogger-dashboard`. |
+| **Role Change Email Notifications** | Branded email sent to users when their role is changed, showing previous/new role and access description. |
+| **Role Change Audit Log** | Dedicated `role_change_audit_log` table and Audit Log tab in Admin Dashboard tracking who changed whose role and when. |
+| **Owner Badge Fix** | Owner (garychisolm30@gmail.com) now reliably displays as "Owner" with yellow badge using email-based identification fallback. |
+| **Admin Role Management Fix** | Changed promote/demote from owner-only to admin-accessible. Any admin can now manage user roles. |
+| **Production Database Sync** | Created missing `booking_disputes` and `role_change_audit_log` tables on production. Updated users role enum to include `fan` and `blogger`. |
+| **Codebase Cleanup** | Removed 34 stale temp scripts and 6 outdated documentation files. |
+| **Documentation Overhaul** | Rewrote README.md and ARCHITECTURE.md to reflect current 61-table, 62-page, 6-role platform state. |
+
+### March 4, 2026
+
+| Feature | Description |
+|---------|-------------|
+| **Two-Phase Stripe Payments** | Deposit (50%) + remaining balance, both via Stripe Checkout with auto-verification. |
+| **View Rider Shortcut** | Purple "View Rider" button on venue dashboard booking cards with full modal display. |
+| **Artist Name on Booking Cards** | Venue dashboard shows artist name and photo instead of "Artist #ID". |
+| **Real Invoice Dashboard** | Venue invoices page pulls real booking payment data with summary cards. |
+| **Messages Scroll Fix** | Auto-scroll respects manual scrolling, only triggers on new messages. |
+| **Self-Follow/Favorite Prevention** | Follow and Favorite buttons hidden on own profile. |
+| **Payment Metadata Fix** | Checkout session metadata aligned with webhook handler field names. |
+
+### Earlier (February 2026)
+
+| Feature | Description |
+|---------|-------------|
+| **Core Booking System** | End-to-end booking flow with request, accept/decline, status tracking. |
+| **Rider Builder** | 4 pre-built templates (Solo Artist, Band, DJ, Speaker) with technical, hospitality, stage, and payment sections. |
+| **E-Signature System** | Draw or type signatures on rider contracts with certificate verification. |
+| **Fan Engagement** | Follow system with email consent, tiered access (free: names, paid: emails + CSV export). |
+| **Artist Updates** | Email blast tool for paid-tier artists to notify fans. |
+| **Music Releases** | Upload, sell, and review music releases with purchase-gated reviews. |
+| **Event Discovery** | Event creation, search, RSVP, recurrence, and photo galleries. |
+| **Stripe Connect** | Artist bank account linking for payout processing. |
+| **Subscription Tiers** | Free, Pro, Premium plans with feature gating via pricing service. |
+| **Blog System** | Full blog with create, edit, publish, delete, cover images, and public display. |
+| **Dispute Resolution** | File disputes on bookings, admin review with notes and resolution. |
+| **Dark Mode** | Full dark mode toggle with localStorage persistence. |
+| **PWA Support** | Installable with service worker, offline support, install prompt. |
+| **Dual Authentication** | OAuth (Manus) + Email/Password with email verification and forgot-password flow. |
+| **Email System** | 15+ branded email types via SendGrid with user preference management. |
 
 ---
 
 ## Technical Debt
 
-| Item | Description |
-|------|-------------|
-| Disabled files | 15+ `.disabled` router and service files should be removed or archived |
-| Duplicate follow tables | Both `follows` and `artistFollows` tables exist — consolidate |
-| Duplicate venue routes | Both `/venue/:id` and `/venues/:id` routes exist — consolidate |
-| Inline tRPC routes | Several routes are defined inline in `routers.ts` instead of dedicated router files |
-| Mock data remnants | Some pages may still reference hardcoded data — audit and replace |
-| Test coverage gaps | Payment flow and webhook handling lack dedicated test coverage |
+| Item | Description | Priority |
+|------|-------------|----------|
+| Duplicate follow tables | Both `follows` and `artist_follows` tables exist — consolidate | Low |
+| Duplicate venue routes | Both `/venue/:id` and `/venues/:id` routes exist — consolidate | Low |
+| Inline tRPC routes | Several routes defined inline in `routers.ts` instead of dedicated router files | Low |
+| Test coverage gaps | Payment flow and webhook handling lack dedicated test coverage | Medium |
+
+---
+
+## Platform Statistics (March 13, 2026)
+
+| Metric | Count |
+|--------|-------|
+| Database tables | 61 |
+| Client pages | 62 |
+| UI components | 123 |
+| tRPC router files | 18 |
+| Vitest tests passing | 1,864 |
+| TypeScript errors | 0 |
+| User roles | 6 (Owner, Admin, Blogger, Artist, Venue, User) |
 
 ---
 
 ## Notes
 
-- The platform uses Stripe **test mode** (sandbox). To go live: complete Stripe KYC verification, then enter live keys in Settings → Payment.
-- A 99% discount promo code is available in Stripe for live mode testing. Minimum order is $0.50 USD.
-- Email delivery requires a verified SendGrid sender domain for production use.
-- The `OPENAI_API_KEY` is configured for AI recommendation features but these are not yet active in the UI.
+The platform uses Stripe **test mode** (sandbox). To go live with real payments, complete Stripe KYC verification in the Stripe Dashboard, then enter live keys in Settings > Payment. A 99% discount promo code is available in Stripe for live mode testing (minimum order $0.50 USD). Email delivery requires a verified SendGrid sender domain for production use.

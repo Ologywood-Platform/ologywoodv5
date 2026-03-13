@@ -1,6 +1,6 @@
 # Ologywood Developer Guide
 
-**Last Updated:** February 28, 2026
+**Last Updated:** March 13, 2026
 
 This guide covers environment setup, development workflows, coding standards, and troubleshooting for the Ologywood platform. For system architecture and folder structure details, see [ARCHITECTURE.md](../ARCHITECTURE.md).
 
@@ -54,6 +54,8 @@ Environment variables are managed through the Manus platform. In the Manus Manag
 | `VITE_OAUTH_PORTAL_URL` | OAuth portal for frontend |
 | `VITE_OAUTH_REDIRECT_BASE_URL` | OAuth callback base URL |
 | `BASE_URL` | Production URL (https://www.ologywood.com) |
+| `OWNER_OPEN_ID` | Platform owner identification |
+| `OWNER_NAME` | Platform owner name (fallback) |
 
 No `.env` file is needed when developing in the Manus sandbox. All secrets are injected automatically.
 
@@ -64,7 +66,7 @@ No `.env` file is needed when developing in the Manus sandbox. All secrets are i
 pnpm db:push
 ```
 
-This runs `drizzle-kit generate && drizzle-kit migrate` under the hood. The schema is defined in `drizzle/schema.ts`.
+This runs `drizzle-kit generate && drizzle-kit migrate` under the hood. The schema is defined in `drizzle/schema.ts` and contains **61 tables**.
 
 ### 5. Start Development Server
 
@@ -173,7 +175,7 @@ Add the route in `client/src/App.tsx`:
 
 **Step 5: Tests**
 
-Write vitest tests alongside the feature. Test files can live next to the code they test or in a `__tests__` directory:
+Write vitest tests alongside the feature. Test files live in the `server/` directory:
 
 ```bash
 npx vitest run myFeature    # Run tests matching "myFeature"
@@ -185,7 +187,7 @@ Update `todo.md` to mark items as `[x]` when done.
 
 ### Database Changes
 
-The schema lives in a single file: `drizzle/schema.ts`. All 36 tables are defined here.
+The schema lives in a single file: `drizzle/schema.ts`. All **61 tables** are defined here.
 
 ```typescript
 // Example: adding a new table
@@ -207,9 +209,26 @@ Never edit the generated SQL files in `drizzle/` manually.
 
 ---
 
+## User Roles
+
+The platform has six user roles. Role-based access is enforced at the tRPC middleware level.
+
+| Role | Database Value | Access |
+|------|---------------|--------|
+| Owner | `admin` (identified by email) | Full platform access, cannot be demoted |
+| Admin | `admin` | Admin dashboard, user management, all features |
+| Blogger | `blogger` | Blog post CRUD via Blogger Dashboard, no admin access |
+| Artist | `artist` | Artist dashboard, profile, bookings, riders, releases |
+| Venue | `venue` | Venue dashboard, booking requests, payments |
+| User | `user` | Browse, follow, client bookings, purchase music |
+
+The owner is identified by email address (`garychisolm30@gmail.com`) with fallback to `OWNER_OPEN_ID` and `OWNER_NAME` environment variables.
+
+---
+
 ## Testing
 
-The project uses **Vitest** for all testing. As of February 28, 2026, there are **1,233 passing tests** across **46 test files**.
+The project uses **Vitest** for all testing. As of March 13, 2026, there are **1,864 passing tests** across **54 test files**.
 
 ### Running Tests
 
@@ -223,18 +242,23 @@ npx vitest run server/routers/rider.test.ts
 # Run tests matching a pattern
 npx vitest run --reporter=verbose myFeature
 
+# Run only server tests
+npx vitest run server
+
 # Watch mode (re-runs on file change)
 npx vitest --watch
 ```
 
 ### Test Organization
 
-Tests are co-located with the code they test:
+Tests are co-located with the code they test in the `server/` directory:
 
 ```
 server/routers/rider.test.ts          # Tests for rider router
 server/services/emailService.test.ts   # Tests for email service
-client/src/components/__tests__/       # Component tests
+server/admin-changeRole.test.ts        # Tests for role management
+server/audit-log.test.ts               # Tests for audit log
+server/blogger-role.test.ts            # Tests for blogger role
 ```
 
 ### Writing Tests
@@ -310,7 +334,7 @@ All database queries are centralized in `server/db.ts`:
 
 ### Authentication
 
-The platform uses Manus OAuth. The `useAuth()` hook provides the current user:
+The platform uses Manus OAuth and email/password authentication. The `useAuth()` hook provides the current user:
 
 ```typescript
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -332,6 +356,23 @@ create: protectedProcedure.mutation(async ({ ctx }) => {
 });
 ```
 
+### Role-Based Access
+
+Use middleware for role checks:
+
+```typescript
+// Admin only
+myProcedure: adminOnly.query(async ({ ctx }) => { ... });
+
+// Blog access (admin or blogger)
+myProcedure: blogAccess.query(async ({ ctx }) => { ... });
+
+// Custom role check
+myProcedure: protectedProcedure.query(async ({ ctx }) => {
+  if (ctx.user.role !== "artist") throw new TRPCError({ code: "FORBIDDEN" });
+});
+```
+
 ### Subscription Tier Gating
 
 Use the pricing service to check feature access:
@@ -339,7 +380,6 @@ Use the pricing service to check feature access:
 ```typescript
 import { pricingTierService } from "../services/pricingTierService";
 
-// In a router
 const hasAccess = await pricingTierService.hasFeature(userId, "riderBuilder");
 if (!hasAccess) throw new TRPCError({ code: "FORBIDDEN" });
 ```
@@ -496,6 +536,7 @@ Before submitting changes, verify:
 |----------|-------------|
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture, folder structure, data flow, module boundaries |
 | [API.md](./API.md) | Complete API endpoint documentation |
-| [CI_CD_DEPLOYMENT.md](./CI_CD_DEPLOYMENT.md) | Deployment & CI/CD procedures |
+| [CI_CD_DEPLOYMENT.md](./CI_CD_DEPLOYMENT.md) | Deployment and CI/CD procedures |
 | [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | Backup and recovery procedures |
+| [ROADMAP.md](../ROADMAP.md) | Feature roadmap and completed work |
 | [todo.md](../todo.md) | Feature tracking — single source of truth |

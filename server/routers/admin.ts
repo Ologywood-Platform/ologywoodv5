@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog } from "../../drizzle/schema";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog } from "../../drizzle/schema";
 import { desc, sql } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 
@@ -397,6 +397,19 @@ return { success: true, userId: input.userId };
         changedById: ctx.user.id,
         changedByEmail: ctx.user.email || null,
         changedByName: ctx.user.name || null,
+      });
+
+      // Record in admin activity log
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || "unknown",
+        adminName: ctx.user.name || null,
+        action: "role_change",
+        category: "users",
+        targetType: "user",
+        targetId: String(targetUser.id),
+        targetLabel: targetUser.email || targetUser.name || String(targetUser.id),
+        details: JSON.stringify({ previousRole, newRole: input.newRole }),
       });
 
       // Send email notification
@@ -840,5 +853,122 @@ return { success: true, payoutId: input.payoutId };
         .where(eq(artistReleases.id, input.releaseId));
 
       return { success: true, message: `Release ${input.releaseId} has been restored to draft.` };
+    }),
+
+  /**
+   * Log an admin activity
+   */
+  logActivity: adminOnly
+    .input(z.object({
+      action: z.string(),
+      category: z.enum(["users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]),
+      targetType: z.string().optional(),
+      targetId: z.string().optional(),
+      targetLabel: z.string().optional(),
+      details: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || "unknown",
+        adminName: ctx.user.name || null,
+        action: input.action,
+        category: input.category,
+        targetType: input.targetType || null,
+        targetId: input.targetId || null,
+        targetLabel: input.targetLabel || null,
+        details: input.details || null,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Get admin activity log (paginated, filterable)
+   */
+  getActivityLog: adminOnly
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(50),
+      category: z.enum(["all", "users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]).default("all"),
+      search: z.string().default(""),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const { like, eq, or, and } = await import("drizzle-orm");
+
+      const conditions: any[] = [];
+
+      if (input.category !== "all") {
+        conditions.push(eq(adminActivityLog.category, input.category));
+      }
+
+      if (input.search) {
+        const searchPattern = `%${input.search}%`;
+        conditions.push(
+          or(
+            like(adminActivityLog.adminEmail, searchPattern),
+            like(adminActivityLog.adminName, searchPattern),
+            like(adminActivityLog.action, searchPattern),
+            like(adminActivityLog.targetLabel, searchPattern)
+          )
+        );
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [entries, countResult] = await Promise.all([
+        db.select()
+          .from(adminActivityLog)
+          .where(whereClause)
+          .orderBy(desc(adminActivityLog.createdAt))
+          .limit(input.limit)
+          .offset((input.page - 1) * input.limit),
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(adminActivityLog)
+          .where(whereClause),
+      ]);
+
+      return {
+        entries,
+        total: Number(countResult[0]?.count || 0),
+        page: input.page,
+        totalPages: Math.ceil(Number(countResult[0]?.count || 0) / input.limit),
+      };
+    }),
+
+  /**
+   * Get activity log summary stats
+   */
+  getActivityStats: adminOnly
+    .query(async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const [totalResult, todayResult, categoryBreakdown] = await Promise.all([
+        db.select({ count: sql<number>`COUNT(*)` }).from(adminActivityLog),
+        db.select({ count: sql<number>`COUNT(*)` }).from(adminActivityLog)
+          .where(sql`DATE(${adminActivityLog.createdAt}) = CURDATE()`),
+        db.select({
+          category: adminActivityLog.category,
+          count: sql<number>`COUNT(*)`,
+        })
+          .from(adminActivityLog)
+          .groupBy(adminActivityLog.category)
+          .orderBy(desc(sql`COUNT(*)`)),
+      ]);
+
+      return {
+        totalActions: Number(totalResult[0]?.count || 0),
+        todayActions: Number(todayResult[0]?.count || 0),
+        byCategory: categoryBreakdown.map(c => ({
+          category: c.category,
+          count: Number(c.count),
+        })),
+      };
     }),
 });

@@ -13,7 +13,7 @@ export function AdminDashboard() {
     navigate('/blogger-dashboard', { replace: true });
     return null;
   }
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes' | 'audit_log'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes' | 'audit_log' | 'activity'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -30,6 +30,11 @@ export function AdminDashboard() {
   const disputesQuery = trpc.dispute.adminGetAll.useQuery();
   const [auditSearch, setAuditSearch] = useState('');
   const auditLogQuery = trpc.admin.getAuditLog.useQuery({ search: auditSearch, limit: 50, offset: 0 });
+  const [activityCategory, setActivityCategory] = useState<'all' | 'users' | 'bookings' | 'payouts' | 'blog' | 'disputes' | 'releases' | 'settings'>('all');
+  const [activitySearch, setActivitySearch] = useState('');
+  const [activityPage, setActivityPage] = useState(1);
+  const activityLogQuery = trpc.admin.getActivityLog.useQuery({ page: activityPage, limit: 30, category: activityCategory, search: activitySearch });
+  const activityStatsQuery = trpc.admin.getActivityStats.useQuery();
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -97,7 +102,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes', 'audit_log'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes', 'audit_log', 'activity'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -110,7 +115,8 @@ export function AdminDashboard() {
                 <span className="flex items-center gap-1">
                   {tab === 'disputes' && <Shield className="w-4 h-4" />}
                   {tab === 'audit_log' && <ClipboardList className="w-4 h-4" />}
-                  {tab === 'audit_log' ? 'Audit Log' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'activity' && <FileText className="w-4 h-4" />}
+                  {tab === 'audit_log' ? 'Audit Log' : tab === 'activity' ? 'Activity' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'disputes' && disputesQuery.data && disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length > 0 && (
                     <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
                       {disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length}
@@ -177,6 +183,21 @@ export function AdminDashboard() {
               isLoading={auditLogQuery.isLoading}
               search={auditSearch}
               setSearch={setAuditSearch}
+            />
+          )}
+          {activeTab === 'activity' && (
+            <ActivityTab
+              entries={activityLogQuery.data?.entries || []}
+              total={activityLogQuery.data?.total || 0}
+              totalPages={activityLogQuery.data?.totalPages || 1}
+              page={activityPage}
+              setPage={setActivityPage}
+              category={activityCategory}
+              setCategory={setActivityCategory}
+              search={activitySearch}
+              setSearch={setActivitySearch}
+              stats={activityStatsQuery.data}
+              isLoading={activityLogQuery.isLoading}
             />
           )}
         </div>
@@ -1794,6 +1815,240 @@ function AuditLogTab({
             </tbody>
           </table>
         </div>
+      )}
+    </div>
+  );
+}
+
+
+// Activity Tab Component - tracks all admin actions
+function ActivityTab({
+  entries,
+  total,
+  totalPages,
+  page,
+  setPage,
+  category,
+  setCategory,
+  search,
+  setSearch,
+  stats,
+  isLoading,
+}: {
+  entries: any[];
+  total: number;
+  totalPages: number;
+  page: number;
+  setPage: (p: number) => void;
+  category: string;
+  setCategory: (c: any) => void;
+  search: string;
+  setSearch: (s: string) => void;
+  stats: any;
+  isLoading: boolean;
+}) {
+  const actionLabels: Record<string, string> = {
+    role_change: 'Role Change',
+    booking_update: 'Booking Update',
+    booking_cancel: 'Booking Cancelled',
+    payout_processed: 'Payout Processed',
+    payout_rejected: 'Payout Rejected',
+    blog_published: 'Blog Published',
+    blog_deleted: 'Blog Deleted',
+    blog_updated: 'Blog Updated',
+    user_suspended: 'User Suspended',
+    user_unsuspended: 'User Unsuspended',
+    dispute_resolved: 'Dispute Resolved',
+    dispute_escalated: 'Dispute Escalated',
+    release_takedown: 'Release Takedown',
+    release_restored: 'Release Restored',
+    settings_updated: 'Settings Updated',
+  };
+
+  const categoryColors: Record<string, string> = {
+    users: 'bg-blue-100 text-blue-800',
+    bookings: 'bg-green-100 text-green-800',
+    payouts: 'bg-yellow-100 text-yellow-800',
+    blog: 'bg-purple-100 text-purple-800',
+    disputes: 'bg-red-100 text-red-800',
+    releases: 'bg-indigo-100 text-indigo-800',
+    settings: 'bg-gray-100 text-gray-800',
+  };
+
+  const categoryOptions = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'users', label: 'Users' },
+    { value: 'bookings', label: 'Bookings' },
+    { value: 'payouts', label: 'Payouts' },
+    { value: 'blog', label: 'Blog' },
+    { value: 'disputes', label: 'Disputes' },
+    { value: 'releases', label: 'Releases' },
+    { value: 'settings', label: 'Settings' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Header */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <FileText className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalActions}</p>
+                <p className="text-sm text-gray-500">Total Actions</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Clock className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.todayActions}</p>
+                <p className="text-sm text-gray-500">Today's Actions</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.byCategory?.length || 0}</p>
+                <p className="text-sm text-gray-500">Active Categories</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by admin, action, or target..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <select
+          value={category}
+          onChange={(e) => { setCategory(e.target.value); setPage(1); }}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          {categoryOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Activity Log Table */}
+      {isLoading ? (
+        <div className="text-center py-12 text-gray-500">Loading activity log...</div>
+      ) : entries.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-lg font-medium">No activity recorded yet</p>
+          <p className="text-sm mt-1">Admin actions will appear here as they occur.</p>
+        </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Timestamp</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Admin</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Category</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Target</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {entries.map((entry: any) => {
+                  let parsedDetails: any = null;
+                  try {
+                    if (entry.details) parsedDetails = JSON.parse(entry.details);
+                  } catch {}
+
+                  return (
+                    <tr key={entry.id} className="hover:bg-gray-50">
+                      <td className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                        {entry.createdAt ? new Date(entry.createdAt).toLocaleString() : '—'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-sm font-medium text-gray-900">{entry.adminName || '—'}</div>
+                        <div className="text-xs text-gray-500">{entry.adminEmail}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-sm font-medium text-gray-900">
+                          {actionLabels[entry.action] || entry.action}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors[entry.category] || 'bg-gray-100 text-gray-800'}`}>
+                          {entry.category}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-sm text-gray-900">{entry.targetLabel || '—'}</div>
+                        {entry.targetType && (
+                          <div className="text-xs text-gray-500">{entry.targetType} #{entry.targetId}</div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-600 max-w-xs truncate">
+                        {parsedDetails ? (
+                          <span title={entry.details}>
+                            {Object.entries(parsedDetails).map(([k, v]) => `${k}: ${v}`).join(', ')}
+                          </span>
+                        ) : (
+                          entry.details || '—'
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing {((page - 1) * 30) + 1}–{Math.min(page * 30, total)} of {total} entries
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="px-3 py-1 text-sm text-gray-600">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

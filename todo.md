@@ -1879,3 +1879,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update ARCHITECTURE.md with current folder structure, data flow, role-based access control, and feature map
 - [x] Roles documented in README.md (dedicated section with permissions table)
 - [x] Update todo.md to reflect current state
+
+## FEATURE: ROADMAP, Docs Refresh & Admin Activity Dashboard (Mar 13, 2026)
+- [x] Update ROADMAP.md with completed features and prioritized upcoming features
+- [x] Refresh docs/API.md to match current 18 routers and endpoints
+- [x] Refresh docs/DEVELOPER_GUIDE.md to match current architecture and setup
+- [x] Refresh docs/CI_CD_DEPLOYMENT.md to match current deployment workflow
+- [x] Refresh docs/DISASTER_RECOVERY.md to match current backup and recovery procedures
+- [x] Schema: Create admin_activity_log table for tracking all admin actions (62 tables total)
+- [x] Backend: Add logActivity mutation, getActivityLog (paginated), getActivityStats endpoints
+- [x] Backend: Integrate activity logging into changeRole mutation (other admin actions — future enhancement)
+- [x] Backend: Add getActivityLog query endpoint (paginated, filterable by category and search)
+- [x] Frontend: Add Activity tab to Admin Dashboard with stats, category filter, search, pagination
+- [x] Tests: 13/13 passing for admin activity dashboard

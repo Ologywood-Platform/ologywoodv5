@@ -1,7 +1,7 @@
 # Ologywood Disaster Recovery Plan
 
-**Last Updated:** February 28, 2026  
-**Next Review:** May 2026
+**Last Updated:** March 13, 2026  
+**Next Review:** June 2026
 
 ---
 
@@ -16,7 +16,7 @@ This document outlines the disaster recovery procedures for the Ologywood platfo
 | Component | Service | Backup Responsibility |
 |-----------|---------|----------------------|
 | Application code | Manus Platform | Manus checkpoints + GitHub |
-| Database | AWS RDS MySQL 8.0 | AWS automated backups |
+| Database (61 tables) | AWS RDS MySQL 8.0 | AWS automated backups |
 | File storage | AWS S3 | S3 built-in durability (99.999999999%) |
 | Email delivery | SendGrid | No local state to back up |
 | Payments | Stripe | Stripe maintains all transaction records |
@@ -45,12 +45,13 @@ AWS RDS provides automated backups with the following characteristics:
 | Point-in-time recovery | Available within the retention window |
 | Multi-AZ | Depends on RDS instance configuration |
 | Manual snapshots | Can be created on demand, retained indefinitely |
+| Tables | 61 tables including audit logs for accountability |
 
 To check or modify backup settings, access the AWS RDS console or contact the database administrator.
 
 ### File Storage (AWS S3)
 
-S3 provides 99.999999999% durability. All uploaded files (profile photos, event photos, gallery images) are stored in S3 and do not require additional backup procedures. S3 versioning can be enabled for additional protection if needed.
+S3 provides 99.999999999% durability. All uploaded files (profile photos, event photos, gallery images, music releases) are stored in S3 and do not require additional backup procedures. S3 versioning can be enabled for additional protection if needed.
 
 ### External Services
 
@@ -58,6 +59,10 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 - Payment history and transaction records (query via Stripe API)
 - Email delivery logs (available in SendGrid dashboard)
 - Customer billing information (stored in Stripe)
+
+### Audit Trail
+
+The `role_change_audit_log` table records all role changes with who made the change, who was affected, previous and new roles, and timestamps. This provides accountability and compliance data that is backed up with the database.
 
 ---
 
@@ -145,11 +150,24 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
    - SendGrid API key (SendGrid > Settings > API Keys)
    - JWT secret (Manus Settings > Secrets)
 2. Update all rotated values in Manus **Settings > Secrets**
-3. Review access logs for unauthorized activity
+3. Review access logs and the role change audit log for unauthorized activity
 4. Review Stripe Dashboard for unauthorized transactions
 5. Restart the application to pick up new credentials
 
 **Recovery Time:** 30-60 minutes
+
+### Scenario 7: Missing Tables on Production
+
+**Symptoms:** TRPC query failures, "table doesn't exist" errors in server logs
+
+**Recovery:**
+1. Compare schema tables against production: query `information_schema.tables`
+2. Identify missing tables by comparing with `drizzle/schema.ts` (61 tables expected)
+3. Create missing tables manually via SQL or `webdev_execute_sql`
+4. Run `pnpm db:push` to sync drizzle migration state
+5. Restart the application
+
+**Recovery Time:** 15-30 minutes
 
 ---
 
@@ -163,6 +181,7 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 | Application loss | 1-2 hours | 0 (GitHub + checkpoints) |
 | Database failure | 30 min - 2 hours | Up to 5 minutes (RDS continuous backup) |
 | Credential compromise | 30-60 minutes | 0 (no data loss, credential rotation) |
+| Missing tables | 15-30 minutes | 0 (tables recreated from schema) |
 
 ---
 
@@ -170,10 +189,11 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 
 ### Before Every Deployment
 
-1. Run `pnpm test` — all 1,233+ tests must pass
+1. Run `pnpm test` — all 1,864+ tests must pass
 2. Run `pnpm check` — zero TypeScript errors
 3. Save a checkpoint — provides instant rollback capability
 4. Review database migrations — ensure they are reversible
+5. Verify all 61 tables exist on production after migration
 
 ### Database Safety
 
@@ -181,12 +201,14 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 - Never run raw SQL `DROP TABLE` or `DELETE FROM` without a backup
 - Test migrations in the development environment first
 - Keep the AWS RDS backup retention period at maximum (35 days) for production
+- After adding new enum values, verify they were applied on production
 
 ### Code Safety
 
 - The GitHub repository provides a second copy of all code
 - Checkpoints provide point-in-time snapshots of the full project
 - Never force-push to the `main` branch
+- The role change audit log provides accountability for admin actions
 
 ---
 
@@ -203,18 +225,12 @@ Stripe and SendGrid maintain their own records. No local backup is needed for:
 
 ---
 
-## Legacy Scripts
-
-Legacy backup and deployment scripts from a previous self-hosted infrastructure setup have been archived to `scripts/legacy/`. These scripts are **not used** with the current Manus + AWS RDS architecture. See `scripts/legacy/README.md` for a full inventory and original purposes.
-
-The only active script remaining in `scripts/` is `build.sh`.
-
----
-
 ## Related Documentation
 
 | Document | Description |
 |----------|-------------|
 | [CI_CD_DEPLOYMENT.md](./CI_CD_DEPLOYMENT.md) | Deployment workflow and environment configuration |
 | [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md) | Development setup and coding standards |
+| [API.md](./API.md) | API endpoint documentation |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | System architecture and data flow |
+| [ROADMAP.md](../ROADMAP.md) | Feature roadmap and completed work |

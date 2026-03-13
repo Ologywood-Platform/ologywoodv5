@@ -1054,3 +1054,27 @@ export const roleChangeAuditLog = mysqlTable("role_change_audit_log", {
 }));
 export type RoleChangeAuditEntry = typeof roleChangeAuditLog.$inferSelect;
 export type InsertRoleChangeAuditEntry = typeof roleChangeAuditLog.$inferInsert;
+
+
+/**
+ * Admin Activity Log - tracks all admin actions for platform accountability
+ */
+export const adminActivityLog = mysqlTable("admin_activity_log", {
+  id: int("id").autoincrement().primaryKey(),
+  adminId: int("admin_id").notNull(),
+  adminEmail: varchar("admin_email", { length: 320 }).notNull(),
+  adminName: varchar("admin_name", { length: 255 }),
+  action: varchar("action", { length: 100 }).notNull(), // e.g. 'role_change', 'booking_update', 'payout_processed', 'blog_published', 'user_suspended', 'dispute_resolved'
+  category: mysqlEnum("category", ["users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]).notNull(),
+  targetType: varchar("target_type", { length: 50 }), // 'user', 'booking', 'blog_post', 'payout', 'dispute', 'release'
+  targetId: varchar("target_id", { length: 100 }), // ID of the affected entity
+  targetLabel: varchar("target_label", { length: 255 }), // Human-readable label (e.g. user email, post title)
+  details: text("details"), // JSON string with action-specific details
+  ipAddress: varchar("ip_address", { length: 45 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  adminIdx: index("idx_admin_activity_admin").on(table.adminId),
+  categoryIdx: index("idx_admin_activity_category").on(table.category),
+  actionIdx: index("idx_admin_activity_action").on(table.action),
+  createdAtIdx: index("idx_admin_activity_created").on(table.createdAt),
+}));
