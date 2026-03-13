@@ -1781,3 +1781,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Do NOT change owner's current role (still testing as artist/venue)
 - [x] Write vitest tests (14 tests passing)
 - [x] Test end-to-end (0 TS errors, build clean)
+
+## ARTIST DASHBOARD PERFORMANCE & VENUE DASHBOARD SKELETONS (Mar 13, 2026)
+
+- [x] Apply staleTime to Artist Dashboard queries (profile: 2min, bookings: 1min, events: 2min)
+- [x] No lazy-loading needed — Artist Dashboard only has 3 queries, all lightweight
+- [x] Add loading skeletons to Venue Dashboard (main page, Bookings tab, Artists tab, Rider modal)
+- [x] Add loading skeletons to Artist Dashboard (redirect/loading state with skeleton cards)
+- [x] Test both dashboards for improved performance (0 TS errors, build clean)

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
+import { Skeleton } from '../components/ui/skeleton';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -209,10 +210,27 @@ export function VenueDashboard() {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading venue dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+          {/* Completeness card skeleton */}
+          <Skeleton className="h-24 w-full rounded-lg" />
+          {/* Tabs skeleton */}
+          <div className="flex gap-2">
+            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-10 w-24 rounded-md" />)}
+          </div>
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card><CardContent className="pt-6 space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+            <Card><CardContent className="pt-6 space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+          </div>
         </div>
       </div>
     );
@@ -420,11 +438,31 @@ export function VenueDashboard() {
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4">
             {bookingsLoading ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-center text-gray-600">Loading bookings...</p>
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                {[1,2,3].map(i => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-40" />
+                          <Skeleton className="h-4 w-56" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <div className="flex gap-2 mt-4">
+                          <Skeleton className="h-8 w-24 rounded-md" />
+                          <Skeleton className="h-8 w-24 rounded-md" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : bookings && bookings.length > 0 ? (
               <div className="space-y-4">
                 {bookings.map(booking => (
@@ -517,11 +555,27 @@ export function VenueDashboard() {
           {/* Artists Tab */}
           <TabsContent value="artists" className="space-y-4">
             {artistsLoading ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="text-center text-gray-600">Loading artists...</p>
-                </CardContent>
-              </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1,2,3,4].map(i => (
+                  <Card key={i}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <Skeleton className="h-16 w-16 rounded-full flex-shrink-0" />
+                        <div className="space-y-2 flex-1">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                          <div className="flex gap-2 mt-2">
+                            <Skeleton className="h-8 w-20 rounded-md" />
+                            <Skeleton className="h-8 w-20 rounded-md" />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : artists && artists.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {artists.map(artist => {
@@ -1353,9 +1407,13 @@ function RiderViewerModal({ bookingId, onClose }: { bookingId: number; onClose: 
         </div>
         <div className="p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-3"></div>
-              <p>Loading rider details...</p>
+            <div className="space-y-4 py-4">
+              <Skeleton className="h-5 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-5 w-1/3 mt-4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
             </div>
           ) : !riderData ? (
             <div className="text-center py-8 text-gray-500">

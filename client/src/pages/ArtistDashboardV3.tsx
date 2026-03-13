@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText } from 'lucide-react';
 import { useLocation } from 'wouter';
@@ -36,34 +37,44 @@ export function ArtistDashboardV3() {
 
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
     enabled: isArtist,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
   const { data: bookings } = trpc.booking.getMyArtistBookings.useQuery(undefined, {
     enabled: isArtist,
+    staleTime: 60 * 1000, // 1 minute
   });
   const { data: myEvents = [] } = trpc.events.search.useQuery({ artistId: user?.id || 0 }, {
     enabled: isArtist && !!user?.id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
   const updateEventStatus = trpc.events.update.useMutation();
   // Messages are accessed from the Messages page, not dashboard
 
-  // Verify user is an artist — show loading while redirect happens
+  // Verify user is an artist — show skeleton while redirect happens
   if (!isArtist) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Redirecting...</CardTitle>
-            <CardDescription>Taking you to the right place.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header skeleton */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-14 w-14 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
             </div>
-            <Button onClick={() => window.location.href = '/get-started'} variant="outline" className="w-full">
-              Select Your Role
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          {/* Quick actions skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => (
+              <Card key={i}><CardContent className="pt-6 space-y-2"><Skeleton className="h-8 w-8 rounded-md" /><Skeleton className="h-4 w-20" /></CardContent></Card>
+            ))}
+          </div>
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card><CardContent className="pt-6 space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+            <Card><CardContent className="pt-6 space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /></CardContent></Card>
+          </div>
+        </div>
       </div>
     );
   }
