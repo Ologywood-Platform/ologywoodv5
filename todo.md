@@ -1789,3 +1789,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add loading skeletons to Venue Dashboard (main page, Bookings tab, Artists tab, Rider modal)
 - [x] Add loading skeletons to Artist Dashboard (redirect/loading state with skeleton cards)
 - [x] Test both dashboards for improved performance (0 TS errors, build clean)
+
+## BUG: Failed to Create Venue Profile (Mar 13, 2026)
+
+- [x] Investigate createProfile endpoint error for user Ray (rlstephens42@comcast.net, ID: 26048)
+- [x] Root cause: operatingHours column missing from DB + createProfile not passing email/amenities/operatingHours fields
+- [x] Ray already had a profile (ID: 2) so the duplicate check was triggering but showing generic error
+- [x] Added operatingHours column to venue_profiles table
+- [x] Fixed createProfile to pass email, amenities, operatingHours to db.createVenueProfile
+- [x] Improved error handling: duplicate profile now shows toast and switches to edit mode
+- [x] Test the fix (0 TS errors)

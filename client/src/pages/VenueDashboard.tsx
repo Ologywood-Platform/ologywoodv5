@@ -96,9 +96,16 @@ export function VenueDashboard() {
     onSuccess: () => {
       refetchProfile();
       setEditingProfile(false);
+      toast.success('Profile created successfully!');
     },
     onError: (error: any) => {
-      alert(error.message || 'Failed to create profile');
+      if (error.message?.includes('already exists')) {
+        toast.info('Profile already exists — switching to edit mode...');
+        refetchProfile();
+        setEditingProfile(true);
+      } else {
+        toast.error(error.message || 'Failed to create profile');
+      }
     },
   });
 

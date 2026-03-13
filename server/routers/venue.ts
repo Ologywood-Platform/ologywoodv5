@@ -124,6 +124,9 @@ export const venueRouter = router({
           bio: input.bio || null,
           venueType: input.venueType || null,
           capacity: input.capacity || null,
+          email: input.email || null,
+          amenities: input.amenities || null,
+          operatingHours: input.operatingHours || null,
         });
 
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
