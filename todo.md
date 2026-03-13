@@ -1853,3 +1853,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Show "Owner" badge (yellow) in the Users tab role column for the owner
 - [x] Ensure owner identification works without OWNER_OPEN_ID env var (email fallback)
 - [x] Tests: All 40 tests passing
+
+## FEATURE: Role Change Audit Log (Mar 13, 2026)
+
+- [x] Schema: Create role_change_audit_log table (id, targetUserId, targetEmail, targetName, previousRole, newRole, changedById, changedByEmail, changedByName, reason, timestamp)
+- [x] Schema: Run database migration (migration 0063)
+- [x] Backend: Integrated audit logging directly into the changeRole mutation
+- [x] Backend: Add getAuditLog query endpoint (paginated, filterable by search)
+- [x] Frontend: Add "Audit Log" tab to Admin Dashboard with ClipboardList icon
+- [x] Frontend: Display audit log entries with timestamps, role transition badges, who changed whom
+- [x] Frontend: Add search/filter by user email/name or admin email/name
+- [x] Tests: 14/14 passing for audit log functionality

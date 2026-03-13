@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList } from 'lucide-react';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -13,7 +13,7 @@ export function AdminDashboard() {
     navigate('/blogger-dashboard', { replace: true });
     return null;
   }
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'bookings' | 'payouts' | 'releases' | 'blog' | 'feedback' | 'disputes' | 'audit_log'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch analytics
@@ -28,6 +28,8 @@ export function AdminDashboard() {
   const releasesQuery = trpc.admin.getReleases.useQuery({ limit: 50 });
   const feedbackQuery = trpc.admin.getUnsubscribeFeedback.useQuery();
   const disputesQuery = trpc.dispute.adminGetAll.useQuery();
+  const [auditSearch, setAuditSearch] = useState('');
+  const auditLogQuery = trpc.admin.getAuditLog.useQuery({ search: auditSearch, limit: 50, offset: 0 });
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -95,7 +97,7 @@ export function AdminDashboard() {
         {/* Navigation Tabs */}
         <div className="bg-white border-b border-gray-200 mb-6">
           <div className="flex gap-8">
-            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes'] as const).map((tab) => (
+            {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes', 'audit_log'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -107,7 +109,8 @@ export function AdminDashboard() {
               >
                 <span className="flex items-center gap-1">
                   {tab === 'disputes' && <Shield className="w-4 h-4" />}
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'audit_log' && <ClipboardList className="w-4 h-4" />}
+                  {tab === 'audit_log' ? 'Audit Log' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'disputes' && disputesQuery.data && disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length > 0 && (
                     <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
                       {disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length}
@@ -165,6 +168,15 @@ export function AdminDashboard() {
               disputes={disputesQuery.data || []}
               isLoading={disputesQuery.isLoading}
               refetch={disputesQuery.refetch}
+            />
+          )}
+          {activeTab === 'audit_log' && (
+            <AuditLogTab
+              entries={auditLogQuery.data?.entries || []}
+              total={auditLogQuery.data?.total || 0}
+              isLoading={auditLogQuery.isLoading}
+              search={auditSearch}
+              setSearch={setAuditSearch}
             />
           )}
         </div>
@@ -1648,6 +1660,141 @@ function DisputesTab({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+
+// ─── Audit Log Tab ───────────────────────────────────────────────────────────
+function AuditLogTab({
+  entries,
+  total,
+  isLoading,
+  search,
+  setSearch,
+}: {
+  entries: any[];
+  total: number;
+  isLoading: boolean;
+  search: string;
+  setSearch: (s: string) => void;
+}) {
+  const getRoleBadge = (role: string) => {
+    const colors: Record<string, string> = {
+      admin: 'bg-purple-100 text-purple-800',
+      owner: 'bg-yellow-100 text-yellow-800',
+      artist: 'bg-blue-100 text-blue-800',
+      venue: 'bg-green-100 text-green-800',
+      user: 'bg-gray-100 text-gray-800',
+      blogger: 'bg-pink-100 text-pink-800',
+      fan: 'bg-orange-100 text-orange-800',
+    };
+    return (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[role] || 'bg-gray-100 text-gray-800'}`}>
+        {role}
+      </span>
+    );
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-blue-600" />
+            Role Change Audit Log
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {total} total {total === 1 ? 'entry' : 'entries'}
+          </p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-72"
+          />
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+          <p className="text-sm text-gray-500">Loading audit log...</p>
+        </div>
+      ) : entries.length === 0 ? (
+        <div className="text-center py-12">
+          <ClipboardList className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No audit log entries</h3>
+          <p className="text-sm text-gray-500">
+            {search ? 'No entries match your search.' : 'Role changes will be recorded here.'}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Date</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">User Changed</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Previous Role</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4"></th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">New Role</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider py-3 px-4">Changed By</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {entries.map((entry: any) => (
+                <tr key={entry.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                    {formatDate(entry.createdAt)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="text-sm font-medium text-gray-900">
+                      {entry.targetName || '—'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {entry.targetEmail || '—'}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    {getRoleBadge(entry.previousRole)}
+                  </td>
+                  <td className="py-3 px-4 text-gray-400 text-center">
+                    →
+                  </td>
+                  <td className="py-3 px-4">
+                    {getRoleBadge(entry.newRole)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="text-sm font-medium text-gray-900">
+                      {entry.changedByName || '—'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {entry.changedByEmail || '—'}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

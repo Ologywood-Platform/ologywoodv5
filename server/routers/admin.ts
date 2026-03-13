@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback } from "../../drizzle/schema";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog } from "../../drizzle/schema";
 import { desc, sql } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 
@@ -387,6 +387,18 @@ return { success: true, userId: input.userId };
         updatedAt: new Date(),
       }).where(sql`id = ${input.userId}`);
 
+      // Record in audit log
+      await db.insert(roleChangeAuditLog).values({
+        targetUserId: targetUser.id,
+        targetEmail: targetUser.email || null,
+        targetName: targetUser.name || null,
+        previousRole,
+        newRole: input.newRole,
+        changedById: ctx.user.id,
+        changedByEmail: ctx.user.email || null,
+        changedByName: ctx.user.name || null,
+      });
+
       // Send email notification
       if (targetUser.email) {
         sendRoleChangeEmail({
@@ -399,6 +411,42 @@ return { success: true, userId: input.userId };
       }
 
       return { success: true, userId: input.userId, previousRole, newRole: input.newRole, changed: true };
+    }),
+
+  /**
+   * Get role change audit log (paginated, filterable)
+   */
+  getAuditLog: adminOnly
+    .input(z.object({
+      search: z.string().optional(),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const search = input?.search || '';
+      const limit = input?.limit || 50;
+      const offset = input?.offset || 0;
+
+      let allEntries = await db.select().from(roleChangeAuditLog).orderBy(desc(roleChangeAuditLog.createdAt));
+
+      // Filter by search term (target email/name or admin email/name)
+      if (search) {
+        const lowerSearch = search.toLowerCase();
+        allEntries = allEntries.filter((entry: typeof roleChangeAuditLog.$inferSelect) =>
+          (entry.targetEmail && entry.targetEmail.toLowerCase().includes(lowerSearch)) ||
+          (entry.targetName && entry.targetName.toLowerCase().includes(lowerSearch)) ||
+          (entry.changedByEmail && entry.changedByEmail.toLowerCase().includes(lowerSearch)) ||
+          (entry.changedByName && entry.changedByName.toLowerCase().includes(lowerSearch))
+        );
+      }
+
+      const total = allEntries.length;
+      const entries = allEntries.slice(offset, offset + limit);
+
+      return { entries, total, limit, offset };
     }),
 
   /**

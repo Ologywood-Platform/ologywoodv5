@@ -1030,3 +1030,27 @@ export const bookingDisputes = mysqlTable("booking_disputes", {
 }));
 export type BookingDispute = typeof bookingDisputes.$inferSelect;
 export type InsertBookingDispute = typeof bookingDisputes.$inferInsert;
+
+
+/**
+ * Role Change Audit Log - tracks all role changes with full accountability
+ */
+export const roleChangeAuditLog = mysqlTable("role_change_audit_log", {
+  id: int("id").autoincrement().primaryKey(),
+  targetUserId: int("targetUserId").notNull(),        // user whose role was changed
+  targetEmail: varchar("targetEmail", { length: 320 }),
+  targetName: text("targetName"),
+  previousRole: varchar("previousRole", { length: 32 }).notNull(),
+  newRole: varchar("newRole", { length: 32 }).notNull(),
+  changedById: int("changedById").notNull(),           // admin who made the change
+  changedByEmail: varchar("changedByEmail", { length: 320 }),
+  changedByName: text("changedByName"),
+  reason: text("reason"),                              // optional reason for the change
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  targetUserIdx: index("idx_audit_target_user").on(table.targetUserId),
+  changedByIdx: index("idx_audit_changed_by").on(table.changedById),
+  createdAtIdx: index("idx_audit_created_at").on(table.createdAt),
+}));
+export type RoleChangeAuditEntry = typeof roleChangeAuditLog.$inferSelect;
+export type InsertRoleChangeAuditEntry = typeof roleChangeAuditLog.$inferInsert;
