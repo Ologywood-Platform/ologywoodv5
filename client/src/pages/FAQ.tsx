@@ -58,6 +58,16 @@ export default function FAQ() {
     { q: 'What subscription plans are available?', a: 'We offer three plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit our Pricing page for full details.' },
     { q: 'Can I change my plan?', a: 'Yes! Upgrade or downgrade anytime from your Dashboard. Changes take effect immediately. Upgrades are prorated; downgrades apply at the next billing cycle.' },
     
+    // Disputes
+    { q: 'What is a dispute and how do I file one?', a: 'A dispute is a formal claim you can file when there is an issue with a booking — such as a no-show, contract violation, or payment disagreement. Go to your booking details and click "File Dispute." Provide a description and any supporting evidence. Our admin team reviews all disputes and works toward a fair resolution for both parties.' },
+    { q: 'How long does it take to resolve a dispute?', a: 'Most disputes are reviewed within 48-72 hours. Our admin team may reach out to both parties for additional information. You will receive notifications as the dispute progresses through review, and a final resolution will be communicated via email and in-app notification.' },
+    
+    // Reviews
+    { q: 'How do reviews work?', a: 'After a completed booking, both artists and venues can leave reviews for each other. Reviews include a star rating and written feedback. Reviews are visible on public profiles and help build trust across the platform. Fans can also leave reviews on purchased music releases.' },
+    
+    // Roles
+    { q: 'What roles are available on Ologywood?', a: 'Ologywood has several roles: Artist (performers who get booked and sell music), Venue (event organizers who book talent), User/Client (fans who browse, follow, book artists for private events, and purchase music), and Blogger (content creators who write blog posts for the platform). Admins manage the platform. You can request a role change by contacting support.' },
+    
     // Support
     { q: 'How do I contact support?', a: 'Email support@ologywood.com, use the Contact Us page, or the chat widget in the bottom-right corner. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
   ];

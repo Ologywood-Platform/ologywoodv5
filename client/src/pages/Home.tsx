@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -118,7 +118,7 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join artists and venues who use Ologywood to find and book amazing talent.
+            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
@@ -132,7 +132,7 @@ export default function Home() {
       <section className="py-8 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <Music className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
@@ -201,6 +201,30 @@ export default function Home() {
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Message artists and venues directly to discuss event details, negotiate terms, and finalize bookings.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Headphones className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Music Marketplace</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Artists can upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite artists.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Scale className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Dispute Resolution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Fair and transparent dispute handling for bookings. File claims, provide evidence, and get resolutions managed by our admin team.
                 </p>
               </CardContent>
             </Card>

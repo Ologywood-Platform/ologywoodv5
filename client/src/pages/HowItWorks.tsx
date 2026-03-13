@@ -151,6 +151,7 @@ const venueSteps: Step[] = [
       'Leave reviews for artists after performances',
       'Build your venue reputation',
       'Get verified for added credibility',
+      'File disputes if issues arise with bookings',
     ],
   },
 ];

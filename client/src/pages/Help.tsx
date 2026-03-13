@@ -23,7 +23,7 @@ const faqItems: FAQItem[] = [
     id: 'getting-started-2',
     category: 'Getting Started',
     question: 'What are the different account types?',
-    answer: 'Ologywood has three account types. Artist accounts are for performers and musicians who want to get booked, sell music, and grow their fanbase. Venue accounts are for event organizers and clubs looking to book talent. Fan accounts let you follow artists, buy releases, leave reviews, and tip your favorite performers.',
+    answer: 'Ologywood has several account types tailored to different needs. Artist accounts are for performers and musicians who want to get booked, sell music, and grow their fanbase. Venue accounts are for event organizers and clubs looking to book talent. User/Client accounts let you browse, follow artists, book talent for private events, purchase music, and leave reviews. Blogger accounts are for content creators who write blog posts for the platform. Each role has specific features and dashboard access.',
   },
   {
     id: 'getting-started-3',
@@ -232,6 +232,40 @@ const faqItems: FAQItem[] = [
     category: 'Events',
     question: 'How do I create an event as a venue?',
     answer: 'Go to your Venue Dashboard and click "Create Event". Fill in the event name, date, time, description, and any ticket information. Once published, your event will be visible on the Events page and discoverable by artists and fans.',
+  },
+
+  // Disputes
+  {
+    id: 'disputes-1',
+    category: 'Disputes',
+    question: 'What is a dispute and how do I file one?',
+    answer: 'A dispute is a formal claim you can file when there is an issue with a booking \u2014 such as a no-show, contract violation, or payment disagreement. Go to your booking details and click "File Dispute." Provide a description and any supporting evidence. Our admin team reviews all disputes and works toward a fair resolution for both parties.',
+  },
+  {
+    id: 'disputes-2',
+    category: 'Disputes',
+    question: 'How long does it take to resolve a dispute?',
+    answer: 'Most disputes are reviewed within 48-72 hours. Our admin team may reach out to both parties for additional information. You will receive notifications as the dispute progresses through review, and a final resolution will be communicated via email and in-app notification.',
+  },
+  {
+    id: 'disputes-3',
+    category: 'Disputes',
+    question: 'What evidence should I provide when filing a dispute?',
+    answer: 'Include any relevant details such as screenshots of messages, contract terms, payment receipts, photos, or videos that support your claim. The more evidence you provide, the faster and more accurately our team can resolve the issue.',
+  },
+
+  // Reviews
+  {
+    id: 'reviews-1',
+    category: 'Reviews',
+    question: 'How do I leave a review?',
+    answer: 'After a completed booking, both artists and venues can leave reviews for each other from the booking details page. Reviews include a star rating and written feedback. Fans can also leave reviews on purchased music releases from the artist profile or My Purchases page.',
+  },
+  {
+    id: 'reviews-2',
+    category: 'Reviews',
+    question: 'Can I edit or delete a review?',
+    answer: 'Currently, reviews cannot be edited once submitted. If you believe a review violates our community guidelines or is fraudulent, contact support@ologywood.com and our team will investigate.',
   },
 
   // Support & Contact

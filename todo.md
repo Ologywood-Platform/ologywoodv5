@@ -1892,3 +1892,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Backend: Add getActivityLog query endpoint (paginated, filterable by category and search)
 - [x] Frontend: Add Activity tab to Admin Dashboard with stats, category filter, search, pagination
 - [x] Tests: 13/13 passing for admin activity dashboard
+
+## UPDATE: Public-Facing Pages Content Refresh (Mar 13, 2026)
+- [x] Audit all public-facing pages for outdated or missing content
+- [x] Homepage: Added Music Marketplace and Dispute Resolution feature cards, updated CTA copy, changed grid to 4-column layout
+- [x] FAQ: Added 5 new questions covering disputes, reviews, and roles
+- [x] Help Center: Updated account types to include User/Client and Blogger roles, added Disputes (3 FAQs) and Reviews (2 FAQs) categories
+- [x] How It Works: Added dispute filing to venue steps
+- [x] Pricing page: Already up to date, no changes needed
+- [x] All pages compile with 0 TS errors
