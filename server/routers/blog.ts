@@ -5,14 +5,16 @@ import { blogPosts } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 
-// Admin or site-owner middleware
+// Admin, Blogger, or site-owner middleware
 const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
-const adminOnly = protectedProcedure.use(async (opts) => {
+const OWNER_NAME = process.env.OWNER_NAME || '';
+const blogAccess = protectedProcedure.use(async (opts) => {
   const user = opts.ctx.user;
   const isAdmin = user.role === 'admin';
-  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
-  if (!isAdmin && !isOwner) {
-    throw new Error("Unauthorized: Admin access required");
+  const isBlogger = user.role === 'blogger';
+  const isOwner = (OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID) || (OWNER_NAME && user.openId === OWNER_NAME);
+  if (!isAdmin && !isBlogger && !isOwner) {
+    throw new Error("Unauthorized: Blog management access required");
   }
   return opts.next();
 });
@@ -88,7 +90,7 @@ export const blogRouter = router({
   /**
    * List all blog posts for admin (includes drafts/archived)
    */
-  adminList: adminOnly
+  adminList: blogAccess
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(50),
@@ -127,7 +129,7 @@ export const blogRouter = router({
   /**
    * Get a single blog post by ID for admin editing
    */
-  adminGetById: adminOnly
+  adminGetById: blogAccess
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const db = await getDb();
@@ -145,7 +147,7 @@ export const blogRouter = router({
   /**
    * Create a new blog post (admin only)
    */
-  create: adminOnly
+  create: blogAccess
     .input(
       z.object({
         title: z.string().min(1).max(500),
@@ -177,7 +179,7 @@ export const blogRouter = router({
   /**
    * Update an existing blog post (admin only)
    */
-  update: adminOnly
+  update: blogAccess
     .input(
       z.object({
         id: z.number(),
@@ -203,7 +205,7 @@ export const blogRouter = router({
   /**
    * Publish or unpublish a blog post (admin only)
    */
-  setStatus: adminOnly
+  setStatus: blogAccess
     .input(
       z.object({
         id: z.number(),
@@ -233,7 +235,7 @@ export const blogRouter = router({
   /**
    * Upload a cover image for a blog post (admin only)
    */
-  uploadCoverImage: adminOnly
+  uploadCoverImage: blogAccess
     .input(
       z.object({
         postId: z.number(),
@@ -271,7 +273,7 @@ export const blogRouter = router({
   /**
    * Delete a blog post (admin only)
    */
-  delete: adminOnly
+  delete: blogAccess
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       const db = await getDb();

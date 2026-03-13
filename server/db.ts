@@ -279,7 +279,7 @@ export async function getUserByOpenId(openId: string): Promise<User | undefined>
   return result[0];
 }
 
-export async function updateUserRole(userId: number, role: "user" | "admin" | "artist" | "venue" | "fan"): Promise<void> {
+export async function updateUserRole(userId: number, role: "user" | "admin" | "artist" | "venue" | "fan" | "blogger"): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.update(users).set({ role }).where(eq(users.id, userId));

@@ -277,6 +277,7 @@ function UsersTab({
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-purple-100 text-purple-700';
+      case 'blogger': return 'bg-pink-100 text-pink-700';
       case 'artist': return 'bg-blue-100 text-blue-700';
       case 'venue': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
@@ -285,6 +286,7 @@ function UsersTab({
 
   const roleOptions = [
     { value: 'admin', label: 'Admin', color: 'text-purple-700' },
+    { value: 'blogger', label: 'Blogger', color: 'text-pink-700' },
     { value: 'artist', label: 'Artist', color: 'text-blue-700' },
     { value: 'venue', label: 'Venue', color: 'text-green-700' },
     { value: 'user', label: 'User', color: 'text-gray-700' },
@@ -292,6 +294,7 @@ function UsersTab({
 
   const roleDescriptions: Record<string, string> = {
     admin: 'Full admin access: user management, booking oversight, blog management, and financial data.',
+    blogger: 'Blog management access: create, edit, publish, and manage blog posts on Ologywood.',
     artist: 'Artist access: create profile, manage bookings, set availability, upload releases, connect with venues.',
     venue: 'Venue access: create profile, browse artists, send booking requests, manage events.',
     user: 'Standard access: browse artists, follow favorites, book artists for events, purchase music.',
@@ -362,6 +365,7 @@ function UsersTab({
           <option value="admin">Admins</option>
           <option value="artist">Artists</option>
           <option value="venue">Venues</option>
+          <option value="blogger">Bloggers</option>
           <option value="user">Users</option>
         </select>
       </div>
@@ -483,7 +487,7 @@ function UsersTab({
                     onClick={() => {
                       changeRoleMutation.mutate({
                         userId: confirmAction.user.id,
-                        newRole: confirmAction.newRole as 'admin' | 'artist' | 'venue' | 'user',
+                        newRole: confirmAction.newRole as 'admin' | 'artist' | 'venue' | 'user' | 'blogger',
                       });
                     }}
                     disabled={changeRoleMutation.isPending}

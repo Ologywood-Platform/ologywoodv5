@@ -1821,3 +1821,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Frontend: Show confirmation dialog before changing role
 - [x] Frontend: Show success/error toast after role change
 - [x] Tests: Write tests for the new changeRole logic (13/13 passing)
+
+## FEATURE: Blogger Role (Mar 13, 2026)
+
+- [x] Schema: Add 'blogger' to the role enum in drizzle schema + database migration
+- [x] Backend: Update admin.ts changeRole to include 'blogger' as a valid role
+- [x] Backend: Update blog router to allow bloggers to create/edit/publish/delete blog posts (blogAccess middleware)
+- [x] Backend: Ensure bloggers cannot access admin-only endpoints (adminOnly middleware unchanged)
+- [x] Frontend: Add 'blogger' to the Change Role dropdown options
+- [x] Frontend: Add role badge color for blogger (pink)
+- [x] Frontend: Add blogger to role filter dropdown
+- [x] Frontend: Update User type to include 'blogger'
+- [x] Frontend: Route bloggers to /admin/blog on login (dashboardUrl.ts)
+- [x] Email: Add blogger role description to role change email notification
+- [x] Tests: Write tests for blogger role permissions (17/17 passing)

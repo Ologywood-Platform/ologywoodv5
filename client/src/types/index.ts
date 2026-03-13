@@ -57,7 +57,7 @@ export interface User {
   email: string;
   emailVerified: boolean;
   name: string | null;
-  role: 'user' | 'admin' | 'artist' | 'venue' | 'fan' | null;
+  role: 'user' | 'admin' | 'artist' | 'venue' | 'fan' | 'blogger' | null;
   createdAt: Date;
   updatedAt: Date;
 }

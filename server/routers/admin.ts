@@ -33,6 +33,7 @@ async function sendRoleChangeEmail(params: {
     artist: 'Artist',
     venue: 'Venue',
     user: 'User',
+    blogger: 'Blogger',
   };
 
   const newRoleLabel = roleLabels[params.newRole] || params.newRole;
@@ -43,6 +44,7 @@ async function sendRoleChangeEmail(params: {
     artist: 'You can now create an Artist profile, manage bookings, set your availability, upload music releases, and connect with venues.',
     venue: 'You can now create a Venue profile, browse artists, send booking requests, and manage your events.',
     user: 'You have standard platform access to browse artists, follow your favorites, book artists for events, and purchase music.',
+    blogger: 'You can now create, edit, publish, and manage blog posts on Ologywood. You have access to the Blog Management dashboard.',
   };
 
   const description = roleDescriptions[params.newRole] || 'Your platform access has been updated.';
@@ -146,7 +148,7 @@ export const adminRouter = router({
     .input(
       z.object({
         search: z.string().optional(),
-        role: z.enum(["user", "admin", "artist", "venue"]).optional(),
+        role: z.enum(["user", "admin", "artist", "venue", "blogger"]).optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       })
@@ -350,7 +352,7 @@ return { success: true, userId: input.userId };
   changeRole: adminOnly
     .input(z.object({
       userId: z.number(),
-      newRole: z.enum(['admin', 'artist', 'venue', 'user']),
+      newRole: z.enum(['admin', 'artist', 'venue', 'user', 'blogger']),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
