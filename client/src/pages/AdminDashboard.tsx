@@ -412,8 +412,8 @@ function UsersTab({
                       </td>
                       <td className="py-3 px-4 text-gray-600">{user.name || '\u2014'}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                          {user.role}
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${isUserOwner ? 'bg-yellow-100 text-yellow-700' : getRoleBadgeColor(user.role)}`}>
+                          {isUserOwner ? 'Owner' : user.role}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>

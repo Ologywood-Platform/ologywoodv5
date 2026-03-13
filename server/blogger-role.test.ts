@@ -138,13 +138,13 @@ describe('Blogger Role Feature', () => {
 
   // ============ NAVIGATION ============
   describe('Navigation - Dashboard URL', () => {
-    it('should route bloggers to /admin/blog', () => {
+    it('should route bloggers to /blogger-dashboard', () => {
       const dashboardUrlContent = fs.readFileSync(
         path.resolve(__dirname, '../client/src/utils/dashboardUrl.ts'),
         'utf-8'
       );
       expect(dashboardUrlContent).toContain("user.role === 'blogger'");
-      expect(dashboardUrlContent).toContain("'/admin/blog'");
+      expect(dashboardUrlContent).toContain("'/blogger-dashboard'");
     });
   });
 

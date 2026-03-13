@@ -1845,3 +1845,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Block bloggers from accessing /admin route (redirect to /blogger-dashboard)
 - [x] Include View Live Blog quick-action button
 - [x] Tests: 10/10 passing for blogger dashboard routing and access
+
+## BUG: Owner shows as "Admin" instead of "Owner" (Mar 13, 2026)
+
+- [x] Fix isOwner detection to work reliably on production (added email-based fallback for garychisolm30@gmail.com)
+- [x] Show "Owner" badge instead of "Admin" for garychisolm30@gmail.com in Admin Team section
+- [x] Show "Owner" badge (yellow) in the Users tab role column for the owner
+- [x] Ensure owner identification works without OWNER_OPEN_ID env var (email fallback)
+- [x] Tests: All 40 tests passing

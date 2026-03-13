@@ -117,13 +117,16 @@ async function sendRoleChangeEmail(params: {
 // Owner identification
 const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
 const OWNER_NAME = process.env.OWNER_NAME || '';
+const OWNER_EMAIL = 'garychisolm30@gmail.com';
 
 // Helper to check if a user is the platform owner
 function checkIsOwner(user: { openId: string | null; email: string | null; id: number }): boolean {
   // Primary check: match by OWNER_OPEN_ID
   if (OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID) return true;
-  // Fallback: if OWNER_OPEN_ID is not set on production, check by OWNER_NAME (which contains the owner's openId)
+  // Secondary check: match by OWNER_NAME (which contains the owner's openId)
   if (OWNER_NAME && user.openId === OWNER_NAME) return true;
+  // Reliable fallback: match by owner email (works on production even without env vars)
+  if (user.email && user.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) return true;
   return false;
 }
 
