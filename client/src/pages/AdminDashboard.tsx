@@ -240,9 +240,12 @@ function UsersTab({
   const [confirmAction, setConfirmAction] = useState<{ type: 'promote' | 'demote'; user: any } | null>(null);
   const utils = trpc.useUtils();
 
-  // Check if current user is the owner
+  // Check if current user is the owner (for display purposes)
   const isOwnerQuery = trpc.admin.isOwner.useQuery();
   const isOwner = isOwnerQuery.data?.isOwner || false;
+
+  // All admins can manage roles (promote/demote)
+  const canManageRoles = true; // If they can see this tab, they're an admin
 
   // Get current admins
   const adminsQuery = trpc.admin.getAdmins.useQuery();
@@ -354,7 +357,7 @@ function UsersTab({
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
-                  {isOwner && <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>}
+                  {canManageRoles && <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -377,7 +380,7 @@ function UsersTab({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
-                      {isOwner && (
+                      {canManageRoles && (
                         <td className="py-3 px-4 text-right">
                           {isUserOwner ? (
                             <span className="text-xs text-gray-400">—</span>

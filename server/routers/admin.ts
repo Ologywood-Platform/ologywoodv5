@@ -6,26 +6,26 @@ import { desc, sql } from "drizzle-orm";
 
 // Owner identification
 const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
+const OWNER_NAME = process.env.OWNER_NAME || '';
+
+// Helper to check if a user is the platform owner
+function checkIsOwner(user: { openId: string | null; email: string | null; id: number }): boolean {
+  // Primary check: match by OWNER_OPEN_ID
+  if (OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID) return true;
+  // Fallback: if OWNER_OPEN_ID is not set on production, check by OWNER_NAME (which contains the owner's openId)
+  if (OWNER_NAME && user.openId === OWNER_NAME) return true;
+  return false;
+}
 
 // Middleware to ensure user is admin OR site owner
 const adminOnly = protectedProcedure.use(async (opts) => {
   const user = opts.ctx.user;
   const isAdmin = user.role === 'admin';
-  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
+  const isOwner = checkIsOwner(user);
   if (!isAdmin && !isOwner) {
     throw new Error("Unauthorized: Admin access required");
   }
-  return opts.next({ ctx: { ...opts.ctx, isOwner: !!isOwner } });
-});
-
-// Middleware to ensure user is the site owner (for role management)
-const ownerOnly = protectedProcedure.use(async (opts) => {
-  const user = opts.ctx.user;
-  const isOwner = OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID;
-  if (!isOwner) {
-    throw new Error("Unauthorized: Only the platform owner can manage admin roles");
-  }
-  return opts.next();
+  return opts.next({ ctx: { ...opts.ctx, isOwner } });
 });
 
 export const adminRouter = router({
@@ -142,9 +142,9 @@ return { success: true, userId: input.userId };
     }),
 
   /**
-   * Promote a user to admin role (owner only)
+   * Promote a user to admin role (any admin can do this)
    */
-  promoteToAdmin: ownerOnly
+  promoteToAdmin: adminOnly
     .input(z.object({ userId: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -165,9 +165,9 @@ return { success: true, userId: input.userId };
     }),
 
   /**
-   * Demote an admin back to their original role (owner only)
+   * Demote an admin back to their original role (any admin can do this)
    */
-  demoteFromAdmin: ownerOnly
+  demoteFromAdmin: adminOnly
     .input(z.object({
       userId: z.number(),
       restoreRole: z.enum(['artist', 'venue', 'user']).default('user'),
@@ -181,8 +181,12 @@ return { success: true, userId: input.userId };
       if (!targetUser) throw new Error("User not found");
       if (targetUser.role !== 'admin') throw new Error("User is not an admin");
 
-      // Check if this user is the owner — can't demote yourself
-      if (OWNER_OPEN_ID && targetUser.openId === OWNER_OPEN_ID) {
+      // Can't demote yourself
+      if (targetUser.id === ctx.user.id) {
+        throw new Error("Cannot demote yourself");
+      }
+      // Can't demote the platform owner
+      if (checkIsOwner(targetUser)) {
         throw new Error("Cannot demote the platform owner");
       }
 
@@ -222,7 +226,7 @@ return { success: true, userId: input.userId };
       const admins = allUsers.filter((u: typeof users.$inferSelect) => u.role === 'admin');
 
       // Also include the owner
-      const owner = OWNER_OPEN_ID ? allUsers.find((u: typeof users.$inferSelect) => u.openId === OWNER_OPEN_ID) : null;
+      const owner = allUsers.find((u: typeof users.$inferSelect) => checkIsOwner(u)) || null;
 
       return {
         admins,
@@ -235,8 +239,7 @@ return { success: true, userId: input.userId };
    */
   isOwner: adminOnly
     .query(async ({ ctx }) => {
-      const isOwner = OWNER_OPEN_ID && ctx.user.openId === OWNER_OPEN_ID;
-      return { isOwner: !!isOwner };
+      return { isOwner: checkIsOwner(ctx.user) };
     }),
 
   // ============ BOOKING MANAGEMENT ============

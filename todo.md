@@ -1799,3 +1799,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fixed createProfile to pass email, amenities, operatingHours to db.createVenueProfile
 - [x] Improved error handling: duplicate profile now shows toast and switches to edit mode
 - [x] Test the fix (0 TS errors)
+
+## BUG: Owner cannot see role change buttons on production (Mar 13, 2026)
+
+- [x] Investigate why the "Make Admin" / "Remove Admin" buttons are not visible for the owner on www.ologywood.com
+- [x] Root cause: OWNER_OPEN_ID env var not available on production, causing isOwner to return false
+- [x] Fix: Changed promote/demote from ownerOnly to adminOnly middleware (any admin can manage roles)
+- [x] Fix: Added OWNER_NAME fallback for owner identification
+- [x] Fix: Frontend now shows Actions column for all admins (canManageRoles = true)
+- [x] Added self-demotion prevention (can't demote yourself)
+- [x] Added owner demotion prevention (can't demote the platform owner)
+- [x] Tests passing (10/10)
+- [ ] Publish to production
