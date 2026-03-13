@@ -1811,3 +1811,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added owner demotion prevention (can't demote the platform owner)
 - [x] Tests passing (10/10)
 - [ ] Publish to production
+
+## FEATURE: Change Role Dropdown + Role Change Email Notifications (Mar 13, 2026)
+
+- [x] Backend: Add changeRole endpoint that allows admins to change any user's role (admin, artist, venue, user)
+- [x] Backend: Add safeguards (can't change own role, can't change platform owner's role)
+- [x] Backend: Send email notification when a user's role is changed
+- [x] Frontend: Replace Make Admin/Remove Admin buttons with a Change Role dropdown
+- [x] Frontend: Show confirmation dialog before changing role
+- [x] Frontend: Show success/error toast after role change
+- [x] Tests: Write tests for the new changeRole logic (13/13 passing)

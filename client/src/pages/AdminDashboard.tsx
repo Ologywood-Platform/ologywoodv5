@@ -237,35 +237,33 @@ function UsersTab({
   isLoading: boolean;
 }) {
   const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [confirmAction, setConfirmAction] = useState<{ type: 'promote' | 'demote'; user: any } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ user: any; newRole: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const utils = trpc.useUtils();
 
   // Check if current user is the owner (for display purposes)
   const isOwnerQuery = trpc.admin.isOwner.useQuery();
   const isOwner = isOwnerQuery.data?.isOwner || false;
 
-  // All admins can manage roles (promote/demote)
-  const canManageRoles = true; // If they can see this tab, they're an admin
-
   // Get current admins
   const adminsQuery = trpc.admin.getAdmins.useQuery();
 
-  // Promote mutation
-  const promoteMutation = trpc.admin.promoteToAdmin.useMutation({
+  // Change role mutation (new unified endpoint)
+  const changeRoleMutation = trpc.admin.changeRole.useMutation({
     onSuccess: (data) => {
       utils.admin.getUsers.invalidate();
       utils.admin.getAdmins.invalidate();
       utils.admin.getAnalytics.invalidate();
+      if (data.changed) {
+        const roleLabels: Record<string, string> = { admin: 'Admin', artist: 'Artist', venue: 'Venue', user: 'User' };
+        setSuccessMessage(`Role changed from ${roleLabels[data.previousRole] || data.previousRole} to ${roleLabels[data.newRole] || data.newRole}. Email notification sent.`);
+        setTimeout(() => setSuccessMessage(null), 4000);
+      }
       setConfirmAction(null);
     },
-  });
-
-  // Demote mutation
-  const demoteMutation = trpc.admin.demoteFromAdmin.useMutation({
-    onSuccess: (data) => {
-      utils.admin.getUsers.invalidate();
-      utils.admin.getAdmins.invalidate();
-      utils.admin.getAnalytics.invalidate();
+    onError: (error) => {
+      setSuccessMessage(null);
+      alert(error.message);
       setConfirmAction(null);
     },
   });
@@ -285,8 +283,33 @@ function UsersTab({
     }
   };
 
+  const roleOptions = [
+    { value: 'admin', label: 'Admin', color: 'text-purple-700' },
+    { value: 'artist', label: 'Artist', color: 'text-blue-700' },
+    { value: 'venue', label: 'Venue', color: 'text-green-700' },
+    { value: 'user', label: 'User', color: 'text-gray-700' },
+  ];
+
+  const roleDescriptions: Record<string, string> = {
+    admin: 'Full admin access: user management, booking oversight, blog management, and financial data.',
+    artist: 'Artist access: create profile, manage bookings, set availability, upload releases, connect with venues.',
+    venue: 'Venue access: create profile, browse artists, send booking requests, manage events.',
+    user: 'Standard access: browse artists, follow favorites, book artists for events, purchase music.',
+  };
+
   return (
     <div className="p-6">
+      {/* Success Toast */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+          <span className="text-sm font-medium">{successMessage}</span>
+          <button onClick={() => setSuccessMessage(null)} className="ml-2 text-green-600 hover:text-green-800">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Admin Summary */}
       {adminsQuery.data && (
         <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
@@ -312,7 +335,7 @@ function UsersTab({
               )
             ))}
             {adminsQuery.data.admins.filter((a: any) => a.id !== ownerUserId).length === 0 && (
-              <p className="text-sm text-purple-600">No other admins yet. Promote users below to add team members.</p>
+              <p className="text-sm text-purple-600">No other admins yet. Use the Change Role dropdown below to add team members.</p>
             )}
           </div>
         </div>
@@ -357,7 +380,7 @@ function UsersTab({
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
-                  {canManageRoles && <th className="text-right py-3 px-4 font-medium text-gray-700">Actions</th>}
+                  <th className="text-right py-3 px-4 font-medium text-gray-700">Change Role</th>
                 </tr>
               </thead>
               <tbody>
@@ -373,34 +396,35 @@ function UsersTab({
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{user.name || '—'}</td>
+                      <td className="py-3 px-4 text-gray-600">{user.name || '\u2014'}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                           {user.role}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
-                      {canManageRoles && (
-                        <td className="py-3 px-4 text-right">
-                          {isUserOwner ? (
-                            <span className="text-xs text-gray-400">—</span>
-                          ) : user.role === 'admin' ? (
-                            <button
-                              onClick={() => setConfirmAction({ type: 'demote', user })}
-                              className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                            >
-                              Remove Admin
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setConfirmAction({ type: 'promote', user })}
-                              className="px-3 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
-                            >
-                              Make Admin
-                            </button>
-                          )}
-                        </td>
-                      )}
+                      <td className="py-3 px-4 text-right">
+                        {isUserOwner ? (
+                          <span className="text-xs text-gray-400 italic">Protected</span>
+                        ) : (
+                          <select
+                            value={user.role}
+                            onChange={(e) => {
+                              const newRole = e.target.value;
+                              if (newRole !== user.role) {
+                                setConfirmAction({ user, newRole });
+                              }
+                            }}
+                            className="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg bg-white hover:border-purple-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
+                          >
+                            {roleOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -413,26 +437,39 @@ function UsersTab({
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    confirmAction.type === 'promote' ? 'bg-purple-100' : 'bg-red-100'
-                  }`}>
-                    <Shield className={`w-5 h-5 ${
-                      confirmAction.type === 'promote' ? 'text-purple-600' : 'text-red-600'
-                    }`} />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-100">
+                    <Shield className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {confirmAction.type === 'promote' ? 'Promote to Admin' : 'Remove Admin Access'}
-                    </h3>
-                    <p className="text-sm text-gray-500">{confirmAction.user.email}</p>
+                    <h3 className="font-semibold text-gray-900">Change User Role</h3>
+                    <p className="text-sm text-gray-500">{confirmAction.user.name || confirmAction.user.email}</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-600 mb-6">
-                  {confirmAction.type === 'promote'
-                    ? `This will give ${confirmAction.user.name || confirmAction.user.email} full admin access to the platform dashboard, including user management, booking oversight, blog management, and financial data.`
-                    : `This will remove admin access from ${confirmAction.user.name || confirmAction.user.email}. They will be restored to their previous role and lose access to the admin dashboard.`
-                  }
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-500">Current Role</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(confirmAction.user.role)}`}>
+                      {confirmAction.user.role}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center my-2">
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">New Role</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(confirmAction.newRole)}`}>
+                      {confirmAction.newRole}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-2">
+                  {roleDescriptions[confirmAction.newRole] || 'Role access will be updated.'}
+                </p>
+
+                <p className="text-xs text-gray-400 mb-6">
+                  An email notification will be sent to {confirmAction.user.email} about this change.
                 </p>
 
                 <div className="flex gap-3 justify-end">
@@ -444,25 +481,15 @@ function UsersTab({
                   </button>
                   <button
                     onClick={() => {
-                      if (confirmAction.type === 'promote') {
-                        promoteMutation.mutate({ userId: confirmAction.user.id });
-                      } else {
-                        demoteMutation.mutate({ userId: confirmAction.user.id });
-                      }
+                      changeRoleMutation.mutate({
+                        userId: confirmAction.user.id,
+                        newRole: confirmAction.newRole as 'admin' | 'artist' | 'venue' | 'user',
+                      });
                     }}
-                    disabled={promoteMutation.isPending || demoteMutation.isPending}
-                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
-                      confirmAction.type === 'promote'
-                        ? 'bg-purple-600 hover:bg-purple-700'
-                        : 'bg-red-600 hover:bg-red-700'
-                    }`}
+                    disabled={changeRoleMutation.isPending}
+                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {(promoteMutation.isPending || demoteMutation.isPending)
-                      ? 'Processing...'
-                      : confirmAction.type === 'promote'
-                        ? 'Confirm Promote'
-                        : 'Confirm Remove'
-                    }
+                    {changeRoleMutation.isPending ? 'Changing...' : 'Confirm Change'}
                   </button>
                 </div>
               </div>

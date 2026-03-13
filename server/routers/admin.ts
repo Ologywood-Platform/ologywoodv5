@@ -3,6 +3,114 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback } from "../../drizzle/schema";
 import { desc, sql } from "drizzle-orm";
+import sgMail from "@sendgrid/mail";
+
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'support@ologywood.com';
+const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
+
+/**
+ * Send a branded email notification when a user's role is changed
+ */
+async function sendRoleChangeEmail(params: {
+  recipientEmail: string;
+  recipientName: string;
+  previousRole: string;
+  newRole: string;
+  changedByName: string;
+}): Promise<void> {
+  if (!process.env.SENDGRID_API_KEY || !SENDGRID_FROM) {
+    console.log('[Admin] SendGrid not configured, skipping role change email');
+    return;
+  }
+
+  const roleLabels: Record<string, string> = {
+    admin: 'Admin',
+    artist: 'Artist',
+    venue: 'Venue',
+    user: 'User',
+  };
+
+  const newRoleLabel = roleLabels[params.newRole] || params.newRole;
+  const prevRoleLabel = roleLabels[params.previousRole] || params.previousRole;
+
+  const roleDescriptions: Record<string, string> = {
+    admin: 'You now have full access to the Admin Dashboard, including user management, booking oversight, blog management, and financial data.',
+    artist: 'You can now create an Artist profile, manage bookings, set your availability, upload music releases, and connect with venues.',
+    venue: 'You can now create a Venue profile, browse artists, send booking requests, and manage your events.',
+    user: 'You have standard platform access to browse artists, follow your favorites, book artists for events, and purchase music.',
+  };
+
+  const description = roleDescriptions[params.newRole] || 'Your platform access has been updated.';
+
+  const htmlContent = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+      <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
+      </div>
+      <div style="padding: 30px 20px;">
+        <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px;">Your Role Has Been Updated</h2>
+        <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+          Hi ${params.recipientName || 'there'},
+        </p>
+        <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+          Your role on Ologywood has been changed by ${params.changedByName}.
+        </p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 0 0 20px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Previous Role:</td>
+              <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">
+                <span style="background: #e5e7eb; padding: 4px 12px; border-radius: 12px;">${prevRoleLabel}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">New Role:</td>
+              <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 600; text-align: right;">
+                <span style="background: #ede9fe; color: #6D28D9; padding: 4px 12px; border-radius: 12px;">${newRoleLabel}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin: 0 0 20px 0;">
+          ${description}
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${BASE_URL}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">Go to Ologywood</a>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.5; margin: 0;">
+          If you believe this change was made in error, please contact our support team at <a href="mailto:support@ologywood.com" style="color: #6D28D9; text-decoration: none;">support@ologywood.com</a>.
+        </p>
+      </div>
+      <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
+          &copy; 2026 Ologywood. All rights reserved.
+        </p>
+        <p style="color: #6b7280; font-size: 12px; margin: 0;">
+          <a href="${BASE_URL}/email-preferences" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
+          <a href="${BASE_URL}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await sgMail.send({
+      to: params.recipientEmail,
+      from: SENDGRID_FROM,
+      subject: `Your Ologywood Role Has Been Updated to ${newRoleLabel}`,
+      html: htmlContent,
+    });
+    console.log(`[Admin] Role change email sent to ${params.recipientEmail}: ${prevRoleLabel} → ${newRoleLabel}`);
+  } catch (error) {
+    console.error('[Admin] Failed to send role change email:', error);
+  }
+}
 
 // Owner identification
 const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
@@ -143,6 +251,7 @@ return { success: true, userId: input.userId };
 
   /**
    * Promote a user to admin role (any admin can do this)
+   * @deprecated Use changeRole instead
    */
   promoteToAdmin: adminOnly
     .input(z.object({ userId: z.number() }))
@@ -155,17 +264,29 @@ return { success: true, userId: input.userId };
       if (!targetUser) throw new Error("User not found");
       if (targetUser.role === 'admin') throw new Error("User is already an admin");
 
-      // Store the previous role so we can restore it on demote
+      const previousRole = targetUser.role;
       await db.update(users).set({
         role: 'admin',
         updatedAt: new Date(),
       }).where(sql`id = ${input.userId}`);
 
-      return { success: true, userId: input.userId, previousRole: targetUser.role };
+      // Send email notification
+      if (targetUser.email) {
+        sendRoleChangeEmail({
+          recipientEmail: targetUser.email,
+          recipientName: targetUser.name || '',
+          previousRole: previousRole || 'user',
+          newRole: 'admin',
+          changedByName: ctx.user.name || ctx.user.email || 'An admin',
+        }).catch(() => {});
+      }
+
+      return { success: true, userId: input.userId, previousRole };
     }),
 
   /**
    * Demote an admin back to their original role (any admin can do this)
+   * @deprecated Use changeRole instead
    */
   demoteFromAdmin: adminOnly
     .input(z.object({
@@ -181,16 +302,13 @@ return { success: true, userId: input.userId };
       if (!targetUser) throw new Error("User not found");
       if (targetUser.role !== 'admin') throw new Error("User is not an admin");
 
-      // Can't demote yourself
       if (targetUser.id === ctx.user.id) {
         throw new Error("Cannot demote yourself");
       }
-      // Can't demote the platform owner
       if (checkIsOwner(targetUser)) {
         throw new Error("Cannot demote the platform owner");
       }
 
-      // Determine restore role: check if they have an artist or venue profile
       let restoreRole = input.restoreRole;
       if (restoreRole === 'user') {
         const artistProfile = await db.select().from(artistProfiles);
@@ -211,7 +329,71 @@ return { success: true, userId: input.userId };
         updatedAt: new Date(),
       }).where(sql`id = ${input.userId}`);
 
+      // Send email notification
+      if (targetUser.email) {
+        sendRoleChangeEmail({
+          recipientEmail: targetUser.email,
+          recipientName: targetUser.name || '',
+          previousRole: 'admin',
+          newRole: restoreRole,
+          changedByName: ctx.user.name || ctx.user.email || 'An admin',
+        }).catch(() => {});
+      }
+
       return { success: true, userId: input.userId, newRole: restoreRole };
+    }),
+
+  /**
+   * Change any user's role directly (admin, artist, venue, user)
+   * Replaces the old promote/demote pattern with a single flexible endpoint
+   */
+  changeRole: adminOnly
+    .input(z.object({
+      userId: z.number(),
+      newRole: z.enum(['admin', 'artist', 'venue', 'user']),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const allUsers = await db.select().from(users);
+      const targetUser = allUsers.find((u: typeof users.$inferSelect) => u.id === input.userId);
+      if (!targetUser) throw new Error("User not found");
+
+      // Can't change your own role
+      if (targetUser.id === ctx.user.id) {
+        throw new Error("Cannot change your own role");
+      }
+
+      // Can't change the platform owner's role
+      if (checkIsOwner(targetUser)) {
+        throw new Error("Cannot change the platform owner's role");
+      }
+
+      const previousRole = targetUser.role || 'user';
+
+      // No-op if role is the same
+      if (previousRole === input.newRole) {
+        return { success: true, userId: input.userId, previousRole, newRole: input.newRole, changed: false };
+      }
+
+      await db.update(users).set({
+        role: input.newRole,
+        updatedAt: new Date(),
+      }).where(sql`id = ${input.userId}`);
+
+      // Send email notification
+      if (targetUser.email) {
+        sendRoleChangeEmail({
+          recipientEmail: targetUser.email,
+          recipientName: targetUser.name || '',
+          previousRole,
+          newRole: input.newRole,
+          changedByName: ctx.user.name || ctx.user.email || 'An admin',
+        }).catch(() => {});
+      }
+
+      return { success: true, userId: input.userId, previousRole, newRole: input.newRole, changed: true };
     }),
 
   /**
