@@ -1870,3 +1870,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create missing `role_change_audit_log` table on production (with 3 indexes)
 - [x] Update users `role` enum to include 'fan' and 'blogger'
 - [x] Verified: 61 tables total, 0 missing, all queries working (no more TRPC errors)
+
+## CLEANUP & DOCUMENTATION (Mar 13, 2026)
+- [x] Audit existing docs (README.md, ARCHITECTURE.md, AUDIT_FINDINGS.md, etc.)
+- [x] Remove stale/outdated documentation files (AUDIT_FINDINGS.md, AUDIT_REPORT.md, PLATFORM_AUDIT_REPORT.md, PLATFORM_FEATURE_SUMMARY.md, PLATFORM_GAP_ANALYSIS.md, venue_e2e_findings.md)
+- [x] Clean up 34 temp .mjs scripts from the project root
+- [x] Update README.md with current platform overview, 6 roles, all features, 61 tables, 1864 tests
+- [x] Update ARCHITECTURE.md with current folder structure, data flow, role-based access control, and feature map
+- [x] Roles documented in README.md (dedicated section with permissions table)
+- [x] Update todo.md to reflect current state
