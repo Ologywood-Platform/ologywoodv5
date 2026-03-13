@@ -1864,3 +1864,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Frontend: Display audit log entries with timestamps, role transition badges, who changed whom
 - [x] Frontend: Add search/filter by user email/name or admin email/name
 - [x] Tests: 14/14 passing for audit log functionality
+
+## FIX: Production Database Migrations (Mar 13, 2026)
+- [x] Create missing `booking_disputes` table on production (with 3 indexes)
+- [x] Create missing `role_change_audit_log` table on production (with 3 indexes)
+- [x] Update users `role` enum to include 'fan' and 'blogger'
+- [x] Verified: 61 tables total, 0 missing, all queries working (no more TRPC errors)
