@@ -376,42 +376,74 @@ export default function BlogAdmin() {
 
         {/* Editor Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={handleBack} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">
-                  {view === 'create' ? 'New Blog Post' : 'Edit Blog Post'}
-                </h1>
-                <p className="text-xs text-gray-500">
-                  {stats.words} words · {stats.chars} characters · {stats.reading}
-                  {hasUnsavedChanges && <span className="ml-2 text-amber-600 font-medium">· Unsaved changes</span>}
-                </p>
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button onClick={handleBack} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex-shrink-0">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                    {view === 'create' ? 'New Blog Post' : 'Edit Blog Post'}
+                  </h1>
+                  <p className="text-xs text-gray-500 truncate">
+                    {stats.words} words · {stats.chars} chars · {stats.reading}
+                    {hasUnsavedChanges && <span className="ml-1 text-amber-600 font-medium">· Unsaved</span>}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+                <button
+                  onClick={() => setShowPreview(!showPreview)}
+                  className={`hidden sm:flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    showPreview ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" /> {showPreview ? 'Hide Preview' : 'Preview'}
+                </button>
+                <div className="hidden sm:flex items-center gap-2 border-l border-gray-200 pl-3">
+                  <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="radio" name="editorStatus" checked={form.status === 'draft'}
+                      onChange={() => updateForm({ status: 'draft' })}
+                      className="text-blue-600"
+                    />
+                    <span className="text-gray-600">Draft</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="radio" name="editorStatus" checked={form.status === 'published'}
+                      onChange={() => updateForm({ status: 'published' })}
+                      className="text-blue-600"
+                    />
+                    <span className="text-gray-600">Publish</span>
+                  </label>
+                </div>
+                <button
+                  onClick={view === 'create' ? handleCreate : handleUpdate}
+                  disabled={!form.title || !form.slug || !form.excerpt || !form.content || createMutation.isPending || updateMutation.isPending}
+                  className="flex items-center gap-1.5 px-3 sm:px-5 py-2 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  <span className="hidden sm:inline">{(createMutation.isPending || updateMutation.isPending) ? 'Saving...' : view === 'create' ? 'Create Post' : 'Save Changes'}</span>
+                  <span className="sm:hidden">{(createMutation.isPending || updateMutation.isPending) ? '...' : 'Save'}</span>
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  showPreview ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Eye className="w-4 h-4" /> {showPreview ? 'Hide Preview' : 'Show Preview'}
-              </button>
-              <div className="flex items-center gap-2 border-l border-gray-200 pl-3">
-                <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+            {/* Mobile-only status & preview row */}
+            <div className="flex sm:hidden items-center justify-between mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 text-xs cursor-pointer">
                   <input
-                    type="radio" name="editorStatus" checked={form.status === 'draft'}
+                    type="radio" name="editorStatusMobile" checked={form.status === 'draft'}
                     onChange={() => updateForm({ status: 'draft' })}
                     className="text-blue-600"
                   />
                   <span className="text-gray-600">Draft</span>
                 </label>
-                <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                <label className="flex items-center gap-1.5 text-xs cursor-pointer">
                   <input
-                    type="radio" name="editorStatus" checked={form.status === 'published'}
+                    type="radio" name="editorStatusMobile" checked={form.status === 'published'}
                     onChange={() => updateForm({ status: 'published' })}
                     className="text-blue-600"
                   />
@@ -419,12 +451,12 @@ export default function BlogAdmin() {
                 </label>
               </div>
               <button
-                onClick={view === 'create' ? handleCreate : handleUpdate}
-                disabled={!form.title || !form.slug || !form.excerpt || !form.content || createMutation.isPending || updateMutation.isPending}
-                className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={() => setShowPreview(!showPreview)}
+                className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors ${
+                  showPreview ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                }`}
               >
-                <Save className="w-4 h-4" />
-                {(createMutation.isPending || updateMutation.isPending) ? 'Saving...' : view === 'create' ? 'Create Post' : 'Save Changes'}
+                <Eye className="w-3.5 h-3.5" /> {showPreview ? 'Hide' : 'Preview'}
               </button>
             </div>
           </div>
@@ -435,8 +467,8 @@ export default function BlogAdmin() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : (
-          <div className="max-w-7xl mx-auto px-4 py-6">
-            <div className={`grid gap-6 ${showPreview ? 'grid-cols-2' : 'grid-cols-1 max-w-3xl'}`}>
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+            <div className={`grid gap-4 sm:gap-6 ${showPreview ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 max-w-3xl'}`}>
               {/* Left: Editor */}
               <div className="space-y-5">
                 {/* Title */}
@@ -666,24 +698,24 @@ export default function BlogAdmin() {
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <a href="/admin" className="hover:text-gray-700">Admin Dashboard</a>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="flex items-start sm:items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-1">
+                <a href="/admin" className="hover:text-gray-700 whitespace-nowrap">Admin Dashboard</a>
                 <span>/</span>
-                <span className="text-gray-900 font-medium">Blog Management</span>
+                <span className="text-gray-900 font-medium whitespace-nowrap">Blog Management</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-blue-600" /> Blog Management
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" /> Blog Management
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 {totalPosts} total posts · {publishedCount} published · {draftCount} drafts
               </p>
             </div>
             <button
               onClick={() => { resetForm(); setView('create'); }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
             >
               <Plus className="w-4 h-4" /> New Post
             </button>
@@ -691,16 +723,16 @@ export default function BlogAdmin() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Filters & Search */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+        <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto">
               {([undefined, 'draft', 'published', 'archived'] as const).map((s) => (
                 <button
                   key={s || 'all'}
                   onClick={() => setStatusFilter(s as any)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                     statusFilter === s
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -710,18 +742,18 @@ export default function BlogAdmin() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="relative flex-1 sm:flex-none">
                 <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 <button
                   onClick={() => setListView('table')}
                   className={`p-2 ${listView === 'table' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
@@ -766,8 +798,8 @@ export default function BlogAdmin() {
           </div>
         ) : listView === 'table' ? (
           /* Table View */
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-600 text-xs uppercase tracking-wider">Post</th>

@@ -1911,3 +1911,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix system status bar — stacks vertically on mobile
 - [x] Fix Overview tab — responsive grid items with smaller text on mobile
 - [x] 0 TypeScript errors
+
+## BUG: Blog Dashboard Mobile CSS Issues (Mar 15, 2026)
+- [x] Fix filter tabs (All Posts, Draft, Published, Archived) overlapping with search bar — flex-col on mobile, overflow-x-auto for tabs
+- [x] Fix table missing Status, Date, and Actions columns on mobile — min-w-[700px] with overflow-x-auto for horizontal scroll
+- [x] Fix overall mobile padding and spacing for Blog Management page — px-3/py-4 on mobile, sm:px-4/sm:py-6 on desktop
+- [x] Fix editor header — mobile-only status/preview row, compact save button, truncated text
+- [x] Fix editor content area — single column on mobile, responsive grid on desktop
+- [x] Fix search input — full width on mobile (w-full), fixed width on desktop (sm:w-64)
+- [x] 0 TypeScript errors
