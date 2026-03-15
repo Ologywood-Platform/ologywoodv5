@@ -44,26 +44,26 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Platform management and analytics</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Platform management and analytics</p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-8">
         {/* System Status */}
         {health && (
-          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center justify-between">
+          <div className="mb-4 sm:mb-8 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div>
-                <p className="text-sm font-medium text-green-900">System Status</p>
-                <p className="text-xs text-green-700 mt-1">
+                <p className="text-xs sm:text-sm font-medium text-green-900">System Status</p>
+                <p className="text-[10px] sm:text-xs text-green-700 mt-0.5 sm:mt-1">
                   {health.status} • {health.uptime} uptime • Database: {health.database}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Last checked: {new Date(health.lastChecked).toLocaleTimeString()}</p>
+              <div className="sm:text-right">
+                <p className="text-[10px] sm:text-xs text-gray-500">Last checked: {new Date(health.lastChecked).toLocaleTimeString()}</p>
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@ export function AdminDashboard() {
 
         {/* Key Metrics */}
         {analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <MetricCard
               icon={<Users className="w-6 h-6" />}
               label="Total Users"
@@ -100,13 +100,13 @@ export function AdminDashboard() {
         )}
 
         {/* Navigation Tabs */}
-        <div className="bg-white border-b border-gray-200 mb-6">
-          <div className="flex gap-8">
+        <div className="bg-white border-b border-gray-200 mb-4 sm:mb-6 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
+          <div className="flex gap-2 sm:gap-4 md:gap-8 overflow-x-auto scrollbar-hide pb-px">
             {(['overview', 'users', 'bookings', 'payouts', 'releases', 'blog', 'feedback', 'disputes', 'audit_log', 'activity'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-4 font-medium text-sm border-b-2 transition-colors ${
+                className={`px-2 sm:px-4 py-3 sm:py-4 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -129,7 +129,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {activeTab === 'overview' && <OverviewTab analytics={analytics} financial={financial} />}
           {activeTab === 'users' && (
             <UsersTab
@@ -219,14 +219,14 @@ function MetricCard({
   subtext: string;
 }) {
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-lg">
+    <div className="p-3 sm:p-6 bg-white border border-gray-200 rounded-lg">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          <p className="text-xs text-gray-500 mt-2">{subtext}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">{value}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2 truncate">{subtext}</p>
         </div>
-        <div className="text-gray-400">{icon}</div>
+        <div className="text-gray-400 hidden sm:block">{icon}</div>
       </div>
     </div>
   );
@@ -241,25 +241,25 @@ function OverviewTab({
   financial: any;
 }) {
   return (
-    <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Summary</h3>
+    <div className="p-3 sm:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Platform Summary</h3>
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Active Users</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{analytics?.totalUsers || 0}</p>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded">
+            <p className="text-xs sm:text-sm text-gray-600">Active Users</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{analytics?.totalUsers || 0}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Bookings This Month</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{analytics?.totalBookings || 0}</p>
+          <div className="p-3 sm:p-4 bg-gray-50 rounded">
+            <p className="text-xs sm:text-sm text-gray-600">Bookings This Month</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{analytics?.totalBookings || 0}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Total Revenue</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">${financial?.totalPaid.toFixed(2) || '0'}</p>
+          <div className="p-3 sm:p-4 bg-gray-50 rounded">
+            <p className="text-xs sm:text-sm text-gray-600">Total Revenue</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">${financial?.totalPaid.toFixed(2) || '0'}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Pending Payouts</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">${financial?.pendingPayouts.toFixed(2) || '0'}</p>
+          <div className="p-3 sm:p-4 bg-gray-50 rounded">
+            <p className="text-xs sm:text-sm text-gray-600">Pending Payouts</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">${financial?.pendingPayouts.toFixed(2) || '0'}</p>
           </div>
         </div>
       </div>
@@ -344,7 +344,7 @@ function UsersTab({
   };
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Success Toast */}
       {successMessage && (
         <div className="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
@@ -358,7 +358,7 @@ function UsersTab({
 
       {/* Admin Summary */}
       {adminsQuery.data && (
-        <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-purple-50 border border-purple-200 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-5 h-5 text-purple-600" />
             <h4 className="font-semibold text-purple-900">Admin Team</h4>
@@ -388,7 +388,7 @@ function UsersTab({
       )}
 
       {/* Search and Filter */}
-      <div className="mb-6 flex gap-4">
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
           <input
@@ -419,8 +419,8 @@ function UsersTab({
         <p className="text-gray-500">No users found</p>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-3 sm:-mx-6 px-3 sm:px-6">
+            <table className="w-full text-sm min-w-[640px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>

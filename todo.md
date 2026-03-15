@@ -1901,3 +1901,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] How It Works: Added dispute filing to venue steps
 - [x] Pricing page: Already up to date, no changes needed
 - [x] All pages compile with 0 TS errors
+
+## BUG: Admin Dashboard Mobile CSS Issues (Mar 15, 2026)
+- [x] Fix title/subtitle — smaller text on mobile (text-2xl), proper sm:px-6 padding
+- [x] Fix stats cards — 2-column grid on mobile with compact padding, hidden icons on small screens
+- [x] Fix tab bar — horizontal scroll with overflow-x-auto, whitespace-nowrap, smaller text/padding
+- [x] Fix Users table — min-w-[640px] forces horizontal scroll, search/filter stacks vertically
+- [x] Fix overall mobile padding — p-3 on mobile, sm:p-6 on desktop across all tabs
+- [x] Fix system status bar — stacks vertically on mobile
+- [x] Fix Overview tab — responsive grid items with smaller text on mobile
+- [x] 0 TypeScript errors
