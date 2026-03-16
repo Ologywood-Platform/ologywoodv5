@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video } from "lucide-react";
+import { ShareVideoButton } from '@/components/ShareVideoButton';
 import { FollowButton } from "@/components/FollowButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
@@ -578,9 +579,12 @@ export default function ArtistProfile() {
             {(artist as any).performanceVideoUrl && (artist as any).performanceVideoStatus === 'approved' && (
               <Card>
                 <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Video className="h-5 w-5 text-primary" />
-                    <CardTitle>Performance</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-5 w-5 text-primary" />
+                      <CardTitle>Performance</CardTitle>
+                    </div>
+                    <ShareVideoButton artistId={artist.id} artistName={artist.artistName || 'Artist'} />
                   </div>
                 </CardHeader>
                 <CardContent>
