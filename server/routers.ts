@@ -521,6 +521,106 @@ export const appRouter = router({
         
         return { success: true };
       }),
+
+    // ===== PERFORMANCE VIDEO ENDPOINTS =====
+
+    // Upload performance video (Pro Tier only)
+    uploadPerformanceVideo: artistProcedure
+      .input(z.object({
+        fileData: z.string(), // base64 encoded video
+        fileName: z.string(),
+        mimeType: z.string(),
+        durationSeconds: z.number().max(300, 'Video must be 5 minutes or less'),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+
+        // Check Pro Tier
+        if (profile.subscriptionTier !== 'pro') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Performance video upload requires a Pro subscription' });
+        }
+
+        // Validate file type
+        const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+        if (!allowedTypes.includes(input.mimeType)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only MP4, MOV, and WebM videos are allowed' });
+        }
+
+        // Validate duration (max 5 minutes = 300 seconds)
+        if (input.durationSeconds > 300) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video must be 5 minutes or less' });
+        }
+
+        // Upload to S3
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Validate file size (max 500MB)
+        if (buffer.length > 500 * 1024 * 1024) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video file must be under 500MB' });
+        }
+
+        const timestamp = Date.now();
+        const ext = input.fileName.split('.').pop() || 'mp4';
+        const fileKey = `performance-videos/${ctx.user.id}/${timestamp}.${ext}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+
+        // Update artist profile
+        await db.updateArtistProfile(profile.id, {
+          performanceVideoUrl: url,
+          performanceVideoStatus: 'pending',
+          performanceVideoDuration: input.durationSeconds,
+          performanceVideoUploadedAt: new Date(),
+        } as any);
+
+        // Add to moderation queue
+        await db.createVideoModerationEntry({
+          artistProfileId: profile.id,
+          artistUserId: ctx.user.id,
+          videoUrl: url,
+          durationSeconds: input.durationSeconds,
+          status: 'pending',
+        });
+
+        return { success: true, url, status: 'pending' };
+      }),
+
+    // Delete performance video
+    deletePerformanceVideo: artistProcedure
+      .mutation(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+
+        await db.updateArtistProfile(profile.id, {
+          performanceVideoUrl: null,
+          performanceVideoThumbnail: null,
+          performanceVideoStatus: null,
+          performanceVideoDuration: null,
+          performanceVideoUploadedAt: null,
+        } as any);
+
+        return { success: true };
+      }),
+
+    // Get performance video status
+    getPerformanceVideoStatus: artistProcedure
+      .query(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) return null;
+        return {
+          url: profile.performanceVideoUrl,
+          thumbnail: profile.performanceVideoThumbnail,
+          status: profile.performanceVideoStatus,
+          duration: profile.performanceVideoDuration,
+          uploadedAt: profile.performanceVideoUploadedAt,
+          tier: profile.subscriptionTier,
+        };
+      }),
   }),
 
   // Venue Profile Management is now handled by venueRouter (imported above)

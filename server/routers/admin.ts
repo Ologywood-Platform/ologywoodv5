@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog } from "../../drizzle/schema";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog, videoModerationQueue } from "../../drizzle/schema";
 import { desc, sql } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 
@@ -939,6 +939,178 @@ return { success: true, payoutId: input.payoutId };
         page: input.page,
         totalPages: Math.ceil(Number(countResult[0]?.count || 0) / input.limit),
       };
+    }),
+
+  // ============ VIDEO MODERATION ============
+
+  /**
+   * Get video moderation queue
+   */
+  getVideoModerationQueue: adminOnly
+    .input(z.object({
+      status: z.enum(['all', 'pending', 'approved', 'rejected']).default('all'),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      const { eq } = await import('drizzle-orm');
+
+      const statusFilter = input?.status || 'all';
+      let entries;
+      if (statusFilter !== 'all') {
+        entries = await db.select().from(videoModerationQueue)
+          .where(eq(videoModerationQueue.status, statusFilter))
+          .orderBy(desc(videoModerationQueue.createdAt));
+      } else {
+        entries = await db.select().from(videoModerationQueue)
+          .orderBy(desc(videoModerationQueue.createdAt));
+      }
+
+      // Enrich with artist names
+      const enriched = await Promise.all(entries.map(async (entry) => {
+        const profile = await db.select({ artistName: artistProfiles.artistName, profilePhotoUrl: artistProfiles.profilePhotoUrl })
+          .from(artistProfiles)
+          .where(eq(artistProfiles.id, entry.artistProfileId))
+          .limit(1);
+        return {
+          ...entry,
+          artistName: profile[0]?.artistName || 'Unknown',
+          artistPhoto: profile[0]?.profilePhotoUrl || null,
+        };
+      }));
+
+      return enriched;
+    }),
+
+  /**
+   * Approve a performance video
+   */
+  approveVideo: adminOnly
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      const { eq } = await import('drizzle-orm');
+
+      // Update moderation queue
+      await db.update(videoModerationQueue).set({
+        status: 'approved',
+        reviewedBy: ctx.user.id,
+        reviewedAt: new Date(),
+      }).where(eq(videoModerationQueue.id, input.id));
+
+      // Get the entry to find the artist profile
+      const entry = await db.select().from(videoModerationQueue)
+        .where(eq(videoModerationQueue.id, input.id)).limit(1);
+      if (entry[0]) {
+        await db.update(artistProfiles).set({
+          performanceVideoStatus: 'approved',
+        }).where(eq(artistProfiles.id, entry[0].artistProfileId));
+      }
+
+      // Log activity
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || 'unknown',
+        adminName: ctx.user.name || null,
+        action: 'Approved performance video',
+        category: 'users',
+        targetType: 'video',
+        targetId: String(input.id),
+        targetLabel: entry[0] ? `Artist Profile #${entry[0].artistProfileId}` : null,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Reject a performance video
+   */
+  rejectVideo: adminOnly
+    .input(z.object({
+      id: z.number(),
+      reason: z.string().min(5, 'Rejection reason must be at least 5 characters'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      const { eq } = await import('drizzle-orm');
+
+      // Update moderation queue
+      await db.update(videoModerationQueue).set({
+        status: 'rejected',
+        reviewedBy: ctx.user.id,
+        reviewedAt: new Date(),
+        rejectionReason: input.reason,
+      }).where(eq(videoModerationQueue.id, input.id));
+
+      // Get the entry to find the artist profile
+      const entry = await db.select().from(videoModerationQueue)
+        .where(eq(videoModerationQueue.id, input.id)).limit(1);
+      if (entry[0]) {
+        await db.update(artistProfiles).set({
+          performanceVideoStatus: 'rejected',
+        }).where(eq(artistProfiles.id, entry[0].artistProfileId));
+      }
+
+      // Log activity
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || 'unknown',
+        adminName: ctx.user.name || null,
+        action: `Rejected performance video: ${input.reason}`,
+        category: 'users',
+        targetType: 'video',
+        targetId: String(input.id),
+        targetLabel: entry[0] ? `Artist Profile #${entry[0].artistProfileId}` : null,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Get pending video count for admin badge
+   */
+  getPendingVideoCount: adminOnly
+    .query(async () => {
+      const db = await getDb();
+      if (!db) return 0;
+      const { eq } = await import('drizzle-orm');
+      const result = await db.select({ count: sql<number>`COUNT(*)` })
+        .from(videoModerationQueue)
+        .where(eq(videoModerationQueue.status, 'pending'));
+      return result[0]?.count || 0;
+    }),
+
+  /**
+   * Admin: Set artist subscription tier (manual toggle)
+   */
+  setArtistTier: adminOnly
+    .input(z.object({
+      artistProfileId: z.number(),
+      tier: z.enum(['free', 'pro']),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      const { eq } = await import('drizzle-orm');
+
+      await db.update(artistProfiles).set({
+        subscriptionTier: input.tier,
+      }).where(eq(artistProfiles.id, input.artistProfileId));
+
+      // Log activity
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || 'unknown',
+        adminName: ctx.user.name || null,
+        action: `Set artist tier to ${input.tier}`,
+        category: 'users',
+        targetType: 'artist_profile',
+        targetId: String(input.artistProfileId),
+      });
+
+      return { success: true };
     }),
 
   /**

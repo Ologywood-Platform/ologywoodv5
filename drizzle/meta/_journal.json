@@ -456,6 +456,13 @@
       "when": 1773429003364,
       "tag": "0064_wakeful_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "5",
+      "when": 1773675630527,
+      "tag": "0065_large_red_wolf",
+      "breakpoints": true
     }
   ]
 }

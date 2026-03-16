@@ -1920,3 +1920,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix editor content area — single column on mobile, responsive grid on desktop
 - [x] Fix search input — full width on mobile (w-full), fixed width on desktop (sm:w-64)
 - [x] 0 TypeScript errors
+
+## PRO TIER PERFORMANCE VIDEO (Mar 16, 2026)
+- [x] Add performance video columns to artist_profiles schema (url, thumbnail, status, duration, uploadedAt)
+- [x] Add subscription_tier column to artist_profiles (free/pro)
+- [x] Run database migration (columns + video_moderation_queue table)
+- [x] Build S3 upload endpoint for video (artist.uploadPerformanceVideo)
+- [x] Add Pro Tier gate on upload endpoint
+- [x] Build delete video endpoint (artist.deletePerformanceVideo)
+- [x] Build get video status endpoint (artist.getPerformanceVideoStatus)
+- [x] Build PerformanceVideoUpload component with upload, progress bar, status display
+- [x] Add Pro Tier upgrade prompt for free users in Artist Dashboard
+- [x] Display video on public artist profile page (only approved videos)
+- [x] Add Videos tab in Admin Dashboard with moderation queue
+- [x] Approve/reject actions with rejection reason
+- [x] Pending video count badge on Videos tab
+- [x] Admin tier toggle (set artist to free/pro)
+- [x] Write vitest tests (18 tests passing)
+- [x] 0 TypeScript errors

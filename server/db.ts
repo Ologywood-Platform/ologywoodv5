@@ -35,7 +35,8 @@ import {
   notifications, InsertNotification, Notification,
   notificationPreferences, InsertNotificationPreference, NotificationPreference,
   unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback,
-  bookingDisputes, InsertBookingDispute, BookingDispute
+  bookingDisputes, InsertBookingDispute, BookingDispute,
+  videoModerationQueue, InsertVideoModerationQueue, VideoModerationQueue
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2636,4 +2637,52 @@ export async function updateDisputeStatus(
   const db = await getDb();
   if (!db) throw new Error('Database not available');
   await db.update(bookingDisputes).set(data as any).where(eq(bookingDisputes.id, id));
+}
+
+
+// ============= VIDEO MODERATION FUNCTIONS =============
+
+export async function createVideoModerationEntry(data: InsertVideoModerationQueue): Promise<VideoModerationQueue> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(videoModerationQueue).values(data);
+  const id = (result as any)[0].insertId;
+  const entry = await db.select().from(videoModerationQueue).where(eq(videoModerationQueue.id, id)).limit(1);
+  return entry[0];
+}
+
+export async function getVideoModerationQueue(statusFilter?: string): Promise<VideoModerationQueue[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (statusFilter && statusFilter !== 'all') {
+    return db.select().from(videoModerationQueue)
+      .where(eq(videoModerationQueue.status, statusFilter as any))
+      .orderBy(desc(videoModerationQueue.createdAt));
+  }
+  return db.select().from(videoModerationQueue).orderBy(desc(videoModerationQueue.createdAt));
+}
+
+export async function getVideoModerationEntry(id: number): Promise<VideoModerationQueue | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(videoModerationQueue).where(eq(videoModerationQueue.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateVideoModerationStatus(
+  id: number,
+  data: { status: string; reviewedBy?: number; reviewedAt?: Date; rejectionReason?: string }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  await db.update(videoModerationQueue).set(data as any).where(eq(videoModerationQueue.id, id));
+}
+
+export async function getPendingVideoCount(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: sql<number>`COUNT(*)` })
+    .from(videoModerationQueue)
+    .where(eq(videoModerationQueue.status, 'pending'));
+  return result[0]?.count || 0;
 }

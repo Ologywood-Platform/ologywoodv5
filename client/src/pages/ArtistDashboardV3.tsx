@@ -13,6 +13,7 @@ import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { CalendarSync } from '@/components/CalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
+import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -412,8 +413,19 @@ export function ArtistDashboardV3() {
               </CardContent>
             </Card>
 
+            {/* Performance Video (Pro Feature) */}
+            <PerformanceVideoUpload
+              subscriptionTier={(artistProfile as any)?.subscriptionTier || 'free'}
+              onUpgradeClick={() => {
+                const subSection = document.getElementById('subscription-management');
+                if (subSection) subSection.scrollIntoView({ behavior: 'smooth' });
+              }}
+            />
+
             {/* Subscription Management */}
-            <SubscriptionManagement />
+            <div id="subscription-management">
+              <SubscriptionManagement />
+            </div>
 
             {/* Fans Section */}
             <FansSection artistUserId={user?.id} />

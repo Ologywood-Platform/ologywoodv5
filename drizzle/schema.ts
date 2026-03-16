@@ -78,6 +78,12 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   feeRangeMax: int("feeRangeMax"),
   touringPartySize: int("touringPartySize").default(1),
   profilePhotoUrl: text("profilePhotoUrl"),
+  performanceVideoUrl: text("performanceVideoUrl"),
+  performanceVideoThumbnail: text("performanceVideoThumbnail"),
+  performanceVideoStatus: mysqlEnum("performanceVideoStatus", ["pending", "approved", "rejected"]),
+  performanceVideoDuration: int("performanceVideoDuration"),
+  performanceVideoUploadedAt: timestamp("performanceVideoUploadedAt"),
+  subscriptionTier: mysqlEnum("subscriptionTier", ["free", "pro"]).default("free").notNull(),
   mediaGallery: json("mediaGallery").$type<{ photos: string[], videos: string[] }>(),
   websiteUrl: text("websiteUrl"),
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
@@ -92,6 +98,30 @@ export const artistProfiles = mysqlTable("artist_profiles", {
 
 export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
+
+/**
+ * Video moderation queue - admin review of artist performance videos
+ */
+export const videoModerationQueue = mysqlTable("video_moderation_queue", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  artistUserId: int("artistUserId").notNull(),
+  videoUrl: text("videoUrl").notNull(),
+  thumbnailUrl: text("thumbnailUrl"),
+  durationSeconds: int("durationSeconds"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  reviewedBy: int("reviewedBy"),
+  reviewedAt: timestamp("reviewedAt"),
+  rejectionReason: text("rejectionReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_video_mod_artist").on(table.artistProfileId),
+  statusIdx: index("idx_video_mod_status").on(table.status),
+}));
+
+export type VideoModerationQueue = typeof videoModerationQueue.$inferSelect;
+export type InsertVideoModerationQueue = typeof videoModerationQueue.$inferInsert;
 
 /**
  * Venue profile table - stores information for venues/event organizers

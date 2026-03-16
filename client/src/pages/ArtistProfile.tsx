@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video } from "lucide-react";
 import { FollowButton } from "@/components/FollowButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
@@ -570,6 +570,29 @@ export default function ArtistProfile() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground whitespace-pre-wrap">{artist.bio}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Performance Video */}
+            {(artist as any).performanceVideoUrl && (artist as any).performanceVideoStatus === 'approved' && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Video className="h-5 w-5 text-primary" />
+                    <CardTitle>Performance</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                    <video
+                      src={(artist as any).performanceVideoUrl}
+                      controls
+                      preload="metadata"
+                      className="w-full h-full object-contain"
+                      poster={(artist as any).performanceVideoThumbnail || undefined}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             )}
