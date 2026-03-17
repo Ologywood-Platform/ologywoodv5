@@ -1987,3 +1987,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update toast message: "Video uploaded! It's now live on your profile."
 - [x] Add contextual messages for flagged and taken_down statuses
 - [x] 0 TypeScript errors
+
+## VIDEO GUIDELINES POP-UP (Mar 17, 2026)
+- [x] Built guidelines modal inline in PerformanceVideoUpload component
+- [x] Modal shown when user clicks upload area or Replace button (before file picker)
+- [x] "I Agree — Upload Video" button opens file picker, "Cancel" dismisses
+- [x] Sections: Allowed Content, Prohibited Content, Format Requirements, Community Policy
+- [x] 0 TypeScript errors

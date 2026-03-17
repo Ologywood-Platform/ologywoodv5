@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Video, Upload, Trash2, Clock, CheckCircle, XCircle, AlertCircle, Crown, Loader2 } from 'lucide-react';
+import { Video, Upload, Trash2, Clock, CheckCircle, XCircle, AlertCircle, Crown, Loader2, X, ShieldCheck, Ban, FileVideo, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PerformanceVideoUploadProps {
@@ -12,7 +12,17 @@ interface PerformanceVideoUploadProps {
 export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showGuidelines, setShowGuidelines] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = () => {
+    if (!uploading) setShowGuidelines(true);
+  };
+
+  const handleGuidelinesAccept = () => {
+    setShowGuidelines(false);
+    fileInputRef.current?.click();
+  };
 
   const { data: videoStatus, refetch } = trpc.artist.getPerformanceVideoStatus.useQuery();
   const deleteMutation = trpc.artist.deletePerformanceVideo.useMutation({
@@ -254,7 +264,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={handleUploadClick}
                   disabled={uploading}
                 >
                   <Upload className="h-4 w-4 mr-1" />
@@ -305,9 +315,9 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
           </div>
         ) : (
           // No video — show upload area
-          <div
+            <div
             className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => !uploading && fileInputRef.current?.click()}
+            onClick={handleUploadClick}
           >
             {uploading ? (
               <div className="space-y-3">
@@ -340,6 +350,98 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
           onChange={handleFileSelect}
         />
       </CardContent>
+
+      {/* Video Guidelines Modal */}
+      {showGuidelines && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowGuidelines(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-gray-900 px-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FileVideo className="w-5 h-5 text-primary" />
+                  Video Guidelines
+                </h3>
+                <button onClick={() => setShowGuidelines(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Please review these guidelines before uploading your performance video.
+              </p>
+            </div>
+
+            <div className="px-6 py-4 space-y-5">
+              {/* Allowed Content */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Allowed Content</h4>
+                </div>
+                <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300 ml-6">
+                  <li>Live performance recordings (concerts, gigs, showcases)</li>
+                  <li>Music videos or demo reels of your work</li>
+                  <li>DJ sets, spoken word, comedy, or other performance art</li>
+                  <li>Rehearsal footage or behind-the-scenes clips</li>
+                </ul>
+              </div>
+
+              {/* Prohibited Content */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Ban className="w-4 h-4 text-red-600" />
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Prohibited Content</h4>
+                </div>
+                <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300 ml-6">
+                  <li>Nudity, sexual content, or graphic violence</li>
+                  <li>Hate speech, harassment, or discriminatory material</li>
+                  <li>Copyrighted material you don't have rights to use</li>
+                  <li>Spam, misleading content, or unrelated material</li>
+                </ul>
+              </div>
+
+              {/* Format Requirements */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <FileVideo className="w-4 h-4 text-blue-600" />
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Format Requirements</h4>
+                </div>
+                <ul className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300 ml-6">
+                  <li>Formats: MP4, MOV, or WebM</li>
+                  <li>Maximum duration: 5 minutes</li>
+                  <li>Maximum file size: 500 MB</li>
+                </ul>
+              </div>
+
+              {/* Community Policy */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-purple-600" />
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Community Policy</h4>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 ml-6">
+                  Videos go live immediately. Community members can report content that violates these guidelines. Videos flagged by multiple users will be reviewed and may be removed.
+                </p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+              <button
+                onClick={() => setShowGuidelines(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGuidelinesAccept}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 flex items-center justify-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                I Agree — Upload Video
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
