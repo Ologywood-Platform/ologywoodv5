@@ -47,7 +47,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           setUploadProgress(100);
-          toast.success('Video uploaded! It will be reviewed by our team before going live on your profile.');
+          toast.success('Video uploaded! It\'s now live on your profile.');
           refetch();
           resolve();
         } else {
@@ -138,22 +138,34 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
 
   const getStatusBadge = (status: string | null) => {
     switch (status) {
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-            <Clock className="h-3 w-3" /> Pending Review
-          </span>
-        );
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-            <CheckCircle className="h-3 w-3" /> Approved
+            <CheckCircle className="h-3 w-3" /> Live
+          </span>
+        );
+      case 'flagged':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+            <AlertCircle className="h-3 w-3" /> Under Review
+          </span>
+        );
+      case 'taken_down':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <XCircle className="h-3 w-3" /> Removed
           </span>
         );
       case 'rejected':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
             <XCircle className="h-3 w-3" /> Rejected
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+            <Clock className="h-3 w-3" /> Processing
           </span>
         );
       default:
@@ -272,12 +284,21 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
                 </div>
               </div>
             )}
-            {videoStatus.status === 'pending' && (
+            {videoStatus.status === 'flagged' && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
-                <Clock className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-yellow-700 dark:text-yellow-300">
                   <p className="font-medium">Under review</p>
-                  <p className="mt-1">Your video is being reviewed by our team. It will appear on your profile once approved.</p>
+                  <p className="mt-1">Your video has been flagged by the community and is being reviewed. It may be temporarily hidden from your profile.</p>
+                </div>
+              </div>
+            )}
+            {videoStatus.status === 'taken_down' && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                <XCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-red-700 dark:text-red-300">
+                  <p className="font-medium">Video removed</p>
+                  <p className="mt-1">Your video was removed for violating community guidelines. You can upload a new video that meets our standards.</p>
                 </div>
               </div>
             )}

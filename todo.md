@@ -1980,3 +1980,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Admin actions: dismissVideoFlags (restore video) or takeDownVideo (remove video)
 - [x] Videos with 'flagged' status still show on profile (visible but under review), 'taken_down' hides them
 - [x] 0 TypeScript errors
+
+## BUG: Artist dashboard still shows "Pending Review" for auto-approved videos (Mar 17, 2026)
+- [x] Update PerformanceVideoUpload status text: 'approved' now shows "Live" green badge
+- [x] Update status badges: flagged=Under Review (yellow), taken_down=Removed (red), pending=Processing (yellow)
+- [x] Update toast message: "Video uploaded! It's now live on your profile."
+- [x] Add contextual messages for flagged and taken_down statuses
+- [x] 0 TypeScript errors
