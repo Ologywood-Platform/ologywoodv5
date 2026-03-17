@@ -46,6 +46,7 @@ const RiderTemplates = lazy(() => import("./pages/RiderTemplates").then(m => ({ 
 const EventCreate = lazy(() => import("./pages/EventCreate"));
 const EventDiscovery = lazy(() => import("./pages/EventDiscovery"));
 const EventDetail = lazy(() => import("./pages/EventDetail"));
+const EventEdit = lazy(() => import("./pages/EventEdit"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
@@ -144,6 +145,7 @@ function Router() {
           {/* Event Management */}
           <Route path="/events" component={EventDiscovery} />
           <Route path="/events/create" component={EventCreate} />
+          <Route path="/events/:id/edit" component={EventEdit} />
           <Route path="/events/:id" component={EventDetail} />
           
           {/* White Label Release */}

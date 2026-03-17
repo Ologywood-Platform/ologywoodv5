@@ -313,21 +313,6 @@ export default function EventDetail() {
               </Button>
 
               <Button
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    toast.error('Please sign in to message artists');
-                    return;
-                  }
-                  setMessageDialogOpen(true);
-                }}
-                variant="outline"
-                className="gap-2"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Message Artist
-              </Button>
-
-              <Button
                 variant="outline"
                 className="gap-2 ml-auto"
                 onClick={handleShare}
@@ -379,42 +364,7 @@ export default function EventDetail() {
         <SimilarEvents eventId={eventId} limit={6} />
       </div>
 
-      {/* Message Dialog */}
-      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Message {artistName}</DialogTitle>
-            <DialogDescription>
-              Send a message about this event
-            </DialogDescription>
-          </DialogHeader>
 
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Type your message..."
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              rows={4}
-            />
-
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSendMessage}
-                disabled={isSendingMessage || !messageText.trim()}
-              >
-                {isSendingMessage && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Send Message
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setMessageDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
           <Footer />
     </div>
   );

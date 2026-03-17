@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink } from "lucide-react";
 import { ShareVideoButton } from '@/components/ShareVideoButton';
 import { ReportVideoButton } from '@/components/ReportVideoButton';
 import { FollowButton } from "@/components/FollowButton";
@@ -87,6 +87,11 @@ export default function ArtistProfile() {
   );
 
   const { data: portfolioStats } = trpc.events.getPortfolioStats.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+
+  const { data: upcomingEvents = [] } = trpc.events.getUpcomingEvents.useQuery(
     { artistId },
     { enabled: isValidId }
   );
@@ -893,20 +898,77 @@ export default function ArtistProfile() {
               {/* Events Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Upcoming Events & Gigs</CardTitle>
-                  <CardDescription>Events this artist has posted</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Upcoming Events
+                  </CardTitle>
+                  {upcomingEvents.length > 0 && (
+                    <CardDescription>{upcomingEvents.length} upcoming event{upcomingEvents.length !== 1 ? 's' : ''}</CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Upcoming events and gigs from this artist. Click an event to view details or inquire about booking.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate(`/events?artistId=${artistId}`)}
-                  >
-                    View All Events
-                  </Button>
+                  {upcomingEvents.length > 0 ? (
+                    <div className="space-y-4">
+                      {upcomingEvents.slice(0, 4).map((event: any) => (
+                        <div
+                          key={event.id}
+                          className="flex gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg p-2 -mx-2 transition"
+                          onClick={() => navigate(`/events/${event.id}`)}
+                        >
+                          {event.coverImageUrl ? (
+                            <img
+                              src={event.coverImageUrl}
+                              alt={event.eventTitle}
+                              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                              <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm truncate">{event.eventTitle}</h4>
+                            <p className="text-xs text-slate-500 dark:text-gray-400">
+                              {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                              {event.eventTime && ` at ${event.eventTime}`}
+                            </p>
+                            {event.location && (
+                              <p className="text-xs text-slate-400 dark:text-gray-500 flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3 w-3" />
+                                {event.location}
+                              </p>
+                            )}
+                            {event.ticketLink && (
+                              <a
+                                href={event.ticketLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 mt-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Ticket className="h-3 w-3" />
+                                Get Tickets
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {upcomingEvents.length > 4 && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => navigate(`/events?artistId=${artistId}`)}
+                        >
+                          View All {upcomingEvents.length} Events
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-gray-400">
+                      No upcoming events posted yet.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 

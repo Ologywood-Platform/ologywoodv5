@@ -89,6 +89,64 @@ export const eventsRouter = router({
       }
     }),
 
+  // Update an artist event post (simplified fields only)
+  updateArtistPost: protectedProcedure
+    .input(artistPostSchema.extend({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
+        // Verify ownership
+        const existing = await db.getEventById(input.id);
+        if (!existing) throw new Error('Event not found');
+        if (existing.artistId !== artistProfile.id) throw new Error('Not authorized to edit this event');
+        const event = await db.updateEvent(input.id, {
+          eventTitle: input.eventTitle,
+          eventDate: input.eventDate,
+          eventTime: input.eventTime,
+          eventEndTime: input.eventEndTime,
+          location: input.location,
+          description: input.description,
+          ticketLink: input.ticketLink || undefined,
+          coverImageUrl: input.coverImageUrl || undefined,
+        });
+        return { success: true, event, message: 'Event updated successfully' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to update event');
+      }
+    }),
+
+  // Delete an artist event post (with ownership check)
+  deleteArtistPost: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
+        const existing = await db.getEventById(input.id);
+        if (!existing) throw new Error('Event not found');
+        if (existing.artistId !== artistProfile.id) throw new Error('Not authorized to delete this event');
+        await db.deleteEvent(input.id);
+        return { success: true, message: 'Event deleted successfully' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to delete event');
+      }
+    }),
+
+  // Get artist's own events (for dashboard management)
+  getMyEvents: protectedProcedure
+    .input(z.object({}))
+    .query(async ({ ctx }) => {
+      try {
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
+        const events = await db.getArtistEvents(artistProfile.id);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch your events');
+      }
+    }),
+
   // Original create (venue booking style — kept for backward compatibility)
   create: protectedProcedure
     .input(createEventSchema)

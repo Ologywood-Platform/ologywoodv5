@@ -2006,3 +2006,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Updated EventDetail page: shows cover image hero, hides rate/capacity/eventType for artist_post events, shows "Get Tickets" button
 - [x] Rewrote EventCreate page to use simplified ArtistEventPostForm
 - [x] 0 TypeScript errors
+
+## UPCOMING EVENTS ON ARTIST PROFILE + EVENT EDIT/DELETE + REMOVE FAN MESSAGING (Mar 17, 2026)
+- [x] Backend: getMyEvents, getUpcomingEvents, updateArtistPost, deleteArtistPost endpoints
+- [x] Frontend: Upcoming Events section on public artist profile — shows event cards with flyer, date, location, ticket link
+- [x] Frontend: Event edit/delete on artist dashboard — pencil/trash icons, EventEdit page at /events/:id/edit
+- [x] EventEdit page with breadcrumb nav, pre-populated form, cover image replace
+- [x] Removed "Message Artist" button and dialog from Event Detail page (messaging stays business-only)
+- [x] 0 TypeScript errors

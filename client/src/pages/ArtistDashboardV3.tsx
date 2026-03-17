@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -44,11 +44,14 @@ export function ArtistDashboardV3() {
     enabled: isArtist,
     staleTime: 60 * 1000, // 1 minute
   });
-  const { data: myEvents = [] } = trpc.events.search.useQuery({ artistId: user?.id || 0 }, {
-    enabled: isArtist && !!user?.id,
+  const { data: myEvents = [], refetch: refetchEvents } = trpc.events.getMyEvents.useQuery({}, {
+    enabled: isArtist,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
-  const updateEventStatus = trpc.events.update.useMutation();
+  const deleteEventMutation = trpc.events.deleteArtistPost.useMutation({
+    onSuccess: () => { refetchEvents(); },
+  });
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
   // Messages are accessed from the Messages page, not dashboard
 
   // Verify user is an artist — show skeleton while redirect happens
@@ -359,54 +362,99 @@ export function ArtistDashboardV3() {
                     size="sm"
                     onClick={() => navigate('/events/create')}
                   >
-                    Create Event
+                    Post Event
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {myEvents && myEvents.length > 0 ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-slate-600">
-                      You have {myEvents.length} posted event{myEvents.length !== 1 ? 's' : ''}. Update their status below.
-                    </p>
-                    {myEvents.slice(0, 3).map((event: any) => (
-                      <EventStatusManager
-                        key={event.id}
-                        eventId={event.id}
-                        eventTitle={event.eventTitle}
-                        currentStatus={event.status as 'available' | 'booked' | 'completed' | 'cancelled'}
-                        onStatusChange={async (eventId, newStatus) => {
-                          try {
-                            await updateEventStatus.mutateAsync({
-                              id: eventId,
-                              status: newStatus as 'available' | 'booked' | 'completed' | 'cancelled',
-                            });
-                          } catch (error) {
-                            // Error handled by tRPC mutation
-                          }
-                        }}
-                      />
+                  <div className="space-y-3">
+                    {myEvents.slice(0, 5).map((event: any) => (
+                      <div key={event.id} className="flex gap-3 items-start p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        {(event as any).coverImageUrl ? (
+                          <img
+                            src={(event as any).coverImageUrl}
+                            alt={event.eventTitle}
+                            className="w-14 h-14 rounded-lg object-cover flex-shrink-0 cursor-pointer"
+                            onClick={() => navigate(`/events/${event.id}`)}
+                          />
+                        ) : (
+                          <div
+                            className="w-14 h-14 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 cursor-pointer"
+                            onClick={() => navigate(`/events/${event.id}`)}
+                          >
+                            <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4
+                            className="font-semibold text-sm truncate cursor-pointer hover:text-purple-600 transition"
+                            onClick={() => navigate(`/events/${event.id}`)}
+                          >
+                            {event.eventTitle}
+                          </h4>
+                          <p className="text-xs text-slate-500 dark:text-gray-400">
+                            {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            {event.eventTime && ` at ${event.eventTime}`}
+                          </p>
+                          {event.location && (
+                            <p className="text-xs text-slate-400 dark:text-gray-500 flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {event.location}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => navigate(`/events/${event.id}/edit`)}
+                            title="Edit event"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this event?')) {
+                                setDeletingEventId(event.id);
+                                deleteEventMutation.mutate({ id: event.id }, {
+                                  onSettled: () => setDeletingEventId(null),
+                                });
+                              }
+                            }}
+                            disabled={deletingEventId === event.id}
+                            title="Delete event"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     ))}
-                    {myEvents.length > 3 && (
+                    {myEvents.length > 5 && (
                       <Button
                         variant="outline"
                         className="w-full"
                         onClick={() => navigate('/events')}
                       >
-                        View All Events
+                        View All {myEvents.length} Events
                       </Button>
                     )}
                   </div>
                 ) : (
                   <div className="text-center py-6">
+                    <Calendar className="h-10 w-10 mx-auto text-slate-300 mb-3" />
                     <p className="text-sm text-slate-600 mb-4">
-                      You haven't posted any events yet. Create your first event to attract venues!
+                      Post your first event to let fans know where you're performing!
                     </p>
                     <Button
                       onClick={() => navigate('/events/create')}
                       className="w-full"
                     >
-                      Create Your First Event
+                      Post Your First Event
                     </Button>
                   </div>
                 )}
