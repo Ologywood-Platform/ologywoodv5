@@ -415,7 +415,6 @@ export function ArtistDashboardV3() {
 
             {/* Performance Video (Pro Feature) */}
             <PerformanceVideoUpload
-              subscriptionTier={(artistProfile as any)?.subscriptionTier || 'free'}
               onUpgradeClick={() => {
                 const subSection = document.getElementById('subscription-management');
                 if (subSection) subSection.scrollIntoView({ behavior: 'smooth' });

@@ -1943,3 +1943,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build ShareVideoButton component (copy link, Facebook, Twitter/X, LinkedIn, WhatsApp)
 - [x] Integrate into ArtistProfile performance video section
 - [x] 0 TypeScript errors
+
+## BUG: Pro Tier Video Upload Gate Not Recognizing Professional Subscription (Mar 16, 2026)
+- [x] Fix upload gate to check user_subscriptions table (starter/professional) instead of artist_profiles.subscriptionTier
+- [x] Update frontend PerformanceVideoUpload component — removed subscriptionTier prop, now reads tier from API
+- [x] 0 TypeScript errors

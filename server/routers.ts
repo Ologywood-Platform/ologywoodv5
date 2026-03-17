@@ -538,9 +538,11 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
 
-        // Check Pro Tier
-        if (profile.subscriptionTier !== 'pro') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Performance video upload requires a Pro subscription' });
+        // Check subscription tier from user_subscriptions table
+        const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+        const tier = subscription?.tier || 'free';
+        if (tier !== 'professional' && tier !== 'starter') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Performance video upload requires a Starter or Professional subscription' });
         }
 
         // Validate file type
@@ -612,13 +614,15 @@ export const appRouter = router({
       .query(async ({ ctx }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) return null;
+        const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+        const tier = subscription?.tier || 'free';
         return {
           url: profile.performanceVideoUrl,
           thumbnail: profile.performanceVideoThumbnail,
           status: profile.performanceVideoStatus,
           duration: profile.performanceVideoDuration,
           uploadedAt: profile.performanceVideoUploadedAt,
-          tier: profile.subscriptionTier,
+          tier: tier,
         };
       }),
   }),

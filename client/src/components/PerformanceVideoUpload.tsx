@@ -6,11 +6,10 @@ import { Video, Upload, Trash2, Clock, CheckCircle, XCircle, AlertCircle, Crown,
 import { toast } from 'sonner';
 
 interface PerformanceVideoUploadProps {
-  subscriptionTier: string;
   onUpgradeClick?: () => void;
 }
 
-export function PerformanceVideoUpload({ subscriptionTier, onUpgradeClick }: PerformanceVideoUploadProps) {
+export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,8 +144,12 @@ export function PerformanceVideoUpload({ subscriptionTier, onUpgradeClick }: Per
     }
   };
 
+  // Determine tier from the API response (user_subscriptions table)
+  const effectiveTier = videoStatus?.tier || 'free';
+  const isPaidTier = effectiveTier === 'starter' || effectiveTier === 'professional';
+
   // Free tier — show upgrade prompt
-  if (subscriptionTier !== 'pro') {
+  if (!isPaidTier) {
     return (
       <Card className="border-dashed border-2 border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
         <CardHeader>
@@ -155,21 +158,21 @@ export function PerformanceVideoUpload({ subscriptionTier, onUpgradeClick }: Per
             <CardTitle className="text-lg">Performance Video</CardTitle>
           </div>
           <CardDescription>
-            Upgrade to Pro to showcase a 5-minute performance video on your profile
+            Upgrade your subscription to showcase a 5-minute performance video on your profile
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
             <Video className="h-12 w-12 mx-auto mb-3 text-purple-400 opacity-50" />
             <p className="text-sm text-muted-foreground mb-4">
-              Pro artists can upload a performance video that appears on their public profile, helping venues see their talent in action.
+              Starter and Professional tier artists can upload a performance video that appears on their public profile, helping venues see their talent in action.
             </p>
             <Button
               onClick={onUpgradeClick}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
               <Crown className="h-4 w-4 mr-2" />
-              Upgrade to Pro
+              Upgrade Now
             </Button>
           </div>
         </CardContent>
