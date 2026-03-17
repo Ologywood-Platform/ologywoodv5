@@ -62,7 +62,7 @@ async function initializeServer(): Promise<void> {
 
   // Create TRPC HTTP server
   const trpcServer = createHTTPServer({
-    middleware: express.json(),
+    middleware: express.json({ limit: '500mb' }),
     router: appRouter,
     createContext: async (opts: any) => ({
       req: opts?.req,

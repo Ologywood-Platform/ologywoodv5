@@ -1948,3 +1948,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix upload gate to check user_subscriptions table (starter/professional) instead of artist_profiles.subscriptionTier
 - [x] Update frontend PerformanceVideoUpload component — removed subscriptionTier prop, now reads tier from API
 - [x] 0 TypeScript errors
+
+## BUG: tRPC "Unable to transform response" on /dashboard (Mar 17, 2026)
+- [x] Identified: PayloadTooLargeError — video upload base64 payload exceeded Express default 1MB JSON limit
+- [x] Fix: Increased express.json({ limit: '500mb' }) on tRPC HTTP server middleware
+- [x] 0 TypeScript errors
