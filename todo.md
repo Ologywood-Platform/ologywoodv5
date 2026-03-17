@@ -2014,3 +2014,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] EventEdit page with breadcrumb nav, pre-populated form, cover image replace
 - [x] Removed "Message Artist" button and dialog from Event Detail page (messaging stays business-only)
 - [x] 0 TypeScript errors
+
+## BUG: "Unknown Artist" on Event Detail page (Mar 17, 2026)
+- [x] Root cause: getById used getArtistProfileByUserId(event.artistId) but event.artistId is the profile ID, not user ID
+- [x] Fix: Changed to getArtistProfileById(event.artistId) to look up by profile ID correctly
+- [x] 0 TypeScript errors

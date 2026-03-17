@@ -189,8 +189,8 @@ export const eventsRouter = router({
         if (!event) {
           throw new Error('Event not found');
         }
-        // Enrich with artist profile data
-        const artistProfile = await db.getArtistProfileByUserId(event.artistId);
+        // Enrich with artist profile data (event.artistId is the profile ID, not user ID)
+        const artistProfile = await db.getArtistProfileById(event.artistId);
         return {
           ...event,
           artistName: artistProfile?.artistName || 'Unknown Artist',
