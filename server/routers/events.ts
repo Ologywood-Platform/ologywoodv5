@@ -35,8 +35,61 @@ const searchEventsSchema = z.object({
   offset: z.number().int().default(0),
 });
 
+// Simplified schema for artist event posts (fan-facing)
+const artistPostSchema = z.object({
+  eventTitle: z.string().min(1, 'Event name is required'),
+  eventDate: z.date(),
+  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  location: z.string().min(1, 'Location is required'),
+  description: z.string().optional(),
+  ticketLink: z.string().url().optional().or(z.literal('')),
+  coverImageUrl: z.string().optional(),
+});
+
 export const eventsRouter = router({
-  // Create new event
+  // Simplified artist event post (fan-facing — no rate, audience type, event type, or capacity)
+  createArtistPost: protectedProcedure
+    .input(artistPostSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) throw new Error('Artist profile not found');
+        const event = await db.createEvent({
+          eventTitle: input.eventTitle,
+          eventDate: input.eventDate,
+          eventTime: input.eventTime,
+          eventEndTime: input.eventEndTime,
+          location: input.location,
+          description: input.description,
+          ticketLink: input.ticketLink || undefined,
+          coverImageUrl: input.coverImageUrl || undefined,
+          eventType: 'concert', // Default for artist posts
+          eventSource: 'artist_post',
+          isPublic: true, // Artist posts are always public
+          status: 'available',
+          artistId: artistProfile.id,
+        });
+
+        // Notify fans about the new event
+        notifyFansNewEvent(ctx.user.id, {
+          eventTitle: input.eventTitle,
+          eventDate: input.eventDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+          eventLocation: input.location,
+          eventId: event?.id,
+        }).catch(err => console.error('[Events] Fan notification failed:', err));
+
+        return {
+          success: true,
+          event,
+          message: 'Event posted successfully',
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to post event');
+      }
+    }),
+
+  // Original create (venue booking style — kept for backward compatibility)
   create: protectedProcedure
     .input(createEventSchema)
     .mutation(async ({ input, ctx }) => {

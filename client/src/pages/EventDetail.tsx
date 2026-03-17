@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2, Ticket, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -203,6 +203,17 @@ export default function EventDetail() {
           ]}
         />
 
+        {/* Cover Image / Flyer */}
+        {(event as any).coverImageUrl && (
+          <div className="mb-6 rounded-xl overflow-hidden shadow-lg">
+            <img
+              src={(event as any).coverImageUrl}
+              alt={`${event.eventTitle} flyer`}
+              className="w-full h-64 sm:h-80 object-cover"
+            />
+          </div>
+        )}
+
         {/* Main Event Card */}
         <Card className="mb-6">
           <CardHeader>
@@ -210,7 +221,9 @@ export default function EventDetail() {
               <div className="flex-1">
                 <CardTitle className="text-3xl mb-2">{event.eventTitle}</CardTitle>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline">{getEventTypeLabel(event.eventType)}</Badge>
+                  {(event as any).eventSource !== 'artist_post' && (
+                    <Badge variant="outline">{getEventTypeLabel(event.eventType)}</Badge>
+                  )}
                   <Badge className={getStatusColor(event.status)}>
                     {event.status}
                   </Badge>
@@ -242,7 +255,7 @@ export default function EventDetail() {
                 </div>
               </div>
 
-              {event.capacity && (
+              {event.capacity && (event as any).eventSource !== 'artist_post' && (
                 <div className="flex items-start gap-3">
                   <Users className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   <div>
@@ -252,7 +265,7 @@ export default function EventDetail() {
                 </div>
               )}
 
-              {event.rate && (
+              {event.rate && (event as any).eventSource !== 'artist_post' && (
                 <div className="flex items-start gap-3">
                   <DollarSign className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                   <div>
@@ -268,6 +281,22 @@ export default function EventDetail() {
               <div>
                 <h3 className="font-semibold mb-2">About This Event</h3>
                 <p className="text-slate-600 whitespace-pre-wrap">{event.description}</p>
+              </div>
+            )}
+
+            {/* Ticket Link */}
+            {(event as any).ticketLink && (
+              <div className="pt-2">
+                <a
+                  href={(event as any).ticketLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
+                >
+                  <Ticket className="h-5 w-5" />
+                  Get Tickets
+                  <ExternalLink className="h-4 w-4" />
+                </a>
               </div>
             )}
 

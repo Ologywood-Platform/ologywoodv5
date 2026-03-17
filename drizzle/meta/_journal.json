@@ -470,6 +470,13 @@
       "when": 1773715998970,
       "tag": "0066_slippery_sway",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "5",
+      "when": 1773772839672,
+      "tag": "0067_greedy_punisher",
+      "breakpoints": true
     }
   ]
 }

@@ -722,6 +722,9 @@ export const events = mysqlTable("events", {
   audienceType: varchar("audienceType", { length: 100 }), // 'corporate', 'wedding', 'general_public', 'private'
   rate: decimal("rate", { precision: 10, scale: 2 }), // Event rate in USD
   description: text("description"),
+  coverImageUrl: text("coverImageUrl"), // Event flyer or promo image
+  ticketLink: text("ticketLink"), // External ticket purchase URL
+  eventSource: mysqlEnum("eventSource", ["artist_post", "venue_booking"]).default("venue_booking").notNull(), // Distinguish artist-posted events from venue bookings
   isPublic: boolean("isPublic").default(false).notNull(), // false = private booking only, true = public calendar
   status: mysqlEnum("status", ["available", "booked", "completed", "cancelled"]).default("available").notNull(),
   bookingId: int("bookingId"), // Link to booking if booked

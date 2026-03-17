@@ -1994,3 +1994,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] "I Agree — Upload Video" button opens file picker, "Cancel" dismisses
 - [x] Sections: Allowed Content, Prohibited Content, Format Requirements, Community Policy
 - [x] 0 TypeScript errors
+
+## ARTIST EVENT POST — Simplified Fan-Facing Form (Mar 17, 2026)
+- [x] Read current events schema and event creation flow
+- [x] Add eventSource column ('artist_post' vs 'venue_booking') to events schema
+- [x] Add coverImageUrl and ticketLink fields to events schema
+- [x] Create backend endpoint events.createArtistPost (simplified fields only)
+- [x] Build ArtistEventPostForm component: event name, date/time, location, description, ticket link, cover image upload
+- [x] Removed venue-specific fields from artist form: no rate, audience type, event type, capacity
+- [x] Cover image/flyer upload via S3 with drag-and-drop preview
+- [x] Updated EventDetail page: shows cover image hero, hides rate/capacity/eventType for artist_post events, shows "Get Tickets" button
+- [x] Rewrote EventCreate page to use simplified ArtistEventPostForm
+- [x] 0 TypeScript errors
