@@ -17,6 +17,7 @@ import releaseCheckoutRoutes from './routes/releaseCheckout';
 import releaseDownloadRoutes from './routes/releaseDownload';
 import calendarFeedRoutes from './routes/calendarFeed';
 import invoiceDownloadRoutes from './routes/invoiceDownload';
+import videoUploadRoutes from './routes/videoUpload';
 import path from 'path';
 import http from 'http';
 
@@ -55,6 +56,7 @@ async function initializeServer(): Promise<void> {
   app.use('/api/release/download', releaseDownloadRoutes);
   app.use('/api/calendar', calendarFeedRoutes);
   app.use('/api/invoice', invoiceDownloadRoutes);
+  app.use('/api/video', videoUploadRoutes);
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');

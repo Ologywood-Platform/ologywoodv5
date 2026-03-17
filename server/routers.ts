@@ -524,12 +524,12 @@ export const appRouter = router({
 
     // ===== PERFORMANCE VIDEO ENDPOINTS =====
 
-    // Upload performance video (Pro Tier only)
-    uploadPerformanceVideo: artistProcedure
+    // Step 1: Get a server-side upload URL for the video (validates tier, returns upload details)
+    getVideoUploadUrl: artistProcedure
       .input(z.object({
-        fileData: z.string(), // base64 encoded video
         fileName: z.string(),
         mimeType: z.string(),
+        fileSizeBytes: z.number().max(500 * 1024 * 1024, 'Video file must be under 500MB'),
         durationSeconds: z.number().max(300, 'Video must be 5 minutes or less'),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -551,24 +551,31 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only MP4, MOV, and WebM videos are allowed' });
         }
 
-        // Validate duration (max 5 minutes = 300 seconds)
-        if (input.durationSeconds > 300) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video must be 5 minutes or less' });
-        }
-
-        // Upload to S3
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
-
-        // Validate file size (max 500MB)
-        if (buffer.length > 500 * 1024 * 1024) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Video file must be under 500MB' });
-        }
-
         const timestamp = Date.now();
         const ext = input.fileName.split('.').pop() || 'mp4';
         const fileKey = `performance-videos/${ctx.user.id}/${timestamp}.${ext}`;
-        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+
+        return { fileKey, mimeType: input.mimeType, durationSeconds: input.durationSeconds };
+      }),
+
+    // Step 2: Upload the video file via server proxy to S3 (avoids base64, streams the file)
+    uploadPerformanceVideo: artistProcedure
+      .input(z.object({
+        fileKey: z.string(),
+        mimeType: z.string(),
+        durationSeconds: z.number().max(300, 'Video must be 5 minutes or less'),
+        fileData: z.string(), // base64 encoded — kept as fallback for smaller files
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+
+        // Upload to S3 via storage helper
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const { url } = await storagePut(input.fileKey, buffer, input.mimeType);
 
         // Update artist profile
         await db.updateArtistProfile(profile.id, {

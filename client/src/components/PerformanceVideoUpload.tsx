@@ -15,20 +15,6 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: videoStatus, refetch } = trpc.artist.getPerformanceVideoStatus.useQuery();
-  const uploadMutation = trpc.artist.uploadPerformanceVideo.useMutation({
-    onSuccess: () => {
-      toast.success('Video uploaded! It will be reviewed by our team before going live on your profile.');
-      refetch();
-      setUploading(false);
-      setUploadProgress(0);
-    },
-    onError: (err) => {
-      toast.error(err.message || 'Failed to upload video');
-      setUploading(false);
-      setUploadProgress(0);
-    },
-  });
-
   const deleteMutation = trpc.artist.deletePerformanceVideo.useMutation({
     onSuccess: () => {
       toast.success('Performance video removed');
@@ -38,6 +24,64 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
       toast.error(err.message || 'Failed to delete video');
     },
   });
+
+  // Upload via multipart FormData to /api/video/upload with real progress tracking
+  const uploadVideoFile = useCallback(async (file: File, durationSeconds: number) => {
+    setUploading(true);
+    setUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('durationSeconds', String(Math.round(durationSeconds)));
+
+    return new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 90); // 0-90% for upload
+          setUploadProgress(percent);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setUploadProgress(100);
+          toast.success('Video uploaded! It will be reviewed by our team before going live on your profile.');
+          refetch();
+          resolve();
+        } else {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            toast.error(resp.error || 'Upload failed');
+          } catch {
+            toast.error('Upload failed');
+          }
+          reject(new Error('Upload failed'));
+        }
+        setUploading(false);
+        setUploadProgress(0);
+      });
+
+      xhr.addEventListener('error', () => {
+        toast.error('Network error during upload');
+        setUploading(false);
+        setUploadProgress(0);
+        reject(new Error('Network error'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        toast.error('Upload cancelled');
+        setUploading(false);
+        setUploadProgress(0);
+        reject(new Error('Upload cancelled'));
+      });
+
+      xhr.open('POST', '/api/video/upload');
+      // Cookies are sent automatically (same origin)
+      xhr.send(formData);
+    });
+  }, [refetch]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,42 +107,15 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
       return;
     }
 
-    setUploading(true);
-    setUploadProgress(10);
-
-    // Read file as base64
-    const reader = new FileReader();
-    reader.onprogress = (event) => {
-      if (event.lengthComputable) {
-        setUploadProgress(Math.round((event.loaded / event.total) * 50));
-      }
-    };
-    reader.onload = async () => {
-      setUploadProgress(60);
-      try {
-        const base64 = (reader.result as string).split(',')[1];
-        setUploadProgress(70);
-        await uploadMutation.mutateAsync({
-          fileData: base64,
-          fileName: file.name,
-          mimeType: file.type,
-          durationSeconds: Math.round(duration),
-        });
-        setUploadProgress(100);
-      } catch {
-        // Error handled by mutation
-      }
-    };
-    reader.onerror = () => {
-      toast.error('Failed to read video file');
-      setUploading(false);
-      setUploadProgress(0);
-    };
-    reader.readAsDataURL(file);
+    try {
+      await uploadVideoFile(file, duration);
+    } catch {
+      // Error already handled in uploadVideoFile
+    }
 
     // Reset input
     if (fileInputRef.current) fileInputRef.current.value = '';
-  }, [uploadMutation]);
+  }, [uploadVideoFile]);
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -180,7 +197,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
     );
   }
 
-  // Pro tier — show upload/manage section
+  // Paid tier — show upload/manage section
   return (
     <Card>
       <CardHeader>
@@ -189,7 +206,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
             <Video className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">Performance Video</CardTitle>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-              <Crown className="h-3 w-3" /> Pro
+              <Crown className="h-3 w-3" /> {effectiveTier === 'professional' ? 'Professional' : 'Starter'}
             </span>
           </div>
           {videoStatus?.status && getStatusBadge(videoStatus.status)}

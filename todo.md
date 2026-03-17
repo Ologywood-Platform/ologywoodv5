@@ -1953,3 +1953,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Identified: PayloadTooLargeError — video upload base64 payload exceeded Express default 1MB JSON limit
 - [x] Fix: Increased express.json({ limit: '500mb' }) on tRPC HTTP server middleware
 - [x] 0 TypeScript errors
+
+## BUG: Video upload stuck at 70% — base64 too slow (Mar 17, 2026)
+- [x] Created Express multipart route /api/video/upload with multer (bypasses tRPC JSON body)
+- [x] Route authenticates via SDK, validates tier/type/size/duration, uploads to S3 via storagePut
+- [x] Refactored frontend to use XMLHttpRequest with FormData for real upload progress (0-90%)
+- [x] 0 TypeScript errors
