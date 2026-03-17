@@ -1965,3 +1965,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Added import and app.use('/api/video', videoUploadRoutes) to server/_core/index.ts
 - [x] Verified: POST /api/video/upload returns 401 (Unauthorized) without cookie — route is reachable
 - [x] 0 TypeScript errors
+
+## COMMUNITY-FLAGGING VIDEO MODERATION (Mar 17, 2026)
+- [x] Create video_flags table (id, artistProfileId, flaggedByUserId, reason, details, createdAt)
+- [x] Add performanceVideoFlagCount column to artist_profiles
+- [x] Add 'flagged' and 'taken_down' to performanceVideoStatus enum
+- [x] Change upload flow: auto-approve videos (status = 'approved' immediately)
+- [x] Create flag/report endpoint (artist.reportVideo — one flag per user per video)
+- [x] Create hasUserFlaggedVideo query endpoint
+- [x] Auto-hide video when flagCount >= 3 (set status to 'flagged')
+- [x] Add ReportVideoButton component on public artist profile video player
+- [x] Report modal with reason selection (inappropriate, copyright, spam, other) + optional details
+- [x] Update admin Videos tab: getFlaggedVideos shows flagged videos with flag details and reporter info
+- [x] Admin actions: dismissVideoFlags (restore video) or takeDownVideo (remove video)
+- [x] Videos with 'flagged' status still show on profile (visible but under review), 'taken_down' hides them
+- [x] 0 TypeScript errors

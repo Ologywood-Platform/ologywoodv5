@@ -941,41 +941,36 @@ return { success: true, payoutId: input.payoutId };
       };
     }),
 
-  // ============ VIDEO MODERATION ============
+  // ============ VIDEO MODERATION (Community Flagging) ============
 
   /**
-   * Get video moderation queue
+   * Get flagged videos for admin review
    */
-  getVideoModerationQueue: adminOnly
-    .input(z.object({
-      status: z.enum(['all', 'pending', 'approved', 'rejected']).default('all'),
-    }).optional())
-    .query(async ({ input }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
-      const { eq } = await import('drizzle-orm');
-
-      const statusFilter = input?.status || 'all';
-      let entries;
-      if (statusFilter !== 'all') {
-        entries = await db.select().from(videoModerationQueue)
-          .where(eq(videoModerationQueue.status, statusFilter))
-          .orderBy(desc(videoModerationQueue.createdAt));
-      } else {
-        entries = await db.select().from(videoModerationQueue)
-          .orderBy(desc(videoModerationQueue.createdAt));
-      }
-
-      // Enrich with artist names
-      const enriched = await Promise.all(entries.map(async (entry) => {
-        const profile = await db.select({ artistName: artistProfiles.artistName, profilePhotoUrl: artistProfiles.profilePhotoUrl })
-          .from(artistProfiles)
-          .where(eq(artistProfiles.id, entry.artistProfileId))
-          .limit(1);
+  getFlaggedVideos: adminOnly
+    .query(async () => {
+      const dbModule = await import('../db');
+      const flaggedVideos = await dbModule.getFlaggedVideos();
+      
+      // Enrich with flag details
+      const enriched = await Promise.all(flaggedVideos.map(async (video: any) => {
+        const flags = await dbModule.getFlagsForArtist(video.id);
+        // Get flagger names
+        const db = await getDb();
+        const flagDetails = await Promise.all(flags.map(async (flag: any) => {
+          if (!db) return { ...flag, flaggedByName: 'Unknown', flaggedByEmail: 'Unknown' };
+          const user = await db.select({ name: users.name, email: users.email })
+            .from(users)
+            .where(sql`${users.id} = ${flag.flaggedByUserId}`)
+            .limit(1);
+          return {
+            ...flag,
+            flaggedByName: user[0]?.name || 'Unknown',
+            flaggedByEmail: user[0]?.email || 'Unknown',
+          };
+        }));
         return {
-          ...entry,
-          artistName: profile[0]?.artistName || 'Unknown',
-          artistPhoto: profile[0]?.profilePhotoUrl || null,
+          ...video,
+          flags: flagDetails,
         };
       }));
 
@@ -983,102 +978,72 @@ return { success: true, payoutId: input.payoutId };
     }),
 
   /**
-   * Approve a performance video
+   * Dismiss flags on a video (restore to approved)
    */
-  approveVideo: adminOnly
-    .input(z.object({ id: z.number() }))
+  dismissVideoFlags: adminOnly
+    .input(z.object({ artistProfileId: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
-      const { eq } = await import('drizzle-orm');
-
-      // Update moderation queue
-      await db.update(videoModerationQueue).set({
-        status: 'approved',
-        reviewedBy: ctx.user.id,
-        reviewedAt: new Date(),
-      }).where(eq(videoModerationQueue.id, input.id));
-
-      // Get the entry to find the artist profile
-      const entry = await db.select().from(videoModerationQueue)
-        .where(eq(videoModerationQueue.id, input.id)).limit(1);
-      if (entry[0]) {
-        await db.update(artistProfiles).set({
-          performanceVideoStatus: 'approved',
-        }).where(eq(artistProfiles.id, entry[0].artistProfileId));
-      }
+      const dbModule = await import('../db');
+      await dbModule.dismissVideoFlags(input.artistProfileId, ctx.user.id);
 
       // Log activity
-      await db.insert(adminActivityLog).values({
-        adminId: ctx.user.id,
-        adminEmail: ctx.user.email || 'unknown',
-        adminName: ctx.user.name || null,
-        action: 'Approved performance video',
-        category: 'users',
-        targetType: 'video',
-        targetId: String(input.id),
-        targetLabel: entry[0] ? `Artist Profile #${entry[0].artistProfileId}` : null,
-      });
+      const db = await getDb();
+      if (db) {
+        await db.insert(adminActivityLog).values({
+          adminId: ctx.user.id,
+          adminEmail: ctx.user.email || 'unknown',
+          adminName: ctx.user.name || null,
+          action: 'Dismissed video flags and restored video',
+          category: 'users',
+          targetType: 'video',
+          targetId: String(input.artistProfileId),
+          targetLabel: `Artist Profile #${input.artistProfileId}`,
+        });
+      }
 
       return { success: true };
     }),
 
   /**
-   * Reject a performance video
+   * Take down a flagged video
    */
-  rejectVideo: adminOnly
-    .input(z.object({
-      id: z.number(),
-      reason: z.string().min(5, 'Rejection reason must be at least 5 characters'),
-    }))
+  takeDownVideo: adminOnly
+    .input(z.object({ artistProfileId: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const db = await getDb();
-      if (!db) throw new Error('Database not available');
-      const { eq } = await import('drizzle-orm');
-
-      // Update moderation queue
-      await db.update(videoModerationQueue).set({
-        status: 'rejected',
-        reviewedBy: ctx.user.id,
-        reviewedAt: new Date(),
-        rejectionReason: input.reason,
-      }).where(eq(videoModerationQueue.id, input.id));
-
-      // Get the entry to find the artist profile
-      const entry = await db.select().from(videoModerationQueue)
-        .where(eq(videoModerationQueue.id, input.id)).limit(1);
-      if (entry[0]) {
-        await db.update(artistProfiles).set({
-          performanceVideoStatus: 'rejected',
-        }).where(eq(artistProfiles.id, entry[0].artistProfileId));
-      }
+      const dbModule = await import('../db');
+      await dbModule.takeDownVideo(input.artistProfileId, ctx.user.id);
 
       // Log activity
-      await db.insert(adminActivityLog).values({
-        adminId: ctx.user.id,
-        adminEmail: ctx.user.email || 'unknown',
-        adminName: ctx.user.name || null,
-        action: `Rejected performance video: ${input.reason}`,
-        category: 'users',
-        targetType: 'video',
-        targetId: String(input.id),
-        targetLabel: entry[0] ? `Artist Profile #${entry[0].artistProfileId}` : null,
-      });
+      const db = await getDb();
+      if (db) {
+        await db.insert(adminActivityLog).values({
+          adminId: ctx.user.id,
+          adminEmail: ctx.user.email || 'unknown',
+          adminName: ctx.user.name || null,
+          action: 'Took down flagged performance video',
+          category: 'users',
+          targetType: 'video',
+          targetId: String(input.artistProfileId),
+          targetLabel: `Artist Profile #${input.artistProfileId}`,
+        });
+      }
+
+      // TODO: Send email notification to artist about takedown
 
       return { success: true };
     }),
 
   /**
-   * Get pending video count for admin badge
+   * Get flagged video count for admin badge
    */
-  getPendingVideoCount: adminOnly
+  getFlaggedVideoCount: adminOnly
     .query(async () => {
       const db = await getDb();
       if (!db) return 0;
-      const { eq } = await import('drizzle-orm');
+      const { gte } = await import('drizzle-orm');
       const result = await db.select({ count: sql<number>`COUNT(*)` })
-        .from(videoModerationQueue)
-        .where(eq(videoModerationQueue.status, 'pending'));
+        .from(artistProfiles)
+        .where(gte(artistProfiles.performanceVideoFlagCount, 1));
       return result[0]?.count || 0;
     }),
 

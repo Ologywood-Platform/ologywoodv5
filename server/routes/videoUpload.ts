@@ -70,24 +70,16 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
     const fileKey = `performance-videos/${user.id}/${timestamp}.${ext}`;
     const { url } = await storagePut(fileKey, file.buffer, file.mimetype);
 
-    // Update artist profile
+    // Update artist profile — auto-approve (community flagging model)
     await db.updateArtistProfile(profile.id, {
       performanceVideoUrl: url,
-      performanceVideoStatus: 'pending',
+      performanceVideoStatus: 'approved',
       performanceVideoDuration: durationSeconds,
       performanceVideoUploadedAt: new Date(),
+      performanceVideoFlagCount: 0,
     } as any);
 
-    // Add to moderation queue
-    await db.createVideoModerationEntry({
-      artistProfileId: profile.id,
-      artistUserId: user.id,
-      videoUrl: url,
-      durationSeconds: durationSeconds,
-      status: 'pending',
-    });
-
-    return res.json({ success: true, url, status: 'pending' });
+    return res.json({ success: true, url, status: 'approved' });
   } catch (err: any) {
     console.error('[Video Upload Error]', err);
     if (err.code === 'LIMIT_FILE_SIZE') {

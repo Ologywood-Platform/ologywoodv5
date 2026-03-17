@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video } from "lucide-react";
 import { ShareVideoButton } from '@/components/ShareVideoButton';
+import { ReportVideoButton } from '@/components/ReportVideoButton';
 import { FollowButton } from "@/components/FollowButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ShareProfileModal } from "@/components/ShareProfileModal";
@@ -576,7 +577,7 @@ export default function ArtistProfile() {
             )}
 
             {/* Performance Video */}
-            {(artist as any).performanceVideoUrl && (artist as any).performanceVideoStatus === 'approved' && (
+            {(artist as any).performanceVideoUrl && ((artist as any).performanceVideoStatus === 'approved' || (artist as any).performanceVideoStatus === 'flagged') && (artist as any).performanceVideoStatus !== 'taken_down' && (
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -584,7 +585,10 @@ export default function ArtistProfile() {
                       <Video className="h-5 w-5 text-primary" />
                       <CardTitle>Performance</CardTitle>
                     </div>
-                    <ShareVideoButton artistId={artist.id} artistName={artist.artistName || 'Artist'} />
+                    <div className="flex items-center gap-1">
+                      <ShareVideoButton artistId={artist.id} artistName={artist.artistName || 'Artist'} />
+                      <ReportVideoButton artistProfileId={artist.id} isOwnProfile={user?.id === artist.userId} />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

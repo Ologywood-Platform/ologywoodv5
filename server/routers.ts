@@ -632,6 +632,36 @@ export const appRouter = router({
           tier: tier,
         };
       }),
+    // Report/flag a performance video (any logged-in user)
+    reportVideo: protectedProcedure
+      .input(z.object({
+        artistProfileId: z.number(),
+        reason: z.enum(['inappropriate', 'copyright', 'spam', 'other']),
+        details: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Can't flag your own video
+        const myProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (myProfile && myProfile.id === input.artistProfileId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot report your own video' });
+        }
+        try {
+          const result = await db.flagVideo(input.artistProfileId, ctx.user.id, input.reason, input.details);
+          return result;
+        } catch (err: any) {
+          if (err.message === 'You have already reported this video') {
+            throw new TRPCError({ code: 'CONFLICT', message: err.message });
+          }
+          throw err;
+        }
+      }),
+
+    // Check if current user has already flagged a video
+    hasUserFlaggedVideo: protectedProcedure
+      .input(z.object({ artistProfileId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return await db.hasUserFlaggedVideo(input.artistProfileId, ctx.user.id);
+      }),
   }),
 
   // Venue Profile Management is now handled by venueRouter (imported above)

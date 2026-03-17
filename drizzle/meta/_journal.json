@@ -463,6 +463,13 @@
       "when": 1773675630527,
       "tag": "0065_large_red_wolf",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "5",
+      "when": 1773715998970,
+      "tag": "0066_slippery_sway",
+      "breakpoints": true
     }
   ]
 }

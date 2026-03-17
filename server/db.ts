@@ -36,7 +36,8 @@ import {
   notificationPreferences, InsertNotificationPreference, NotificationPreference,
   unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback,
   bookingDisputes, InsertBookingDispute, BookingDispute,
-  videoModerationQueue, InsertVideoModerationQueue, VideoModerationQueue
+  videoModerationQueue, InsertVideoModerationQueue, VideoModerationQueue,
+  videoFlags, InsertVideoFlag, VideoFlag
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2685,4 +2686,122 @@ export async function getPendingVideoCount(): Promise<number> {
     .from(videoModerationQueue)
     .where(eq(videoModerationQueue.status, 'pending'));
   return result[0]?.count || 0;
+}
+
+
+// ============= VIDEO FLAG FUNCTIONS =============
+
+export async function flagVideo(artistProfileId: number, flaggedByUserId: number, reason: string, details?: string): Promise<{ flagCount: number; autoHidden: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  
+  // Check if user already flagged this video
+  const existing = await db.select().from(videoFlags)
+    .where(and(
+      eq(videoFlags.artistProfileId, artistProfileId),
+      eq(videoFlags.flaggedByUserId, flaggedByUserId)
+    ))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    throw new Error('You have already reported this video');
+  }
+  
+  // Insert the flag
+  await db.insert(videoFlags).values({
+    artistProfileId,
+    flaggedByUserId,
+    reason: reason as any,
+    details: details || null,
+  });
+  
+  // Increment flag count on artist profile
+  await db.update(artistProfiles)
+    .set({ performanceVideoFlagCount: sql`${artistProfiles.performanceVideoFlagCount} + 1` })
+    .where(eq(artistProfiles.id, artistProfileId));
+  
+  // Get updated flag count
+  const profile = await db.select({ flagCount: artistProfiles.performanceVideoFlagCount })
+    .from(artistProfiles)
+    .where(eq(artistProfiles.id, artistProfileId))
+    .limit(1);
+  
+  const flagCount = profile[0]?.flagCount || 0;
+  let autoHidden = false;
+  
+  // Auto-hide if 3+ flags
+  if (flagCount >= 3) {
+    await db.update(artistProfiles)
+      .set({ performanceVideoStatus: 'flagged' as any })
+      .where(eq(artistProfiles.id, artistProfileId));
+    autoHidden = true;
+  }
+  
+  return { flagCount, autoHidden };
+}
+
+export async function getFlagsForArtist(artistProfileId: number): Promise<VideoFlag[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(videoFlags)
+    .where(eq(videoFlags.artistProfileId, artistProfileId))
+    .orderBy(desc(videoFlags.createdAt));
+}
+
+export async function hasUserFlaggedVideo(artistProfileId: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(videoFlags)
+    .where(and(
+      eq(videoFlags.artistProfileId, artistProfileId),
+      eq(videoFlags.flaggedByUserId, userId)
+    ))
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function getFlaggedVideos(): Promise<any[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const results = await db.select({
+    id: artistProfiles.id,
+    userId: artistProfiles.userId,
+    artistName: artistProfiles.artistName,
+    performanceVideoUrl: artistProfiles.performanceVideoUrl,
+    performanceVideoStatus: artistProfiles.performanceVideoStatus,
+    performanceVideoFlagCount: artistProfiles.performanceVideoFlagCount,
+    performanceVideoUploadedAt: artistProfiles.performanceVideoUploadedAt,
+  })
+    .from(artistProfiles)
+    .where(
+      or(
+        eq(artistProfiles.performanceVideoStatus, 'flagged' as any),
+        gte(artistProfiles.performanceVideoFlagCount, 1)
+      )
+    )
+    .orderBy(desc(artistProfiles.performanceVideoFlagCount));
+  return results;
+}
+
+export async function dismissVideoFlags(artistProfileId: number, adminUserId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  // Clear all flags
+  await db.delete(videoFlags).where(eq(videoFlags.artistProfileId, artistProfileId));
+  // Reset flag count and restore approved status
+  await db.update(artistProfiles)
+    .set({ 
+      performanceVideoFlagCount: 0, 
+      performanceVideoStatus: 'approved' as any 
+    })
+    .where(eq(artistProfiles.id, artistProfileId));
+}
+
+export async function takeDownVideo(artistProfileId: number, adminUserId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  // Set status to taken_down
+  await db.update(artistProfiles)
+    .set({ performanceVideoStatus: 'taken_down' as any })
+    .where(eq(artistProfiles.id, artistProfileId));
 }

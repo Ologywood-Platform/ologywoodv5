@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown } from 'lucide-react';
+import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -35,8 +35,8 @@ export function AdminDashboard() {
   const [activityPage, setActivityPage] = useState(1);
   const activityLogQuery = trpc.admin.getActivityLog.useQuery({ page: activityPage, limit: 30, category: activityCategory, search: activitySearch });
   const activityStatsQuery = trpc.admin.getActivityStats.useQuery();
-  const videoQueueQuery = trpc.admin.getVideoModerationQueue.useQuery({ status: 'all' });
-  const pendingVideoCountQuery = trpc.admin.getPendingVideoCount.useQuery();
+  const flaggedVideosQuery = trpc.admin.getFlaggedVideos.useQuery();
+  const flaggedVideoCountQuery = trpc.admin.getFlaggedVideoCount.useQuery();
 
   const analytics = analyticsQuery.data;
   const health = systemHealthQuery.data;
@@ -125,9 +125,9 @@ export function AdminDashboard() {
                       {disputesQuery.data.filter((d: any) => d.status === 'open' || d.status === 'under_review').length}
                     </span>
                   )}
-                  {tab === 'videos' && (pendingVideoCountQuery.data ?? 0) > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-purple-500 text-white text-xs rounded-full">
-                      {pendingVideoCountQuery.data}
+                  {tab === 'videos' && (flaggedVideoCountQuery.data ?? 0) > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                      {flaggedVideoCountQuery.data}
                     </span>
                   )}
                 </span>
@@ -195,9 +195,9 @@ export function AdminDashboard() {
           )}
           {activeTab === 'videos' && (
             <VideoModerationTab
-              videos={videoQueueQuery.data || []}
-              isLoading={videoQueueQuery.isLoading}
-              refetch={() => { videoQueueQuery.refetch(); pendingVideoCountQuery.refetch(); }}
+              videos={flaggedVideosQuery.data || []}
+              isLoading={flaggedVideosQuery.isLoading}
+              refetch={() => { flaggedVideosQuery.refetch(); flaggedVideoCountQuery.refetch(); }}
             />
           )}
           {activeTab === 'activity' && (
@@ -2070,7 +2070,7 @@ function ActivityTab({
 }
 
 
-// Video Moderation Tab
+// Video Moderation Tab (Community Flagging)
 function VideoModerationTab({
   videos,
   isLoading,
@@ -2080,115 +2080,75 @@ function VideoModerationTab({
   isLoading: boolean;
   refetch: () => void;
 }) {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [rejectingId, setRejectingId] = useState<number | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
   const [expandedVideo, setExpandedVideo] = useState<number | null>(null);
 
-  const approveMutation = trpc.admin.approveVideo.useMutation({
+  const dismissMutation = trpc.admin.dismissVideoFlags.useMutation({
     onSuccess: () => {
       refetch();
       setExpandedVideo(null);
     },
   });
 
-  const rejectMutation = trpc.admin.rejectVideo.useMutation({
+  const takeDownMutation = trpc.admin.takeDownVideo.useMutation({
     onSuccess: () => {
       refetch();
-      setRejectingId(null);
-      setRejectReason('');
       setExpandedVideo(null);
     },
   });
-
-  const setTierMutation = trpc.admin.setArtistTier.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
-  const filtered = videos.filter(v => statusFilter === 'all' || v.status === statusFilter);
 
   if (isLoading) {
     return (
       <div className="p-8 text-center">
         <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Loading video queue...</p>
+        <p className="text-sm text-gray-500">Loading flagged videos...</p>
       </div>
     );
   }
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Video className="w-5 h-5 text-purple-600" />
-            Video Moderation
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Review and approve artist performance videos
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {(['all', 'pending', 'approved', 'rejected'] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
-                statusFilter === s
-                  ? s === 'pending' ? 'bg-yellow-100 text-yellow-800'
-                  : s === 'approved' ? 'bg-green-100 text-green-800'
-                  : s === 'rejected' ? 'bg-red-100 text-red-800'
-                  : 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-              {s === 'pending' && videos.filter(v => v.status === 'pending').length > 0 && (
-                <span className="ml-1 font-bold">({videos.filter(v => v.status === 'pending').length})</span>
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Flag className="w-5 h-5 text-red-500" />
+          Flagged Videos
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Videos reported by the community. Videos with 3+ flags are auto-hidden until reviewed.
+        </p>
       </div>
 
-      {filtered.length === 0 ? (
+      {videos.length === 0 ? (
         <div className="text-center py-12">
-          <Video className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No videos to review</p>
+          <CheckCircle className="w-12 h-12 text-green-300 mx-auto mb-3" />
+          <p className="text-gray-500">No flagged videos — all clear!</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((video) => (
+          {videos.map((video: any) => (
             <div key={video.id} className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between p-4 bg-gray-50">
                 <div className="flex items-center gap-3">
-                  {video.artistPhoto ? (
-                    <img src={video.artistPhoto} alt="" className="w-10 h-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <Music className="w-5 h-5 text-purple-600" />
-                    </div>
-                  )}
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Music className="w-5 h-5 text-purple-600" />
+                  </div>
                   <div>
-                    <p className="font-medium text-gray-900">{video.artistName}</p>
+                    <p className="font-medium text-gray-900">{video.artistName || 'Unknown Artist'}</p>
                     <p className="text-xs text-gray-500">
-                      Profile #{video.artistProfileId} — Uploaded {new Date(video.createdAt).toLocaleDateString()}
-                      {video.durationSeconds && ` — ${Math.floor(video.durationSeconds / 60)}:${(video.durationSeconds % 60).toString().padStart(2, '0')}`}
+                      Profile #{video.id}
+                      {video.performanceVideoUploadedAt && ` — Uploaded ${new Date(video.performanceVideoUploadedAt).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    video.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    video.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    'bg-red-100 text-red-800'
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                    video.performanceVideoStatus === 'flagged' ? 'bg-red-100 text-red-800' :
+                    video.performanceVideoStatus === 'taken_down' ? 'bg-gray-100 text-gray-800' :
+                    'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {video.status === 'pending' && <Clock className="w-3 h-3 inline mr-1" />}
-                    {video.status === 'approved' && <CheckCircle className="w-3 h-3 inline mr-1" />}
-                    {video.status === 'rejected' && <XCircle className="w-3 h-3 inline mr-1" />}
-                    {video.status.charAt(0).toUpperCase() + video.status.slice(1)}
+                    <Flag className="w-3 h-3" />
+                    {video.performanceVideoFlagCount} flag{video.performanceVideoFlagCount !== 1 ? 's' : ''}
+                    {video.performanceVideoStatus === 'flagged' && ' (auto-hidden)'}
+                    {video.performanceVideoStatus === 'taken_down' && ' (taken down)'}
                   </span>
                   <button
                     onClick={() => setExpandedVideo(expandedVideo === video.id ? null : video.id)}
@@ -2202,89 +2162,69 @@ function VideoModerationTab({
               {expandedVideo === video.id && (
                 <div className="p-4 space-y-4">
                   {/* Video Player */}
-                  <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-2xl mx-auto">
-                    <video
-                      src={video.videoUrl}
-                      controls
-                      preload="metadata"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-
-                  {/* Rejection reason if rejected */}
-                  {video.status === 'rejected' && video.rejectionReason && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-700"><strong>Rejection reason:</strong> {video.rejectionReason}</p>
+                  {video.performanceVideoUrl && (
+                    <div className="relative rounded-lg overflow-hidden bg-black aspect-video max-w-2xl mx-auto">
+                      <video
+                        src={video.performanceVideoUrl}
+                        controls
+                        preload="metadata"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   )}
 
-                  {/* Action buttons for pending videos */}
-                  {video.status === 'pending' && (
-                    <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Flag details */}
+                  {video.flags && video.flags.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">Reports:</p>
+                      {video.flags.map((flag: any, idx: number) => (
+                        <div key={idx} className="p-3 bg-red-50 border border-red-100 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-red-800 capitalize">{flag.reason}</span>
+                            <span className="text-xs text-gray-500">{new Date(flag.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">Reported by: {flag.flaggedByEmail}</p>
+                          {flag.details && <p className="text-xs text-gray-600 mt-1">{flag.details}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Admin actions */}
+                  {video.performanceVideoStatus !== 'taken_down' && (
+                    <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-gray-200">
                       <button
-                        onClick={() => approveMutation.mutate({ id: video.id })}
-                        disabled={approveMutation.isPending}
+                        onClick={() => dismissMutation.mutate({ artistProfileId: video.id })}
+                        disabled={dismissMutation.isPending}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Approve Video
+                        Dismiss Flags & Restore
                       </button>
-
-                      {rejectingId === video.id ? (
-                        <div className="flex-1 flex gap-2">
-                          <input
-                            type="text"
-                            value={rejectReason}
-                            onChange={e => setRejectReason(e.target.value)}
-                            placeholder="Rejection reason (required)..."
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                          />
-                          <button
-                            onClick={() => rejectMutation.mutate({ id: video.id, reason: rejectReason })}
-                            disabled={rejectReason.length < 5 || rejectMutation.isPending}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setRejectingId(video.id)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200"
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject Video
-                        </button>
-                      )}
+                      <button
+                        onClick={() => takeDownMutation.mutate({ artistProfileId: video.id })}
+                        disabled={takeDownMutation.isPending}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        Take Down Video
+                      </button>
                     </div>
                   )}
 
-                  {/* Admin tier toggle */}
-                  <div className="pt-3 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-2">Admin: Set artist subscription tier</p>
-                    <div className="flex gap-2">
+                  {video.performanceVideoStatus === 'taken_down' && (
+                    <div className="p-3 bg-gray-100 rounded-lg">
+                      <p className="text-sm text-gray-600">This video has been taken down.</p>
                       <button
-                        onClick={() => setTierMutation.mutate({ artistProfileId: video.artistProfileId, tier: 'free' })}
-                        disabled={setTierMutation.isPending}
-                        className="px-3 py-1.5 text-xs rounded-lg border border-gray-300 hover:bg-gray-100"
+                        onClick={() => dismissMutation.mutate({ artistProfileId: video.id })}
+                        disabled={dismissMutation.isPending}
+                        className="mt-2 flex items-center gap-2 px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
                       >
-                        Set Free
-                      </button>
-                      <button
-                        onClick={() => setTierMutation.mutate({ artistProfileId: video.artistProfileId, tier: 'pro' })}
-                        disabled={setTierMutation.isPending}
-                        className="px-3 py-1.5 text-xs rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 flex items-center gap-1"
-                      >
-                        <Crown className="w-3 h-3" /> Set Pro
+                        <CheckCircle className="w-3 h-3" />
+                        Restore Video
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

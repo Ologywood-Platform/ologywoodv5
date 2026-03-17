@@ -80,7 +80,8 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   profilePhotoUrl: text("profilePhotoUrl"),
   performanceVideoUrl: text("performanceVideoUrl"),
   performanceVideoThumbnail: text("performanceVideoThumbnail"),
-  performanceVideoStatus: mysqlEnum("performanceVideoStatus", ["pending", "approved", "rejected"]),
+  performanceVideoStatus: mysqlEnum("performanceVideoStatus", ["pending", "approved", "rejected", "flagged", "taken_down"]),
+  performanceVideoFlagCount: int("performanceVideoFlagCount").default(0).notNull(),
   performanceVideoDuration: int("performanceVideoDuration"),
   performanceVideoUploadedAt: timestamp("performanceVideoUploadedAt"),
   subscriptionTier: mysqlEnum("subscriptionTier", ["free", "pro"]).default("free").notNull(),
@@ -122,6 +123,25 @@ export const videoModerationQueue = mysqlTable("video_moderation_queue", {
 
 export type VideoModerationQueue = typeof videoModerationQueue.$inferSelect;
 export type InsertVideoModerationQueue = typeof videoModerationQueue.$inferInsert;
+
+/**
+ * Video flags - community reports on performance videos
+ */
+export const videoFlags = mysqlTable("video_flags", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  flaggedByUserId: int("flaggedByUserId").notNull(),
+  reason: mysqlEnum("reason", ["inappropriate", "copyright", "spam", "other"]).notNull(),
+  details: text("details"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_video_flags_artist").on(table.artistProfileId),
+  userIdx: index("idx_video_flags_user").on(table.flaggedByUserId),
+  uniqueFlag: index("idx_video_flags_unique").on(table.artistProfileId, table.flaggedByUserId),
+}));
+
+export type VideoFlag = typeof videoFlags.$inferSelect;
+export type InsertVideoFlag = typeof videoFlags.$inferInsert;
 
 /**
  * Venue profile table - stores information for venues/event organizers
