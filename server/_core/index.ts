@@ -16,6 +16,7 @@ import releaseDownloadRoutes from "../routes/releaseDownload";
 import releaseCheckoutRoutes from "../routes/releaseCheckout";
 import bookingCheckoutRoutes from '../routes/bookingCheckout';
 import contractPdfRoutes from '../routes/contractPdf';
+import videoUploadRoutes from '../routes/videoUpload';
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -123,6 +124,9 @@ async function startServer() {
 
   // Contract PDF download routes (BEFORE Vite setup)
   app.use('/api/contract', contractPdfRoutes);
+
+  // Video upload routes (multipart, BEFORE Vite setup)
+  app.use('/api/video', videoUploadRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

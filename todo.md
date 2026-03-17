@@ -1959,3 +1959,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Route authenticates via SDK, validates tier/type/size/duration, uploads to S3 via storagePut
 - [x] Refactored frontend to use XMLHttpRequest with FormData for real upload progress (0-90%)
 - [x] 0 TypeScript errors
+
+## BUG: Video upload route not mounted in correct server entry point (Mar 17, 2026)
+- [x] Root cause: videoUpload route was mounted in server/index.ts (unused) instead of server/_core/index.ts (actual entry)
+- [x] Fix: Added import and app.use('/api/video', videoUploadRoutes) to server/_core/index.ts
+- [x] Verified: POST /api/video/upload returns 401 (Unauthorized) without cookie — route is reachable
+- [x] 0 TypeScript errors
