@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox, MessageCircle, CreditCard, Loader2 } from 'lucide-react';
+import TestModeBadge from '@/components/TestModeBadge';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', label: 'Pending' },
@@ -280,6 +281,11 @@ export default function MyBookings() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Test Mode Notice */}
+        <div className="mb-4">
+          <TestModeBadge showTestCard />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

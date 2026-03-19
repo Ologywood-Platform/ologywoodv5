@@ -11,6 +11,7 @@ import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import Footer from '@/components/Footer';
 import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
+import TestModeBadge from '@/components/TestModeBadge';
 
 const PRICING_FAQS = [
   {
@@ -370,6 +371,11 @@ export default function Pricing() {
 
             {/* Swipe hint */}
             <p className="text-center text-xs text-gray-400 mt-2">Swipe or tap tabs to compare plans</p>
+          </div>
+
+          {/* Test Mode Notice */}
+          <div className="max-w-3xl mx-auto mb-6">
+            <TestModeBadge showTestCard />
           </div>
 
           {/* FAQ Section */}

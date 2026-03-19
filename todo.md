@@ -2019,3 +2019,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Root cause: getById used getArtistProfileByUserId(event.artistId) but event.artistId is the profile ID, not user ID
 - [x] Fix: Changed to getArtistProfileById(event.artistId) to look up by profile ID correctly
 - [x] 0 TypeScript errors
+
+## EARLY ACCESS BANNER & TEST MODE INDICATORS (Mar 19, 2026)
+- [x] Built EarlyAccessBanner component — gradient purple, dismissible, shows days remaining, auto-hides after June 19, 2026
+- [x] Dismiss state stored in localStorage (ologywood_early_access_dismissed)
+- [x] Auto-hide after TRIAL_END_DATE (June 19, 2026)
+- [x] Mounted above SiteHeader in sticky wrapper on all pages
+- [x] Built TestModeBadge component — "Test Mode — No real charges" with test card number
+- [x] Added TestModeBadge to Pricing page (above FAQ section)
+- [x] Added TestModeBadge to MyBookings page (above header)
+- [x] Added TestModeBadge to BookingDetail page (above PaymentSection)
+- [x] 0 TypeScript errors

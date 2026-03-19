@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { QuickSignupModal } from './QuickSignupModal';
 import RealtimeNotifications from './RealtimeNotifications';
+import EarlyAccessBanner from './EarlyAccessBanner';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -103,7 +104,9 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
   return (
     <>
-      <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50 transition-colors duration-200" ref={menuRef}>
+      <div className="sticky top-0 z-50">
+      <EarlyAccessBanner />
+      <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 transition-colors duration-200" ref={menuRef}>
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary dark:text-purple-400 shrink-0">
@@ -355,6 +358,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
           </nav>
         )}
       </header>
+      </div>
 
       {/* Auth Modal */}
       <QuickSignupModal

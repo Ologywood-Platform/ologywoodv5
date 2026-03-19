@@ -9,6 +9,7 @@ import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
 import { VenueReviewForm } from '@/components/VenueReviewForm';
 import PaymentSection from '@/components/PaymentSection';
+import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -253,6 +254,9 @@ export default function BookingDetail() {
             )}
           </Card>
           
+          {/* Test Mode Notice */}
+          <TestModeBadge showTestCard />
+
           {/* Payment Section */}
           <PaymentSection
             bookingId={bookingId}
