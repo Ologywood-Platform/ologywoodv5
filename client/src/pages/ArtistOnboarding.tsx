@@ -53,7 +53,7 @@ export default function ArtistOnboarding() {
   const [youtube, setYoutube] = useState("");
   const [spotify, setSpotify] = useState("");
 
-  const uploadPhoto = trpc.artist.uploadPhoto.useMutation({
+  const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
       setProfilePhotoUrl(data.url);
       toast.success("Photo uploaded successfully");
@@ -108,18 +108,26 @@ export default function ArtistOnboarding() {
     }
   };
 
-  const handleUploadPhoto = async () => {
-    if (!profilePhoto) return;
+  const handleUploadPhoto = async (): Promise<string | null> => {
+    if (!profilePhoto) return null;
     
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      uploadPhoto.mutate({
-        fileData: reader.result as string,
-        fileName: profilePhoto.name,
-        mimeType: profilePhoto.type,
-      });
-    };
-    reader.readAsDataURL(profilePhoto);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const result = await uploadPhoto.mutateAsync({
+            fileData: reader.result as string,
+            fileName: profilePhoto.name,
+            mimeType: profilePhoto.type,
+          });
+          resolve(result.url);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(profilePhoto);
+    });
   };
 
   const handleNext = () => {
@@ -147,11 +155,14 @@ export default function ArtistOnboarding() {
       return;
     }
 
-    // Upload photo first if one is selected
+    // Upload photo first if one is selected but not yet uploaded
+    let photoUrl = profilePhotoUrl;
     if (profilePhoto && !profilePhotoUrl) {
-      await handleUploadPhoto();
-      // Wait a moment for the upload to complete
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        photoUrl = await handleUploadPhoto();
+      } catch {
+        toast.error("Photo upload failed. You can add it later from Edit Profile.");
+      }
     }
 
     createProfile.mutate({
@@ -163,7 +174,7 @@ export default function ArtistOnboarding() {
       feeRangeMax: feeRangeMax ? parseInt(feeRangeMax) : undefined,
       touringPartySize: parseInt(touringPartySize),
       websiteUrl: websiteUrl || undefined,
-      profilePhotoUrl: profilePhotoUrl || undefined,
+      profilePhotoUrl: photoUrl || undefined,
       socialLinks: {
         instagram: instagram || undefined,
         facebook: facebook || undefined,

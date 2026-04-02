@@ -156,6 +156,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## ARTIST PROFILE IMAGES
 
+- [x] Fix: Artist uploaded profile pictures not showing on profiles
 - [x] Add profile image for The Rhythm Kings from S3
 - [x] Generate professional reggae band image for The Rhythm Kings
 - [x] Upload to S3 and update database with CDN URL

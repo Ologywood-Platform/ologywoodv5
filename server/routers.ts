@@ -346,20 +346,16 @@ export const appRouter = router({
         mimeType: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Convert base64 to buffer
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        // Upload and optimize the photo
+        const result = await handlePhotoUpload(input, ctx.user.id, "artist-photos");
         
-        // Generate unique file key
-        const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(7);
-        const fileExtension = input.fileName.split('.').pop() || 'jpg';
-        const fileKey = `artist-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
+        // Also save the URL to the artist profile in the database
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (profile) {
+          await db.updateArtistProfile(profile.id, { profilePhotoUrl: result.url });
+        }
         
-        // Upload to S3
-        const { url } = await storagePut(fileKey, buffer, input.mimeType);
-        
-        return await handlePhotoUpload(input, ctx.user.id, "artist-photos");
+        return result;
       }),
 
     // Create artist profile
