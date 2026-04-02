@@ -659,9 +659,12 @@ export function VenueDashboard() {
                       Showcase your space with up to 20 photos. Artists will see these when considering your venue.
                     </CardDescription>
                   </div>
-                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-sm font-medium">
-                    <Upload className="h-4 w-4" />
-                    {uploadingGallery ? 'Uploading...' : 'Add Photos'}
+                  <label className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-sm font-medium ${uploadingGallery ? 'opacity-80 pointer-events-none' : ''}`}>
+                    {uploadingGallery ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                    ) : (
+                      <><Upload className="h-4 w-4" /> Add Photos</>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
@@ -714,9 +717,12 @@ export function VenueDashboard() {
                         <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">No photos yet</h3>
                         <p className="text-sm text-gray-500 mb-4">Upload photos of your venue to attract artists</p>
-                        <label className="inline-flex items-center gap-2 px-6 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium">
-                          <Upload className="h-4 w-4" />
-                          Upload Your First Photo
+                        <label className={`inline-flex items-center gap-2 px-6 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium ${uploadingGallery ? 'opacity-60 pointer-events-none' : ''}`}>
+                          {uploadingGallery ? (
+                            <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                          ) : (
+                            <><Upload className="h-4 w-4" /> Upload Your First Photo</>
+                          )}
                           <input
                             type="file"
                             accept="image/*"
@@ -923,30 +929,35 @@ export function VenueDashboard() {
                         <div className="relative group">
                           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                             {profile?.profilePhotoUrl ? (
-                              <img src={profile.profilePhotoUrl} alt="Venue" className="w-full h-full object-cover" />
+                              <img src={profile.profilePhotoUrl} alt="Venue" className={`w-full h-full object-cover transition-opacity ${uploadingPhoto ? 'opacity-40' : ''}`} />
                             ) : (
                               <Camera className="h-8 w-8 text-gray-400" />
                             )}
                           </div>
-                          <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                            {uploadingPhoto ? (
+                          {uploadingPhoto ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full">
                               <Loader2 className="h-6 w-6 text-white animate-spin" />
-                            ) : (
+                              <span className="text-[10px] text-white font-medium mt-1">Uploading</span>
+                            </div>
+                          ) : (
+                            <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                               <Camera className="h-6 w-6 text-white" />
-                            )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handlePhotoUpload}
-                              className="hidden"
-                              disabled={uploadingPhoto}
-                            />
-                          </label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoUpload}
+                                className="hidden"
+                              />
+                            </label>
+                          )}
                         </div>
                         <div className="flex-1">
-                          <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium">
-                            <Upload className="h-4 w-4" />
-                            {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                          <label className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm font-medium ${uploadingPhoto ? 'opacity-60 pointer-events-none' : ''}`}>
+                            {uploadingPhoto ? (
+                              <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                            ) : (
+                              <><Upload className="h-4 w-4" /> Upload Photo</>
+                            )}
                             <input
                               type="file"
                               accept="image/*"
@@ -1124,31 +1135,36 @@ export function VenueDashboard() {
                       <div className="relative group">
                         <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                           {profile.profilePhotoUrl ? (
-                            <img src={profile.profilePhotoUrl} alt="Venue" className="w-full h-full object-cover" />
+                            <img src={profile.profilePhotoUrl} alt="Venue" className={`w-full h-full object-cover transition-opacity ${uploadingPhoto ? 'opacity-40' : ''}`} />
                           ) : (
                             <Camera className="h-8 w-8 text-gray-400" />
                           )}
                         </div>
-                        <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                          {uploadingPhoto ? (
+                        {uploadingPhoto ? (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-full">
                             <Loader2 className="h-5 w-5 text-white animate-spin" />
-                          ) : (
+                            <span className="text-[9px] text-white font-medium mt-0.5">Uploading</span>
+                          </div>
+                        ) : (
+                          <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
                             <Camera className="h-5 w-5 text-white" />
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoUpload}
-                            className="hidden"
-                            disabled={uploadingPhoto}
-                          />
-                        </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-gray-100">{profile.organizationName}</p>
-                        <label className="inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 cursor-pointer hover:text-purple-800 dark:hover:text-purple-300 mt-1">
-                          <Camera className="h-3 w-3" />
-                          {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                        <label className={`inline-flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400 cursor-pointer hover:text-purple-800 dark:hover:text-purple-300 mt-1 ${uploadingPhoto ? 'opacity-60 pointer-events-none' : ''}`}>
+                          {uploadingPhoto ? (
+                            <><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</>
+                          ) : (
+                            <><Camera className="h-3 w-3" /> Change Photo</>
+                          )}
                           <input
                             type="file"
                             accept="image/*"

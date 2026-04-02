@@ -263,23 +263,26 @@ export default function ArtistEditProfile() {
               <div className="flex items-center gap-6">
                 <div
                   className="relative w-24 h-24 rounded-lg overflow-hidden bg-muted flex items-center justify-center cursor-pointer group"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => !uploadPhoto.isPending && fileInputRef.current?.click()}
                 >
                   {profilePhotoUrl ? (
                     <img
                       src={profilePhotoUrl}
                       alt="Profile"
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-opacity ${uploadPhoto.isPending ? 'opacity-40' : ''}`}
                     />
                   ) : (
                     <Camera className="h-8 w-8 text-muted-foreground" />
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Camera className="h-6 w-6 text-white" />
-                  </div>
+                  {!uploadPhoto.isPending && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera className="h-6 w-6 text-white" />
+                    </div>
+                  )}
                   {uploadPhoto.isPending && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1">
                       <Loader2 className="h-6 w-6 text-white animate-spin" />
+                      <span className="text-[10px] text-white font-medium">Uploading</span>
                     </div>
                   )}
                 </div>
@@ -289,8 +292,13 @@ export default function ArtistEditProfile() {
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadPhoto.isPending}
+                    className="gap-2"
                   >
-                    {uploadPhoto.isPending ? "Uploading..." : "Change Photo"}
+                    {uploadPhoto.isPending ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</>
+                    ) : (
+                      profilePhotoUrl ? "Change Photo" : "Upload Photo"
+                    )}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1">JPEG, PNG, or WebP. Max 5MB.</p>
                 </div>

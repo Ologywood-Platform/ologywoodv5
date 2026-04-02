@@ -170,15 +170,23 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
                 <img
                   src={coverImagePreview}
                   alt="Event flyer preview"
-                  className="w-full h-48 object-cover"
+                  className={`w-full h-48 object-cover transition-opacity ${uploadMediaMutation.isPending ? 'opacity-40' : ''}`}
                 />
-                <button
-                  type="button"
-                  onClick={removeCoverImage}
-                  className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black/80 transition"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                {uploadMediaMutation.isPending && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    <span className="text-sm text-white font-medium mt-2">Uploading flyer...</span>
+                  </div>
+                )}
+                {!uploadMediaMutation.isPending && (
+                  <button
+                    type="button"
+                    onClick={removeCoverImage}
+                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1.5 hover:bg-black/80 transition"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             ) : (
               <div

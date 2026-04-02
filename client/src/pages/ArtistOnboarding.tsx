@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 
@@ -186,10 +186,7 @@ export default function ArtistOnboarding() {
 
   const progress = (currentStep / totalSteps) * 100;
 
-  // Show skeleton while mutations are pending
-  if (uploadPhoto.isPending || createProfile.isPending) {
-    return <SkeletonOnboarding />;
-  }
+  const isSubmitting = uploadPhoto.isPending || createProfile.isPending;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
@@ -264,9 +261,15 @@ export default function ArtistOnboarding() {
                       <img 
                         src={profilePhotoPreview} 
                         alt="Profile preview" 
-                        className="h-24 w-24 rounded-full object-cover border-2 border-primary"
+                        className={`h-24 w-24 rounded-full object-cover border-2 border-primary transition-opacity ${uploadPhoto.isPending ? 'opacity-40' : ''}`}
                       />
-                      {profilePhotoUrl && (
+                      {uploadPhoto.isPending && (
+                        <div className="absolute inset-0 h-24 w-24 rounded-full bg-black/50 flex flex-col items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                          <span className="text-[10px] text-white font-medium mt-1">Uploading</span>
+                        </div>
+                      )}
+                      {profilePhotoUrl && !uploadPhoto.isPending && (
                         <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
                           <Check className="h-3 w-3 text-white" />
                         </div>
@@ -294,9 +297,13 @@ export default function ArtistOnboarding() {
                         size="sm" 
                         onClick={handleUploadPhoto}
                         disabled={uploadPhoto.isPending}
-                        className="mt-2"
+                        className="mt-2 gap-2"
                       >
-                        {uploadPhoto.isPending ? "Uploading..." : "Upload Photo"}
+                        {uploadPhoto.isPending ? (
+                          <><Loader2 className="h-3 w-3 animate-spin" /> Uploading...</>
+                        ) : (
+                          "Upload Photo"
+                        )}
                       </Button>
                     )}
                   </div>
@@ -471,9 +478,9 @@ export default function ArtistOnboarding() {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={createProfile.isPending}>
-                {createProfile.isPending ? (
-                  "Creating..."
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {uploadPhoto.isPending ? 'Uploading Photo...' : 'Creating Profile...'}</>
                 ) : (
                   <>
                     <Check className="h-4 w-4 mr-2" />

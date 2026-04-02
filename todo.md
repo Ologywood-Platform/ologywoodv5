@@ -2031,3 +2031,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added TestModeBadge to MyBookings page (above header)
 - [x] Added TestModeBadge to BookingDetail page (above PaymentSection)
 - [x] 0 TypeScript errors
+
+## PROFILE PHOTO UPLOAD LOADING INDICATOR
+- [x] Add improved loading indicator for artist profile photo upload (ArtistEditProfile) — spinner overlay + "Uploading" text on photo, spinner on button
+- [x] Add improved loading indicator for artist onboarding photo upload (ArtistOnboarding) — spinner overlay on photo, removed jarring skeleton loader
+- [x] Add improved loading indicator for venue profile photo upload (VenueDashboard edit + view mode) — spinner overlay + "Uploading" text
+- [x] Add improved loading indicator for venue gallery upload buttons — spinner on both main and empty state buttons
+- [x] Add improved loading indicator for event flyer upload (ArtistEventPostForm) — spinner overlay on image preview
+- [x] Verified: PhotoUploadGallery already has good spinner in upload tile
+- [x] Verified: PerformanceVideoUpload already has progress bar + percentage
