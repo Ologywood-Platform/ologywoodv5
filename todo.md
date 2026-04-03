@@ -2059,3 +2059,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integrate cropper into ArtistOnboarding photo upload
 - [x] Ensure cropped image is uploaded to S3 (not the original)
 - [x] Test end-to-end flow — TypeScript clean, dev server running
+
+## VENUE IMAGE CROPPER (Apr 2, 2026)
+- [x] Integrate ImageCropper into VenueDashboard profile photo upload (edit mode)
+- [x] Integrate ImageCropper into VenueDashboard profile photo upload (view mode)
+- [x] VenueOnboarding does not have photo upload — no changes needed
+- [x] Test and verify TypeScript clean — 0 errors

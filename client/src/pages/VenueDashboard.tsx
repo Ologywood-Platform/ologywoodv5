@@ -10,6 +10,7 @@ import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, 
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
+import ImageCropper from '../components/ImageCropper';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -30,6 +31,8 @@ export function VenueDashboard() {
     operatingHours: '',
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [editingCaption, setEditingCaption] = useState<string | null>(null);
   const [captionText, setCaptionText] = useState('');
@@ -136,7 +139,7 @@ export function VenueDashboard() {
     },
   });
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -152,17 +155,36 @@ export function VenueDashboard() {
       return;
     }
 
+    // Open cropper instead of uploading directly
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCropperImage(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setShowCropper(false);
+    setCropperImage(null);
     setUploadingPhoto(true);
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
       uploadPhotoMutation.mutate({
         fileData: base64,
-        fileName: file.name,
-        mimeType: file.type,
+        fileName: 'venue-profile-photo.jpg',
+        mimeType: 'image/jpeg',
       });
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedBlob);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperImage(null);
   };
 
   const handleProfileUpdate = async () => {
@@ -945,7 +967,7 @@ export function VenueDashboard() {
                               <input
                                 type="file"
                                 accept="image/*"
-                                onChange={handlePhotoUpload}
+                                onChange={handlePhotoSelect}
                                 className="hidden"
                               />
                             </label>
@@ -961,7 +983,7 @@ export function VenueDashboard() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={handlePhotoUpload}
+                              onChange={handlePhotoSelect}
                               className="hidden"
                               disabled={uploadingPhoto}
                             />
@@ -1151,7 +1173,7 @@ export function VenueDashboard() {
                             <input
                               type="file"
                               accept="image/*"
-                              onChange={handlePhotoUpload}
+                              onChange={handlePhotoSelect}
                               className="hidden"
                             />
                           </label>
@@ -1168,7 +1190,7 @@ export function VenueDashboard() {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={handlePhotoUpload}
+                            onChange={handlePhotoSelect}
                             className="hidden"
                             disabled={uploadingPhoto}
                           />
@@ -1392,6 +1414,17 @@ export function VenueDashboard() {
         <RiderViewerModal
           bookingId={viewingRiderBookingId}
           onClose={() => setViewingRiderBookingId(null)}
+        />
+      )}
+
+      {/* Image Cropper Modal */}
+      {showCropper && cropperImage && (
+        <ImageCropper
+          imageSrc={cropperImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={1}
+          cropShape="round"
         />
       )}
     </div>
