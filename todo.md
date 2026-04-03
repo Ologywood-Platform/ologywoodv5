@@ -2076,3 +2076,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update public ArtistProfile page to display new streaming links with icons
 - [x] Update server-side updateProfile to accept new fields (updateProfile + createProfile schemas)
 - [x] Test and verify TypeScript clean — 0 errors
+- [x] Move Spotify from Social Links to Streaming Services section (ArtistEditProfile, ArtistOnboarding, ArtistProfile)

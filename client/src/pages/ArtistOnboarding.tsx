@@ -478,6 +478,10 @@ export default function ArtistOnboarding() {
                 />
               </div>
 
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-medium mb-3">Streaming Services</h4>
+              </div>
+
               <div>
                 <Label htmlFor="spotify">Spotify</Label>
                 <Input
@@ -488,10 +492,6 @@ export default function ArtistOnboarding() {
                   placeholder="https://open.spotify.com/artist/..."
                   className="mt-1"
                 />
-              </div>
-
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-3">More Streaming Services</h4>
               </div>
 
               <div>
