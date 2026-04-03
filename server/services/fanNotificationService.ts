@@ -1,21 +1,16 @@
 /**
  * Fan Notification Service
  * Sends email notifications to fans when artists create events or update their profiles.
- * Uses SendGrid for email delivery with branded templates.
+ * Uses the shared sendEmail() function which routes through Forge API with SendGrid fallback.
  * Respects email preferences and includes unsubscribe links.
  */
 
-import sgMail from '@sendgrid/mail';
+import { sendEmail } from '../email';
 import { getDb } from '../db';
 import { follows, users, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
-const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@ologywood.com';
 const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
-
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
 
 interface FanNotificationRecipient {
   id: number;
@@ -123,11 +118,6 @@ export async function notifyFansNewEvent(
 ): Promise<{ sent: number; failed: number }> {
   const result = { sent: 0, failed: 0 };
 
-  if (!process.env.SENDGRID_API_KEY) {
-    console.log('[FanNotification] SendGrid not configured, skipping fan notifications');
-    return result;
-  }
-
   try {
     const [fans, artistInfo] = await Promise.all([
       getArtistFans(artistUserId),
@@ -153,47 +143,52 @@ export async function notifyFansNewEvent(
 
     for (const fan of fans) {
       try {
-        const message = {
-          to: fan.email,
-          from: SENDGRID_FROM_EMAIL,
-          subject: `🎵 ${artistName} has a new event: ${eventDetails.eventTitle}`,
-          html: `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-              ${getEmailHeader()}
-              <div style="padding: 30px 24px;">
-                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
-                
-                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                  <strong>${artistName}</strong>, an artist you follow, just announced a new event!
-                </p>
+        const html = `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            ${getEmailHeader()}
+            <div style="padding: 30px 24px;">
+              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
+              
+              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+                <strong>${artistName}</strong>, an artist you follow, just announced a new event!
+              </p>
 
-                <div style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
-                  <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 20px;">${eventDetails.eventTitle}</h3>
-                  <p style="color: #4b5563; margin: 0 0 8px 0;">
-                    <strong>📅 Date:</strong> ${eventDetails.eventDate}
+              <div style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+                <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 20px;">${eventDetails.eventTitle}</h3>
+                <p style="color: #4b5563; margin: 0 0 8px 0;">
+                  <strong>Date:</strong> ${eventDetails.eventDate}
+                </p>
+                ${eventDetails.eventLocation ? `
+                  <p style="color: #4b5563; margin: 0;">
+                    <strong>Location:</strong> ${eventDetails.eventLocation}
                   </p>
-                  ${eventDetails.eventLocation ? `
-                    <p style="color: #4b5563; margin: 0;">
-                      <strong>📍 Location:</strong> ${eventDetails.eventLocation}
-                    </p>
-                  ` : ''}
-                </div>
-
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${eventUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Event Details</a>
-                </div>
-
-                <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
-                  Don't miss out — check out the event and book your spot!
-                </p>
+                ` : ''}
               </div>
-              ${getEmailFooter(fan.id)}
-            </div>
-          `,
-        };
 
-        await sgMail.send(message as any);
-        result.sent++;
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${eventUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Event Details</a>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+                Don't miss out — check out the event and book your spot!
+              </p>
+            </div>
+            ${getEmailFooter(fan.id)}
+          </div>
+        `;
+
+        const success = await sendEmail({
+          to: fan.email,
+          subject: `${artistName} has a new event: ${eventDetails.eventTitle}`,
+          html,
+        });
+
+        if (success) {
+          result.sent++;
+        } else {
+          console.error(`[FanNotification] sendEmail returned false for ${fan.email}`);
+          result.failed++;
+        }
       } catch (error) {
         console.error(`[FanNotification] Failed to send to ${fan.email}:`, error);
         result.failed++;
@@ -220,11 +215,6 @@ export async function notifyFansProfileUpdate(
 ): Promise<{ sent: number; failed: number }> {
   const result = { sent: 0, failed: 0 };
 
-  if (!process.env.SENDGRID_API_KEY) {
-    console.log('[FanNotification] SendGrid not configured, skipping fan notifications');
-    return result;
-  }
-
   try {
     const [fans, artistInfo] = await Promise.all([
       getArtistFans(artistUserId),
@@ -246,35 +236,40 @@ export async function notifyFansProfileUpdate(
 
     for (const fan of fans) {
       try {
-        const message = {
-          to: fan.email,
-          from: SENDGRID_FROM_EMAIL,
-          subject: `${artistName} updated their profile on Ologywood`,
-          html: `
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-              ${getEmailHeader()}
-              <div style="padding: 30px 24px;">
-                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
-                
-                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                  <strong>${artistName}</strong>, an artist you follow, has updated their profile.
-                </p>
+        const html = `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            ${getEmailHeader()}
+            <div style="padding: 30px 24px;">
+              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
+              
+              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+                <strong>${artistName}</strong>, an artist you follow, has updated their profile.
+              </p>
 
-                <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
-                  <p style="color: #4b5563; margin: 0; font-size: 15px;">${updateDetails.summary}</p>
-                </div>
-
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${artistProfileUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Profile</a>
-                </div>
+              <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
+                <p style="color: #4b5563; margin: 0; font-size: 15px;">${updateDetails.summary}</p>
               </div>
-              ${getEmailFooter(fan.id)}
-            </div>
-          `,
-        };
 
-        await sgMail.send(message as any);
-        result.sent++;
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${artistProfileUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Profile</a>
+              </div>
+            </div>
+            ${getEmailFooter(fan.id)}
+          </div>
+        `;
+
+        const success = await sendEmail({
+          to: fan.email,
+          subject: `${artistName} updated their profile on Ologywood`,
+          html,
+        });
+
+        if (success) {
+          result.sent++;
+        } else {
+          console.error(`[FanNotification] sendEmail returned false for ${fan.email}`);
+          result.failed++;
+        }
       } catch (error) {
         console.error(`[FanNotification] Failed to send to ${fan.email}:`, error);
         result.failed++;

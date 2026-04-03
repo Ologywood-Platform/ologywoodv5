@@ -2040,3 +2040,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add improved loading indicator for event flyer upload (ArtistEventPostForm) — spinner overlay on image preview
 - [x] Verified: PhotoUploadGallery already has good spinner in upload tile
 - [x] Verified: PerformanceVideoUpload already has progress bar + percentage
+
+## FAN EMAIL SENDING BUG (Apr 2, 2026)
+- [x] Investigate why sending email to fans fails and shows 'failed' in history
+- [x] Check SendGrid configuration and API key
+- [x] Check email sending endpoint and error handling
+- [x] Fix the root cause — artistUpdateService and fanNotificationService were using sgMail directly instead of shared sendEmail()
+- [x] Test email sending — 43 tests passing, TypeScript clean

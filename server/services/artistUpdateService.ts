@@ -4,17 +4,12 @@
  * Rate limited to 1 update per day per artist.
  */
 
-import sgMail from '@sendgrid/mail';
+import { sendEmail } from '../email';
 import { getDb } from '../db';
 import { follows, users, artistProfiles, artistUpdates } from '../../drizzle/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
 
-const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@ologywood.com';
 const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
-
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
 
 interface FanRecipient {
   id: number;
@@ -185,6 +180,7 @@ function buildUpdateEmail(
 
 /**
  * Send an update email blast to all fans
+ * Uses the shared sendEmail() function which routes through Forge API with SendGrid fallback.
  */
 export async function sendArtistUpdate(
   artistUserId: number,
@@ -221,7 +217,7 @@ export async function sendArtistUpdate(
   const updateId = (insertResult as any)[0]?.insertId || (insertResult as any).insertId || 0;
 
   if (fans.length === 0) {
-    // No fans to send to
+    // No fans to send to — mark as sent with zero counts
     await db
       .update(artistUpdates)
       .set({ status: 'sent', sentCount: 0, failedCount: 0 })
@@ -233,29 +229,24 @@ export async function sendArtistUpdate(
   let sentCount = 0;
   let failedCount = 0;
 
-  if (!process.env.SENDGRID_API_KEY) {
-    console.log('[ArtistUpdate] SendGrid not configured, skipping email delivery');
-    await db
-      .update(artistUpdates)
-      .set({ status: 'sent', sentCount: 0, failedCount: fans.length })
-      .where(eq(artistUpdates.id, updateId));
-
-    return { updateId, recipientCount: fans.length, sentCount: 0, failedCount: fans.length };
-  }
-
-  // Send emails to each fan
+  // Send emails to each fan using the shared sendEmail function
   for (const fan of fans) {
     try {
       const html = buildUpdateEmail(fan.name, fan.id, artistName, artistProfileId, subject, body);
-      const message = {
-        to: fan.email,
-        from: SENDGRID_FROM_EMAIL,
-        subject: `${artistName}: ${subject}`,
-        html,
-      };
+      const emailSubject = `${artistName}: ${subject}`;
 
-      await sgMail.send(message as any);
-      sentCount++;
+      const success = await sendEmail({
+        to: fan.email,
+        subject: emailSubject,
+        html,
+      });
+
+      if (success) {
+        sentCount++;
+      } else {
+        console.error(`[ArtistUpdate] sendEmail returned false for ${fan.email}`);
+        failedCount++;
+      }
     } catch (error) {
       console.error(`[ArtistUpdate] Failed to send to ${fan.email}:`, error);
       failedCount++;
@@ -263,7 +254,7 @@ export async function sendArtistUpdate(
   }
 
   // Update the record with final counts
-  const finalStatus = failedCount === fans.length ? 'failed' : 'sent';
+  const finalStatus = failedCount === fans.length ? 'failed' : sentCount > 0 ? 'sent' : 'failed';
   await db
     .update(artistUpdates)
     .set({ status: finalStatus as any, sentCount, failedCount })

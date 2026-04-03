@@ -58,9 +58,9 @@ describe('Artist Updates - Service Layer', () => {
     expect(serviceContent).toContain('24 * 60 * 60 * 1000');
   });
 
-  it('should use SendGrid for email delivery', () => {
-    expect(serviceContent).toContain("sgMail");
-    expect(serviceContent).toContain("SENDGRID_API_KEY");
+  it('should use the shared sendEmail function for email delivery', () => {
+    expect(serviceContent).toContain("sendEmail");
+    expect(serviceContent).toContain("import { sendEmail } from '../email'");
   });
 
   it('should include unsubscribe link in emails', () => {
@@ -91,8 +91,8 @@ describe('Artist Updates - Service Layer', () => {
     expect(serviceContent).toContain('fans.length === 0');
   });
 
-  it('should handle case when SendGrid is not configured', () => {
-    expect(serviceContent).toContain("!process.env.SENDGRID_API_KEY");
+  it('should handle case when sendEmail returns false', () => {
+    expect(serviceContent).toContain("sendEmail returned false");
   });
 });
 
