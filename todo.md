@@ -2047,3 +2047,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Check email sending endpoint and error handling
 - [x] Fix the root cause — artistUpdateService and fanNotificationService were using sgMail directly instead of shared sendEmail()
 - [x] Test email sending — 43 tests passing, TypeScript clean
+
+## END-TO-END EMAIL TEST (Apr 2, 2026)
+- [x] Send test emails for ALL email functions to garychisolm30@gmail.com — 25/25 SUCCESS
+- [x] Verify all emails are delivered successfully via SendGrid
+
+## IMAGE CROPPER / FRAMING TOOL (Apr 2, 2026)
+- [x] Install react-easy-crop library
+- [x] Build reusable ImageCropper component with drag, zoom, and crop
+- [x] Integrate cropper into ArtistEditProfile photo upload
+- [x] Integrate cropper into ArtistOnboarding photo upload
+- [x] Ensure cropped image is uploaded to S3 (not the original)
+- [x] Test end-to-end flow — TypeScript clean, dev server running

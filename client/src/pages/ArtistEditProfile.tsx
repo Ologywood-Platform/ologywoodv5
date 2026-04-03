@@ -12,6 +12,7 @@ import { ArrowLeft, Camera, Save, X, Plus, Loader2, Globe } from "lucide-react";
 import { TipQRPreview } from "@/components/TipQRCode";
 import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
+import ImageCropper from "@/components/ImageCropper";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 
 const GENRE_OPTIONS = [
@@ -25,6 +26,8 @@ export default function ArtistEditProfile() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   // Fetch existing profile
   const { data: profile, isLoading, refetch } = trpc.artist.getMyProfile.useQuery(undefined, {
@@ -151,7 +154,7 @@ export default function ArtistEditProfile() {
     );
   }
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
@@ -160,14 +163,32 @@ export default function ArtistEditProfile() {
     }
     const reader = new FileReader();
     reader.onload = () => {
+      setCropperImage(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setShowCropper(false);
+    setCropperImage(null);
+    const reader = new FileReader();
+    reader.onload = () => {
       const base64 = reader.result as string;
       uploadPhoto.mutate({
         fileData: base64,
-        fileName: file.name,
-        mimeType: file.type,
+        fileName: 'profile-photo.jpg',
+        mimeType: 'image/jpeg',
       });
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedBlob);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperImage(null);
   };
 
   const toggleGenre = (genre: string) => {
@@ -307,7 +328,7 @@ export default function ArtistEditProfile() {
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="hidden"
-                  onChange={handlePhotoUpload}
+                  onChange={handlePhotoSelect}
                 />
               </div>
             </CardContent>
@@ -598,6 +619,17 @@ export default function ArtistEditProfile() {
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showCropper && cropperImage && (
+        <ImageCropper
+          imageSrc={cropperImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={1}
+          cropShape="round"
+        />
+      )}
     </div>
   );
 }

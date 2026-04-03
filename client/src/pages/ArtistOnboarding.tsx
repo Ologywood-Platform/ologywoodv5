@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Music, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
+import ImageCropper from "@/components/ImageCropper";
 
 export default function ArtistOnboarding() {
   const { user } = useAuth();
@@ -38,6 +39,8 @@ export default function ArtistOnboarding() {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   // Step 2: Genre & Performance Details
   const [genreInput, setGenreInput] = useState("");
@@ -97,15 +100,35 @@ export default function ArtistOnboarding() {
         return;
       }
       
-      setProfilePhoto(file);
-      
-      // Create preview
+      // Open cropper instead of setting directly
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePhotoPreview(reader.result as string);
+        setCropperImage(reader.result as string);
+        setShowCropper(true);
       };
       reader.readAsDataURL(file);
+      // Reset input so same file can be re-selected
+      e.target.value = '';
     }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setShowCropper(false);
+    setCropperImage(null);
+    // Create a File from the cropped blob
+    const croppedFile = new File([croppedBlob], 'profile-photo.jpg', { type: 'image/jpeg' });
+    setProfilePhoto(croppedFile);
+    // Create preview from cropped image
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfilePhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(croppedBlob);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperImage(null);
   };
 
   const handleUploadPhoto = async (): Promise<string | null> => {
@@ -492,6 +515,16 @@ export default function ArtistOnboarding() {
           </div>
         </CardContent>
       </Card>
+      {/* Image Cropper Modal */}
+      {showCropper && cropperImage && (
+        <ImageCropper
+          imageSrc={cropperImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={1}
+          cropShape="round"
+        />
+      )}
     </div>
   );
 }
