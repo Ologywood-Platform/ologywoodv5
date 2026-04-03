@@ -70,6 +70,10 @@ export default function ArtistEditProfile() {
   const [youtube, setYoutube] = useState("");
   const [spotify, setSpotify] = useState("");
   const [twitter, setTwitter] = useState("");
+  const [appleMusic, setAppleMusic] = useState("");
+  const [tidal, setTidal] = useState("");
+  const [soundcloud, setSoundcloud] = useState("");
+  const [otherStreaming, setOtherStreaming] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [customGenre, setCustomGenre] = useState("");
   // Tip links state
@@ -97,6 +101,10 @@ export default function ArtistEditProfile() {
         setYoutube(social.youtube || "");
         setSpotify(social.spotify || "");
         setTwitter(social.twitter || "");
+        setAppleMusic(social.appleMusic || "");
+        setTidal(social.tidal || "");
+        setSoundcloud(social.soundcloud || "");
+        setOtherStreaming(social.otherStreaming || "");
       }
       const tips = profile.tipLinks as any;
       if (tips) {
@@ -226,6 +234,10 @@ export default function ArtistEditProfile() {
         youtube: youtube.trim() || undefined,
         spotify: spotify.trim() || undefined,
         twitter: twitter.trim() || undefined,
+        appleMusic: appleMusic.trim() || undefined,
+        tidal: tidal.trim() || undefined,
+        soundcloud: soundcloud.trim() || undefined,
+        otherStreaming: otherStreaming.trim() || undefined,
       },
       tipLinks: {
         cashapp: cashapp.trim() || undefined,
@@ -523,6 +535,67 @@ export default function ArtistEditProfile() {
                   value={twitter}
                   onChange={(e) => setTwitter(e.target.value)}
                   placeholder="https://twitter.com/yourhandle"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Streaming Services */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <svg className="h-5 w-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                Streaming Services
+              </CardTitle>
+              <CardDescription>Link your music streaming profiles so fans and venues can listen to your work</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="appleMusic" className="flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="#FA243C"><path d="M23.994 6.124a9.23 9.23 0 00-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043a5.022 5.022 0 00-1.877-.726 10.496 10.496 0 00-1.564-.15c-.04-.003-.083-.01-.124-.013H5.986c-.152.01-.303.017-.455.026-.747.043-1.49.123-2.193.4-1.336.53-2.3 1.452-2.865 2.78-.192.448-.292.925-.363 1.408-.056.392-.088.785-.1 1.18 0 .032-.007.062-.01.093v12.223c.01.14.017.283.027.424.05.815.154 1.624.497 2.373.65 1.42 1.738 2.353 3.234 2.802.42.127.856.187 1.293.228.555.053 1.11.06 1.667.06h11.03c.525 0 1.048-.034 1.57-.1.823-.106 1.597-.35 2.296-.81a5.046 5.046 0 001.88-2.207c.186-.42.293-.862.358-1.31.083-.59.105-1.18.108-1.772.003-3.413.002-6.828.002-10.242zM17.7 18.09c0 .36-.072.71-.21 1.04-.27.64-.71 1.09-1.34 1.35-.39.16-.8.24-1.22.27-.65.04-1.3.01-1.9-.27-.78-.37-1.18-1.03-1.18-1.89V11.5c0-.12.01-.24.04-.36.09-.38.3-.67.66-.84.23-.11.49-.15.74-.17.37-.02.73 0 1.08.11.56.17.91.52 1.04 1.09.04.17.06.35.06.53v6.23zm-.07-9.93c-.03.42-.17.81-.43 1.15-.38.5-.89.78-1.51.87-.25.04-.5.04-.75.02-.55-.05-1.03-.26-1.41-.66-.3-.31-.47-.69-.53-1.12-.04-.25-.04-.5-.02-.76.05-.56.26-1.04.67-1.42.34-.32.75-.5 1.2-.56.25-.03.5-.03.75-.01.56.06 1.04.27 1.42.68.31.33.48.73.53 1.18.02.13.03.26.03.39v.24z"/></svg>
+                  Apple Music
+                </Label>
+                <Input
+                  id="appleMusic"
+                  value={appleMusic}
+                  onChange={(e) => setAppleMusic(e.target.value)}
+                  placeholder="https://music.apple.com/artist/..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="tidal" className="flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="#000000"><path d="M12 0L8 4l4 4-4 4 4 4 4-4-4-4 4-4-4-4zm-8 4l4 4-4 4 4 4-4-4-4 4 4-4-4-4 4-4zm16 0l-4 4 4 4-4 4 4-4 4 4-4-4 4-4-4-4z"/></svg>
+                  Tidal
+                </Label>
+                <Input
+                  id="tidal"
+                  value={tidal}
+                  onChange={(e) => setTidal(e.target.value)}
+                  placeholder="https://tidal.com/artist/..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="soundcloud" className="flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="#FF5500"><path d="M1.175 12.225c-.051 0-.094.046-.101.1l-.233 2.154.233 2.105c.007.058.05.098.101.098.05 0 .09-.04.099-.098l.255-2.105-.27-2.154c-.009-.06-.05-.1-.1-.1m-.899.828c-.06 0-.091.037-.104.094L0 14.479l.172 1.282c.013.06.045.094.104.094.057 0 .09-.035.104-.094l.2-1.282-.2-1.332c-.014-.057-.047-.094-.104-.094m1.8-1.18c-.066 0-.108.046-.118.1l-.213 2.506.213 2.41c.01.057.052.1.118.1.063 0 .108-.043.116-.1l.24-2.41-.24-2.506c-.008-.054-.053-.1-.116-.1m.899-.395c-.073 0-.12.046-.127.1l-.195 2.9.195 2.56c.007.058.054.1.127.1.07 0 .12-.042.126-.1l.22-2.56-.22-2.9c-.006-.054-.056-.1-.126-.1m.9-.432c-.08 0-.127.046-.133.1l-.18 3.332.18 2.66c.006.06.053.1.133.1.076 0 .127-.04.131-.1l.202-2.66-.202-3.332c-.004-.054-.055-.1-.131-.1m.891-.567c-.084 0-.135.05-.14.11l-.16 3.899.16 2.727c.005.06.056.11.14.11.08 0 .135-.05.139-.11l.18-2.727-.18-3.899c-.004-.06-.059-.11-.14-.11m.9-.39c-.09 0-.14.05-.146.11l-.143 4.289.143 2.76c.006.06.056.11.146.11.087 0 .14-.05.145-.11l.16-2.76-.16-4.289c-.005-.06-.058-.11-.145-.11m.89-.238c-.1 0-.148.05-.153.11l-.128 4.527.128 2.78c.005.06.053.11.153.11.094 0 .148-.05.152-.11l.14-2.78-.14-4.527c-.004-.06-.058-.11-.152-.11m.904-.13c-.1 0-.155.054-.159.116l-.112 4.657.112 2.8c.004.06.059.116.159.116.096 0 .155-.056.158-.116l.125-2.8-.125-4.657c-.003-.062-.062-.116-.158-.116m.89.05c-.11 0-.163.054-.166.116l-.098 4.49.098 2.81c.003.06.056.116.166.116.104 0 .163-.056.165-.116l.11-2.81-.11-4.49c-.002-.062-.06-.116-.165-.116m.9.1c-.11 0-.168.058-.17.12l-.084 4.39.084 2.81c.002.06.06.12.17.12.107 0 .168-.06.17-.12l.093-2.81-.093-4.39c-.002-.062-.063-.12-.17-.12m5.1 1.677c-.475 0-.905.186-1.225.487a6.652 6.652 0 00-6.635-6.14c-.476 0-.943.054-1.394.154-.165.037-.22.075-.222.15v12.18c.002.077.06.14.14.153h9.336a2.46 2.46 0 002.46-2.46 2.46 2.46 0 00-2.46-2.46"/></svg>
+                  SoundCloud
+                </Label>
+                <Input
+                  id="soundcloud"
+                  value={soundcloud}
+                  onChange={(e) => setSoundcloud(e.target.value)}
+                  placeholder="https://soundcloud.com/yourprofile"
+                />
+              </div>
+              <div>
+                <Label htmlFor="otherStreaming" className="flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  Other Streaming Link
+                </Label>
+                <Input
+                  id="otherStreaming"
+                  value={otherStreaming}
+                  onChange={(e) => setOtherStreaming(e.target.value)}
+                  placeholder="https://bandcamp.com/... or any other streaming URL"
                 />
               </div>
             </CardContent>

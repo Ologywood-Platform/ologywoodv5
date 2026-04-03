@@ -309,6 +309,10 @@ export const appRouter = router({
           youtube: z.string().optional(),
           spotify: z.string().optional(),
           twitter: z.string().optional(),
+          appleMusic: z.string().optional(),
+          tidal: z.string().optional(),
+          soundcloud: z.string().optional(),
+          otherStreaming: z.string().optional(),
         }).optional(),
         tipLinks: z.object({
           cashapp: z.string().optional(),
@@ -375,6 +379,10 @@ export const appRouter = router({
           facebook: z.string().optional(),
           youtube: z.string().optional(),
           spotify: z.string().optional(),
+          appleMusic: z.string().optional(),
+          tidal: z.string().optional(),
+          soundcloud: z.string().optional(),
+          otherStreaming: z.string().optional(),
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {

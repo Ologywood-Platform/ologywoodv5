@@ -2065,3 +2065,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integrate ImageCropper into VenueDashboard profile photo upload (view mode)
 - [x] VenueOnboarding does not have photo upload — no changes needed
 - [x] Test and verify TypeScript clean — 0 errors
+
+## STREAMING SERVICE LINKS (Apr 2, 2026)
+- [x] Add Apple Music field to artist social links
+- [x] Add Tidal field to artist social links
+- [x] Add SoundCloud field to artist social links
+- [x] Add generic Other Streaming Link field to artist social links
+- [x] Update ArtistEditProfile form with new streaming fields
+- [x] Update ArtistOnboarding form with new streaming fields
+- [x] Update public ArtistProfile page to display new streaming links with icons
+- [x] Update server-side updateProfile to accept new fields (updateProfile + createProfile schemas)
+- [x] Test and verify TypeScript clean — 0 errors

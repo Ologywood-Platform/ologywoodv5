@@ -55,6 +55,10 @@ export default function ArtistOnboarding() {
   const [facebook, setFacebook] = useState("");
   const [youtube, setYoutube] = useState("");
   const [spotify, setSpotify] = useState("");
+  const [appleMusic, setAppleMusic] = useState("");
+  const [tidal, setTidal] = useState("");
+  const [soundcloud, setSoundcloud] = useState("");
+  const [otherStreaming, setOtherStreaming] = useState("");
 
   const uploadPhoto = trpc.artist.uploadProfilePhoto.useMutation({
     onSuccess: (data) => {
@@ -203,6 +207,10 @@ export default function ArtistOnboarding() {
         facebook: facebook || undefined,
         youtube: youtube || undefined,
         spotify: spotify || undefined,
+        appleMusic: appleMusic || undefined,
+        tidal: tidal || undefined,
+        soundcloud: soundcloud || undefined,
+        otherStreaming: otherStreaming || undefined,
       },
     });
   };
@@ -478,6 +486,58 @@ export default function ArtistOnboarding() {
                   value={spotify}
                   onChange={(e) => setSpotify(e.target.value)}
                   placeholder="https://open.spotify.com/artist/..."
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="pt-4 border-t">
+                <h4 className="text-sm font-medium mb-3">More Streaming Services</h4>
+              </div>
+
+              <div>
+                <Label htmlFor="appleMusic">Apple Music</Label>
+                <Input
+                  id="appleMusic"
+                  type="url"
+                  value={appleMusic}
+                  onChange={(e) => setAppleMusic(e.target.value)}
+                  placeholder="https://music.apple.com/artist/..."
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tidal">Tidal</Label>
+                <Input
+                  id="tidal"
+                  type="url"
+                  value={tidal}
+                  onChange={(e) => setTidal(e.target.value)}
+                  placeholder="https://tidal.com/artist/..."
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="soundcloud">SoundCloud</Label>
+                <Input
+                  id="soundcloud"
+                  type="url"
+                  value={soundcloud}
+                  onChange={(e) => setSoundcloud(e.target.value)}
+                  placeholder="https://soundcloud.com/yourprofile"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="otherStreaming">Other Streaming Link</Label>
+                <Input
+                  id="otherStreaming"
+                  type="url"
+                  value={otherStreaming}
+                  onChange={(e) => setOtherStreaming(e.target.value)}
+                  placeholder="https://bandcamp.com/... or any other streaming URL"
                   className="mt-1"
                 />
               </div>
