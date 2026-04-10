@@ -21,6 +21,7 @@ import videoUploadRoutes from './routes/videoUpload';
 import path from 'path';
 import http from 'http';
 import { ogMetaInjectionMiddleware, venueOgMetaInjectionMiddleware, eventOgMetaInjectionMiddleware } from './middleware/ogMetaInjection';
+import ogImageProxyRouter from './middleware/ogImageProxy';
 
 /**
  * Initialize server with all middleware and services
@@ -58,6 +59,7 @@ async function initializeServer(): Promise<void> {
   app.use('/api/calendar', calendarFeedRoutes);
   app.use('/api/invoice', invoiceDownloadRoutes);
   app.use('/api/video', videoUploadRoutes);
+  app.use('/api/og-image', ogImageProxyRouter);
 
   // Serve static files from dist/public (after SEO routes)
   const publicPath = path.join(process.cwd(), 'dist', 'public');

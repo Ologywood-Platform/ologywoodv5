@@ -2094,3 +2094,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Adonis artist profile redirects to home page when clicked from Browse
 - [x] Root cause: A protected tRPC query fires on certain artist profiles, global error handler in main.tsx was redirecting ALL 401 errors to home page — even on public pages
 - [x] Fix: Updated redirectToLoginIfUnauthorized to skip redirect on public routes (/artist/:id, /venue/:id, /browse, /events, etc.)
+
+## TWITTER/SOCIAL SHARING OG META BUG (Apr 10, 2026)
+- [x] Fix: Twitter sharing only shows profile image for G.Chizo, not other artists
+- [x] Root cause: Image optimization saves as WebP, Twitter doesn't reliably support WebP in cards
+- [x] Added /api/og-image/artist/:id proxy that converts any image to JPEG for social crawlers
+- [x] Updated OG meta injection to use proxy URLs instead of raw CloudFront WebP URLs
+- [x] Also added venue image proxy at /api/og-image/venue/:id

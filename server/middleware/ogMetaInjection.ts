@@ -102,7 +102,12 @@ export function ogMetaInjectionMiddleware(publicPath: string) {
       const genre = (artist as any).genre || '';
       const bio = (artist as any).bio || '';
       const location = (artist as any).location || '';
-      const profilePhoto = (artist as any).profilePhotoUrl || DEFAULT_OG_IMAGE;
+      const rawProfilePhoto = (artist as any).profilePhotoUrl;
+      // Use the OG image proxy for artist photos to ensure JPEG format for Twitter/social media
+      // Falls back to default OG image if no profile photo
+      const profilePhoto = rawProfilePhoto 
+        ? `${BASE_URL}/api/og-image/artist/${artistId}`
+        : DEFAULT_OG_IMAGE;
       const profileUrl = `${BASE_URL}/artist/${artistId}`;
 
       // Build title and description
@@ -158,6 +163,10 @@ export function ogMetaInjectionMiddleware(publicPath: string) {
       html = html.replace(
         /<meta property="og:image" content=".*?" \/>/,
         `<meta property="og:image" content="${escapeHtml(profilePhoto)}" />`
+      );
+      html = html.replace(
+        /<meta property="og:image:type" content=".*?" \/>/,
+        `<meta property="og:image:type" content="image/jpeg" />`
       );
       html = html.replace(
         /<meta property="og:type" content=".*?" \/>/,
@@ -229,7 +238,10 @@ export function venueOgMetaInjectionMiddleware(publicPath: string) {
       const venueType = (venue as any).venueType || '';
       const description = (venue as any).description || '';
       const location = (venue as any).location || '';
-      const profilePhoto = (venue as any).profilePhotoUrl || DEFAULT_OG_IMAGE;
+      const rawProfilePhoto = (venue as any).profilePhotoUrl;
+      const profilePhoto = rawProfilePhoto 
+        ? `${BASE_URL}/api/og-image/venue/${venueId}`
+        : DEFAULT_OG_IMAGE;
       const profileUrl = `${BASE_URL}/venue/${venueId}`;
 
       const ogTitle = `${venueName} - ${SITE_NAME}`;
