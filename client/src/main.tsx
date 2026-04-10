@@ -19,6 +19,31 @@ const queryClient = new QueryClient({
   },
 });
 
+// Public routes where 401 errors should be silently ignored (not redirected)
+const PUBLIC_ROUTE_PATTERNS = [
+  /^\/artist\//,
+  /^\/venue\//,
+  /^\/browse/,
+  /^\/events/,
+  /^\/blog/,
+  /^\/pricing/,
+  /^\/how-it-works/,
+  /^\/faq/,
+  /^\/contact/,
+  /^\/terms/,
+  /^\/privacy/,
+  /^\/cookie/,
+  /^\/dmca/,
+  /^\/event\//,
+  /^\/release\//,
+  /^\/$/, // home page
+];
+
+const isPublicRoute = () => {
+  const path = window.location.pathname;
+  return PUBLIC_ROUTE_PATTERNS.some(pattern => pattern.test(path));
+};
+
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
@@ -26,6 +51,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
 
   if (!isUnauthorized) return;
+
+  // Don't redirect on public pages — just silently ignore the 401
+  if (isPublicRoute()) return;
 
   window.location.href = '/';
 };

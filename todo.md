@@ -2089,3 +2089,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Social media preview shows platform homepage instead of artist profile info
 - [x] Investigate server-side routing for /artist/:id paths — SPA fallback was serving homepage OG tags to crawlers
 - [x] Ensure Open Graph meta tags are set server-side for social crawlers — added ogMetaInjection middleware for artists, venues, and events
+
+## ADONIS PROFILE ROUTING BUG (Apr 10, 2026)
+- [x] Fix: Adonis artist profile redirects to home page when clicked from Browse
+- [x] Root cause: A protected tRPC query fires on certain artist profiles, global error handler in main.tsx was redirecting ALL 401 errors to home page — even on public pages
+- [x] Fix: Updated redirectToLoginIfUnauthorized to skip redirect on public routes (/artist/:id, /venue/:id, /browse, /events, etc.)
