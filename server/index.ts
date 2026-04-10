@@ -20,6 +20,7 @@ import invoiceDownloadRoutes from './routes/invoiceDownload';
 import videoUploadRoutes from './routes/videoUpload';
 import path from 'path';
 import http from 'http';
+import { ogMetaInjectionMiddleware, venueOgMetaInjectionMiddleware, eventOgMetaInjectionMiddleware } from './middleware/ogMetaInjection';
 
 /**
  * Initialize server with all middleware and services
@@ -125,6 +126,12 @@ async function initializeServer(): Promise<void> {
   });
 
 
+
+  // OG Meta Tag injection for social media crawlers (before SPA fallback)
+  // This ensures shared links show artist/venue/event previews on Facebook, Twitter, WhatsApp, iMessage, etc.
+  app.use(ogMetaInjectionMiddleware(publicPath));
+  app.use(venueOgMetaInjectionMiddleware(publicPath));
+  app.use(eventOgMetaInjectionMiddleware(publicPath));
 
   // Serve index.html for all other routes (SPA fallback) - MUST be last
   app.get('*', (req, res) => {

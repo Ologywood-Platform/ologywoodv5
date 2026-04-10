@@ -2077,3 +2077,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update server-side updateProfile to accept new fields (updateProfile + createProfile schemas)
 - [x] Test and verify TypeScript clean — 0 errors
 - [x] Move Spotify from Social Links to Streaming Services section (ArtistEditProfile, ArtistOnboarding, ArtistProfile)
+
+## SHARE PROFILE BUTTON (Apr 5, 2026)
+- [ ] Add Share Profile button to ArtistProfile page
+- [ ] Include Copy Link functionality
+- [ ] Include social media sharing (Facebook, Twitter/X, WhatsApp)
+- [ ] Test and verify TypeScript clean
+
+## SHARED ARTIST PROFILE ROUTING BUG (Apr 10, 2026)
+- [x] Fix: Shared artist profile links redirect to home page instead of artist profile
+- [x] Fix: Social media preview shows platform homepage instead of artist profile info
+- [x] Investigate server-side routing for /artist/:id paths — SPA fallback was serving homepage OG tags to crawlers
+- [x] Ensure Open Graph meta tags are set server-side for social crawlers — added ogMetaInjection middleware for artists, venues, and events
