@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-describe('OG Meta Injection Middleware', () => {
-  const middlewarePath = path.join(__dirname, '..', 'middleware', 'ogMetaInjection.ts');
+describe('OG Meta Tags Middleware (ogTags.ts)', () => {
+  const middlewarePath = path.join(__dirname, '..', 'middleware', 'ogTags.ts');
   const middlewareSrc = fs.readFileSync(middlewarePath, 'utf-8');
 
   describe('Crawler Detection', () => {
@@ -26,6 +26,7 @@ describe('OG Meta Injection Middleware', () => {
 
     it('should detect iMessage link preview', () => {
       expect(middlewareSrc).toContain('Applebot');
+      expect(middlewareSrc).toContain('iMessageLinkPreview');
     });
 
     it('should detect Discord crawler', () => {
@@ -38,6 +39,10 @@ describe('OG Meta Injection Middleware', () => {
 
     it('should detect Telegram crawler', () => {
       expect(middlewareSrc).toContain('TelegramBot');
+    });
+
+    it('should detect Reddit bot', () => {
+      expect(middlewareSrc).toContain('redditbot');
     });
   });
 
@@ -58,24 +63,21 @@ describe('OG Meta Injection Middleware', () => {
       expect(middlewareSrc).toContain('og:description');
     });
 
-    it('should inject og:image with artist profile photo', () => {
-      expect(middlewareSrc).toContain('profilePhotoUrl');
-      expect(middlewareSrc).toContain('og:image');
+    it('should use OG image proxy for artist profile photos', () => {
+      expect(middlewareSrc).toContain('getOgImageUrl');
+      expect(middlewareSrc).toContain('/api/og-image/');
     });
 
     it('should set og:type to profile for artist pages', () => {
-      expect(middlewareSrc).toContain('"profile"');
+      expect(middlewareSrc).toContain("'profile'");
     });
 
     it('should inject twitter card meta tags', () => {
       expect(middlewareSrc).toContain('twitter:title');
       expect(middlewareSrc).toContain('twitter:description');
       expect(middlewareSrc).toContain('twitter:image');
-      expect(middlewareSrc).toContain('twitter:url');
-    });
-
-    it('should use www.ologywood.com as the base URL', () => {
-      expect(middlewareSrc).toContain('https://www.ologywood.com');
+      expect(middlewareSrc).toContain('twitter:card');
+      expect(middlewareSrc).toContain('summary_large_image');
     });
 
     it('should have a fallback OG image', () => {
@@ -92,13 +94,18 @@ describe('OG Meta Injection Middleware', () => {
   });
 
   describe('Venue Profile OG Tags', () => {
-    it('should match /venue/:id route pattern', () => {
-      expect(middlewareSrc).toContain("/^\\/venue\\/(\\d+)$/");
+    it('should match /venue/:id or /venues/:id route pattern', () => {
+      expect(middlewareSrc).toContain("/^\\/venues?\\/(\\d+)$/");
     });
 
     it('should inject venue-specific meta tags', () => {
-      expect(middlewareSrc).toContain('venueName');
+      expect(middlewareSrc).toContain('organizationName');
       expect(middlewareSrc).toContain('venueType');
+    });
+
+    it('should use OG image proxy for venue profile photos', () => {
+      expect(middlewareSrc).toContain("'venue'");
+      expect(middlewareSrc).toContain('getOgImageUrl');
     });
   });
 
@@ -109,35 +116,111 @@ describe('OG Meta Injection Middleware', () => {
 
     it('should inject event-specific meta tags', () => {
       expect(middlewareSrc).toContain('eventTitle');
-      expect(middlewareSrc).toContain('flyerImageUrl');
     });
 
     it('should set og:type to event for event pages', () => {
-      expect(middlewareSrc).toContain('"event"');
+      expect(middlewareSrc).toContain("'event'");
+    });
+  });
+
+  describe('OG Image Proxy Integration', () => {
+    it('should use /api/og-image proxy URL instead of raw image URLs', () => {
+      expect(middlewareSrc).toContain('/api/og-image/');
+      expect(middlewareSrc).toContain('getOgImageUrl');
+    });
+
+    it('should set og:image:type to image/jpeg when using proxy', () => {
+      expect(middlewareSrc).toContain('image/jpeg');
+    });
+
+    it('should fall back to DEFAULT_OG_IMAGE when no profile photo exists', () => {
+      expect(middlewareSrc).toContain('if (!profilePhotoUrl)');
+      expect(middlewareSrc).toContain('DEFAULT_OG_IMAGE');
     });
   });
 
   describe('Server Integration', () => {
-    const indexTsPath = path.join(__dirname, '..', 'index.ts');
-    const indexTsSrc = fs.readFileSync(indexTsPath, 'utf-8');
+    const coreIndexPath = path.join(__dirname, '..', '_core', 'index.ts');
+    const coreIndexSrc = fs.readFileSync(coreIndexPath, 'utf-8');
 
-    it('should import OG meta injection middleware in server/index.ts', () => {
-      expect(indexTsSrc).toContain('ogMetaInjectionMiddleware');
-      expect(indexTsSrc).toContain('venueOgMetaInjectionMiddleware');
-      expect(indexTsSrc).toContain('eventOgMetaInjectionMiddleware');
+    it('should import ogTagMiddleware in server/_core/index.ts', () => {
+      expect(coreIndexSrc).toContain('ogTagMiddleware');
     });
 
-    it('should mount OG middleware before SPA fallback', () => {
-      const ogIndex = indexTsSrc.indexOf('ogMetaInjectionMiddleware(publicPath)');
-      const spaIndex = indexTsSrc.indexOf("Serve index.html for all other routes");
+    it('should import ogImageProxyRouter in server/_core/index.ts', () => {
+      expect(coreIndexSrc).toContain('ogImageProxyRouter');
+    });
+
+    it('should mount OG image proxy at /api/og-image BEFORE Vite/static setup', () => {
+      const proxyIndex = coreIndexSrc.indexOf("app.use('/api/og-image'");
+      const viteIndex = coreIndexSrc.indexOf('await setupVite');
+      expect(proxyIndex).toBeGreaterThan(-1);
+      expect(viteIndex).toBeGreaterThan(-1);
+      expect(proxyIndex).toBeLessThan(viteIndex);
+    });
+
+    it('should mount OG tag middleware before Vite/static setup', () => {
+      const ogIndex = coreIndexSrc.indexOf('app.use(ogTagMiddleware');
+      const viteIndex = coreIndexSrc.indexOf('await setupVite');
       expect(ogIndex).toBeGreaterThan(-1);
-      expect(spaIndex).toBeGreaterThan(-1);
-      expect(ogIndex).toBeLessThan(spaIndex);
+      expect(viteIndex).toBeGreaterThan(-1);
+      expect(ogIndex).toBeLessThan(viteIndex);
     });
 
     it('should pass through to SPA for regular browsers (non-crawlers)', () => {
-      expect(middlewareSrc).toContain('isCrawler');
+      expect(middlewareSrc).toContain('isSocialBot');
       expect(middlewareSrc).toContain('return next()');
     });
+  });
+});
+
+describe('OG Image Proxy (ogImageProxy.ts)', () => {
+  const proxyPath = path.join(__dirname, '..', 'middleware', 'ogImageProxy.ts');
+  const proxySrc = fs.readFileSync(proxyPath, 'utf-8');
+
+  it('should have artist endpoint', () => {
+    expect(proxySrc).toContain("'/artist/:id'");
+  });
+
+  it('should have venue endpoint', () => {
+    expect(proxySrc).toContain("'/venue/:id'");
+  });
+
+  it('should convert images to JPEG using sharp', () => {
+    expect(proxySrc).toContain('sharp');
+    expect(proxySrc).toContain('.jpeg(');
+    expect(proxySrc).toContain('image/jpeg');
+  });
+
+  it('should resize images to 1200x630 for OG standard', () => {
+    expect(proxySrc).toContain('1200');
+    expect(proxySrc).toContain('630');
+  });
+
+  it('should have image caching', () => {
+    expect(proxySrc).toContain('imageCache');
+    expect(proxySrc).toContain('getCachedImage');
+    expect(proxySrc).toContain('setCachedImage');
+  });
+
+  it('should have fallback image handling', () => {
+    expect(proxySrc).toContain('serveFallbackImage');
+    expect(proxySrc).toContain('DEFAULT_OG_IMAGE');
+  });
+
+  it('should have timeout protection for image fetching', () => {
+    expect(proxySrc).toContain('AbortController');
+    expect(proxySrc).toContain('timeout');
+  });
+
+  it('should validate content type is an image', () => {
+    expect(proxySrc).toContain("content-type");
+    expect(proxySrc).toContain("image/");
+  });
+
+  it('should use database to look up profile photos', () => {
+    expect(proxySrc).toContain('getDb');
+    expect(proxySrc).toContain('artistProfiles');
+    expect(proxySrc).toContain('venueProfiles');
   });
 });

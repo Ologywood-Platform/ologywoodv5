@@ -34,6 +34,15 @@ function isSocialBot(userAgent: string): boolean {
     'bingbot',
     'Applebot',
     'iMessageLinkPreview',
+    'Viber',
+    'Line/',
+    'Snapchat',
+    'SkypeUriPreview',
+    'redditbot',
+    'Embedly',
+    'Quora Link Preview',
+    'vkShare',
+    'Iframely',
   ];
   return botPatterns.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
 }
@@ -50,6 +59,19 @@ function escapeHtml(str: string): string {
 }
 
 /**
+ * Get the OG image URL for an entity.
+ * Uses the /api/og-image proxy to convert WebP/PNG images to JPEG for social media compatibility.
+ * Falls back to the default OG image if no profile photo exists.
+ */
+function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue', entityId: number, baseUrl: string): string {
+  if (!profilePhotoUrl) {
+    return DEFAULT_OG_IMAGE;
+  }
+  // Always use the proxy endpoint to ensure JPEG format for social media
+  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
+}
+
+/**
  * Generate an HTML page with OG meta tags and JSON-LD for social media crawlers
  */
 function generateOgHtml(opts: {
@@ -62,6 +84,11 @@ function generateOgHtml(opts: {
 }): string {
   const { title, description, image, url, type = 'website', jsonLd } = opts;
   const jsonLdTags = jsonLd ? `\n  ${jsonLdToScriptTag(jsonLd)}` : '';
+  
+  // Determine image type based on URL
+  const imageType = image.includes('/api/og-image/') ? 'image/jpeg' : 
+    image.endsWith('.png') ? 'image/png' : 
+    image.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
   
   return `<!DOCTYPE html>
 <html>
@@ -77,6 +104,7 @@ function generateOgHtml(opts: {
   <meta property="og:image" content="${escapeHtml(image)}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="${imageType}" />
   <meta property="og:url" content="${escapeHtml(url)}" />
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="en_US" />
@@ -99,6 +127,9 @@ function generateOgHtml(opts: {
 /**
  * Middleware that intercepts social media bot requests for artist, venue, and event pages
  * and returns proper OG meta tags + JSON-LD structured data from the database.
+ * 
+ * Uses /api/og-image proxy endpoints to serve images as JPEG for maximum social media compatibility.
+ * Twitter, LinkedIn, and some other platforms don't reliably support WebP in OG meta tags.
  */
 export function ogTagMiddleware() {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -144,7 +175,6 @@ export function ogTagMiddleware() {
               genre: artistProfiles.genre,
               location: artistProfiles.location,
               profilePhotoUrl: artistProfiles.profilePhotoUrl,
-
             })
             .from(artistProfiles)
             .where(eq(artistProfiles.id, artistId))
@@ -157,6 +187,9 @@ export function ogTagMiddleware() {
               ? artist.bio.substring(0, 200)
               : `${artist.artistName}${locationStr}${genres ? ` — ${genres}` : ''}. Book on Ologywood.`;
             
+            // Use the OG image proxy for JPEG conversion (critical for Twitter/LinkedIn)
+            const ogImage = getOgImageUrl(artist.profilePhotoUrl, 'artist', artistId, baseUrl);
+            
             const breadcrumb = generateBreadcrumbJsonLd([
               { name: 'Home', url: '/' },
               { name: 'Browse Artists', url: '/browse' },
@@ -166,11 +199,12 @@ export function ogTagMiddleware() {
             const html = generateOgHtml({
               title: `${artist.artistName} | Book on Ologywood`,
               description,
-              image: artist.profilePhotoUrl || DEFAULT_OG_IMAGE,
+              image: ogImage,
               url: `${baseUrl}/artist/${artistId}`,
               type: 'profile',
               jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
             });
+            console.log(`[OG Tags] Served artist OG for bot: id=${artistId}, name=${artist.artistName}, image=${ogImage}, ua=${userAgent.substring(0, 60)}`);
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }
@@ -205,6 +239,9 @@ export function ogTagMiddleware() {
               ? venue.bio.substring(0, 200)
               : `${venue.organizationName} — ${typeStr}${locationStr}. Find and book artists on Ologywood.`;
             
+            // Use the OG image proxy for JPEG conversion
+            const ogImage = getOgImageUrl(venue.profilePhotoUrl, 'venue', venueId, baseUrl);
+            
             const breadcrumb = generateBreadcrumbJsonLd([
               { name: 'Home', url: '/' },
               { name: 'Browse Venues', url: '/venues' },
@@ -214,11 +251,12 @@ export function ogTagMiddleware() {
             const html = generateOgHtml({
               title: `${venue.organizationName} | Ologywood`,
               description,
-              image: venue.profilePhotoUrl || DEFAULT_OG_IMAGE,
+              image: ogImage,
               url: `${baseUrl}/venue/${venueId}`,
               type: 'business.business',
               jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
             });
+            console.log(`[OG Tags] Served venue OG for bot: id=${venueId}, name=${venue.organizationName}, image=${ogImage}`);
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }

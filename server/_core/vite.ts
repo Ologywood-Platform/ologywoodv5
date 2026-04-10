@@ -28,12 +28,27 @@ function isSocialBot(userAgent: string): boolean {
     'facebookexternalhit', 'Facebot', 'Twitterbot', 'LinkedInBot',
     'WhatsApp', 'Slackbot', 'TelegramBot', 'Discordbot', 'Pinterest',
     'Googlebot', 'bingbot', 'Applebot', 'iMessageLinkPreview',
+    'Viber', 'Line/', 'Snapchat', 'SkypeUriPreview', 'redditbot',
+    'Embedly', 'Quora Link Preview', 'vkShare', 'Iframely',
   ];
   return botPatterns.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
 }
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * Get the OG image URL for an entity.
+ * Uses the /api/og-image proxy to convert WebP/PNG images to JPEG for social media compatibility.
+ * Twitter, LinkedIn, and some other platforms don't reliably support WebP in OG meta tags.
+ */
+function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue', entityId: number, baseUrl: string): string {
+  if (!profilePhotoUrl) {
+    return DEFAULT_OG_IMAGE;
+  }
+  // Always use the proxy endpoint to ensure JPEG format for social media
+  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
 }
 
 interface OgData {
@@ -51,6 +66,10 @@ interface OgData {
 function injectOgTags(html: string, og: OgData): string {
   const { title, description, image, url, type = 'website', jsonLd } = og;
   
+  // Determine image type based on URL
+  const imageType = image.includes('/api/og-image/') ? 'image/jpeg' : 
+    image.endsWith('.png') ? 'image/png' : 'image/jpeg';
+  
   // Replace <title>
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(title)}</title>`);
   
@@ -66,6 +85,7 @@ function injectOgTags(html: string, og: OgData): string {
   html = html.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${escapeHtml(title)}">`);
   html = html.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${escapeHtml(description)}">`);
   html = html.replace(/<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${escapeHtml(image)}">`);
+  html = html.replace(/<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/, `<meta property="og:image:type" content="${imageType}">`);
   
   // Replace Twitter tags
   html = html.replace(/<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/, `<meta name="twitter:title" content="${escapeHtml(title)}">`);
@@ -84,6 +104,7 @@ function injectOgTags(html: string, og: OgData): string {
 
 /**
  * Fetch OG data for a given pathname from the database
+ * Uses the /api/og-image proxy for all profile photos to ensure JPEG format
  */
 async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgData | null> {
   try {
@@ -113,16 +134,21 @@ async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgDa
             ? artist.bio.substring(0, 200)
             : `${artist.artistName}${locationStr}${genres ? ` — ${genres}` : ''}. Book on Ologywood.`;
           
+          // Use the OG image proxy for JPEG conversion (critical for Twitter/LinkedIn)
+          const ogImage = getOgImageUrl(artist.profilePhotoUrl, 'artist', artistId, baseUrl);
+          
           const breadcrumb = generateBreadcrumbJsonLd([
             { name: 'Home', url: '/' },
             { name: 'Browse Artists', url: '/browse' },
             { name: artist.artistName, url: `/artist/${artistId}` },
           ], baseUrl);
 
+          console.log(`[OG Tags] Artist ${artistId} (${artist.artistName}): image=${ogImage}`);
+
           return {
             title: `${artist.artistName} | Book on Ologywood`,
             description,
-            image: artist.profilePhotoUrl || DEFAULT_OG_IMAGE,
+            image: ogImage,
             url: `${baseUrl}/artist/${artistId}`,
             type: 'profile',
             jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
@@ -160,6 +186,9 @@ async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgDa
             ? venue.bio.substring(0, 200)
             : `${venue.organizationName} — ${typeStr}${locationStr}. Find and book artists on Ologywood.`;
           
+          // Use the OG image proxy for JPEG conversion
+          const ogImage = getOgImageUrl(venue.profilePhotoUrl, 'venue', venueId, baseUrl);
+          
           const breadcrumb = generateBreadcrumbJsonLd([
             { name: 'Home', url: '/' },
             { name: 'Browse Venues', url: '/venues' },
@@ -169,7 +198,7 @@ async function getOgDataForPath(pathname: string, baseUrl: string): Promise<OgDa
           return {
             title: `${venue.organizationName} | Ologywood`,
             description,
-            image: venue.profilePhotoUrl || DEFAULT_OG_IMAGE,
+            image: ogImage,
             url: `${baseUrl}/venue/${venueId}`,
             type: 'business.business',
             jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
@@ -300,6 +329,27 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
+      // For social media bots in dev mode, inject dynamic OG tags
+      const userAgent = req.headers['user-agent'] || '';
+      if (isSocialBot(userAgent)) {
+        let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
+        baseUrl = baseUrl.replace(/\/$/, '');
+        
+        const ogData = await getOgDataForPath(req.path, baseUrl);
+        if (ogData) {
+          const clientTemplate = path.resolve(
+            import.meta.dirname,
+            "../..",
+            "client",
+            "index.html"
+          );
+          let template = await fs.promises.readFile(clientTemplate, "utf-8");
+          template = injectOgTags(template, ogData);
+          console.log(`[OG Tags Dev] Served OG tags for bot: path=${req.path}, title=${ogData.title}, image=${ogData.image}`);
+          return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+        }
+      }
+
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "../..",
@@ -374,6 +424,7 @@ export function serveStatic(app: Express) {
         if (ogData) {
           let html = await fs.promises.readFile(indexPath, 'utf-8');
           html = injectOgTags(html, ogData);
+          console.log(`[OG Tags Prod] Served OG tags for bot: path=${pathname}, title=${ogData.title}, image=${ogData.image}`);
           return res.status(200).set('Content-Type', 'text/html').send(html);
         }
       } catch (error) {

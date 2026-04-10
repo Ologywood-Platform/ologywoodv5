@@ -21,6 +21,7 @@ import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "..
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
 import { ogTagMiddleware } from "../middleware/ogTags";
+import ogImageProxyRouter from '../middleware/ogImageProxy';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -127,6 +128,10 @@ async function startServer() {
 
   // Video upload routes (multipart, BEFORE Vite setup)
   app.use('/api/video', videoUploadRoutes);
+
+  // OG Image proxy - converts WebP/PNG profile photos to JPEG for social media crawlers
+  // MUST be before Vite/static setup so it doesn't get caught by SPA fallback
+  app.use('/api/og-image', ogImageProxyRouter);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

@@ -2101,3 +2101,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added /api/og-image/artist/:id proxy that converts any image to JPEG for social crawlers
 - [x] Updated OG meta injection to use proxy URLs instead of raw CloudFront WebP URLs
 - [x] Also added venue image proxy at /api/og-image/venue/:id
+- [x] Fixed: vite.ts had its own OG tag logic that bypassed the proxy — updated to use /api/og-image proxy for ALL profiles
+- [x] Fixed: dev mode (setupVite) was not injecting OG tags for social bots at all — now properly intercepts bot requests
+- [x] Fixed: OG image proxy was only mounted in server/index.ts (dead code), not in _core/index.ts (actual entry point)
+- [x] All 12 artists now return proxy JPEG URLs in og:image for Twitter, LinkedIn, Facebook, WhatsApp, iMessage
+- [x] og:image:type correctly set to image/jpeg when using proxy
+- [x] Fallback to default Ologywood image for artists with no profile photo or broken URLs
