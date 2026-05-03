@@ -2,8 +2,9 @@ import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Calendar, MapPin, Ticket, Download, ArrowLeft, Loader2, QrCode } from 'lucide-react';
+import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { TicketQRCode } from '@/components/TicketQRCode';
 import SiteHeader from '@/components/SiteHeader';
 import Footer from '@/components/Footer';
 
@@ -55,7 +56,7 @@ export default function TicketConfirmation() {
           <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-slate-900">You're In!</h1>
           <p className="text-muted-foreground mt-2">
-            Your tickets have been confirmed. Check your email for details.
+            Your tickets have been confirmed. Show the QR codes below at the door.
           </p>
         </div>
 
@@ -90,25 +91,37 @@ export default function TicketConfirmation() {
               </div>
             )}
 
-            {/* Tickets */}
+            {/* Tickets with QR Codes */}
             <div>
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
                 <Ticket className="h-4 w-4" />
                 Your Tickets ({order.items.length})
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {order.items.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between border rounded-md p-3">
-                    <div>
-                      <p className="font-medium text-sm">{item.tierName}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <QrCode className="h-3 w-3" />
-                        {item.ticketCode.substring(0, 8)}...
-                      </p>
+                  <div key={item.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="font-semibold">{item.tierName}</p>
+                        {item.attendeeName && (
+                          <p className="text-sm text-muted-foreground">{item.attendeeName}</p>
+                        )}
+                      </div>
+                      <Badge variant={item.status === 'valid' ? 'default' : item.status === 'used' ? 'secondary' : 'destructive'}>
+                        {item.status === 'valid' ? 'Valid' : item.status === 'used' ? 'Used' : item.status}
+                      </Badge>
                     </div>
-                    <Badge variant={item.status === 'valid' ? 'default' : 'secondary'}>
-                      {item.status}
-                    </Badge>
+                    {/* QR Code */}
+                    <div className="flex justify-center py-2">
+                      <TicketQRCode
+                        ticketCode={item.ticketCode}
+                        tierName={item.tierName}
+                        size={180}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      Show this QR code at the venue entrance
+                    </p>
                   </div>
                 ))}
               </div>

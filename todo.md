@@ -2121,3 +2121,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add ticket code generation for ticket validation (UUID-based)
 - [x] Write tests for ticketing flow (14 tests passing)
 - [x] Integrate ticketing with existing Events system
+
+## QR CODE CHECK-IN & TICKET ANALYTICS (May 2026)
+
+- [x] Generate QR codes on ticket confirmation page using ticket codes
+- [x] Build mobile-friendly QR scanner page for venue staff (/events/:id/check-in)
+- [x] Add check-in API integration (validateTicket, getCheckInStats)
+- [x] Build ticket sales analytics dashboard with revenue charts
+- [x] Add sell-through percentages and conversion metrics
+- [x] Write tests for QR check-in and analytics features (19 tests passing)
