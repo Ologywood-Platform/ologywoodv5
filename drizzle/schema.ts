@@ -1217,3 +1217,51 @@ export const ticketItems = mysqlTable("ticket_items", {
 
 export type TicketItem = typeof ticketItems.$inferSelect;
 export type InsertTicketItem = typeof ticketItems.$inferInsert;
+
+
+/**
+ * Ticket Promo Codes - event-specific discount codes
+ * Event creators can create promo codes to offer discounts on tickets
+ */
+export const ticketPromoCodes = mysqlTable("ticket_promo_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  code: varchar("code", { length: 50 }).notNull(), // e.g., "EARLYBIRD20"
+  discountType: mysqlEnum("discountType", ["percentage", "fixed"]).notNull(), // percentage or fixed amount
+  discountValue: int("discountValue").notNull(), // Percentage (e.g., 20 = 20%) or cents (e.g., 500 = $5.00)
+  maxUses: int("maxUses"), // null = unlimited
+  currentUses: int("currentUses").default(0).notNull(),
+  minTickets: int("minTickets").default(1).notNull(), // Minimum tickets in order to apply
+  expiresAt: timestamp("expiresAt"), // null = no expiry
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index("idx_promo_codes_event").on(table.eventId),
+  codeIdx: index("idx_promo_codes_code").on(table.eventId, table.code),
+}));
+
+export type TicketPromoCode = typeof ticketPromoCodes.$inferSelect;
+export type InsertTicketPromoCode = typeof ticketPromoCodes.$inferInsert;
+
+/**
+ * Ticket Transfers - track ticket gifting/transfers between users
+ */
+export const ticketTransfers = mysqlTable("ticket_transfers", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketItemId: int("ticketItemId").notNull(),
+  fromEmail: varchar("fromEmail", { length: 320 }).notNull(),
+  toEmail: varchar("toEmail", { length: 320 }).notNull(),
+  toName: varchar("toName", { length: 255 }),
+  status: mysqlEnum("status", ["pending", "accepted", "cancelled"]).default("pending").notNull(),
+  transferCode: varchar("transferCode", { length: 36 }).unique().notNull(), // UUID for acceptance link
+  message: text("message"), // Optional personal message from sender
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  acceptedAt: timestamp("acceptedAt"),
+}, (table) => ({
+  ticketIdx: index("idx_transfers_ticket").on(table.ticketItemId),
+  toEmailIdx: index("idx_transfers_to_email").on(table.toEmail),
+  codeIdx: index("idx_transfers_code").on(table.transferCode),
+}));
+
+export type TicketTransfer = typeof ticketTransfers.$inferSelect;
+export type InsertTicketTransfer = typeof ticketTransfers.$inferInsert;

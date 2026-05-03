@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, ScanLine, Settings2, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Loader2, ScanLine, Settings2, BarChart3, Tag } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { TicketTierManager } from '@/components/TicketTierManager';
 import { TicketAnalytics } from '@/components/TicketAnalytics';
+import { PromoCodeManager } from '@/components/PromoCodeManager';
 import SiteHeader from '@/components/SiteHeader';
 import Footer from '@/components/Footer';
 
@@ -12,7 +13,7 @@ export default function EventTickets() {
   const { id: idParam } = useParams();
   const eventId = idParam ? parseInt(idParam) : 0;
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<'manage' | 'analytics'>('manage');
+  const [activeTab, setActiveTab] = useState<'manage' | 'promos' | 'analytics'>('manage');
 
   const { data: event, isLoading } = trpc.events.getById.useQuery(
     { id: eventId },
@@ -78,7 +79,18 @@ export default function EventTickets() {
             }`}
           >
             <Settings2 className="h-4 w-4" />
-            Manage Tiers
+            Tiers
+          </button>
+          <button
+            onClick={() => setActiveTab('promos')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'promos'
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Tag className="h-4 w-4" />
+            Promos
           </button>
           <button
             onClick={() => setActiveTab('analytics')}
@@ -89,13 +101,15 @@ export default function EventTickets() {
             }`}
           >
             <BarChart3 className="h-4 w-4" />
-            Sales Analytics
+            Analytics
           </button>
         </div>
 
         {/* Content */}
         {activeTab === 'manage' ? (
           <TicketTierManager eventId={eventId} eventTitle={event.eventTitle} />
+        ) : activeTab === 'promos' ? (
+          <PromoCodeManager eventId={eventId} />
         ) : (
           <TicketAnalytics eventId={eventId} />
         )}

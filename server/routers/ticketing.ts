@@ -2,7 +2,7 @@ import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
 import type { TicketTier, TicketOrder, TicketItem } from '../../drizzle/schema';
-import { ticketTiers, ticketOrders, ticketItems, events } from '../../drizzle/schema';
+import { ticketTiers, ticketOrders, ticketItems, events, ticketPromoCodes, ticketTransfers } from '../../drizzle/schema';
 import { eq, and, sql, desc, asc } from 'drizzle-orm';
 import { stripe } from '../stripe';
 import { TRPCError } from '@trpc/server';
@@ -571,5 +571,350 @@ export const ticketingRouter = router({
         .where(and(eq(ticketTiers.eventId, input.eventId), eq(ticketTiers.isActive, true)))
         .limit(1);
       return { enabled: tiers.length > 0 };
+    }),
+
+  // ==================== PROMO CODES ====================
+
+  // Create a promo code for an event
+  createPromoCode: protectedProcedure
+    .input(z.object({
+      eventId: z.number().int().positive(),
+      code: z.string().min(2).max(50).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')),
+      discountType: z.enum(['percentage', 'fixed']),
+      discountValue: z.number().int().positive(), // percentage (1-100) or cents
+      maxUses: z.number().int().positive().optional(),
+      minTickets: z.number().int().min(1).default(1),
+      expiresAt: z.date().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
+      if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+
+      const { getArtistProfileByUserId } = await import('../db');
+      const artistProfile = await getArtistProfileByUserId(ctx.user.id);
+      if (!artistProfile || artistProfile.id !== event.artistId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the event organizer can create promo codes' });
+      }
+
+      if (input.discountType === 'percentage' && input.discountValue > 100) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Percentage discount cannot exceed 100%' });
+      }
+
+      // Check for duplicate code on this event
+      const existing = await (await getDatabase()).select().from(ticketPromoCodes)
+        .where(and(eq(ticketPromoCodes.eventId, input.eventId), eq(ticketPromoCodes.code, input.code)))
+        .limit(1);
+      if (existing.length > 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `Promo code "${input.code}" already exists for this event` });
+      }
+
+      const [promo] = await (await getDatabase()).insert(ticketPromoCodes).values({
+        eventId: input.eventId,
+        code: input.code,
+        discountType: input.discountType,
+        discountValue: input.discountValue,
+        maxUses: input.maxUses || null,
+        minTickets: input.minTickets,
+        expiresAt: input.expiresAt || null,
+      }).$returningId();
+
+      return { success: true, promoId: promo.id };
+    }),
+
+  // Get promo codes for an event (organizer only)
+  getPromoCodes: protectedProcedure
+    .input(z.object({ eventId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
+      if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+
+      const { getArtistProfileByUserId } = await import('../db');
+      const artistProfile = await getArtistProfileByUserId(ctx.user.id);
+      if (!artistProfile || artistProfile.id !== event.artistId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+      }
+
+      return await (await getDatabase()).select().from(ticketPromoCodes)
+        .where(eq(ticketPromoCodes.eventId, input.eventId))
+        .orderBy(desc(ticketPromoCodes.createdAt));
+    }),
+
+  // Delete a promo code
+  deletePromoCode: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const [promo] = await (await getDatabase()).select().from(ticketPromoCodes).where(eq(ticketPromoCodes.id, input.id)).limit(1);
+      if (!promo) throw new TRPCError({ code: 'NOT_FOUND', message: 'Promo code not found' });
+
+      const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, promo.eventId)).limit(1);
+      if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+
+      const { getArtistProfileByUserId } = await import('../db');
+      const artistProfile = await getArtistProfileByUserId(ctx.user.id);
+      if (!artistProfile || artistProfile.id !== event.artistId) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+      }
+
+      await (await getDatabase()).delete(ticketPromoCodes).where(eq(ticketPromoCodes.id, input.id));
+      return { success: true };
+    }),
+
+  // Validate a promo code (public - for buyers)
+  validatePromoCode: publicProcedure
+    .input(z.object({
+      eventId: z.number().int().positive(),
+      code: z.string().transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')),
+      ticketCount: z.number().int().min(1),
+    }))
+    .query(async ({ input }) => {
+      const [promo] = await (await getDatabase()).select().from(ticketPromoCodes)
+        .where(and(
+          eq(ticketPromoCodes.eventId, input.eventId),
+          eq(ticketPromoCodes.code, input.code),
+          eq(ticketPromoCodes.isActive, true),
+        ))
+        .limit(1);
+
+      if (!promo) return { valid: false, message: 'Invalid promo code' };
+
+      // Check max uses
+      if (promo.maxUses && promo.currentUses >= promo.maxUses) {
+        return { valid: false, message: 'This promo code has reached its usage limit' };
+      }
+
+      // Check expiry
+      if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
+        return { valid: false, message: 'This promo code has expired' };
+      }
+
+      // Check minimum tickets
+      if (input.ticketCount < promo.minTickets) {
+        return { valid: false, message: `Minimum ${promo.minTickets} tickets required for this promo code` };
+      }
+
+      return {
+        valid: true,
+        discountType: promo.discountType,
+        discountValue: promo.discountValue,
+        code: promo.code,
+        message: promo.discountType === 'percentage'
+          ? `${promo.discountValue}% off applied!`
+          : `$${(promo.discountValue / 100).toFixed(2)} off applied!`,
+      };
+    }),
+
+  // ==================== TICKET TRANSFERS ====================
+
+  // Initiate a ticket transfer
+  transferTicket: protectedProcedure
+    .input(z.object({
+      ticketItemId: z.number().int().positive(),
+      toEmail: z.string().email(),
+      toName: z.string().min(1).max(255).optional(),
+      message: z.string().max(500).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const [ticket] = await (await getDatabase()).select().from(ticketItems)
+        .where(eq(ticketItems.id, input.ticketItemId)).limit(1);
+      if (!ticket) throw new TRPCError({ code: 'NOT_FOUND', message: 'Ticket not found' });
+
+      // Verify ownership - ticket must belong to the current user's order
+      const [order] = await (await getDatabase()).select().from(ticketOrders)
+        .where(eq(ticketOrders.id, ticket.orderId)).limit(1);
+      if (!order || order.buyerUserId !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only transfer your own tickets' });
+      }
+
+      if (ticket.status !== 'valid') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `Cannot transfer a ticket that is ${ticket.status}` });
+      }
+
+      // Check for existing pending transfer
+      const existingTransfer = await (await getDatabase()).select().from(ticketTransfers)
+        .where(and(
+          eq(ticketTransfers.ticketItemId, input.ticketItemId),
+          eq(ticketTransfers.status, 'pending'),
+        )).limit(1);
+      if (existingTransfer.length > 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'This ticket already has a pending transfer. Cancel it first.' });
+      }
+
+      const transferCode = randomUUID();
+      const [transfer] = await (await getDatabase()).insert(ticketTransfers).values({
+        ticketItemId: input.ticketItemId,
+        fromEmail: order.buyerEmail,
+        toEmail: input.toEmail,
+        toName: input.toName || null,
+        message: input.message || null,
+        transferCode,
+      }).$returningId();
+
+      // Send transfer email
+      try {
+        const { sendEmail } = await import('../email');
+        const { ENV } = await import('../_core/env');
+        const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, ticket.eventId)).limit(1);
+        const [tier] = await (await getDatabase()).select().from(ticketTiers).where(eq(ticketTiers.id, ticket.tierId)).limit(1);
+        const acceptUrl = `${ENV.baseUrl}/tickets/accept/${transferCode}`;
+        const senderName = order.buyerName || order.buyerEmail;
+        const eventTitle = event?.eventTitle || 'an event';
+        const eventDate = event?.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
+
+        const html = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #7c3aed; margin: 0; font-size: 24px;">Ologywood</h1>
+            </div>
+            <div style="background: #eff6ff; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
+              <div style="font-size: 36px; margin-bottom: 8px;">\uD83C\uDF81</div>
+              <h2 style="margin: 0; color: #1e40af; font-size: 20px;">You've Got a Ticket!</h2>
+              <p style="color: #2563eb; margin: 8px 0 0; font-size: 14px;">${senderName} sent you a ticket</p>
+            </div>
+            ${input.message ? `<div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #7c3aed;"><p style="color: #333; font-size: 14px; margin: 0; font-style: italic;">&ldquo;${input.message}&rdquo;</p></div>` : ''}
+            <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <tr><td style="padding: 6px 0; color: #6b7280; width: 100px;">Event</td><td style="padding: 6px 0; color: #111; font-weight: bold;">${eventTitle}</td></tr>
+                <tr><td style="padding: 6px 0; color: #6b7280;">Date</td><td style="padding: 6px 0; color: #111;">${eventDate}</td></tr>
+                ${event?.location ? `<tr><td style="padding: 6px 0; color: #6b7280;">Location</td><td style="padding: 6px 0; color: #111;">${event.location}</td></tr>` : ''}
+                <tr><td style="padding: 6px 0; color: #6b7280;">Ticket</td><td style="padding: 6px 0; color: #111;">${tier?.name || 'General'}</td></tr>
+              </table>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${acceptUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Accept Ticket</a>
+            </div>
+            <p style="color: #6b7280; font-size: 13px; text-align: center;">This link will expire when the event starts. If you don't want this ticket, simply ignore this email.</p>
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(input.toEmail)}&type=ticket" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+                <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+              </p>
+              <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0;">Ologywood \u2014 Book Talented Artists for Your Events</p>
+            </div>
+          </div>
+        `;
+
+        await sendEmail({
+          to: input.toEmail,
+          subject: `\uD83C\uDF81 ${senderName} sent you a ticket to ${eventTitle}!`,
+          html,
+        });
+      } catch (emailErr) {
+        console.error('[Transfer] Failed to send transfer email:', emailErr);
+      }
+
+      return { success: true, transferId: transfer.id, transferCode };
+    }),
+
+  // Accept a ticket transfer
+  acceptTransfer: publicProcedure
+    .input(z.object({ transferCode: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
+        .where(eq(ticketTransfers.transferCode, input.transferCode)).limit(1);
+      if (!transfer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Transfer not found' });
+
+      if (transfer.status !== 'pending') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `This transfer has already been ${transfer.status}` });
+      }
+
+      // Update the ticket with new attendee info
+      await (await getDatabase()).update(ticketItems).set({
+        attendeeEmail: transfer.toEmail,
+        attendeeName: transfer.toName || null,
+      }).where(eq(ticketItems.id, transfer.ticketItemId));
+
+      // Mark transfer as accepted
+      await (await getDatabase()).update(ticketTransfers).set({
+        status: 'accepted',
+        acceptedAt: new Date(),
+      }).where(eq(ticketTransfers.id, transfer.id));
+
+      // Get ticket details for the response
+      const [ticket] = await (await getDatabase()).select().from(ticketItems)
+        .where(eq(ticketItems.id, transfer.ticketItemId)).limit(1);
+      const [event] = ticket
+        ? await (await getDatabase()).select().from(events).where(eq(events.id, ticket.eventId)).limit(1)
+        : [null];
+
+      return {
+        success: true,
+        ticket: ticket ? {
+          ticketCode: ticket.ticketCode,
+          eventTitle: event?.eventTitle || 'Unknown Event',
+          eventDate: event?.eventDate,
+          location: event?.location,
+        } : null,
+      };
+    }),
+
+  // Cancel a pending transfer
+  cancelTransfer: protectedProcedure
+    .input(z.object({ transferId: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
+        .where(eq(ticketTransfers.id, input.transferId)).limit(1);
+      if (!transfer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Transfer not found' });
+
+      // Verify the sender is the one cancelling
+      const [ticket] = await (await getDatabase()).select().from(ticketItems)
+        .where(eq(ticketItems.id, transfer.ticketItemId)).limit(1);
+      if (!ticket) throw new TRPCError({ code: 'NOT_FOUND', message: 'Ticket not found' });
+
+      const [order] = await (await getDatabase()).select().from(ticketOrders)
+        .where(eq(ticketOrders.id, ticket.orderId)).limit(1);
+      if (!order || order.buyerUserId !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the original ticket holder can cancel a transfer' });
+      }
+
+      if (transfer.status !== 'pending') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: `Cannot cancel a transfer that is ${transfer.status}` });
+      }
+
+      await (await getDatabase()).update(ticketTransfers).set({
+        status: 'cancelled',
+      }).where(eq(ticketTransfers.id, input.transferId));
+
+      return { success: true };
+    }),
+
+  // Get pending transfers for a ticket
+  getTransferStatus: protectedProcedure
+    .input(z.object({ ticketItemId: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      const transfers = await (await getDatabase()).select().from(ticketTransfers)
+        .where(eq(ticketTransfers.ticketItemId, input.ticketItemId))
+        .orderBy(desc(ticketTransfers.createdAt));
+
+      return transfers;
+    }),
+
+  // Get transfer details by code (for accept page)
+  getTransferByCode: publicProcedure
+    .input(z.object({ transferCode: z.string() }))
+    .query(async ({ input }) => {
+      const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
+        .where(eq(ticketTransfers.transferCode, input.transferCode)).limit(1);
+      if (!transfer) throw new TRPCError({ code: 'NOT_FOUND', message: 'Transfer not found' });
+
+      const [ticket] = await (await getDatabase()).select().from(ticketItems)
+        .where(eq(ticketItems.id, transfer.ticketItemId)).limit(1);
+      const [event] = ticket
+        ? await (await getDatabase()).select().from(events).where(eq(events.id, ticket.eventId)).limit(1)
+        : [null];
+      const [tier] = ticket
+        ? await (await getDatabase()).select().from(ticketTiers).where(eq(ticketTiers.id, ticket.tierId)).limit(1)
+        : [null];
+
+      return {
+        ...transfer,
+        event: event ? {
+          title: event.eventTitle,
+          date: event.eventDate,
+          time: event.eventTime,
+          location: event.location,
+          coverImageUrl: event.coverImageUrl,
+        } : null,
+        tierName: tier?.name || 'General',
+      };
     }),
 });

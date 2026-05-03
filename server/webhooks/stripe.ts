@@ -662,8 +662,131 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
     }
 
     console.log(`[Stripe Webhook] Ticket purchase completed: order ${orderNumber}, ${items.reduce((sum: number, i: any) => sum + i.quantity, 0)} tickets created`);
+
+    // Send ticket confirmation email
+    try {
+      await sendTicketConfirmationEmail({
+        orderNumber: orderNumber || '',
+        buyerEmail: session.customer_details?.email || session.metadata?.customer_email || '',
+        buyerName: session.metadata?.customer_name || session.customer_details?.name || 'Guest',
+        eventId: parseInt(eventId),
+        totalAmount: session.amount_total || 0,
+        orderId: parseInt(orderId),
+      });
+    } catch (emailErr) {
+      console.error('[Stripe Webhook] Failed to send ticket confirmation email:', emailErr);
+      // Don't throw - email failure shouldn't block ticket creation
+    }
   } catch (error) {
     console.error('[Stripe Webhook] Error processing ticket purchase:', error);
     throw error;
   }
+}
+
+/**
+ * Send ticket confirmation email with ticket details and QR code link
+ */
+async function sendTicketConfirmationEmail(params: {
+  orderNumber: string;
+  buyerEmail: string;
+  buyerName: string;
+  eventId: number;
+  totalAmount: number;
+  orderId: number;
+}) {
+  const { sendEmail } = await import('../email');
+  const { ENV } = await import('../_core/env');
+  const { getDb } = await import('../db');
+  const { events, ticketItems, ticketTiers } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+
+  const database = await getDb();
+  if (!database) return;
+
+  // Get event details
+  const [event] = await database.select().from(events).where(eq(events.id, params.eventId)).limit(1);
+  if (!event) return;
+
+  // Get tickets for this order
+  const tickets = await database.select().from(ticketItems).where(eq(ticketItems.orderId, params.orderId));
+  
+  // Get tier names
+  const tierIds = [...new Set(tickets.map(t => t.tierId))];
+  const tiers: Record<number, string> = {};
+  for (const tierId of tierIds) {
+    const [tier] = await database.select().from(ticketTiers).where(eq(ticketTiers.id, tierId)).limit(1);
+    if (tier) tiers[tierId] = tier.name;
+  }
+
+  const eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
+  const confirmationUrl = `${ENV.baseUrl}/tickets/confirmation/${params.orderNumber}`;
+
+  const ticketRows = tickets.map(t => `
+    <tr>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px;">${tiers[t.tierId] || 'Ticket'}</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; font-family: monospace;">${t.ticketCode.substring(0, 8).toUpperCase()}...</td>
+      <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; text-align: right;">$${(t.price / 100).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #7c3aed; margin: 0; font-size: 24px;">Ologywood</h1>
+      </div>
+      <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 36px; margin-bottom: 8px;">🎫</div>
+        <h2 style="margin: 0; color: #166534; font-size: 20px;">You're In!</h2>
+        <p style="color: #15803d; margin: 8px 0 0; font-size: 14px;">Your tickets have been confirmed</p>
+      </div>
+      <p style="color: #333; font-size: 15px;">Hi ${params.buyerName},</p>
+      <p style="color: #333; font-size: 15px;">Your tickets for <strong>${event.eventTitle}</strong> are confirmed! Here are your details:</p>
+      <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr><td style="padding: 6px 0; color: #6b7280; width: 120px;">Event</td><td style="padding: 6px 0; color: #111; font-weight: bold;">${event.eventTitle}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Date</td><td style="padding: 6px 0; color: #111;">${eventDate}${event.eventTime ? ` at ${event.eventTime}` : ''}</td></tr>
+          ${event.location ? `<tr><td style="padding: 6px 0; color: #6b7280;">Location</td><td style="padding: 6px 0; color: #111;">${event.location}</td></tr>` : ''}
+          <tr><td style="padding: 6px 0; color: #6b7280;">Order #</td><td style="padding: 6px 0; color: #111;">${params.orderNumber}</td></tr>
+          <tr><td style="padding: 6px 0; color: #6b7280;">Total</td><td style="padding: 6px 0; color: #111; font-weight: bold;">$${(params.totalAmount / 100).toFixed(2)}</td></tr>
+        </table>
+      </div>
+      <h3 style="color: #333; font-size: 16px; margin: 24px 0 12px;">Your Tickets (${tickets.length})</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f3f4f6;">
+            <th style="padding: 8px 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase;">Tier</th>
+            <th style="padding: 8px 12px; text-align: left; font-size: 12px; color: #6b7280; text-transform: uppercase;">Code</th>
+            <th style="padding: 8px 12px; text-align: right; font-size: 12px; color: #6b7280; text-transform: uppercase;">Price</th>
+          </tr>
+        </thead>
+        <tbody>${ticketRows}</tbody>
+      </table>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${confirmationUrl}" style="display: inline-block; background: #7c3aed; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">View Tickets & QR Codes</a>
+      </div>
+      <div style="background: #fefce8; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+        <h4 style="margin: 0 0 8px; color: #92400e; font-size: 14px;">Important</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #92400e; font-size: 13px;">
+          <li>Show your QR code at the venue entrance for check-in</li>
+          <li>Each ticket has a unique code — screenshot or save this email</li>
+          <li>You can transfer tickets to friends from the confirmation page</li>
+        </ul>
+      </div>
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(params.buyerEmail)}&type=ticket" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
+        <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0;">Ologywood — Book Talented Artists for Your Events</p>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    to: params.buyerEmail,
+    subject: `🎫 Your tickets for ${event.eventTitle} — Order #${params.orderNumber}`,
+    html,
+  });
+
+  console.log(`[TicketEmail] Confirmation sent to ${params.buyerEmail} for order ${params.orderNumber}`);
 }

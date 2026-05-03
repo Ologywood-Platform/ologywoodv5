@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -65,10 +65,10 @@ export default function Home() {
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 text-foreground">
-            Book Talented Artists for Your Events
+            Book Artists. Sell Tickets. Own Your Events.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Connect with performing artists, manage bookings, and streamline your event planning all in one place.
+            The all-in-one platform to discover artists, manage bookings, and sell tickets directly to fans &mdash; with transparent fees and no monopoly.
           </p>
           
           {!isAuthenticated && (
@@ -153,6 +153,18 @@ export default function Home() {
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   Build professional riders with technical requirements. Generate contracts and sign them digitally with e-signatures.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Event Ticketing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Sell tickets directly to fans with transparent pricing. QR code check-in, promo codes, and ticket transfers built in.
                 </p>
               </CardContent>
             </Card>

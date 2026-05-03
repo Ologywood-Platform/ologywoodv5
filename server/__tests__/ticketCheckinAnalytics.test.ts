@@ -120,8 +120,8 @@ describe('QR Check-In & Ticket Analytics', () => {
       const filePath = path.join(ROOT, 'client/src/pages/EventTickets.tsx');
       const content = fs.readFileSync(filePath, 'utf-8');
       expect(content).toContain('TicketAnalytics');
-      expect(content).toContain('Sales Analytics');
-      expect(content).toContain('Manage Tiers');
+      expect(content).toContain('Analytics');
+      expect(content).toContain('Tiers');
       expect(content).toContain("activeTab === 'analytics'");
     });
   });

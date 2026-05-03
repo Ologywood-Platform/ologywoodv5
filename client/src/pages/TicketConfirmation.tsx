@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Calendar, MapPin, Ticket, ArrowLeft, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { TicketQRCode } from '@/components/TicketQRCode';
+import { TicketTransfer } from '@/components/TicketTransfer';
 import SiteHeader from '@/components/SiteHeader';
 import Footer from '@/components/Footer';
 
@@ -122,6 +123,14 @@ export default function TicketConfirmation() {
                     <p className="text-xs text-center text-muted-foreground mt-2">
                       Show this QR code at the venue entrance
                     </p>
+                    {/* Transfer / Gift option */}
+                    {item.status === 'valid' && (
+                      <TicketTransfer
+                        ticketItemId={item.id}
+                        ticketCode={item.ticketCode}
+                        tierName={item.tierName}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

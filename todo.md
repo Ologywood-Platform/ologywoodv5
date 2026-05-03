@@ -2130,3 +2130,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build ticket sales analytics dashboard with revenue charts
 - [x] Add sell-through percentages and conversion metrics
 - [x] Write tests for QR check-in and analytics features (19 tests passing)
+
+## TICKETING ENHANCEMENTS (May 2026)
+
+- [x] Email ticket delivery with QR codes after purchase
+- [x] Ticket transfer/gifting to another email (transfer UI, accept page, email notification)
+- [x] Promo codes for ticket discounts (percentage & fixed, max uses, min tickets)
+- [x] Update homepage hero section to highlight ticketing feature
+- [x] Update help section with 8 ticketing FAQs
+- [x] Write tests for all new ticketing enhancements (38 new tests, 71 total ticketing tests)

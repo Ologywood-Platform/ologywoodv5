@@ -220,18 +220,68 @@ const faqItems: FAQItem[] = [
     answer: 'Go to Dashboard > Edit Profile and scroll to the Social Links section. Add your Instagram, Twitter/X, Facebook, YouTube, Spotify, SoundCloud, TikTok, or website URL. These appear as clickable icons on your public artist profile.',
   },
 
+  // Event Ticketing
+  {
+    id: 'ticketing-1',
+    category: 'Event Ticketing',
+    question: 'How do I sell tickets for my event?',
+    answer: 'After creating an event from your Dashboard, click the ticket icon next to the event. This opens the Ticket Management page where you can add ticket tiers (e.g., General Admission, VIP, Early Bird) with custom names, prices, and capacity limits. Once tiers are created, a "Get Tickets" section automatically appears on your event\'s public page for fans to purchase.',
+  },
+  {
+    id: 'ticketing-2',
+    category: 'Event Ticketing',
+    question: 'What are the fees for selling tickets?',
+    answer: 'Ologywood charges a flat $0.99 service fee per ticket, plus standard Stripe payment processing (2.9% + $0.30). There are no hidden fees, no percentage-based platform cuts, and no long-term contracts. This is significantly lower than traditional ticketing platforms.',
+  },
+  {
+    id: 'ticketing-3',
+    category: 'Event Ticketing',
+    question: 'How do ticket tiers work?',
+    answer: 'Ticket tiers let you offer different ticket types for the same event. For example, you might have General Admission at $25, VIP at $75, and Early Bird at $15. Each tier has its own name, description, price, total capacity, and maximum per-order limit. You can also set sale start and end dates to control when each tier goes on sale.',
+  },
+  {
+    id: 'ticketing-4',
+    category: 'Event Ticketing',
+    question: 'How do promo codes work?',
+    answer: 'Event organizers can create promo codes from the Ticket Management page under the "Promos" tab. Set a code name (e.g., EARLYBIRD20), choose percentage or fixed dollar discount, set optional max uses, and minimum ticket requirements. Fans enter the code on the ticket purchase page to see their discount applied before checkout.',
+  },
+  {
+    id: 'ticketing-5',
+    category: 'Event Ticketing',
+    question: 'How does QR code check-in work at the door?',
+    answer: 'After purchasing tickets, buyers receive QR codes on their confirmation page and via email. At the event, venue staff open the Check-In page (accessible from Ticket Management) on any phone or tablet. Scan QR codes using the camera or enter ticket codes manually. The system validates the ticket in real-time, prevents duplicate scans, and shows live attendance stats.',
+  },
+  {
+    id: 'ticketing-6',
+    category: 'Event Ticketing',
+    question: 'Can I transfer or gift a ticket to someone else?',
+    answer: 'Yes! On the ticket confirmation page or in My Tickets, click "Transfer" on any valid ticket. Enter the recipient\'s email address and they will receive an email with a link to accept the transfer. Once accepted, the ticket is reassigned to the new owner with a fresh QR code. The original ticket becomes invalid.',
+  },
+  {
+    id: 'ticketing-7',
+    category: 'Event Ticketing',
+    question: 'Where can I find my purchased tickets?',
+    answer: 'Go to "My Tickets" from the navigation menu. This page shows all your purchased tickets organized by event, with QR codes for check-in, event details, and the option to transfer tickets. You also receive a confirmation email with your ticket details and QR codes after every purchase.',
+  },
+  {
+    id: 'ticketing-8',
+    category: 'Event Ticketing',
+    question: 'How do I view ticket sales analytics?',
+    answer: 'From the Ticket Management page, click the "Analytics" tab. You\'ll see total revenue, tickets sold vs. available, sell-through percentages per tier, and a list of recent orders. This helps you track performance and optimize pricing for future events.',
+  },
+
   // Events
   {
     id: 'events-1',
     category: 'Events',
     question: 'How do events work on Ologywood?',
-    answer: 'Venues can create events from their Dashboard with details like date, time, location, description, and ticket info. Events appear on the Events page where artists and fans can discover them. Browse upcoming events, view details, and connect with organizers directly through the platform.',
+    answer: 'Venues and artists can create events from their Dashboard with details like date, time, location, description, and ticket tiers. Events appear on the Events page where fans can discover them, purchase tickets, and connect with organizers directly through the platform.',
   },
   {
     id: 'events-2',
     category: 'Events',
-    question: 'How do I create an event as a venue?',
-    answer: 'Go to your Venue Dashboard and click "Create Event". Fill in the event name, date, time, description, and any ticket information. Once published, your event will be visible on the Events page and discoverable by artists and fans.',
+    question: 'How do I create an event?',
+    answer: 'Go to your Dashboard and click "Create Event". Fill in the event name, date, time, description, and location. Once published, your event will be visible on the Events page. Then add ticket tiers from the Ticket Management page to start selling tickets.',
   },
 
   // Disputes

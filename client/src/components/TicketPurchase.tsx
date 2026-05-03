@@ -6,6 +6,7 @@ import { Ticket, Minus, Plus, Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { PromoCodeInput } from './PromoCodeInput';
 
 interface TicketPurchaseProps {
   eventId: number;
@@ -16,6 +17,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   const { user, isAuthenticated } = useAuth();
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountType: string; discountValue: number } | null>(null);
 
   const { data: tiers, isLoading } = trpc.ticketing.getTiers.useQuery({ eventId });
   const checkoutMutation = trpc.ticketing.createCheckout.useMutation();
@@ -34,6 +36,17 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
     return sum + (tier.price * qty);
   }, 0) || 0;
   const serviceFee = totalTickets * 99; // $0.99 per ticket in cents
+
+  // Calculate discount
+  let discount = 0;
+  if (appliedPromo && totalPrice > 0) {
+    if (appliedPromo.discountType === 'percentage') {
+      discount = Math.round(totalPrice * (appliedPromo.discountValue / 100));
+    } else {
+      discount = Math.min(appliedPromo.discountValue, totalPrice); // Don't discount more than the price
+    }
+  }
+  const finalTotal = totalPrice - discount + serviceFee;
 
   const handleCheckout = async () => {
     if (totalTickets === 0) {
@@ -76,7 +89,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
   }
 
   if (!tiers || tiers.length === 0) {
-    return null; // Don't show anything if no tickets available
+    return null;
   }
 
   return (
@@ -144,6 +157,13 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
           );
         })}
 
+        {/* Promo Code Input */}
+        <PromoCodeInput
+          eventId={eventId}
+          ticketCount={totalTickets}
+          onPromoApplied={setAppliedPromo}
+        />
+
         {/* Order Summary */}
         {totalTickets > 0 && (
           <div className="border-t pt-3 mt-3 space-y-2">
@@ -151,13 +171,19 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
               <span>{totalTickets} ticket{totalTickets > 1 ? 's' : ''}</span>
               <span>${(totalPrice / 100).toFixed(2)}</span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Discount ({appliedPromo?.code})</span>
+                <span>-${(discount / 100).toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Service fee</span>
               <span>${(serviceFee / 100).toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold border-t pt-2">
               <span>Total</span>
-              <span>${((totalPrice + serviceFee) / 100).toFixed(2)}</span>
+              <span>${(finalTotal / 100).toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -176,7 +202,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
           ) : totalTickets === 0 ? (
             'Select Tickets'
           ) : (
-            `Checkout - $${((totalPrice + serviceFee) / 100).toFixed(2)}`
+            `Checkout - $${(finalTotal / 100).toFixed(2)}`
           )}
         </Button>
 

@@ -88,6 +88,7 @@ const TicketConfirmation = lazy(() => import("./pages/TicketConfirmation"));
 const MyTickets = lazy(() => import("./pages/MyTickets"));
 const EventTickets = lazy(() => import("./pages/EventTickets"));
 const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
+const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -155,6 +156,7 @@ function Router() {
           <Route path="/events/:id/check-in" component={EventCheckIn} />
           <Route path="/tickets/confirmation/:orderNumber" component={TicketConfirmation} />
           <Route path="/my-tickets" component={MyTickets} />
+          <Route path="/tickets/accept/:code" component={AcceptTransfer} />
           
           {/* White Label Release */}
           <Route path="/releases">{() => <PageErrorBoundary><ReleaseManager /></PageErrorBoundary>}</Route>

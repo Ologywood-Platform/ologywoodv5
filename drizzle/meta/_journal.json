@@ -484,6 +484,13 @@
       "when": 1777839958353,
       "tag": "0068_volatile_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "5",
+      "when": 1777841982159,
+      "tag": "0069_aspiring_vanisher",
+      "breakpoints": true
     }
   ]
 }
