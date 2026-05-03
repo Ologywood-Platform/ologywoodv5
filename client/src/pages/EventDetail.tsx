@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2, Ticket, ExternalLink } from 'lucide-react';
+import { TicketPurchase } from '@/components/TicketPurchase';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -284,7 +285,10 @@ export default function EventDetail() {
               </div>
             )}
 
-            {/* Ticket Link */}
+            {/* Ticket Purchase - Platform Ticketing */}
+            <TicketPurchase eventId={eventId} eventTitle={event.eventTitle} />
+
+            {/* External Ticket Link (fallback if no platform tickets) */}
             {(event as any).ticketLink && (
               <div className="pt-2">
                 <a
@@ -294,7 +298,7 @@ export default function EventDetail() {
                   className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
                 >
                   <Ticket className="h-5 w-5" />
-                  Get Tickets
+                  Get Tickets (External)
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>

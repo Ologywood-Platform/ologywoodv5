@@ -477,6 +477,13 @@
       "when": 1773772839672,
       "tag": "0067_greedy_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "5",
+      "when": 1777839958353,
+      "tag": "0068_volatile_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

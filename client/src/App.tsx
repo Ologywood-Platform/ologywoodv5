@@ -84,6 +84,9 @@ const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Settings = lazy(() => import("./pages/Settings"));
 const MyDisputes = lazy(() => import("./pages/MyDisputes"));
+const TicketConfirmation = lazy(() => import("./pages/TicketConfirmation"));
+const MyTickets = lazy(() => import("./pages/MyTickets"));
+const EventTickets = lazy(() => import("./pages/EventTickets"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -147,6 +150,9 @@ function Router() {
           <Route path="/events/create" component={EventCreate} />
           <Route path="/events/:id/edit" component={EventEdit} />
           <Route path="/events/:id" component={EventDetail} />
+          <Route path="/events/:id/tickets" component={EventTickets} />
+          <Route path="/tickets/confirmation/:orderNumber" component={TicketConfirmation} />
+          <Route path="/my-tickets" component={MyTickets} />
           
           {/* White Label Release */}
           <Route path="/releases">{() => <PageErrorBoundary><ReleaseManager /></PageErrorBoundary>}</Route>

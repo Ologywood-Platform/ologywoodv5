@@ -34,6 +34,7 @@ import { stripeConnectRouter } from "./routers/stripeConnect";
 import { contactRouter } from "./routers/contact";
 import { notificationsRouter } from "./routers/notifications";
 import { disputeRouter } from "./routers/dispute";
+import { ticketingRouter } from "./routers/ticketing";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -120,6 +121,7 @@ export const appRouter = router({
   artistUpdates: artistUpdatesRouter,
   payout: payoutRouter,
   riderContract: riderContractRouter,
+  ticketing: ticketingRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

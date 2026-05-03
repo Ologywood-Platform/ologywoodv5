@@ -408,6 +408,15 @@ export function ArtistDashboardV3() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-8 w-8 p-0 text-purple-500 hover:text-purple-700 hover:bg-purple-50"
+                            onClick={() => navigate(`/events/${event.id}/tickets`)}
+                            title="Manage tickets"
+                          >
+                            <Ticket className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="h-8 w-8 p-0"
                             onClick={() => navigate(`/events/${event.id}/edit`)}
                             title="Edit event"

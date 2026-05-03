@@ -1131,3 +1131,89 @@ export const adminActivityLog = mysqlTable("admin_activity_log", {
   actionIdx: index("idx_admin_activity_action").on(table.action),
   createdAtIdx: index("idx_admin_activity_created").on(table.createdAt),
 }));
+
+
+/**
+ * Ticket Tiers - defines ticket types and pricing for events
+ * Each event can have multiple tiers (e.g., General Admission, VIP, Early Bird)
+ */
+export const ticketTiers = mysqlTable("ticket_tiers", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(), // e.g., "General Admission", "VIP", "Early Bird"
+  description: text("description"),
+  price: int("price").notNull(), // Price in cents (e.g., 2500 = $25.00)
+  quantity: int("quantity").notNull(), // Total tickets available for this tier
+  quantitySold: int("quantitySold").default(0).notNull(), // Tickets sold so far
+  maxPerOrder: int("maxPerOrder").default(10).notNull(), // Max tickets per single order
+  salesStartDate: timestamp("salesStartDate"), // When tickets go on sale (null = immediately)
+  salesEndDate: timestamp("salesEndDate"), // When sales end (null = event date)
+  sortOrder: int("sortOrder").default(0).notNull(), // Display order
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  eventIdx: index("idx_ticket_tiers_event").on(table.eventId),
+  activeIdx: index("idx_ticket_tiers_active").on(table.eventId, table.isActive),
+}));
+
+export type TicketTier = typeof ticketTiers.$inferSelect;
+export type InsertTicketTier = typeof ticketTiers.$inferInsert;
+
+/**
+ * Ticket Orders - tracks ticket purchases via Stripe
+ * Each order can contain multiple tickets across different tiers
+ */
+export const ticketOrders = mysqlTable("ticket_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  buyerUserId: int("buyerUserId"), // Nullable for guest checkout
+  buyerEmail: varchar("buyerEmail", { length: 320 }).notNull(),
+  buyerName: varchar("buyerName", { length: 255 }),
+  buyerPhone: varchar("buyerPhone", { length: 20 }),
+  status: mysqlEnum("status", ["pending", "completed", "cancelled", "refunded"]).default("pending").notNull(),
+  totalAmount: int("totalAmount").notNull(), // Total in cents
+  platformFee: int("platformFee").notNull(), // Platform fee in cents ($0.99 per ticket)
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  orderNumber: varchar("orderNumber", { length: 20 }).unique().notNull(), // Human-readable order number
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  eventIdx: index("idx_ticket_orders_event").on(table.eventId),
+  buyerIdx: index("idx_ticket_orders_buyer").on(table.buyerUserId),
+  statusIdx: index("idx_ticket_orders_status").on(table.status),
+  stripeSessionIdx: index("idx_ticket_orders_stripe").on(table.stripeCheckoutSessionId),
+  orderNumberIdx: index("idx_ticket_orders_number").on(table.orderNumber),
+}));
+
+export type TicketOrder = typeof ticketOrders.$inferSelect;
+export type InsertTicketOrder = typeof ticketOrders.$inferInsert;
+
+/**
+ * Ticket Items - individual tickets within an order
+ * Each item represents one ticket with a unique QR code for validation
+ */
+export const ticketItems = mysqlTable("ticket_items", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  tierId: int("tierId").notNull(),
+  eventId: int("eventId").notNull(),
+  ticketCode: varchar("ticketCode", { length: 36 }).unique().notNull(), // UUID for QR code
+  attendeeName: varchar("attendeeName", { length: 255 }),
+  attendeeEmail: varchar("attendeeEmail", { length: 320 }),
+  status: mysqlEnum("status", ["valid", "used", "cancelled", "refunded"]).default("valid").notNull(),
+  checkedInAt: timestamp("checkedInAt"), // When the ticket was scanned/used
+  checkedInBy: int("checkedInBy"), // User who scanned the ticket
+  price: int("price").notNull(), // Price paid in cents (snapshot at purchase time)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("idx_ticket_items_order").on(table.orderId),
+  tierIdx: index("idx_ticket_items_tier").on(table.tierId),
+  eventIdx: index("idx_ticket_items_event").on(table.eventId),
+  codeIdx: index("idx_ticket_items_code").on(table.ticketCode),
+  statusIdx: index("idx_ticket_items_status").on(table.status),
+}));
+
+export type TicketItem = typeof ticketItems.$inferSelect;
+export type InsertTicketItem = typeof ticketItems.$inferInsert;

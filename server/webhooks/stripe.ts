@@ -120,9 +120,10 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   const subscriptionId = session.subscription as string;
   const platformFeeAmount = session.metadata?.platformFeeAmount ? parseInt(session.metadata.platformFeeAmount) : 0;
 
-  // Release purchases use buyerUserId, not userId — don't bail early for those
+  // Release purchases and ticket purchases use different metadata patterns
   const isReleasePurchase = !!session.metadata?.releaseId;
-  if (!userId && !isReleasePurchase) {
+  const isTicketPurchase = session.metadata?.type === 'ticket_purchase';
+  if (!userId && !isReleasePurchase && !isTicketPurchase) {
     console.error('[Stripe Webhook] No userId in session metadata');
     return;
   }
@@ -246,6 +247,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     } catch (error) {
       console.error('[Stripe Webhook] Error processing release purchase:', error);
     }
+  } else if (isTicketPurchase) {
+    // Handle ticket purchase checkout
+    await handleTicketPurchaseCompleted(session);
   } else if (subscriptionId && userId) {
     // Handle subscription checkout
     // Update or create subscription record
@@ -588,5 +592,78 @@ function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 'active' | '
     case 'paused':
     default:
       return 'inactive';
+  }
+}
+
+
+// ==================== TICKET PURCHASE WEBHOOK HANDLER ====================
+
+async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
+  const { getDb } = await import('../db');
+  const { ticketOrders, ticketItems, ticketTiers } = await import('../../drizzle/schema');
+  const { eq, sql } = await import('drizzle-orm');
+  const { randomUUID } = await import('crypto');
+
+  const orderId = session.metadata?.orderId;
+  const orderNumber = session.metadata?.orderNumber;
+  const eventId = session.metadata?.eventId;
+  const items = session.metadata?.items ? JSON.parse(session.metadata.items) : [];
+
+  if (!orderId || !eventId) {
+    console.error('[Stripe Webhook] Missing orderId or eventId in ticket purchase metadata');
+    return;
+  }
+
+  console.log(`[Stripe Webhook] Processing ticket purchase: order ${orderNumber} for event ${eventId}`);
+
+  const database = await getDb();
+  if (!database) {
+    console.error('[Stripe Webhook] Database not available for ticket purchase');
+    return;
+  }
+
+  try {
+    // Update order status to completed
+    await database.update(ticketOrders).set({
+      status: 'completed',
+      stripePaymentIntentId: session.payment_intent as string || null,
+    }).where(eq(ticketOrders.id, parseInt(orderId)));
+
+    // Create individual ticket items and update tier sold counts
+    for (const item of items) {
+      const tierId = item.tierId;
+      const quantity = item.quantity;
+
+      // Get the tier to snapshot the price
+      const [tier] = await database.select().from(ticketTiers).where(eq(ticketTiers.id, tierId)).limit(1);
+      if (!tier) {
+        console.error(`[Stripe Webhook] Tier ${tierId} not found for ticket creation`);
+        continue;
+      }
+
+      // Create individual tickets with unique codes
+      for (let i = 0; i < quantity; i++) {
+        await database.insert(ticketItems).values({
+          orderId: parseInt(orderId),
+          tierId,
+          eventId: parseInt(eventId),
+          ticketCode: randomUUID(),
+          attendeeName: session.metadata?.customer_name || session.customer_details?.name || null,
+          attendeeEmail: session.customer_details?.email || session.metadata?.customer_email || null,
+          status: 'valid',
+          price: tier.price,
+        });
+      }
+
+      // Update quantity sold on the tier
+      await database.update(ticketTiers).set({
+        quantitySold: sql`${ticketTiers.quantitySold} + ${quantity}`,
+      }).where(eq(ticketTiers.id, tierId));
+    }
+
+    console.log(`[Stripe Webhook] Ticket purchase completed: order ${orderNumber}, ${items.reduce((sum: number, i: any) => sum + i.quantity, 0)} tickets created`);
+  } catch (error) {
+    console.error('[Stripe Webhook] Error processing ticket purchase:', error);
+    throw error;
   }
 }
