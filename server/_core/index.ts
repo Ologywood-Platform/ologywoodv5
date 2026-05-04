@@ -22,6 +22,7 @@ import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
 import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
+import { registerStorageProxy } from "./storageProxy";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -134,6 +135,7 @@ async function startServer() {
   app.use('/api/og-image', ogImageProxyRouter);
   
   // OAuth callback under /api/oauth/callback
+  registerStorageProxy(app);
   registerOAuthRoutes(app);
   // Apply rate limiting to TRPC API
   app.use('/api/trpc', createRateLimiter(RATE_LIMIT_CONFIGS.api));

@@ -6,7 +6,7 @@
 
 const SITE_NAME = 'Ologywood';
 const SITE_URL = 'https://www.ologywood.com';
-const SITE_LOGO = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ysxOwFpvMPLOUeDm.png';
+const SITE_LOGO = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/XByJYRufALCMxsjM.jpg';
 
 export interface ArtistJsonLdData {
   id: number;

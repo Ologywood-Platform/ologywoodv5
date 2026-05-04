@@ -2139,3 +2139,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update homepage hero section to highlight ticketing feature
 - [x] Update help section with 8 ticketing FAQs
 - [x] Write tests for all new ticketing enhancements (38 new tests, 71 total ticketing tests)
+
+## OG IMAGE FIX FOR MESSENGER/SOCIAL SHARING (May 2026)
+
+- [x] Optimized default OG image from 953KB PNG to 114KB JPEG for faster crawler fetching
+- [x] Updated all references across project (index.html, ogTags.ts, vite.ts, ogImageProxy.ts, useMetaTags.ts, seoMeta.ts, JsonLd.tsx, jsonLd.ts)
+- [x] Fixed og:image:type from image/png to image/jpeg in index.html template
