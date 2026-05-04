@@ -2145,3 +2145,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Optimized default OG image from 953KB PNG to 114KB JPEG for faster crawler fetching
 - [x] Updated all references across project (index.html, ogTags.ts, vite.ts, ogImageProxy.ts, useMetaTags.ts, seoMeta.ts, JsonLd.tsx, jsonLd.ts)
 - [x] Fixed og:image:type from image/png to image/jpeg in index.html template
+- [x] Generated new OG image with "Book Artists. Sell Tickets. Own Your Events." messaging
+- [x] Resized to exactly 1200x630 (standard OG size), optimized JPEG at 119KB
+- [x] Updated all references across project to new ticketing-focused OG image

@@ -14,7 +14,7 @@ interface MetaTagsConfig {
   imageHeight?: string;
 }
 
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/XByJYRufALCMxsjM.jpg';
+const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
 const DEFAULT_SITE_NAME = 'Ologywood';
 const DEFAULT_DESCRIPTION = 'Connect with performing artists, manage bookings, and streamline your event planning all in one place.';
 const BASE_URL = 'https://www.ologywood.com';

@@ -22,7 +22,7 @@ const router = Router();
 const IMAGE_CACHE_SECONDS = 3600;
 
 // Default fallback image URL
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/XByJYRufALCMxsjM.jpg';
+const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
 
 // Simple in-memory cache
 const imageCache = new Map<string, { buffer: Buffer; timestamp: number }>();

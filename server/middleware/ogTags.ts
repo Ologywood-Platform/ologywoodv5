@@ -14,7 +14,7 @@ import {
 } from '../utils/jsonLd';
 
 // Optimized 114KB JPEG (was 953KB PNG) for faster social media crawler fetching
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/XByJYRufALCMxsjM.jpg';
+const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
 const SITE_NAME = 'Ologywood';
 
 /**
