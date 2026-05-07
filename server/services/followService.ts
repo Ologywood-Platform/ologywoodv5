@@ -4,7 +4,7 @@
  */
 
 import { drizzle } from "drizzle-orm/mysql2";
-import { follows, users } from "../../drizzle/schema";
+import { follows, users, artistProfiles, venueProfiles } from "../../drizzle/schema";
 import { eq, and, ne, inArray } from "drizzle-orm";
 import { getDb } from "../db";
 
@@ -21,6 +21,8 @@ export interface FollowedUser {
   role: "artist" | "venue";
   followingType: "artist" | "venue";
   followedAt: Date;
+  profileId?: number; // artist_profiles.id or venue_profiles.id for navigation
+  profilePhotoUrl?: string | null;
 }
 
 export interface FollowRecommendation {
@@ -208,6 +210,32 @@ export async function getFollowing(
 
       if (userResult.length > 0) {
         const user = userResult[0];
+        let profileId: number | undefined;
+        let profilePhotoUrl: string | null | undefined;
+
+        // Resolve the actual profile ID for navigation
+        if (relation.followingType === 'artist') {
+          const artistProfile = await db
+            .select({ id: artistProfiles.id, profilePhotoUrl: artistProfiles.profilePhotoUrl, artistName: artistProfiles.artistName })
+            .from(artistProfiles)
+            .where(eq(artistProfiles.userId, relation.followingId))
+            .limit(1);
+          if (artistProfile.length > 0) {
+            profileId = artistProfile[0].id;
+            profilePhotoUrl = artistProfile[0].profilePhotoUrl;
+          }
+        } else if (relation.followingType === 'venue') {
+          const venueProfile = await db
+            .select({ id: venueProfiles.id, profilePhotoUrl: venueProfiles.profilePhotoUrl })
+            .from(venueProfiles)
+            .where(eq(venueProfiles.userId, relation.followingId))
+            .limit(1);
+          if (venueProfile.length > 0) {
+            profileId = venueProfile[0].id;
+            profilePhotoUrl = venueProfile[0].profilePhotoUrl;
+          }
+        }
+
         followedUsers.push({
           id: user.id,
           name: user.name || "Unknown",
@@ -215,6 +243,8 @@ export async function getFollowing(
           role: (user.role as "artist" | "venue") || "user",
           followingType: relation.followingType,
           followedAt: relation.createdAt,
+          profileId,
+          profilePhotoUrl,
         });
       }
     }

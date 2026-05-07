@@ -146,11 +146,15 @@ function FollowingList({ userId }: { userId: number }) {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-lg">
-                          {(artist.name || 'A').charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      {artist.profilePhotoUrl ? (
+                        <img src={artist.profilePhotoUrl} alt={artist.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            {(artist.name || 'A').charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{artist.name}</h3>
                         <p className="text-sm text-gray-500">
@@ -162,7 +166,7 @@ function FollowingList({ userId }: { userId: number }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/artist/${artist.id}`)}
+                        onClick={() => navigate(`/artist/${artist.profileId || artist.id}`)}
                         title="View Profile"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -220,11 +224,15 @@ function FollowingList({ userId }: { userId: number }) {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-lg">
-                          {(venue.name || 'V').charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      {venue.profilePhotoUrl ? (
+                        <img src={venue.profilePhotoUrl} alt={venue.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            {(venue.name || 'V').charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{venue.name}</h3>
                         <p className="text-sm text-gray-500">
@@ -236,7 +244,7 @@ function FollowingList({ userId }: { userId: number }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/venue/${venue.id}`)}
+                        onClick={() => navigate(`/venue/${venue.profileId || venue.id}`)}
                         title="View Profile"
                       >
                         <ExternalLink className="w-4 h-4" />

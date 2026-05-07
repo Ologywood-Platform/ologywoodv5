@@ -2148,3 +2148,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Generated new OG image with "Book Artists. Sell Tickets. Own Your Events." messaging
 - [x] Resized to exactly 1200x630 (standard OG size), optimized JPEG at 119KB
 - [x] Updated all references across project to new ticketing-focused OG image
+
+## BUG FIX: Following Page Artist Link
+- [x] Fix: Clicking on a followed artist from the Following page returns "artist not found"
+  - Root cause: Following page navigated to /artist/{userId} but profile page expects /artist/{profileId}
+  - Fix: getFollowing now resolves artist_profiles.id and passes it as profileId
+  - Also added: profile photos now show on the Following page
