@@ -208,45 +208,66 @@ export async function getFollowing(
         .where(eq(users.id, relation.followingId))
         .limit(1);
 
+      let profileId: number | undefined;
+      let profilePhotoUrl: string | null | undefined;
+      let name = "Unknown";
+      let email = "";
+      let role: "artist" | "venue" = relation.followingType;
+
       if (userResult.length > 0) {
         const user = userResult[0];
-        let profileId: number | undefined;
-        let profilePhotoUrl: string | null | undefined;
+        name = user.name || "Unknown";
+        email = user.email || "";
+        role = (user.role as "artist" | "venue") || relation.followingType;
+      }
 
-        // Resolve the actual profile ID for navigation
-        if (relation.followingType === 'artist') {
-          const artistProfile = await db
-            .select({ id: artistProfiles.id, profilePhotoUrl: artistProfiles.profilePhotoUrl, artistName: artistProfiles.artistName })
-            .from(artistProfiles)
-            .where(eq(artistProfiles.userId, relation.followingId))
-            .limit(1);
-          if (artistProfile.length > 0) {
-            profileId = artistProfile[0].id;
-            profilePhotoUrl = artistProfile[0].profilePhotoUrl;
-          }
-        } else if (relation.followingType === 'venue') {
-          const venueProfile = await db
-            .select({ id: venueProfiles.id, profilePhotoUrl: venueProfiles.profilePhotoUrl })
-            .from(venueProfiles)
-            .where(eq(venueProfiles.userId, relation.followingId))
-            .limit(1);
-          if (venueProfile.length > 0) {
-            profileId = venueProfile[0].id;
-            profilePhotoUrl = venueProfile[0].profilePhotoUrl;
+      // Resolve the actual profile ID for navigation
+      if (relation.followingType === 'artist') {
+        const artistProfile = await db
+          .select({ id: artistProfiles.id, profilePhotoUrl: artistProfiles.profilePhotoUrl, artistName: artistProfiles.artistName })
+          .from(artistProfiles)
+          .where(eq(artistProfiles.userId, relation.followingId))
+          .limit(1);
+        if (artistProfile.length > 0) {
+          profileId = artistProfile[0].id;
+          profilePhotoUrl = artistProfile[0].profilePhotoUrl;
+          // Use artist name from profile if user name is missing
+          if (name === "Unknown" && artistProfile[0].artistName) {
+            name = artistProfile[0].artistName;
           }
         }
-
-        followedUsers.push({
-          id: user.id,
-          name: user.name || "Unknown",
-          email: user.email || "",
-          role: (user.role as "artist" | "venue") || "user",
-          followingType: relation.followingType,
-          followedAt: relation.createdAt,
-          profileId,
-          profilePhotoUrl,
-        });
+      } else if (relation.followingType === 'venue') {
+        const venueProfile = await db
+          .select({ id: venueProfiles.id, profilePhotoUrl: venueProfiles.profilePhotoUrl, organizationName: venueProfiles.organizationName })
+          .from(venueProfiles)
+          .where(eq(venueProfiles.userId, relation.followingId))
+          .limit(1);
+        if (venueProfile.length > 0) {
+          profileId = venueProfile[0].id;
+          profilePhotoUrl = venueProfile[0].profilePhotoUrl;
+          // Use venue name from profile if user name is missing
+          if (name === "Unknown" && venueProfile[0].organizationName) {
+            name = venueProfile[0].organizationName;
+          }
+        }
       }
+
+      // Only skip if we have absolutely no profile data (neither user nor profile found)
+      if (userResult.length === 0 && !profileId) {
+        console.warn(`[getFollowing] Skipping follow relation ${relation.id}: no user or profile found for followingId ${relation.followingId}`);
+        continue;
+      }
+
+      followedUsers.push({
+        id: userResult.length > 0 ? userResult[0].id : relation.followingId,
+        name,
+        email,
+        role,
+        followingType: relation.followingType,
+        followedAt: relation.createdAt,
+        profileId,
+        profilePhotoUrl,
+      });
     }
 
     return followedUsers;

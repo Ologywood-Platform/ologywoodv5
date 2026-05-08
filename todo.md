@@ -2154,3 +2154,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Root cause: Following page navigated to /artist/{userId} but profile page expects /artist/{profileId}
   - Fix: getFollowing now resolves artist_profiles.id and passes it as profileId
   - Also added: profile photos now show on the Following page
+
+## BUG FIX: Followed artists not showing on Following page
+- [x] Fix: After following an artist, they don't appear on the Following page
+  - Root cause: getFollowing silently skipped entries when user record didn't exist in users table
+  - Fix: Now falls back to artist_profiles/venue_profiles data when user lookup fails
+  - Also: Uses artistName/organizationName from profile as display name fallback
