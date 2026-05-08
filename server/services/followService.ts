@@ -222,6 +222,7 @@ export async function getFollowing(
       }
 
       // Resolve the actual profile ID for navigation
+      // Always prefer stage name / organization name over user account name
       if (relation.followingType === 'artist') {
         const artistProfile = await db
           .select({ id: artistProfiles.id, profilePhotoUrl: artistProfiles.profilePhotoUrl, artistName: artistProfiles.artistName })
@@ -231,8 +232,8 @@ export async function getFollowing(
         if (artistProfile.length > 0) {
           profileId = artistProfile[0].id;
           profilePhotoUrl = artistProfile[0].profilePhotoUrl;
-          // Use artist name from profile if user name is missing
-          if (name === "Unknown" && artistProfile[0].artistName) {
+          // Always use artist stage name when available (DJ name, band name, etc.)
+          if (artistProfile[0].artistName) {
             name = artistProfile[0].artistName;
           }
         }
@@ -245,8 +246,8 @@ export async function getFollowing(
         if (venueProfile.length > 0) {
           profileId = venueProfile[0].id;
           profilePhotoUrl = venueProfile[0].profilePhotoUrl;
-          // Use venue name from profile if user name is missing
-          if (name === "Unknown" && venueProfile[0].organizationName) {
+          // Always use organization/venue name when available
+          if (venueProfile[0].organizationName) {
             name = venueProfile[0].organizationName;
           }
         }
