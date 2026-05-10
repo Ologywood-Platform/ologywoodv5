@@ -119,9 +119,9 @@ describe('Forgot Password Flow', () => {
       expect(rateLimiterContent).toContain('export const forgotPasswordLimiter');
     });
 
-    it('should allow 3 requests per 15 minutes', () => {
+    it('should allow 10 requests per 15 minutes', () => {
       const forgotSection = rateLimiterContent.split('forgotPasswordLimiter')[1];
-      expect(forgotSection).toContain('maxRequests: 3');
+      expect(forgotSection).toContain('maxRequests: 10');
       expect(forgotSection).toContain('15 * 60 * 1000');
     });
   });

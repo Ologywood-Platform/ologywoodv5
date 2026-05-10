@@ -2209,3 +2209,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove Forge API from email sending - use SendGrid only
 - [x] Normalize email to lowercase in all auth endpoints (login, signup, forgot password)
 - [x] Create user account for garychisolm30@gmail.com in database
+
+## CRITICAL: OAUTH USER MOBILE LOGIN FIX (5/10)
+- [x] Add linkEmailPassword protected endpoint to auth.ts - allows logged-in OAuth users with NULL email to link email+password
+- [x] Update AccountSettings.tsx Security section to show email field when user has no email (OAuth users)
+- [x] Use linkEmailPassword mutation when user has no email, setPassword when they do
+- [x] Write 6 vitest tests for linkEmailPassword endpoint (all passing)
+- [x] Fix rate limiter tests to match updated values (login: 20, forgotPassword: 10)

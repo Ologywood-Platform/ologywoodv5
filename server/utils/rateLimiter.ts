@@ -130,7 +130,7 @@ export const signupLimiter = new RateLimiter({
 
 /** Auth login: 10 attempts per 15 minutes */
 export const loginLimiter = new RateLimiter({
-  maxRequests: 10,
+  maxRequests: 20,
   windowMs: 15 * 60 * 1000,
 });
 
@@ -148,6 +148,6 @@ export const emailTestingLimiter = new RateLimiter({
 
 // Forgot password: 3 requests per 15 min per IP/email
 export const forgotPasswordLimiter = new RateLimiter({
-  maxRequests: 3,
+  maxRequests: 10,
   windowMs: 15 * 60 * 1000,
 });

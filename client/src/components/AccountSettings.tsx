@@ -54,6 +54,7 @@ export function AccountSettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [setPasswordLoading, setSetPasswordLoading] = useState(false);
+  const [linkEmail, setLinkEmail] = useState('');
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -72,6 +73,7 @@ export function AccountSettings() {
   const deleteAccountMutation = (trpc.account.deleteAccount as any).useMutation();
   const changePasswordMutation = (trpc.auth as any).changePassword.useMutation();
   const setPasswordMutation = (trpc.auth as any).setPassword.useMutation();
+  const linkEmailPasswordMutation = (trpc.auth as any).linkEmailPassword.useMutation();
   // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
   
   // Placeholder values
@@ -359,8 +361,23 @@ export function AccountSettings() {
                 ) : (
                   <div className="space-y-3">
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
-                      Set a password for <strong>{user?.email || 'your account'}</strong> to enable email + password login.
+                      {user?.email
+                        ? <>Set a password for <strong>{user.email}</strong> to enable email + password login.</>
+                        : <>Link your email and set a password to enable email + password login (useful for mobile).</>
+                      }
                     </div>
+                    {!user?.email && (
+                      <div>
+                        <Label htmlFor="linkEmail">Email Address</Label>
+                        <Input
+                          id="linkEmail"
+                          type="email"
+                          value={linkEmail}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkEmail(e.target.value)}
+                          placeholder="your@email.com"
+                        />
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="setNewPassword">New Password</Label>
                       <PasswordInput
@@ -387,6 +404,11 @@ export function AccountSettings() {
                       <Button
                         onClick={async () => {
                           setPasswordError('');
+                          const emailToUse = user?.email || linkEmail.trim();
+                          if (!emailToUse || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToUse)) {
+                            setPasswordError('Please enter a valid email address.');
+                            return;
+                          }
                           if (newPassword.length < 8) {
                             setPasswordError('Password must be at least 8 characters.');
                             return;
@@ -397,14 +419,24 @@ export function AccountSettings() {
                           }
                           setSetPasswordLoading(true);
                           try {
-                            await setPasswordMutation.mutateAsync({
-                              email: user?.email,
-                              password: newPassword,
-                            });
+                            if (!user?.email) {
+                              // OAuth user with no email — use linkEmailPassword
+                              await linkEmailPasswordMutation.mutateAsync({
+                                email: emailToUse,
+                                password: newPassword,
+                              });
+                            } else {
+                              // OAuth user with email but no password — use setPassword
+                              await setPasswordMutation.mutateAsync({
+                                email: user.email,
+                                password: newPassword,
+                              });
+                            }
                             toast.success('Password set successfully! You can now log in with email + password.');
                             setShowSetPassword(false);
                             setNewPassword('');
                             setConfirmPassword('');
+                            setLinkEmail('');
                             // Reload to update hasPassword flag
                             setTimeout(() => window.location.reload(), 1000);
                           } catch (err: any) {

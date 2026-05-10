@@ -505,6 +505,66 @@ export const authRouter = router({
       }
     }),
 
+  // Link Email + Password for OAuth users who have no email set
+  linkEmailPassword: protectedProcedure
+    .input(z.object({
+      email: z.string().email('Invalid email address'),
+      password: z.string().min(8, 'Password must be at least 8 characters'),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+        }
+
+        const userId = ctx.user?.id;
+        if (!userId) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' });
+        }
+
+        // Get current user by ID (not email, since OAuth users may have NULL email)
+        const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        if (userResult.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+        }
+
+        const user = userResult[0];
+        const normalizedEmail = input.email.toLowerCase().trim();
+
+        // Check if email is already taken by another account
+        const existingEmail = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
+        if (existingEmail.length > 0 && existingEmail[0].id !== userId) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'This email is already associated with another account.' });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(input.password, 10);
+
+        // Update the user's email and password
+        await db.update(users).set({
+          email: normalizedEmail,
+          passwordHash: hashedPassword,
+          loginMethod: 'email',
+          lastSignedIn: new Date(),
+        }).where(eq(users.id, userId));
+
+        console.log(`[Auth] linkEmailPassword: User ${userId} linked email ${normalizedEmail}`);
+
+        return {
+          success: true,
+          message: 'Email and password linked successfully! You can now log in with email and password.',
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error('[Auth] Link email/password error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to link email and password',
+        });
+      }
+    }),
+
   // Forgot Password - send reset link
   forgotPassword: publicProcedure
     .input(z.object({ email: z.string().email('Invalid email address') }))
