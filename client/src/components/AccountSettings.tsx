@@ -48,10 +48,12 @@ export function AccountSettings() {
   
   // Password change states
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showSetPassword, setShowSetPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [setPasswordLoading, setSetPasswordLoading] = useState(false);
 
   // Notification preferences state
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -69,6 +71,7 @@ export function AccountSettings() {
   // const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
   const deleteAccountMutation = (trpc.account.deleteAccount as any).useMutation();
   const changePasswordMutation = (trpc.auth as any).changePassword.useMutation();
+  const setPasswordMutation = (trpc.auth as any).setPassword.useMutation();
   // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
   
   // Placeholder values
@@ -329,15 +332,104 @@ export function AccountSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               {!(user as any)?.hasPassword ? (
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="h-5 w-5 text-gray-500" />
-                    <p className="font-medium text-gray-700">OAuth Authentication</p>
+                !showSetPassword ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <p className="font-medium text-blue-700 dark:text-blue-300">Social Login Active</p>
+                      </div>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">
+                        Your account uses social login (OAuth). Add a password below to also log in with your email and password — useful for mobile or when social login isn't available.
+                      </p>
+                    </div>
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        setShowSetPassword(true);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setPasswordError('');
+                      }}
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Set a Password
+                    </Button>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Your account uses OAuth authentication. Password management is not available for OAuth-only accounts.
-                  </p>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+                      Set a password for <strong>{user?.email || 'your account'}</strong> to enable email + password login.
+                    </div>
+                    <div>
+                      <Label htmlFor="setNewPassword">New Password</Label>
+                      <PasswordInput
+                        id="setNewPassword"
+                        value={newPassword}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+                        placeholder="At least 8 characters"
+                      />
+                      <PasswordStrengthIndicator password={newPassword} />
+                    </div>
+                    <div>
+                      <Label htmlFor="setConfirmPassword">Confirm Password</Label>
+                      <PasswordInput
+                        id="setConfirmPassword"
+                        value={confirmPassword}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                    {passwordError && (
+                      <p className="text-sm text-red-600">{passwordError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={async () => {
+                          setPasswordError('');
+                          if (newPassword.length < 8) {
+                            setPasswordError('Password must be at least 8 characters.');
+                            return;
+                          }
+                          if (newPassword !== confirmPassword) {
+                            setPasswordError('Passwords do not match.');
+                            return;
+                          }
+                          setSetPasswordLoading(true);
+                          try {
+                            await setPasswordMutation.mutateAsync({
+                              email: user?.email,
+                              password: newPassword,
+                            });
+                            toast.success('Password set successfully! You can now log in with email + password.');
+                            setShowSetPassword(false);
+                            setNewPassword('');
+                            setConfirmPassword('');
+                            // Reload to update hasPassword flag
+                            setTimeout(() => window.location.reload(), 1000);
+                          } catch (err: any) {
+                            setPasswordError(err?.message || 'Failed to set password. Please try again.');
+                          } finally {
+                            setSetPasswordLoading(false);
+                          }
+                        }}
+                        className="flex-1"
+                        disabled={setPasswordLoading}
+                      >
+                        {setPasswordLoading ? 'Setting Password...' : 'Set Password'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowSetPassword(false);
+                          setPasswordError('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )
               ) : !showPasswordChange ? (
                 <>
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-3">

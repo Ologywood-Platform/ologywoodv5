@@ -9,14 +9,23 @@ function getQueryParam(req: Request, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+function isMobileUserAgent(ua: string): boolean {
+  return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(ua);
+}
+
 export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
+    const userAgent = req.headers["user-agent"] || "unknown";
+    const isMobile = isMobileUserAgent(userAgent);
+
+    console.log(`[OAuth] Callback received - mobile: ${isMobile}, UA: ${userAgent.substring(0, 80)}`);
 
     if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
-      return;
+      console.error("[OAuth] Missing code or state params", { code: !!code, state: !!state, isMobile });
+      // Redirect to home with error instead of showing JSON (better for mobile)
+      return res.redirect(302, "/?oauth_error=INVALID_CODE");
     }
 
     try {
@@ -24,8 +33,8 @@ export function registerOAuthRoutes(app: Express) {
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
       if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
+        console.error("[OAuth] Missing openId from user info", { isMobile });
+        return res.redirect(302, "/?oauth_error=MISSING_EMAIL");
       }
 
       await db.upsertUser({
@@ -44,10 +53,13 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
+      console.log(`[OAuth] Login successful - user: ${userInfo.name || userInfo.openId}, mobile: ${isMobile}`);
+
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
+      console.error("[OAuth] Callback failed", { error, isMobile, userAgent: userAgent.substring(0, 80) });
+      // Redirect to home with error instead of showing JSON error page (much better UX on mobile)
+      return res.redirect(302, "/?oauth_error=UNKNOWN_ERROR");
     }
   });
 }

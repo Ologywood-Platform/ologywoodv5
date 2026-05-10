@@ -2186,5 +2186,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix Pricing page Early Access tag/banner fully visible on mobile
 
 ## LOGIN & PASSWORD ISSUES (User Testing 5/10)
-- [ ] Fix mobile login not working (works on desktop but not mobile browser/app)
-- [ ] Make password change/set option clearly visible in Settings UI
+- [x] Fix mobile login not working (works on desktop but not mobile browser/app)
+- [x] Make password change/set option clearly visible in Settings UI
+
+## AUTH & MOBILE LOGIN IMPROVEMENTS (5/10)
+- [x] Add "Set Password" option in Settings Security section for OAuth users
+- [x] Improve OAuth mobile redirect handling with error messages and retry logic
+- [x] Add better error feedback on mobile when OAuth redirect fails

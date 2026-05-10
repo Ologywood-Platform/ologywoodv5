@@ -6,7 +6,8 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { PasswordStrengthIndicator } from '@/components/ui/password-strength';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Loader2, ArrowLeft, CheckCircle, ExternalLink } from 'lucide-react';
+import { getLoginUrl } from '@/const';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 
@@ -519,6 +520,33 @@ export function QuickSignupModal({
                   </button>
                 </div>
               </form>
+
+              {/* Divider */}
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+
+              {/* OAuth Sign In Button */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  const loginUrl = getLoginUrl();
+                  if (loginUrl) {
+                    window.location.href = loginUrl;
+                  } else {
+                    toast.error('Social login is not configured. Please use email and password.');
+                  }
+                }}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Sign in with Social Login
+              </Button>
             </TabsContent>
           </Tabs>
         )}

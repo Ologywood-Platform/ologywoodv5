@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -25,10 +25,13 @@ export default function Home() {
     setMetaTags(pageMetaTags.home);
   }, []);
 
-  // Handle OAuth errors by clearing the error param
+  // Handle OAuth errors - show user-friendly message with retry
+  const [oauthError, setOauthError] = useState<string | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.has('oauth_error')) {
+    const error = params.get('oauth_error');
+    if (error) {
+      setOauthError(error);
       // Remove the error parameter from URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -60,6 +63,45 @@ export default function Home() {
       
       {/* Shared Header with Following link */}
       <SiteHeader largeLogo />
+
+      {/* OAuth Error Banner */}
+      {oauthError && (
+        <div className="bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-800 px-4 py-3">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm font-medium">
+                {oauthError === 'INVALID_CODE'
+                  ? 'Sign in expired. Please try again.'
+                  : oauthError === 'INVALID_STATE'
+                  ? 'Security check failed. Please try signing in again.'
+                  : 'Sign in failed. Please try again or use email login.'}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30"
+                onClick={() => {
+                  setOauthError(null);
+                  openSignIn();
+                }}
+              >
+                Try Again
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-red-600 dark:text-red-400"
+                onClick={() => setOauthError(null)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section - Mobile Optimized */}
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
