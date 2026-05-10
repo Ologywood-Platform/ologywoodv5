@@ -37,7 +37,8 @@ import {
   unsubscribeFeedback, InsertUnsubscribeFeedback, UnsubscribeFeedback,
   bookingDisputes, InsertBookingDispute, BookingDispute,
   videoModerationQueue, InsertVideoModerationQueue, VideoModerationQueue,
-  videoFlags, InsertVideoFlag, VideoFlag
+  videoFlags, InsertVideoFlag, VideoFlag,
+  tourAvailability, InsertTourAvailability, TourAvailability
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2804,4 +2805,138 @@ export async function takeDownVideo(artistProfileId: number, adminUserId: number
   await db.update(artistProfiles)
     .set({ performanceVideoStatus: 'taken_down' as any })
     .where(eq(artistProfiles.id, artistProfileId));
+}
+
+
+// ============= TOUR AVAILABILITY FUNCTIONS =============
+
+export async function getTourAvailability(artistProfileId: number): Promise<TourAvailability | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(tourAvailability)
+    .where(eq(tourAvailability.artistProfileId, artistProfileId))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function upsertTourAvailability(data: InsertTourAvailability): Promise<TourAvailability> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+
+  // Check if record exists
+  const existing = await db.select().from(tourAvailability)
+    .where(eq(tourAvailability.artistProfileId, data.artistProfileId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await db.update(tourAvailability)
+      .set({
+        isAvailable: data.isAvailable,
+        targetRegions: data.targetRegions,
+        homeBase: data.homeBase,
+        travelRadius: data.travelRadius,
+        tourTypes: data.tourTypes,
+        dateWindows: data.dateWindows,
+        notes: data.notes,
+      })
+      .where(eq(tourAvailability.artistProfileId, data.artistProfileId));
+    const updated = await db.select().from(tourAvailability)
+      .where(eq(tourAvailability.artistProfileId, data.artistProfileId))
+      .limit(1);
+    return updated[0];
+  } else {
+    // Insert new
+    const result = await db.insert(tourAvailability).values(data);
+    const id = (result as any)[0].insertId;
+    const created = await db.select().from(tourAvailability)
+      .where(eq(tourAvailability.id, id))
+      .limit(1);
+    return created[0];
+  }
+}
+
+export async function getAvailableTouringArtists(filters?: {
+  region?: string;
+  travelRadius?: string;
+  tourType?: string;
+}): Promise<any[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    // Get all artists who are available for touring
+    const touringRecords = await db.select().from(tourAvailability)
+      .where(eq(tourAvailability.isAvailable, true));
+
+    if (touringRecords.length === 0) return [];
+
+    // Get the artist profiles for these touring artists
+    const artistProfileIds = touringRecords.map(t => t.artistProfileId);
+    const artists = await db.select().from(artistProfiles)
+      .where(inArray(artistProfiles.id, artistProfileIds));
+
+    // Join and filter
+    const results: (ArtistProfile & { touring: TourAvailability })[] = [];
+    for (const artist of artists) {
+      const touring = touringRecords.find(t => t.artistProfileId === artist.id);
+      if (!touring) continue;
+
+      // Apply region filter
+      if (filters?.region && touring.targetRegions) {
+        const regions = touring.targetRegions as string[];
+        const matchesRegion = regions.some(r =>
+          r.toLowerCase().includes(filters.region!.toLowerCase())
+        );
+        if (!matchesRegion) continue;
+      }
+
+      // Apply travel radius filter
+      if (filters?.travelRadius && touring.travelRadius !== filters.travelRadius) {
+        continue;
+      }
+
+      // Apply tour type filter
+      if (filters?.tourType && touring.tourTypes) {
+        const types = touring.tourTypes as string[];
+        if (!types.includes(filters.tourType)) continue;
+      }
+
+      const parsed = parseArtistProfile(artist);
+      if (!parsed) continue;
+      results.push({ ...parsed, touring });
+    }
+
+    return results;
+  } catch (error) {
+    console.error("[getAvailableTouringArtists] Error:", error);
+    return [];
+  }
+}
+
+export async function getTouringStatusForArtists(artistProfileIds: number[]): Promise<Map<number, boolean>> {
+  const db = await getDb();
+  if (!db) return new Map();
+
+  if (artistProfileIds.length === 0) return new Map();
+
+  try {
+    const records = await db.select({
+      artistProfileId: tourAvailability.artistProfileId,
+      isAvailable: tourAvailability.isAvailable,
+    }).from(tourAvailability)
+      .where(and(
+        inArray(tourAvailability.artistProfileId, artistProfileIds),
+        eq(tourAvailability.isAvailable, true)
+      ));
+
+    const statusMap = new Map<number, boolean>();
+    for (const r of records) {
+      statusMap.set(r.artistProfileId, r.isAvailable);
+    }
+    return statusMap;
+  } catch (error) {
+    console.error("[getTouringStatusForArtists] Error:", error);
+    return new Map();
+  }
 }

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import SiteHeader from "@/components/SiteHeader";
 import ImageCropper from "@/components/ImageCropper";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import TouringSection from '@/components/TouringSection';
 
 const GENRE_OPTIONS = [
   "Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Blues", "Country", "Electronic",
@@ -666,6 +667,9 @@ export default function ArtistEditProfile() {
               <TipQRPreview tipLinks={{ cashapp, venmo, paypal, zelle }} />
             </CardContent>
           </Card>
+
+          {/* Touring Availability */}
+          <TouringSection />
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pb-8">

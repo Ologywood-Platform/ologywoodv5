@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink } from "lucide-react";
+import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink, Plane } from "lucide-react";
 import { ShareVideoButton } from '@/components/ShareVideoButton';
 import { ReportVideoButton } from '@/components/ReportVideoButton';
 import { FollowButton } from "@/components/FollowButton";
@@ -30,6 +30,7 @@ import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { TouringDisplay } from '@/components/TouringDisplay';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
 import Footer from '@/components/Footer';
 
@@ -580,6 +581,9 @@ export default function ArtistProfile() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Touring Availability */}
+            <TouringDisplay artistProfileId={artistId} />
 
             {/* Performance Video */}
             {(artist as any).performanceVideoUrl && ((artist as any).performanceVideoStatus === 'approved' || (artist as any).performanceVideoStatus === 'flagged') && (artist as any).performanceVideoStatus !== 'taken_down' && (

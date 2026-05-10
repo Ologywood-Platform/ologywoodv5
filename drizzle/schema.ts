@@ -1265,3 +1265,35 @@ export const ticketTransfers = mysqlTable("ticket_transfers", {
 
 export type TicketTransfer = typeof ticketTransfers.$inferSelect;
 export type InsertTicketTransfer = typeof ticketTransfers.$inferInsert;
+
+
+/**
+ * Tour Availability - tracks artist touring preferences and availability
+ * Artists can signal they're available for touring, specify target regions,
+ * date windows, travel radius, and tour types they're interested in.
+ */
+export const tourAvailability = mysqlTable("tour_availability", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull().unique(),
+  isAvailable: boolean("isAvailable").default(false).notNull(),
+  /** Target regions/states where the artist wants to tour (JSON array of strings) */
+  targetRegions: json("targetRegions").$type<string[]>(),
+  /** Home base city for radius calculations */
+  homeBase: varchar("homeBase", { length: 255 }),
+  /** Travel radius preference */
+  travelRadius: mysqlEnum("travelRadius", ["local", "regional", "national", "international"]).default("regional"),
+  /** Tour types the artist is open to */
+  tourTypes: json("tourTypes").$type<string[]>(),
+  /** Available date windows for touring */
+  dateWindows: json("dateWindows").$type<{ start: string; end: string }[]>(),
+  /** Optional note about touring preferences */
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_tour_avail_artist").on(table.artistProfileId),
+  availableIdx: index("idx_tour_avail_available").on(table.isAvailable),
+}));
+
+export type TourAvailability = typeof tourAvailability.$inferSelect;
+export type InsertTourAvailability = typeof tourAvailability.$inferInsert;

@@ -2165,3 +2165,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add unfollow button directly on Following page cards (already existed)
 - [x] Show next upcoming event on followed artist cards
 - [x] Send notification when followed artists create new events (email + in-app bell notification)
+
+## TOURING FEATURE - Phase 1 Lightweight (May 2026)
+- [x] Add tour_availability database table (toggle, regions, date windows, radius, tour types)
+- [x] Push schema to database
+- [x] Build touring tRPC router (CRUD for tour availability)
+- [x] Build touring edit section on artist profile edit page
+- [x] Display touring info on public artist profile page
+- [x] Add "On Tour" badge to artist cards in browse/search
+- [x] Add touring filter to browse page (filter by touring artists, region)
+- [x] Write tests for touring feature

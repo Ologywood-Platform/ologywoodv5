@@ -5,7 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
 import { SearchFilters } from "@/components/SearchFilters";
@@ -17,6 +17,7 @@ import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import Footer from '@/components/Footer';
+import { TouringBadge } from '@/components/TouringDisplay';
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ export default function Browse() {
     maxFee?: number;
     availableFrom?: string;
     availableTo?: string;
+    touringOnly?: boolean;
   }>({});
   
   // Collapsible filters state
@@ -57,6 +59,13 @@ export default function Browse() {
 
   const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
 
+  // Fetch touring status for all artists to show badges
+  const artistIds = artists?.map(a => a.id) || [];
+  const { data: touringStatus } = trpc.touring.getTouringStatus.useQuery(
+    { artistProfileIds: artistIds },
+    { enabled: artistIds.length > 0 }
+  );
+
   // Pull-to-refresh
   const { PullIndicator } = usePullToRefresh({
     onRefresh: async () => {
@@ -72,6 +81,11 @@ export default function Browse() {
       (Array.isArray(artist.genre) && artist.genre.some((g: string) => 
         g.toLowerCase().includes(searchQuery.toLowerCase())
       ));
+    
+    // Apply touring filter client-side
+    if (filters.touringOnly && touringStatus) {
+      if (!touringStatus[artist.id]) return false;
+    }
     
     return matchesSearch;
   });
@@ -243,7 +257,10 @@ export default function Browse() {
                         <div className="space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
+                                {touringStatus?.[artist.id] && <TouringBadge />}
+                              </div>
                               {Array.isArray(artist.genre) && artist.genre.length > 0 && (
                                 <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist.genre.join(", ")}</p>
                               )}

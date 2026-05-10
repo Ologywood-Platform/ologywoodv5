@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Search, CalendarCheck, ShieldCheck } from 'lucide-react';
+import { X, Search, CalendarCheck, ShieldCheck, Plane } from 'lucide-react';
 import { ClearableInput } from '@/components/ui/clearable-input';
 
 interface SearchFiltersProps {
@@ -18,6 +18,7 @@ interface SearchFiltersProps {
     availableTo?: string;
     availableDate?: string;
     verifiedOnly?: boolean;
+    touringOnly?: boolean;
     eventType?: string[];
     minCapacity?: number;
     maxCapacity?: number;
@@ -50,6 +51,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
   const [availableTo, setAvailableTo] = useState('');
   const [availableDate, setAvailableDate] = useState('');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [touringOnly, setTouringOnly] = useState(false);
 
   const handleGenreToggle = (genre: string) => {
     const newGenres = selectedGenres.includes(genre)
@@ -80,6 +82,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
       availableTo: availableTo || undefined,
       availableDate: availableDate || undefined,
       verifiedOnly: verifiedOnly || undefined,
+      touringOnly: touringOnly || undefined,
     });
   };
 
@@ -94,6 +97,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     setAvailableTo('');
     setAvailableDate('');
     setVerifiedOnly(false);
+    setTouringOnly(false);
     onFilterChange({});
   };
 
@@ -108,6 +112,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     availableTo,
     availableDate,
     verifiedOnly,
+    touringOnly,
   ].filter(Boolean).length;
 
   // Get today's date in YYYY-MM-DD format for min date
@@ -153,6 +158,38 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
               <X size={12} /> Clear date
             </button>
           )}
+        </div>
+        )}
+
+        {/* On Tour Toggle */}
+        {isArtistFilter && (
+        <div className="flex items-center justify-between p-3 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Plane className="h-4 w-4 text-purple-600" />
+            <div>
+              <Label htmlFor="touring-toggle" className="text-sm font-medium cursor-pointer">
+                On Tour Only
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Show only artists available for touring
+              </p>
+            </div>
+          </div>
+          <button
+            id="touring-toggle"
+            role="switch"
+            aria-checked={touringOnly}
+            onClick={() => setTouringOnly(!touringOnly)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              touringOnly ? 'bg-purple-600' : 'bg-muted'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                touringOnly ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
         </div>
         )}
 
