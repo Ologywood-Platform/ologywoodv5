@@ -2178,3 +2178,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## FAQ NAVIGATION FIX
 - [x] Add FAQ as separate item in mobile hamburger menu (user feedback from testing)
+
+## MOBILE RESPONSIVENESS FIXES (User Testing 5/10)
+- [x] Fix video card Replace/Remove buttons overflow on mobile (cut off on right)
+- [x] Fix Your Fans section Send Update/Export CSV buttons overflow on mobile
+- [x] Fix Settings tabs text truncation on mobile (Subscription cut off)
+- [x] Fix Pricing page Early Access tag/banner fully visible on mobile

@@ -158,12 +158,12 @@ export function AccountSettings() {
       />
       <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="support">Support</TabsTrigger>
+        <TabsList className="flex w-full overflow-x-auto">
+          <TabsTrigger value="profile" className="flex-shrink-0">Profile</TabsTrigger>
+          <TabsTrigger value="subscription" className="flex-shrink-0">Subscription</TabsTrigger>
+          <TabsTrigger value="notifications" className="flex-shrink-0">Notifications</TabsTrigger>
+          <TabsTrigger value="email" className="flex-shrink-0">Email</TabsTrigger>
+          <TabsTrigger value="support" className="flex-shrink-0">Support</TabsTrigger>
         </TabsList>
 
         {/* Profile Tab */}

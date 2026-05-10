@@ -338,7 +338,7 @@ export default function Pricing() {
             {/* Carousel container — no arrows, swipe only */}
             <div
               ref={carouselRef}
-              className="relative overflow-hidden pt-2"
+              className="relative overflow-hidden pt-6"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}

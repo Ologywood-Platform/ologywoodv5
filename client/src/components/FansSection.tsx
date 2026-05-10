@@ -72,7 +72,7 @@ export function FansSection({ artistUserId }: FansSectionProps) {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -82,7 +82,7 @@ export function FansSection({ artistUserId }: FansSectionProps) {
                 {followerCount} {followerCount === 1 ? "person" : "people"} following you
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               {hasPaidAccess && followerCount > 0 && (
                 <Button
                   variant="default"
