@@ -69,6 +69,11 @@ describe('SiteHeader Component', () => {
     expect(siteHeaderContent).toContain('LogoutButton');
     expect(siteHeaderContent).toContain('LogOut');
   });
+
+  it('should include FAQ link in mobile menu pointing to /pricing#faq', () => {
+    expect(siteHeaderContent).toContain('href="/pricing#faq"');
+    expect(siteHeaderContent).toContain('>\n                FAQ\n');
+  });
 });
 
 describe('Pages using SiteHeader', () => {

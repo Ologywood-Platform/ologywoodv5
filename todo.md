@@ -2175,3 +2175,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "On Tour" badge to artist cards in browse/search
 - [x] Add touring filter to browse page (filter by touring artists, region)
 - [x] Write tests for touring feature
+
+## FAQ NAVIGATION FIX
+- [x] Add FAQ as separate item in mobile hamburger menu (user feedback from testing)

@@ -379,7 +379,7 @@ export default function Pricing() {
           </div>
 
           {/* FAQ Section */}
-          <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-3xl mx-auto">
+          <div id="faq" className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-3xl mx-auto scroll-mt-20">
             <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
               Frequently Asked Questions
             </h2>
