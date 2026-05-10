@@ -2184,3 +2184,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix Your Fans section Send Update/Export CSV buttons overflow on mobile
 - [x] Fix Settings tabs text truncation on mobile (Subscription cut off)
 - [x] Fix Pricing page Early Access tag/banner fully visible on mobile
+
+## LOGIN & PASSWORD ISSUES (User Testing 5/10)
+- [ ] Fix mobile login not working (works on desktop but not mobile browser/app)
+- [ ] Make password change/set option clearly visible in Settings UI
