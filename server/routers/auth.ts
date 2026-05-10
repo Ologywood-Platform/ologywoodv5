@@ -153,8 +153,11 @@ export const authRouter = router({
           throw new Error('Database not available');
         }
 
+        // Normalize email
+        const normalizedEmail = input.email.toLowerCase().trim();
+
         // Check if user already exists by email
-        const existingUser = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        const existingUser = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
 
         if (existingUser.length > 0) {
           throw new TRPCError({
@@ -186,7 +189,7 @@ export const authRouter = router({
         if (userToLink) {
           // Link existing OAuth account: add email, name, and password
           await db.update(users).set({
-            email: input.email,
+            email: normalizedEmail,
             name: input.name,
             passwordHash: hashedPassword,
             loginMethod: 'email',
@@ -199,11 +202,11 @@ export const authRouter = router({
         } else {
           // Create brand new user
           const result = await db.insert(users).values({
-            email: input.email,
+            email: normalizedEmail,
             name: input.name,
             role: 'user',
             loginMethod: 'email',
-            openId: `email_${input.email}`,
+            openId: `email_${normalizedEmail}`,
             passwordHash: hashedPassword,
             lastSignedIn: new Date(),
             emailVerified: false,
@@ -304,8 +307,8 @@ export const authRouter = router({
           throw new Error('Database not available');
         }
 
-        // Find user by email
-        const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        // Find user by email (case-insensitive)
+        const userResult = await db.select().from(users).where(eq(users.email, input.email.toLowerCase().trim())).limit(1);
 
         if (userResult.length === 0) {
           throw new TRPCError({
@@ -394,8 +397,8 @@ export const authRouter = router({
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
         }
 
-        // Find user by email
-        const userResult = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+        // Find user by email (case-insensitive)
+        const userResult = await db.select().from(users).where(eq(users.email, input.email.toLowerCase().trim())).limit(1);
         if (userResult.length === 0) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'No account found with this email.' });
         }
@@ -532,6 +535,7 @@ export const authRouter = router({
 
         // Always return success to prevent email enumeration
         if (userResult.length === 0) {
+          console.log(`[Auth] Forgot password: no account found for ${input.email.toLowerCase()}`);
           return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
         }
 

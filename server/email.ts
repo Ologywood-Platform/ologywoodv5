@@ -12,83 +12,57 @@ interface EmailParams {
 }
 
 /**
- * Send an email using the built-in notification API with SendGrid fallback
+ * Send an email using SendGrid
  */
 export async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
-  // Try Forge API first
-  if (ENV.forgeApiUrl && ENV.forgeApiKey) {
-    try {
-      const response = await fetch(`${ENV.forgeApiUrl}/notification/email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${ENV.forgeApiKey}`,
-        },
-        body: JSON.stringify({
-          to,
-          subject,
-          html,
-        }),
-      });
-
-      if (response.ok) {
-        return true;
-      } else {
-        const errorText = await response.text();
-        console.warn('[Email] Forge API failed:', response.status, errorText);
-      }
-    } catch (error) {
-      console.warn('[Email] Forge API error, trying SendGrid fallback:', error);
-    }
+  if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
+    console.error('[Email] SendGrid not configured - SENDGRID_API_KEY or SENDGRID_FROM_EMAIL missing');
+    return false;
   }
 
-  // Fallback to direct SendGrid if available
-  if (ENV.sendgridApiKey && ENV.sendgridFromEmail) {
-    try {
-      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${ENV.sendgridApiKey}`,
-          'Content-Type': 'application/json',
+  try {
+    console.log(`[Email] Sending to: ${to}, subject: ${subject}`);
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ENV.sendgridApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [
+          {
+            to: [{ email: to }],
+          },
+        ],
+        from: {
+          email: ENV.sendgridFromEmail,
+          name: 'Ologywood',
         },
-        body: JSON.stringify({
-          personalizations: [
-            {
-              to: [{ email: to }],
-            },
-          ],
-          from: {
-            email: ENV.sendgridFromEmail,
-            name: 'Ologywood',
+        subject,
+        content: [
+          {
+            type: 'text/html',
+            value: html,
           },
-          subject,
-          content: [
-            {
-              type: 'text/html',
-              value: html,
-            },
-          ],
-          headers: {
-            "List-Unsubscribe": `<${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}>`,
-          },
-        }),
-      });
+        ],
+        headers: {
+          "List-Unsubscribe": `<${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}>`,
+        },
+      }),
+    });
 
-      if (response.ok) {
-        return true;
-      } else {
-        const errorText = await response.text();
-        console.error('[Email] SendGrid failed:', response.status, errorText);
-        return false;
-      }
-    } catch (error) {
-      console.error('[Email] SendGrid error:', error);
+    if (response.ok || response.status === 202) {
+      console.log(`[Email] Sent successfully to ${to}`);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('[Email] SendGrid failed:', response.status, errorText);
       return false;
     }
+  } catch (error) {
+    console.error('[Email] SendGrid error:', error);
+    return false;
   }
-
-  console.error('[Email] No email service configured (neither Forge API nor SendGrid)');
-  return false;
 }
 
 /**

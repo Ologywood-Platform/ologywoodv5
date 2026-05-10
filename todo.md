@@ -2193,3 +2193,19 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Set Password" option in Settings Security section for OAuth users
 - [x] Improve OAuth mobile redirect handling with error messages and retry logic
 - [x] Add better error feedback on mobile when OAuth redirect fails
+
+## CRITICAL: PRODUCTION MOBILE LOGIN FAILURE (5/10)
+- [ ] Fix "load fail" error when signing up or signing in on mobile
+- [ ] Verify touring feature is deployed and visible on production
+
+## TOURING VISIBILITY & MOBILE LOGIN FIX (5/10)
+- [ ] Fix touring display not showing on public artist profile page
+- [ ] Fix touring badge not showing on browse page artist cards
+- [ ] Fix mobile login "load fail" error - improve error messages
+
+## CRITICAL: FORGOT PASSWORD EMAIL NOT SENDING (5/10)
+- [x] Investigate and fix forgot password email not being delivered to garychisolm30@gmail.com
+- [x] Fix desktop login not working after deleting mobile app
+- [x] Remove Forge API from email sending - use SendGrid only
+- [x] Normalize email to lowercase in all auth endpoints (login, signup, forgot password)
+- [x] Create user account for garychisolm30@gmail.com in database
