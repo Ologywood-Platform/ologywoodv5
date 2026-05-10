@@ -4,8 +4,8 @@
  */
 
 import { drizzle } from "drizzle-orm/mysql2";
-import { follows, users, artistProfiles, venueProfiles } from "../../drizzle/schema";
-import { eq, and, ne, inArray } from "drizzle-orm";
+import { follows, users, artistProfiles, venueProfiles, events } from "../../drizzle/schema";
+import { eq, and, ne, inArray, gte, asc } from "drizzle-orm";
 import { getDb } from "../db";
 
 export interface FollowStats {
@@ -23,6 +23,12 @@ export interface FollowedUser {
   followedAt: Date;
   profileId?: number; // artist_profiles.id or venue_profiles.id for navigation
   profilePhotoUrl?: string | null;
+  nextEvent?: {
+    id: number;
+    title: string;
+    date: string;
+    location?: string | null;
+  } | null;
 }
 
 export interface FollowRecommendation {
@@ -259,6 +265,42 @@ export async function getFollowing(
         continue;
       }
 
+      // Fetch next upcoming event for this artist/venue
+      let nextEvent: FollowedUser['nextEvent'] = null;
+      if (profileId) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const upcomingEvent = await db
+          .select({
+            id: events.id,
+            title: events.eventTitle,
+            date: events.eventDate,
+            location: events.location,
+          })
+          .from(events)
+          .where(
+            and(
+              eq(events.artistId, profileId),
+              gte(events.eventDate, today),
+              eq(events.isPublic, true),
+              eq(events.status, 'available')
+            )
+          )
+          .orderBy(asc(events.eventDate))
+          .limit(1);
+        if (upcomingEvent.length > 0) {
+          const eventDate = upcomingEvent[0].date instanceof Date 
+            ? upcomingEvent[0].date.toISOString().split('T')[0]
+            : String(upcomingEvent[0].date);
+          nextEvent = {
+            id: upcomingEvent[0].id,
+            title: upcomingEvent[0].title,
+            date: eventDate,
+            location: upcomingEvent[0].location,
+          };
+        }
+      }
+
       followedUsers.push({
         id: userResult.length > 0 ? userResult[0].id : relation.followingId,
         name,
@@ -268,6 +310,7 @@ export async function getFollowing(
         followedAt: relation.createdAt,
         profileId,
         profilePhotoUrl,
+        nextEvent,
       });
     }
 

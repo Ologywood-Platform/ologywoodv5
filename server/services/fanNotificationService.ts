@@ -9,6 +9,7 @@ import { sendEmail } from '../email';
 import { getDb } from '../db';
 import { follows, users, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
+import { createNotification } from '../db';
 
 const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
 
@@ -188,6 +189,19 @@ export async function notifyFansNewEvent(
         } else {
           console.error(`[FanNotification] sendEmail returned false for ${fan.email}`);
           result.failed++;
+        }
+
+        // Also create in-app notification
+        try {
+          await createNotification({
+            userId: fan.id,
+            type: 'booking', // reuse booking type for event notifications
+            title: `${artistName} has a new event`,
+            message: `${eventDetails.eventTitle} — ${eventDetails.eventDate}${eventDetails.eventLocation ? ` at ${eventDetails.eventLocation}` : ''}`,
+            actionUrl: eventDetails.eventId ? `/events/${eventDetails.eventId}` : `/artist/${profileId}`,
+          });
+        } catch (notifErr) {
+          console.error(`[FanNotification] Failed to create in-app notification for user ${fan.id}:`, notifErr);
         }
       } catch (error) {
         console.error(`[FanNotification] Failed to send to ${fan.email}:`, error);

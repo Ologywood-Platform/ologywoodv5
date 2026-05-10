@@ -2160,3 +2160,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Root cause: getFollowing silently skipped entries when user record didn't exist in users table
   - Fix: Now falls back to artist_profiles/venue_profiles data when user lookup fails
   - Also: Uses artistName/organizationName from profile as display name fallback
+
+## FOLLOWING PAGE ENHANCEMENTS
+- [x] Add unfollow button directly on Following page cards (already existed)
+- [x] Show next upcoming event on followed artist cards
+- [x] Send notification when followed artists create new events (email + in-app bell notification)
