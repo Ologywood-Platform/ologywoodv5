@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getDb } from '../db';
-import { artistProfiles, venueProfiles, events } from '../../drizzle/schema';
+import { artistProfiles, venueProfiles, events, blogPosts } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import {
   generateArtistJsonLd,
@@ -311,6 +311,45 @@ export function ogTagMiddleware() {
                 eventDate: event.eventDate ? event.eventDate.toISOString().split('T')[0] : null,
               }, baseUrl), breadcrumb],
             });
+            return res.status(200).set('Content-Type', 'text/html').send(html);
+          }
+        }
+      }
+
+      // Match /blog/:slug
+      const blogMatch = pathname.match(/^\/blog\/([a-z0-9-]+)$/);
+      if (blogMatch) {
+        const slug = blogMatch[1];
+        const database = await getDb();
+        if (database) {
+          const [post] = await database
+            .select({
+              id: blogPosts.id,
+              title: blogPosts.title,
+              excerpt: blogPosts.excerpt,
+              slug: blogPosts.slug,
+              coverImageUrl: blogPosts.coverImageUrl,
+            })
+            .from(blogPosts)
+            .where(eq(blogPosts.slug, slug))
+            .limit(1);
+
+          if (post) {
+            const breadcrumb = generateBreadcrumbJsonLd([
+              { name: 'Home', url: '/' },
+              { name: 'Blog', url: '/blog' },
+              { name: post.title, url: `/blog/${post.slug}` },
+            ], baseUrl);
+
+            const html = generateOgHtml({
+              title: `${post.title} - Ologywood Blog`,
+              description: post.excerpt || `Read ${post.title} on the Ologywood blog.`,
+              image: post.coverImageUrl || DEFAULT_OG_IMAGE,
+              url: `${baseUrl}/blog/${post.slug}`,
+              type: 'article',
+              jsonLd: [breadcrumb],
+            });
+            console.log(`[OG Tags] Served blog OG for bot: slug=${slug}, title=${post.title}`);
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }

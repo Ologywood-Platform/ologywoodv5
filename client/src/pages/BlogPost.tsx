@@ -31,6 +31,9 @@ export default function BlogPost() {
         description: post.excerpt,
         keywords: (post.tags as string[] || []).join(", "),
         ogUrl: `${window.location.origin}/blog/${post.slug}`,
+        ogImage: post.coverImageUrl || undefined,
+        ogType: 'article',
+        twitterCard: 'summary_large_image',
       });
     }
   }, [post]);

@@ -2273,3 +2273,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] FIX: Changed object-cover to object-contain in Blog.tsx and BlogPost.tsx
 - [x] Added bg-gray-900 background for clean letterboxing
 - [x] Increased card image height from h-44 to h-48
+
+## BUG: SOCIAL MEDIA SHARING NO PREVIEW (5/10)
+- [x] Blog posts show no preview (image/title/description) when shared on social media
+- [x] ROOT CAUSE: ogTags.ts middleware (which runs before Vite) handled artists/venues/events but NOT blog posts
+- [x] FIX: Added /blog/:slug handler to ogTags.ts middleware with DB query for title, excerpt, coverImageUrl
+- [x] Also updated BlogPost.tsx client-side setMetaTags to include ogImage and ogType
+- [x] All 3 blog posts verified working with Facebook, Twitter, LinkedIn bot user agents
