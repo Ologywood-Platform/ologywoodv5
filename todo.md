@@ -157,6 +157,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix Copy Link button to copy OG share URL instead of plain /artist/:id URL
   - Fixed in ShareProfileModal, ShareVenueModal, ShareVideoButton, VenueShareButtons
   - Input display, clipboard copy, and QR codes all use OG share URL now
+- [x] Fix production og:image using raw CloudFront URLs (Facebook can't access them)
+  - Added safety net in serveStatic: any CloudFront URL is forced to /api/og-image/ proxy
+  - All 13 artists with photos now use proxy, 8 without photos use public default image
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
 
 ## URGENT ISSUES
@@ -2311,3 +2314,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Profile photo looks fine in Browse Artists grid but appears oversized/overblown on individual artist profile page
 - [x] Fix image sizing/containment on ArtistProfile page
   - Changed from full-width aspect-ratio banner (object-cover crop) to centered object-contain with max-h-[400px]
+
+## Create tour_availability table in production (5/11)
+- [x] Check schema definition for tour_availability table
+- [x] Push table to production database (created via direct SQL since db:push didn't detect it)
+- [x] Verify table exists (0 rows, ready for data)

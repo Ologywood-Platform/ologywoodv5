@@ -1,4 +1,5 @@
 import express, { type Express } from "express";
+// Build version: 2026-05-11-v3 - OG image must use /api/og-image/ proxy
 import fs from "fs";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
@@ -465,9 +466,19 @@ export function serveStatic(app: Express) {
         
         const ogData = await getOgDataForPath(pathname, baseUrl);
         if (ogData) {
+          // FORCE: Ensure og:image uses the proxy URL, never raw CloudFront
+          if (ogData.image && ogData.image.includes('cloudfront.net')) {
+            const artistMatch2 = pathname.match(/^\/artist\/(\d+)$/);
+            const venueMatch2 = pathname.match(/^\/venue\/(\d+)$/);
+            if (artistMatch2) {
+              ogData.image = `${baseUrl}/api/og-image/artist/${artistMatch2[1]}`;
+            } else if (venueMatch2) {
+              ogData.image = `${baseUrl}/api/og-image/venue/${venueMatch2[1]}`;
+            }
+          }
           let html = await fs.promises.readFile(indexPath, 'utf-8');
           html = injectOgTags(html, ogData);
-          console.log(`[OG Tags Prod] Served OG tags for bot: path=${pathname}, title=${ogData.title}, image=${ogData.image}`);
+          console.log(`[OG Tags Prod v3] Served OG tags for bot: path=${pathname}, title=${ogData.title}, image=${ogData.image}`);
           return res.status(200).set({
             'Content-Type': 'text/html',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
