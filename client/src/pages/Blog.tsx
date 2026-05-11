@@ -123,15 +123,15 @@ export default function Blog() {
                 >
                   {/* Cover Image */}
                   {post.coverImageUrl ? (
-                    <div className="h-44 overflow-hidden">
+                    <div className="h-48 overflow-hidden bg-gray-900">
                       <img
                         src={post.coverImageUrl}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   ) : (
-                    <div className="h-44 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                    <div className="h-48 bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                       <BookOpen className="w-10 h-10 text-purple-300" />
                     </div>
                   )}

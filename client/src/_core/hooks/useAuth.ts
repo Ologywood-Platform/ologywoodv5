@@ -13,10 +13,13 @@ export function useAuth(options?: UseAuthOptions) {
   const utils = trpc.useUtils();
 
   const meQuery = (trpc.auth.me as any).useQuery(undefined, {
-    retry: false,
+    retry: 2, // Retry twice on failure (important for mobile network blips)
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 5000),
     refetchOnWindowFocus: false, // Don't refetch on tab switch — causes full page reload feel
-    refetchInterval: 120_000, // Refetch every 2 minutes (was 30s — too aggressive)
-    staleTime: 60_000, // Data stays fresh for 60 seconds
+    refetchInterval: 180_000, // Refetch every 3 minutes (was 2min — less aggressive for mobile)
+    staleTime: 120_000, // Data stays fresh for 2 minutes
+    // Don't treat network errors as auth failures
+    networkMode: 'online',
   });
 
   const logoutMutation = (trpc.auth.logout as any).useMutation({
@@ -67,6 +70,10 @@ export function useAuth(options?: UseAuthOptions) {
     if (state.user) return;
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
+    
+    // Don't redirect if the query is in error state (could be network issue)
+    // Only redirect if we got a definitive "not authenticated" response (data is null/undefined)
+    if (meQuery.isError) return;
 
     window.location.href = redirectPath
   }, [
@@ -74,6 +81,7 @@ export function useAuth(options?: UseAuthOptions) {
     redirectPath,
     logoutMutation.isPending,
     meQuery.isLoading,
+    meQuery.isError,
     state.user,
   ]);
 

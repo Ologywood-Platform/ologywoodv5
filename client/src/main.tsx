@@ -44,7 +44,11 @@ const isPublicRoute = () => {
   return PUBLIC_ROUTE_PATTERNS.some(pattern => pattern.test(path));
 };
 
-const redirectToLoginIfUnauthorized = (error: unknown) => {
+// Track consecutive auth failures to distinguish network blips from real session expiry
+let consecutiveAuthFailures = 0;
+const MAX_AUTH_FAILURES_BEFORE_REDIRECT = 3;
+
+const redirectToLoginIfUnauthorized = (error: unknown, queryKey?: unknown[]) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
@@ -55,13 +59,43 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
   // Don't redirect on public pages — just silently ignore the 401
   if (isPublicRoute()) return;
 
+  // Check if this is a background auth.me polling query
+  // These should NOT immediately redirect — mobile networks are unreliable
+  const isAuthMeQuery = Array.isArray(queryKey) && 
+    queryKey.some(k => typeof k === 'string' && k.includes('auth.me'));
+  
+  if (isAuthMeQuery) {
+    consecutiveAuthFailures++;
+    // Only redirect after multiple consecutive failures (not a single network blip)
+    if (consecutiveAuthFailures < MAX_AUTH_FAILURES_BEFORE_REDIRECT) {
+      console.warn(`[Auth] auth.me failed (${consecutiveAuthFailures}/${MAX_AUTH_FAILURES_BEFORE_REDIRECT}), waiting before redirect...`);
+      return;
+    }
+    console.warn(`[Auth] auth.me failed ${consecutiveAuthFailures} times consecutively, session likely expired`);
+  }
+
+  // Reset counter and redirect
+  consecutiveAuthFailures = 0;
   window.location.href = '/';
 };
 
+// Reset the failure counter whenever auth.me succeeds
+const resetAuthFailureCounter = (queryKey?: unknown[]) => {
+  const isAuthMeQuery = Array.isArray(queryKey) && 
+    queryKey.some(k => typeof k === 'string' && k.includes('auth.me'));
+  if (isAuthMeQuery) {
+    consecutiveAuthFailures = 0;
+  }
+};
+
 queryClient.getQueryCache().subscribe(event => {
+  if (event.type === "updated" && event.action.type === "success") {
+    // Reset auth failure counter on successful auth.me
+    resetAuthFailureCounter(event.query.queryKey);
+  }
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.query.state.error;
-    redirectToLoginIfUnauthorized(error);
+    redirectToLoginIfUnauthorized(error, event.query.queryKey);
     if (error instanceof TRPCClientError) {
       // Suppress known non-critical errors
       if (error.message.includes("Contract not found")) return;
@@ -78,6 +112,7 @@ queryClient.getQueryCache().subscribe(event => {
 queryClient.getMutationCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     const error = event.mutation.state.error;
+    // Mutations are user-initiated — redirect immediately on 401
     redirectToLoginIfUnauthorized(error);
     if (error instanceof TRPCClientError) {
       if (error.message.includes("Server temporarily unavailable")) return;

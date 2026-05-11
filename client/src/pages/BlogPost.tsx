@@ -104,11 +104,11 @@ export default function BlogPost() {
 
       {/* Cover Image */}
       {post.coverImageUrl && (
-        <div className="w-full h-64 sm:h-80 overflow-hidden">
+        <div className="w-full h-64 sm:h-80 overflow-hidden bg-gray-900 rounded-lg">
           <img
             src={post.coverImageUrl}
             alt={post.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
         </div>
       )}

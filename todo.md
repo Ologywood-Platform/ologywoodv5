@@ -2254,3 +2254,22 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## BLOG POST: TOURING FEATURE & ARTIST HUB (5/10)
 - [x] Write blog post about touring feature and Ologywood as artist's true hub
 - [x] Add blog post to the platform database (id: 3, slug: more-than-booking-your-all-in-one-touring-hub)
+
+## CRITICAL: MOBILE LOGIN BROKEN AGAIN (5/10)
+- [x] Mobile email+password login stopped working again after subsequent deployments
+- [x] Verified cookie fix (sameSite: lax) is still in production code
+- [x] ROOT CAUSE: Not a cookie issue - it was background auth.me polling causing false logouts
+- [x] See mobile session fix below
+
+## CRITICAL: MOBILE SESSION KEEPS LOGGING OUT (5/10)
+- [x] Session not persisting on mobile - user gets logged out on its own
+- [x] ROOT CAUSE: auth.me polled every 2min, single network blip returns 401, client immediately redirects to / (appears as logout)
+- [x] FIX in main.tsx: Added consecutive failure counter - only redirect after 3 consecutive auth.me failures
+- [x] FIX in useAuth.ts: retry:2 with exponential backoff, polling every 3min, staleTime 2min, don't redirect on error state
+- [x] All 14 auth tests passing
+
+## BUG: BLOG COVER IMAGE CROPPING TITLE (5/10)
+- [x] Touring blog cover image cuts off title text at top and bottom
+- [x] FIX: Changed object-cover to object-contain in Blog.tsx and BlogPost.tsx
+- [x] Added bg-gray-900 background for clean letterboxing
+- [x] Increased card image height from h-44 to h-48
