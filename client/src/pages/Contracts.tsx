@@ -87,6 +87,12 @@ function ContractCard({
                 <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-gray-100 truncate">
                   {contract.riderTemplateName}
                 </h3>
+                {(contract as any).contractSource === 'venue' && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-0.5">Venue Agreement</Badge>
+                )}
+                {(contract as any).contractSource === 'rider' && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-0.5">Artist Rider</Badge>
+                )}
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 mt-0.5">
                   {counterpartyLabel}: {counterparty}
                 </p>

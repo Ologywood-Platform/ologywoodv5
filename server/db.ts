@@ -38,7 +38,9 @@ import {
   bookingDisputes, InsertBookingDispute, BookingDispute,
   videoModerationQueue, InsertVideoModerationQueue, VideoModerationQueue,
   videoFlags, InsertVideoFlag, VideoFlag,
-  tourAvailability, InsertTourAvailability, TourAvailability
+  tourAvailability, InsertTourAvailability, TourAvailability,
+  venueContracts, InsertVenueContract, VenueContract,
+  venueContractSignatures, InsertVenueContractSignature, VenueContractSignature
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -2939,4 +2941,73 @@ export async function getTouringStatusForArtists(artistProfileIds: number[]): Pr
     console.error("[getTouringStatusForArtists] Error:", error);
     return new Map();
   }
+}
+
+
+// ============= VENUE CONTRACT FUNCTIONS =============
+
+export async function createVenueContract(data: InsertVenueContract): Promise<VenueContract> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(venueContracts).values(data);
+  const id = (result as any)[0].insertId;
+  const row = await db.select().from(venueContracts).where(eq(venueContracts.id, id)).limit(1);
+  return row[0] as VenueContract;
+}
+
+export async function getVenueContractById(id: number): Promise<VenueContract | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(venueContracts).where(eq(venueContracts.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getVenueContractsByBookingId(bookingId: number): Promise<VenueContract[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(venueContracts).where(eq(venueContracts.bookingId, bookingId)).orderBy(desc(venueContracts.createdAt));
+}
+
+export async function getVenueContractsByVenueId(venueId: number): Promise<VenueContract[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(venueContracts).where(eq(venueContracts.venueId, venueId)).orderBy(desc(venueContracts.createdAt));
+}
+
+export async function getVenueContractsByArtistId(artistId: number): Promise<VenueContract[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(venueContracts).where(eq(venueContracts.artistId, artistId)).orderBy(desc(venueContracts.createdAt));
+}
+
+export async function updateVenueContract(id: number, data: Partial<InsertVenueContract>): Promise<VenueContract | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(venueContracts).set(data).where(eq(venueContracts.id, id));
+  return await getVenueContractById(id);
+}
+
+export async function deleteVenueContract(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(venueContractSignatures).where(eq(venueContractSignatures.venueContractId, id));
+  await db.delete(venueContracts).where(eq(venueContracts.id, id));
+  return true;
+}
+
+// ============= VENUE CONTRACT SIGNATURE FUNCTIONS =============
+
+export async function createVenueContractSignature(data: InsertVenueContractSignature): Promise<VenueContractSignature> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(venueContractSignatures).values(data);
+  const id = (result as any)[0].insertId;
+  const row = await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.id, id)).limit(1);
+  return row[0] as VenueContractSignature;
+}
+
+export async function getVenueContractSignatures(venueContractId: number): Promise<VenueContractSignature[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.venueContractId, venueContractId));
 }

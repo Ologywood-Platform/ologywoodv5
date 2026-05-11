@@ -498,6 +498,13 @@
       "when": 1778443221153,
       "tag": "0070_eminent_winter_soldier",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "5",
+      "when": 1778543739090,
+      "tag": "0071_smart_hydra",
+      "breakpoints": true
     }
   ]
 }

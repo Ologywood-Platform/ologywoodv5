@@ -1297,3 +1297,59 @@ export const tourAvailability = mysqlTable("tour_availability", {
 
 export type TourAvailability = typeof tourAvailability.$inferSelect;
 export type InsertTourAvailability = typeof tourAvailability.$inferInsert;
+
+
+/**
+ * Venue Contracts - contracts uploaded/created by venues for artists to sign
+ * Complements the existing rider contracts (artist → venue) with venue agreements (venue → artist)
+ */
+export const venueContracts = mysqlTable("venue_contracts", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  venueId: int("venueId").notNull(),
+  artistId: int("artistId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  /** 'uploaded_pdf' = venue uploaded a PDF, 'platform_generated' = created via platform form */
+  contractType: mysqlEnum("contractType", ["uploaded_pdf", "platform_generated"]).default("platform_generated").notNull(),
+  /** S3 URL for uploaded PDF contracts */
+  fileUrl: text("fileUrl"),
+  /** JSON data for platform-generated contracts (terms, clauses, etc.) */
+  contractData: json("contractData").$type<Record<string, any>>(),
+  /** Contract status tracking */
+  status: mysqlEnum("status", ["draft", "sent", "viewed", "signed_by_venue", "signed_by_artist", "fully_signed", "declined"]).default("draft").notNull(),
+  /** When the contract was sent to the artist */
+  sentAt: timestamp("sentAt"),
+  /** When the artist first viewed the contract */
+  viewedAt: timestamp("viewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_venue_contracts_booking").on(table.bookingId),
+  venueIdx: index("idx_venue_contracts_venue").on(table.venueId),
+  artistIdx: index("idx_venue_contracts_artist").on(table.artistId),
+  statusIdx: index("idx_venue_contracts_status").on(table.status),
+}));
+
+export type VenueContract = typeof venueContracts.$inferSelect;
+export type InsertVenueContract = typeof venueContracts.$inferInsert;
+
+/**
+ * Venue Contract Signatures - e-signatures on venue contracts
+ */
+export const venueContractSignatures = mysqlTable("venue_contract_signatures", {
+  id: int("id").autoincrement().primaryKey(),
+  venueContractId: int("venueContractId").notNull(),
+  userId: int("userId").notNull(),
+  signerRole: mysqlEnum("signerRole", ["artist", "venue"]),
+  signerName: varchar("signerName", { length: 255 }),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  signatureData: text("signatureData").notNull(),
+  signedAt: timestamp("signedAt").defaultNow().notNull(),
+}, (table) => ({
+  contractIdx: index("idx_venue_contract_sigs_contract").on(table.venueContractId),
+  userIdx: index("idx_venue_contract_sigs_user").on(table.userId),
+}));
+
+export type VenueContractSignature = typeof venueContractSignatures.$inferSelect;
+export type InsertVenueContractSignature = typeof venueContractSignatures.$inferInsert;

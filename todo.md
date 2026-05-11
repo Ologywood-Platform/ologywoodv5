@@ -2349,3 +2349,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Keep ogTagMiddleware as fallback for any bots that do reach the server
 - [x] Test /api/og-page/ endpoint locally with Facebook bot UA
 - [ ] Checkpoint and publish
+
+## VENUE CONTRACT UPLOAD FEATURE (5/11/2026)
+- [x] Database: venue_contracts table (id, bookingId, venueId, title, description, contractType, fileUrl, contractData, status, createdAt, updatedAt)
+- [x] Database: venue_contract_signatures table (id, venueContractId, userId, signerRole, signerName, signatureData, signedAt)
+- [x] API: venueContract router — create, upload PDF, getForBooking, getMyContracts, sign, downloadPdf
+- [x] UI: VenueContractSection component on BookingDetail page with create/upload
+- [x] UI: Venue can attach contract to booking from booking detail page
+- [x] UI: Artist receives notification to review and e-sign venue contract
+- [x] UI: Artist contract review with e-signature (drawn or typed) on booking detail
+- [x] UI: Booking detail page shows both rider contract AND venue contract sections
+- [x] Notifications: In-app when venue sends contract, when artist signs/declines
+- [x] PDF: Download uploaded PDF contracts via S3 presigned URLs
+- [x] Integration: Contracts page shows both rider + venue contracts with source badges

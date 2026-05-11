@@ -21,6 +21,7 @@ import { emailTestingRouter } from "./routers/emailTesting";
 import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
 import { riderContractRouter } from "./routers/riderContract";
+import { venueContractRouter } from "./routers/venueContract";
 import { followsRouter } from "./routers/follows";
 import { eventsRouter } from "./routers/events";
 import { adminRouter } from "./routers/admin";
@@ -122,6 +123,7 @@ export const appRouter = router({
   artistUpdates: artistUpdatesRouter,
   payout: payoutRouter,
   riderContract: riderContractRouter,
+  venueContract: venueContractRouter,
   ticketing: ticketingRouter,
   touring: touringRouter,
 
@@ -209,7 +211,73 @@ export const appRouter = router({
         return dateB - dateA;
       });
 
-      return enriched;
+      // Also fetch venue contracts
+      let venueContractsList: any[] = [];
+      try {
+        if (role === 'venue' || role === 'admin') {
+          const venueProfile = await db.getVenueProfileByUserId(userId);
+          if (venueProfile) {
+            venueContractsList = await db.getVenueContractsByVenueId(venueProfile.id);
+          }
+        }
+        if (role === 'artist' || role === 'admin') {
+          const artistProfile = await db.getArtistProfileByUserId(userId);
+          if (artistProfile) {
+            const artistVenueContracts = await db.getVenueContractsByArtistId(artistProfile.id);
+            const existingVcIds = new Set(venueContractsList.map(c => c.id));
+            for (const vc of artistVenueContracts) {
+              if (!existingVcIds.has(vc.id)) venueContractsList.push(vc);
+            }
+          }
+        }
+      } catch (_) { /* venue_contracts table may not exist yet */ }
+
+      const enrichedVenueContracts = await Promise.all(
+        venueContractsList.map(async (vc) => {
+          const booking = await db.getBookingById(vc.bookingId);
+          let artistName = 'Unknown Artist';
+          let venueName = 'Unknown Venue';
+          const artistProf = await db.getArtistProfileById(vc.artistId);
+          if (artistProf) artistName = artistProf.artistName || artistName;
+          const venueProf = await db.getVenueProfileById(vc.venueId);
+          if (venueProf) venueName = venueProf.organizationName || venueName;
+
+          return {
+            id: vc.id,
+            bookingId: vc.bookingId,
+            status: vc.status,
+            createdAt: vc.createdAt,
+            updatedAt: vc.updatedAt,
+            artistName,
+            venueName,
+            riderTemplateName: vc.title || 'Venue Agreement',
+            eventDate: booking?.eventDate || null,
+            eventDetails: booking?.eventDetails || null,
+            totalFee: booking?.totalFee || null,
+            bookingStatus: booking?.status || null,
+            artistSigned: !!vc.artistSignedAt,
+            artistSignedAt: vc.artistSignedAt || null,
+            artistSignerName: vc.artistSignerName || null,
+            venueSigned: !!vc.venueSignedAt,
+            venueSignedAt: vc.venueSignedAt || null,
+            venueSignerName: vc.venueSignerName || null,
+            contractSource: 'venue' as const,
+          };
+        })
+      );
+
+      // Mark rider contracts with source
+      const riderWithSource = enriched.map(c => ({ ...c, contractSource: 'rider' as const }));
+
+      // Merge and sort all contracts
+      const allContracts = [...riderWithSource, ...enrichedVenueContracts];
+      allContracts.sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+      return allContracts;
     }),
   }),
 

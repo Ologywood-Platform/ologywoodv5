@@ -11,6 +11,7 @@ import { VenueReviewForm } from '@/components/VenueReviewForm';
 import PaymentSection from '@/components/PaymentSection';
 import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
+import { VenueContractSection } from '@/components/VenueContractSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
@@ -277,6 +278,13 @@ export default function BookingDetail() {
               onSigningComplete={() => refetch()}
             />
           )}
+
+          {/* Venue Agreement / Contract */}
+          <VenueContractSection
+            bookingId={bookingId}
+            currentUserRole={user.role === 'venue' ? 'venue' : 'artist'}
+            onContractChange={() => refetch()}
+          />
 
           {/* Add to Portfolio - Only show for artists on completed bookings */}
           {user.role === 'artist' && booking.status === 'completed' && (
