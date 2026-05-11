@@ -2299,3 +2299,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] FIX: Added /blog/:slug handler to ogTags.ts middleware with DB query for title, excerpt, coverImageUrl
 - [x] Also updated BlogPost.tsx client-side setMetaTags to include ogImage and ogType
 - [x] All 3 blog posts verified working with Facebook, Twitter, LinkedIn bot user agents
+
+## CRITICAL: BROWSER URL SHARING MUST WORK (5/11)
+- [x] Make www.ologywood.com/artist/24 show proper OG preview when shared (not just /api/og-page/ URLs)
+  - ROOT CAUSE: Express app.use("*") sets req.path to "/" always. Fixed to use req.originalUrl.
+- [x] This is CRITICAL — major artists (Rock and Roll Hall of Famers, Furious 5) are about to join
+- [x] Users must be able to copy URL from browser bar and paste anywhere with full preview
+- [x] Solution must work for all entity types: /artist/:id, /venue/:id, /events/:id, /blog/:slug

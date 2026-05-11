@@ -376,7 +376,9 @@ export async function setupVite(app: Express, server: Server) {
         let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
         baseUrl = baseUrl.replace(/\/$/, '');
         
-        const ogData = await getOgDataForPath(req.path, baseUrl);
+        // req.path is "/" in app.use("*") handlers, use originalUrl for the actual path
+        const pathname = new URL(req.originalUrl, 'http://localhost').pathname;
+        const ogData = await getOgDataForPath(pathname, baseUrl);
         if (ogData) {
           const clientTemplate = path.resolve(
             import.meta.dirname,
@@ -442,8 +444,8 @@ export function serveStatic(app: Express) {
   
   // Fall through to index.html for SPA routing (but exclude static files)
   app.use("*", async (req, res) => {
-    // Don't serve index.html for static assets or special files
-    const pathname = req.path;
+    // req.path is "/" in app.use("*") handlers, use originalUrl for the actual path
+    const pathname = new URL(req.originalUrl, 'http://localhost').pathname;
     if (
       pathname.match(/\.(js|css|json|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/i) ||
       pathname === '/sw.js' ||
@@ -466,7 +468,11 @@ export function serveStatic(app: Express) {
           let html = await fs.promises.readFile(indexPath, 'utf-8');
           html = injectOgTags(html, ogData);
           console.log(`[OG Tags Prod] Served OG tags for bot: path=${pathname}, title=${ogData.title}, image=${ogData.image}`);
-          return res.status(200).set('Content-Type', 'text/html').send(html);
+          return res.status(200).set({
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Vary': 'User-Agent',
+          }).send(html);
         }
       } catch (error) {
         console.error('[OG Tags] Error injecting OG tags in production:', error);
