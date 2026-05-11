@@ -68,7 +68,9 @@ function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: '
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
-  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
+  // Use the direct source URL (Unsplash, CloudFront, etc.) instead of our proxy
+  // because Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/*
+  return profilePhotoUrl;
 }
 
 function generateOgHtml(opts: {
@@ -168,11 +170,7 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
         .limit(1);
 
       if (artist) {
-        // If slug doesn't match the artist name, redirect to the correct slug URL
         const correctSlug = `${toSlug(artist.artistName)}-${artistId}`;
-        if (req.params.slug !== correctSlug && req.params.slug !== String(artistId)) {
-          return res.redirect(301, `${baseUrl}/api/og-page/artist/${correctSlug}`);
-        }
 
         const genres = Array.isArray(artist.genre) ? artist.genre.join(', ') : '';
         const locationStr = artist.location ? ` based in ${artist.location}` : '';

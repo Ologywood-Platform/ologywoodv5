@@ -61,15 +61,16 @@ function escapeHtml(str: string): string {
 
 /**
  * Get the OG image URL for an entity.
- * Uses the /api/og-image proxy to convert WebP/PNG images to JPEG for social media compatibility.
+ * Uses the direct source URL (Unsplash, CloudFront, etc.) because
+ * Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/* proxy.
  * Falls back to the default OG image if no profile photo exists.
  */
 function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue', entityId: number, baseUrl: string): string {
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
-  // Always use the proxy endpoint to ensure JPEG format for social media
-  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
+  // Use direct source URL — Cloudflare blocks Facebook from /api/* routes
+  return profilePhotoUrl;
 }
 
 /**
