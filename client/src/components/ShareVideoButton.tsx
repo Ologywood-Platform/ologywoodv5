@@ -32,7 +32,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(ogShareUrl);
       setCopied(true);
       toast.success('Link copied!');
       setTimeout(() => setCopied(false), 2000);

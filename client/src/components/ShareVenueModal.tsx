@@ -91,10 +91,10 @@ export function ShareVenueModal({
     };
   }, [isOpen, venueName, venueDescription, venueProfileImage, profileUrl]);
 
-  // Copy to clipboard
+  // Copy to clipboard - copies the OG share URL so previews work when pasted
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(ogShareUrl);
       setCopied(true);
       toast.success('Venue link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -201,9 +201,9 @@ export function ShareVenueModal({
             <Label className="text-sm font-semibold">Your Venue Link</Label>
             <div className="flex gap-2">
               <Input
-                value={profileUrl}
+                value={ogShareUrl}
                 readOnly
-                className="flex-1 bg-gray-50"
+                className="flex-1 bg-gray-50 text-sm"
               />
               <Button
                 onClick={handleCopyLink}
@@ -303,7 +303,7 @@ export function ShareVenueModal({
               <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg overflow-x-auto">
                 <div className="flex justify-center w-full">
                   <QRCode.QRCodeSVG
-                    value={profileUrl}
+                    value={ogShareUrl}
                     size={Math.min(window.innerWidth - 80, 250)}
                     level="H"
                     includeMargin={true}
