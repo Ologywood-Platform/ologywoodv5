@@ -2250,3 +2250,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update feature descriptions to reflect touring + booking + ticketing
 - [x] Add help/support section with email support and getting started links
 - [x] Refresh copy throughout to appeal to indie artists using 3-4 tools currently
+
+## BLOG POST: TOURING FEATURE & ARTIST HUB (5/10)
+- [x] Write blog post about touring feature and Ologywood as artist's true hub
+- [x] Add blog post to the platform database (id: 3, slug: more-than-booking-your-all-in-one-touring-hub)
