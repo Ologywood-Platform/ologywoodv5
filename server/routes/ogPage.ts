@@ -121,14 +121,19 @@ function generateOgHtml(opts: {
   <meta name="twitter:site" content="@ologywood" />
   ${jsonLdTags}
   
-  <!-- Redirect regular users to the SPA page -->
-  <script>window.location.replace("${canonicalUrl}");</script>
+  <!-- Redirect regular users to the SPA page (delayed to let bots read OG tags) -->
   <noscript><meta http-equiv="refresh" content="0;url=${escapeHtml(canonicalUrl)}" /></noscript>
 </head>
 <body>
   <p>${escapeHtml(title)}</p>
   <p>${escapeHtml(description)}</p>
   <p><a href="${escapeHtml(canonicalUrl)}">View on Ologywood</a></p>
+  <script>
+    // Redirect after DOM is fully loaded - bots typically don't wait for DOMContentLoaded
+    if (!/bot|crawl|spider|facebookexternalhit|Twitterbot|LinkedInBot|Slackbot|WhatsApp|Telegram|Pinterest|Googlebot/i.test(navigator.userAgent)) {
+      window.location.replace("${canonicalUrl}");
+    }
+  </script>
 </body>
 </html>`;
 }
