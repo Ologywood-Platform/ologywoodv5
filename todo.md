@@ -2326,3 +2326,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Check schema definition for tour_availability table
 - [x] Push table to production database (created via direct SQL since db:push didn't detect it)
 - [x] Verify table exists (0 rows, ready for data)
+
+## OG SHARING FIX - FINAL (5/11)
+- [x] Restored ogTagMiddleware() in server/_core/index.ts (before serveStatic)
+- [x] Reverted all 4 share components to canonical URLs (/artist/:id, /venue/:id)
+- [x] Verified locally: og:image uses /api/og-image/ proxy (not raw CloudFront)
+- [x] robots.txt keeps Allow: /api/og-page/ and /api/og-image/ before Disallow: /api/
+- [ ] Checkpoint and publish
+
+## RIDER CONTRACT TEMPLATE FOR BOOKING (5/11)
+- [ ] Research rider/contract template fields needed for artist booking
+- [ ] Design database schema for rider contract templates
+- [ ] Build API endpoints for rider contract CRUD
+- [ ] Build rider contract template UI (create, edit, preview)
+- [ ] Integrate rider contracts into booking workflow
+- [ ] Test end-to-end

@@ -20,7 +20,7 @@ import videoUploadRoutes from '../routes/videoUpload';
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
-// ogTagMiddleware removed - OG tags handled in vite.ts serveStatic/setupVite
+import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
 import ogPageRoutes from '../routes/ogPage';
@@ -164,9 +164,10 @@ async function startServer() {
   app.get('/api/artists', createRateLimiter(RATE_LIMIT_CONFIGS.public));
   app.get('/api/search', createRateLimiter(RATE_LIMIT_CONFIGS.public));
   
-  // OG meta tag injection is handled inside serveStatic/setupVite (vite.ts)
-  // The separate ogTagMiddleware was removed because it failed silently on production
-  // due to DB connection timing issues, causing fallthrough to serveStatic with stale image URLs.
+  // OG meta tags for social media crawlers - MUST be before Vite/static serving
+  // This intercepts bot requests to /artist/:id, /venue/:id etc. and serves OG HTML
+  // Works because these URLs are NOT under /api/ so robots.txt doesn't block them
+  app.use(ogTagMiddleware());
   
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
