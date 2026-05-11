@@ -135,6 +135,36 @@ router.get('/robots.txt', (req: Request, res: Response) => {
   }
 
   const robotsTxt = `# Robots.txt for Ologywood Artist Booking Platform
+
+# Social media crawlers - full access to OG sharing endpoints
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: Pinterest
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+# All other crawlers
 User-agent: *
 Allow: /
 Allow: /browse
@@ -156,6 +186,8 @@ Allow: /privacy-policy
 Allow: /cookies
 Allow: /accessibility
 Allow: /dmca
+Allow: /api/og-page/
+Allow: /api/og-image/
 
 # Disallow private/protected pages
 Disallow: /admin
@@ -190,11 +222,7 @@ Disallow: /onboarding
 Disallow: /get-started
 Disallow: /artist-tax-reporting
 
-# Allow social media crawlers to access OG sharing endpoints
-Allow: /api/og-page/
-Allow: /api/og-image/
-
-# Disallow other API endpoints
+# Disallow API endpoints (except og-page and og-image allowed above)
 Disallow: /api/
 Disallow: /trpc/
 Disallow: /auth/
@@ -204,9 +232,6 @@ Disallow: /_deprecated/
 
 # Crawl delay (be respectful)
 Crawl-delay: 1
-
-# Request rate (pages per 10 seconds)
-Request-rate: 10/10s
 
 # Sitemaps
 Sitemap: ${baseUrl}/sitemap.xml`;
