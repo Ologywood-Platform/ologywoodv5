@@ -69,8 +69,8 @@ function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: '
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
-  // Use direct source URL — Cloudflare blocks Facebook from /api/* routes
-  return profilePhotoUrl;
+  // Use /api/og-image/ proxy to convert WebP to JPEG for social media compatibility
+  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
 }
 
 /**

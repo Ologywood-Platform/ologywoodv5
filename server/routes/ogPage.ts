@@ -64,14 +64,18 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
+
 function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue', entityId: number, baseUrl: string): string {
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
-  // Use the direct source URL (Unsplash, CloudFront, etc.) instead of our proxy
-  // because Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/*
-  return profilePhotoUrl;
+  // Use the /api/og-image/ proxy which converts WebP to JPEG for social media compatibility.
+  // Twitter/X does NOT support WebP images in cards — must be JPEG or PNG.
+  // Confirmed: /api/og-image/ returns HTTP 200 on production for all bot UAs.
+  return `${baseUrl}/api/og-image/${entityType}/${entityId}`;
 }
+
+
 
 function generateOgHtml(opts: {
   title: string;
