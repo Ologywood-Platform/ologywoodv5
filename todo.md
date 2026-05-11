@@ -2341,3 +2341,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Build rider contract template UI (create, edit, preview)
 - [ ] Integrate rider contracts into booking workflow
 - [ ] Test end-to-end
+
+## CRITICAL: OG SHARING 403 FROM CLOUDFLARE (5/11)
+- [x] Cloudflare WAF blocks Facebook crawler on /artist/* with 403 — confirmed by user in Facebook Debugger
+- [x] Switch all share components back to /api/og-page/ URLs (which bypass Cloudflare to Node.js)
+- [x] Verify robots.txt allows /api/og-page/ and /api/og-image/ (already has Allow rules)
+- [x] Keep ogTagMiddleware as fallback for any bots that do reach the server
+- [x] Test /api/og-page/ endpoint locally with Facebook bot UA
+- [ ] Checkpoint and publish

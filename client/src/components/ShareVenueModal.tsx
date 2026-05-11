@@ -9,6 +9,7 @@ import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Imag
 
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
+import { toOgShareUrl } from '@/lib/slugify';
 
 
 interface ShareVenueModalProps {
@@ -38,9 +39,10 @@ export function ShareVenueModal({
   const [emailMessage, setEmailMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Share URL - uses canonical /venue/:id URL
-  // The ogTagMiddleware intercepts bot requests and serves OG HTML directly
-  const profileUrl = `${window.location.origin}/venue/${venueId}`;
+  // Canonical URL for display
+  const canonicalUrl = `${window.location.origin}/venue/${venueId}`;
+  // OG share URL for social media (bypasses Cloudflare WAF)
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
 
   const shareText = `Check out ${venueName} on Ologywood - Book amazing artists for your events!`;
   
@@ -80,7 +82,7 @@ export function ShareVenueModal({
     
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
-    ogUrl.setAttribute('content', profileUrl);
+    ogUrl.setAttribute('content', canonicalUrl);
     document.head.appendChild(ogUrl);
     
     return () => {
@@ -90,12 +92,12 @@ export function ShareVenueModal({
       if (ogImage) ogImage.remove();
       ogUrl.remove();
     };
-  }, [isOpen, venueName, venueDescription, venueProfileImage, profileUrl]);
+  }, [isOpen, venueName, venueDescription, venueProfileImage, canonicalUrl]);
 
   // Copy to clipboard - copies the OG share URL so previews work when pasted
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(ogShareUrl);
       setCopied(true);
       toast.success('Venue link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -106,7 +108,7 @@ export function ShareVenueModal({
 
   // Social share handlers
   const handleSocialShare = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let shareUrl = '';
 
@@ -202,7 +204,7 @@ export function ShareVenueModal({
             <Label className="text-sm font-semibold">Your Venue Link</Label>
             <div className="flex gap-2">
               <Input
-                value={profileUrl}
+                value={ogShareUrl}
                 readOnly
                 className="flex-1 bg-gray-50 text-sm"
               />
@@ -304,7 +306,7 @@ export function ShareVenueModal({
               <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg overflow-x-auto">
                 <div className="flex justify-center w-full">
                   <QRCode.QRCodeSVG
-                    value={profileUrl}
+                    value={ogShareUrl}
                     size={Math.min(window.innerWidth - 80, 250)}
                     level="H"
                     includeMargin={true}

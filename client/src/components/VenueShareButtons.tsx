@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Facebook, Twitter, Linkedin, Mail, Link2, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { toOgShareUrl } from '@/lib/slugify';
 
 
 
@@ -23,9 +24,8 @@ export function VenueShareButtons({
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Share URL - uses canonical /venues/:id URL
-  // The ogTagMiddleware intercepts bot requests and serves OG HTML directly
-  const shareUrl = `${window.location.origin}/venues/${venueId}`;
+  // OG share URL for social media (bypasses Cloudflare WAF)
+  const shareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
 
   const shareTitle = `Check out ${venueName} on Ologywood`;
   const shareText = `${venueName}${venueLocation ? ` in ${venueLocation}` : ''} - Book amazing artists for your events!`;
