@@ -1,8 +1,7 @@
 /**
- * Convert a name to a URL-friendly slug with ID appended.
- * "Joe Watts" + 25 -> "joe-watts-25"
- * "LOOSE CHAIN" + 12 -> "loose-chain-12"
- * "Adrianne & Musicbox" + 24 -> "adrianne-musicbox-24"
+ * Generate the share URL for social media.
+ * Uses canonical /artist/:id or /venue/:id URLs.
+ * These are the URLs that previously showed previews on Facebook.
  */
 export function toOgShareUrl(
   origin: string,
@@ -10,11 +9,9 @@ export function toOgShareUrl(
   name: string,
   id: number
 ): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `${origin}/api/og-page/${entityType}/${slug}-${id}`;
+  // Use simple canonical URLs - these work with Facebook's cache
+  if (entityType === 'event') {
+    return `${origin}/events/${id}`;
+  }
+  return `${origin}/${entityType}/${id}`;
 }
