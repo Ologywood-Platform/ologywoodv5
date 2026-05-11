@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Facebook, Twitter, Linkedin, Mail, Link2, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { toOgShareUrl } from '@/lib/slugify';
+
 
 interface VenueShareButtonsProps {
   venueId: number;
@@ -25,31 +25,31 @@ export function VenueShareButtons({
   // Generate shareable URL - canonical URL for display
   const shareUrl = `${window.location.origin}/venues/${venueId}`;
   // OG-optimized URL for social media sharing - includes venue name in URL
-  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
+
   const shareTitle = `Check out ${venueName} on Ologywood`;
   const shareText = `${venueName}${venueLocation ? ` in ${venueLocation}` : ''} - Book amazing artists for your events!`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(ogShareUrl);
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success('Link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleFacebookShare = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogShareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     window.open(facebookUrl, '_blank', 'width=600,height=400');
     trackShare('facebook');
   };
 
   const handleTwitterShare = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(ogShareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
     window.open(twitterUrl, '_blank', 'width=600,height=400');
     trackShare('twitter');
   };
 
   const handleLinkedInShare = () => {
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(ogShareUrl)}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
     window.open(linkedInUrl, '_blank', 'width=600,height=400');
     trackShare('linkedin');
   };
@@ -62,7 +62,7 @@ export function VenueShareButtons({
   };
 
   const handleWhatsAppShare = () => {
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${ogShareUrl}`)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
     window.open(whatsappUrl, '_blank');
     trackShare('whatsapp');
   };

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Image, MapPin, Users } from 'lucide-react';
-import { toOgShareUrl } from '@/lib/slugify';
+
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
 
@@ -39,8 +39,7 @@ export function ShareVenueModal({
 
   // Generate profile URL - canonical URL for display and copy-to-clipboard
   const profileUrl = `${window.location.origin}/venue/${venueId}`;
-  // OG-optimized URL for social media sharing - includes venue name in URL
-  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
+
   const shareText = `Check out ${venueName} on Ologywood - Book amazing artists for your events!`;
   
   // Update Open Graph meta tags for better social sharing
@@ -94,7 +93,7 @@ export function ShareVenueModal({
   // Copy to clipboard - copies the OG share URL so previews work when pasted
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(ogShareUrl);
+      await navigator.clipboard.writeText(profileUrl);
       setCopied(true);
       toast.success('Venue link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -103,9 +102,9 @@ export function ShareVenueModal({
     }
   };
 
-  // Social share handlers - use ogShareUrl for platforms that scrape OG tags
+  // Social share handlers
   const handleSocialShare = (platform: string) => {
-    const encodedUrl = encodeURIComponent(ogShareUrl);
+    const encodedUrl = encodeURIComponent(profileUrl);
     const encodedText = encodeURIComponent(shareText);
     let shareUrl = '';
 
@@ -201,7 +200,7 @@ export function ShareVenueModal({
             <Label className="text-sm font-semibold">Your Venue Link</Label>
             <div className="flex gap-2">
               <Input
-                value={ogShareUrl}
+                value={profileUrl}
                 readOnly
                 className="flex-1 bg-gray-50 text-sm"
               />
@@ -303,7 +302,7 @@ export function ShareVenueModal({
               <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg overflow-x-auto">
                 <div className="flex justify-center w-full">
                   <QRCode.QRCodeSVG
-                    value={ogShareUrl}
+                    value={profileUrl}
                     size={Math.min(window.innerWidth - 80, 250)}
                     level="H"
                     includeMargin={true}
