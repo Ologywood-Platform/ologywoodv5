@@ -103,20 +103,20 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero Section - Touring Marketplace Positioning */}
+      {/* Hero Section - Original Messaging */}
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 text-foreground">
-            Your All-in-One Touring Marketplace
+            Book Artists. Sell Tickets. Own Your Events.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Book artists, plan tours, sell tickets, and manage contracts &mdash; all in one place. Stop juggling 4 different tools. Start touring smarter.
+            The all-in-one platform to discover artists, manage bookings, and sell tickets directly to fans &mdash; with transparent fees and no monopoly.
           </p>
           
           {!isAuthenticated && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-                  Get Started Free
+                  Get Started
                 </Button>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
@@ -142,13 +142,16 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured Artists Carousel - Show all artists, not filtered by search */}
+      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
+
       {/* Touring Feature Highlight Section */}
-      <section className="py-10 sm:py-16">
+      <section className="py-10 sm:py-16 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Built for Touring Artists</h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-              Ologywood replaces the patchwork of tools indie artists use to plan tours. One platform for everything.
+              Plan your tour, get discovered by venues, and manage everything in one place &mdash; no more juggling multiple tools.
             </p>
           </div>
 
@@ -186,9 +189,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Artists Carousel - Show all artists, not filtered by search */}
-      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
-
       {/* Trust Badges Section */}
       <TrustBadges />
 
@@ -199,16 +199,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Touring Marketplace Pitch */}
+      {/* CTA Section - Original */}
       <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
         <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Stop Juggling Tools. Start Touring.</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Indie artists use 3-4 different apps to plan tours. Ologywood brings booking, contracts, ticketing, and payments into one place &mdash; so you can focus on what matters: your music.
+            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-              Join Free
+              Get Started
             </Button>
           )}
         </div>
@@ -217,8 +217,8 @@ export default function Home() {
       {/* Features Section - Mobile Optimized */}
       <section className="py-8 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Everything You Need in One Place</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <Music className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
@@ -226,7 +226,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Search artists by genre, location, and touring availability. Send booking requests and manage everything in one place.
+                  Search artists by genre, location, and availability. Send booking requests and manage everything in one place.
                 </p>
               </CardContent>
             </Card>
@@ -238,7 +238,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Set your tour dates and cities. Venues see your "On Tour" badge and book you directly &mdash; no agents or middlemen needed.
+                  Set your tour dates and cities. Venues see your "On Tour" badge and book you directly &mdash; no agents needed.
                 </p>
               </CardContent>
             </Card>
@@ -269,12 +269,36 @@ export default function Home() {
 
             <Card>
               <CardHeader>
+                <Calendar className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Events & Availability</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Discover upcoming events, manage your availability calendar, and keep your schedule organized.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Follow & Stay Connected</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Follow your favorite artists to stay updated. Artists can send email updates directly to their fan base.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <Shield className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
                 <CardTitle className="text-base sm:text-lg">Secure Payments</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts &mdash; all transparent.
+                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts securely.
                 </p>
               </CardContent>
             </Card>
@@ -298,19 +322,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Upload and sell music directly to fans. No streaming middlemen &mdash; keep more of what you earn.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Fan Following</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Build your fanbase. Fans follow you, get notified about shows, and you can send updates directly to them.
+                  Artists can upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite artists.
                 </p>
               </CardContent>
             </Card>
@@ -322,7 +334,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Fair and transparent dispute handling. File claims, provide evidence, and get resolutions managed by our team.
+                  Fair and transparent dispute handling for bookings. File claims, provide evidence, and get resolutions managed by our admin team.
                 </p>
               </CardContent>
             </Card>
