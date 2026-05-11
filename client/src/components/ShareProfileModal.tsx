@@ -9,6 +9,7 @@ import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Imag
 
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
+import { toOgShareUrl } from '@/lib/slugify';
 
 interface ShareProfileModalProps {
   isOpen: boolean;
@@ -33,7 +34,9 @@ export function ShareProfileModal({
   const [emailMessage, setEmailMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Generate profile URL - canonical URL for sharing
+  // Generate share URL - uses /api/og-page/ so social platforms get proper OG tags
+  // (Cloudflare blocks Facebook's crawler on non-API routes, returning 403)
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
   const shareText = `Check out ${artistName} on Ologywood - Book amazing artists for your events!`;
   
@@ -88,7 +91,7 @@ export function ShareProfileModal({
   // Copy to clipboard - copies the OG share URL so previews work when pasted
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(ogShareUrl);
       setCopied(true);
       toast.success('Profile link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -99,7 +102,7 @@ export function ShareProfileModal({
 
   // Social share handlers
   const handleSocialShare = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let shareUrl = '';
 
@@ -185,7 +188,7 @@ export function ShareProfileModal({
             <Label className="text-sm font-semibold">Your Profile Link</Label>
             <div className="flex gap-2">
               <Input
-                value={profileUrl}
+                value={ogShareUrl}
                 readOnly
                 className="flex-1 bg-gray-50 text-sm"
               />
@@ -287,7 +290,7 @@ export function ShareProfileModal({
               <div className="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg overflow-x-auto">
                 <div className="flex justify-center w-full">
                   <QRCode.QRCodeSVG
-                    value={profileUrl}
+                    value={ogShareUrl}
                     size={Math.min(window.innerWidth - 80, 250)}
                     level="H"
                     includeMargin={true}

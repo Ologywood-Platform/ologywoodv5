@@ -3,6 +3,7 @@ import { Share2, Copy, Check, Facebook, Twitter, Linkedin, MessageCircle, X } fr
 
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { toOgShareUrl } from '@/lib/slugify';
 
 interface ShareVideoButtonProps {
   artistId: number;
@@ -14,6 +15,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
   const [copied, setCopied] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
 
   const shareText = `Watch ${artistName} perform on Ologywood!`;
@@ -32,7 +34,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(ogShareUrl);
       setCopied(true);
       toast.success('Link copied!');
       setTimeout(() => setCopied(false), 2000);
@@ -42,7 +44,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
   };
 
   const share = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let url = '';
 

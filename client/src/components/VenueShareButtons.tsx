@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Facebook, Twitter, Linkedin, Mail, Link2, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { toOgShareUrl } from '@/lib/slugify';
 
 
 interface VenueShareButtonsProps {
@@ -22,41 +23,41 @@ export function VenueShareButtons({
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Generate shareable URL - canonical URL for display
+  // Generate share URL - uses /api/og-page/ so social platforms get proper OG tags
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
   const shareUrl = `${window.location.origin}/venues/${venueId}`;
-  // OG-optimized URL for social media sharing - includes venue name in URL
 
   const shareTitle = `Check out ${venueName} on Ologywood`;
   const shareText = `${venueName}${venueLocation ? ` in ${venueLocation}` : ''} - Book amazing artists for your events!`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
+    navigator.clipboard.writeText(ogShareUrl);
     setCopied(true);
     toast.success('Link copied to clipboard!');
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleFacebookShare = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogShareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     window.open(facebookUrl, '_blank', 'width=600,height=400');
     trackShare('facebook');
   };
 
   const handleTwitterShare = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(ogShareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
     window.open(twitterUrl, '_blank', 'width=600,height=400');
     trackShare('twitter');
   };
 
   const handleLinkedInShare = () => {
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(ogShareUrl)}`;
     window.open(linkedInUrl, '_blank', 'width=600,height=400');
     trackShare('linkedin');
   };
 
   const handleEmailShare = () => {
     const subject = encodeURIComponent(shareTitle);
-    const body = encodeURIComponent(`${shareText}\n\nCheck it out: ${shareUrl}`);
+    const body = encodeURIComponent(`${shareText}\n\nCheck it out: ${ogShareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     trackShare('email');
   };

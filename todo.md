@@ -160,6 +160,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix production og:image using raw CloudFront URLs (Facebook can't access them)
   - Added safety net in serveStatic: any CloudFront URL is forced to /api/og-image/ proxy
   - All 13 artists with photos now use proxy, 8 without photos use public default image
+- [x] Switch all share components back to /api/og-page/ URLs (Cloudflare blocks Facebook on /artist/* with 403)
+  - ShareProfileModal, ShareVenueModal, ShareVideoButton, VenueShareButtons all updated
+  - /api/og-page/ returns 200 to Facebook, /artist/* returns 403
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
 
 ## URGENT ISSUES
