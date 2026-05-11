@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -103,20 +103,20 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero Section - Mobile Optimized */}
+      {/* Hero Section - Touring Marketplace Positioning */}
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 text-foreground">
-            Book Artists. Sell Tickets. Own Your Events.
+            Your All-in-One Touring Marketplace
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            The all-in-one platform to discover artists, manage bookings, and sell tickets directly to fans &mdash; with transparent fees and no monopoly.
+            Book artists, plan tours, sell tickets, and manage contracts &mdash; all in one place. Stop juggling 4 different tools. Start touring smarter.
           </p>
           
           {!isAuthenticated && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-                  Get Started
+                  Get Started Free
                 </Button>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
@@ -142,6 +142,50 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Touring Feature Highlight Section */}
+      <section className="py-10 sm:py-16">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Built for Touring Artists</h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+              Ologywood replaces the patchwork of tools indie artists use to plan tours. One platform for everything.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
+              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-base sm:text-lg mb-2">Plan Your Tour</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Set your touring availability, mark cities you're visiting, and let venues find you. No more cold emails.
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
+              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Globe className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-base sm:text-lg mb-2">Get Discovered</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Your "On Tour" badge shows venues you're available. They book you directly &mdash; no middleman, no agents taking 20%.
+              </p>
+            </div>
+
+            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
+              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-semibold text-base sm:text-lg mb-2">One Platform, Everything</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Bookings, contracts, riders, tickets, payments, and messaging &mdash; all handled here. Focus on performing, not admin.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Artists Carousel - Show all artists, not filtered by search */}
       <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
 
@@ -155,16 +199,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Mobile Optimized */}
+      {/* CTA Section - Touring Marketplace Pitch */}
       <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
         <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Stop Juggling Tools. Start Touring.</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
+            Indie artists use 3-4 different apps to plan tours. Ologywood brings booking, contracts, ticketing, and payments into one place &mdash; so you can focus on what matters: your music.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-              Get Started
+              Join Free
             </Button>
           )}
         </div>
@@ -173,8 +217,8 @@ export default function Home() {
       {/* Features Section - Mobile Optimized */}
       <section className="py-8 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Everything You Need in One Place</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <Music className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
@@ -182,7 +226,19 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Search artists by genre, location, and availability. Send booking requests and manage everything in one place.
+                  Search artists by genre, location, and touring availability. Send booking requests and manage everything in one place.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <MapPin className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Touring & Availability</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Set your tour dates and cities. Venues see your "On Tour" badge and book you directly &mdash; no agents or middlemen needed.
                 </p>
               </CardContent>
             </Card>
@@ -213,36 +269,12 @@ export default function Home() {
 
             <Card>
               <CardHeader>
-                <Calendar className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Events & Availability</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Discover upcoming events, manage your availability calendar, and keep your schedule organized.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Follow & Stay Connected</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Follow your favorite artists to stay updated. Artists can send email updates directly to their fan base.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
                 <Shield className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
                 <CardTitle className="text-base sm:text-lg">Secure Payments</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts securely.
+                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts &mdash; all transparent.
                 </p>
               </CardContent>
             </Card>
@@ -266,7 +298,19 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Artists can upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite artists.
+                  Upload and sell music directly to fans. No streaming middlemen &mdash; keep more of what you earn.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Fan Following</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Build your fanbase. Fans follow you, get notified about shows, and you can send updates directly to them.
                 </p>
               </CardContent>
             </Card>
@@ -278,10 +322,52 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Fair and transparent dispute handling for bookings. File claims, provide evidence, and get resolutions managed by our admin team.
+                  Fair and transparent dispute handling. File claims, provide evidence, and get resolutions managed by our team.
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Help & Support Section */}
+      <section className="py-8 sm:py-12">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Need Help?</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
+              Our support team is here Monday through Friday to help you get the most out of Ologywood.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="flex items-start gap-4 p-4 sm:p-6 rounded-lg border bg-card text-left">
+                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm sm:text-base mb-1">Email Support</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                    Get help with bookings, payments, account issues, or anything else.
+                  </p>
+                  <a href="mailto:support@ologywood.com" className="text-xs sm:text-sm text-primary font-medium hover:underline">
+                    support@ologywood.com
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 sm:p-6 rounded-lg border bg-card text-left">
+                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm sm:text-base mb-1">Getting Started</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+                    New to Ologywood? Create your profile, set up your rider, and start booking in minutes.
+                  </p>
+                  <a href="/get-started" className="text-xs sm:text-sm text-primary font-medium hover:underline">
+                    Set up your account →
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

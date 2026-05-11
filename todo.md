@@ -2237,3 +2237,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] FIX: Changed sameSite from "none" to "lax" in cookies.ts - correct setting for first-party session cookies
 - [x] Updated logout test and authImprovements test to match new cookie settings
 - [x] All 8 tests passing
+
+## SENDGRID DOMAIN AUTHENTICATION (5/10)
+- [ ] Create SendGrid domain authentication for ologywood.com via API
+- [ ] Provide DNS records (SPF/DKIM CNAME) for user to add to domain registrar
+- [ ] Verify domain authentication after DNS records are added
+
+## HOMEPAGE REFRESH - TOURING MARKETPLACE POSITIONING (5/10)
+- [x] Audit current homepage sections and copy
+- [x] Rewrite hero section to position as touring marketplace, not just booking platform
+- [x] Add prominent touring feature section highlighting the all-in-one value ("Built for Touring Artists")
+- [x] Update feature descriptions to reflect touring + booking + ticketing
+- [x] Add help/support section with email support and getting started links
+- [x] Refresh copy throughout to appeal to indie artists using 3-4 tools currently
