@@ -190,7 +190,11 @@ Disallow: /onboarding
 Disallow: /get-started
 Disallow: /artist-tax-reporting
 
-# Disallow API endpoints
+# Allow social media crawlers to access OG sharing endpoints
+Allow: /api/og-page/
+Allow: /api/og-image/
+
+# Disallow other API endpoints
 Disallow: /api/
 Disallow: /trpc/
 Disallow: /auth/

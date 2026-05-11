@@ -163,6 +163,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Switch all share components back to /api/og-page/ URLs (Cloudflare blocks Facebook on /artist/* with 403)
   - ShareProfileModal, ShareVenueModal, ShareVideoButton, VenueShareButtons all updated
   - /api/og-page/ returns 200 to Facebook, /artist/* returns 403
+- [x] Fix robots.txt blocking Facebook from /api/og-page/ and /api/og-image/
+  - ROOT CAUSE: robots.txt had `Disallow: /api/` which blocked ALL /api/ routes including og-page
+  - FIX: Added `Allow: /api/og-page/` and `Allow: /api/og-image/` BEFORE the Disallow rule
+  - In robots.txt, more specific rules take precedence over general ones
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
 
 ## URGENT ISSUES
