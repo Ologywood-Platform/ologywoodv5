@@ -111,8 +111,8 @@ describe('Auth Improvements - Cookie Configuration', () => {
       path.join(__dirname, './_core/cookies.ts'),
       'utf-8'
     );
-    // Should set sameSite to none for secure (production) and lax for dev
-    expect(content).toContain("sameSite: isSecure ? \"none\" : \"lax\"");
+    // Should use sameSite: lax for first-party session cookies (fixes mobile login)
+    expect(content).toContain('sameSite: "lax"');
     // Should set secure flag based on request
     expect(content).toContain('secure: isSecure');
     // Should be httpOnly

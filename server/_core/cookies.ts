@@ -39,13 +39,16 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
-  const isProd = process.env.NODE_ENV === "production";
   const isSecure = isSecureRequest(req);
 
   return {
     httpOnly: true,
     path: "/",
-    sameSite: isSecure ? "none" : "lax",
+    // Use "lax" for first-party session cookies.
+    // "none" was causing mobile browsers (especially iOS Safari with ITP)
+    // to block or ignore the session cookie, preventing login on mobile.
+    // "lax" is correct for same-site navigation and top-level requests.
+    sameSite: "lax",
     secure: isSecure,
   };
 }

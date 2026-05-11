@@ -2224,3 +2224,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] OAuth flow now routes through manus.space domain (which is registered with Manus OAuth)
 - [x] Added 8 vitest tests for OAuth configuration (all passing)
 - [ ] PENDING: Submit Manus support request to register www.ologywood.com as allowed OAuth redirect URI for direct custom domain OAuth (optional improvement)
+
+## CRITICAL: OAUTH SOCIAL LOGIN STILL NOT WORKING (5/10 - attempt 2)
+- [ ] Social login still failing on www.ologywood.com after state parameter fix
+- [ ] Need deeper investigation into how Manus OAuth validates redirect URIs
+- [ ] Find and implement the correct fix
+
+## CRITICAL: MOBILE EMAIL+PASSWORD LOGIN NOT WORKING (5/10)
+- [x] User can log in on desktop but NOT on mobile with email+password
+- [x] Investigate cookie/session handling differences on mobile
+- [x] ROOT CAUSE: sameSite: "none" on session cookie was causing mobile browsers (iOS Safari ITP, Chrome) to block/ignore the cookie
+- [x] FIX: Changed sameSite from "none" to "lax" in cookies.ts - correct setting for first-party session cookies
+- [x] Updated logout test and authImprovements test to match new cookie settings
+- [x] All 8 tests passing
