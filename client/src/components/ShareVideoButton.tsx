@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Share2, Copy, Check, Facebook, Twitter, Linkedin, MessageCircle, X } from 'lucide-react';
+import { toOgShareUrl } from '@/lib/slugify';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -14,7 +15,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
-  const ogShareUrl = `${window.location.origin}/api/og-page/artist/${artistId}`;
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
   const shareText = `Watch ${artistName} perform on Ologywood!`;
 
   // Close popover on outside click

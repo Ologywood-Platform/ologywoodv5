@@ -149,6 +149,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update all share modals/buttons to use /api/og-page/ URLs for social sharing
   - ShareProfileModal.tsx, ShareVenueModal.tsx, ShareVideoButton.tsx, VenueShareButtons.tsx
 - [x] Add /api/health endpoint (since /health is caught by CDN in production)
+- [x] Add artist name slugs to share URLs (e.g., /api/og-page/artist/joe-watts-25)
+- [x] Created shared slugify utility (client/src/lib/slugify.ts)
+- [x] Updated all 4 share components to use slug URLs
+- [x] Backward compatible: /api/og-page/artist/25 still works
+- [x] Wrong slugs auto-redirect 301 to correct slug
 - [ ] Test and verify artist 25 sharing preview works on Facebook/Messenger after deployment
 
 ## URGENT ISSUES

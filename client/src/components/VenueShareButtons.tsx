@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, Facebook, Twitter, Linkedin, Mail, Link2, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { toOgShareUrl } from '@/lib/slugify';
 
 interface VenueShareButtonsProps {
   venueId: number;
@@ -23,8 +24,8 @@ export function VenueShareButtons({
 
   // Generate shareable URL - canonical URL for display
   const shareUrl = `${window.location.origin}/venues/${venueId}`;
-  // OG-optimized URL for social media sharing
-  const ogShareUrl = `${window.location.origin}/api/og-page/venue/${venueId}`;
+  // OG-optimized URL for social media sharing - includes venue name in URL
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
   const shareTitle = `Check out ${venueName} on Ologywood`;
   const shareText = `${venueName}${venueLocation ? ` in ${venueLocation}` : ''} - Book amazing artists for your events!`;
 

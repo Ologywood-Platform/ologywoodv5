@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Image } from 'lucide-react';
+import { toOgShareUrl } from '@/lib/slugify';
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
 
@@ -34,9 +35,9 @@ export function ShareProfileModal({
 
   // Generate profile URL - canonical URL for display and copy-to-clipboard
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
-  // OG-optimized URL for social media sharing - serves proper OG meta tags to crawlers
-  // and redirects regular users to the SPA page via JavaScript
-  const ogShareUrl = `${window.location.origin}/api/og-page/artist/${artistId}`;
+  // OG-optimized URL for social media sharing - includes artist name in URL for readability
+  // e.g., /api/og-page/artist/joe-watts-25
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
   const shareText = `Check out ${artistName} on Ologywood - Book amazing artists for your events!`;
   
   // Update Open Graph meta tags for better social sharing

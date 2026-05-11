@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Copy, Facebook, Twitter, Linkedin, Instagram, Mail, QrCode, Check, Image, MapPin, Users } from 'lucide-react';
+import { toOgShareUrl } from '@/lib/slugify';
 import { toast } from 'sonner';
 import * as QRCode from 'qrcode.react';
 
@@ -38,8 +39,8 @@ export function ShareVenueModal({
 
   // Generate profile URL - canonical URL for display and copy-to-clipboard
   const profileUrl = `${window.location.origin}/venue/${venueId}`;
-  // OG-optimized URL for social media sharing
-  const ogShareUrl = `${window.location.origin}/api/og-page/venue/${venueId}`;
+  // OG-optimized URL for social media sharing - includes venue name in URL
+  const ogShareUrl = toOgShareUrl(window.location.origin, 'venue', venueName, venueId);
   const shareText = `Check out ${venueName} on Ologywood - Book amazing artists for your events!`;
   
   // Update Open Graph meta tags for better social sharing

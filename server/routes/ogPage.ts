@@ -19,17 +19,41 @@ const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/sessi
 const SITE_NAME = 'Ologywood';
 
 /**
- * Detect if the request is from a social media crawler / bot
+ * Convert a name to a URL-friendly slug
+ * "Joe Watts" -> "joe-watts"
+ * "LOOSE CHAIN" -> "loose-chain"
+ * "Adrianne & Musicbox" -> "adrianne-musicbox"
  */
-function isSocialBot(userAgent: string): boolean {
-  const botPatterns = [
-    'facebookexternalhit', 'Facebot', 'Twitterbot', 'LinkedInBot',
-    'WhatsApp', 'Slackbot', 'TelegramBot', 'Discordbot', 'Pinterest',
-    'Googlebot', 'bingbot', 'Applebot', 'iMessageLinkPreview',
-    'Viber', 'Line/', 'Snapchat', 'SkypeUriPreview', 'redditbot',
-    'Embedly', 'Quora Link Preview', 'vkShare', 'Iframely',
-  ];
-  return botPatterns.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // remove special chars
+    .replace(/\s+/g, '-')          // spaces to hyphens
+    .replace(/-+/g, '-')           // collapse multiple hyphens
+    .replace(/^-|-$/g, '');        // trim leading/trailing hyphens
+}
+
+/**
+ * Extract the numeric ID from a slug like "joe-watts-25" or just "25"
+ * The ID is always the last segment after the final hyphen (if numeric)
+ * or the entire string if it's just a number.
+ */
+function extractIdFromSlug(slug: string): number | null {
+  // Try: "25" (just an ID)
+  const directId = parseInt(slug, 10);
+  if (!isNaN(directId) && String(directId) === slug) {
+    return directId;
+  }
+  // Try: "joe-watts-25" (slug with ID at the end)
+  const lastHyphen = slug.lastIndexOf('-');
+  if (lastHyphen !== -1) {
+    const idPart = slug.substring(lastHyphen + 1);
+    const id = parseInt(idPart, 10);
+    if (!isNaN(id) && String(id) === idPart) {
+      return id;
+    }
+  }
+  return null;
 }
 
 function escapeHtml(str: string): string {
@@ -63,8 +87,6 @@ function generateOgHtml(opts: {
     image.endsWith('.png') ? 'image/png' : 
     image.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
   
-  // For social bots: return full OG HTML with og:url pointing to the canonical SPA URL
-  // For regular users: JavaScript redirect to the SPA page
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -108,21 +130,21 @@ function generateOgHtml(opts: {
 /**
  * /api/og-page/* - Serves OG-rich HTML for social media crawlers
  * 
- * Social bots get full OG meta tags + JSON-LD structured data
- * Regular users get redirected to the actual SPA page via JavaScript
+ * URLs support readable slugs with the ID at the end:
+ *   /api/og-page/artist/joe-watts-25
+ *   /api/og-page/artist/25  (also works, backwards compatible)
+ *   /api/og-page/venue/the-roxy-theatre-1
  * 
- * This endpoint exists because the Manus deployment serves static index.html
- * for non-API paths, so the Express OG middleware never sees those requests.
- * 
- * Usage: Share https://www.ologywood.com/api/og-page/artist/25 instead of /artist/25
- * The og:url still points to /artist/25 so Facebook shows the canonical URL.
+ * Social bots get full OG meta tags + JSON-LD structured data.
+ * Regular users get redirected to the actual SPA page via JavaScript.
+ * The og:url points to the canonical /artist/25 URL.
  */
 
-// Artist pages
-router.get('/artist/:id', async (req: Request, res: Response) => {
-  const artistId = parseInt(req.params.id, 10);
-  if (isNaN(artistId)) {
-    return res.status(400).json({ error: 'Invalid artist ID' });
+// Artist pages — supports /artist/:slug (e.g., joe-watts-25) or /artist/:id (e.g., 25)
+router.get('/artist/:slug', async (req: Request, res: Response) => {
+  const artistId = extractIdFromSlug(req.params.slug);
+  if (artistId === null) {
+    return res.status(400).json({ error: 'Invalid artist URL. Use format: /api/og-page/artist/artist-name-ID' });
   }
 
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
@@ -146,6 +168,12 @@ router.get('/artist/:id', async (req: Request, res: Response) => {
         .limit(1);
 
       if (artist) {
+        // If slug doesn't match the artist name, redirect to the correct slug URL
+        const correctSlug = `${toSlug(artist.artistName)}-${artistId}`;
+        if (req.params.slug !== correctSlug && req.params.slug !== String(artistId)) {
+          return res.redirect(301, `${baseUrl}/api/og-page/artist/${correctSlug}`);
+        }
+
         const genres = Array.isArray(artist.genre) ? artist.genre.join(', ') : '';
         const locationStr = artist.location ? ` based in ${artist.location}` : '';
         const description = artist.bio
@@ -164,13 +192,13 @@ router.get('/artist/:id', async (req: Request, res: Response) => {
           title: `${artist.artistName} | Book on Ologywood`,
           description,
           image: ogImage,
-          url: `${baseUrl}/api/og-page/artist/${artistId}`,
+          url: `${baseUrl}/api/og-page/artist/${correctSlug}`,
           canonicalUrl,
           type: 'profile',
           jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
         });
         
-        console.log(`[OG Page] Served artist OG: id=${artistId}, name=${artist.artistName}, ua=${(req.headers['user-agent'] || '').substring(0, 60)}`);
+        console.log(`[OG Page] Served artist OG: id=${artistId}, name=${artist.artistName}, slug=${correctSlug}`);
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }
@@ -178,15 +206,14 @@ router.get('/artist/:id', async (req: Request, res: Response) => {
     console.error('[OG Page] Error generating artist OG:', error);
   }
 
-  // Fallback: redirect to the SPA page
   return res.redirect(302, canonicalUrl);
 });
 
-// Venue pages
-router.get('/venue/:id', async (req: Request, res: Response) => {
-  const venueId = parseInt(req.params.id, 10);
-  if (isNaN(venueId)) {
-    return res.status(400).json({ error: 'Invalid venue ID' });
+// Venue pages — supports /venue/:slug or /venue/:id
+router.get('/venue/:slug', async (req: Request, res: Response) => {
+  const venueId = extractIdFromSlug(req.params.slug);
+  if (venueId === null) {
+    return res.status(400).json({ error: 'Invalid venue URL' });
   }
 
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
@@ -213,6 +240,8 @@ router.get('/venue/:id', async (req: Request, res: Response) => {
         .limit(1);
 
       if (venue) {
+        const correctSlug = `${toSlug(venue.organizationName)}-${venueId}`;
+        
         const typeStr = venue.venueType ? `${venue.venueType} venue` : 'Venue';
         const locationStr = venue.location ? ` in ${venue.location}` : '';
         const description = venue.bio
@@ -231,13 +260,13 @@ router.get('/venue/:id', async (req: Request, res: Response) => {
           title: `${venue.organizationName} | Ologywood`,
           description,
           image: ogImage,
-          url: `${baseUrl}/api/og-page/venue/${venueId}`,
+          url: `${baseUrl}/api/og-page/venue/${correctSlug}`,
           canonicalUrl,
           type: 'business.business',
           jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
         });
         
-        console.log(`[OG Page] Served venue OG: id=${venueId}, name=${venue.organizationName}`);
+        console.log(`[OG Page] Served venue OG: id=${venueId}, name=${venue.organizationName}, slug=${correctSlug}`);
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
     }
@@ -249,10 +278,10 @@ router.get('/venue/:id', async (req: Request, res: Response) => {
 });
 
 // Event pages
-router.get('/event/:id', async (req: Request, res: Response) => {
-  const eventId = parseInt(req.params.id, 10);
-  if (isNaN(eventId)) {
-    return res.status(400).json({ error: 'Invalid event ID' });
+router.get('/event/:slug', async (req: Request, res: Response) => {
+  const eventId = extractIdFromSlug(req.params.slug);
+  if (eventId === null) {
+    return res.status(400).json({ error: 'Invalid event URL' });
   }
 
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
@@ -287,6 +316,8 @@ router.get('/event/:id', async (req: Request, res: Response) => {
           ? event.description.substring(0, 200)
           : `${event.eventTitle}${dateStr}${locationStr}. Discover events on Ologywood.`;
         
+        const correctSlug = `${toSlug(event.eventTitle)}-${eventId}`;
+        
         const breadcrumb = generateBreadcrumbJsonLd([
           { name: 'Home', url: '/' },
           { name: 'Events', url: '/events' },
@@ -297,7 +328,7 @@ router.get('/event/:id', async (req: Request, res: Response) => {
           title: `${event.eventTitle} | Ologywood Events`,
           description: descriptionText,
           image: DEFAULT_OG_IMAGE,
-          url: `${baseUrl}/api/og-page/event/${eventId}`,
+          url: `${baseUrl}/api/og-page/event/${correctSlug}`,
           canonicalUrl,
           type: 'event',
           jsonLd: [generateEventJsonLd({
@@ -316,7 +347,7 @@ router.get('/event/:id', async (req: Request, res: Response) => {
   return res.redirect(302, canonicalUrl);
 });
 
-// Blog pages
+// Blog pages (already use slugs naturally)
 router.get('/blog/:slug', async (req: Request, res: Response) => {
   const slug = req.params.slug;
 
@@ -367,7 +398,7 @@ router.get('/blog/:slug', async (req: Request, res: Response) => {
   return res.redirect(302, canonicalUrl);
 });
 
-// Static pages (homepage, browse, pricing)
+// Static pages
 router.get('/home', async (req: Request, res: Response) => {
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
   baseUrl = baseUrl.replace(/\/$/, '');
