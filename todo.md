@@ -2216,3 +2216,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Use linkEmailPassword mutation when user has no email, setPassword when they do
 - [x] Write 6 vitest tests for linkEmailPassword endpoint (all passing)
 - [x] Fix rate limiter tests to match updated values (login: 20, forgotPassword: 10)
+
+## CRITICAL: OAUTH SOCIAL LOGIN - REDIRECT URI NOT SET (5/10)
+- [x] Fix "Permission denied - Redirect URI is not set" error when clicking Social Login on www.ologywood.com
+- [x] Updated getLoginUrl() to explicitly set state parameter with base64-encoded manus.space callback URL
+- [x] Set VITE_OAUTH_REDIRECT_BASE_URL to https://ologywood-mp6flm6c.manus.space
+- [x] OAuth flow now routes through manus.space domain (which is registered with Manus OAuth)
+- [x] Added 8 vitest tests for OAuth configuration (all passing)
+- [ ] PENDING: Submit Manus support request to register www.ologywood.com as allowed OAuth redirect URI for direct custom domain OAuth (optional improvement)
