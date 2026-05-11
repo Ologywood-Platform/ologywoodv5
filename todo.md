@@ -2306,3 +2306,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] This is CRITICAL — major artists (Rock and Roll Hall of Famers, Furious 5) are about to join
 - [x] Users must be able to copy URL from browser bar and paste anywhere with full preview
 - [x] Solution must work for all entity types: /artist/:id, /venue/:id, /events/:id, /blog/:slug
+
+## BUG: Artist profile photo too big/overblown on profile page (5/11)
+- [x] Profile photo looks fine in Browse Artists grid but appears oversized/overblown on individual artist profile page
+- [x] Fix image sizing/containment on ArtistProfile page
+  - Changed from full-width aspect-ratio banner (object-cover crop) to centered object-contain with max-h-[400px]

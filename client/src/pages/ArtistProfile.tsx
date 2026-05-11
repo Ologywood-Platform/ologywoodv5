@@ -299,16 +299,16 @@ export default function ArtistProfile() {
         {/* Hero Section */}
         <div className="mb-6 sm:mb-8" ref={heroRef}>
           {artist.profilePhotoUrl ? (
-            <div className="w-full aspect-[16/9] md:aspect-[21/9] rounded-lg overflow-hidden mb-6">
+            <div className="flex justify-center mb-6">
               <img 
                 src={artist.profilePhotoUrl} 
                 alt={artist.artistName}
-                className="w-full h-full object-cover object-top"
+                className="max-h-[300px] sm:max-h-[350px] md:max-h-[400px] w-auto max-w-full rounded-lg object-contain"
               />
             </div>
           ) : (
-            <div className="w-full aspect-[16/9] md:aspect-[21/9] bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
-              <Music className="h-32 w-32 text-primary/40" />
+            <div className="w-full h-[200px] sm:h-[240px] bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
+              <Music className="h-24 w-24 text-primary/40" />
             </div>
           )}
           
