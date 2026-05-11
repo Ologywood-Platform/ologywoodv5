@@ -36,8 +36,10 @@ export function ShareVenueModal({
   const [emailMessage, setEmailMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Generate profile URL
+  // Generate profile URL - canonical URL for display and copy-to-clipboard
   const profileUrl = `${window.location.origin}/venue/${venueId}`;
+  // OG-optimized URL for social media sharing
+  const ogShareUrl = `${window.location.origin}/api/og-page/venue/${venueId}`;
   const shareText = `Check out ${venueName} on Ologywood - Book amazing artists for your events!`;
   
   // Update Open Graph meta tags for better social sharing
@@ -100,9 +102,9 @@ export function ShareVenueModal({
     }
   };
 
-  // Social share handlers
+  // Social share handlers - use ogShareUrl for platforms that scrape OG tags
   const handleSocialShare = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let shareUrl = '';
 

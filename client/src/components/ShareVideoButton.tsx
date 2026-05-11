@@ -14,6 +14,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
   const popoverRef = useRef<HTMLDivElement>(null);
 
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
+  const ogShareUrl = `${window.location.origin}/api/og-page/artist/${artistId}`;
   const shareText = `Watch ${artistName} perform on Ologywood!`;
 
   // Close popover on outside click
@@ -40,7 +41,7 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
   };
 
   const share = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let url = '';
 

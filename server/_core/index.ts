@@ -23,6 +23,7 @@ import { globalErrorHandler, notFoundHandler } from "../error-handler";
 import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
+import ogPageRoutes from '../routes/ogPage';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -98,10 +99,13 @@ async function startServer() {
   app.use('/api/oauth/login', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
   app.use('/api/oauth/callback', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
   
-  // Health check endpoint (must be before rate limiting)
-  app.get('/health', (req, res) => {
+  // Health check endpoints (must be before rate limiting)
+  // /health works in dev, /api/health works in production (CDN catches non-/api paths)
+  const healthHandler = (req: any, res: any) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+  };
+  app.get('/health', healthHandler);
+  app.get('/api/health', healthHandler);
 
   // Sitemap and robots.txt routes (BEFORE Vite setup)
   app.use('/', sitemapRoutes);
@@ -133,6 +137,14 @@ async function startServer() {
   // OG Image proxy - converts WebP/PNG profile photos to JPEG for social media crawlers
   // MUST be before Vite/static setup so it doesn't get caught by SPA fallback
   app.use('/api/og-image', ogImageProxyRouter);
+
+  // OG Page endpoint - serves OG-rich HTML for social media crawlers
+  // This is the primary OG solution for production since the Manus deployment
+  // serves static index.html for non-API paths (CDN edge), so the Express
+  // ogTagMiddleware never sees requests to /artist/25 etc.
+  // Share links as: https://www.ologywood.com/api/og-page/artist/25
+  // Regular users get redirected to the SPA page via JavaScript.
+  app.use('/api/og-page', ogPageRoutes);
   
   // OAuth callback under /api/oauth/callback
   registerStorageProxy(app);

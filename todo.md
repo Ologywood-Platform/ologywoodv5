@@ -140,6 +140,17 @@
 Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the resolved content audit summary.
 
 
+## FIX ARTIST 25 OG SHARING ON PRODUCTION
+- [x] Diagnose why production returns default OG tags for /artist/25 (works locally in both dev and prod builds)
+  - ROOT CAUSE: Manus deployment serves static index.html from CDN for ALL non-/api/* paths. Only /api/* is proxied to Node.js. OG middleware never sees bot requests.
+- [x] Create /api/og-page/* endpoint that serves OG-rich HTML for social bots and redirects regular users to SPA
+  - /api/og-page/artist/:id, /api/og-page/venue/:id, /api/og-page/event/:id, /api/og-page/blog/:slug
+  - /api/og-page/home, /api/og-page/browse, /api/og-page/pricing
+- [x] Update all share modals/buttons to use /api/og-page/ URLs for social sharing
+  - ShareProfileModal.tsx, ShareVenueModal.tsx, ShareVideoButton.tsx, VenueShareButtons.tsx
+- [x] Add /api/health endpoint (since /health is caught by CDN in production)
+- [ ] Test and verify artist 25 sharing preview works on Facebook/Messenger after deployment
+
 ## URGENT ISSUES
 
 - [x] Fix missing artist images on homepage - featured artists showing "No image" placeholder

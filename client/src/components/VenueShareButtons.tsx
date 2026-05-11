@@ -21,8 +21,10 @@ export function VenueShareButtons({
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Generate shareable URL
+  // Generate shareable URL - canonical URL for display
   const shareUrl = `${window.location.origin}/venues/${venueId}`;
+  // OG-optimized URL for social media sharing
+  const ogShareUrl = `${window.location.origin}/api/og-page/venue/${venueId}`;
   const shareTitle = `Check out ${venueName} on Ologywood`;
   const shareText = `${venueName}${venueLocation ? ` in ${venueLocation}` : ''} - Book amazing artists for your events!`;
 
@@ -34,19 +36,19 @@ export function VenueShareButtons({
   };
 
   const handleFacebookShare = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(ogShareUrl)}&quote=${encodeURIComponent(shareTitle)}`;
     window.open(facebookUrl, '_blank', 'width=600,height=400');
     trackShare('facebook');
   };
 
   const handleTwitterShare = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(ogShareUrl)}&text=${encodeURIComponent(shareText)}&hashtags=Ologywood,VenueBooking`;
     window.open(twitterUrl, '_blank', 'width=600,height=400');
     trackShare('twitter');
   };
 
   const handleLinkedInShare = () => {
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(ogShareUrl)}`;
     window.open(linkedInUrl, '_blank', 'width=600,height=400');
     trackShare('linkedin');
   };
@@ -59,7 +61,7 @@ export function VenueShareButtons({
   };
 
   const handleWhatsAppShare = () => {
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${ogShareUrl}`)}`;
     window.open(whatsappUrl, '_blank');
     trackShare('whatsapp');
   };

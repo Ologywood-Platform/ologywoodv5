@@ -32,8 +32,11 @@ export function ShareProfileModal({
   const [emailMessage, setEmailMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
 
-  // Generate profile URL
+  // Generate profile URL - canonical URL for display and copy-to-clipboard
   const profileUrl = `${window.location.origin}/artist/${artistId}`;
+  // OG-optimized URL for social media sharing - serves proper OG meta tags to crawlers
+  // and redirects regular users to the SPA page via JavaScript
+  const ogShareUrl = `${window.location.origin}/api/og-page/artist/${artistId}`;
   const shareText = `Check out ${artistName} on Ologywood - Book amazing artists for your events!`;
   
   // Update Open Graph meta tags for better social sharing
@@ -96,9 +99,9 @@ export function ShareProfileModal({
     }
   };
 
-  // Social share handlers
+  // Social share handlers - use ogShareUrl for platforms that scrape OG tags
   const handleSocialShare = (platform: string) => {
-    const encodedUrl = encodeURIComponent(profileUrl);
+    const encodedUrl = encodeURIComponent(ogShareUrl);
     const encodedText = encodeURIComponent(shareText);
     let shareUrl = '';
 
@@ -118,6 +121,7 @@ export function ShareProfileModal({
         toast.info('Link copied! Share it in your Instagram bio or posts.');
         return;
       case 'whatsapp':
+        // WhatsApp shows inline preview, use OG URL for proper preview
         shareUrl = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
         break;
     }
