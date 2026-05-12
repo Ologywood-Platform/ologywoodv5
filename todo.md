@@ -2447,3 +2447,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - **Ologywood app (dev + deployed)** → RDS: mysql://admin@ologywood.ci1gi2qo65oh.us-east-1.rds.amazonaws.com/ologywood
 - **Ologycrew app** → Manus-managed DB (auto-provisioned, isolated)
 - **Manus Dashboard DB panel** → Shows Manus-managed DB for Ologywood (not used by app, contains no real data)
+
+## BUG: Notifications page 404 in production (May 12, 2026)
+- [x] Investigate why notifications page returns 404 after publish — no /notifications route or page existed
+- [x] Fix the routing issue — created Notifications.tsx page + added route to App.tsx
+- [x] Verify fix works on dev server — shows 2 contract notifications with filter tabs

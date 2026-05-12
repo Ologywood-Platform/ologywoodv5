@@ -84,6 +84,7 @@ const ArtistEditProfile = lazy(() => import("./pages/ArtistEditProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Settings = lazy(() => import("./pages/Settings"));
 const MyDisputes = lazy(() => import("./pages/MyDisputes"));
+const Notifications = lazy(() => import("./pages/Notifications"));
 const TicketConfirmation = lazy(() => import("./pages/TicketConfirmation"));
 const MyTickets = lazy(() => import("./pages/MyTickets"));
 const EventTickets = lazy(() => import("./pages/EventTickets"));
@@ -175,6 +176,7 @@ function Router() {
           {/* Communication */}
           <Route path="/messages">{() => <PageErrorBoundary><Messages /></PageErrorBoundary>}</Route>
           <Route path="/messages/:id">{(params: any) => <PageErrorBoundary><MessagesDetail {...params} /></PageErrorBoundary>}</Route>
+          <Route path="/notifications" component={Notifications} />
           
           {/* Following */}
           <Route path="/following" component={Following} />
