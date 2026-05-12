@@ -2452,3 +2452,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Investigate why notifications page returns 404 after publish — no /notifications route or page existed
 - [x] Fix the routing issue — created Notifications.tsx page + added route to App.tsx
 - [x] Verify fix works on dev server — shows 2 contract notifications with filter tabs
+
+## FOLLOW-UPS: Notification Improvements (May 12, 2026)
+- [x] Notification click-through: fixed actionUrl from /bookings/ (plural, 404) to /booking/ (singular, correct route)
+- [x] Verified RealtimeNotifications dropdown and Notifications page both handle click-through correctly
+- [x] Wire up email notification preferences in Account Settings — already fully implemented (EmailPreferencesCenter)
+- [x] Added in-app notification preferences section to Settings page (booking, message, review, contract/rider, reminders, email copies)
+- [x] Verified notificationService checks preferences before creating notifications (line 23-28)
+- [x] Verified emailService checks emailPreferences before sending (shouldSendEmail function)
+- [x] All 24 email preference tests pass, all 11 venue contract tests pass

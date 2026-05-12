@@ -47,7 +47,7 @@ export async function notifyBookingRequest(params: {
     "booking",
     "New Booking Request",
     `${params.venueName} sent you a booking request${dateStr}.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -61,7 +61,7 @@ export async function notifyBookingConfirmed(params: {
     "booking",
     "Booking Confirmed",
     `Your booking with ${params.otherPartyName} has been confirmed.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -76,7 +76,7 @@ export async function notifyBookingCancelled(params: {
     "booking",
     "Booking Cancelled",
     `${params.cancelledBy} cancelled the booking with ${params.otherPartyName}.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -98,7 +98,7 @@ export async function notifyBookingStatusChange(params: {
     "booking",
     "Booking Updated",
     `Your booking with ${params.otherPartyName} has been ${label}.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -133,7 +133,7 @@ export async function notifyContractReadyToSign(params: {
     "contract",
     "Contract Ready to Sign",
     `${params.otherPartyName} has signed the rider contract. Please review and countersign.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -146,7 +146,7 @@ export async function notifyContractFullySigned(params: {
     "contract",
     "Contract Fully Signed",
     "Both parties have signed the rider contract. The agreement is now in effect.",
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -163,7 +163,7 @@ export async function notifyPaymentReceived(params: {
     "payment",
     "Payment Received",
     `${params.venueName} paid ${params.amount} for your booking.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -178,7 +178,7 @@ export async function notifyPaymentSent(params: {
     "payment",
     "Payment Confirmed",
     `Your payment of ${params.amount} to ${params.artistName} has been processed.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -192,7 +192,7 @@ export async function notifyRefundIssued(params: {
     "payment",
     "Refund Issued",
     `A refund of ${params.amount} has been issued for your booking.`,
-    `/bookings/${params.bookingId}`
+    `/booking/${params.bookingId}`
   );
 }
 
@@ -210,7 +210,7 @@ export async function notifyNewReview(params: {
     "review",
     "New Review",
     `${params.reviewerName} left you a ${stars} review.`,
-    params.bookingId ? `/bookings/${params.bookingId}` : undefined
+    params.bookingId ? `/booking/${params.bookingId}` : undefined
   );
 }
 
