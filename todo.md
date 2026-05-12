@@ -2428,3 +2428,22 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### Production Readiness
 - [x] Confirm real user data is not affected by testing — only test booking #1 used
 - [x] Verify all API endpoints return proper error handling for edge cases — 2082 tests pass
+
+## DATABASE SEPARATION: Ologywood vs Ologycrew (May 2026) — RESOLVED
+
+### Investigation — COMPLETED
+- [x] Check Ologywood's DATABASE_URL — uses external RDS (ologywood.ci1gi2qo65oh.us-east-1.rds.amazonaws.com)
+- [x] Check if Ologycrew shares the same RDS — NO, Ologycrew uses its own Manus-managed DB (no DATABASE_URL in secrets)
+- [x] Identify which database the deployed Ologywood app uses — RDS (all 38 real users, 25 artists, 4 bookings)
+- [x] Determine if data has been cross-contaminated — NO cross-contamination, projects are fully isolated
+
+### Decision: KEEP RDS
+- [x] Confirmed: Ologywood uses RDS exclusively, Ologycrew uses Manus-managed DB exclusively
+- [x] No migration needed — databases were never shared between projects
+- [x] Manus Dashboard "Database" panel shows a separate unused Manus-managed DB (can be ignored)
+- [x] Cleaned up partial import attempts from Manus-managed DB
+
+### Architecture Reference
+- **Ologywood app (dev + deployed)** → RDS: mysql://admin@ologywood.ci1gi2qo65oh.us-east-1.rds.amazonaws.com/ologywood
+- **Ologycrew app** → Manus-managed DB (auto-provisioned, isolated)
+- **Manus Dashboard DB panel** → Shows Manus-managed DB for Ologywood (not used by app, contains no real data)
