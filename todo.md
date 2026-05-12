@@ -2452,6 +2452,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Investigate why notifications page returns 404 after publish — no /notifications route or page existed
 - [x] Fix the routing issue — created Notifications.tsx page + added route to App.tsx
 - [x] Verify fix works on dev server — shows 2 contract notifications with filter tabs
+- [x] Fix notification click-through 404 — 240 existing notifications had /bookings/ (plural) actionUrl, updated to /booking/ (singular)
+- [x] Add temporary bypass for same-user dual-signing (Gary can sign as both venue and artist for testing)
 
 ## FOLLOW-UPS: Notification Improvements (May 12, 2026)
 - [x] Notification click-through: fixed actionUrl from /bookings/ (plural, 404) to /booking/ (singular, correct route)
@@ -2461,3 +2463,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verified notificationService checks preferences before creating notifications (line 23-28)
 - [x] Verified emailService checks emailPreferences before sending (shouldSendEmail function)
 - [x] All 24 email preference tests pass, all 11 venue contract tests pass
+
+## POST-PUBLISH VERIFICATION (May 12, 2026)
+- [x] Verify /notifications page loads on dev server (production requires OAuth login) — shows 2 contract notifications with All/Unread tabs
+- [x] Verify notification click-through navigates to correct booking page — actionUrl fixed to /booking/ (singular)
+- [x] Verify Settings page shows in-app notification preferences section — 6 toggles working
+- [x] Check OAuth redirect URI registration status — PENDING, Manus tech team still working on it
+- [x] Test Facebook OG sharing preview for artist profiles — /api/og-page/artist/25 returns 200 with correct OG tags, Cloudflare no longer blocking
