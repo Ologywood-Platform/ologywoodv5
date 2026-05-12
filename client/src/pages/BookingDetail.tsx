@@ -111,7 +111,7 @@ export default function BookingDetail() {
     );
   }
 
-  const isArtist = user.role === 'artist';
+  const isArtist = booking.bookingRole === 'artist';
   const canUpdateStatus = isArtist;
 
   const handleStatusUpdate = (status: 'confirmed' | 'cancelled') => {
@@ -264,7 +264,7 @@ export default function BookingDetail() {
             totalFee={booking.totalFee ? Number(booking.totalFee) : undefined}
             depositAmount={booking.depositAmount ? Number(booking.depositAmount) : undefined}
             paymentStatus={booking.paymentStatus || 'unpaid'}
-            isVenue={user.role === 'venue'}
+            isVenue={booking.bookingRole === 'venue'}
             bookingStatus={booking.status}
             depositPaidAt={(booking as any).depositPaidAt || null}
             finalPaidAt={(booking as any).finalPaidAt || null}
@@ -274,7 +274,7 @@ export default function BookingDetail() {
           {booking.riderTemplateId && (
             <RiderContractSigning
               bookingId={bookingId}
-              currentUserRole={user.role === 'venue' ? 'venue' : 'artist'}
+              currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
               onSigningComplete={() => refetch()}
             />
           )}
@@ -282,12 +282,12 @@ export default function BookingDetail() {
           {/* Venue Agreement / Contract */}
           <VenueContractSection
             bookingId={bookingId}
-            currentUserRole={user.role === 'venue' ? 'venue' : 'artist'}
+            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
             onContractChange={() => refetch()}
           />
 
           {/* Add to Portfolio - Only show for artists on completed bookings */}
-          {user.role === 'artist' && booking.status === 'completed' && (
+          {booking.bookingRole === 'artist' && booking.status === 'completed' && (
             <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
               <CardContent className="py-5 flex items-center justify-between">
                 <div>
@@ -317,7 +317,7 @@ export default function BookingDetail() {
           )}
 
           {/* Artist Review of Venue - Only show for artists on completed bookings */}
-          {user.role === 'artist' && booking.status === 'completed' && (
+          {booking.bookingRole === 'artist' && booking.status === 'completed' && (
             <div>
               {existingVenueReview ? (
                 <Card className="p-6">
@@ -357,7 +357,7 @@ export default function BookingDetail() {
           )}
 
           {/* Venue Review of Artist - Only show for venues on completed bookings */}
-          {user.role === 'venue' && booking.status === 'completed' && (
+          {booking.bookingRole === 'venue' && booking.status === 'completed' && (
             <div>
               {existingReview ? (
                 <Card className="p-6">

@@ -188,7 +188,9 @@ export const venueContractRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized to sign this contract" });
       }
 
-      const signerRole = isArtist ? "artist" as const : "venue" as const;
+      // Prioritize venue role when user has both profiles — this is a VENUE contract,
+      // so if the user is the venue owner for this contract, treat them as venue first.
+      const signerRole = isVenue ? "venue" as const : "artist" as const;
 
       // Check if contract has expired
       if (contract.expiresAt && new Date(contract.expiresAt) < new Date()) {

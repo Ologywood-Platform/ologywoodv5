@@ -992,9 +992,24 @@ export const appRouter = router({
     // Get booking by ID
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.id);
-        return booking || null;
+        if (!booking) return null;
+
+        // Determine the user's role relative to this specific booking
+        // A user may have both artist and venue profiles, so we check which one matches
+        let bookingRole: 'venue' | 'artist' | 'viewer' = 'viewer';
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (venueProfile && booking.venueId === venueProfile.id) {
+          bookingRole = 'venue';
+        } else if (artistProfile && booking.artistId === artistProfile.id) {
+          bookingRole = 'artist';
+        } else if (ctx.user.role === 'admin') {
+          bookingRole = 'venue'; // Admins can act as venue for contract management
+        }
+
+        return { ...booking, bookingRole };
       }),
     
     // Get bookings for current artist
