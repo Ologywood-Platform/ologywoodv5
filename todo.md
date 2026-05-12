@@ -2391,3 +2391,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Test artist signing flow (requires artist account login)
 - [ ] Test contract status updates in dashboard
 - [ ] Verify email notifications fire correctly
+
+### Heartbeat Cron Activation
+- [x] Heartbeat handler written and mounted at /api/scheduled/contract-expiry-reminders
+- [ ] Register daily cron via manus-heartbeat CLI (daily 9am UTC)
+- [ ] Verify cron registered with manus-heartbeat list
