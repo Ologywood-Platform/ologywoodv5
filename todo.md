@@ -2362,3 +2362,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Notifications: In-app when venue sends contract, when artist signs/declines
 - [x] PDF: Download uploaded PDF contracts via S3 presigned URLs
 - [x] Integration: Contracts page shows both rider + venue contracts with source badges
+
+## VENUE CONTRACTS DASHBOARD SECTION (5/11/2026)
+- [x] Add "Contracts" section to Venue Dashboard Overview tab
+- [x] Show all sent contracts with status badges (draft, sent, viewed, signed, fully signed, declined)
+- [x] Filter/sort by status (clickable stat cards filter the list)
+- [x] Quick actions: click contract row to navigate to booking detail
+- [x] Link to booking detail for each contract
+- [x] Summary stats (total, pending, signed, declined)

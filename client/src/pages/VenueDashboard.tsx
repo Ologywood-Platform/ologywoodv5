@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
 import ImageCropper from '../components/ImageCropper';
+import { VenueContractsDashboard } from '../components/VenueContractsDashboard';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -436,6 +437,9 @@ export function VenueDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Venue Contracts Status Tracker */}
+            <VenueContractsDashboard />
 
             {/* Venue Info Card */}
             {profile && (
