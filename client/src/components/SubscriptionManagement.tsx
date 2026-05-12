@@ -156,8 +156,8 @@ export function SubscriptionManagement() {
     const origin = window.location.origin;
     checkoutMutation.mutate({
       plan,
-      successUrl: `${origin}/artist-dashboard?subscription=success`,
-      cancelUrl: `${origin}/artist-dashboard`,
+      successUrl: `${origin}/dashboard?subscription=success`,
+      cancelUrl: `${origin}/dashboard`,
     });
   };
 

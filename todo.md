@@ -2500,4 +2500,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Show "Paused" status badge on artist profile when paused (shown in subscription card)
 - [x] Revoke paid-tier features while paused (Stripe pause_collection stops billing, pricingTierService checks status)
 - [x] Write vitest tests for pause/resume flow (13 tests passing)
-- [ ] Checkpoint after feature complete
+- [x] Checkpoint after feature complete
+
+## BUG: Subscription Upgrade 404 + Plan Not Updating (May 12, 2026)
+- [x] Fix 404 after Stripe checkout success redirect (was /artist-dashboard, now /dashboard)
+- [x] Fix plan not updating after successful checkout (webhook wasn't setting tier field)
+- [ ] Verify end-to-end upgrade flow works (needs publish + re-test)

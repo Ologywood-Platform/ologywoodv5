@@ -252,13 +252,23 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     await handleTicketPurchaseCompleted(session);
   } else if (subscriptionId && userId) {
     // Handle subscription checkout
-    // Update or create subscription record
+    // Determine tier from session metadata
+    const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
+    const planMetadata = session.metadata?.plan;
+    let tier: 'free' | 'starter' | 'professional' = 'professional';
+    if (planMetadata === 'ARTIST_STARTER') {
+      tier = 'starter';
+    }
+    
+    // Update or create subscription record with tier
     await db.upsertSubscription({
       userId: parseInt(userId),
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscriptionId,
-      status: 'trialing', // Will be updated by subscription.created event
+      tier,
+      status: 'trialing', // Will be updated by subscription.created/updated event
     });
+    console.log(`[Stripe Webhook] Subscription checkout completed: user=${userId}, tier=${tier}, subscriptionId=${subscriptionId}`);
   }
 }
 
@@ -277,11 +287,31 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const subData = subscription as any;
   const currentPeriodEnd = subData.current_period_end ? new Date(subData.current_period_end * 1000) : undefined;
 
+  // Determine tier from plan metadata or price lookup key
+  const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
+  const planMetadata = subscription.metadata?.plan;
+  const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+  const priceAmount = subData.items?.data?.[0]?.price?.unit_amount;
+  
+  let tier: 'free' | 'starter' | 'professional' = 'professional'; // default
+  if (planMetadata === 'ARTIST_STARTER' || 
+      lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+    tier = 'starter';
+  } else if (planMetadata === 'ARTIST_PROFESSIONAL' || 
+             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.lookupKey ||
+             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly) {
+    tier = 'professional';
+  }
+  
+  console.log(`[Stripe Webhook] Resolved tier: ${tier} (metadata: ${planMetadata}, lookupKey: ${lookupKey}, price: ${priceAmount})`);
+
   await db.upsertSubscription({
     userId: parseInt(userId),
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscription.id,
     status,
+    tier,
     currentPeriodEnd,
   });
   
