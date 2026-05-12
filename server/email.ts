@@ -437,6 +437,101 @@ export async function sendSubscriptionReactivatedEmail(params: {
 }
 
 /**
+ * Send subscription paused confirmation email
+ */
+export async function sendSubscriptionPausedEmail(params: {
+  artistEmail: string;
+  artistName: string;
+  planName?: string;
+  resumeDate: string;
+}) {
+  const { artistEmail, artistName, planName, resumeDate } = params;
+  const displayPlan = planName || 'your plan';
+  const baseUrl = ENV.baseUrl;
+
+  const content = `
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+    
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+      Your <strong>${displayPlan}</strong> subscription has been paused. You won't be charged during the pause period.
+    </p>
+
+    <div style="background: #fffbeb; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+      <p style="color: #92400e; margin: 0 0 8px 0; font-weight: 600;">What happens while paused:</p>
+      <ul style="color: #78350f; margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px;">
+        <li>Your profile stays visible but marked as <strong>Currently Inactive</strong></li>
+        <li>You won't be charged until you resume</li>
+        <li>All your data, followers, and bookings are preserved</li>
+        <li>Paid features (email blasts, video, etc.) are paused</li>
+        <li>Your subscription will <strong>auto-resume on ${resumeDate}</strong> (90-day max)</li>
+      </ul>
+    </div>
+
+    <p style="color: #374151; font-size: 15px; margin: 20px 0;">
+      Ready to get back to it? You can resume your subscription anytime from your dashboard.
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Resume Subscription</a>
+    </div>
+  `;
+
+  return sendEmail({
+    to: artistEmail,
+    subject: 'Your Ologywood Subscription Has Been Paused',
+    html: subscriptionEmailWrapper(content, artistEmail),
+  });
+}
+
+/**
+ * Send subscription resumed confirmation email
+ */
+export async function sendSubscriptionResumedEmail(params: {
+  artistEmail: string;
+  artistName: string;
+  planName?: string;
+  planPrice?: string;
+  nextBillingDate?: string;
+}) {
+  const { artistEmail, artistName, planName, planPrice, nextBillingDate } = params;
+  const displayPlan = planName || 'your plan';
+  const displayPrice = planPrice || '';
+  const baseUrl = ENV.baseUrl;
+
+  const content = `
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${artistName},</p>
+    
+    <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
+      Your <strong>${displayPlan}</strong> subscription has been resumed. Welcome back!
+    </p>
+
+    <div style="background: #f0fdf4; padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
+      <p style="color: #166534; margin: 0 0 8px 0; font-weight: 600;">Subscription Active</p>
+      <ul style="color: #15803d; margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px;">
+        <li>Plan: <strong>${displayPlan}</strong>${displayPrice ? ` (${displayPrice})` : ''}</li>
+        <li>Status: <strong>Active</strong></li>
+        ${nextBillingDate ? `<li>Next billing date: <strong>${nextBillingDate}</strong></li>` : ''}
+        <li>All paid features are restored</li>
+      </ul>
+    </div>
+
+    <p style="color: #374151; font-size: 15px; margin: 20px 0;">
+      Your profile is fully active again and visible to venues. All your paid features are back.
+    </p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+    </div>
+  `;
+
+  return sendEmail({
+    to: artistEmail,
+    subject: `Your ${displayPlan} Is Back! Subscription Resumed`,
+    html: subscriptionEmailWrapper(content, artistEmail),
+  });
+}
+
+/**
  * Send notification to venue when artist responds to their review
  */
 export async function sendReviewResponseEmail(params: {

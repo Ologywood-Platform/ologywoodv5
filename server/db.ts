@@ -673,7 +673,7 @@ export async function updateBooking(id: number, data: Partial<InsertBooking>): P
   return await getBookingById(id);
 }
 
-export async function updateSubscriptionStatus(userId: number, status: "active" | "cancelled" | "past_due" | "trialing"): Promise<void> {
+export async function updateSubscriptionStatus(userId: number, status: "active" | "cancelled" | "past_due" | "trialing" | "paused"): Promise<void> {
   const db = await getDb();
   if (!db) return;
   

@@ -1980,6 +1980,126 @@ export const appRouter = router({
 
       return { success: true };
     }),
+
+    // Pause subscription (90-day max)
+    pause: protectedProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription?.stripeSubscriptionId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
+      }
+      if (subscription.status === 'paused') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Subscription is already paused' });
+      }
+      if (subscription.status === 'cancelled') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot pause a cancelled subscription' });
+      }
+
+      const { pauseSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+
+      // Pause billing in Stripe
+      await pauseSubscription(subscription.stripeSubscriptionId);
+
+      // Calculate 90-day expiration
+      const now = new Date();
+      const pauseExpiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+      // Update local subscription record
+      await db.upsertSubscription({
+        userId: ctx.user.id,
+        status: 'paused',
+        pausedAt: now,
+        pauseExpiresAt,
+      });
+
+      // Determine plan name for email
+      let planName = 'your plan';
+      try {
+        const status = await getSubscriptionStatus(subscription.stripeSubscriptionId);
+        if (status) {
+          if (status.priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+          } else {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+          }
+        }
+      } catch (e) {
+        console.error('[Subscription] Error fetching status for pause email:', e);
+      }
+
+      // Send pause confirmation email
+      const resumeDateStr = pauseExpiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      if (ctx.user.email) {
+        email.sendSubscriptionPausedEmail({
+          artistEmail: ctx.user.email,
+          artistName: ctx.user.name || 'Artist',
+          planName,
+          resumeDate: resumeDateStr,
+        }).catch(err => console.error('[Subscription] Pause email failed:', err));
+      }
+
+      return { success: true, pauseExpiresAt };
+    }),
+
+    // Resume a paused subscription
+    resume: protectedProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      if (!subscription?.stripeSubscriptionId) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
+      }
+      if (subscription.status !== 'paused') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Subscription is not paused' });
+      }
+
+      const { resumeSubscription, getSubscriptionStatus } = await import('./stripe');
+      const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+
+      // Resume billing in Stripe
+      await resumeSubscription(subscription.stripeSubscriptionId);
+
+      // Update local subscription record
+      await db.upsertSubscription({
+        userId: ctx.user.id,
+        status: 'active',
+        pausedAt: null,
+        pauseExpiresAt: null,
+      });
+
+      // Get plan details for email
+      let planName = 'your plan';
+      let planPrice = '';
+      let nextBillingDate = '';
+      try {
+        const status = await getSubscriptionStatus(subscription.stripeSubscriptionId);
+        if (status) {
+          nextBillingDate = status.currentPeriodEnd
+            ? new Date(status.currentPeriodEnd).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+          if (status.priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
+            planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
+          } else {
+            planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
+            planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly / 100}/month`;
+          }
+        }
+      } catch (e) {
+        console.error('[Subscription] Error fetching status for resume email:', e);
+      }
+
+      // Send resume confirmation email
+      if (ctx.user.email) {
+        email.sendSubscriptionResumedEmail({
+          artistEmail: ctx.user.email,
+          artistName: ctx.user.name || 'Artist',
+          planName,
+          planPrice,
+          nextBillingDate,
+        }).catch(err => console.error('[Subscription] Resume email failed:', err));
+      }
+
+      return { success: true };
+    }),
   }),
   
   // Favorites router

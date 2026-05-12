@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, CreditCard, Calendar, ArrowUpRight, AlertTriangle, CheckCircle, Loader2, Shield, Zap } from 'lucide-react';
+import { Crown, CreditCard, Calendar, ArrowUpRight, AlertTriangle, CheckCircle, Loader2, Shield, Zap, PauseCircle, PlayCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
 import { useLocation } from 'wouter';
@@ -42,6 +42,7 @@ export function SubscriptionManagement() {
   const [, navigate] = useLocation();
   const toastCtx = useToast();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showPauseConfirm, setShowPauseConfirm] = useState(false);
 
   // Fetch local subscription record
   const { data: subscription, isLoading: subLoading, refetch: refetchSub } =
@@ -77,6 +78,34 @@ export function SubscriptionManagement() {
     },
   });
 
+  const pauseMutation = (trpc.subscription as any).pause.useMutation({
+    onSuccess: (data: { pauseExpiresAt: string }) => {
+      const resumeDate = new Date(data.pauseExpiresAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      toastCtx.addSuccess('Subscription paused', `Your subscription is paused. It will auto-resume on ${resumeDate}.`);
+      refetchSub();
+      refetchStatus();
+      setActionLoading(null);
+      setShowPauseConfirm(false);
+    },
+    onError: (err: any) => {
+      toastCtx.addError('Pause failed', err?.message || 'Could not pause subscription.');
+      setActionLoading(null);
+    },
+  });
+
+  const resumeMutation = (trpc.subscription as any).resume.useMutation({
+    onSuccess: () => {
+      toastCtx.addSuccess('Subscription resumed', 'Your subscription is active again. All features are restored.');
+      refetchSub();
+      refetchStatus();
+      setActionLoading(null);
+    },
+    onError: (err: any) => {
+      toastCtx.addError('Resume failed', err?.message || 'Could not resume subscription.');
+      setActionLoading(null);
+    },
+  });
+
   const checkoutMutation = (trpc.subscription as any).createCheckoutSession.useMutation({
     onSuccess: (data: { checkoutUrl: string }) => {
       toastCtx.addInfo('Redirecting to checkout', "You'll be taken to Stripe to complete your upgrade.");
@@ -107,6 +136,8 @@ export function SubscriptionManagement() {
   const TierIcon = tierInfo.icon;
   const status = subscription?.status || 'active';
   const cancelAtPeriodEnd = stripeStatus?.cancelAtPeriodEnd || false;
+  const isPaused = status === 'paused';
+  const pauseExpiresAt = subscription?.pauseExpiresAt ? new Date(subscription.pauseExpiresAt) : null;
   const currentPeriodEnd = stripeStatus?.currentPeriodEnd
     ? new Date(stripeStatus.currentPeriodEnd)
     : subscription?.currentPeriodEnd
@@ -118,7 +149,7 @@ export function SubscriptionManagement() {
       ? new Date(subscription.trialEndsAt)
       : null;
   const isTrialing = status === 'trialing' || (trialEnd && trialEnd > new Date());
-  const isPaid = tier !== 'free' && (status === 'active' || status === 'trialing');
+  const isPaid = tier !== 'free' && (status === 'active' || status === 'trialing' || status === 'paused');
 
   const handleUpgrade = (plan: 'starter' | 'professional') => {
     setActionLoading(`upgrade-${plan}`);
@@ -140,26 +171,71 @@ export function SubscriptionManagement() {
     reactivateMutation.mutate();
   };
 
+  const handlePause = () => {
+    setActionLoading('pause');
+    pauseMutation.mutate();
+  };
+
+  const handleResume = () => {
+    setActionLoading('resume');
+    resumeMutation.mutate();
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${tierInfo.bgColor}`}>
-              <TierIcon className={`h-5 w-5 ${tierInfo.color}`} />
+            <div className={`p-2 rounded-lg ${isPaused ? 'bg-amber-50' : tierInfo.bgColor}`}>
+              {isPaused ? (
+                <PauseCircle className="h-5 w-5 text-amber-600" />
+              ) : (
+                <TierIcon className={`h-5 w-5 ${tierInfo.color}`} />
+              )}
             </div>
             <div>
               <CardTitle className="text-lg">Subscription</CardTitle>
               <CardDescription>Manage your plan and billing</CardDescription>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tierInfo.bgColor} ${tierInfo.color}`}>
-            {tierInfo.label}
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isPaused ? 'bg-amber-50 text-amber-700' : `${tierInfo.bgColor} ${tierInfo.color}`}`}>
+            {isPaused ? 'Paused' : tierInfo.label}
           </span>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-5">
+        {/* Paused Banner */}
+        {isPaused && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <PauseCircle className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-semibold text-amber-800">Subscription Paused</span>
+            </div>
+            <p className="text-xs text-amber-700">
+              Your billing is paused. You won't be charged until you resume. Paid features are temporarily unavailable.
+            </p>
+            {pauseExpiresAt && (
+              <p className="text-xs text-amber-600">
+                Auto-resumes on <strong>{pauseExpiresAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>
+              </p>
+            )}
+            <Button
+              onClick={handleResume}
+              disabled={actionLoading === 'resume'}
+              className="w-full mt-2 bg-amber-600 hover:bg-amber-700 text-white"
+              size="sm"
+            >
+              {actionLoading === 'resume' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <PlayCircle className="h-4 w-4 mr-2" />
+              )}
+              Resume Subscription
+            </Button>
+          </div>
+        )}
+
         {/* Current Plan Summary */}
         <div className="rounded-lg border p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -174,7 +250,12 @@ export function SubscriptionManagement() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-600">Status</span>
                 <span className="flex items-center gap-1 text-sm">
-                  {cancelAtPeriodEnd ? (
+                  {isPaused ? (
+                    <>
+                      <PauseCircle className="h-3.5 w-3.5 text-amber-500" />
+                      <span className="text-amber-600 font-medium">Paused</span>
+                    </>
+                  ) : cancelAtPeriodEnd ? (
                     <>
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                       <span className="text-amber-600 font-medium">Cancels at period end</span>
@@ -204,7 +285,7 @@ export function SubscriptionManagement() {
               )}
 
               {/* Billing Period */}
-              {currentPeriodEnd && (
+              {!isPaused && currentPeriodEnd && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600 flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
@@ -216,6 +297,19 @@ export function SubscriptionManagement() {
                 </div>
               )}
 
+              {/* Pause Expiry */}
+              {isPaused && pauseExpiresAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600 flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Auto-resumes
+                  </span>
+                  <span className="text-sm font-medium">
+                    {pauseExpiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
+
               {/* Price */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-600 flex items-center gap-1">
@@ -223,7 +317,11 @@ export function SubscriptionManagement() {
                   Price
                 </span>
                 <span className="text-sm font-medium">
-                  {tier === 'starter' ? '$9' : '$29'}/month
+                  {isPaused ? (
+                    <span className="text-amber-600">$0/month (paused)</span>
+                  ) : (
+                    <>{tier === 'starter' ? '$9' : '$29'}/month</>
+                  )}
                 </span>
               </div>
             </>
@@ -264,7 +362,7 @@ export function SubscriptionManagement() {
           )}
 
           {/* Starter tier — show upgrade to Professional */}
-          {tier === 'starter' && !cancelAtPeriodEnd && (
+          {tier === 'starter' && !cancelAtPeriodEnd && !isPaused && (
             <Button
               onClick={() => handleUpgrade('professional')}
               disabled={actionLoading === 'upgrade-professional'}
@@ -279,23 +377,68 @@ export function SubscriptionManagement() {
             </Button>
           )}
 
-          {/* Cancel / Reactivate */}
-          {isPaid && !cancelAtPeriodEnd && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              disabled={actionLoading === 'cancel'}
-              className="w-full text-slate-500 hover:text-red-600 text-xs"
-            >
-              {actionLoading === 'cancel' ? (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              ) : null}
-              Cancel Subscription
-            </Button>
+          {/* Pause / Cancel — only show when active and not already cancelling */}
+          {isPaid && !cancelAtPeriodEnd && !isPaused && (
+            <>
+              {/* Pause Confirmation */}
+              {showPauseConfirm ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
+                  <p className="text-xs text-amber-800">
+                    Pausing will stop billing for up to 90 days. Your profile stays visible but marked inactive. You can resume anytime.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handlePause}
+                      disabled={actionLoading === 'pause'}
+                      size="sm"
+                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      {actionLoading === 'pause' ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <PauseCircle className="h-3 w-3 mr-1" />
+                      )}
+                      Confirm Pause
+                    </Button>
+                    <Button
+                      onClick={() => setShowPauseConfirm(false)}
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Never Mind
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPauseConfirm(true)}
+                  className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 text-xs"
+                >
+                  <PauseCircle className="h-3 w-3 mr-1" />
+                  Pause Subscription (up to 90 days)
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                disabled={actionLoading === 'cancel'}
+                className="w-full text-slate-500 hover:text-red-600 text-xs"
+              >
+                {actionLoading === 'cancel' ? (
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                ) : null}
+                Cancel Subscription
+              </Button>
+            </>
           )}
 
-          {isPaid && cancelAtPeriodEnd && (
+          {/* Reactivate — show when cancelling at period end */}
+          {isPaid && cancelAtPeriodEnd && !isPaused && (
             <Button
               onClick={handleReactivate}
               disabled={actionLoading === 'reactivate'}

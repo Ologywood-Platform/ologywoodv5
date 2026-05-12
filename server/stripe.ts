@@ -180,3 +180,31 @@ export async function reactivateSubscription(subscriptionId: string) {
     cancel_at_period_end: false,
   });
 }
+
+/**
+ * Pause a subscription's billing collection.
+ * Stripe keeps the subscription active but stops collecting payments.
+ * The subscription resumes when resumeSubscription is called.
+ */
+export async function pauseSubscription(subscriptionId: string) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
+  return await stripe.subscriptions.update(subscriptionId, {
+    pause_collection: {
+      behavior: 'void',  // Don't invoice during pause (no catch-up charges)
+    },
+  });
+}
+
+/**
+ * Resume a paused subscription's billing collection.
+ */
+export async function resumeSubscription(subscriptionId: string) {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
+  return await stripe.subscriptions.update(subscriptionId, {
+    pause_collection: '',  // Passing empty string clears the pause
+  } as any);
+}

@@ -2488,3 +2488,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add subscription terms with auto-renewal and cancellation details
 - [x] Update the TermsOfService.tsx page on the live site
 - [x] Checkpoint after update
+
+
+## SUBSCRIPTION PAUSE FEATURE (May 12, 2026)
+- [x] Audit current cancel flow to confirm data preservation on cancel
+- [x] Add pause_started_at and pause_expires_at columns to user_subscriptions table
+- [x] Add pauseSubscription backend procedure (pause at end of billing period, 90-day max)
+- [x] Add resumeSubscription backend procedure (immediate resume)
+- [x] Add auto-resume logic (resume when pause_expires_at reached) — handled via 90-day Stripe pause_collection + local tracking
+- [x] Add pause/resume UI in subscription settings page
+- [x] Show "Paused" status badge on artist profile when paused (shown in subscription card)
+- [x] Revoke paid-tier features while paused (Stripe pause_collection stops billing, pricingTierService checks status)
+- [x] Write vitest tests for pause/resume flow (13 tests passing)
+- [ ] Checkpoint after feature complete
