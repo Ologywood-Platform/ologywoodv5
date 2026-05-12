@@ -2104,48 +2104,58 @@ export const appRouter = router({
     // Self-service: sync subscription from Stripe (when webhook missed)
     syncFromStripe: protectedProcedure
       .mutation(async ({ ctx }) => {
-        const dbModule = await import('./db');
+        console.log('[SyncFromStripe] Starting sync for user:', ctx.user.id, ctx.user.email);
         const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
-        const Stripe = (await import('stripe')).default;
+        const { stripe: stripeClient } = await import('./stripe');
 
-        if (!process.env.STRIPE_SECRET_KEY) {
+        if (!stripeClient) {
+          console.error('[SyncFromStripe] Stripe not configured');
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         }
 
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2025-12-15.clover' as any,
-        });
+        const stripe = stripeClient;
 
         // Find Stripe customer by email
         if (!ctx.user.email) {
+          console.error('[SyncFromStripe] No email on account');
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
         }
 
+        console.log('[SyncFromStripe] Searching Stripe for customer with email:', ctx.user.email);
         const customers = await stripe.customers.list({ email: ctx.user.email, limit: 1 });
+        console.log('[SyncFromStripe] Found customers:', customers.data.length);
         if (customers.data.length === 0) {
-          return { success: false, message: 'No Stripe customer found. Please try upgrading again.' };
+          console.log('[SyncFromStripe] No customer found, returning error');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'No Stripe customer found for your email. Please try upgrading again.' });
         }
 
         const customerId = customers.data[0].id;
+        console.log('[SyncFromStripe] Customer ID:', customerId);
 
         // Get subscriptions
         const subscriptions = await stripe.subscriptions.list({
           customer: customerId,
           status: 'all',
           limit: 5,
+          expand: ['data.items.data.price'],
         });
+        console.log('[SyncFromStripe] Found subscriptions:', subscriptions.data.length, subscriptions.data.map(s => ({ id: s.id, status: s.status })));
 
         if (subscriptions.data.length === 0) {
-          return { success: false, message: 'No subscription found in Stripe.' };
+          console.log('[SyncFromStripe] No subscriptions found');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'No subscription found in Stripe for your account.' });
         }
 
         const activeSub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing')
           || subscriptions.data[0];
+        console.log('[SyncFromStripe] Using subscription:', activeSub.id, 'status:', activeSub.status);
 
         // Determine tier
-        const priceAmount = (activeSub as any).items?.data?.[0]?.price?.unit_amount;
-        const lookupKey = (activeSub as any).items?.data?.[0]?.price?.lookup_key;
+        const priceItem = (activeSub as any).items?.data?.[0]?.price;
+        const priceAmount = priceItem?.unit_amount;
+        const lookupKey = priceItem?.lookup_key;
         const planMetadata = activeSub.metadata?.plan;
+        console.log('[SyncFromStripe] Price info:', { priceAmount, lookupKey, planMetadata });
 
         let tier: 'free' | 'starter' | 'professional' = 'professional';
         if (planMetadata === 'ARTIST_STARTER' ||
@@ -2165,8 +2175,10 @@ export const appRouter = router({
           ? new Date((activeSub as any).current_period_end * 1000)
           : undefined;
 
-        // Upsert
-        await dbModule.upsertSubscription({
+        console.log('[SyncFromStripe] Upserting subscription:', { userId: ctx.user.id, tier, status, currentPeriodEnd });
+
+        // Upsert using the top-level db import
+        await db.upsertSubscription({
           userId: ctx.user.id,
           stripeCustomerId: customerId,
           stripeSubscriptionId: activeSub.id,
@@ -2175,6 +2187,7 @@ export const appRouter = router({
           currentPeriodEnd,
         });
 
+        console.log('[SyncFromStripe] Success! Tier:', tier, 'Status:', status);
         return { success: true, tier, status };
       }),
   }),
