@@ -1,7 +1,8 @@
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
-import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog, videoModerationQueue } from "../../drizzle/schema";
+import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog, videoModerationQueue, userSubscriptions } from "../../drizzle/schema";
+import Stripe from 'stripe';
 import { desc, sql } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 
@@ -1076,6 +1077,125 @@ return { success: true, payoutId: input.payoutId };
       });
 
       return { success: true };
+    }),
+
+  /**
+   * Sync a user's subscription from Stripe (when webhook missed)
+   */
+  syncSubscriptionFromStripe: adminOnly
+    .input(z.object({
+      userId: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
+      const { eq } = await import('drizzle-orm');
+
+      if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('Stripe is not configured');
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2025-12-15.clover' as any,
+      });
+
+      // Find the user
+      const [user] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!user) throw new Error('User not found');
+
+      // Check if user has a subscription record
+      const [existingSub] = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, input.userId)).limit(1);
+
+      // Search Stripe for customer by email
+      let stripeCustomerId = existingSub?.stripeCustomerId;
+      if (!stripeCustomerId && user.email) {
+        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        if (customers.data.length > 0) {
+          stripeCustomerId = customers.data[0].id;
+        }
+      }
+
+      if (!stripeCustomerId) {
+        return { success: false, message: 'No Stripe customer found for this user' };
+      }
+
+      // Get active subscriptions for this customer
+      const subscriptions = await stripe.subscriptions.list({
+        customer: stripeCustomerId,
+        status: 'all',
+        limit: 5,
+      });
+
+      if (subscriptions.data.length === 0) {
+        return { success: false, message: 'No subscriptions found in Stripe for this customer' };
+      }
+
+      // Get the most recent active/trialing subscription
+      const activeSub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing')
+        || subscriptions.data[0];
+
+      // Determine tier from price
+      const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
+      const priceAmount = (activeSub as any).items?.data?.[0]?.price?.unit_amount;
+      const lookupKey = (activeSub as any).items?.data?.[0]?.price?.lookup_key;
+      const planMetadata = activeSub.metadata?.plan;
+
+      let tier: 'free' | 'starter' | 'professional' = 'professional';
+      if (planMetadata === 'ARTIST_STARTER' ||
+          lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+          priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+        tier = 'starter';
+      }
+
+      // Map Stripe status
+      let status: 'active' | 'cancelled' | 'past_due' | 'trialing' | 'paused' = 'active';
+      if (activeSub.status === 'trialing') status = 'trialing';
+      else if (activeSub.status === 'past_due') status = 'past_due';
+      else if (activeSub.status === 'canceled') status = 'cancelled';
+      else if (activeSub.status === 'paused') status = 'paused';
+
+      const currentPeriodEnd = (activeSub as any).current_period_end
+        ? new Date((activeSub as any).current_period_end * 1000)
+        : undefined;
+
+      // Upsert subscription record
+      if (existingSub) {
+        await db.update(userSubscriptions).set({
+          stripeCustomerId,
+          stripeSubscriptionId: activeSub.id,
+          tier,
+          status,
+          currentPeriodEnd,
+        }).where(eq(userSubscriptions.userId, input.userId));
+      } else {
+        await db.insert(userSubscriptions).values({
+          userId: input.userId,
+          stripeCustomerId,
+          stripeSubscriptionId: activeSub.id,
+          tier,
+          status,
+          currentPeriodEnd,
+        });
+      }
+
+      // Log activity
+      await db.insert(adminActivityLog).values({
+        adminId: ctx.user.id,
+        adminEmail: ctx.user.email || 'unknown',
+        adminName: ctx.user.name || null,
+        action: `Synced subscription from Stripe: tier=${tier}, status=${status}`,
+        category: 'users',
+        targetType: 'user',
+        targetId: String(input.userId),
+      });
+
+      return {
+        success: true,
+        tier,
+        status,
+        stripeSubscriptionId: activeSub.id,
+        currentPeriodEnd,
+      };
     }),
 
   /**

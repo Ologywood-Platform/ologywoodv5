@@ -2100,6 +2100,83 @@ export const appRouter = router({
 
       return { success: true };
     }),
+
+    // Self-service: sync subscription from Stripe (when webhook missed)
+    syncFromStripe: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const dbModule = await import('./db');
+        const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+        const Stripe = (await import('stripe')).default;
+
+        if (!process.env.STRIPE_SECRET_KEY) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
+        }
+
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: '2025-12-15.clover' as any,
+        });
+
+        // Find Stripe customer by email
+        if (!ctx.user.email) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
+        }
+
+        const customers = await stripe.customers.list({ email: ctx.user.email, limit: 1 });
+        if (customers.data.length === 0) {
+          return { success: false, message: 'No Stripe customer found. Please try upgrading again.' };
+        }
+
+        const customerId = customers.data[0].id;
+
+        // Get subscriptions
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customerId,
+          status: 'all',
+          limit: 5,
+        });
+
+        if (subscriptions.data.length === 0) {
+          return { success: false, message: 'No subscription found in Stripe.' };
+        }
+
+        const activeSub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing')
+          || subscriptions.data[0];
+
+        // Determine tier
+        const priceAmount = (activeSub as any).items?.data?.[0]?.price?.unit_amount;
+        const lookupKey = (activeSub as any).items?.data?.[0]?.price?.lookup_key;
+        const planMetadata = activeSub.metadata?.plan;
+
+        let tier: 'free' | 'starter' | 'professional' = 'professional';
+        if (planMetadata === 'ARTIST_STARTER' ||
+            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+          tier = 'starter';
+        }
+
+        // Map status
+        let status: 'active' | 'cancelled' | 'past_due' | 'trialing' | 'paused' = 'active';
+        if (activeSub.status === 'trialing') status = 'trialing';
+        else if (activeSub.status === 'past_due') status = 'past_due';
+        else if (activeSub.status === 'canceled') status = 'cancelled';
+        else if (activeSub.status === 'paused') status = 'paused';
+
+        const currentPeriodEnd = (activeSub as any).current_period_end
+          ? new Date((activeSub as any).current_period_end * 1000)
+          : undefined;
+
+        // Upsert
+        await dbModule.upsertSubscription({
+          userId: ctx.user.id,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: activeSub.id,
+          tier,
+          status,
+          currentPeriodEnd,
+        });
+
+        return { success: true, tier, status };
+      }),
   }),
   
   // Favorites router

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, CreditCard, Calendar, ArrowUpRight, AlertTriangle, CheckCircle, Loader2, Shield, Zap, PauseCircle, PlayCircle } from 'lucide-react';
+import { Crown, CreditCard, Calendar, ArrowUpRight, AlertTriangle, CheckCircle, Loader2, Shield, Zap, PauseCircle, PlayCircle, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
 import { useLocation } from 'wouter';
@@ -114,6 +114,23 @@ export function SubscriptionManagement() {
     },
     onError: (err: any) => {
       toastCtx.addError('Upgrade failed', err?.message || 'Could not create checkout session.');
+      setActionLoading(null);
+    },
+  });
+
+  const syncMutation = (trpc.subscription as any).syncFromStripe.useMutation({
+    onSuccess: (data: { success: boolean; tier?: string; status?: string; message?: string }) => {
+      if (data.success) {
+        toastCtx.addSuccess('Subscription synced', `Your plan has been updated to ${data.tier} (${data.status}).`);
+      } else {
+        toastCtx.addError('Sync issue', data.message || 'Could not find your subscription in Stripe.');
+      }
+      refetchSub();
+      refetchStatus();
+      setActionLoading(null);
+    },
+    onError: (err: any) => {
+      toastCtx.addError('Sync failed', err?.message || 'Could not sync subscription from Stripe.');
       setActionLoading(null);
     },
   });
@@ -450,6 +467,27 @@ export function SubscriptionManagement() {
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
               Reactivate Subscription
+            </Button>
+          )}
+
+          {/* Sync from Stripe — show when tier is free but user may have paid */}
+          {tier === 'free' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActionLoading('sync');
+                syncMutation.mutate();
+              }}
+              disabled={actionLoading === 'sync'}
+              className="w-full text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+            >
+              {actionLoading === 'sync' ? (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3 mr-1" />
+              )}
+              Already paid? Sync subscription
             </Button>
           )}
 
