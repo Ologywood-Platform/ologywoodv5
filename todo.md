@@ -2471,3 +2471,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Settings page shows in-app notification preferences section — 6 toggles working
 - [x] Check OAuth redirect URI registration status — PENDING, Manus tech team still working on it
 - [x] Test Facebook OG sharing preview for artist profiles — /api/og-page/artist/25 returns 200 with correct OG tags, Cloudflare no longer blocking
+
+
+## TERMS OF SERVICE - COMPREHENSIVE UPDATE (May 12, 2026)
+
+- [x] Rewrite Terms of Service with comprehensive attorney-ready language
+- [x] Add explicit artist content ownership clause (artist owns all, platform licenses hosting/display only)
+- [x] Add fan tips/donations section (zero platform fee, voluntary, non-refundable, artist tax responsibility)
+- [x] Add detailed platform fee schedule (1% releases, $0.99/ticket, 1% booking, 0% tips)
+- [x] Add Stripe Connect direct payout language (payments go directly to artist bank)
+- [x] Add payout timing clause (deferred to individual booking contracts)
+- [x] Strengthen platform liability shield (facilitator only, not payment processor/escrow/arbitrator)
+- [x] Add payment dispute handling (Stripe handles chargebacks, platform not responsible)
+- [x] Add force majeure clause (weather, emergencies, government orders)
+- [x] Add content removal on account deletion clause
+- [x] Add subscription terms with auto-renewal and cancellation details
+- [x] Update the TermsOfService.tsx page on the live site
+- [x] Checkpoint after update
