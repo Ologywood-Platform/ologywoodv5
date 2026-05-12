@@ -2370,3 +2370,24 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Quick actions: click contract row to navigate to booking detail
 - [x] Link to booking detail for each contract
 - [x] Summary stats (total, pending, signed, declined)
+
+## VENUE CONTRACT FOLLOW-UPS (5/11/2026)
+### Email Notifications for Contract Status Changes
+- [x] Email venue when artist signs their contract (sendContractSigned in venueContract.sign handler)
+- [x] Email venue when artist declines their contract (sendEmail in venueContract.decline handler)
+- [x] Email artist when venue sends a new contract to sign (sendContractForSignature in venueContract.send handler)
+- [x] Include unsubscribe link in all contract emails (uses existing email template)
+- [x] Use existing SendGrid email service pattern
+
+### Contract Expiration Dates
+- [x] Add expiresAt column to venue_contracts table
+- [x] UI: Allow venues to set expiration date when creating/sending contract (both platform form + PDF upload)
+- [x] Show expiration countdown on contract cards (VenueContractSection + VenueContractsDashboard)
+- [x] Auto-expire contracts past their deadline (lazy check on sign attempt + Heartbeat handler)
+- [x] Send reminder email to artist 48h before expiration (Heartbeat handler ready at server/routes/scheduledContractReminders.ts - activate after deploy)
+
+### Testing
+- [ ] Test full venue contract creation flow (requires venue account login)
+- [ ] Test artist signing flow (requires artist account login)
+- [ ] Test contract status updates in dashboard
+- [ ] Verify email notifications fire correctly

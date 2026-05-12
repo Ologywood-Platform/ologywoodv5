@@ -4,7 +4,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { storagePut } from "../storage";
 import * as notif from "../services/notificationService";
-import { sendContractForSignature, sendContractSigned } from "../email";
+import { sendEmail, sendContractForSignature, sendContractSigned } from "../email";
 
 /**
  * Venue Contract Router
@@ -23,6 +23,8 @@ export const venueContractRouter = router({
       description: z.string().optional(),
       contractType: z.enum(["uploaded_pdf", "platform_generated"]).default("platform_generated"),
       contractData: z.record(z.string(), z.any()).optional(),
+      /** Optional expiration date (ISO string) for artist to sign by */
+      expiresAt: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify user is a venue involved in this booking
@@ -48,6 +50,7 @@ export const venueContractRouter = router({
         contractType: input.contractType,
         contractData: input.contractData,
         status: "draft",
+        expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined,
       });
 
       return contract;
@@ -186,6 +189,12 @@ export const venueContractRouter = router({
       }
 
       const signerRole = isArtist ? "artist" as const : "venue" as const;
+
+      // Check if contract has expired
+      if (contract.expiresAt && new Date(contract.expiresAt) < new Date()) {
+        await db.updateVenueContract(contract.id, { status: "declined" });
+        throw new TRPCError({ code: "BAD_REQUEST", message: "This contract has expired and can no longer be signed" });
+      }
 
       // Artists can only sign sent/signed_by_venue contracts
       if (isArtist && !["sent", "viewed", "signed_by_venue"].includes(contract.status)) {
@@ -493,6 +502,7 @@ export const venueContractRouter = router({
       title: z.string().optional(),
       description: z.string().optional(),
       contractData: z.record(z.string(), z.any()).optional(),
+      expiresAt: z.string().nullable().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -513,6 +523,9 @@ export const venueContractRouter = router({
       if (input.title) updateData.title = input.title;
       if (input.description !== undefined) updateData.description = input.description;
       if (input.contractData) updateData.contractData = input.contractData;
+      if (input.expiresAt !== undefined) {
+        updateData.expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+      }
 
       return await db.updateVenueContract(contract.id, updateData);
     }),
@@ -563,14 +576,44 @@ export const venueContractRouter = router({
 
       await db.updateVenueContract(contract.id, { status: "declined" });
 
-      // Notify venue
+      // Notify venue (in-app + email)
       const venueProfile = await db.getVenueProfileById(contract.venueId);
       if (venueProfile) {
-        notif.notifyContractReadyToSign({
-          recipientUserId: venueProfile.userId,
-          otherPartyName: artistProfile.artistName,
+        notif.notifyVenueContractDeclined({
+          venueUserId: venueProfile.userId,
+          artistName: artistProfile.artistName,
+          contractTitle: contract.title,
           bookingId: contract.bookingId,
         }).catch(() => {});
+
+        // Email venue about decline
+        try {
+          const venueUser = await db.getUserById(venueProfile.userId);
+          if (venueUser?.email) {
+            await sendEmail({
+              to: venueUser.email,
+              subject: `Contract Declined: ${contract.title}`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                    <h1 style="margin: 0; font-size: 24px;">Contract Declined</h1>
+                  </div>
+                  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+                    <p>Hi ${venueProfile.organizationName},</p>
+                    <p><strong>${artistProfile.artistName}</strong> has declined your venue agreement: <strong>"${contract.title}"</strong>.</p>
+                    <p>You may want to reach out to discuss terms or send a revised contract.</p>
+                    <div style="text-align: center; margin: 25px 0;">
+                      <a href="https://www.ologywood.com/booking/${contract.bookingId}" style="background: #7c3aed; color: white; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: bold;">View Booking</a>
+                    </div>
+                    <p style="color: #666; font-size: 12px; margin-top: 20px;">— The Ologywood Team</p>
+                  </div>
+                </div>
+              `,
+            });
+          }
+        } catch (emailErr) {
+          console.error("[VenueContract] Error sending decline email:", emailErr);
+        }
       }
 
       return { success: true };

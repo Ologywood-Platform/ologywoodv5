@@ -1,0 +1,1 @@
+ALTER TABLE `venue_contracts` ADD `expiresAt` timestamp;

@@ -162,6 +162,11 @@ export function VenueContractsDashboard() {
                         Event: {formatDate(contract.eventDate)}
                       </p>
                     )}
+                    {(contract as any).expiresAt && (
+                      <p className={`text-xs ${new Date((contract as any).expiresAt) < new Date() ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                        {new Date((contract as any).expiresAt) < new Date() ? '⚠ Expired' : `Due: ${formatDate((contract as any).expiresAt)}`}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-gray-400 shrink-0 ml-2" />

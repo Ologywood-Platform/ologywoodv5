@@ -47,6 +47,7 @@ interface ContractFormData {
   customTerms: string;
   venueRep: string;
   eventSpecifics: string;
+  expiresAt: string;
 }
 
 function ContractForm({
@@ -65,6 +66,7 @@ function ContractForm({
     customTerms: '',
     venueRep: '',
     eventSpecifics: '',
+    expiresAt: '',
   });
 
   const createMutation = trpc.venueContract.create.useMutation({
@@ -97,6 +99,7 @@ function ContractForm({
         venueRep: formData.venueRep,
         eventSpecifics: formData.eventSpecifics,
       },
+      expiresAt: formData.expiresAt || undefined,
     });
   };
 
@@ -186,6 +189,17 @@ function ContractForm({
         />
       </div>
 
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Signature Deadline (Optional)</label>
+        <p className="text-xs text-muted-foreground">Set a deadline for the artist to sign. The contract will automatically expire if not signed by this date.</p>
+        <Input
+          type="datetime-local"
+          value={formData.expiresAt}
+          onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+          min={new Date().toISOString().slice(0, 16)}
+        />
+      </div>
+
       <div className="flex gap-2 justify-end pt-2">
         <Button variant="outline" onClick={onCancel}>Cancel</Button>
         <Button onClick={handleSubmit} disabled={createMutation.isPending}>
@@ -212,6 +226,7 @@ function PdfUploadForm({
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [expiresAt, setExpiresAt] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = trpc.venueContract.create.useMutation();
@@ -235,6 +250,7 @@ function PdfUploadForm({
         title,
         description,
         contractType: 'uploaded_pdf',
+        expiresAt: expiresAt || undefined,
       });
 
       // Upload the PDF
@@ -323,6 +339,17 @@ function PdfUploadForm({
             }}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Signature Deadline (Optional)</label>
+        <p className="text-xs text-muted-foreground">Set a deadline for the artist to sign. The contract will automatically expire if not signed by this date.</p>
+        <Input
+          type="datetime-local"
+          value={expiresAt}
+          onChange={(e) => setExpiresAt(e.target.value)}
+          min={new Date().toISOString().slice(0, 16)}
+        />
       </div>
 
       <div className="flex gap-2 justify-end pt-2">
@@ -562,7 +589,10 @@ function VenueContractCard({
     }
   };
 
+  const isExpired = contract.expiresAt && new Date(contract.expiresAt) < new Date();
+
   const canSign = () => {
+    if (isExpired) return false;
     if (currentUserRole === 'venue') {
       return ['draft', 'sent', 'viewed', 'signed_by_artist'].includes(contract.status) && !contract.venueSigned;
     }
@@ -590,7 +620,18 @@ function VenueContractCard({
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
             <span>Type: {contract.contractType === 'uploaded_pdf' ? 'PDF Upload' : 'Platform Generated'}</span>
             {contract.sentAt && <span>Sent: {new Date(contract.sentAt).toLocaleDateString()}</span>}
+            {contract.expiresAt && (
+              <span className={new Date(contract.expiresAt) < new Date() ? 'text-red-500 font-medium' : ''}>
+                {new Date(contract.expiresAt) < new Date() ? 'Expired' : `Expires: ${new Date(contract.expiresAt).toLocaleDateString()}`}
+              </span>
+            )}
           </div>
+          {contract.expiresAt && new Date(contract.expiresAt) < new Date() && contract.status !== 'fully_signed' && contract.status !== 'declined' && (
+            <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>This contract has expired. The artist can no longer sign it.</span>
+            </div>
+          )}
         </div>
       </div>
 

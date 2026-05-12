@@ -1322,6 +1322,8 @@ export const venueContracts = mysqlTable("venue_contracts", {
   sentAt: timestamp("sentAt"),
   /** When the artist first viewed the contract */
   viewedAt: timestamp("viewedAt"),
+  /** Optional expiration deadline for artist to sign */
+  expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

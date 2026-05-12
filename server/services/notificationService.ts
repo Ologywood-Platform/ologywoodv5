@@ -239,3 +239,80 @@ export async function notifyNewFollower(params: {
     `${params.followerName} started following you.`
   );
 }
+
+// ============= VENUE CONTRACT NOTIFICATIONS =============
+
+export async function notifyVenueContractSent(params: {
+  artistUserId: number;
+  venueName: string;
+  contractTitle: string;
+  bookingId: number;
+}): Promise<void> {
+  await notify(
+    params.artistUserId,
+    "contract",
+    "New Venue Contract to Review",
+    `${params.venueName} sent you a venue agreement: "${params.contractTitle}". Please review and sign.`,
+    `/booking/${params.bookingId}`
+  );
+}
+
+export async function notifyVenueContractSigned(params: {
+  venueUserId: number;
+  artistName: string;
+  contractTitle: string;
+  bookingId: number;
+}): Promise<void> {
+  await notify(
+    params.venueUserId,
+    "contract",
+    "Venue Contract Signed",
+    `${params.artistName} signed your venue agreement: "${params.contractTitle}".`,
+    `/booking/${params.bookingId}`
+  );
+}
+
+export async function notifyVenueContractDeclined(params: {
+  venueUserId: number;
+  artistName: string;
+  contractTitle: string;
+  bookingId: number;
+}): Promise<void> {
+  await notify(
+    params.venueUserId,
+    "contract",
+    "Venue Contract Declined",
+    `${params.artistName} declined your venue agreement: "${params.contractTitle}". You may want to discuss terms.`,
+    `/booking/${params.bookingId}`
+  );
+}
+
+export async function notifyVenueContractFullySigned(params: {
+  recipientUserId: number;
+  contractTitle: string;
+  bookingId: number;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "contract",
+    "Venue Agreement Fully Executed",
+    `The venue agreement "${params.contractTitle}" has been signed by both parties and is now in effect.`,
+    `/booking/${params.bookingId}`
+  );
+}
+
+export async function notifyVenueContractExpiring(params: {
+  artistUserId: number;
+  venueName: string;
+  contractTitle: string;
+  bookingId: number;
+  hoursRemaining: number;
+}): Promise<void> {
+  await notify(
+    params.artistUserId,
+    "contract",
+    "Contract Expiring Soon",
+    `The venue agreement "${params.contractTitle}" from ${params.venueName} expires in ${params.hoursRemaining} hours. Please review and sign.`,
+    `/booking/${params.bookingId}`
+  );
+}
