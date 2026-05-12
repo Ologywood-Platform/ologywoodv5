@@ -188,20 +188,9 @@ export const venueContractRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized to sign this contract" });
       }
 
-      // Determine signer role — check if user already signed as one role, allow signing as the other
+      // Determine signer role — prioritize venue when user has both profiles
       const existingSigs = await db.getVenueContractSignatures(contract.id);
-      const alreadySignedAsVenue = existingSigs.find(s => s.userId === ctx.user.id && s.signerRole === "venue");
-      const alreadySignedAsArtist = existingSigs.find(s => s.userId === ctx.user.id && s.signerRole === "artist");
-      
-      // TEMPORARY: For testing, if user has both roles and already signed as venue, let them sign as artist
-      let signerRole: "venue" | "artist";
-      if (isVenue && isArtist && alreadySignedAsVenue) {
-        signerRole = "artist";
-      } else if (isVenue && isArtist && alreadySignedAsArtist) {
-        signerRole = "venue";
-      } else {
-        signerRole = isVenue ? "venue" : "artist";
-      }
+      const signerRole = isVenue ? "venue" as const : "artist" as const;
 
       // Check if contract has expired
       if (contract.expiresAt && new Date(contract.expiresAt) < new Date()) {
@@ -219,11 +208,10 @@ export const venueContractRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "This contract cannot be signed at this stage" });
       }
 
-      // Check if already signed as this role
-      const alreadySigned = existingSigs.find(s => s.userId === ctx.user.id && s.signerRole === signerRole);
-      // TEMPORARY: Allow same user to sign as both roles for testing (remove before production launch)
+      // Check if already signed
+      const alreadySigned = existingSigs.find(s => s.userId === ctx.user.id);
       if (alreadySigned) {
-        throw new TRPCError({ code: "CONFLICT", message: "You have already signed this contract as " + signerRole });
+        throw new TRPCError({ code: "CONFLICT", message: "You have already signed this contract" });
       }
 
       // Get IP

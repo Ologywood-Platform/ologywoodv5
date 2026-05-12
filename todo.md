@@ -2454,6 +2454,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify fix works on dev server — shows 2 contract notifications with filter tabs
 - [x] Fix notification click-through 404 — 240 existing notifications had /bookings/ (plural) actionUrl, updated to /booking/ (singular)
 - [x] Add temporary bypass for same-user dual-signing (Gary can sign as both venue and artist for testing)
+- [x] Remove temporary bypass after testing confirmed successful
 
 ## FOLLOW-UPS: Notification Improvements (May 12, 2026)
 - [x] Notification click-through: fixed actionUrl from /bookings/ (plural, 404) to /booking/ (singular, correct route)
