@@ -19,6 +19,8 @@ import {
   getRiderTemplateStats,
   getDefaultTemplate,
   listDefaultTemplates,
+  setDefaultRiderTemplate,
+  getDefaultRiderForArtist,
 } from "../services/riderTemplateService";
 
 export const riderRouter = router({
@@ -201,4 +203,35 @@ export const riderRouter = router({
   listDefaultTemplates: publicProcedure.query(async () => {
     return listDefaultTemplates();
   }),
+
+  /**
+   * Set a rider template as the default for auto-attach to new bookings
+   */
+  setDefault: protectedProcedure
+    .input(z.object({ templateId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new Error("Unauthorized");
+      return await setDefaultRiderTemplate(input.templateId, userId);
+    }),
+
+  /**
+   * Clear the default rider template (no auto-attach)
+   */
+  clearDefault: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new Error("Unauthorized");
+      return await setDefaultRiderTemplate(null, userId);
+    }),
+
+  /**
+   * Get the artist's default rider template
+   */
+  getDefault: protectedProcedure
+    .query(async ({ ctx }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new Error("Unauthorized");
+      return await getDefaultRiderForArtist(userId);
+    }),
 });

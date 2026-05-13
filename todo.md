@@ -2533,8 +2533,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## Rider Contract Template System
 
-- [ ] Design rider contract template schema (database tables)
-- [ ] Create rider contract template API endpoints (CRUD)
-- [ ] Build rider contract template UI (create/edit/preview)
-- [ ] Add template auto-attach to bookings
-- [ ] Write vitest tests for rider contract template
+- [x] Design rider contract template schema (database tables) — already existed: riderTemplates table with isDefault field
+- [x] Create rider contract template API endpoints (CRUD) — existing rider router + new setDefault/clearDefault/getDefault endpoints
+- [x] Build rider contract template UI (create/edit/preview) — existing RiderBuilder + new RiderAttach component on BookingDetail
+- [x] Add template auto-attach to bookings — default rider auto-attaches on clientCreate booking
+- [x] Write vitest tests for rider contract template — riderDefault.test.ts (10 tests passing)
+- [x] Add "Set as Default" star button to RiderBuilder template cards
+- [x] Add RiderAttach component to BookingDetail for artists without a rider attached

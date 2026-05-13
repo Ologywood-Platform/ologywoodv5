@@ -51,6 +51,7 @@ import {
   Plus,
   Edit2,
   RotateCcw,
+  Star,
 } from "lucide-react";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 
@@ -196,6 +197,26 @@ export default function RiderBuilder() {
     },
     onError: (err: any) => {
       toast.error(err.message || "Failed to duplicate template");
+    },
+  });
+
+  const setDefaultMutation = trpc.rider.setDefault.useMutation({
+    onSuccess: () => {
+      toast.success("Default rider updated! This will auto-attach to new bookings.");
+      refetchTemplates();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to set default");
+    },
+  });
+
+  const clearDefaultMutation = trpc.rider.clearDefault.useMutation({
+    onSuccess: () => {
+      toast.success("Default rider cleared.");
+      refetchTemplates();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to clear default");
     },
   });
 
@@ -962,6 +983,13 @@ export default function RiderBuilder() {
                         </div>
                       </div>
 
+                      {template.isDefault && (
+                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-200 mb-2">
+                          <Star className="h-3 w-3 mr-1 fill-amber-500" />
+                          Default Rider
+                        </Badge>
+                      )}
+
                       <div className="flex gap-2 mt-4">
                         <Button
                           variant="outline"
@@ -971,6 +999,21 @@ export default function RiderBuilder() {
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                           Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`gap-1.5 ${template.isDefault ? 'text-amber-600 border-amber-300 bg-amber-50' : ''}`}
+                          onClick={() => {
+                            if (template.isDefault) {
+                              clearDefaultMutation.mutate();
+                            } else {
+                              setDefaultMutation.mutate({ templateId: template.id });
+                            }
+                          }}
+                          title={template.isDefault ? 'Remove as default' : 'Set as default for new bookings'}
+                        >
+                          <Star className={`h-3.5 w-3.5 ${template.isDefault ? 'fill-amber-500' : ''}`} />
                         </Button>
                         <Button
                           variant="outline"

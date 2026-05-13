@@ -262,6 +262,59 @@ export async function duplicateRiderTemplate(
 }
 
 /**
+ * Set a rider template as the default for auto-attach to new bookings.
+ * Pass null to clear the default.
+ */
+export async function setDefaultRiderTemplate(
+  templateId: number | null,
+  artistId: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Clear any existing default for this artist
+  const existing = await getArtistRiderTemplates(artistId);
+  for (const t of existing) {
+    if (t.isDefault) {
+      await db
+        .update(riderTemplates)
+        .set({ isDefault: false })
+        .where(eq(riderTemplates.id, t.id));
+    }
+  }
+
+  // Set the new default
+  if (templateId !== null) {
+    const template = await getRiderTemplate(templateId);
+    if (!template || template.artistId !== artistId) {
+      throw new Error("Rider template not found or unauthorized");
+    }
+    await db
+      .update(riderTemplates)
+      .set({ isDefault: true })
+      .where(eq(riderTemplates.id, templateId));
+  }
+
+  return { success: true };
+}
+
+/**
+ * Get the artist's default rider template (the one marked isDefault)
+ */
+export async function getDefaultRiderForArtist(artistId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select()
+    .from(riderTemplates)
+    .where(and(eq(riderTemplates.artistId, artistId), eq(riderTemplates.isDefault, true)))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+/**
  * Get rider template statistics
  */
 export async function getRiderTemplateStats(artistId: number) {

@@ -897,6 +897,17 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
         }
         
+        // Check if artist has a default rider template to auto-attach
+        let defaultRiderId: number | undefined;
+        try {
+          const artistProfile = await db.getArtistProfileById(input.artistId);
+          if (artistProfile) {
+            const { getDefaultRiderForArtist } = await import('./services/riderTemplateService');
+            const defaultRider = await getDefaultRiderForArtist(artistProfile.userId);
+            if (defaultRider) defaultRiderId = defaultRider.id;
+          }
+        } catch (_) { /* fallback: no auto-attach */ }
+
         const booking = await db.createBooking({
           artistId: input.artistId,
           venueId: ctx.user.id, // Use the client's user ID as the booker
@@ -912,6 +923,8 @@ export const appRouter = router({
           clientName: input.clientName,
           clientEmail: input.clientEmail,
           clientPhone: input.clientPhone,
+          riderTemplateId: defaultRiderId,
+          riderStatus: defaultRiderId ? 'pending' : undefined,
         });
         
         const formattedDate = new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });

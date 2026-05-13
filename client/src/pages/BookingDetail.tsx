@@ -11,6 +11,7 @@ import { VenueReviewForm } from '@/components/VenueReviewForm';
 import PaymentSection from '@/components/PaymentSection';
 import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
+import { RiderAttach } from '@/components/RiderAttach';
 import { VenueContractSection } from '@/components/VenueContractSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -268,6 +269,14 @@ export default function BookingDetail() {
             bookingStatus={booking.status}
             depositPaidAt={(booking as any).depositPaidAt || null}
             finalPaidAt={(booking as any).finalPaidAt || null}
+          />
+
+          {/* Rider Attach (for artists without a rider on this booking) */}
+          <RiderAttach
+            bookingId={bookingId}
+            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+            hasRider={!!booking.riderTemplateId}
+            onRiderAttached={() => refetch()}
           />
 
           {/* Rider Contract & E-Signature */}
