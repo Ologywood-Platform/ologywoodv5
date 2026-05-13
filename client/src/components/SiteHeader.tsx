@@ -293,7 +293,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
               </Button>
             </Link>
 
-            <Link href="/pricing#faq" onClick={closeMobile} className="block">
+            <Link href="/faq" onClick={closeMobile} className="block">
               <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
                 FAQ
               </Button>

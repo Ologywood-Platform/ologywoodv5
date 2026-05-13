@@ -145,6 +145,13 @@ export default function Home() {
       {/* Featured Artists Carousel - Show all artists, not filtered by search */}
       <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
 
+      {/* Suggested Follows Section */}
+      <section className="py-8 sm:py-16">
+        <div className="container mx-auto px-3 sm:px-4">
+          <SuggestedFollows />
+        </div>
+      </section>
+
       {/* Touring Feature Highlight Section */}
       <section className="py-10 sm:py-16 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-3 sm:px-4">
@@ -191,28 +198,6 @@ export default function Home() {
 
       {/* Trust Badges Section */}
       <TrustBadges />
-
-      {/* Suggested Follows Section */}
-      <section className="py-8 sm:py-16">
-        <div className="container mx-auto px-3 sm:px-4">
-          <SuggestedFollows />
-        </div>
-      </section>
-
-      {/* CTA Section - Original */}
-      <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
-        <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
-          </p>
-          {!isAuthenticated && (
-            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-              Get Started
-            </Button>
-          )}
-        </div>
-      </section>
 
       {/* Features Section - Mobile Optimized */}
       <section className="py-8 sm:py-16 bg-muted/30">
@@ -339,6 +324,21 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
+        <div className="container mx-auto px-3 sm:px-4 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
+          </p>
+          {!isAuthenticated && (
+            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
+              Get Started
+            </Button>
+          )}
         </div>
       </section>
 

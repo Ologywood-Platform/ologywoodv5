@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,23 @@ export function QuickSignupModal({
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [oauthEmail, setOauthEmail] = useState('');
   
+  // Reset form state when modal opens/closes and sync tab with defaultTab
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(defaultTab);
+    } else {
+      // Clear all form fields when modal is closed
+      setSignupData({ email: '', password: '', confirmPassword: '', name: '' });
+      setLoginData({ email: '', password: '' });
+      setSetPasswordData({ password: '', confirmPassword: '' });
+      setShowSetPassword(false);
+      setShowForgotPassword(false);
+      setForgotPasswordEmail('');
+      setForgotPasswordSent(false);
+      setOauthEmail('');
+    }
+  }, [isOpen, defaultTab]);
+
   // API mutations
   const signupMutation = ((trpc.auth as any)?.signup?.useMutation?.() || { mutateAsync: async () => {} }) as any;
   const loginMutation = ((trpc.auth as any)?.login?.useMutation?.() || { mutateAsync: async () => {} }) as any;
@@ -390,11 +407,12 @@ export function QuickSignupModal({
 
             {/* Sign Up Tab */}
             <TabsContent value="signup" className="space-y-4">
+              <p className="text-xs text-muted-foreground">All fields are required <span className="text-red-500">*</span></p>
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    Full Name
+                    Full Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="signup-name"
@@ -409,7 +427,7 @@ export function QuickSignupModal({
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    Email
+                    Email <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="signup-email"
@@ -425,7 +443,7 @@ export function QuickSignupModal({
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="flex items-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </Label>
                   <PasswordInput
                     id="signup-password"
@@ -436,12 +454,13 @@ export function QuickSignupModal({
                     autoComplete="new-password"
                   />
                   <PasswordStrengthIndicator password={signupData.password} />
+                  <p className="text-xs text-muted-foreground">Min. 8 characters, include uppercase, lowercase, and a number</p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="signup-confirm-password" className="flex items-center gap-2">
                     <Lock className="h-4 w-4" />
-                    Confirm Password
+                    Confirm Password <span className="text-red-500">*</span>
                   </Label>
                   <PasswordInput
                     id="signup-confirm-password"

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, ChevronDown } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -218,6 +218,7 @@ export default function Pricing() {
   const toastCtx = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [activeSlide, setActiveSlide] = useState(1); // Start on Starter (Most Popular)
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
@@ -384,13 +385,21 @@ export default function Pricing() {
               Frequently Asked Questions
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-3">
               {PRICING_FAQS.map((faq, index) => (
-                <div key={index}>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {faq.question}
-                  </h3>
-                  <p className="text-gray-600">{faq.answer}</p>
+                <div key={index} className="bg-gray-50 rounded-lg">
+                  <button
+                    onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-100 rounded-lg"
+                  >
+                    <h3 className="font-semibold text-gray-900 text-left">{faq.question}</h3>
+                    <ChevronDown className={`w-5 h-5 text-gray-600 flex-shrink-0 ml-4 transition-transform ${openFaqIndex === index ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openFaqIndex === index && (
+                    <div className="px-6 py-4 border-t border-gray-200">
+                      <p className="text-gray-600">{faq.answer}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

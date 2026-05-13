@@ -2506,3 +2506,35 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix 404 after Stripe checkout success redirect (was /artist-dashboard, now /dashboard)
 - [x] Fix plan not updating after successful checkout (webhook wasn't setting tier field)
 - [ ] Verify end-to-end upgrade flow works (needs publish + re-test)
+
+## UX OBSERVATIONS FIXES (5/12/2026 PDF)
+- [ ] Fix FAQ link in hamburger menu (goes to Pricing instead of FAQ)
+- [ ] Reorder homepage sections (Featured → Suggested → Touring → Trust → Choose → Book)
+- [ ] "Get Started" button should always default to Sign Up tab
+- [ ] Sign Up/Log In buttons from hamburger should open correct tab
+- [ ] Clear form fields when auth modal is closed via X
+- [ ] Add asterisks (*) to required fields + "All fields required" text on Sign Up
+- [ ] Show password requirements on Sign Up form
+- [ ] FAQ format consistency (use accordion in both footer and hamburger menu paths)
+
+---
+
+## UX Fixes (May 2026 - from OlogywoodObservations PDF)
+
+- [x] FAQ link in hamburger menu fixed (/pricing#faq → /faq)
+- [x] Homepage section order reordered (Featured → Suggested → Touring → Trust → Why Choose → CTA → Book)
+- [x] Auth modal: useEffect added to reset form fields on close
+- [x] Auth modal: sync activeTab with defaultTab when modal opens
+- [x] Required field asterisks (*) added to signup form
+- [x] Password requirements text added below PasswordStrengthIndicator
+- [x] FAQ format consistency: Pricing page FAQ converted to accordion format
+
+---
+
+## Rider Contract Template System
+
+- [ ] Design rider contract template schema (database tables)
+- [ ] Create rider contract template API endpoints (CRUD)
+- [ ] Build rider contract template UI (create/edit/preview)
+- [ ] Add template auto-attach to bookings
+- [ ] Write vitest tests for rider contract template
