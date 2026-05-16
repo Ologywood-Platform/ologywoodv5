@@ -6,7 +6,6 @@ import { Gift, Calendar, MapPin, Loader2, CheckCircle, XCircle, Ticket } from 'l
 import { trpc } from '@/lib/trpc';
 import { useToastContext } from '@/components/ErrorToast';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 export default function AcceptTransfer() {
   const { code } = useParams();
@@ -54,7 +53,7 @@ export default function AcceptTransfer() {
           <p className="text-muted-foreground mb-6">This transfer link may have expired or been cancelled.</p>
           <Button onClick={() => navigate('/')}>Go Home</Button>
         </div>
-        <Footer />
+
       </div>
     );
   }
@@ -163,7 +162,7 @@ export default function AcceptTransfer() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
+
     </div>
   );
 }

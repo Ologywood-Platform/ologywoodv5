@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import SiteHeader from "@/components/SiteHeader";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
-import Footer from '@/components/Footer';
 
 export default function SellMusic() {
   const [, navigate] = useLocation();
@@ -277,7 +276,7 @@ export default function SellMusic() {
           </div>
         </div>
       </section>
-          <Footer />
+
     </div>
   );
 }

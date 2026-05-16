@@ -7,7 +7,6 @@ import { TicketTierManager } from '@/components/TicketTierManager';
 import { TicketAnalytics } from '@/components/TicketAnalytics';
 import { PromoCodeManager } from '@/components/PromoCodeManager';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 export default function EventTickets() {
   const { id: idParam } = useParams();
@@ -114,7 +113,7 @@ export default function EventTickets() {
           <TicketAnalytics eventId={eventId} />
         )}
       </div>
-      <Footer />
+
     </div>
   );
 }

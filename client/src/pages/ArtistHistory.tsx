@@ -2,7 +2,6 @@ import { useRoute, useLocation } from "wouter";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import SiteHeader from "../components/SiteHeader";
-import Footer from "../components/Footer";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -114,7 +113,7 @@ export default function ArtistHistory() {
             </div>
           </div>
         </div>
-        <Footer />
+
       </div>
     );
   }
@@ -354,7 +353,7 @@ export default function ArtistHistory() {
           </div>
         )}
       </div>
-      <Footer />
+
     </div>
   );
 }

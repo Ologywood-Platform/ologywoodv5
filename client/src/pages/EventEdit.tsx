@@ -11,7 +11,6 @@ import { useParams, useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import SiteHeader from '@/components/SiteHeader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
-import Footer from '@/components/Footer';
 
 export default function EventEdit() {
   const { id } = useParams();
@@ -385,7 +384,7 @@ export default function EventEdit() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
+
     </div>
   );
 }

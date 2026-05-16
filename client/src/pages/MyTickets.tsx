@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Ticket, QrCode, ArrowLeft, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 export default function MyTickets() {
   const [, navigate] = useLocation();
@@ -142,7 +141,7 @@ export default function MyTickets() {
           </TabsContent>
         </Tabs>
       </div>
-      <Footer />
+
     </div>
   );
 }

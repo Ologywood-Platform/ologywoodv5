@@ -7,7 +7,6 @@ import { trpc } from '@/lib/trpc';
 import { TicketQRCode } from '@/components/TicketQRCode';
 import { TicketTransfer } from '@/components/TicketTransfer';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 export default function TicketConfirmation() {
   const { orderNumber } = useParams();
@@ -173,7 +172,7 @@ export default function TicketConfirmation() {
           Present your ticket QR code at the venue entrance for check-in.
         </p>
       </div>
-      <Footer />
+
     </div>
   );
 }

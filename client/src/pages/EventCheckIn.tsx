@@ -8,7 +8,6 @@ import { ArrowLeft, Camera, CameraOff, CheckCircle2, XCircle, Loader2, Users, Ti
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 type ScanResult = {
   status: 'success' | 'error' | 'already_used';

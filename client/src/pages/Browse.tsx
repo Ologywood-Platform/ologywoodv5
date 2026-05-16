@@ -16,7 +16,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import Footer from '@/components/Footer';
 import { TouringBadge } from '@/components/TouringDisplay';
 
 export default function Browse() {
@@ -361,7 +360,7 @@ export default function Browse() {
         actionType={modalConfig.actionType}
         targetType={modalConfig.targetType}
       />
-      <Footer />
+
     </div>
   );
 }

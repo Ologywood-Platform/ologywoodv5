@@ -15,7 +15,6 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-import Footer from '@/components/Footer';
 
 export default function EventDetail() {
   const { id: idParam } = useParams();
@@ -369,7 +368,7 @@ export default function EventDetail() {
       </div>
 
 
-          <Footer />
+
     </div>
   );
 }

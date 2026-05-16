@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
 import SiteHeader from '@/components/SiteHeader';
 import { SuggestedFollows } from '@/components/SuggestedFollows';
-import Footer from '@/components/Footer';
 
 export default function Following() {
   const { user } = useAuth();
@@ -274,7 +273,7 @@ function FollowingList({ userId }: { userId: number }) {
           </div>
         )}
       </div>
-          <Footer />
+
     </div>
   );
 }

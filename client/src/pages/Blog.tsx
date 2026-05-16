@@ -7,7 +7,6 @@ import { Calendar, Tag, ChevronRight, BookOpen } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import SiteHeader from "@/components/SiteHeader";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
-import Footer from '@/components/Footer';
 
 const CATEGORIES = [
   { value: undefined, label: "All" },
@@ -214,7 +213,7 @@ export default function Blog() {
           </>
         )}
       </section>
-          <Footer />
+
     </div>
   );
 }

@@ -2550,3 +2550,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add monthly/yearly toggle to Pricing page UI
 - [x] Show savings badges on yearly pricing
 - [x] Write vitest tests for yearly pricing (25 tests passing)
+
+- [x] Fix duplicate footer rendering on all pages — removed from 23 individual pages, kept global Footer in App.tsx

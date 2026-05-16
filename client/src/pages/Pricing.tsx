@@ -9,7 +9,6 @@ import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import SiteHeader from "@/components/SiteHeader";
 import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
-import Footer from '@/components/Footer';
 import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
 import TestModeBadge from '@/components/TestModeBadge';
 
@@ -473,7 +472,7 @@ export default function Pricing() {
           </div>
         </div>
       </div>
-          <Footer />
+
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, User, Phone, FileText, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
-import Footer from '../components/Footer';
 
 export default function VenueOnboarding() {
   const [, navigate] = useLocation();
@@ -282,7 +281,7 @@ export default function VenueOnboarding() {
           )}
         </div>
       </div>
-      <Footer />
+
     </>
   );
 }

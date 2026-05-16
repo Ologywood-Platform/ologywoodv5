@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-import Footer from '@/components/Footer';
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -106,7 +105,7 @@ export default function FAQ() {
           </div>
         </div>
       </div>
-          <Footer />
+
     </div>
   );
 }

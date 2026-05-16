@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
-import Footer from '@/components/Footer';
 
 interface Step {
   number: number;
@@ -459,7 +458,7 @@ export default function HowItWorks() {
         </div>
       </div>
       </div>
-          <Footer />
+
     </div>
   );
 }

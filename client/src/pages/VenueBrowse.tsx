@@ -13,7 +13,6 @@ import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import SiteHeader from '@/components/SiteHeader';
-import Footer from '@/components/Footer';
 
 interface Venue {
   id: number;
@@ -336,7 +335,7 @@ export default function VenueBrowse() {
           targetType="venue"
         />
       )}
-          <Footer />
+
     </div>
   );
 }
