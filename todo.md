@@ -2540,3 +2540,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Write vitest tests for rider contract template — riderDefault.test.ts (10 tests passing)
 - [x] Add "Set as Default" star button to RiderBuilder template cards
 - [x] Add RiderAttach component to BookingDetail for artists without a rider attached
+
+---
+
+## Yearly Subscription Pricing
+
+- [x] Add yearly pricing tiers to stripePricing.ts config
+- [x] Update subscription checkout to support yearly interval
+- [x] Add monthly/yearly toggle to Pricing page UI
+- [x] Show savings badges on yearly pricing
+- [x] Write vitest tests for yearly pricing (25 tests passing)

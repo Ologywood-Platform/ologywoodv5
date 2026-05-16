@@ -45,11 +45,15 @@ const PRICING_FAQS = [
 ];
 
 type PlanSlug = 'starter' | 'professional';
+type BillingInterval = 'month' | 'year';
 
 interface Tier {
   name: string;
   description: string;
-  price: string;
+  monthlyPrice: string;
+  yearlyPrice: string;
+  yearlyMonthly: string;
+  yearlySavings: string;
   period: string;
   cta: string;
   highlight: boolean;
@@ -62,7 +66,10 @@ const tiers: Tier[] = [
   {
     name: "Free",
     description: "Get started and explore the platform",
-    price: "$0",
+    monthlyPrice: "$0",
+    yearlyPrice: "$0",
+    yearlyMonthly: "$0",
+    yearlySavings: "",
     period: "forever",
     cta: "Get Started",
     highlight: false,
@@ -85,7 +92,10 @@ const tiers: Tier[] = [
   {
     name: "Starter",
     description: "For active artists and bookers",
-    price: "$9",
+    monthlyPrice: "$9",
+    yearlyPrice: "$90",
+    yearlyMonthly: "$7.50",
+    yearlySavings: "Save $18",
     period: "month",
     cta: "Upgrade to Starter",
     highlight: true,
@@ -110,7 +120,10 @@ const tiers: Tier[] = [
   {
     name: "Professional",
     description: "Full-featured for serious professionals",
-    price: "$29",
+    monthlyPrice: "$29",
+    yearlyPrice: "$290",
+    yearlyMonthly: "$24.17",
+    yearlySavings: "Save $58",
     period: "month",
     cta: "Go Professional",
     highlight: false,
@@ -134,7 +147,11 @@ const tiers: Tier[] = [
 ];
 
 /** Renders a single pricing card */
-function PricingCard({ tier, loadingPlan, onCTA }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void }) {
+function PricingCard({ tier, loadingPlan, onCTA, billingInterval }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void; billingInterval: BillingInterval }) {
+  const isYearly = billingInterval === 'year';
+  const displayPrice = tier.period === 'forever' ? tier.monthlyPrice : (isYearly ? tier.yearlyMonthly : tier.monthlyPrice);
+  const displayPeriod = tier.period === 'forever' ? '' : '/mo';
+
   return (
     <Card
       className={`relative flex flex-col h-full ${
@@ -160,12 +177,22 @@ function PricingCard({ tier, loadingPlan, onCTA }: { tier: Tier; loadingPlan: st
         {/* Price */}
         <div className="mb-6">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-gray-900">{tier.price}</span>
+            <span className="text-4xl font-bold text-gray-900">{displayPrice}</span>
             {tier.period !== "forever" && (
-              <span className="text-gray-600">/{tier.period}</span>
+              <span className="text-gray-600">{displayPeriod}</span>
             )}
           </div>
-          {tier.planSlug === 'professional' && (
+          {isYearly && tier.planSlug && (
+            <div className="mt-1">
+              <span className="text-xs text-gray-500">Billed {tier.yearlyPrice}/year</span>
+              {tier.yearlySavings && (
+                <span className="ml-2 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                  {tier.yearlySavings}
+                </span>
+              )}
+            </div>
+          )}
+          {!isYearly && tier.planSlug === 'professional' && (
             <p className="text-xs text-indigo-600 mt-1 font-medium">14-day free trial included</p>
           )}
         </div>
@@ -217,6 +244,7 @@ export default function Pricing() {
   const { isAuthenticated } = useAuth();
   const toastCtx = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('month');
   const [activeSlide, setActiveSlide] = useState(1); // Start on Starter (Most Popular)
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -254,6 +282,7 @@ export default function Pricing() {
     const origin = window.location.origin;
     checkoutMutation.mutate({
       plan: tier.planSlug,
+      interval: billingInterval,
       successUrl: `${origin}/dashboard?subscription=success`,
       cancelUrl: `${origin}/pricing`,
     });
@@ -308,12 +337,37 @@ export default function Pricing() {
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
               Choose the plan that fits your needs. Start free, upgrade anytime.
             </p>
+
+            {/* Monthly / Yearly Toggle */}
+            <div className="mt-8 inline-flex items-center bg-gray-100 rounded-full p-1">
+              <button
+                onClick={() => setBillingInterval('month')}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                  billingInterval === 'month'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval('year')}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                  billingInterval === 'year'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Yearly
+                <span className="ml-1.5 text-xs font-semibold text-green-600">2 months free</span>
+              </button>
+            </div>
           </div>
 
-          {/* Desktop: 3-column grid (unchanged) */}
+          {/* Desktop: 3-column grid */}
           <div className="hidden md:grid md:grid-cols-3 gap-8 mb-12">
             {tiers.map((tier) => (
-              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} />
+              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} />
             ))}
           </div>
 
@@ -350,7 +404,7 @@ export default function Pricing() {
               >
                 {tiers.map((tier) => (
                   <div key={tier.name} className="w-full flex-shrink-0 px-4">
-                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} />
+                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} />
                   </div>
                 ))}
               </div>
