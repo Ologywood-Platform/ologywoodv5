@@ -2552,3 +2552,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Write vitest tests for yearly pricing (25 tests passing)
 
 - [x] Fix duplicate footer rendering on all pages — removed from 23 individual pages, kept global Footer in App.tsx
+
+---
+
+## Security & Performance Audit (May 2026)
+
+- [x] Mount security headers middleware (helmet) on active server entry point (_core/index.ts)
+- [x] Update CSP connect-src to allow Stripe, WebSocket, and S3 domains
+- [x] Update CSP frame-src to allow Stripe checkout iframes
+- [x] Verify all OWASP security headers are being sent (CSP, HSTS, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy)

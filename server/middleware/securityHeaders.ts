@@ -18,8 +18,8 @@ export function configureSecurityHeaders() {
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         fontSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'", 'https://api.manus.im'],
-        frameSrc: ["'none'"],
+    connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com'],
+    frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
       },
@@ -51,7 +51,7 @@ export function securityHeadersMiddleware(req: Request, res: Response, next: Nex
   // Content Security Policy
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.manus.im; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
 
   // Strict Transport Security
@@ -97,8 +97,8 @@ export const securityHeadersConfig = {
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       fontSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", 'https://api.manus.im'],
-      frameSrc: ["'none'"],
+      connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com'],
+      frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
       objectSrc: ["'none'"],
     },
   },

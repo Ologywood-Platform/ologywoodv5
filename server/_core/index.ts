@@ -20,6 +20,7 @@ import videoUploadRoutes from '../routes/videoUpload';
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
+import { securityHeadersMiddleware } from "../middleware/securityHeaders";
 import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
@@ -56,6 +57,9 @@ async function startServer() {
   // Initialize cache manager
   cacheManager.init(60000); // Cleanup every 60 seconds
   
+  // Security headers — OWASP recommended (CSP, HSTS, X-Frame-Options, etc.)
+  app.use(securityHeadersMiddleware);
+
   // Redirect non-www to www for consistent social media sharing
   // Only apply to the custom domain (ologywood.com), NOT to Cloud Run, manus.space, or other internal domains
   app.use((req, res, next) => {
