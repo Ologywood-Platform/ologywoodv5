@@ -1867,9 +1867,10 @@ export const appRouter = router({
         cancelUrl: z.string(),
         plan: z.enum(['starter', 'professional']).optional().default('professional'),
         interval: z.enum(['month', 'year']).optional().default('month'),
+        useCredits: z.boolean().optional().default(false),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { getOrCreateStripeCustomer, createSubscriptionCheckoutSession } = await import('./stripe');
+        const { getOrCreateStripeCustomer, createSubscriptionCheckoutSession, stripe: stripeClient } = await import('./stripe');
         
         // Get or create Stripe customer
         const customerId = await getOrCreateStripeCustomer({
@@ -1877,6 +1878,55 @@ export const appRouter = router({
           name: ctx.user.name || undefined,
           userId: ctx.user.id.toString(),
         });
+
+        let couponId: string | undefined;
+
+        // If user wants to apply referral credits, create a Stripe coupon
+        if (input.useCredits && stripeClient) {
+          const { referralCredits } = await import('../drizzle/schema');
+          const { eq } = await import('drizzle-orm');
+          const { getDb: getDatabase } = await import('./db');
+            const database = await getDatabase();
+          if (database) {
+            // Calculate available credit balance
+            const credits = await database
+              .select()
+              .from(referralCredits)
+              .where(eq(referralCredits.userId, ctx.user.id));
+            
+            const earned = credits
+              .filter((c: any) => c.type === 'earned')
+              .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+            const redeemed = credits
+              .filter((c: any) => c.type === 'redeemed')
+              .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+            const balance = earned - redeemed;
+
+            if (balance > 0) {
+              // Create a one-time Stripe coupon for the credit amount (in cents)
+              const amountOff = Math.round(balance * 100);
+              const coupon = await stripeClient.coupons.create({
+                amount_off: amountOff,
+                currency: 'usd',
+                duration: 'once',
+                name: `Referral Credit ($${balance.toFixed(2)})`,
+                metadata: {
+                  userId: ctx.user.id.toString(),
+                  type: 'referral_credit',
+                },
+              });
+              couponId = coupon.id;
+
+              // Record the credit redemption
+              await database.insert(referralCredits).values({
+                userId: ctx.user.id,
+                amount: String(balance),
+                type: 'redeemed',
+                description: `Applied $${balance.toFixed(2)} credit to subscription checkout`,
+              });
+            }
+          }
+        }
 
         // Create checkout session for the selected plan and interval
         const checkoutUrl = await createSubscriptionCheckoutSession({
@@ -1888,6 +1938,7 @@ export const appRouter = router({
           cancelUrl: input.cancelUrl,
           plan: input.plan,
           interval: input.interval,
+          couponId,
         });
 
         return { checkoutUrl };

@@ -106,6 +106,7 @@ export async function createSubscriptionCheckoutSession(params: {
   cancelUrl: string;
   plan?: string;
   interval?: BillingInterval;
+  couponId?: string;
 }): Promise<string> {
   if (!stripe) {
     throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
@@ -141,11 +142,16 @@ export async function createSubscriptionCheckoutSession(params: {
     },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
-    allow_promotion_codes: true,
+    allow_promotion_codes: params.couponId ? undefined : true,
   };
 
+  // Apply coupon if provided (e.g., referral credit discount)
+  if (params.couponId) {
+    sessionParams.discounts = [{ coupon: params.couponId }];
+  }
+
   // Only add trial if the product specifies trial days (monthly only)
-  if (product.trialDays > 0 && interval === 'month') {
+  if (product.trialDays > 0 && interval === 'month' && !params.couponId) {
     sessionParams.subscription_data!.trial_period_days = product.trialDays;
   }
 

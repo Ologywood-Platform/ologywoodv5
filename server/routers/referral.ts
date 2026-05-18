@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
+import { sendReferralSignupEmail, sendReferralCreditEarnedEmail } from "../referralEmails";
 
 async function db() {
   const database = await getDb();
@@ -262,6 +263,34 @@ export const referralRouter = router({
         referralCode: newCode,
         status: "pending",
       });
+
+      // Send email notifications to the referrer (non-blocking)
+      const referrerInfo = await database
+        .select({ name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, referral[0].referrerId))
+        .limit(1);
+
+      if (referrerInfo.length > 0 && referrerInfo[0].email) {
+        const referrerName = referrerInfo[0].name || "there";
+        const referrerEmail = referrerInfo[0].email;
+        const referredName = ctx.user.name || ctx.user.email || "A new user";
+
+        // Email 1: Friend signed up notification
+        sendReferralSignupEmail({
+          referrerEmail,
+          referrerName,
+          referredName,
+        }).catch((err: unknown) => console.error("[Referral] Failed to send signup email:", err));
+
+        // Email 2: Credit earned notification
+        sendReferralCreditEarnedEmail({
+          referrerEmail,
+          referrerName,
+          referredName,
+          creditAmount: REFERRER_CREDIT_AMOUNT,
+        }).catch((err: unknown) => console.error("[Referral] Failed to send credit email:", err));
+      }
 
       return {
         success: true,

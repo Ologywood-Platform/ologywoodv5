@@ -2611,3 +2611,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build referral backend API (generate code, track referrals, apply credits, Stripe coupon)
 - [x] Build referral frontend (share link UI, referral dashboard, credit balance display)
 - [x] Test both features end-to-end
+
+## Referral Email Notifications & Redeem Credits (May 18, 2026)
+- [x] Add email notification when a referred friend signs up
+- [x] Add email notification when referrer earns credit from conversion
+- [x] Include unsubscribe link in referral emails
+- [x] Add "Redeem Credits" option at subscription checkout
+- [x] Apply credit balance as Stripe coupon/discount during checkout
+- [x] Show credit balance on checkout page with toggle to apply
+- [x] Test both features end-to-end

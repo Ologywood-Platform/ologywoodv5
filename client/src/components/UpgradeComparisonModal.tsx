@@ -36,6 +36,9 @@ interface UpgradeComparisonModalProps {
   targetPlan: 'starter' | 'professional';
   currentTier: string;
   billingInterval: 'month' | 'year';
+  creditBalance?: number;
+  useCredits?: boolean;
+  onToggleCredits?: (value: boolean) => void;
 }
 
 export function UpgradeComparisonModal({
@@ -47,6 +50,9 @@ export function UpgradeComparisonModal({
   targetPlan,
   currentTier,
   billingInterval,
+  creditBalance = 0,
+  useCredits = false,
+  onToggleCredits,
 }: UpgradeComparisonModalProps) {
   if (!isOpen) return null;
 
@@ -199,6 +205,36 @@ export function UpgradeComparisonModal({
             </p>
           )}
         </div>
+
+        {/* Redeem Credits Toggle */}
+        {creditBalance > 0 && !isDowngrade && onToggleCredits && (
+          <div className="px-6 pb-2">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-purple-800">
+                    Apply ${creditBalance.toFixed(2)} referral credit
+                  </span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={useCredits}
+                    onChange={(e) => onToggleCredits(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-300 peer-checked:bg-purple-600 rounded-full transition-colors" />
+                  <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4" />
+                </div>
+              </label>
+              {useCredits && (
+                <p className="text-xs text-purple-600 mt-1">
+                  Your credit will be applied as a discount at checkout
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="p-6 pt-2 flex gap-3">

@@ -265,6 +265,7 @@ export default function Pricing() {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('month');
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<PlanSlug | null>(null);
+  const [useCredits, setUseCredits] = useState(true); // default to applying credits
 
   // Fetch user's current subscription to show "Current Plan" badge
   const { data: subscription } = (trpc.subscription as any).getMy.useQuery(undefined, {
@@ -272,6 +273,13 @@ export default function Pricing() {
     enabled: isAuthenticated,
   });
   const currentTier: string | null = subscription?.tier || (isAuthenticated ? 'free' : null);
+
+  // Fetch referral credit balance
+  const { data: creditStats } = (trpc.referral as any).getMyStats.useQuery(undefined, {
+    retry: false,
+    enabled: isAuthenticated,
+  });
+  const creditBalance = creditStats?.creditBalance || 0;
   const [activeSlide, setActiveSlide] = useState(1); // Start on Starter (Most Popular)
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -322,6 +330,7 @@ export default function Pricing() {
       interval: billingInterval,
       successUrl: `${origin}/dashboard?subscription=success`,
       cancelUrl: `${origin}/pricing`,
+      useCredits: useCredits && creditBalance > 0,
     });
   };
 
@@ -539,6 +548,9 @@ export default function Pricing() {
           targetPlan={pendingPlan}
           currentTier={currentTier || 'free'}
           billingInterval={billingInterval}
+          creditBalance={creditBalance}
+          useCredits={useCredits}
+          onToggleCredits={setUseCredits}
         />
       )}
     </div>
