@@ -2628,3 +2628,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Show expiration date in credit history UI
 - [x] Send warning email 7 days before credits expire (via heartbeat handler)
 - [x] Test expiration logic end-to-end
+
+## Database Fix - Referral Tables (May 18, 2026)
+- [x] Fixed production database missing convertedAt column on referrals table
+- [x] Created referral_credits table in production database
+- [x] Created referral_codes table in production database
+- [x] Verified referral link now generates and displays correctly on dashboard
