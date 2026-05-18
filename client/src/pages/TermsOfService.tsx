@@ -250,13 +250,42 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">11. Payment Disputes and Chargebacks</h2>
             <p className="text-base leading-relaxed">
-              <strong>Ologywood is not responsible for payment disputes between users.</strong> If a dispute arises regarding a payment, the parties should first attempt to resolve it directly through the Platform's messaging system. If direct resolution is not possible, either party may file a dispute through the Platform's dispute resolution system, which provides a structured process for documenting and escalating issues.
+              <strong>All payment disputes and chargebacks are handled directly by Stripe, our third-party payment processor.</strong> Ologywood does not process, hold, or control user funds at any point during a transaction or dispute. Stripe manages the entire dispute and chargeback lifecycle in accordance with card network rules (Visa, Mastercard, American Express, etc.) and applicable financial regulations.
             </p>
-            <p className="text-base leading-relaxed mt-4">
-              Chargebacks (payment reversals initiated by a cardholder through their bank) are handled directly by Stripe in accordance with card network rules. Ologywood may provide transaction records and metadata to Stripe to assist in chargeback resolution but is not a party to the chargeback process. Users who initiate frivolous or fraudulent chargebacks may have their accounts suspended or terminated.
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11.1 How Disputes and Chargebacks Work</h3>
+            <p className="text-base leading-relaxed">
+              If a cardholder (buyer) initiates a payment dispute or chargeback with their bank or card issuer, Stripe will:
             </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
+              <li>Notify the relevant parties (seller/artist) of the dispute</li>
+              <li>Collect evidence from both parties as needed</li>
+              <li>Submit evidence to the card network on behalf of the seller</li>
+              <li>Manage the dispute timeline and resolution process</li>
+              <li>Communicate the final outcome to all parties</li>
+            </ul>
             <p className="text-base leading-relaxed mt-4">
-              <strong>Ologywood's dispute resolution system is a courtesy tool, not a binding arbitration or mediation service.</strong> Ologywood may, at its sole discretion, review disputes and make non-binding recommendations, but has no obligation to resolve disputes or enforce any resolution. For disputes involving amounts exceeding $5,000 or allegations of fraud, users are advised to seek resolution through appropriate legal channels.
+              <strong>Ologywood is not a party to the chargeback or dispute process.</strong> We do not make decisions on dispute outcomes, hold funds in escrow during disputes, or have the ability to override Stripe's or the card network's determination. The resolution is determined solely by Stripe and the relevant card network based on the evidence provided.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11.2 Seller (Artist/Venue) Responsibilities</h3>
+            <p className="text-base leading-relaxed">
+              If you receive a payment and a dispute is filed against that transaction, you may be asked by Stripe to provide evidence supporting the legitimacy of the charge (e.g., signed contracts, proof of service delivery, communication records). It is your responsibility to respond to Stripe's evidence requests within the timeframes specified. Failure to respond may result in the dispute being resolved in the buyer's favor.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11.3 Buyer Protection</h3>
+            <p className="text-base leading-relaxed">
+              Buyers are protected by their card issuer's standard dispute rights. If you believe a charge is unauthorized, fraudulent, or for services not delivered, you may file a dispute directly with your bank or card issuer. Stripe will manage the dispute process in accordance with card network rules. For more information, refer to <a href="https://stripe.com/docs/disputes" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Stripe's dispute documentation</a>.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11.4 Platform Dispute Resolution (Non-Binding)</h3>
+            <p className="text-base leading-relaxed">
+              In addition to Stripe's formal chargeback process, Ologywood provides an in-app dispute resolution tool as a courtesy. This tool allows parties to document issues and communicate about booking-related disagreements. <strong>Ologywood's dispute resolution system is a courtesy tool, not a binding arbitration or mediation service.</strong> Ologywood may, at its sole discretion, review disputes and make non-binding recommendations, but has no obligation to resolve disputes or enforce any resolution. For disputes involving amounts exceeding $5,000 or allegations of fraud, users are advised to seek resolution through appropriate legal channels.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11.5 Prohibited Conduct</h3>
+            <p className="text-base leading-relaxed">
+              Users who initiate frivolous, fraudulent, or bad-faith chargebacks may have their accounts suspended or permanently terminated. Repeated abuse of the chargeback process is a violation of these Terms and may result in legal action.
             </p>
           </section>
 
