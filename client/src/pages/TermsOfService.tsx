@@ -27,7 +27,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-2">
-          Last updated: May 12, 2026
+          Last updated: May 18, 2026
         </p>
         <p className="text-sm text-muted-foreground mb-8 italic">
           DRAFT — Subject to legal review. This document is provided for informational purposes and will be finalized upon review by legal counsel.
