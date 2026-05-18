@@ -2572,3 +2572,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update SDK decodeState to handle new JSON state format with backward compatibility for base64
 - [x] Audit all other hardcoded domain references — removed oauthRedirectBase from getOAuthConfig
 - [x] Write vitest tests for OAuth fix (17 tests passing)
+
+## Bugs
+
+- [ ] Fix yearly subscription checkout button not working (Go Professional does nothing when yearly is selected)
