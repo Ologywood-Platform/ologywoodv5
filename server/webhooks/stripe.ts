@@ -296,11 +296,15 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   let tier: 'free' | 'starter' | 'professional' = 'professional'; // default
   if (planMetadata === 'ARTIST_STARTER' || 
       lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+      lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
+      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
+      priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
     tier = 'starter';
   } else if (planMetadata === 'ARTIST_PROFESSIONAL' || 
              lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.lookupKey ||
-             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly) {
+             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.yearlyLookupKey ||
+             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly ||
+             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceYearly) {
     tier = 'professional';
   }
   
@@ -327,19 +331,26 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       // Determine plan from price
       const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
       const priceId = subData.items?.data?.[0]?.price?.id;
-      const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+      const emailLookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+      const emailInterval = subData.items?.data?.[0]?.price?.recurring?.interval;
       let planName = 'Professional Plan';
       let planPrice = '$29/month';
       let features = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.features as unknown as string[];
 
-      if (lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-          (subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly)) {
+      if (emailLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+          emailLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
+          subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
+          subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
         planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
-        planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
+        planPrice = emailInterval === 'year' 
+          ? `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly / 100}/year`
+          : `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
         features = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.features as unknown as string[];
       } else {
         planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
-        planPrice = `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly / 100}/month`;
+        planPrice = emailInterval === 'year'
+          ? `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceYearly / 100}/year`
+          : `$${SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.priceMonthly / 100}/month`;
         features = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.features as unknown as string[];
       }
 
@@ -377,10 +388,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
     // Determine plan name from price
     const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
-    const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+    const delLookupKey = subData.items?.data?.[0]?.price?.lookup_key;
+    const delPriceAmount = subData.items?.data?.[0]?.price?.unit_amount;
     let planName = 'your plan';
-    if (lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-        (subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly)) {
+    if (delLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
+        delLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
+        delPriceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
+        delPriceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
       planName = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.name;
     } else {
       planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;

@@ -2576,3 +2576,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## Bugs
 
 - [ ] Fix yearly subscription checkout button not working (Go Professional does nothing when yearly is selected)
+- [x] Fix subscription price display showing "$29/month" instead of "$290/year" after yearly checkout
+  - Updated SubscriptionManagement.tsx to read billing interval from Stripe status (stripeStatus.interval)
+  - Shows correct price: $90/year for Starter yearly, $290/year for Professional yearly
+  - Shows effective monthly rate: "$7.50/mo effective" or "$24.17/mo effective" for yearly plans
+  - Shows "Yearly (2 months free)" billing label for yearly subscriptions
+  - Fixed webhook tier resolution to handle yearly lookup keys and yearly price amounts
+  - Fixed subscription created email to show correct yearly price instead of always monthly
+  - Fixed subscription deleted handler to recognize yearly lookup keys and prices
+  - 18 tests passing (subscriptionPriceDisplay.test.ts)

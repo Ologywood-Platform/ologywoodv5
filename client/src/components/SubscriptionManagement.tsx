@@ -168,6 +168,24 @@ export function SubscriptionManagement() {
   const isTrialing = status === 'trialing' || (trialEnd && trialEnd > new Date());
   const isPaid = tier !== 'free' && (status === 'active' || status === 'trialing' || status === 'paused');
 
+  // Determine billing interval from Stripe status ("month" or "year")
+  const billingInterval: 'month' | 'year' = (stripeStatus?.interval === 'year') ? 'year' : 'month';
+
+  // Compute display price based on tier + interval
+  const getPriceDisplay = () => {
+    if (isPaused) return '$0/month (paused)';
+    if (tier === 'starter') {
+      return billingInterval === 'year' ? '$90/year' : '$9/month';
+    }
+    // professional
+    return billingInterval === 'year' ? '$290/year' : '$29/month';
+  };
+
+  const getEffectiveMonthly = () => {
+    if (billingInterval !== 'year') return null;
+    return tier === 'starter' ? '$7.50/mo effective' : '$24.17/mo effective';
+  };
+
   const handleUpgrade = (plan: 'starter' | 'professional') => {
     setActionLoading(`upgrade-${plan}`);
     const origin = window.location.origin;
@@ -327,6 +345,14 @@ export function SubscriptionManagement() {
                 </div>
               )}
 
+              {/* Billing Interval */}
+              {!isPaused && billingInterval === 'year' && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">Billing</span>
+                  <span className="text-sm font-medium text-green-600">Yearly (2 months free)</span>
+                </div>
+              )}
+
               {/* Price */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-600 flex items-center gap-1">
@@ -337,10 +363,17 @@ export function SubscriptionManagement() {
                   {isPaused ? (
                     <span className="text-amber-600">$0/month (paused)</span>
                   ) : (
-                    <>{tier === 'starter' ? '$9' : '$29'}/month</>
+                    <span>{getPriceDisplay()}</span>
                   )}
                 </span>
               </div>
+              {/* Effective monthly for yearly plans */}
+              {!isPaused && getEffectiveMonthly() && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600"></span>
+                  <span className="text-xs text-green-600">{getEffectiveMonthly()}</span>
+                </div>
+              )}
             </>
           )}
         </div>
