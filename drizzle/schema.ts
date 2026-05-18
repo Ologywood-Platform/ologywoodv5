@@ -475,12 +475,16 @@ export const referrals = mysqlTable("referrals", {
   id: int("id").autoincrement().primaryKey(),
   referrerId: int("referrerId").notNull(),
   referredId: int("referredId"),
-  referralCode: varchar("referralCode", { length: 20 }).unique().notNull(),
+  referralCode: varchar("referralCode", { length: 32 }).unique().notNull(),
   status: mysqlEnum("status", ["pending", "completed", "rewarded"]).default("pending").notNull(),
   rewardAmount: decimal("rewardAmount", { precision: 10, scale: 2 }),
+  convertedAt: timestamp("convertedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  referrerIdx: index("idx_referrals_referrer").on(table.referrerId),
+  referredIdx: index("idx_referrals_referred").on(table.referredId),
+}));
 
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = typeof referrals.$inferInsert;
@@ -1357,3 +1361,22 @@ export const venueContractSignatures = mysqlTable("venue_contract_signatures", {
 
 export type VenueContractSignature = typeof venueContractSignatures.$inferSelect;
 export type InsertVenueContractSignature = typeof venueContractSignatures.$inferInsert;
+
+
+/**
+ * Referral Credits - account credits earned by referrers
+ */
+export const referralCredits = mysqlTable("referral_credits", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: mysqlEnum("type", ["earned", "redeemed"]).notNull(),
+  referralId: int("referralId"),
+  description: varchar("description", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_referral_credits_user").on(table.userId),
+}));
+
+export type ReferralCredit = typeof referralCredits.$inferSelect;
+export type InsertReferralCredit = typeof referralCredits.$inferInsert;

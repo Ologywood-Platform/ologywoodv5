@@ -2603,3 +2603,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add downgrade confirmation warning when Professional user clicks Starter (show features they'll lose)
 - [x] Add "Manage Subscription" link on Pricing page for active subscribers
 - [x] Add annual savings nudge in comparison modal when monthly billing is selected
+
+## Switch to Yearly Button & Referral System (May 2026)
+
+- [x] Add "Switch to Yearly" button inside savings nudge (toggle billing without closing modal)
+- [x] Design referral system database schema (referral codes, credits, redemptions)
+- [x] Build referral backend API (generate code, track referrals, apply credits, Stripe coupon)
+- [x] Build referral frontend (share link UI, referral dashboard, credit balance display)
+- [x] Test both features end-to-end

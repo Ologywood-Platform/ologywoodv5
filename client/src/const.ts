@@ -28,11 +28,21 @@ export const getLoginUrl = (returnPath?: string) => {
     const frontendOrigin = window.location.origin;
     const redirectUri = `${frontendOrigin}/api/oauth/callback`;
 
+    // If no returnPath specified, check for referral code in URL
+    let finalReturnPath = returnPath || "/";
+    if (!returnPath) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get("ref");
+      if (refCode) {
+        finalReturnPath = `/get-started?ref=${refCode}`;
+      }
+    }
+
     // Encode origin and return path in state so the backend knows
     // which domain the user came from and where to redirect after login
     const state = JSON.stringify({
       origin: frontendOrigin,
-      returnPath: returnPath || "/",
+      returnPath: finalReturnPath,
       redirectUri: redirectUri,
     });
 

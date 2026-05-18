@@ -534,6 +534,7 @@ export default function Pricing() {
             setLoadingPlan(null);
           }}
           onConfirm={handleConfirmUpgrade}
+          onSwitchToYearly={() => setBillingInterval('year')}
           isLoading={!!loadingPlan}
           targetPlan={pendingPlan}
           currentTier={currentTier || 'free'}

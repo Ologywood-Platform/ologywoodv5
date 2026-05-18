@@ -17,6 +17,19 @@ export default function RoleSelection() {
   const [pendingRole, setPendingRole] = useState<string | null>(null);
   const navigatingRef = useRef(false);
 
+  // Apply referral code if present in URL
+  const applyReferral = (trpc.referral.applyCode as any).useMutation?.({ onSuccess: () => {} });
+  const referralAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || referralAppliedRef.current) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get("ref");
+    if (refCode && applyReferral) {
+      referralAppliedRef.current = true;
+      applyReferral.mutate({ code: refCode });
+    }
+  }, [isAuthenticated]);
+
   const updateRole = (trpc.auth.updateRole as any).useMutation?.({
     onSuccess: async (data: any) => {
       navigatingRef.current = true;

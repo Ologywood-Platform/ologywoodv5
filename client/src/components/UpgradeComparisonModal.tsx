@@ -31,6 +31,7 @@ interface UpgradeComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onSwitchToYearly?: () => void;
   isLoading: boolean;
   targetPlan: 'starter' | 'professional';
   currentTier: string;
@@ -41,6 +42,7 @@ export function UpgradeComparisonModal({
   isOpen,
   onClose,
   onConfirm,
+  onSwitchToYearly,
   isLoading,
   targetPlan,
   currentTier,
@@ -168,17 +170,26 @@ export function UpgradeComparisonModal({
           </div>
 
           {/* Annual savings nudge — only shown when monthly is selected */}
-          {!isYearly && !isDowngrade && (
-            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2.5">
-              <Sparkles className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-green-800 font-medium">
-                  Switch to yearly and save ${monthlySavings}/year
-                </p>
-                <p className="text-xs text-green-600 mt-0.5">
-                  That's 2 months free — cancel the modal and select "Yearly" above.
-                </p>
+          {!isYearly && !isDowngrade && onSwitchToYearly && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-start gap-2.5">
+                <Sparkles className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-green-800 font-medium">
+                    Save ${monthlySavings}/year with yearly billing
+                  </p>
+                  <p className="text-xs text-green-600 mt-0.5">
+                    That's 2 months free — same plan, better price.
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={onSwitchToYearly}
+                className="mt-2.5 w-full py-2 px-3 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Switch to Yearly & Save
+              </button>
             </div>
           )}
 

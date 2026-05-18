@@ -37,6 +37,7 @@ import { notificationsRouter } from "./routers/notifications";
 import { disputeRouter } from "./routers/dispute";
 import { ticketingRouter } from "./routers/ticketing";
 import { touringRouter } from "./routers/touring";
+import { referralRouter } from "./routers/referral";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -126,6 +127,7 @@ export const appRouter = router({
   venueContract: venueContractRouter,
   ticketing: ticketingRouter,
   touring: touringRouter,
+  referral: referralRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

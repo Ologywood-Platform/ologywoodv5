@@ -14,6 +14,7 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { CalendarSync } from '@/components/CalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
+import { ReferralSection } from '@/components/ReferralSection';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -482,6 +483,9 @@ export function ArtistDashboardV3() {
             <div id="subscription-management">
               <SubscriptionManagement />
             </div>
+
+            {/* Referral Section */}
+            <ReferralSection />
 
             {/* Fans Section */}
             <FansSection artistUserId={user?.id} />

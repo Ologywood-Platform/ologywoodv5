@@ -519,6 +519,13 @@
       "when": 1778624116500,
       "tag": "0073_cultured_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "5",
+      "when": 1779082265558,
+      "tag": "0074_nice_argent",
+      "breakpoints": true
     }
   ]
 }
