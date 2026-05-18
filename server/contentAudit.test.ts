@@ -27,9 +27,9 @@ describe('Platform Content Audit', () => {
     });
 
     it('should show correct prices: $0, $9, $29', () => {
-      expect(content).toContain('price: "$0"');
-      expect(content).toContain('price: "$9"');
-      expect(content).toContain('price: "$29"');
+      expect(content).toContain('monthlyPrice: "$0"');
+      expect(content).toContain('monthlyPrice: "$9"');
+      expect(content).toContain('monthlyPrice: "$29"');
     });
 
     it('should NOT show incorrect $9.99 price', () => {

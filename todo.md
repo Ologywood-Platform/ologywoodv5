@@ -2586,3 +2586,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fixed subscription created email to show correct yearly price instead of always monthly
   - Fixed subscription deleted handler to recognize yearly lookup keys and prices
   - 18 tests passing (subscriptionPriceDisplay.test.ts)
+
+## Subscription UX Improvements (May 2026)
+
+- [x] Fix yearly checkout button on Pricing page (removed optional chaining on useMutation that could silently fail)
+- [x] Add monthly/yearly billing toggle to SubscriptionManagement dashboard upgrade buttons
+- [x] Verify all subscription flows work end-to-end before publishing

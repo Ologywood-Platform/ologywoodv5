@@ -89,8 +89,10 @@ describe('Subscription Management Component', () => {
 
   describe('Upgrade actions', () => {
     it('shows upgrade buttons for free tier', () => {
-      expect(src).toContain('Upgrade to Starter');
-      expect(src).toContain('Go Professional');
+      expect(src).toContain("Starter");
+      expect(src).toContain("Professional");
+      expect(src).toContain("handleUpgrade('starter')");
+      expect(src).toContain("handleUpgrade('professional')");
     });
 
     it('shows upgrade to Professional for starter tier', () => {

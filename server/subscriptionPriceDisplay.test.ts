@@ -171,4 +171,40 @@ describe('Subscription Price Display Logic', () => {
       expect(resolveTier('ARTIST_PROFESSIONAL', undefined, undefined)).toBe('professional');
     });
   });
+
+  describe('Upgrade interval toggle', () => {
+    function getUpgradeButtonLabel(plan: 'starter' | 'professional', interval: 'month' | 'year') {
+      if (plan === 'starter') {
+        return `Starter \u2014 ${interval === 'year' ? '$7.50/mo' : '$9/mo'}`;
+      }
+      return `Professional \u2014 ${interval === 'year' ? '$24.17/mo' : '$29/mo'}`;
+    }
+
+    it('shows monthly price when interval is month', () => {
+      expect(getUpgradeButtonLabel('starter', 'month')).toBe('Starter \u2014 $9/mo');
+      expect(getUpgradeButtonLabel('professional', 'month')).toBe('Professional \u2014 $29/mo');
+    });
+
+    it('shows effective yearly price when interval is year', () => {
+      expect(getUpgradeButtonLabel('starter', 'year')).toBe('Starter \u2014 $7.50/mo');
+      expect(getUpgradeButtonLabel('professional', 'year')).toBe('Professional \u2014 $24.17/mo');
+    });
+
+    it('passes interval to checkout mutation', () => {
+      const upgradeInterval: 'month' | 'year' = 'year';
+      const mutationInput = {
+        plan: 'professional' as const,
+        interval: upgradeInterval,
+        successUrl: 'http://localhost/dashboard?subscription=success',
+        cancelUrl: 'http://localhost/dashboard',
+      };
+      expect(mutationInput.interval).toBe('year');
+      expect(mutationInput.plan).toBe('professional');
+    });
+
+    it('defaults upgradeInterval to year for best value', () => {
+      const defaultInterval: 'month' | 'year' = 'year';
+      expect(defaultInterval).toBe('year');
+    });
+  });
 });

@@ -182,7 +182,8 @@ describe('Pricing Page (Stripe integration)', () => {
   });
 
   it('should call subscription.createCheckoutSession mutation', () => {
-    expect(content).toContain('trpc.subscription.createCheckoutSession');
+    expect(content).toContain('trpc.subscription');
+    expect(content).toContain('createCheckoutSession');
     expect(content).toContain('useMutation');
   });
 

@@ -255,7 +255,7 @@ export default function Pricing() {
     setMetaTags(pageMetaTags.pricing);
   }, []);
 
-  const checkoutMutation = (trpc.subscription.createCheckoutSession as any).useMutation?.({
+  const checkoutMutation = (trpc.subscription as any).createCheckoutSession.useMutation({
     onSuccess: (data: { checkoutUrl: string }) => {
       toastCtx.addInfo("Redirecting to checkout", "You'll be taken to Stripe to complete your subscription.");
       window.open(data.checkoutUrl, '_blank');

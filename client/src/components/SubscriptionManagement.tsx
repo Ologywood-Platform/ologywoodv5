@@ -43,6 +43,7 @@ export function SubscriptionManagement() {
   const toastCtx = useToast();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showPauseConfirm, setShowPauseConfirm] = useState(false);
+  const [upgradeInterval, setUpgradeInterval] = useState<'month' | 'year'>('year');
 
   // Fetch local subscription record
   const { data: subscription, isLoading: subLoading, refetch: refetchSub } =
@@ -191,6 +192,7 @@ export function SubscriptionManagement() {
     const origin = window.location.origin;
     checkoutMutation.mutate({
       plan,
+      interval: upgradeInterval,
       successUrl: `${origin}/dashboard?subscription=success`,
       cancelUrl: `${origin}/dashboard`,
     });
@@ -402,49 +404,111 @@ export function SubscriptionManagement() {
         <div className="space-y-2">
           {/* Free tier — show upgrade options */}
           {tier === 'free' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button
-                onClick={() => handleUpgrade('starter')}
-                disabled={actionLoading === 'upgrade-starter'}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {actionLoading === 'upgrade-starter' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Zap className="h-4 w-4 mr-2" />
-                )}
-                Upgrade to Starter — $9/mo
-              </Button>
-              <Button
-                onClick={() => handleUpgrade('professional')}
-                disabled={actionLoading === 'upgrade-professional'}
-                variant="outline"
-                className="border-purple-300 text-purple-700 hover:bg-purple-50"
-              >
-                {actionLoading === 'upgrade-professional' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Crown className="h-4 w-4 mr-2" />
-                )}
-                Go Professional — $29/mo
-              </Button>
+            <div className="space-y-3">
+              {/* Billing interval toggle */}
+              <div className="flex items-center justify-center">
+                <div className="inline-flex items-center bg-gray-100 rounded-full p-0.5">
+                  <button
+                    onClick={() => setUpgradeInterval('month')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      upgradeInterval === 'month'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setUpgradeInterval('year')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      upgradeInterval === 'year'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Yearly
+                    <span className="ml-1 text-[10px] font-semibold text-green-600">Save 17%</span>
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  onClick={() => handleUpgrade('starter')}
+                  disabled={actionLoading === 'upgrade-starter'}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {actionLoading === 'upgrade-starter' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Zap className="h-4 w-4 mr-2" />
+                  )}
+                  Starter — {upgradeInterval === 'year' ? '$7.50/mo' : '$9/mo'}
+                </Button>
+                <Button
+                  onClick={() => handleUpgrade('professional')}
+                  disabled={actionLoading === 'upgrade-professional'}
+                  variant="outline"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  {actionLoading === 'upgrade-professional' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Crown className="h-4 w-4 mr-2" />
+                  )}
+                  Professional — {upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}
+                </Button>
+              </div>
+              {upgradeInterval === 'year' && (
+                <p className="text-[11px] text-center text-gray-500">Billed annually. 2 months free vs monthly.</p>
+              )}
             </div>
           )}
 
           {/* Starter tier — show upgrade to Professional */}
           {tier === 'starter' && !cancelAtPeriodEnd && !isPaused && (
-            <Button
-              onClick={() => handleUpgrade('professional')}
-              disabled={actionLoading === 'upgrade-professional'}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              {actionLoading === 'upgrade-professional' ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <ArrowUpRight className="h-4 w-4 mr-2" />
+            <div className="space-y-2">
+              {/* Billing interval toggle */}
+              <div className="flex items-center justify-center">
+                <div className="inline-flex items-center bg-gray-100 rounded-full p-0.5">
+                  <button
+                    onClick={() => setUpgradeInterval('month')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      upgradeInterval === 'month'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setUpgradeInterval('year')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      upgradeInterval === 'year'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Yearly
+                    <span className="ml-1 text-[10px] font-semibold text-green-600">Save 17%</span>
+                  </button>
+                </div>
+              </div>
+              <Button
+                onClick={() => handleUpgrade('professional')}
+                disabled={actionLoading === 'upgrade-professional'}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {actionLoading === 'upgrade-professional' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                )}
+                Upgrade to Professional — {upgradeInterval === 'year' ? '$24.17/mo billed yearly' : '$29/mo'}
+              </Button>
+              {upgradeInterval === 'year' && (
+                <p className="text-[11px] text-center text-gray-500">Billed $290/year. 2 months free vs monthly.</p>
               )}
-              Upgrade to Professional — $29/mo
-            </Button>
+            </div>
           )}
 
           {/* Pause / Cancel — only show when active and not already cancelling */}
