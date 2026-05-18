@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users } from 'lucide-react';
+import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users, Shield, Award, BarChart3, Calendar, Gift, Ticket, FileText, Lock } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
@@ -20,6 +20,7 @@ const artistSteps: Step[] = [
       'List your genres and performance style',
       'Set your booking rates',
       'Add social links (Instagram, Spotify, etc.)',
+      'Get a verification badge for added credibility',
     ],
   },
   {
@@ -35,11 +36,12 @@ const artistSteps: Step[] = [
   {
     number: 3,
     title: 'Receive Booking Requests',
-    description: 'Venues discover your profile and send booking requests. Review event details, venue information, and requirements.',
+    description: 'Venues and fans discover your profile and send booking requests. Review event details, venue information, and requirements.',
     items: [
       'In-app and email notifications for new requests',
       'See full event details and venue info',
       'Review technical requirements',
+      'Track all bookings from your dashboard',
     ],
   },
   {
@@ -65,24 +67,48 @@ const artistSteps: Step[] = [
   },
   {
     number: 6,
-    title: 'Get Paid & Sell Music',
-    description: 'Receive payment securely after performances. Upload and sell your music directly to fans through your profile.',
+    title: 'Sign Contracts & Get Paid',
+    description: 'Sign digital contracts with e-signatures and receive payment securely through Stripe. All disputes and chargebacks are handled by Stripe.',
     items: [
+      'Legally binding digital contracts',
+      'Electronic signatures with verification certificates',
       'Secure Stripe payment processing',
-      'Upload releases with cover art and pricing',
-      'Keep 99% of each music sale',
-      'View earnings and sales analytics in your Dashboard',
+      'Stripe handles all disputes and chargebacks',
+      'View earnings and payment history in your Dashboard',
     ],
   },
   {
     number: 7,
+    title: 'Sell Music & Create Events',
+    description: 'Upload and sell your music directly to fans. Create events, sell tickets, and grow your audience all from one platform.',
+    items: [
+      'Upload releases with cover art and pricing',
+      'Keep 99% of each music sale',
+      'Create and publish events with ticketing',
+      'Track sales and event analytics in real-time',
+    ],
+  },
+  {
+    number: 8,
     title: 'Grow Your Fan Base',
-    description: 'Build a following on Ologywood. Fans can follow you, tip you, and buy your music. Keep them engaged with direct updates.',
+    description: 'Build a following on Ologywood. Fans can follow you, tip you, and buy your music. Refer friends and earn credits.',
     items: [
       'Fans can follow your profile',
       'Set up tip links (Cash App, Venmo, PayPal, Zelle)',
       'Send branded email updates to followers',
       'Receive reviews and ratings from fans and venues',
+      'Earn $5 credit for every friend you refer',
+    ],
+  },
+  {
+    number: 9,
+    title: 'Track Your Analytics',
+    description: 'Monitor your growth with a comprehensive analytics dashboard. Track bookings, earnings, fan engagement, and music sales.',
+    items: [
+      'Booking conversion rates and trends',
+      'Earnings breakdown by source (bookings, music, tips)',
+      'Fan growth and engagement metrics',
+      'Music sales and download analytics',
     ],
   },
 ];
@@ -91,11 +117,12 @@ const venueSteps: Step[] = [
   {
     number: 1,
     title: 'Create Your Venue Profile',
-    description: 'Set up your venue profile with details about your space, capacity, and the types of events you host.',
+    description: 'Set up your venue profile with details about your space, capacity, and the types of events you host. Get verified for credibility.',
     items: [
       'Add venue photos and details',
       'Describe your space and capacity',
       'List event types you host',
+      'Get a verification badge for added trust',
     ],
   },
   {
@@ -106,6 +133,7 @@ const venueSteps: Step[] = [
       'Filter by genre, location, and availability',
       'View artist profiles, media, and reviews',
       'Check real-time availability calendars',
+      'See verification badges and ratings',
     ],
   },
   {
@@ -135,22 +163,33 @@ const venueSteps: Step[] = [
     description: 'Sign digital contracts with e-signatures and process payments securely through Stripe. Pay a 50% deposit to confirm, then the remaining balance before the event.',
     items: [
       'Digital contracts with all agreed terms',
-      'Electronic signatures with verification',
+      'Electronic signatures with verification certificates',
       'Pay 50% deposit to secure the booking',
       'Pay remaining balance before the event',
       'Track payment status from My Bookings',
+      'Stripe handles all disputes and chargebacks',
     ],
   },
   {
     number: 6,
-    title: 'Create Events & Build Reputation',
-    description: 'Create events for your venue and build your reputation with reviews. Attract top talent with a strong venue profile.',
+    title: 'Create Events & Sell Tickets',
+    description: 'Create events for your venue, sell tickets directly to fans, and manage your event calendar all in one place.',
     items: [
-      'Create and publish events',
+      'Create and publish events with ticketing',
+      'Set ticket prices and capacity limits',
+      'Promote events to the Ologywood community',
+      'Track ticket sales and attendance',
+    ],
+  },
+  {
+    number: 7,
+    title: 'Build Reputation & Refer Friends',
+    description: 'Build your venue reputation with reviews. Refer other venues and artists to earn referral credits toward your subscription.',
+    items: [
       'Leave reviews for artists after performances',
-      'Build your venue reputation',
-      'Get verified for added credibility',
-      'File disputes if issues arise with bookings',
+      'Build your venue reputation with ratings',
+      'Earn $5 credit for every friend you refer',
+      'Use credits toward your subscription plan',
     ],
   },
 ];
@@ -191,14 +230,14 @@ const fanSteps: Step[] = [
   },
   {
     number: 4,
-    title: 'Request Bookings & Pay Deposits',
-    description: 'Book an artist for your private event, party, or gathering. Pay a 50% deposit to secure the booking, then pay the remaining balance before the event.',
+    title: 'Book Artists & Attend Events',
+    description: 'Book an artist for your private event, party, or gathering. Browse upcoming events and purchase tickets directly on the platform.',
     items: [
       'Fill in event date, time, and venue details',
       'Set your offered fee and communicate with artists',
       'Pay a 50% deposit to secure your booking',
       'Pay the remaining 50% balance before the event',
-      'Track payment status from My Bookings',
+      'Browse and buy tickets to upcoming events',
     ],
   },
   {
@@ -213,13 +252,14 @@ const fanSteps: Step[] = [
   },
   {
     number: 6,
-    title: 'Leave Reviews & Stay Connected',
-    description: 'Share your experience by leaving reviews. Stay connected through notifications about bookings, purchases, and artist updates.',
+    title: 'Leave Reviews & Refer Friends',
+    description: 'Share your experience by leaving reviews. Refer friends to earn credits and get them 50% off their first month.',
     items: [
       'Rate and review artists after events or purchases',
-      'In-app notifications via the bell icon',
-      'Email notifications for important updates',
-      'Browse upcoming events in your area',
+      'Share your unique referral link with friends',
+      'Earn $5 credit for every friend who signs up',
+      'Referred friends get 50% off their first month',
+      'Credits are redeemable at checkout',
     ],
   },
 ];
@@ -336,19 +376,69 @@ export default function HowItWorks() {
                 <div className="bg-purple-50 p-6 rounded-lg">
                   <DollarSign className="text-purple-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Multiple Revenue Streams</h4>
-                  <p className="text-gray-600">Earn from bookings, music sales, and fan tips all in one place.</p>
+                  <p className="text-gray-600">Earn from bookings, music sales, event tickets, and fan tips all in one place.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
-                  <CreditCard className="text-purple-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Secure Payments</h4>
-                  <p className="text-gray-600">Get paid safely through Stripe with detailed earnings analytics.</p>
+                  <Shield className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Protected Payments</h4>
+                  <p className="text-gray-600">Stripe handles all payments, disputes, and chargebacks — you focus on performing.</p>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg">
-                  <Bell className="text-purple-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Never Miss an Opportunity</h4>
-                  <p className="text-gray-600">In-app and email notifications keep you updated on every booking and message.</p>
+                  <BarChart3 className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Analytics Dashboard</h4>
+                  <p className="text-gray-600">Track bookings, earnings, fan growth, and music sales with real-time analytics.</p>
+                </div>
+                <div className="bg-purple-50 p-6 rounded-lg">
+                  <FileText className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Digital Contracts</h4>
+                  <p className="text-gray-600">Legally binding contracts with e-signatures and verification certificates.</p>
+                </div>
+                <div className="bg-purple-50 p-6 rounded-lg">
+                  <Gift className="text-purple-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Referral Rewards</h4>
+                  <p className="text-gray-600">Earn $5 credit for every friend you refer. Credits apply at checkout.</p>
                 </div>
               </div>
+            </div>
+
+            {/* Subscription Plans */}
+            <div className="mt-12 pt-12 border-t-2 border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Choose Your Plan</h3>
+              <p className="text-gray-600 text-center mb-8">Start free, upgrade when you're ready. All plans include a 14-day trial.</p>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                  <h4 className="font-bold text-gray-900 text-lg mb-2">Free</h4>
+                  <p className="text-3xl font-bold text-gray-900 mb-4">$0<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Basic profile</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Receive bookings</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> In-app messaging</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 1 music release</li>
+                  </ul>
+                </div>
+                <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-600">
+                  <h4 className="font-bold text-purple-700 text-lg mb-2">Starter</h4>
+                  <p className="text-3xl font-bold text-gray-900 mb-4">$9<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Everything in Free</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Up to 5 releases</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Basic analytics</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Priority in search</li>
+                  </ul>
+                </div>
+                <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-800">
+                  <h4 className="font-bold text-purple-800 text-lg mb-2">Professional</h4>
+                  <p className="text-3xl font-bold text-gray-900 mb-4">$29<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Everything in Starter</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Unlimited releases</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Digital contracts</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Full analytics</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Priority support</li>
+                  </ul>
+                </div>
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-4">Save 17% with yearly billing. Use referral credits at checkout for additional savings.</p>
             </div>
           </div>
         )}
@@ -374,19 +464,29 @@ export default function HowItWorks() {
                   <p className="text-gray-600">Access artists across every genre and style for any event.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
-                  <MessageSquare className="text-blue-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Direct Communication</h4>
-                  <p className="text-gray-600">Message artists directly to discuss every detail.</p>
+                  <FileText className="text-blue-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Digital Contracts</h4>
+                  <p className="text-gray-600">Legally binding contracts with e-signatures and verification certificates protect both parties.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
-                  <CreditCard className="text-blue-600 mb-3" size={28} />
-                  <h4 className="font-bold text-gray-900 mb-2">Secure Contracts</h4>
-                  <p className="text-gray-600">Digital contracts with e-signatures protect both parties.</p>
+                  <Shield className="text-blue-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Payment Protection</h4>
+                  <p className="text-gray-600">Stripe handles all payments and disputes. No funds are held by Ologywood.</p>
                 </div>
                 <div className="bg-blue-50 p-6 rounded-lg">
-                  <CheckCircle className="text-blue-600 mb-3" size={28} />
+                  <Ticket className="text-blue-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Event Ticketing</h4>
+                  <p className="text-gray-600">Create events, sell tickets, and manage your event calendar in one place.</p>
+                </div>
+                <div className="bg-blue-50 p-6 rounded-lg">
+                  <Award className="text-blue-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Verified Artists</h4>
-                  <p className="text-gray-600">Book with confidence using ratings and reviews.</p>
+                  <p className="text-gray-600">Book with confidence using verification badges, ratings, and reviews.</p>
+                </div>
+                <div className="bg-blue-50 p-6 rounded-lg">
+                  <Gift className="text-blue-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Referral Rewards</h4>
+                  <p className="text-gray-600">Earn $5 credit for every friend you refer. Use credits toward your subscription.</p>
                 </div>
               </div>
             </div>
@@ -419,9 +519,19 @@ export default function HowItWorks() {
                   <p className="text-gray-600">Purchase and download releases directly from artists. 99% goes to the artist.</p>
                 </div>
                 <div className="bg-pink-50 p-6 rounded-lg">
+                  <Ticket className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Events & Tickets</h4>
+                  <p className="text-gray-600">Browse upcoming events and buy tickets directly on the platform.</p>
+                </div>
+                <div className="bg-pink-50 p-6 rounded-lg">
                   <DollarSign className="text-pink-600 mb-3" size={28} />
                   <h4 className="font-bold text-gray-900 mb-2">Tip Your Favorites</h4>
                   <p className="text-gray-600">Support artists directly through Cash App, Venmo, PayPal, or Zelle.</p>
+                </div>
+                <div className="bg-pink-50 p-6 rounded-lg">
+                  <Gift className="text-pink-600 mb-3" size={28} />
+                  <h4 className="font-bold text-gray-900 mb-2">Refer & Earn</h4>
+                  <p className="text-gray-600">Share your referral link. Friends get 50% off, you earn $5 credit.</p>
                 </div>
                 <div className="bg-pink-50 p-6 rounded-lg">
                   <Heart className="text-pink-600 mb-3" size={28} />
@@ -434,8 +544,53 @@ export default function HowItWorks() {
         )}
       </div>
 
+      {/* Trust & Safety Section */}
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-8 border border-slate-200">
+          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Platform Trust & Safety</h3>
+          <p className="text-gray-600 text-center mb-8">
+            Ologywood is built on trust. Here's how we keep everyone safe.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="flex justify-center mb-3">
+                <Lock className="text-blue-600" size={32} />
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Secure Payments</h4>
+              <p className="text-sm text-gray-600">All payments processed by Stripe with bank-level encryption. We never store card details.</p>
+            </div>
+            <div className="text-center">
+              <div className="flex justify-center mb-3">
+                <Shield className="text-blue-600" size={32} />
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Dispute Protection</h4>
+              <p className="text-sm text-gray-600">All disputes and chargebacks are handled directly by Stripe in accordance with card network rules.</p>
+            </div>
+            <div className="text-center">
+              <div className="flex justify-center mb-3">
+                <Award className="text-blue-600" size={32} />
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Verified Users</h4>
+              <p className="text-sm text-gray-600">Verification badges, ratings, and reviews help you book with confidence.</p>
+            </div>
+          </div>
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Digital Contracts</h4>
+                <p className="text-sm text-gray-600">Every booking is backed by a legally binding digital contract with electronic signatures and verification certificates. Both parties are protected.</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Referral Credits</h4>
+                <p className="text-sm text-gray-600">Earn $5 for every friend you refer. Credits are valid for 90 days and can be redeemed at checkout toward your subscription.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16 px-4 mt-16">
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-16 px-4 mt-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-purple-100 mb-8">
@@ -453,6 +608,12 @@ export default function HowItWorks() {
               className="px-8 py-3 bg-purple-700 text-white font-bold rounded-lg hover:bg-purple-800 transition border border-white"
             >
               Browse Artists
+            </a>
+            <a
+              href="/pricing"
+              className="px-8 py-3 bg-transparent text-white font-bold rounded-lg hover:bg-purple-700 transition border border-white"
+            >
+              View Plans
             </a>
           </div>
         </div>

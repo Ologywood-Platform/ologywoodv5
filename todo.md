@@ -2639,3 +2639,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Stripe dispute/chargeback info to footer
 - [x] Add dispute handling section to Terms of Service (Section 11 expanded with 5 subsections)
 - [x] Add dispute info to FAQ (2 new entries: chargebacks handled by Stripe, buyer protection)
+
+## How It Works Page Update (May 18, 2026)
+- [x] Update How It Works page with all new platform features (referral, subscriptions, credits, disputes, verification, analytics, events)
