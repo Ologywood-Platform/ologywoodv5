@@ -2561,3 +2561,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update CSP connect-src to allow Stripe, WebSocket, and S3 domains
 - [x] Update CSP frame-src to allow Stripe checkout iframes
 - [x] Verify all OWASP security headers are being sent (CSP, HSTS, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy)
+
+---
+
+## OAuth Fix (Manus Support Instructions — May 2026)
+
+- [x] Update frontend getLoginUrl to use window.location.origin instead of VITE_OAUTH_REDIRECT_BASE_URL
+- [x] Pass origin in OAuth state parameter (JSON with origin, returnPath, redirectUri) for backend to use
+- [x] Update backend OAuth callback to extract origin from state and redirect correctly
+- [x] Update SDK decodeState to handle new JSON state format with backward compatibility for base64
+- [x] Audit all other hardcoded domain references — removed oauthRedirectBase from getOAuthConfig
+- [x] Write vitest tests for OAuth fix (17 tests passing)

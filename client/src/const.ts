@@ -1,64 +1,48 @@
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-// Safe URL constructor helper
-function safeUrl(value?: string): URL | null {
-  try {
-    if (!value || value === "undefined") {
-      return null;
-    }
-    return new URL(value);
-  } catch (error) {
-    console.error("Invalid URL:", value, error);
-    return null;
-  }
-}
-
-// Generate login URL using window.location.origin encoded in state
-// 
-// IMPORTANT: The Manus OAuth system validates redirect URIs against an allowed list.
-// The `state` parameter is base64-decoded by the OAuth server to get the redirect URI.
-// If no state is set, the OAuth server infers the redirect from the request origin.
+// Generate login URL using window.location.origin for redirect URLs.
 //
-// For custom domains (e.g. www.ologywood.com), we MUST explicitly set the state
-// parameter to point to the registered manus.space domain callback URL.
-// The OAuth callback sets the cookie on manus.space, and the user stays on that domain.
-// 
-// To enable OAuth directly on www.ologywood.com, submit a support request to Manus
-// to register the custom domain as an allowed OAuth redirect URI.
+// IMPORTANT (from Manus Support):
+// When handling redirect URLs, always use window.location.origin and never
+// hardcode domains or use req.host. The frontend and backend are deployed on
+// separate servers, so the server cannot reliably determine the frontend's
+// origin. The frontend must always pass it explicitly via the state parameter.
+//
+// The state parameter is a JSON string containing:
+//   - origin: window.location.origin (e.g. "https://www.ologywood.com")
+//   - returnPath: the path to redirect to after login (e.g. "/dashboard")
+//   - redirectUri: the full callback URL for the OAuth server
+//
+// The backend extracts the origin from state to redirect correctly after auth.
 export const getLoginUrl = (returnPath?: string) => {
   try {
     const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || "https://manus.im";
     const appId = import.meta.env.VITE_APP_ID || "";
-    const oauthRedirectBase = import.meta.env.VITE_OAUTH_REDIRECT_BASE_URL || "";
 
     if (!oauthPortalUrl || oauthPortalUrl === "undefined" || !appId || appId === "undefined") {
       console.warn("Missing OAuth configuration. VITE_OAUTH_PORTAL_URL or VITE_APP_ID not set.");
       return "";
     }
 
-    const url = safeUrl(`${oauthPortalUrl}/app-auth`);
-    if (!url) {
-      console.error("Failed to construct OAuth URL");
-      return "";
-    }
+    // Always use window.location.origin — never hardcode domains
+    const frontendOrigin = window.location.origin;
+    const redirectUri = `${frontendOrigin}/api/oauth/callback`;
 
-    url.searchParams.set("appId", appId);
-    url.searchParams.set("type", "signIn");
+    // Encode origin and return path in state so the backend knows
+    // which domain the user came from and where to redirect after login
+    const state = JSON.stringify({
+      origin: frontendOrigin,
+      returnPath: returnPath || "/",
+      redirectUri: redirectUri,
+    });
 
-    // Determine the callback base URL
-    // If we have a registered OAuth redirect base (manus.space), use it
-    // Otherwise fall back to the current origin
-    const callbackBase = oauthRedirectBase || window.location.origin;
-    const callbackUrl = `${callbackBase}/api/oauth/callback`;
+    const params = new URLSearchParams({
+      app_id: appId,
+      redirect_url: redirectUri,
+      state: state,
+    });
 
-    // Set the state parameter with the base64-encoded callback URL
-    // This tells the Manus OAuth server where to redirect after authentication
-    url.searchParams.set("state", btoa(callbackUrl));
-
-    // Set error redirect to the callback base domain
-    url.searchParams.set("errorRedirect", `${callbackBase}/?oauth_error=true`);
-
-    return url.toString();
+    return `${oauthPortalUrl}/login?${params.toString()}`;
   } catch (error) {
     console.error("Error generating login URL:", error);
     return "";

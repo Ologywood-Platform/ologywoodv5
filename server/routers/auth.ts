@@ -793,15 +793,15 @@ export const authRouter = router({
       }
     }),
   // Get OAuth configuration for frontend
+  // Note: oauthRedirectBase is no longer needed since the frontend now uses
+  // window.location.origin directly (per Manus support instructions).
   getOAuthConfig: publicProcedure
     .query(() => {
       const oauthPortalUrl = process.env.VITE_OAUTH_PORTAL_URL || process.env.OAUTH_SERVER_URL || 'https://manus.im';
       const appId = process.env.VITE_APP_ID || '';
-      const oauthRedirectBase = process.env.VITE_OAUTH_REDIRECT_BASE_URL || '';
       return {
         oauthPortalUrl,
         appId,
-        oauthRedirectBase,
       };
     }),
 });

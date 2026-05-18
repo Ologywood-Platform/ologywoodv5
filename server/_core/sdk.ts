@@ -38,20 +38,50 @@ class OAuthService {
     }
   }
 
+  /**
+   * Decode the state parameter to extract the redirect URI.
+   * 
+   * Supports two formats:
+   * 1. New format: JSON string with { origin, returnPath, redirectUri }
+   * 2. Old format: base64-encoded URL string (backward compatibility)
+   */
   private decodeState(state: string): string {
-    const redirectUri = atob(state);
-    return redirectUri;
+    // Try JSON format first (new format from frontend)
+    try {
+      const parsed = JSON.parse(state);
+      if (parsed.redirectUri) {
+        return parsed.redirectUri;
+      }
+    } catch {
+      // Not JSON, try base64 (old format)
+    }
+
+    // Fall back to base64 decode (old format)
+    try {
+      const decoded = Buffer.from(state, "base64").toString("utf-8");
+      if (decoded.startsWith("http")) {
+        return decoded;
+      }
+    } catch {
+      // Fall through
+    }
+
+    // Last resort: return the raw state
+    return state;
   }
 
   async getTokenByCode(
     code: string,
     state: string
   ): Promise<ExchangeTokenResponse> {
+    const redirectUri = this.decodeState(state);
+    console.log(`[OAuth] Exchanging code for token with redirectUri: ${redirectUri}`);
+
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
       code,
-      redirectUri: this.decodeState(state),
+      redirectUri,
     };
 
     const { data } = await this.client.post<ExchangeTokenResponse>(
