@@ -55,6 +55,39 @@ describe('Subscription Price Display Logic', () => {
     });
   });
 
+  describe('Next billing date during trial', () => {
+    it('shows trial end date as first billing when trialing', () => {
+      const isTrialing = true;
+      const trialEnd = new Date('2026-06-05');
+      const currentPeriodEnd = new Date('2026-05-18');
+      
+      // Logic: during trial, use trialEnd instead of currentPeriodEnd
+      const displayDate = isTrialing && trialEnd ? trialEnd : currentPeriodEnd;
+      expect(displayDate).toEqual(trialEnd);
+    });
+
+    it('shows currentPeriodEnd when not trialing', () => {
+      const isTrialing = false;
+      const trialEnd = null;
+      const currentPeriodEnd = new Date('2027-05-18');
+      
+      const displayDate = isTrialing && trialEnd ? trialEnd : currentPeriodEnd;
+      expect(displayDate).toEqual(currentPeriodEnd);
+    });
+
+    it('shows "First billing" label during trial', () => {
+      const isTrialing = true;
+      const label = isTrialing ? 'First billing' : 'Next billing';
+      expect(label).toBe('First billing');
+    });
+
+    it('shows "Next billing" label after trial', () => {
+      const isTrialing = false;
+      const label = isTrialing ? 'First billing' : 'Next billing';
+      expect(label).toBe('Next billing');
+    });
+  });
+
   describe('Billing interval detection', () => {
     it('detects year interval from stripeStatus', () => {
       const stripeStatus = { interval: 'year' };

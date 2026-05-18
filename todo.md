@@ -2576,6 +2576,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## Bugs
 
 - [ ] Fix yearly subscription checkout button not working (Go Professional does nothing when yearly is selected)
+- [x] Fix "Next billing" showing today's date during trial — now shows "First billing" with trial end date (Jun 5, 2026)
 - [x] Fix subscription price display showing "$29/month" instead of "$290/year" after yearly checkout
   - Updated SubscriptionManagement.tsx to read billing interval from Stripe status (stripeStatus.interval)
   - Shows correct price: $90/year for Starter yearly, $290/year for Professional yearly

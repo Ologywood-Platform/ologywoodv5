@@ -319,18 +319,38 @@ export function SubscriptionManagement() {
                 </div>
               )}
 
-              {/* Billing Period */}
-              {!isPaused && currentPeriodEnd && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {cancelAtPeriodEnd ? 'Access until' : 'Next billing'}
-                  </span>
-                  <span className="text-sm font-medium">
-                    {currentPeriodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </div>
-              )}
+              {/* Billing Period / Next billing */}
+              {!isPaused && (() => {
+                // During trial, show trial end as the first billing date
+                if (isTrialing && trialEnd) {
+                  return (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600 flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        First billing
+                      </span>
+                      <span className="text-sm font-medium">
+                        {trialEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  );
+                }
+                // After trial, show current period end
+                if (currentPeriodEnd) {
+                  return (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600 flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {cancelAtPeriodEnd ? 'Access until' : 'Next billing'}
+                      </span>
+                      <span className="text-sm font-medium">
+                        {currentPeriodEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               {/* Pause Expiry */}
               {isPaused && pauseExpiresAt && (
