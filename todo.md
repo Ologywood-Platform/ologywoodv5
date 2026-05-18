@@ -2597,3 +2597,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Add "Current Plan" badge on Pricing page — disable/label the user's active tier button
 - [x] Add plan comparison modal before Stripe checkout redirect — show what they gain
+
+## Pricing Page UX Improvements Round 2 (May 2026)
+
+- [x] Add downgrade confirmation warning when Professional user clicks Starter (show features they'll lose)
+- [x] Add "Manage Subscription" link on Pricing page for active subscribers
+- [x] Add annual savings nudge in comparison modal when monthly billing is selected

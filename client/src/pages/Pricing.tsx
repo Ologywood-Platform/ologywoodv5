@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Loader2, ChevronDown } from "lucide-react";
+import { Check, X, Loader2, ChevronDown, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -399,6 +399,19 @@ export default function Pricing() {
                 <span className="ml-1.5 text-xs font-semibold text-green-600">2 months free</span>
               </button>
             </div>
+
+            {/* Manage Subscription link for active subscribers */}
+            {currentTier && currentTier !== 'free' && (
+              <div className="mt-4">
+                <a
+                  href="/dashboard/subscription"
+                  className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                >
+                  Manage your {currentTier === 'starter' ? 'Starter' : 'Professional'} subscription
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Desktop: 3-column grid */}
