@@ -188,7 +188,9 @@ describe('Pricing Page (Stripe integration)', () => {
   });
 
   it('should pass plan slug to checkout mutation', () => {
-    expect(content).toContain('plan: tier.planSlug');
+    // Plan is now set via setPendingPlan(tier.planSlug) then passed as pendingPlan
+    expect(content).toContain('setPendingPlan(tier.planSlug)');
+    expect(content).toContain('plan: pendingPlan');
   });
 
   it('should open checkout URL in new tab', () => {

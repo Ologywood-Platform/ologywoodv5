@@ -2592,3 +2592,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix yearly checkout button on Pricing page (removed optional chaining on useMutation that could silently fail)
 - [x] Add monthly/yearly billing toggle to SubscriptionManagement dashboard upgrade buttons
 - [x] Verify all subscription flows work end-to-end before publishing
+
+## Pricing Page UX Improvements (May 2026)
+
+- [x] Add "Current Plan" badge on Pricing page — disable/label the user's active tier button
+- [x] Add plan comparison modal before Stripe checkout redirect — show what they gain

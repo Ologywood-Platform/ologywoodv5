@@ -11,6 +11,7 @@ import { useToast } from "@/components/ErrorToast";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
 import TestModeBadge from '@/components/TestModeBadge';
+import { UpgradeComparisonModal } from '@/components/UpgradeComparisonModal';
 
 const PRICING_FAQS = [
   {
@@ -146,7 +147,12 @@ const tiers: Tier[] = [
 ];
 
 /** Renders a single pricing card */
-function PricingCard({ tier, loadingPlan, onCTA, billingInterval }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void; billingInterval: BillingInterval }) {
+function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void; billingInterval: BillingInterval; currentTier?: string | null }) {
+  const isCurrentPlan = currentTier && (
+    (currentTier === 'starter' && tier.planSlug === 'starter') ||
+    (currentTier === 'professional' && tier.planSlug === 'professional') ||
+    (currentTier === 'free' && !tier.planSlug)
+  );
   const isYearly = billingInterval === 'year';
   const displayPrice = tier.period === 'forever' ? tier.monthlyPrice : (isYearly ? tier.yearlyMonthly : tier.monthlyPrice);
   const displayPeriod = tier.period === 'forever' ? '' : '/mo';
@@ -159,13 +165,19 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval }: { tier: Tier
           : "shadow-lg"
       }`}
     >
-      {tier.badge && (
+      {isCurrentPlan ? (
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <span className="bg-green-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+            Current Plan
+          </span>
+        </div>
+      ) : tier.badge ? (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
           <span className="bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
             {tier.badge}
           </span>
         </div>
-      )}
+      ) : null}
 
       <CardHeader>
         <CardTitle className="text-2xl">{tier.name}</CardTitle>
@@ -198,17 +210,24 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval }: { tier: Tier
 
         {/* CTA Button */}
         <Button
-          onClick={() => onCTA(tier)}
-          disabled={loadingPlan === tier.name}
+          onClick={() => !isCurrentPlan && onCTA(tier)}
+          disabled={!!isCurrentPlan || loadingPlan === tier.name}
           className={`w-full mb-8 ${
-            tier.highlight
-              ? "bg-indigo-600 hover:bg-indigo-700"
-              : tier.planSlug
-                ? "bg-gray-900 hover:bg-gray-800 text-white"
-                : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+            isCurrentPlan
+              ? "bg-green-100 text-green-800 cursor-default border border-green-200"
+              : tier.highlight
+                ? "bg-indigo-600 hover:bg-indigo-700"
+                : tier.planSlug
+                  ? "bg-gray-900 hover:bg-gray-800 text-white"
+                  : "bg-gray-200 hover:bg-gray-300 text-gray-900"
           }`}
         >
-          {loadingPlan === tier.name ? (
+          {isCurrentPlan ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Your Current Plan
+            </>
+          ) : loadingPlan === tier.name ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Redirecting...
@@ -244,6 +263,15 @@ export default function Pricing() {
   const toastCtx = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('month');
+  const [showCompareModal, setShowCompareModal] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<PlanSlug | null>(null);
+
+  // Fetch user's current subscription to show "Current Plan" badge
+  const { data: subscription } = (trpc.subscription as any).getMy.useQuery(undefined, {
+    retry: false,
+    enabled: isAuthenticated,
+  });
+  const currentTier: string | null = subscription?.tier || (isAuthenticated ? 'free' : null);
   const [activeSlide, setActiveSlide] = useState(1); // Start on Starter (Most Popular)
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -260,6 +288,8 @@ export default function Pricing() {
       toastCtx.addInfo("Redirecting to checkout", "You'll be taken to Stripe to complete your subscription.");
       window.open(data.checkoutUrl, '_blank');
       setLoadingPlan(null);
+      setShowCompareModal(false);
+      setPendingPlan(null);
     },
     onError: (err: any) => {
       toastCtx.addError("Checkout error", err?.message || "Could not create checkout session. Please try again.");
@@ -277,10 +307,18 @@ export default function Pricing() {
       navigate("/get-started");
       return;
     }
-    setLoadingPlan(tier.name);
+    // Show comparison modal before checkout
+    setPendingPlan(tier.planSlug);
+    setShowCompareModal(true);
+  };
+
+  const handleConfirmUpgrade = () => {
+    if (!pendingPlan) return;
+    const tierObj = tiers.find(t => t.planSlug === pendingPlan);
+    if (tierObj) setLoadingPlan(tierObj.name);
     const origin = window.location.origin;
     checkoutMutation.mutate({
-      plan: tier.planSlug,
+      plan: pendingPlan,
       interval: billingInterval,
       successUrl: `${origin}/dashboard?subscription=success`,
       cancelUrl: `${origin}/pricing`,
@@ -366,7 +404,7 @@ export default function Pricing() {
           {/* Desktop: 3-column grid */}
           <div className="hidden md:grid md:grid-cols-3 gap-8 mb-12">
             {tiers.map((tier) => (
-              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} />
+              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} />
             ))}
           </div>
 
@@ -403,7 +441,7 @@ export default function Pricing() {
               >
                 {tiers.map((tier) => (
                   <div key={tier.name} className="w-full flex-shrink-0 px-4">
-                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} />
+                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} />
                   </div>
                 ))}
               </div>
@@ -473,6 +511,22 @@ export default function Pricing() {
         </div>
       </div>
 
+      {/* Upgrade Comparison Modal */}
+      {pendingPlan && (
+        <UpgradeComparisonModal
+          isOpen={showCompareModal}
+          onClose={() => {
+            setShowCompareModal(false);
+            setPendingPlan(null);
+            setLoadingPlan(null);
+          }}
+          onConfirm={handleConfirmUpgrade}
+          isLoading={!!loadingPlan}
+          targetPlan={pendingPlan}
+          currentTier={currentTier || 'free'}
+          billingInterval={billingInterval}
+        />
+      )}
     </div>
   );
 }
