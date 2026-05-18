@@ -2620,3 +2620,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Apply credit balance as Stripe coupon/discount during checkout
 - [x] Show credit balance on checkout page with toggle to apply
 - [x] Test both features end-to-end
+
+## Credit Expiration Policy (May 18, 2026)
+- [x] Add expiresAt column to referralCredits schema (90 days from creation)
+- [x] Add expiration check to credit balance calculation (exclude expired credits)
+- [x] Add heartbeat job to mark expired credits and send warning emails at 7 days before expiry
+- [x] Show expiration date in credit history UI
+- [x] Send warning email 7 days before credits expire (via heartbeat handler)
+- [x] Test expiration logic end-to-end

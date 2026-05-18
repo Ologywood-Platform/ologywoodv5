@@ -146,8 +146,8 @@ describe("Referral System", () => {
       expect(schemaSource).toContain('export const referralCredits = mysqlTable("referral_credits"');
     });
 
-    it("referralCredits has earned and redeemed types", () => {
-      expect(schemaSource).toContain('["earned", "redeemed"]');
+    it("referralCredits has earned, redeemed, and expired types", () => {
+      expect(schemaSource).toContain('["earned", "redeemed", "expired"]');
     });
 
     it("referrals table has convertedAt timestamp", () => {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Copy, Check, Gift, Users, DollarSign, Share2 } from "lucide-react";
+import { Copy, Check, Gift, Users, DollarSign, Share2, Clock, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 
 export function ReferralSection() {
@@ -132,6 +132,30 @@ export function ReferralSection() {
             <div className="text-[10px] text-gray-500 uppercase tracking-wide">Credits</div>
           </div>
         </div>
+
+        {/* Credit expiration notice */}
+        {stats?.creditBalance && stats.creditBalance > 0 && stats.nextExpiryDate && (
+          <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <Clock className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-amber-800">
+              <span className="font-semibold">Credits expire in {Math.ceil((new Date(stats.nextExpiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days</span>
+              <span className="text-amber-600 ml-1">
+                (by {new Date(stats.nextExpiryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})
+              </span>
+              <p className="mt-1 text-amber-700">Use your credits toward your next subscription before they expire. Credits are valid for 90 days.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Expired credits notice */}
+        {stats?.creditsExpired && stats.creditsExpired > 0 && (
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <AlertTriangle className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            <span className="text-xs text-gray-500">
+              ${stats.creditsExpired.toFixed(2)} in credits have expired
+            </span>
+          </div>
+        )}
 
         {/* Recent referrals */}
         {referralHistory && referralHistory.length > 0 && (

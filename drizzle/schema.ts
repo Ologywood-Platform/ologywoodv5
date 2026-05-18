@@ -1370,12 +1370,15 @@ export const referralCredits = mysqlTable("referral_credits", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  type: mysqlEnum("type", ["earned", "redeemed"]).notNull(),
+  type: mysqlEnum("type", ["earned", "redeemed", "expired"]).notNull(),
   referralId: int("referralId"),
   description: varchar("description", { length: 255 }),
+  expiresAt: timestamp("expiresAt"),
+  expirationWarned: boolean("expirationWarned").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   userIdx: index("idx_referral_credits_user").on(table.userId),
+  expiresIdx: index("idx_referral_credits_expires").on(table.expiresAt),
 }));
 
 export type ReferralCredit = typeof referralCredits.$inferSelect;

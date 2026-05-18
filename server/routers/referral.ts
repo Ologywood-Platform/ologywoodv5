@@ -79,13 +79,14 @@ export const referralRouter = router({
         eq(referrals.status, "completed")
       ));
 
-    // Get total credits earned
+    // Get total credits earned (only non-expired)
     const creditsEarned = await database
       .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
       .from(referralCredits)
       .where(and(
         eq(referralCredits.userId, ctx.user.id),
-        eq(referralCredits.type, "earned")
+        eq(referralCredits.type, "earned"),
+        sql`(${referralCredits.expiresAt} IS NULL OR ${referralCredits.expiresAt} > NOW())`
       ));
 
     // Get total credits redeemed
@@ -97,15 +98,39 @@ export const referralRouter = router({
         eq(referralCredits.type, "redeemed")
       ));
 
+    // Get total expired credits
+    const creditsExpired = await database
+      .select({ total: sql<string>`COALESCE(SUM(amount), 0)` })
+      .from(referralCredits)
+      .where(and(
+        eq(referralCredits.userId, ctx.user.id),
+        eq(referralCredits.type, "expired")
+      ));
+
     const earned = parseFloat(creditsEarned[0]?.total || "0");
     const redeemed = parseFloat(creditsRedeemed[0]?.total || "0");
+    const expired = parseFloat(creditsExpired[0]?.total || "0");
+
+    // Find the nearest expiration date for active credits
+    const nextExpiry = await database
+      .select({ expiresAt: referralCredits.expiresAt })
+      .from(referralCredits)
+      .where(and(
+        eq(referralCredits.userId, ctx.user.id),
+        eq(referralCredits.type, "earned"),
+        sql`${referralCredits.expiresAt} IS NOT NULL AND ${referralCredits.expiresAt} > NOW()`
+      ))
+      .orderBy(referralCredits.expiresAt)
+      .limit(1);
 
     return {
       totalReferrals: Number(totalReferrals[0]?.count || 0),
       convertedReferrals: Number(convertedReferrals[0]?.count || 0),
       creditsEarned: earned,
       creditsRedeemed: redeemed,
+      creditsExpired: expired,
       creditBalance: earned - redeemed,
+      nextExpiryDate: nextExpiry[0]?.expiresAt || null,
     };
   }),
 
@@ -247,13 +272,16 @@ export const referralRouter = router({
         })
         .where(eq(referrals.id, referral[0].id));
 
-      // Award credit to the referrer
+      // Award credit to the referrer (expires in 90 days)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 90);
       await database.insert(referralCredits).values({
         userId: referral[0].referrerId,
         amount: String(REFERRER_CREDIT_AMOUNT),
         type: "earned",
         referralId: referral[0].id,
         description: `Referral reward — ${ctx.user.name || ctx.user.email || 'new user'} signed up`,
+        expiresAt,
       });
 
       // Create a new pending referral code for the referrer (so they can keep referring)

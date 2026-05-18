@@ -526,6 +526,13 @@
       "when": 1779082265558,
       "tag": "0074_nice_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "5",
+      "when": 1779117440279,
+      "tag": "0075_special_stark_industries",
+      "breakpoints": true
     }
   ]
 }
