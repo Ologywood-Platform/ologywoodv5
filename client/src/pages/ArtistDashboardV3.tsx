@@ -219,7 +219,8 @@ export function ArtistDashboardV3() {
               <ProfileCompletenessCard
                 profile={artistProfile}
                 type="artist"
-                onEditProfile={() => navigate('/rider-builder')}
+                onEditProfile={() => navigate('/onboarding/artist')}
+                onEditRider={() => navigate('/rider-builder')}
               />
             )}
 

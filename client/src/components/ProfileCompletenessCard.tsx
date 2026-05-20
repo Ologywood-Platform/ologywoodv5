@@ -6,6 +6,7 @@ interface ProfileCompletenessCardProps {
   profile: any;
   type: 'artist' | 'venue';
   onEditProfile?: () => void;
+  onEditRider?: () => void;
 }
 
 const tierColors = {
@@ -15,7 +16,7 @@ const tierColors = {
   excellent: { bg: 'bg-green-50 dark:bg-green-900/20', bar: 'bg-green-500', text: 'text-green-700 dark:text-green-400', label: 'Excellent' },
 };
 
-export default function ProfileCompletenessCard({ profile, type, onEditProfile }: ProfileCompletenessCardProps) {
+export default function ProfileCompletenessCard({ profile, type, onEditProfile, onEditRider }: ProfileCompletenessCardProps) {
   const result: CompletenessResult = useMemo(() => {
     return type === 'artist' ? getArtistCompleteness(profile) : getVenueCompleteness(profile);
   }, [profile, type]);
@@ -51,14 +52,24 @@ export default function ProfileCompletenessCard({ profile, type, onEditProfile }
             Profile {colors.label} — {result.score}%
           </span>
         </div>
-        {onEditProfile && (
-          <button
-            onClick={onEditProfile}
-            className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
-          >
-            Complete Profile <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {onEditRider && (
+            <button
+              onClick={onEditRider}
+              className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium flex items-center gap-1"
+            >
+              Complete Rider <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {onEditProfile && (
+            <button
+              onClick={onEditProfile}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
+            >
+              Complete Profile <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Progress Bar */}

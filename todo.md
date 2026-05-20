@@ -2642,3 +2642,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## How It Works Page Update (May 18, 2026)
 - [x] Update How It Works page with all new platform features (referral, subscriptions, credits, disputes, verification, analytics, events)
+
+## Profile vs Rider Button Fix (May 19, 2026)
+- [x] Fix "Complete Profile" button on ProfileCompletenessCard navigating to rider builder instead of profile editor
+- [x] Add separate "Complete Rider" button (amber) alongside "Complete Profile" (purple) with distinct labels
