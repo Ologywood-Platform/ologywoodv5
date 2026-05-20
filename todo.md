@@ -2662,3 +2662,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 - [x] Add tooltips to Venue Dashboard quick action buttons for consistency
 - [x] Add small subtitle text under each button label for mobile users (both dashboards)
+
+- [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
