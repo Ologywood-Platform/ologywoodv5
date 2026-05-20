@@ -2659,3 +2659,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: Created /api/video/proxy endpoint that re-serves .mov files with "video/mp4" content-type
   - Added error fallback UI with "Open Video" link if playback still fails
   - Added getPlayableVideoUrl() helper to route .mov files through proxy
+
+- [x] Add tooltips to Venue Dashboard quick action buttons for consistency
+- [x] Add small subtitle text under each button label for mobile users (both dashboards)
