@@ -45,7 +45,8 @@ interface SiteHeaderProps {
 
 export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: SiteHeaderProps) {
   const { user, isAuthenticated } = useAuth();
-  const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOSSafari, promptInstall } = usePWAInstall();
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -226,7 +227,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                         {isInstallable && !isInstalled && (
                           <button
                             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 dark:text-purple-400 flex items-center gap-2 font-medium"
-                            onClick={() => { setUserMenuOpen(false); promptInstall(); }}
+                            onClick={() => { setUserMenuOpen(false); isIOSSafari ? setShowIOSInstructions(true) : promptInstall(); }}
                           >
                             <Download className="h-4 w-4" />
                             Download App
@@ -362,7 +363,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                       variant="ghost"
                       size="sm"
                       className="w-full justify-start text-sm gap-2 text-purple-600 dark:text-purple-400 font-medium"
-                      onClick={() => { closeMobile(); promptInstall(); }}
+                      onClick={() => { closeMobile(); isIOSSafari ? setShowIOSInstructions(true) : promptInstall(); }}
                     >
                       <Download className="h-4 w-4" />
                       Download App
@@ -381,7 +382,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start text-sm gap-2 text-purple-600 dark:text-purple-400 font-medium"
-                    onClick={() => { closeMobile(); promptInstall(); }}
+                    onClick={() => { closeMobile(); isIOSSafari ? setShowIOSInstructions(true) : promptInstall(); }}
                   >
                     <Download className="h-4 w-4" />
                     Download App
@@ -407,6 +408,62 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
         defaultTab={authModalTab}
         actionType="general"
       />
+
+      {/* iOS Install Instructions Modal */}
+      {showIOSInstructions && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={() => setShowIOSInstructions(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-4">
+                <Download className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-lg font-semibold dark:text-white mb-2">Install Ologywood</h3>
+              <p className="text-sm text-muted-foreground mb-5">
+                Add Ologywood to your home screen for a native app experience.
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">1</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium dark:text-gray-200">Tap the Share button</p>
+                  <p className="text-xs text-muted-foreground">The square icon with an arrow at the bottom of Safari</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">2</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium dark:text-gray-200">Scroll down and tap "Add to Home Screen"</p>
+                  <p className="text-xs text-muted-foreground">You may need to scroll the share menu to find it</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">3</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium dark:text-gray-200">Tap "Add" to confirm</p>
+                  <p className="text-xs text-muted-foreground">Ologywood will appear on your home screen</p>
+                </div>
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={() => setShowIOSInstructions(false)}
+            >
+              Got it
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

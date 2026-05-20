@@ -2664,3 +2664,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add small subtitle text under each button label for mobile users (both dashboards)
 
 - [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
+- [x] Add iOS-specific PWA install instructions (Tap Share > Add to Home Screen) for Safari users
+- [x] Remove floating PWA install banner since Download App is now in the menu
