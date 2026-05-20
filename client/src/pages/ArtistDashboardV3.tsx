@@ -104,7 +104,6 @@ export function ArtistDashboardV3() {
   }
 
   const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
-  const completionScore = (artistProfile as any)?.profileCompletionScore || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-200">
@@ -179,37 +178,15 @@ export function ArtistDashboardV3() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-600">Profile Completion</span>
-                    <span className="text-sm font-bold">{completionScore}%</span>
-                  </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${completionScore}%` }}
-                    />
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    {completionScore < 100 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/onboarding/artist')}
-                        className="flex-1"
-                      >
-                        Complete Your Profile
-                      </Button>
-                    )}
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
-                      className="flex-1"
-                    >
-                      View Public Profile
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
+                    className="flex-1"
+                  >
+                    View Public Profile
+                  </Button>
                 </div>
               </CardContent>
             </Card>
