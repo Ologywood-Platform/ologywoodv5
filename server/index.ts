@@ -18,7 +18,6 @@ import releaseDownloadRoutes from './routes/releaseDownload';
 import calendarFeedRoutes from './routes/calendarFeed';
 import invoiceDownloadRoutes from './routes/invoiceDownload';
 import videoUploadRoutes from './routes/videoUpload';
-import videoProxyRoutes from './routes/videoProxy';
 import path from 'path';
 import http from 'http';
 import { ogMetaInjectionMiddleware, venueOgMetaInjectionMiddleware, eventOgMetaInjectionMiddleware } from './middleware/ogMetaInjection';
@@ -60,7 +59,6 @@ async function initializeServer(): Promise<void> {
   app.use('/api/calendar', calendarFeedRoutes);
   app.use('/api/invoice', invoiceDownloadRoutes);
   app.use('/api/video', videoUploadRoutes);
-  app.use('/api/video', videoProxyRoutes);
   app.use('/api/og-image', ogImageProxyRouter);
 
   // Serve static files from dist/public (after SEO routes)

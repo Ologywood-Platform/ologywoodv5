@@ -5,35 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Video, Upload, Trash2, Clock, CheckCircle, XCircle, AlertCircle, Crown, Loader2, X, ShieldCheck, Ban, FileVideo, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
-/**
- * Determine the correct MIME type for a video URL based on file extension.
- * This helps the browser decide if it can play the format.
- */
-function getVideoMimeType(url: string): string {
-  const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
-  switch (ext) {
-    case 'mp4': return 'video/mp4';
-    case 'webm': return 'video/webm';
-    case 'mov': return 'video/mp4'; // Serve .mov as video/mp4 — most MOV files use H.264 codec which browsers can play
-    case 'ogg': return 'video/ogg';
-    default: return 'video/mp4';
-  }
-}
-
-/**
- * Get the playable video URL. For .mov files, route through our proxy
- * which serves them with video/mp4 content-type so Chrome can play them.
- */
-function getPlayableVideoUrl(url: string): string {
-  if (!url) return url;
-  const ext = url.split('.').pop()?.toLowerCase().split('?')[0];
-  // .mov files need to be proxied with correct content-type for Chrome
-  if (ext === 'mov') {
-    return `/api/video/proxy?url=${encodeURIComponent(url)}`;
-  }
-  return url;
-}
-
 interface PerformanceVideoUploadProps {
   onUpgradeClick?: () => void;
 }
@@ -42,9 +13,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showGuidelines, setShowGuidelines] = useState(false);
-  const [videoError, setVideoError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleUploadClick = () => {
     if (!uploading) setShowGuidelines(true);
@@ -273,33 +242,12 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
           // Video exists — show preview and manage options
           <div className="space-y-4">
             <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-              {videoError ? (
-                <div className="flex flex-col items-center justify-center h-full text-white p-6">
-                  <Video className="h-12 w-12 mb-3 opacity-60" />
-                  <p className="text-sm font-medium mb-1">Video preview unavailable</p>
-                  <p className="text-xs text-gray-400 mb-3 text-center">This video format may not be supported by your browser. Try opening it directly.</p>
-                  <a 
-                    href={videoStatus.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors"
-                  >
-                    <Upload className="h-4 w-4 rotate-180" />
-                    Open Video
-                  </a>
-                </div>
-              ) : (
-                <video
-                  ref={videoRef}
-                  controls
-                  className="w-full h-full object-contain"
-                  preload="metadata"
-                  playsInline
-                  onError={() => setVideoError(true)}
-                >
-                  <source src={getPlayableVideoUrl(videoStatus.url)} type={getVideoMimeType(videoStatus.url)} />
-                </video>
-              )}
+              <video
+                src={videoStatus.url}
+                controls
+                className="w-full h-full object-contain"
+                preload="metadata"
+              />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="text-sm text-muted-foreground">
