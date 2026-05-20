@@ -2654,6 +2654,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Root cause: ProfileCompletenessCard hid all buttons when tier was "excellent"
   - Fix: Always show "Complete Rider" and "Complete Profile" action buttons
 - [x] Fix performance video showing black/not playing on dashboard
+- [x] Add helpful tooltip tips to each Quick Actions dashboard button
   - Root cause: .mov file served by CloudFront with content-type "video/quicktime" which Chrome rejects
   - Fix: Created /api/video/proxy endpoint that re-serves .mov files with "video/mp4" content-type
   - Added error fallback UI with "Open Video" link if playback still fails

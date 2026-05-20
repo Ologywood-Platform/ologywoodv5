@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -207,86 +208,136 @@ export function ArtistDashboardV3() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/bookings')}
-                  >
-                    <Calendar className="h-5 w-5" />
-                    <span className="text-xs">Bookings</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/availability')}
-                  >
-                    <Clock className="h-5 w-5" />
-                    <span className="text-xs">Availability</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/rider-builder')}
-                  >
-                    <Music className="h-5 w-5" />
-                    <span className="text-xs">Rider Builder</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/messages')}
-                  >
-                    <MessageSquare className="h-5 w-5" />
-                    <span className="text-xs">Messages</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/earnings')}
-                  >
-                    <DollarSign className="h-5 w-5" />
-                    <span className="text-xs">Earnings</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/releases')}
-                  >
-                    <Download className="h-5 w-5" />
-                    <span className="text-xs">Releases</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/events')}
-                  >
-                    <Calendar className="h-5 w-5" />
-                    <span className="text-xs">Events</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/favorites')}
-                  >
-                    <Heart className="h-5 w-5" />
-                    <span className="text-xs">Favorites</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
-                  >
-                    <Camera className="h-5 w-5" />
-                    <span className="text-xs">Portfolio</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/contracts')}
-                  >
-                    <FileText className="h-5 w-5" />
-                    <span className="text-xs">Contracts</span>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/bookings')}
+                      >
+                        <Calendar className="h-5 w-5" />
+                        <span className="text-xs">Bookings</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>View and manage your upcoming and past bookings</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/availability')}
+                      >
+                        <Clock className="h-5 w-5" />
+                        <span className="text-xs">Availability</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Set your available dates so venues know when to book you</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/rider-builder')}
+                      >
+                        <Music className="h-5 w-5" />
+                        <span className="text-xs">Rider Builder</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Create your technical and hospitality requirements for venues</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/messages')}
+                      >
+                        <MessageSquare className="h-5 w-5" />
+                        <span className="text-xs">Messages</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Chat with venues and manage booking conversations</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/earnings')}
+                      >
+                        <DollarSign className="h-5 w-5" />
+                        <span className="text-xs">Earnings</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Track your payments, payouts, and revenue history</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/releases')}
+                      >
+                        <Download className="h-5 w-5" />
+                        <span className="text-xs">Releases</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Upload and sell your music directly to fans</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/events')}
+                      >
+                        <Calendar className="h-5 w-5" />
+                        <span className="text-xs">Events</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Post and manage your live events and sell tickets</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/favorites')}
+                      >
+                        <Heart className="h-5 w-5" />
+                        <span className="text-xs">Favorites</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>View venues and artists you've saved</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
+                      >
+                        <Camera className="h-5 w-5" />
+                        <span className="text-xs">Portfolio</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Showcase your past performances and media</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/contracts')}
+                      >
+                        <FileText className="h-5 w-5" />
+                        <span className="text-xs">Contracts</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>View and sign your booking contracts</TooltipContent>
+                  </Tooltip>
                 </div>
               </CardContent>
             </Card>
