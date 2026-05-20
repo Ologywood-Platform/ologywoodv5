@@ -6,7 +6,6 @@ interface ProfileCompletenessCardProps {
   profile: any;
   type: 'artist' | 'venue';
   onEditProfile?: () => void;
-  onEditRider?: () => void;
 }
 
 const tierColors = {
@@ -16,7 +15,7 @@ const tierColors = {
   excellent: { bg: 'bg-green-50 dark:bg-green-900/20', bar: 'bg-green-500', text: 'text-green-700 dark:text-green-400', label: 'Excellent' },
 };
 
-export default function ProfileCompletenessCard({ profile, type, onEditProfile, onEditRider }: ProfileCompletenessCardProps) {
+export default function ProfileCompletenessCard({ profile, type, onEditProfile }: ProfileCompletenessCardProps) {
   const result: CompletenessResult = useMemo(() => {
     return type === 'artist' ? getArtistCompleteness(profile) : getVenueCompleteness(profile);
   }, [profile, type]);
@@ -24,7 +23,7 @@ export default function ProfileCompletenessCard({ profile, type, onEditProfile, 
   const nextSteps = useMemo(() => getNextSteps(result, 3), [result]);
   const colors = tierColors[result.tier];
 
-  // Show simplified view if profile is excellent, but still show Complete Rider button
+  // Show simplified view if profile is excellent
   if (result.tier === 'excellent') {
     return (
       <div className={`rounded-lg border border-green-200 dark:border-green-800 ${colors.bg} p-4`}>
@@ -35,24 +34,14 @@ export default function ProfileCompletenessCard({ profile, type, onEditProfile, 
               Profile Complete — {result.score}%
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            {onEditRider && (
-              <button
-                onClick={onEditRider}
-                className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium flex items-center gap-1"
-              >
-                Complete Rider <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            )}
-            {onEditProfile && result.score < 100 && (
-              <button
-                onClick={onEditProfile}
-                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
-              >
-                Complete Profile <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+          {onEditProfile && result.score < 100 && (
+            <button
+              onClick={onEditProfile}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
+            >
+              Complete Profile <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -72,24 +61,14 @@ export default function ProfileCompletenessCard({ profile, type, onEditProfile, 
             Profile {colors.label} — {result.score}%
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          {onEditRider && (
-            <button
-              onClick={onEditRider}
-              className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium flex items-center gap-1"
-            >
-              Complete Rider <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
-          {onEditProfile && (
-            <button
-              onClick={onEditProfile}
-              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
-            >
-              Complete Profile <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+        {onEditProfile && (
+          <button
+            onClick={onEditProfile}
+            className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
+          >
+            Complete Profile <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Progress Bar */}

@@ -197,7 +197,6 @@ export function ArtistDashboardV3() {
                 profile={artistProfile}
                 type="artist"
                 onEditProfile={() => navigate('/onboarding/artist')}
-                onEditRider={() => navigate('/rider-builder')}
               />
             )}
 
@@ -227,10 +226,10 @@ export function ArtistDashboardV3() {
                   <Button
                     variant="outline"
                     className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                    onClick={() => navigate('/riders')}
+                    onClick={() => navigate('/rider-builder')}
                   >
                     <Music className="h-5 w-5" />
-                    <span className="text-xs">Riders</span>
+                    <span className="text-xs">Rider Builder</span>
                   </Button>
                   <Button
                     variant="outline"
