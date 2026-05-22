@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventCard } from '@/components/EventCard';
-import { Search, Loader2, Calendar, ArrowLeft } from 'lucide-react';
+import { Search, Loader2, Calendar, ArrowLeft, X } from 'lucide-react';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -18,6 +19,7 @@ export default function EventDiscovery() {
   const { user, isAuthenticated } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateError, setDateError] = useState('');
   const [filters, setFilters] = useState({
     eventType: '',
     location: '',
@@ -32,8 +34,23 @@ export default function EventDiscovery() {
     setMetaTags(pageMetaTags.events);
   }, []);
 
+  // Validate dates whenever they change
+  useEffect(() => {
+    if (filters.startDate && filters.endDate) {
+      if (new Date(filters.startDate) > new Date(filters.endDate)) {
+        setDateError('Start Date cannot be later than End Date.');
+      } else {
+        setDateError('');
+      }
+    } else {
+      setDateError('');
+    }
+  }, [filters.startDate, filters.endDate]);
+
   // Build the tRPC query input from filters
   const searchInput = useMemo(() => {
+    // Don't search with invalid date range
+    if (dateError) return {};
     const input: Record<string, any> = {};
     if (filters.eventType) input.eventType = filters.eventType;
     if (filters.location) input.location = filters.location;
@@ -42,7 +59,7 @@ export default function EventDiscovery() {
     if (filters.startDate) input.startDate = new Date(filters.startDate);
     if (filters.endDate) input.endDate = new Date(filters.endDate);
     return input;
-  }, [filters]);
+  }, [filters, dateError]);
 
   // Fetch events from real API
   const { data: apiEvents = [], isLoading } = trpc.events.search.useQuery(searchInput);
@@ -132,15 +149,13 @@ export default function EventDiscovery() {
 
           <CardContent className="space-y-4">
             {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search by event name, artist, or location..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <ClearableInput
+              placeholder="Search by event name, artist, or location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery('')}
+              leftIcon={<Search className="h-4 w-4" />}
+            />
 
             {/* Filters Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -164,10 +179,11 @@ export default function EventDiscovery() {
 
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
+                <ClearableInput
                   placeholder="City or venue"
                   value={filters.location}
                   onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                  onClear={() => setFilters(prev => ({ ...prev, location: '' }))}
                 />
               </div>
 
@@ -178,6 +194,14 @@ export default function EventDiscovery() {
                   value={filters.startDate}
                   onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
                 />
+                {filters.startDate && (
+                  <button
+                    onClick={() => setFilters(prev => ({ ...prev, startDate: '' }))}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    <X size={12} /> Clear date
+                  </button>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -207,8 +231,23 @@ export default function EventDiscovery() {
                   value={filters.endDate}
                   onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
                 />
+                {filters.endDate && (
+                  <button
+                    onClick={() => setFilters(prev => ({ ...prev, endDate: '' }))}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    <X size={12} /> Clear date
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Date Validation Error */}
+            {dateError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
+                <span className="text-red-600 text-sm font-medium">{dateError}</span>
+              </div>
+            )}
 
             {/* Reset Button */}
             <Button

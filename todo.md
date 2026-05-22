@@ -2666,3 +2666,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
 - [x] Add iOS-specific PWA install instructions (Tap Share > Add to Home Screen) for Safari users
 - [x] Remove floating PWA install banner since Download App is now in the menu
+
+## SPRINT 1 - Ray's UX Observations (Quick Wins)
+- [x] Fix: Browse option always visible in hamburger menu (not hidden when on Browse page)
+- [x] Fix: Filter Reset button stays on filter screen instead of navigating to home
+- [x] Fix: Scroll to top of results after applying filters
+- [x] Fix: Date validation - Start Date cannot be after End Date (Events search)
+- [x] Fix: Add "x" clear icon to all search input fields
