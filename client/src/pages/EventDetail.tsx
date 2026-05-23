@@ -197,10 +197,7 @@ export default function EventDetail() {
         <PageBreadcrumb
           className="mb-4"
           segments={[
-            ...(isAuthenticated
-              ? [{ label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' }]
-              : [{ label: 'Home', href: '/' }]
-            ),
+            { label: 'Dashboard', href: '/dashboard' },
             { label: 'Events', href: '/events' },
             { label: event.eventTitle },
           ]}

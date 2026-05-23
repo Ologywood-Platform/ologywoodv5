@@ -52,16 +52,6 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
   const [availableDate, setAvailableDate] = useState('');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [touringOnly, setTouringOnly] = useState(false);
-  const [dateError, setDateError] = useState('');
-
-  // Validate date range
-  const validateDates = (from: string, to: string) => {
-    if (from && to && new Date(from) > new Date(to)) {
-      setDateError('Start Date cannot be later than End Date.');
-    } else {
-      setDateError('');
-    }
-  };
 
   const handleGenreToggle = (genre: string) => {
     const newGenres = selectedGenres.includes(genre)
@@ -78,7 +68,6 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
   };
 
   const handleApplyFilters = () => {
-    if (dateError) return;
     onFilterChange({
       genre: selectedGenres.length > 0 ? selectedGenres : undefined,
       eventType: selectedEventTypes.length > 0 ? selectedEventTypes : undefined,
@@ -109,7 +98,6 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     setAvailableDate('');
     setVerifiedOnly(false);
     setTouringOnly(false);
-    setDateError('');
     onFilterChange({});
   };
 
@@ -436,20 +424,9 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
                 id="date-from"
                 type="date"
                 value={availableFrom}
-                onChange={(e) => {
-                  setAvailableFrom(e.target.value);
-                  validateDates(e.target.value, availableTo);
-                }}
+                onChange={(e) => setAvailableFrom(e.target.value)}
                 min={today}
               />
-              {availableFrom && (
-                <button
-                  onClick={() => { setAvailableFrom(''); setDateError(''); }}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
-                >
-                  <X size={12} /> Clear date
-                </button>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="date-to" className="text-xs text-muted-foreground">
@@ -459,35 +436,17 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
                 id="date-to"
                 type="date"
                 value={availableTo}
-                onChange={(e) => {
-                  setAvailableTo(e.target.value);
-                  validateDates(availableFrom, e.target.value);
-                }}
+                onChange={(e) => setAvailableTo(e.target.value)}
                 min={availableFrom || today}
               />
-              {availableTo && (
-                <button
-                  onClick={() => { setAvailableTo(''); setDateError(''); }}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
-                >
-                  <X size={12} /> Clear date
-                </button>
-              )}
             </div>
           </div>
         </div>
         )}
 
-        {/* Date Validation Error */}
-        {dateError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-            <span className="text-red-600 text-sm font-medium">{dateError}</span>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex gap-2 pt-4">
-          <Button onClick={handleApplyFilters} className="flex-1" disabled={!!dateError}>
+          <Button onClick={handleApplyFilters} className="flex-1">
             <Search className="h-4 w-4 mr-2" />
             Apply Filters
           </Button>

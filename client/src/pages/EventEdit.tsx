@@ -202,7 +202,7 @@ export default function EventEdit() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <PageBreadcrumb
           segments={[
-            { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
+            { label: 'Dashboard', href: '/dashboard' },
             { label: event.eventTitle || 'Event', href: `/events/${eventId}` },
             { label: 'Edit' },
           ]}

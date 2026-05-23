@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, DollarSign, Music, Building2, ArrowLeft, Loader2, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Calendar, DollarSign, Music, Building2, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
@@ -38,13 +38,11 @@ export default function BookingCreate() {
     { enabled: !!artistId }
   );
 
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
-
   // The real booking create mutation
   const createBookingMutation = trpc.booking.create.useMutation({
     onSuccess: () => {
-      setBookingConfirmed(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.success('Booking request sent successfully!');
+      navigate('/bookings');
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to create booking');
@@ -128,44 +126,6 @@ export default function BookingCreate() {
             { label: 'New Booking' },
           ]}
         />
-
-        {/* Booking Confirmation Success Screen */}
-        {bookingConfirmed && (
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="py-12 text-center space-y-6">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-green-900">Booking Request Sent!</h2>
-                <p className="text-green-700 max-w-md mx-auto">
-                  Your booking request has been sent to <strong>{artistProfile?.artistName || 'the artist'}</strong>. They will review it and respond through the messaging system.
-                </p>
-              </div>
-              <div className="bg-white/60 rounded-lg p-4 max-w-sm mx-auto text-left space-y-2">
-                <p className="text-sm text-green-800 font-medium">What happens next:</p>
-                <ul className="text-sm text-green-700 space-y-1">
-                  <li>1. The artist reviews your request</li>
-                  <li>2. They accept, decline, or message you</li>
-                  <li>3. Once accepted, you'll receive a confirmation</li>
-                </ul>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <Button onClick={() => navigate('/bookings')} className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  View My Bookings
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/messages')} className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Go to Messages
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {!bookingConfirmed && (
-        <>
         <Card>
           <CardHeader>
             <CardTitle>Event Details</CardTitle>
@@ -316,8 +276,6 @@ export default function BookingCreate() {
             </CardContent>
           </Card>
         </div>
-        </>
-        )}
       </div>
     </div>
   );

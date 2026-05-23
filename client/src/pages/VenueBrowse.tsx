@@ -114,7 +114,7 @@ export default function VenueBrowse() {
           <PageBreadcrumb
             className="mb-4"
             segments={[
-              { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
+              { label: 'Dashboard', href: '/dashboard' },
               { label: 'Browse Venues' },
             ]}
           />

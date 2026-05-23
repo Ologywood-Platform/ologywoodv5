@@ -5,30 +5,12 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-function detectIsIOS(): boolean {
-  const ua = navigator.userAgent;
-  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
-
-function detectIsSafari(): boolean {
-  const ua = navigator.userAgent;
-  return /Safari/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua);
-}
-
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isIOSSafari, setIsIOSSafari] = useState(false);
 
   useEffect(() => {
-    // Detect iOS and Safari
-    const iosDetected = detectIsIOS();
-    const safariDetected = detectIsSafari();
-    setIsIOS(iosDetected);
-    setIsIOSSafari(iosDetected && safariDetected);
-
     // Check if already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
@@ -38,12 +20,6 @@ export function usePWAInstall() {
     // Check if running as iOS PWA
     if ((navigator as any).standalone === true) {
       setIsInstalled(true);
-      return;
-    }
-
-    // On iOS Safari, we can't use beforeinstallprompt but we can show manual instructions
-    if (iosDetected && safariDetected) {
-      setIsInstallable(true);
       return;
     }
 
@@ -97,8 +73,6 @@ export function usePWAInstall() {
   return {
     isInstallable: isInstallable && !wasDismissedRecently(),
     isInstalled,
-    isIOS,
-    isIOSSafari,
     promptInstall,
     dismissInstall,
   };

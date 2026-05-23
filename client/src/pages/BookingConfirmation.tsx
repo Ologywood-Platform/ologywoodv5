@@ -42,7 +42,7 @@ export default function BookingConfirmation() {
         <PageBreadcrumb
           className="mb-6"
           segments={[
-            { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
+            { label: 'Dashboard', href: '/dashboard' },
             { label: 'Bookings', href: '/bookings' },
             { label: 'Confirmation' },
           ]}
