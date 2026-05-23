@@ -115,15 +115,7 @@ async function processOAuthCode(req: Request, res: Response, code: string, state
 
     console.log(`[OAuth] Exchanging code with redirectUri: ${redirectUri}`);
 
-    // When state is missing or empty, construct a synthetic state with the computed redirectUri
-    // so the SDK's decodeState() can extract it correctly for the token exchange
-    const effectiveState = state || JSON.stringify({
-      origin: frontendOrigin,
-      returnPath: returnPath,
-      redirectUri: redirectUri,
-    });
-
-    const tokenResponse = await sdk.exchangeCodeForToken(code, effectiveState);
+    const tokenResponse = await sdk.exchangeCodeForToken(code, state || "");
     const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
     if (!userInfo.openId) {

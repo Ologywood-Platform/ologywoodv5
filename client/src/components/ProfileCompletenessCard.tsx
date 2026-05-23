@@ -23,25 +23,15 @@ export default function ProfileCompletenessCard({ profile, type, onEditProfile }
   const nextSteps = useMemo(() => getNextSteps(result, 3), [result]);
   const colors = tierColors[result.tier];
 
-  // Show simplified view if profile is excellent
+  // Don't show if profile is excellent
   if (result.tier === 'excellent') {
     return (
       <div className={`rounded-lg border border-green-200 dark:border-green-800 ${colors.bg} p-4`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
-            <span className="font-medium text-green-700 dark:text-green-400">
-              Profile Complete — {result.score}%
-            </span>
-          </div>
-          {onEditProfile && result.score < 100 && (
-            <button
-              onClick={onEditProfile}
-              className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium flex items-center gap-1"
-            >
-              Complete Profile <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-green-500" />
+          <span className="font-medium text-green-700 dark:text-green-400">
+            Profile Complete — {result.score}%
+          </span>
         </div>
       </div>
     );

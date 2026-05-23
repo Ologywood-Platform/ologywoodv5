@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -105,6 +104,7 @@ export function ArtistDashboardV3() {
   }
 
   const upcomingBookings = bookings?.filter(b => new Date(b.eventDate) > new Date()) || [];
+  const completionScore = (artistProfile as any)?.profileCompletionScore || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-200">
@@ -179,15 +179,37 @@ export function ArtistDashboardV3() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
-                    className="flex-1"
-                  >
-                    View Public Profile
-                  </Button>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-600">Profile Completion</span>
+                    <span className="text-sm font-bold">{completionScore}%</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${completionScore}%` }}
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    {completionScore < 100 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/onboarding/artist')}
+                        className="flex-1"
+                      >
+                        Complete Your Profile
+                      </Button>
+                    )}
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
+                      className="flex-1"
+                    >
+                      View Public Profile
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -197,7 +219,7 @@ export function ArtistDashboardV3() {
               <ProfileCompletenessCard
                 profile={artistProfile}
                 type="artist"
-                onEditProfile={() => navigate('/onboarding/artist')}
+                onEditProfile={() => navigate('/rider-builder')}
               />
             )}
 
@@ -208,146 +230,86 @@ export function ArtistDashboardV3() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/bookings')}
-                      >
-                        <Calendar className="h-5 w-5" />
-                        <span className="text-xs font-medium">Bookings</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Manage gigs</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View and manage your upcoming and past bookings</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/availability')}
-                      >
-                        <Clock className="h-5 w-5" />
-                        <span className="text-xs font-medium">Availability</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Set open dates</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Set your available dates so venues know when to book you</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/rider-builder')}
-                      >
-                        <Music className="h-5 w-5" />
-                        <span className="text-xs font-medium">Rider Builder</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Your requirements</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Create your technical and hospitality requirements for venues</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/messages')}
-                      >
-                        <MessageSquare className="h-5 w-5" />
-                        <span className="text-xs font-medium">Messages</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Chat with venues</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Chat with venues and manage booking conversations</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/earnings')}
-                      >
-                        <DollarSign className="h-5 w-5" />
-                        <span className="text-xs font-medium">Earnings</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Track payments</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Track your payments, payouts, and revenue history</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/releases')}
-                      >
-                        <Download className="h-5 w-5" />
-                        <span className="text-xs font-medium">Releases</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sell your music</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Upload and sell your music directly to fans</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/events')}
-                      >
-                        <Calendar className="h-5 w-5" />
-                        <span className="text-xs font-medium">Events</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Post & sell tickets</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Post and manage your live events and sell tickets</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/favorites')}
-                      >
-                        <Heart className="h-5 w-5" />
-                        <span className="text-xs font-medium">Favorites</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Saved venues</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View venues and artists you've saved</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
-                      >
-                        <Camera className="h-5 w-5" />
-                        <span className="text-xs font-medium">Portfolio</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Past performances</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Showcase your past performances and media</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/contracts')}
-                      >
-                        <FileText className="h-5 w-5" />
-                        <span className="text-xs font-medium">Contracts</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sign agreements</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View and sign your booking contracts</TooltipContent>
-                  </Tooltip>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/bookings')}
+                  >
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-xs">Bookings</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/availability')}
+                  >
+                    <Clock className="h-5 w-5" />
+                    <span className="text-xs">Availability</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/riders')}
+                  >
+                    <Music className="h-5 w-5" />
+                    <span className="text-xs">Riders</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/messages')}
+                  >
+                    <MessageSquare className="h-5 w-5" />
+                    <span className="text-xs">Messages</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/earnings')}
+                  >
+                    <DollarSign className="h-5 w-5" />
+                    <span className="text-xs">Earnings</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/releases')}
+                  >
+                    <Download className="h-5 w-5" />
+                    <span className="text-xs">Releases</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/events')}
+                  >
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-xs">Events</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/favorites')}
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span className="text-xs">Favorites</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
+                  >
+                    <Camera className="h-5 w-5" />
+                    <span className="text-xs">Portfolio</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                    onClick={() => navigate('/contracts')}
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span className="text-xs">Contracts</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
