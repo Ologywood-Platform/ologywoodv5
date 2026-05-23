@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ologywood-v4';
+const CACHE_NAME = 'ologywood-v5';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -40,6 +40,9 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') return;
+
+  // Skip non-http(s) schemes (chrome-extension://, etc.) — they cannot be cached
+  if (!url.protocol.startsWith('http')) return;
 
   // Skip API calls, auth endpoints, and websocket connections
   if (

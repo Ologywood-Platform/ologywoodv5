@@ -17,6 +17,7 @@ import releaseCheckoutRoutes from "../routes/releaseCheckout";
 import bookingCheckoutRoutes from '../routes/bookingCheckout';
 import contractPdfRoutes from '../routes/contractPdf';
 import videoUploadRoutes from '../routes/videoUpload';
+import calendarFeedRoutes from '../routes/calendarFeed';
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
@@ -139,6 +140,9 @@ async function startServer() {
 
   // Video upload routes (multipart, BEFORE Vite setup)
   app.use('/api/video', videoUploadRoutes);
+
+  // Calendar feed routes (iCal subscription for artist bookings)
+  app.use('/api/calendar', calendarFeedRoutes);
 
   // OG Image proxy - converts WebP/PNG profile photos to JPEG for social media crawlers
   // MUST be before Vite/static setup so it doesn't get caught by SPA fallback

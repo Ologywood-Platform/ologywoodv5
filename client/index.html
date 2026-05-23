@@ -36,6 +36,7 @@
     <meta name="twitter:site" content="@ologywood" />
     
     <meta name="theme-color" content="#6D28D9" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ologywood" />
@@ -60,7 +61,7 @@
               await reg.update();
             }
             // Register with cache-busting
-            const registration = await navigator.serviceWorker.register('/sw.js?v=3');
+            const registration = await navigator.serviceWorker.register('/sw.js?v=5');
             console.log('Service Worker registered:', registration);
           } catch (error) {
             console.log('Service Worker registration failed:', error);
