@@ -12,21 +12,29 @@ interface ProfileField {
 }
 
 const ARTIST_FIELDS: ProfileField[] = [
-  { key: 'stageName', label: 'Stage Name', weight: 3, check: (p) => !!p.stageName?.trim() },
+  { key: 'artistName', label: 'Stage Name', weight: 3, check: (p) => !!(p.artistName?.trim() || p.stageName?.trim()) },
   { key: 'bio', label: 'Bio', weight: 3, check: (p) => !!p.bio?.trim() && p.bio.trim().length >= 50 },
-  { key: 'genre', label: 'Genre', weight: 2, check: (p) => !!p.genre?.trim() },
-  { key: 'profileImage', label: 'Profile Photo', weight: 3, check: (p) => !!p.profileImage?.trim() },
-  { key: 'coverImage', label: 'Cover Image', weight: 1, check: (p) => !!p.coverImage?.trim() },
+  { key: 'genre', label: 'Genre', weight: 2, check: (p) => {
+    if (!p.genre) return false;
+    if (typeof p.genre === 'string') return !!p.genre.trim();
+    if (Array.isArray(p.genre)) return p.genre.length > 0;
+    return false;
+  }},
+  { key: 'profilePhotoUrl', label: 'Profile Photo', weight: 3, check: (p) => !!(p.profilePhotoUrl?.trim() || p.profileImage?.trim()) },
+  { key: 'performanceVideoUrl', label: 'Performance Video', weight: 2, check: (p) => !!p.performanceVideoUrl?.trim() },
   { key: 'location', label: 'Location', weight: 2, check: (p) => !!p.location?.trim() },
-  { key: 'baseFee', label: 'Base Fee', weight: 2, check: (p) => p.baseFee != null && p.baseFee > 0 },
-  { key: 'setLength', label: 'Set Length', weight: 1, check: (p) => p.setLength != null && p.setLength > 0 },
+  { key: 'feeRangeMin', label: 'Fee Range', weight: 2, check: (p) => (p.feeRangeMin != null && p.feeRangeMin > 0) || (p.baseFee != null && p.baseFee > 0) },
   { key: 'socialLinks', label: 'Social Media Links', weight: 1, check: (p) => {
     if (!p.socialLinks) return false;
     const links = typeof p.socialLinks === 'string' ? JSON.parse(p.socialLinks) : p.socialLinks;
     return Object.values(links).some((v: any) => !!v?.trim());
   }},
-  { key: 'techRequirements', label: 'Technical Requirements', weight: 1, check: (p) => !!p.techRequirements?.trim() },
-  { key: 'riderTemplate', label: 'Rider Template', weight: 1, check: (p) => !!p.hasRiderTemplate },
+  { key: 'mediaGallery', label: 'Media Gallery', weight: 1, check: (p) => {
+    if (!p.mediaGallery) return false;
+    const gallery = typeof p.mediaGallery === 'string' ? JSON.parse(p.mediaGallery) : p.mediaGallery;
+    return (gallery?.photos?.length > 0) || (gallery?.videos?.length > 0);
+  }},
+  { key: 'websiteUrl', label: 'Website', weight: 1, check: (p) => !!p.websiteUrl?.trim() },
 ];
 
 const VENUE_FIELDS: ProfileField[] = [
