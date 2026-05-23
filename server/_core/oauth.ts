@@ -2,7 +2,6 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
-import { ENV } from "./env";
 import { sdk } from "./sdk";
 
 function getQueryParam(req: Request, key: string): string | undefined {
@@ -72,14 +71,26 @@ async function processOAuthCode(req: Request, res: Response, code: string, state
     console.log(`[OAuth] Parsed state - origin: ${frontendOrigin}, returnPath: ${returnPath}`);
   }
 
-  // If no origin from state, use BASE_URL as the definitive frontend origin.
-  // IMPORTANT: Do NOT derive from request headers (x-forwarded-host, req.headers.host)
-  // because behind Cloudflare -> Cloud Run, the host header may be the internal
-  // Cloud Run URL (e.g., kqtxpqtslx-s6tjbqgeaq-ue.a.run.app) instead of the
-  // custom domain (www.ologywood.com), causing redirect_uri mismatch.
+  // If no origin from state, try to determine from request headers
   if (!frontendOrigin) {
-    frontendOrigin = ENV.baseUrl || ENV.oAuthRedirectBaseUrl || "";
-    console.log(`[OAuth] No state origin, using BASE_URL: ${frontendOrigin}`);
+    const referer = req.headers.referer || req.headers.origin;
+    if (referer) {
+      try {
+        const url = new URL(typeof referer === "string" ? referer : referer[0] || "");
+        frontendOrigin = url.origin;
+      } catch {
+        // ignore
+      }
+    }
+    // Last resort: use the request's own origin (protocol + host)
+    if (!frontendOrigin) {
+      const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+      const host = req.headers["x-forwarded-host"] || req.headers.host || "";
+      if (host) {
+        frontendOrigin = `${proto}://${host}`;
+      }
+    }
+    console.log(`[OAuth] No state origin, derived from request: ${frontendOrigin}`);
   }
 
   try {
@@ -104,15 +115,7 @@ async function processOAuthCode(req: Request, res: Response, code: string, state
 
     console.log(`[OAuth] Exchanging code with redirectUri: ${redirectUri}`);
 
-    // When state is missing or empty, construct a synthetic state with the computed redirectUri
-    // so the SDK's decodeState() can extract it correctly for the token exchange
-    const effectiveState = state || JSON.stringify({
-      origin: frontendOrigin,
-      returnPath: returnPath,
-      redirectUri: redirectUri,
-    });
-
-    const tokenResponse = await sdk.exchangeCodeForToken(code, effectiveState);
+    const tokenResponse = await sdk.exchangeCodeForToken(code, state || "");
     const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
     if (!userInfo.openId) {
