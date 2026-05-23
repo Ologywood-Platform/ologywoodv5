@@ -2673,3 +2673,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Scroll to top of results after applying filters
 - [x] Fix: Date validation - Start Date cannot be after End Date (Events search)
 - [x] Fix: Add "x" clear icon to all search input fields
+
+## SPRINT 2 - Events Search Overhaul
+- [x] Reorder form to group Start/End dates together
+- [x] Add explicit "Apply Filters" button instead of live-filtering
+- [x] Hide results until user applies criteria (show empty state initially)

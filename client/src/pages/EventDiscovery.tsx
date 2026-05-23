@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventCard } from '@/components/EventCard';
-import { Search, Loader2, Calendar, ArrowLeft, X } from 'lucide-react';
+import { Search, Loader2, Calendar, ArrowLeft, X, RotateCcw } from 'lucide-react';
 import { ClearableInput } from '@/components/ui/clearable-input';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -20,6 +20,7 @@ export default function EventDiscovery() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [dateError, setDateError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const [filters, setFilters] = useState({
     eventType: '',
     location: '',
@@ -28,6 +29,10 @@ export default function EventDiscovery() {
     startDate: '',
     endDate: '',
   });
+
+  // Applied filters — only sent to API when user clicks "Apply Filters"
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
 
   // Set SEO meta tags
   useEffect(() => {
@@ -47,10 +52,18 @@ export default function EventDiscovery() {
     }
   }, [filters.startDate, filters.endDate]);
 
-  // Build the tRPC query input from filters
-  const searchInput = useMemo(() => {
-    // Don't search with invalid date range
-    if (dateError) return {};
+  // Check if any filter criteria is entered
+  const hasAnyCriteria = !!(
+    filters.eventType || filters.location || filters.minRate ||
+    filters.maxRate || filters.startDate || filters.endDate || searchQuery
+  );
+
+  // Handle Apply Filters
+  const handleApplyFilters = () => {
+    if (dateError) {
+      toast.error('Please fix the date range before searching.');
+      return;
+    }
     const input: Record<string, any> = {};
     if (filters.eventType) input.eventType = filters.eventType;
     if (filters.location) input.location = filters.location;
@@ -58,11 +71,18 @@ export default function EventDiscovery() {
     if (filters.maxRate) input.maxRate = parseFloat(filters.maxRate);
     if (filters.startDate) input.startDate = new Date(filters.startDate);
     if (filters.endDate) input.endDate = new Date(filters.endDate);
-    return input;
-  }, [filters, dateError]);
+    setAppliedFilters(input);
+    setAppliedSearchQuery(searchQuery);
+    setHasSearched(true);
+    // Scroll to results
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-  // Fetch events from real API
-  const { data: apiEvents = [], isLoading } = trpc.events.search.useQuery(searchInput);
+  // Fetch events from real API — only when applied filters change
+  const { data: apiEvents = [], isLoading } = trpc.events.search.useQuery(
+    appliedFilters,
+    { enabled: hasSearched }
+  );
 
   // Fetch saved event IDs for the current user
   const { data: savedEventsData = [] } = trpc.events.getSavedEvents.useQuery(
@@ -80,14 +100,14 @@ export default function EventDiscovery() {
 
   // Client-side text search filter on top of API results
   const filteredEvents = useMemo(() => {
-    if (!searchQuery) return apiEvents;
-    const q = searchQuery.toLowerCase();
+    if (!appliedSearchQuery) return apiEvents;
+    const q = appliedSearchQuery.toLowerCase();
     return apiEvents.filter((event: any) =>
       (event.eventTitle?.toLowerCase().includes(q)) ||
       (event.artistName?.toLowerCase().includes(q)) ||
       (event.location?.toLowerCase().includes(q))
     );
-  }, [apiEvents, searchQuery]);
+  }, [apiEvents, appliedSearchQuery]);
 
   const handleSaveEvent = async (eventId: number) => {
     if (!isAuthenticated) {
@@ -126,6 +146,10 @@ export default function EventDiscovery() {
       endDate: '',
     });
     setSearchQuery('');
+    setDateError('');
+    setHasSearched(false);
+    setAppliedFilters({});
+    setAppliedSearchQuery('');
   };
 
   return (
@@ -144,10 +168,10 @@ export default function EventDiscovery() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Search Events</CardTitle>
-            <CardDescription>Find events that match your interests</CardDescription>
+            <CardDescription>Enter your criteria and click "Apply Filters" to find events</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {/* Search Bar */}
             <ClearableInput
               placeholder="Search by event name, artist, or location..."
@@ -157,8 +181,9 @@ export default function EventDiscovery() {
               leftIcon={<Search className="h-4 w-4" />}
             />
 
-            {/* Filters Grid */}
+            {/* Filters Grid - Reorganized with dates grouped together */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Event Type */}
               <div className="space-y-2">
                 <Label htmlFor="eventType">Event Type</Label>
                 <Select value={filters.eventType} onValueChange={(value) => setFilters(prev => ({ ...prev, eventType: value }))}>
@@ -177,6 +202,7 @@ export default function EventDiscovery() {
                 </Select>
               </div>
 
+              {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
                 <ClearableInput
@@ -187,58 +213,65 @@ export default function EventDiscovery() {
                 />
               </div>
 
+              {/* Rate Range */}
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                />
-                {filters.startDate && (
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, startDate: '' }))}
-                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  >
-                    <X size={12} /> Clear date
-                  </button>
-                )}
+                <Label>Rate Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Min ($)"
+                    value={filters.minRate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, minRate: e.target.value }))}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Max ($)"
+                    value={filters.maxRate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, maxRate: e.target.value }))}
+                  />
+                </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="minRate">Min Rate</Label>
-                <Input
-                  type="number"
-                  placeholder="e.g., 500"
-                  value={filters.minRate}
-                  onChange={(e) => setFilters(prev => ({ ...prev, minRate: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxRate">Max Rate</Label>
-                <Input
-                  type="number"
-                  placeholder="e.g., 5000"
-                  value={filters.maxRate}
-                  onChange={(e) => setFilters(prev => ({ ...prev, maxRate: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
-                <Input
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                />
-                {filters.endDate && (
-                  <button
-                    onClick={() => setFilters(prev => ({ ...prev, endDate: '' }))}
-                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  >
-                    <X size={12} /> Clear date
-                  </button>
-                )}
+            {/* Date Range - Grouped together */}
+            <div className="space-y-2">
+              <Label>Event Date Range</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="startDate" className="text-xs text-muted-foreground">From</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                  />
+                  {filters.startDate && (
+                    <button
+                      onClick={() => setFilters(prev => ({ ...prev, startDate: '' }))}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      <X size={12} /> Clear date
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="endDate" className="text-xs text-muted-foreground">To</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                    min={filters.startDate || undefined}
+                  />
+                  {filters.endDate && (
+                    <button
+                      onClick={() => setFilters(prev => ({ ...prev, endDate: '' }))}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      <X size={12} /> Clear date
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -249,19 +282,42 @@ export default function EventDiscovery() {
               </div>
             )}
 
-            {/* Reset Button */}
-            <Button
-              variant="outline"
-              onClick={handleResetFilters}
-              className="w-full"
-            >
-              Reset Filters
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button
+                onClick={handleApplyFilters}
+                className="flex-1"
+                disabled={!!dateError}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Apply Filters
+              </Button>
+              {hasAnyCriteria && (
+                <Button
+                  variant="outline"
+                  onClick={handleResetFilters}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Events Grid */}
-        {isLoading ? (
+        {/* Results Section */}
+        {!hasSearched ? (
+          /* Empty state - no search applied yet */
+          <Card>
+            <CardContent className="py-16 text-center">
+              <Search className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">Search for Events</h3>
+              <p className="text-slate-500 max-w-md mx-auto">
+                Use the filters above to find events that match your interests, then click "Apply Filters" to see results.
+              </p>
+            </CardContent>
+          </Card>
+        ) : isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
@@ -301,12 +357,13 @@ export default function EventDiscovery() {
               <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 mb-2">No Events Found</h3>
               <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                There are no public events posted yet. When artists create public events, they'll appear here for you to discover and book.
+                No events match your criteria. Try adjusting your filters or search terms.
               </p>
               <Button
                 variant="outline"
                 onClick={handleResetFilters}
               >
+                <RotateCcw className="h-4 w-4 mr-2" />
                 Reset Filters
               </Button>
             </CardContent>
