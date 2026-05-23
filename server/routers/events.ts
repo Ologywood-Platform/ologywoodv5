@@ -47,7 +47,87 @@ const artistPostSchema = z.object({
   coverImageUrl: z.string().optional(),
 });
 
+// Venue event creation schema
+const venueEventSchema = z.object({
+  eventTitle: z.string().min(1, 'Event name is required'),
+  eventDate: z.date(),
+  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  location: z.string().min(1, 'Location is required'),
+  description: z.string().optional(),
+  ticketLink: z.string().url().optional().or(z.literal('')),
+  coverImageUrl: z.string().optional(),
+  eventType: z.enum(['concert', 'wedding', 'corporate', 'festival', 'other', 'bar_gig', 'private_party']).default('concert'),
+  artistId: z.number().int().positive(),
+  bookingId: z.number().int().positive().optional(),
+  ticketPrice: z.string().optional(),
+  capacity: z.number().int().optional(),
+});
+
 export const eventsRouter = router({
+  // Venue event creation — allows venues to post events tied to confirmed bookings
+  createVenueEvent: protectedProcedure
+    .input(venueEventSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        if (ctx.user.role !== 'venue' && ctx.user.role !== 'admin') {
+          throw new Error('Only venues can create venue events');
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) throw new Error('Venue profile not found');
+
+        if (input.bookingId) {
+          const booking = await db.getBookingById(input.bookingId);
+          if (!booking) throw new Error('Booking not found');
+          if (booking.venueId !== venueProfile.id) throw new Error('Booking does not belong to this venue');
+          if (booking.status !== 'confirmed' && booking.status !== 'completed') {
+            throw new Error('Can only create events for confirmed bookings');
+          }
+        }
+
+        const event = await db.createEvent({
+          eventTitle: input.eventTitle,
+          eventDate: input.eventDate,
+          eventTime: input.eventTime,
+          eventEndTime: input.eventEndTime,
+          location: input.location || venueProfile.location || '',
+          description: input.description,
+          ticketLink: input.ticketLink || undefined,
+          coverImageUrl: input.coverImageUrl || undefined,
+          eventType: input.eventType,
+          eventSource: 'venue_booking',
+          isPublic: true,
+          status: 'booked',
+          artistId: input.artistId,
+          venueId: venueProfile.id,
+          bookingId: input.bookingId,
+          capacity: input.capacity,
+          rate: input.ticketPrice,
+        });
+
+        return { success: true, event, message: 'Event posted successfully' };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to create event');
+      }
+    }),
+
+  // Get venue's own events
+  getVenueEvents: protectedProcedure
+    .input(z.object({}))
+    .query(async ({ ctx }) => {
+      try {
+        if (ctx.user.role !== 'venue' && ctx.user.role !== 'admin') {
+          throw new Error('Venue access required');
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) return [];
+        const allEvents = await db.getEventsByVenueProfileId(venueProfile.id);
+        return allEvents;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch venue events');
+      }
+    }),
+
   // Simplified artist event post (fan-facing — no rate, audience type, event type, or capacity)
   createArtistPost: protectedProcedure
     .input(artistPostSchema)

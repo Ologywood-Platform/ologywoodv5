@@ -64,3 +64,4 @@ coverage/
 
 # Archive
 archive/
+.project-config.json

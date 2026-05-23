@@ -40,7 +40,8 @@ import {
   videoFlags, InsertVideoFlag, VideoFlag,
   tourAvailability, InsertTourAvailability, TourAvailability,
   venueContracts, InsertVenueContract, VenueContract,
-  venueContractSignatures, InsertVenueContractSignature, VenueContractSignature
+  venueContractSignatures, InsertVenueContractSignature, VenueContractSignature,
+  savedArtists, SavedArtist, InsertSavedArtist
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -1119,11 +1120,53 @@ export async function createEvent(data: InsertEvent): Promise<Event> {
   return event[0] as Event;
 }
 
+// ============= SAVED ARTISTS FUNCTIONS =============
+
+export async function saveArtist(venueId: number, artistId: number) {
+  const dbConn = await getDb();
+  if (!dbConn) return null;
+  // Check if already saved
+  const existing = await dbConn.select().from(savedArtists).where(
+    sql`${savedArtists.venueId} = ${venueId} AND ${savedArtists.artistId} = ${artistId}`
+  ).limit(1);
+  if (existing.length > 0) return existing[0];
+  const result = await dbConn.insert(savedArtists).values({ venueId, artistId });
+  return { id: Number(result[0].insertId), venueId, artistId };
+}
+
+export async function unsaveArtist(venueId: number, artistId: number) {
+  const dbConn = await getDb();
+  if (!dbConn) return;
+  await dbConn.delete(savedArtists).where(
+    sql`${savedArtists.venueId} = ${venueId} AND ${savedArtists.artistId} = ${artistId}`
+  );
+}
+
+export async function getSavedArtistsByVenueId(venueId: number) {
+  const dbConn = await getDb();
+  if (!dbConn) return [];
+  return await dbConn.select().from(savedArtists).where(eq(savedArtists.venueId, venueId));
+}
+
+export async function isArtistSaved(venueId: number, artistId: number): Promise<boolean> {
+  const dbConn = await getDb();
+  if (!dbConn) return false;
+  const result = await dbConn.select().from(savedArtists).where(
+    sql`${savedArtists.venueId} = ${venueId} AND ${savedArtists.artistId} = ${artistId}`
+  ).limit(1);
+  return result.length > 0;
+}
+
+// ============= EVENT FUNCTIONS =============
+
 export async function getEventsByVenueId(venueId: number): Promise<Event[]> {
-  const db = await getDb();
-  if (!db) return [];
-  // Note: events table has artistId, not venueId. This function returns empty for now.
-  return [];
+  const dbConn = await getDb();
+  if (!dbConn) return [];
+  return await dbConn.select().from(events).where(eq(events.venueId, venueId)).orderBy(desc(events.eventDate));
+}
+
+export async function getEventsByVenueProfileId(venueProfileId: number): Promise<Event[]> {
+  return getEventsByVenueId(venueProfileId);
 }
 
 export async function getEventById(id: number): Promise<Event | undefined> {

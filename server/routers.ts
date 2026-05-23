@@ -823,6 +823,10 @@ export const appRouter = router({
         totalFee: z.number().optional(),
         depositAmount: z.number().optional(),
         riderTemplateId: z.number().optional(),
+        // Door-split payment terms
+        paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage']).optional(),
+        doorSplitArtistPercent: z.number().min(0).max(100).optional(),
+        guaranteeAmount: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -847,6 +851,9 @@ export const appRouter = router({
           status: 'pending',
           riderTemplateId: input.riderTemplateId,
           riderStatus: input.riderTemplateId ? 'pending' : undefined,
+          paymentTermsType: input.paymentTermsType || 'flat_guarantee',
+          doorSplitArtistPercent: input.doorSplitArtistPercent,
+          guaranteeAmount: input.guaranteeAmount?.toString(),
         });
         
         // Send email notification to artist
@@ -1282,6 +1289,114 @@ export const appRouter = router({
         return { success: true };
       }),
     
+    // Saved/Favorited Artists
+    saveArtist: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        await db.saveArtist(venueProfile.id, input.artistId);
+        return { success: true };
+      }),
+
+    unsaveArtist: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        await db.unsaveArtist(venueProfile.id, input.artistId);
+        return { success: true };
+      }),
+
+    getSavedArtists: venueProcedure.query(async ({ ctx }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) return [];
+      const saved = await db.getSavedArtistsByVenueId(venueProfile.id);
+      // Enrich with artist profile data
+      const enriched = await Promise.all(
+        saved.map(async (s) => {
+          const artist = await db.getArtistProfileById(s.artistId);
+          return artist ? { ...s, artist } : null;
+        })
+      );
+      return enriched.filter(Boolean);
+    }),
+
+    isArtistSaved: venueProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) return { saved: false };
+        const isSaved = await db.isArtistSaved(venueProfile.id, input.artistId);
+        return { saved: isSaved };
+      }),
+
+    // Post-show settlement — venue enters door revenue and calculates artist payout
+    settleBooking: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        doorRevenue: z.number().min(0),
+        attendance: z.number().int().min(0).optional(),
+        settlementNotes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        if (booking.venueId !== venueProfile.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        if (booking.status !== 'confirmed' && booking.status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only settle confirmed or completed bookings' });
+        }
+
+        // Calculate settlement amount based on payment terms
+        let settlementAmount = 0;
+        const termsType = booking.paymentTermsType || 'flat_guarantee';
+        const doorRevenue = input.doorRevenue;
+
+        if (termsType === 'flat_guarantee') {
+          // Flat guarantee = totalFee (already agreed upon)
+          settlementAmount = parseFloat(booking.totalFee || '0');
+        } else if (termsType === 'door_split') {
+          // Door split = doorRevenue * artistPercent
+          const artistPercent = (booking.doorSplitArtistPercent || 80) / 100;
+          settlementAmount = doorRevenue * artistPercent;
+        } else if (termsType === 'guarantee_vs_percentage') {
+          // Guarantee vs percentage = MAX(guarantee, doorRevenue * artistPercent)
+          const guarantee = parseFloat(booking.guaranteeAmount || '0');
+          const artistPercent = (booking.doorSplitArtistPercent || 80) / 100;
+          const doorPayout = doorRevenue * artistPercent;
+          settlementAmount = Math.max(guarantee, doorPayout);
+        }
+
+        await db.updateBooking(input.bookingId, {
+          doorRevenue: doorRevenue.toString(),
+          attendance: input.attendance,
+          settlementAmount: settlementAmount.toFixed(2),
+          settlementNotes: input.settlementNotes,
+          settledAt: new Date(),
+          status: 'completed',
+        });
+
+        return {
+          success: true,
+          settlement: {
+            termsType,
+            doorRevenue,
+            artistPercent: booking.doorSplitArtistPercent || (termsType === 'flat_guarantee' ? null : 80),
+            guarantee: booking.guaranteeAmount ? parseFloat(booking.guaranteeAmount) : null,
+            calculatedPayout: settlementAmount,
+            attendance: input.attendance,
+          },
+        };
+      }),
+
     // Create deposit payment intent
     createDepositPayment: protectedProcedure
       .input(z.object({

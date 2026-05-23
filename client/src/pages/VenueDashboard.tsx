@@ -7,12 +7,16 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
 import ImageCropper from '../components/ImageCropper';
 import { VenueContractsDashboard } from '../components/VenueContractsDashboard';
+import VenueCalendar from '../components/VenueCalendar';
+import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
+import SettlementForm from '../components/SettlementForm';
+import SaveArtistButton from '../components/SaveArtistButton';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -54,10 +58,28 @@ export function VenueDashboard() {
   );
 
   // Fetch artists for discovery — only load when Artists tab is active
-  const { data: artists, isLoading: artistsLoading } = trpc.artist.getAll.useQuery(
-    undefined,
+  const [artistFilters, setArtistFilters] = useState<ArtistFilterValues>({ searchQuery: '', genre: [], location: '' });
+  const hasFilters = artistFilters.genre.length > 0 || artistFilters.location || artistFilters.minFee || artistFilters.maxFee || artistFilters.availableDate;
+  const { data: allArtists, isLoading: artistsLoading } = trpc.artist.search.useQuery(
+    {
+      genre: artistFilters.genre.length > 0 ? artistFilters.genre : undefined,
+      location: artistFilters.location || undefined,
+      minFee: artistFilters.minFee,
+      maxFee: artistFilters.maxFee,
+      availableDate: artistFilters.availableDate,
+    },
     { enabled: !!user && (user.role === 'venue' || user.role === 'admin') && activeTab === 'artists', staleTime: 300_000 }
   );
+  // Apply client-side name search on top of server-side filters
+  const artists = allArtists?.filter(a => {
+    if (!artistFilters.searchQuery) return true;
+    const q = artistFilters.searchQuery.toLowerCase();
+    return (
+      a.artistName?.toLowerCase().includes(q) ||
+      (Array.isArray(a.genre) && a.genre.some((g: string) => g?.toLowerCase().includes(q))) ||
+      a.location?.toLowerCase().includes(q)
+    );
+  });
 
   // Update profile form when profile data loads
   useEffect(() => {
@@ -317,10 +339,14 @@ export function VenueDashboard() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-5 h-auto">
+          <TabsList className="grid w-full grid-cols-6 h-auto">
             <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
-              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Calendar</span>
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -484,6 +510,30 @@ export function VenueDashboard() {
             )}
           </TabsContent>
 
+          {/* Calendar Tab */}
+          <TabsContent value="calendar" className="space-y-4">
+            {bookingsLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-[400px] w-full rounded-lg" />
+              </div>
+            ) : (
+              <VenueCalendar
+                bookings={bookings || []}
+                onDayClick={(date, dayBookings) => {
+                  if (dayBookings.length === 1) {
+                    navigate(`/booking/${dayBookings[0].id}`);
+                  } else if (dayBookings.length > 1) {
+                    setActiveTab('bookings');
+                  }
+                }}
+                onBookingClick={(booking) => {
+                  navigate(`/booking/${booking.id}`);
+                }}
+              />
+            )}
+          </TabsContent>
+
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-4">
             {bookingsLoading ? (
@@ -603,6 +653,7 @@ export function VenueDashboard() {
 
           {/* Artists Tab */}
           <TabsContent value="artists" className="space-y-4">
+            <ArtistFilters onFilterChange={setArtistFilters} isLoading={artistsLoading} />
             {artistsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[1,2,3,4].map(i => (
@@ -671,6 +722,7 @@ export function VenueDashboard() {
                             <Plus className="h-4 w-4" />
                             Book Artist
                           </Button>
+                          <SaveArtistButton artistId={artist.id} />
                         </div>
                       </div>
                     </CardContent>

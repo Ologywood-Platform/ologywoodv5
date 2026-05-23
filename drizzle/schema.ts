@@ -252,6 +252,16 @@ export const bookings = mysqlTable("bookings", {
   clientEmail: varchar("clientEmail", { length: 320 }), // Contact email for client bookings
   clientPhone: varchar("clientPhone", { length: 20 }), // Optional phone for client bookings
 
+  // Payment terms — supports flat guarantee, door split, or guarantee-vs-percentage
+  paymentTermsType: mysqlEnum("paymentTermsType", ["flat_guarantee", "door_split", "guarantee_vs_percentage"]).default("flat_guarantee"),
+  doorSplitArtistPercent: int("doorSplitArtistPercent"), // e.g. 80 means artist gets 80% of door
+  guaranteeAmount: decimal("guaranteeAmount", { precision: 10, scale: 2 }), // Minimum guarantee for guarantee_vs_percentage
+  doorRevenue: decimal("doorRevenue", { precision: 10, scale: 2 }), // Actual door revenue (filled post-show)
+  attendance: int("attendance"), // Actual attendance count (filled post-show)
+  settlementAmount: decimal("settlementAmount", { precision: 10, scale: 2 }), // Final calculated payout
+  settlementNotes: text("settlementNotes"), // Notes about the settlement
+  settledAt: timestamp("settledAt"), // When settlement was completed
+
   // Rider template linked to this booking
   riderTemplateId: int("riderTemplateId"),
   riderStatus: varchar("riderStatus", { length: 50 }).default("pending"),
@@ -718,6 +728,7 @@ export type InsertInvoice = typeof invoices.$inferInsert;
 export const events = mysqlTable("events", {
   id: int("id").autoincrement().primaryKey(),
   artistId: int("artistId").notNull(), // indexed below
+  venueId: int("venueId"), // Venue that created/owns this event (null for artist-posted events)
   eventTitle: varchar("eventTitle", { length: 255 }).notNull(),
   eventType: mysqlEnum("eventType", ["wedding", "corporate", "festival", "bar_gig", "private_party", "concert", "other"]).notNull(),
   eventDate: date("eventDate").notNull(),
@@ -738,6 +749,7 @@ export const events = mysqlTable("events", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   artistIdx: index("idx_events_artist").on(table.artistId),
+  venueIdx: index("idx_events_venue").on(table.venueId),
   eventDateIdx: index("idx_events_date").on(table.eventDate),
   statusIdx: index("idx_events_status").on(table.status),
   publicIdx: index("idx_events_public").on(table.isPublic, table.status),
@@ -1383,3 +1395,20 @@ export const referralCredits = mysqlTable("referral_credits", {
 
 export type ReferralCredit = typeof referralCredits.$inferSelect;
 export type InsertReferralCredit = typeof referralCredits.$inferInsert;
+
+/**
+ * Saved Artists — venues can save/favorite artists for quick rebooking
+ */
+export const savedArtists = mysqlTable("saved_artists", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(), // venue profile ID
+  artistId: int("artistId").notNull(), // artist profile ID
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_saved_artists_venue").on(table.venueId),
+  artistIdx: index("idx_saved_artists_artist").on(table.artistId),
+  uniquePair: index("idx_saved_artists_unique").on(table.venueId, table.artistId),
+}));
+
+export type SavedArtist = typeof savedArtists.$inferSelect;
+export type InsertSavedArtist = typeof savedArtists.$inferInsert;

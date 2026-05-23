@@ -2702,3 +2702,43 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Mobile subtitle text on dashboard buttons restored
 - [x] Booking confirmation success screen restored
 - [x] Role-aware breadcrumb navigation restored
+
+
+## VENUE FEATURES BUILD (May 23, 2026)
+
+### Calendar View
+- [x] Build VenueCalendar component with monthly grid view
+- [x] Color-coded booking status indicators (confirmed=green, pending=yellow, cancelled=red)
+- [x] Calendar navigation (prev/next month, today button)
+- [x] Click day to view booking details in a popover/modal
+- [x] Integrate calendar as new tab in venue dashboard
+- [x] Show artist name and event time on calendar cells
+
+### Venue Event Creation
+- [x] Allow venues to create events tied to confirmed bookings
+- [x] Auto-populate event with artist info, date, time from booking
+- [x] Venue can add flyer image, ticket price, description
+- [x] Events appear on public event discovery page
+- [x] createVenueEvent and getVenueEvents API endpoints
+
+### Artist Filtering
+- [x] Add genre filter to Artists tab in venue dashboard
+- [x] Add location filter
+- [x] Add price range filter (min/max fee)
+- [x] Add availability date filter
+- [x] Search by artist name
+- [x] Replaced artist.getAll with artist.search in venue dashboard
+
+### Door-Split Payment Calculations
+- [x] Add paymentTermsType field to bookings (flat_guarantee, door_split, guarantee_vs_percentage)
+- [x] Add doorSplitArtistPercent and guaranteeAmount fields
+- [x] Add settlement fields (doorRevenue, attendance, settlementAmount, settledAt, settlementNotes)
+- [x] Post-show settlement endpoint (settleBooking) with auto-calculation
+- [x] SettlementForm component with preview calculation
+- [x] Supports flat guarantee, door split %, and guarantee-vs-percentage
+
+### Saved/Favorited Artists
+- [x] savedArtists database table with venue/artist pair
+- [x] saveArtist, unsaveArtist, getSavedArtists, isArtistSaved API endpoints
+- [x] SaveArtistButton component with heart icon toggle
+- [x] Integrated into venue dashboard Artists tab
