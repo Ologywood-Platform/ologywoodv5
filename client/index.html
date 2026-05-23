@@ -61,7 +61,7 @@
               await reg.update();
             }
             // Register with cache-busting
-            const registration = await navigator.serviceWorker.register('/sw.js?v=5');
+            const registration = await navigator.serviceWorker.register('/sw.js?v=6');
             console.log('Service Worker registered:', registration);
           } catch (error) {
             console.log('Service Worker registration failed:', error);

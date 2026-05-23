@@ -1,10 +1,7 @@
-const CACHE_NAME = 'ologywood-v5';
+const CACHE_NAME = 'ologywood-v6';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/favicon-192.png',
-  '/apple-touch-icon.png',
-  '/logo-xl.png',
 ];
 
 // Install: cache static assets
@@ -33,7 +30,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first strategy for API calls, cache-first for static assets
+// Fetch: network-first strategy for API calls, cache-first for same-origin static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -41,8 +38,11 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // Skip non-http(s) schemes (chrome-extension://, etc.) — they cannot be cached
+  // Skip non-http(s) schemes (chrome-extension://, etc.)
   if (!url.protocol.startsWith('http')) return;
+
+  // Skip cross-origin requests entirely — they return opaque responses that can't be cached
+  if (url.origin !== self.location.origin) return;
 
   // Skip API calls, auth endpoints, and websocket connections
   if (
@@ -59,11 +59,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache the latest version
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
           return response;
         })
         .catch(() => {
@@ -76,12 +77,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For static assets (JS, CSS, images): stale-while-revalidate
-  if (
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/) ||
-    url.hostname.includes('fonts.googleapis.com') ||
-    url.hostname.includes('fonts.gstatic.com')
-  ) {
+  // For same-origin static assets (JS, CSS, images): stale-while-revalidate
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const fetchPromise = fetch(request)
