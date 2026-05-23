@@ -2666,3 +2666,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add small subtitle text under each button label for mobile users (both dashboards)
 
 - [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
+
+## CRITICAL PRODUCTION FIXES (May 22, 2026)
+- [x] Fix OAuth UNKNOWN_ERROR: Use BASE_URL instead of request headers for frontend origin (Cloud Run internal URL was being used instead of www.ologywood.com)
+- [x] Fix video black screen: Video proxy route serves .mov files as video/mp4 for Chrome compatibility
