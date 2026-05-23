@@ -2690,7 +2690,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 
 ## PENDING ISSUES (to address next session)
-- [ ] Fix video playback (showing black screen on production and dev)
+- [x] Fix video playback — ROOT CAUSE: CSP header missing media-src directive, blocking CloudFront URLs. Added media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob: to CSP policy.
 - [ ] Fix OAuth social login redirect error (Manus support investigating platform-level issue)
 
 ## RESTORED FEATURES (May 23, 2026)

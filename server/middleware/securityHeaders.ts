@@ -18,13 +18,14 @@ export function configureSecurityHeaders() {
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
         fontSrc: ["'self'", 'data:'],
-    connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com'],
-    frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
+        connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
+        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
       },
     },
-    crossOriginEmbedderPolicy: true,
+    crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: true,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
     dnsPrefetchControl: true,
@@ -39,8 +40,6 @@ export function configureSecurityHeaders() {
     noSniff: true,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     xssFilter: true,
-    // permissionsPolicy handled separately below
-    // helmet v7 uses different syntax for permissions-policy
   });
 }
 
@@ -48,10 +47,10 @@ export function configureSecurityHeaders() {
  * Custom security headers middleware
  */
 export function securityHeadersMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Content Security Policy
+  // Content Security Policy — includes media-src for CloudFront video playback
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com https://*.cloudfront.net; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
 
   // Strict Transport Security
@@ -78,11 +77,6 @@ export function securityHeadersMiddleware(req: Request, res: Response, next: Nex
   // Remove X-Powered-By header
   res.removeHeader('X-Powered-By');
 
-  // Add custom security headers
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-
   next();
 }
 
@@ -97,7 +91,8 @@ export const securityHeadersConfig = {
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       fontSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com'],
+      mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
+      connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
       frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
       objectSrc: ["'none'"],
     },
