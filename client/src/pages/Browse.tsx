@@ -38,6 +38,7 @@ export default function Browse() {
     availableTo?: string;
     touringOnly?: boolean;
   }>({});
+  const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   
   // Collapsible filters state
   const [showFilters, setShowFilters] = useState(false);
@@ -136,6 +137,7 @@ export default function Browse() {
   const handleResetAll = () => {
     setSearchQuery('');
     setFilters({});
+    setHasAppliedFilters(false);
     // Keep the filter panel open so user can select new criteria (UX fix)
   };
 
@@ -199,7 +201,8 @@ export default function Browse() {
             {showFilters && (
               <SearchFilters filterType="artists" onFilterChange={(newFilters) => {
                 setFilters(newFilters);
-                setShowFilters(false);
+                setHasAppliedFilters(true);
+                // Keep filter panel open so user can refine (UX consistency)
                 // Scroll to top of results so user sees first result immediately
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }} />
