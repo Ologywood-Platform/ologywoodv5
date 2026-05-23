@@ -38,6 +38,7 @@ export default function Browse() {
     availableTo?: string;
     touringOnly?: boolean;
   }>({});
+  const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   
   // Collapsible filters state
   const [showFilters, setShowFilters] = useState(false);
@@ -136,13 +137,14 @@ export default function Browse() {
   const handleResetAll = () => {
     setSearchQuery('');
     setFilters({});
-    setShowFilters(false);
+    setHasAppliedFilters(false);
+    // Keep the filter panel open so user can select new criteria (UX fix)
   };
 
   return (
     <div className="min-h-screen bg-background">
       <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }])} id="browse-breadcrumb" />
-      <SiteHeader hideBrowse />
+      <SiteHeader />
       <PullIndicator />
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
@@ -199,7 +201,10 @@ export default function Browse() {
             {showFilters && (
               <SearchFilters filterType="artists" onFilterChange={(newFilters) => {
                 setFilters(newFilters);
-                setShowFilters(false);
+                setHasAppliedFilters(true);
+                // Keep filter panel open so user can refine (UX consistency)
+                // Scroll to top of results so user sees first result immediately
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }} />
             )}
 

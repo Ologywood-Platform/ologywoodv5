@@ -216,7 +216,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/bookings')}
                       >
                         <Calendar className="h-5 w-5" />
-                        <span className="text-xs">Bookings</span>
+                        <span className="text-xs font-medium">Bookings</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Manage gigs</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>View and manage your upcoming and past bookings</TooltipContent>
@@ -229,7 +230,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/availability')}
                       >
                         <Clock className="h-5 w-5" />
-                        <span className="text-xs">Availability</span>
+                        <span className="text-xs font-medium">Availability</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Set open dates</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Set your available dates so venues know when to book you</TooltipContent>
@@ -242,7 +244,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/rider-builder')}
                       >
                         <Music className="h-5 w-5" />
-                        <span className="text-xs">Rider Builder</span>
+                        <span className="text-xs font-medium">Rider Builder</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Your requirements</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Create your technical and hospitality requirements for venues</TooltipContent>
@@ -255,7 +258,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/messages')}
                       >
                         <MessageSquare className="h-5 w-5" />
-                        <span className="text-xs">Messages</span>
+                        <span className="text-xs font-medium">Messages</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Chat with venues</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Chat with venues and manage booking conversations</TooltipContent>
@@ -268,7 +272,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/earnings')}
                       >
                         <DollarSign className="h-5 w-5" />
-                        <span className="text-xs">Earnings</span>
+                        <span className="text-xs font-medium">Earnings</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Track payments</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Track your payments, payouts, and revenue history</TooltipContent>
@@ -281,7 +286,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/releases')}
                       >
                         <Download className="h-5 w-5" />
-                        <span className="text-xs">Releases</span>
+                        <span className="text-xs font-medium">Releases</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sell your music</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Upload and sell your music directly to fans</TooltipContent>
@@ -294,7 +300,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/events')}
                       >
                         <Calendar className="h-5 w-5" />
-                        <span className="text-xs">Events</span>
+                        <span className="text-xs font-medium">Events</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Post & sell tickets</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Post and manage your live events and sell tickets</TooltipContent>
@@ -307,7 +314,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/favorites')}
                       >
                         <Heart className="h-5 w-5" />
-                        <span className="text-xs">Favorites</span>
+                        <span className="text-xs font-medium">Favorites</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Saved venues</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>View venues and artists you've saved</TooltipContent>
@@ -320,7 +328,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
                       >
                         <Camera className="h-5 w-5" />
-                        <span className="text-xs">Portfolio</span>
+                        <span className="text-xs font-medium">Portfolio</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Past performances</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Showcase your past performances and media</TooltipContent>
@@ -333,7 +342,8 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/contracts')}
                       >
                         <FileText className="h-5 w-5" />
-                        <span className="text-xs">Contracts</span>
+                        <span className="text-xs font-medium">Contracts</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sign agreements</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>View and sign your booking contracts</TooltipContent>

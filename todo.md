@@ -2659,3 +2659,46 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: Created /api/video/proxy endpoint that re-serves .mov files with "video/mp4" content-type
   - Added error fallback UI with "Open Video" link if playback still fails
   - Added getPlayableVideoUrl() helper to route .mov files through proxy
+
+- [x] Add tooltips to Venue Dashboard quick action buttons for consistency
+- [x] Add small subtitle text under each button label for mobile users (both dashboards)
+
+- [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
+- [x] Add iOS-specific PWA install instructions (Tap Share > Add to Home Screen) for Safari users
+- [x] Remove floating PWA install banner since Download App is now in the menu
+
+## SPRINT 1 - Ray's UX Observations (Quick Wins)
+- [x] Fix: Browse option always visible in hamburger menu (not hidden when on Browse page)
+- [x] Fix: Filter Reset button stays on filter screen instead of navigating to home
+- [x] Fix: Scroll to top of results after applying filters
+- [x] Fix: Date validation - Start Date cannot be after End Date (Events search)
+- [x] Fix: Add "x" clear icon to all search input fields
+
+## SPRINT 2 - Events Search Overhaul
+- [x] Reorder form to group Start/End dates together
+- [x] Add explicit "Apply Filters" button instead of live-filtering
+- [x] Hide results until user applies criteria (show empty state initially)
+
+## SPRINT 3 - Calendar Consistency & Browse Filter Pattern
+- [x] Remove redundant "Clear" button from calendar modals (already uses correct inline "x Clear date" pattern)
+- [x] Unify date selection behavior across Browse and Events screens (date validation + clear buttons)
+- [x] Apply "Apply Filters" pattern to Browse/Artist search (no live-filtering, panel stays open)
+
+## Ray's Issues #13 & #14
+- [x] Add booking confirmation feedback (success toast/modal after booking is completed)
+- [x] Fix breadcrumb navigation on deeper pages (Event Detail, Booking Detail, etc.)
+
+
+## PENDING ISSUES (to address next session)
+- [ ] Fix video playback (showing black screen on production and dev)
+- [ ] Fix OAuth social login redirect error (Manus support investigating platform-level issue)
+
+## RESTORED FEATURES (May 23, 2026)
+- [x] All Ray's UX fixes (Sprint 1, 2, 3) restored
+- [x] Download App (PWA) in user menu restored
+- [x] iOS PWA install instructions restored
+- [x] Floating PWA banner removed (menu handles it)
+- [x] Venue Dashboard tooltips restored
+- [x] Mobile subtitle text on dashboard buttons restored
+- [x] Booking confirmation success screen restored
+- [x] Role-aware breadcrumb navigation restored

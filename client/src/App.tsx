@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Redirect } from "wouter";
 import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
-import { PWAInstallBanner } from "./components/PWAInstallBanner";
 import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { RobotsMetaTag } from "./components/RobotsMetaTag";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -228,7 +227,6 @@ function App() {
           <RobotsMetaTag />
           <Router />
           <AIChatWidget />
-          <PWAInstallBanner />
           <CookieConsent />
         </TooltipProvider>
       </ThemeProvider>

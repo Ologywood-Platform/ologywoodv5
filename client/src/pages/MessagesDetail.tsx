@@ -186,7 +186,7 @@ export default function MessagesDetail() {
           <PageBreadcrumb
             className="mb-2"
             segments={[
-              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
               { label: 'Messages', href: '/messages' },
               { label: conversation.participantName },
             ]}

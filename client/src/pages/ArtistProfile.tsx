@@ -188,11 +188,17 @@ export default function ArtistProfile() {
   
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: () => {
-      toast.success("Booking request sent successfully!");
+      toast.success("Booking request sent! The artist will review and respond via messages.", {
+        duration: 5000,
+        action: {
+          label: 'View Bookings',
+          onClick: () => navigate('/bookings'),
+        },
+      });
       setBookingDialogOpen(false);
       setSelectedRiderId(null);
       setShowRiderComparison(false);
-      navigate("/dashboard");
+      navigate("/bookings");
     },
       onError: (error: any) => {
       toast.error(error.message || "Failed to create booking");
