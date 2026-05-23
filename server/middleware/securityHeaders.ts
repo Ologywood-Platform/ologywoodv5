@@ -1,10 +1,21 @@
 /**
  * Security Headers Middleware
  * Implements OWASP recommended security headers
+ * 
+ * Allows iframe embedding from Manus preview domains (*.manus.computer, *.manus.space)
+ * while blocking clickjacking from all other origins.
  */
 
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
+
+// Trusted origins that are allowed to embed this site in an iframe
+const ALLOWED_FRAME_ANCESTORS = [
+  "'self'",
+  'https://*.manus.computer',
+  'https://*.manus.space',
+  'https://*.manus.im',
+];
 
 /**
  * Configure security headers using Helmet
@@ -21,15 +32,16 @@ export function configureSecurityHeaders() {
         mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
         connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
         frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        frameAncestors: ALLOWED_FRAME_ANCESTORS,
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
       },
     },
     crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: true,
+    crossOriginOpenerPolicy: false, // Must be false to allow iframe communication
     crossOriginResourcePolicy: { policy: 'cross-origin' },
     dnsPrefetchControl: true,
-    frameguard: { action: 'deny' },
+    frameguard: false, // Disabled — using CSP frame-ancestors instead (more flexible)
     hidePoweredBy: true,
     hsts: {
       maxAge: 31536000, // 1 year
@@ -48,9 +60,10 @@ export function configureSecurityHeaders() {
  */
 export function securityHeadersMiddleware(req: Request, res: Response, next: NextFunction) {
   // Content Security Policy — includes media-src for CloudFront video playback
+  // frame-ancestors allows Manus preview iframes while blocking clickjacking
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com https://*.cloudfront.net; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com https://*.cloudfront.net; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self' https://*.manus.computer https://*.manus.space https://*.manus.im; base-uri 'self'; form-action 'self';"
   );
 
   // Strict Transport Security
@@ -59,8 +72,8 @@ export function securityHeadersMiddleware(req: Request, res: Response, next: Nex
   // X-Content-Type-Options
   res.setHeader('X-Content-Type-Options', 'nosniff');
 
-  // X-Frame-Options
-  res.setHeader('X-Frame-Options', 'DENY');
+  // X-Frame-Options — removed in favor of CSP frame-ancestors (X-Frame-Options doesn't support wildcards)
+  // Do NOT set X-Frame-Options here as it conflicts with frame-ancestors
 
   // X-XSS-Protection
   res.setHeader('X-XSS-Protection', '1; mode=block');
@@ -94,6 +107,7 @@ export const securityHeadersConfig = {
       mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
       connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
       frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+      frameAncestors: ALLOWED_FRAME_ANCESTORS,
       objectSrc: ["'none'"],
     },
   },
@@ -101,9 +115,6 @@ export const securityHeadersConfig = {
     maxAge: 31536000, // 1 year
     includeSubDomains: true,
     preload: true,
-  },
-  frameguard: {
-    action: 'deny',
   },
   referrerPolicy: {
     policy: 'strict-origin-when-cross-origin',
