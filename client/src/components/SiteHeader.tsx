@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle } from 'lucide-react';
+import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle, Download } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -9,6 +9,7 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { QuickSignupModal } from './QuickSignupModal';
 import RealtimeNotifications from './RealtimeNotifications';
 import EarlyAccessBanner from './EarlyAccessBanner';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -44,6 +45,7 @@ interface SiteHeaderProps {
 
 export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: SiteHeaderProps) {
   const { user, isAuthenticated } = useAuth();
+  const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -220,6 +222,16 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                             Manage Preferences
                           </button>
                         </Link>
+
+                        {isInstallable && !isInstalled && (
+                          <button
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 dark:text-purple-400 flex items-center gap-2 font-medium"
+                            onClick={() => { setUserMenuOpen(false); promptInstall(); }}
+                          >
+                            <Download className="h-4 w-4" />
+                            Download App
+                          </button>
+                        )}
                       </div>
 
                       {/* Logout */}
@@ -345,6 +357,17 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                 </Link>
 
                 <div className="pt-2 border-t dark:border-gray-700 mt-2">
+                  {isInstallable && !isInstalled && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-sm gap-2 text-purple-600 dark:text-purple-400 font-medium"
+                      onClick={() => { closeMobile(); promptInstall(); }}
+                    >
+                      <Download className="h-4 w-4" />
+                      Download App
+                    </Button>
+                  )}
                   <p className="text-sm text-muted-foreground px-4 py-1 truncate">
                     {user?.name || user?.email}
                   </p>
@@ -353,6 +376,17 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
               </>
             ) : (
               <div className="pt-2 border-t dark:border-gray-700 mt-2 space-y-2">
+                {isInstallable && !isInstalled && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-sm gap-2 text-purple-600 dark:text-purple-400 font-medium"
+                    onClick={() => { closeMobile(); promptInstall(); }}
+                  >
+                    <Download className="h-4 w-4" />
+                    Download App
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" className="w-full text-sm" onClick={openSignUp}>
                   Sign Up
                 </Button>

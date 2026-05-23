@@ -5,6 +5,7 @@ import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { AlertCircle, CheckCircle, Settings, Calendar, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
@@ -401,41 +402,56 @@ export function VenueDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/venue-invoices')}>
-                <CardContent className="py-5 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <FileText className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">Invoices</h3>
-                    <p className="text-sm text-muted-foreground">View payment history and outstanding balances</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/venue-invoices')}>
+                    <CardContent className="py-5 flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <FileText className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">Invoices</h3>
+                        <p className="text-sm text-muted-foreground">View payment history and outstanding balances</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent>Track deposits, final payments, and download receipts</TooltipContent>
+              </Tooltip>
 
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/contracts')}>
-                <CardContent className="py-5 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                    <ClipboardList className="h-6 w-6 text-amber-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">Contracts</h3>
-                    <p className="text-sm text-muted-foreground">View and download signed rider contracts</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/contracts')}>
+                    <CardContent className="py-5 flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <ClipboardList className="h-6 w-6 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">Contracts</h3>
+                        <p className="text-sm text-muted-foreground">View and download signed rider contracts</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent>Review artist requirements and sign booking agreements</TooltipContent>
+              </Tooltip>
 
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/messages')}>
-                <CardContent className="py-5 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                    <Users className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">Messages</h3>
-                    <p className="text-sm text-muted-foreground">Chat with artists about bookings and riders</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/messages')}>
+                    <CardContent className="py-5 flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                        <Users className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">Messages</h3>
+                        <p className="text-sm text-muted-foreground">Chat with artists about bookings and riders</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent>Discuss event details, logistics, and rider needs with artists</TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Venue Contracts Status Tracker */}

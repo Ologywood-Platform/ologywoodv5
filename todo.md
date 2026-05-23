@@ -2655,7 +2655,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Fix: Always show "Complete Rider" and "Complete Profile" action buttons
 - [x] Fix performance video showing black/not playing on dashboard
 - [x] Add helpful tooltip tips to each Quick Actions dashboard button
+- [x] Fix OAuth UNKNOWN_ERROR when state parameter is missing during login callback
+- [x] Fix performance video black screen in Chrome via video proxy (serves .mov as video/mp4)
   - Root cause: .mov file served by CloudFront with content-type "video/quicktime" which Chrome rejects
   - Fix: Created /api/video/proxy endpoint that re-serves .mov files with "video/mp4" content-type
   - Added error fallback UI with "Open Video" link if playback still fails
   - Added getPlayableVideoUrl() helper to route .mov files through proxy
+
+- [x] Add tooltips to Venue Dashboard quick action buttons for consistency
+- [x] Add small subtitle text under each button label for mobile users (both dashboards)
+
+- [x] Add "Download App" (PWA install) option in user dropdown menu near sign in/log out
