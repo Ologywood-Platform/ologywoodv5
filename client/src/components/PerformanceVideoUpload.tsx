@@ -243,7 +243,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
           <div className="space-y-4">
             <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
               <video
-                src={videoStatus.url}
+                src={videoStatus.url.endsWith('.mov') ? `/api/video/proxy?url=${encodeURIComponent(videoStatus.url)}` : videoStatus.url}
                 controls
                 className="w-full h-full object-contain"
                 preload="metadata"

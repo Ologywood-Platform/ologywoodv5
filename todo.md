@@ -2687,3 +2687,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## Ray's Issues #13 & #14
 - [x] Add booking confirmation feedback (success toast/modal after booking is completed)
 - [x] Fix breadcrumb navigation on deeper pages (Event Detail, Booking Detail, etc.)
+- [x] Fix performance video black screen on Chrome - add video proxy to serve .mov as video/mp4
