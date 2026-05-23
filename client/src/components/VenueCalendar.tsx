@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
@@ -19,6 +19,7 @@ interface VenueCalendarProps {
   bookings: Booking[];
   onDayClick?: (date: Date, bookings: Booking[]) => void;
   onBookingClick?: (booking: Booking) => void;
+  onPostEvent?: (booking: Booking) => void;
 }
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -54,7 +55,7 @@ function getStatusBg(status: string) {
   }
 }
 
-export default function VenueCalendar({ bookings, onDayClick, onBookingClick }: VenueCalendarProps) {
+export default function VenueCalendar({ bookings, onDayClick, onBookingClick, onPostEvent }: VenueCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -239,11 +240,23 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick }: 
                             </div>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[200px]">
-                          <div className="text-xs space-y-0.5">
+                        <TooltipContent side="top" className="max-w-[220px]">
+                          <div className="text-xs space-y-1">
                             <p className="font-semibold">{booking.artistName}</p>
                             <p>{booking.eventTime || 'Time TBA'} &bull; <span className="capitalize">{booking.status}</span></p>
                             {booking.totalFee && <p className="text-green-600">${booking.totalFee}</p>}
+                            {booking.status === 'confirmed' && onPostEvent && (
+                              <button
+                                className="flex items-center gap-1 mt-1 text-purple-600 hover:text-purple-800 font-medium"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onPostEvent(booking);
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                Post Event
+                              </button>
+                            )}
                           </div>
                         </TooltipContent>
                       </Tooltip>

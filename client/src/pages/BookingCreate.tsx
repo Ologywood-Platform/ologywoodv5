@@ -25,6 +25,9 @@ export default function BookingCreate() {
     eventDetails: '',
     budget: '',
     notes: '',
+    paymentTermsType: 'flat_guarantee' as 'flat_guarantee' | 'door_split' | 'guarantee_vs_percentage',
+    doorSplitArtistPercent: '80',
+    guaranteeAmount: '',
   });
 
   // Get venue profile for the logged-in user
@@ -96,6 +99,9 @@ export default function BookingCreate() {
       venueAddress: venueProfile.location || undefined,
       eventDetails: formData.eventDetails + (formData.notes ? `\n\nAdditional Notes: ${formData.notes}` : ''),
       totalFee: formData.budget ? Number(formData.budget) : undefined,
+      paymentTermsType: formData.paymentTermsType,
+      doorSplitArtistPercent: formData.paymentTermsType !== 'flat_guarantee' ? Number(formData.doorSplitArtistPercent) || 80 : undefined,
+      guaranteeAmount: formData.paymentTermsType === 'guarantee_vs_percentage' ? Number(formData.guaranteeAmount) || undefined : undefined,
     });
   };
 
@@ -222,21 +228,101 @@ export default function BookingCreate() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="budget" className="flex items-center gap-2">
+              {/* Payment Terms Section */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="font-medium flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Budget (USD, Optional)
-                </Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  name="budget"
-                  placeholder="Enter your budget"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="100"
-                />
+                  Payment Terms
+                </h3>
+
+                <div className="space-y-2">
+                  <Label htmlFor="paymentTermsType">Payment Structure</Label>
+                  <select
+                    id="paymentTermsType"
+                    name="paymentTermsType"
+                    value={formData.paymentTermsType}
+                    onChange={(e) => setFormData(prev => ({ ...prev, paymentTermsType: e.target.value as any }))}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="flat_guarantee">Flat Guarantee (fixed fee)</option>
+                    <option value="door_split">Door Split (percentage of door revenue)</option>
+                    <option value="guarantee_vs_percentage">Guarantee vs. Percentage (whichever is higher)</option>
+                  </select>
+                  <p className="text-xs text-gray-500">
+                    {formData.paymentTermsType === 'flat_guarantee' && 'Artist receives a fixed agreed-upon fee regardless of attendance.'}
+                    {formData.paymentTermsType === 'door_split' && 'Artist receives a percentage of the door revenue after the show.'}
+                    {formData.paymentTermsType === 'guarantee_vs_percentage' && 'Artist receives whichever is higher: the guarantee or their percentage of door revenue.'}
+                  </p>
+                </div>
+
+                {formData.paymentTermsType === 'flat_guarantee' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="budget">Guaranteed Fee (USD)</Label>
+                    <Input
+                      id="budget"
+                      type="number"
+                      name="budget"
+                      placeholder="e.g. 500"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="50"
+                    />
+                  </div>
+                )}
+
+                {formData.paymentTermsType === 'door_split' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="doorSplitArtistPercent">Artist's Door Split (%)</Label>
+                    <Input
+                      id="doorSplitArtistPercent"
+                      type="number"
+                      name="doorSplitArtistPercent"
+                      placeholder="80"
+                      value={formData.doorSplitArtistPercent}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Venue keeps {100 - (parseInt(formData.doorSplitArtistPercent) || 0)}%
+                    </p>
+                  </div>
+                )}
+
+                {formData.paymentTermsType === 'guarantee_vs_percentage' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="guaranteeAmount">Guarantee (USD)</Label>
+                      <Input
+                        id="guaranteeAmount"
+                        type="number"
+                        name="guaranteeAmount"
+                        placeholder="e.g. 300"
+                        value={formData.guaranteeAmount}
+                        onChange={handleInputChange}
+                        min="0"
+                        step="50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="doorSplitArtistPercent">Door Split (%)</Label>
+                      <Input
+                        id="doorSplitArtistPercent"
+                        type="number"
+                        name="doorSplitArtistPercent"
+                        placeholder="80"
+                        value={formData.doorSplitArtistPercent}
+                        onChange={handleInputChange}
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+                    <p className="col-span-2 text-xs text-gray-500">
+                      Artist gets whichever is higher: ${formData.guaranteeAmount || '0'} guarantee or {formData.doorSplitArtistPercent || '80'}% of door revenue
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

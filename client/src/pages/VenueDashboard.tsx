@@ -7,7 +7,7 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
@@ -356,6 +356,10 @@ export function VenueDashboard() {
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Artists</span>
             </TabsTrigger>
+            <TabsTrigger value="saved" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Saved</span>
+            </TabsTrigger>
             <TabsTrigger value="gallery" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Gallery</span>
@@ -529,6 +533,16 @@ export function VenueDashboard() {
                 }}
                 onBookingClick={(booking) => {
                   navigate(`/booking/${booking.id}`);
+                }}
+                onPostEvent={(booking) => {
+                  // Navigate to event creation with booking data pre-filled
+                  const params = new URLSearchParams({
+                    bookingId: booking.id.toString(),
+                    artistName: booking.artistName || '',
+                    eventDate: typeof booking.eventDate === 'string' ? booking.eventDate : new Date(booking.eventDate).toISOString().split('T')[0],
+                    eventTime: booking.eventTime || '',
+                  });
+                  navigate(`/events/create?${params.toString()}`);
                 }}
               />
             )}
@@ -737,6 +751,11 @@ export function VenueDashboard() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Saved Artists Tab */}
+          <TabsContent value="saved" className="space-y-4">
+            <SavedArtistsTab navigate={navigate} />
           </TabsContent>
 
           {/* Gallery Tab */}
@@ -1619,6 +1638,106 @@ function RiderViewerModal({ bookingId, onClose }: { bookingId: number; onClose: 
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+
+// Saved Artists Tab Component
+function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
+  const { data: savedArtists, isLoading } = trpc.booking.getSavedArtists.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}><CardContent className="p-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!savedArtists || savedArtists.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-700 mb-2">No Saved Artists Yet</h3>
+          <p className="text-gray-500 mb-4">Browse artists and tap the heart icon to save them for quick rebooking.</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/browse')}
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Browse Artists
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Heart className="h-5 w-5 text-red-500 fill-current" />
+          Saved Artists ({savedArtists.length})
+        </h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {savedArtists.map((item: any) => {
+          const artist = item.artist;
+          if (!artist) return null;
+          return (
+            <Card key={item.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  {artist.profilePhotoUrl ? (
+                    <img
+                      src={artist.profilePhotoUrl}
+                      alt={artist.artistName}
+                      className="w-14 h-14 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                      <Users className="h-6 w-6 text-purple-500" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{artist.artistName}</h4>
+                    <p className="text-sm text-gray-500 truncate">{artist.genre || 'No genre'}</p>
+                    <p className="text-sm text-gray-400 truncate">{artist.location || 'No location'}</p>
+                    {artist.minimumFee && (
+                      <p className="text-sm font-medium text-green-600 mt-1">${artist.minimumFee}+</p>
+                    )}
+                  </div>
+                  <SaveArtistButton artistId={artist.id} size="icon" />
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 text-xs"
+                    onClick={() => navigate(`/artist/${artist.id}`)}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 text-xs bg-purple-600 hover:bg-purple-700"
+                    onClick={() => navigate(`/booking/create?artistId=${artist.id}`)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Book
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

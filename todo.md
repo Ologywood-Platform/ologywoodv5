@@ -2742,3 +2742,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] saveArtist, unsaveArtist, getSavedArtists, isArtistSaved API endpoints
 - [x] SaveArtistButton component with heart icon toggle
 - [x] Integrated into venue dashboard Artists tab
+
+
+## VENUE FEATURES FOLLOW-UPS (May 23, 2026)
+- [x] Saved Artists tab in venue dashboard with quick-book buttons
+- [x] Payment terms selection (flat/door-split/guarantee-vs-%) in booking creation form
+- [x] Post Event button on confirmed calendar dates
