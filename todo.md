@@ -2683,3 +2683,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove redundant "Clear" button from calendar modals (already uses correct inline "x Clear date" pattern)
 - [x] Unify date selection behavior across Browse and Events screens (date validation + clear buttons)
 - [x] Apply "Apply Filters" pattern to Browse/Artist search (no live-filtering, panel stays open)
+
+## Ray's Issues #13 & #14
+- [x] Add booking confirmation feedback (success toast/modal after booking is completed)
+- [x] Fix breadcrumb navigation on deeper pages (Event Detail, Booking Detail, etc.)
