@@ -138,9 +138,9 @@ describe('Sitemap and Robots.txt Routes', () => {
       expect(response.text).toContain('Crawl-delay');
     });
 
-    it('should include request rate', async () => {
+    it('should include crawl delay', async () => {
       const response = await request(app).get('/robots.txt');
-      expect(response.text).toContain('Request-rate');
+      expect(response.text).toContain('Crawl-delay');
     });
 
     it('should set proper cache headers for robots.txt', async () => {

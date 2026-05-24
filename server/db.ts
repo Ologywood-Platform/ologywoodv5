@@ -41,7 +41,8 @@ import {
   tourAvailability, InsertTourAvailability, TourAvailability,
   venueContracts, InsertVenueContract, VenueContract,
   venueContractSignatures, InsertVenueContractSignature, VenueContractSignature,
-  savedArtists, SavedArtist, InsertSavedArtist
+  savedArtists, SavedArtist, InsertSavedArtist,
+  riderRevisions, InsertRiderRevision, RiderRevision
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -139,6 +140,45 @@ export async function updateSignature(id: number, data: Partial<InsertSignature>
   
   await db.update(signatures).set(data).where(eq(signatures.id, id));
   return await getSignatureById(id);
+}
+
+// ============= RIDER REVISION FUNCTIONS =============
+
+export async function createRiderRevision(data: InsertRiderRevision): Promise<RiderRevision> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const result = await db.insert(riderRevisions).values(data);
+  const id = result[0].insertId;
+  const rows = await db.select().from(riderRevisions).where(eq(riderRevisions.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getRiderRevisionsByBookingId(bookingId: number): Promise<RiderRevision[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(riderRevisions).where(eq(riderRevisions.bookingId, bookingId)).orderBy(desc(riderRevisions.createdAt));
+}
+
+export async function getRiderRevisionById(id: number): Promise<RiderRevision | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(riderRevisions).where(eq(riderRevisions.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getPendingRiderRevisions(bookingId: number): Promise<RiderRevision[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(riderRevisions)
+    .where(and(eq(riderRevisions.bookingId, bookingId), eq(riderRevisions.status, 'pending')))
+    .orderBy(desc(riderRevisions.createdAt));
+}
+
+export async function updateRiderRevision(id: number, data: Partial<InsertRiderRevision>): Promise<RiderRevision | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(riderRevisions).set(data).where(eq(riderRevisions.id, id));
+  return await getRiderRevisionById(id);
 }
 
 export async function getDb() {

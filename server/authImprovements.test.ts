@@ -66,7 +66,7 @@ describe('Auth Improvements - OAuth Mobile Error Handling', () => {
     // Should redirect with oauth_error param on missing code/state
     expect(content).toContain('/?oauth_error=INVALID_CODE');
     // Should redirect on missing openId
-    expect(content).toContain('/?oauth_error=MISSING_EMAIL');
+    expect(content).toContain('/?oauth_error=MISSING_OPENID');
     // Should redirect on unknown errors
     expect(content).toContain('/?oauth_error=UNKNOWN_ERROR');
     // Should NOT return JSON errors (bad UX on mobile)

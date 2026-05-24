@@ -334,3 +334,66 @@ export async function notifyPerformanceRequest(params: {
     params.actionUrl || "/dashboard"
   );
 }
+
+// ============= DEPOSIT PAYMENT NOTIFICATIONS =============
+
+export async function notifyDepositPaymentReady(params: {
+  recipientUserId: number;
+  bookingId: number;
+  amount: string;
+  checkoutUrl: string;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "payment",
+    "Deposit Payment Ready",
+    `The rider contract has been signed by both parties. A deposit of ${params.amount} is now due. Click to pay securely via Stripe.`,
+    `/bookings/${params.bookingId}?pay_deposit=true`
+  );
+}
+
+// ============= RIDER REVISION NOTIFICATIONS =============
+
+export async function notifyRiderRevisionProposed(params: {
+  recipientUserId: number;
+  proposerName: string;
+  bookingId: number;
+  fieldCount: number;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "contract",
+    "Rider Changes Proposed",
+    `${params.proposerName} proposed ${params.fieldCount} change${params.fieldCount > 1 ? 's' : ''} to the rider contract. Please review and approve or reject.`,
+    `/bookings/${params.bookingId}`
+  );
+}
+
+export async function notifyRiderRevisionApproved(params: {
+  recipientUserId: number;
+  approverName: string;
+  bookingId: number;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "contract",
+    "Rider Changes Approved",
+    `${params.approverName} approved your proposed changes to the rider contract.`,
+    `/bookings/${params.bookingId}`
+  );
+}
+
+export async function notifyRiderRevisionRejected(params: {
+  recipientUserId: number;
+  rejecterName: string;
+  bookingId: number;
+  reason?: string;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "contract",
+    "Rider Changes Rejected",
+    `${params.rejecterName} rejected your proposed changes${params.reason ? `: "${params.reason}"` : '. You may discuss and re-submit.'}`,
+    `/bookings/${params.bookingId}`
+  );
+}

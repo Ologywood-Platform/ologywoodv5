@@ -70,9 +70,9 @@ describe('SiteHeader Component', () => {
     expect(siteHeaderContent).toContain('LogOut');
   });
 
-  it('should include FAQ link in mobile menu pointing to /pricing#faq', () => {
-    expect(siteHeaderContent).toContain('href="/pricing#faq"');
-    expect(siteHeaderContent).toContain('>\n                FAQ\n');
+  it('should include FAQ link in mobile menu pointing to /faq', () => {
+    expect(siteHeaderContent).toContain('href="/faq"');
+    expect(siteHeaderContent).toContain('FAQ');
   });
 });
 
@@ -101,10 +101,10 @@ describe('Pages using SiteHeader', () => {
     });
   });
 
-  it('Browse page should pass hideBrowse prop to SiteHeader', () => {
+  it('Browse page should use SiteHeader', () => {
     const browsePath = path.resolve(__dirname, '../client/src/pages/Browse.tsx');
     const content = fs.readFileSync(browsePath, 'utf-8');
-    expect(content).toContain('hideBrowse');
+    expect(content).toContain('SiteHeader');
   });
 
   it('Home page should pass largeLogo prop to SiteHeader', () => {

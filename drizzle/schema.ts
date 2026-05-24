@@ -1412,3 +1412,29 @@ export const savedArtists = mysqlTable("saved_artists", {
 
 export type SavedArtist = typeof savedArtists.$inferSelect;
 export type InsertSavedArtist = typeof savedArtists.$inferInsert;
+
+/**
+ * Rider Revisions - tracks proposed changes to rider contract fields.
+ * Venues can propose changes before signing; artists approve or reject.
+ */
+export const riderRevisions = mysqlTable("rider_revisions", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  contractId: int("contractId").notNull(),
+  proposedByUserId: int("proposedByUserId").notNull(),
+  proposedByRole: varchar("proposedByRole", { length: 20 }).notNull(), // "artist" | "venue"
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  // Store changes as JSON: { fieldId: { oldValue, newValue, label } }
+  changes: json("changes").notNull(),
+  rejectionReason: text("rejectionReason"),
+  reviewedByUserId: int("reviewedByUserId"),
+  reviewedAt: timestamp("reviewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_rider_revisions_booking").on(table.bookingId),
+  contractIdx: index("idx_rider_revisions_contract").on(table.contractId),
+  statusIdx: index("idx_rider_revisions_status").on(table.status),
+}));
+
+export type RiderRevision = typeof riderRevisions.$inferSelect;
+export type InsertRiderRevision = typeof riderRevisions.$inferInsert;

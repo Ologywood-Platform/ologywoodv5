@@ -12,6 +12,7 @@ import PaymentSection from '@/components/PaymentSection';
 import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { RiderAttach } from '@/components/RiderAttach';
+import { RiderRevisionPanel } from '@/components/RiderRevisionPanel';
 import { VenueContractSection } from '@/components/VenueContractSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -342,6 +343,16 @@ export default function BookingDetail() {
               bookingId={bookingId}
               currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
               onSigningComplete={() => refetch()}
+            />
+          )}
+
+          {/* Rider Revision Panel - propose/review changes before signing */}
+          {booking.riderTemplateId && (
+            <RiderRevisionPanel
+              bookingId={bookingId}
+              currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+              riderData={{}}
+              contractStatus={booking.riderStatus === 'signed' ? 'fully_signed' : undefined}
             />
           )}
 

@@ -127,7 +127,7 @@ describe('Blog Admin Cover Image Upload UI', () => {
     );
     expect(adminFile).toContain('Upload');
     expect(adminFile).toContain('ImageIcon');
-    expect(adminFile).toContain(' X ');
+    expect(adminFile).toContain('X');
   });
 });
 

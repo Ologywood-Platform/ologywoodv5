@@ -236,6 +236,95 @@ export const riderContractRouter = router({
           if (venueProf2) notif.notifyContractFullySigned({ recipientUserId: venueProf2.userId, bookingId: input.bookingId }).catch(() => {});
         } catch (_) {}
 
+        // === DEPOSIT PAYMENT TRIGGER ===
+        // When both parties sign, auto-create a Stripe checkout for the deposit
+        try {
+          const riderTemplate = booking.riderTemplateId ? await getRiderTemplate(booking.riderTemplateId) : null;
+          const riderData = riderTemplate?.templateData
+            ? (typeof riderTemplate.templateData === 'string' ? JSON.parse(riderTemplate.templateData) : riderTemplate.templateData)
+            : {};
+
+          const performanceFee = parseFloat(riderData.performance_fee || '0');
+          const depositOption = riderData.deposit_required || 'No deposit';
+          const paymentMethod = riderData.payment_method || '';
+
+          if (performanceFee > 0 && depositOption !== 'No deposit' && paymentMethod.includes('Stripe')) {
+            let depositPercent = 0;
+            if (depositOption.includes('25%')) depositPercent = 0.25;
+            else if (depositOption.includes('50%')) depositPercent = 0.50;
+            else if (depositOption.includes('100%')) depositPercent = 1.0;
+
+            const depositAmountCents = Math.round(performanceFee * depositPercent * 100);
+
+            if (depositAmountCents >= 50) { // Stripe minimum $0.50
+              const { stripe } = await import('../stripe');
+              const { getOrCreateStripeCustomer } = await import('../stripe');
+
+              if (stripe) {
+                // Get venue user (they pay the deposit)
+                const venueProfileForPay = await db.getVenueProfileById(booking.venueId);
+                const venueUserForPay = venueProfileForPay ? await db.getUserById(venueProfileForPay.userId) : null;
+                const artistProfileForPay = await db.getArtistProfileById(booking.artistId);
+
+                if (venueUserForPay?.email) {
+                  const customerId = await getOrCreateStripeCustomer({
+                    email: venueUserForPay.email,
+                    name: venueUserForPay.name || venueProfileForPay?.organizationName || 'Venue',
+                    userId: venueUserForPay.id.toString(),
+                  });
+
+                  const baseUrl = ctx.req?.headers?.origin || process.env.BASE_URL || 'https://www.ologywood.com';
+                  const session = await stripe.checkout.sessions.create({
+                    mode: 'payment',
+                    customer: customerId,
+                    line_items: [{
+                      price_data: {
+                        currency: 'usd',
+                        product_data: {
+                          name: `Booking Deposit - ${artistProfileForPay?.artistName || 'Artist'}`,
+                          description: `${depositOption} for ${riderData.event_name || 'Performance'} on ${riderData.event_date || 'TBD'}`,
+                        },
+                        unit_amount: depositAmountCents,
+                      },
+                      quantity: 1,
+                    }],
+                    metadata: {
+                      bookingId: booking.id.toString(),
+                      userId: venueUserForPay.id.toString(),
+                      paymentType: 'deposit',
+                      depositPercent: (depositPercent * 100).toString(),
+                      platformFeeAmount: Math.round(depositAmountCents * 0.05).toString(), // 5% platform fee
+                    },
+                    success_url: `${baseUrl}/bookings/${booking.id}?payment=success`,
+                    cancel_url: `${baseUrl}/bookings/${booking.id}?payment=cancelled`,
+                    allow_promotion_codes: true,
+                  });
+
+                  // Update booking with deposit amount
+                  await db.updateBooking(booking.id, {
+                    depositAmount: (depositAmountCents / 100).toFixed(2),
+                    totalFee: performanceFee.toFixed(2),
+                  });
+
+                  // Send deposit payment link to venue via in-app notification
+                  if (venueProfileForPay) {
+                    notif.notifyDepositPaymentReady({
+                      recipientUserId: venueProfileForPay.userId,
+                      bookingId: booking.id,
+                      amount: `$${(depositAmountCents / 100).toFixed(2)}`,
+                      checkoutUrl: session.url || '',
+                    }).catch(() => {});
+                  }
+
+                  console.log(`[RiderContract] Deposit checkout created: $${(depositAmountCents / 100).toFixed(2)} for booking #${booking.id}`);
+                }
+              }
+            }
+          }
+        } catch (depositErr) {
+          console.error('[RiderContract] Error creating deposit checkout:', depositErr);
+        }
+
         // Send "fully signed" email notification to both parties
         try {
           const artistProf = await db.getArtistProfileById(booking.artistId);
@@ -398,6 +487,273 @@ export const riderContractRouter = router({
           : null,
         createdAt: contract.createdAt,
       };
+    }),
+
+  // ============= RIDER REVISION FLOW =============
+
+  /**
+   * Propose changes to rider fields (venue proposes, artist reviews)
+   * Can also be used by artist to propose changes to venue
+   */
+  proposeRevision: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      changes: z.record(z.string(), z.object({
+        oldValue: z.any(),
+        newValue: z.any(),
+        label: z.string(),
+      })),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      const proposerRole = isArtist ? "artist" : "venue";
+
+      // Get or create contract
+      let contract = await db.getContractByBookingId(input.bookingId);
+      if (!contract) {
+        let contractData: Record<string, any> = {};
+        if (booking.riderTemplateId) {
+          const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+          if (riderTemplate) {
+            contractData = typeof riderTemplate.templateData === "string"
+              ? JSON.parse(riderTemplate.templateData)
+              : riderTemplate.templateData || {};
+          }
+        }
+        contract = await db.createContract({
+          bookingId: input.bookingId,
+          artistId: booking.artistId,
+          venueId: booking.venueId,
+          riderTemplateId: booking.riderTemplateId,
+          contractData,
+          status: "pending",
+        });
+      }
+
+      // Cannot propose revisions on a fully signed contract
+      if (contract.status === "fully_signed") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot propose changes to a fully signed contract" });
+      }
+
+      const revision = await db.createRiderRevision({
+        bookingId: input.bookingId,
+        contractId: contract.id,
+        proposedByUserId: ctx.user.id,
+        proposedByRole: proposerRole,
+        changes: input.changes,
+        status: "pending",
+      });
+
+      // Notify the other party
+      try {
+        const proposerName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
+        const fieldCount = Object.keys(input.changes).length;
+
+        if (isArtist && venueProfile) {
+          notif.notifyRiderRevisionProposed({
+            recipientUserId: venueProfile.userId,
+            proposerName,
+            bookingId: input.bookingId,
+            fieldCount,
+          }).catch(() => {});
+        } else if (isVenue && artistProfile) {
+          notif.notifyRiderRevisionProposed({
+            recipientUserId: artistProfile.userId,
+            proposerName,
+            bookingId: input.bookingId,
+            fieldCount,
+          }).catch(() => {});
+        }
+      } catch (_) {}
+
+      return { success: true, revisionId: revision.id };
+    }),
+
+  /**
+   * Get all revisions for a booking
+   */
+  getRevisions: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      const revisions = await db.getRiderRevisionsByBookingId(input.bookingId);
+      return revisions.map(r => ({
+        id: r.id,
+        proposedByRole: r.proposedByRole,
+        proposedByUserId: r.proposedByUserId,
+        status: r.status,
+        changes: r.changes as Record<string, { oldValue: any; newValue: any; label: string }>,
+        rejectionReason: r.rejectionReason,
+        reviewedAt: r.reviewedAt,
+        createdAt: r.createdAt,
+      }));
+    }),
+
+  /**
+   * Approve a proposed revision — applies changes to the rider template data
+   */
+  approveRevision: protectedProcedure
+    .input(z.object({ revisionId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const revision = await db.getRiderRevisionById(input.revisionId);
+      if (!revision) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Revision not found" });
+      }
+
+      if (revision.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Revision already reviewed" });
+      }
+
+      const booking = await db.getBookingById(revision.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Only the OTHER party can approve (not the proposer)
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      const currentRole = isArtist ? "artist" : "venue";
+      if (currentRole === revision.proposedByRole) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cannot approve your own revision" });
+      }
+
+      // Apply changes to the rider template data
+      if (booking.riderTemplateId) {
+        const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+        if (riderTemplate) {
+          const currentData = typeof riderTemplate.templateData === "string"
+            ? JSON.parse(riderTemplate.templateData)
+            : riderTemplate.templateData || {};
+
+          const changes = revision.changes as Record<string, { oldValue: any; newValue: any; label: string }>;
+          for (const [fieldId, change] of Object.entries(changes)) {
+            currentData[fieldId] = change.newValue;
+          }
+
+          // Update the rider template with new data
+          // Use direct DB update since this is an approved revision (bypasses artist ownership check)
+          const { getDb: getDbFn } = await import('../db');
+          const { riderTemplates: riderTemplatesTable } = await import('../../drizzle/schema');
+          const { eq: eqFn } = await import('drizzle-orm');
+          const dbInst = await getDbFn();
+          if (dbInst) {
+            await dbInst.update(riderTemplatesTable).set({
+              templateData: currentData,
+            }).where(eqFn(riderTemplatesTable.id, booking.riderTemplateId!));
+          }
+        }
+      }
+
+      // Mark revision as approved
+      await db.updateRiderRevision(input.revisionId, {
+        status: "approved",
+        reviewedByUserId: ctx.user.id,
+        reviewedAt: new Date(),
+      });
+
+      // Notify proposer
+      try {
+        const approverName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
+        notif.notifyRiderRevisionApproved({
+          recipientUserId: revision.proposedByUserId,
+          approverName,
+          bookingId: revision.bookingId,
+        }).catch(() => {});
+      } catch (_) {}
+
+      return { success: true };
+    }),
+
+  /**
+   * Reject a proposed revision with optional reason
+   */
+  rejectRevision: protectedProcedure
+    .input(z.object({
+      revisionId: z.number(),
+      reason: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const revision = await db.getRiderRevisionById(input.revisionId);
+      if (!revision) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Revision not found" });
+      }
+
+      if (revision.status !== "pending") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Revision already reviewed" });
+      }
+
+      const booking = await db.getBookingById(revision.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Only the OTHER party can reject
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      const currentRole = isArtist ? "artist" : "venue";
+      if (currentRole === revision.proposedByRole) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Cannot reject your own revision" });
+      }
+
+      await db.updateRiderRevision(input.revisionId, {
+        status: "rejected",
+        rejectionReason: input.reason || null,
+        reviewedByUserId: ctx.user.id,
+        reviewedAt: new Date(),
+      });
+
+      // Notify proposer
+      try {
+        const rejecterName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
+        notif.notifyRiderRevisionRejected({
+          recipientUserId: revision.proposedByUserId,
+          rejecterName,
+          bookingId: revision.bookingId,
+          reason: input.reason,
+        }).catch(() => {});
+      } catch (_) {}
+
+      return { success: true };
     }),
 
   /**
