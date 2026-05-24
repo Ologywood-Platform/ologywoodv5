@@ -17,6 +17,7 @@ import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
 import { ReferralSection } from '@/components/ReferralSection';
 import BookingCalendar from '@/components/BookingCalendar';
+import DashboardAnalyticsCards from '@/components/DashboardAnalyticsCards';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -51,6 +52,18 @@ export function ArtistDashboardV3() {
     enabled: isArtist,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
+  const { data: bookingStats } = trpc.profileAnalytics.getBookingStats.useQuery(undefined, {
+    enabled: isArtist,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: revenueData } = trpc.profileAnalytics.getRevenueByMonth.useQuery({ months: 2 }, {
+    enabled: isArtist,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: avgRating } = trpc.artistReview.getAverageRating.useQuery(
+    { artistId: artistProfile?.id || 0 },
+    { enabled: isArtist && !!artistProfile?.id, staleTime: 5 * 60 * 1000 }
+  );
   const deleteEventMutation = trpc.events.deleteArtistPost.useMutation({
     onSuccess: () => { refetchEvents(); },
   });
@@ -199,6 +212,34 @@ export function ArtistDashboardV3() {
                 profile={artistProfile}
                 type="artist"
                 onEditProfile={() => navigate('/onboarding/artist')}
+              />
+            )}
+
+            {/* Analytics Summary Cards */}
+            {bookingStats && (
+              <DashboardAnalyticsCards
+                monthlyBookings={(() => {
+                  const now = new Date();
+                  const thisMonth = now.toISOString().slice(0, 7);
+                  const thisMonthRevenue = revenueData?.find(r => r.month === thisMonth);
+                  // Count bookings created this month from the bookings list
+                  const monthlyCount = bookings?.filter(b => {
+                    const created = new Date(b.createdAt || b.eventDate);
+                    return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth();
+                  }).length || 0;
+                  return monthlyCount;
+                })()}
+                totalEarnings={revenueData?.reduce((sum, r) => sum + r.revenue, 0) || 0}
+                averageRating={avgRating?.averageRating || 0}
+                reviewCount={avgRating?.reviewCount || 0}
+                previousMonthBookings={(() => {
+                  const now = new Date();
+                  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                  return bookings?.filter(b => {
+                    const created = new Date(b.createdAt || b.eventDate);
+                    return created.getFullYear() === lastMonth.getFullYear() && created.getMonth() === lastMonth.getMonth();
+                  }).length || 0;
+                })()}
               />
             )}
 

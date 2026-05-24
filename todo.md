@@ -2834,3 +2834,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Send email when venue/artist proposes rider changes (sendRiderRevisionProposedEmail)
 - [x] Send email when artist/venue approves/rejects revisions (sendRiderRevisionDecisionEmail)
 - [x] All emails include unsubscribe links
+
+## DASHBOARD ANALYTICS CARDS (May 24, 2026)
+- [x] Add server-side analytics endpoints (using existing profileAnalytics + venueReview/artistReview endpoints)
+- [x] Build analytics summary cards for artist dashboard (monthly bookings, total earnings, avg rating with trend)
+- [x] Build analytics summary cards for venue dashboard (replaced old simple stats with unified DashboardAnalyticsCards)

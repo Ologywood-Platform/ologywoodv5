@@ -18,6 +18,7 @@ import VenueAnalytics from '../components/VenueAnalytics';
 import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
+import DashboardAnalyticsCards from '../components/DashboardAnalyticsCards';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -56,6 +57,12 @@ export function VenueDashboard() {
   const { data: bookings, isLoading: bookingsLoading, refetch: refetchBookings } = trpc.booking.getMyVenueBookings.useQuery(
     undefined,
     { enabled: !!user && (user.role === 'venue' || user.role === 'admin'), staleTime: 60_000 }
+  );
+
+  // Fetch venue review rating
+  const { data: venueRating } = trpc.venueReview.getAverageRating.useQuery(
+    { venueId: profile?.id || 0 },
+    { enabled: !!profile?.id, staleTime: 5 * 60 * 1000 }
   );
 
   // Fetch artists for discovery — only load when Artists tab is active
@@ -381,51 +388,30 @@ export function VenueDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Quick Stats */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Active Bookings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {bookings?.filter(b => b.status === 'confirmed').length || 0}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {bookings?.filter(b => b.status === 'pending').length || 0}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">Profile Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    {profile ? (
-                      <>
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span className="text-sm font-medium text-green-600">Complete</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="h-5 w-5 text-yellow-500" />
-                        <span className="text-sm font-medium text-yellow-600">Incomplete</span>
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Analytics Summary Cards */}
+            <DashboardAnalyticsCards
+              monthlyBookings={(() => {
+                const now = new Date();
+                return bookings?.filter(b => {
+                  const created = new Date(b.createdAt || b.eventDate);
+                  return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth();
+                }).length || 0;
+              })()}
+              totalEarnings={(() => {
+                return bookings?.filter(b => b.status === 'completed' || b.status === 'confirmed')
+                  .reduce((sum, b) => sum + (Number(b.totalFee) || 0), 0) || 0;
+              })()}
+              averageRating={typeof venueRating === 'number' ? venueRating : (venueRating as any)?.averageRating || 0}
+              reviewCount={(venueRating as any)?.reviewCount || 0}
+              previousMonthBookings={(() => {
+                const now = new Date();
+                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                return bookings?.filter(b => {
+                  const created = new Date(b.createdAt || b.eventDate);
+                  return created.getFullYear() === lastMonth.getFullYear() && created.getMonth() === lastMonth.getMonth();
+                }).length || 0;
+              })()}
+            />
 
             {/* Profile Completeness */}
             {profile && (
