@@ -2802,3 +2802,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Artist can approve or reject proposed revisions
 - [x] Track revision history on the contract
 - [x] RiderRevisionPanel UI component with propose/approve/reject/history views
+
+## AUTO-COMPLETE BOOKINGS CRON (May 24, 2026)
+- [ ] Register Heartbeat cron job to auto-complete past-date bookings (daily 6 AM UTC)
+- [ ] Mark confirmed bookings as "completed" when event date has passed
+
+## VENUE REVIEWS/RATINGS SYSTEM (May 24, 2026)
+- [ ] Create venue_reviews table (professionalism, sound quality, green room, payment timeliness)
+- [ ] Build API routes for creating/reading venue reviews
+- [ ] Build VenueReviewForm UI component for artists on completed bookings
+- [ ] Display venue ratings on venue profile pages
+
+## RIDER TEMPLATE DEFAULTS (May 24, 2026)
+- [ ] Add isDefault column to rider_templates table
+- [ ] Add "Set as Default" button on Rider Builder page
+- [ ] Auto-populate new bookings with default rider template data
