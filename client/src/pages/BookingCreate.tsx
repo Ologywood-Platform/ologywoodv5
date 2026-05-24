@@ -18,16 +18,17 @@ export default function BookingCreate() {
   
   const params = new URLSearchParams(searchParams);
   const artistId = params.get('artistId');
+  const isRebook = params.get('rebook') === 'true';
   
   const [formData, setFormData] = useState({
     eventDate: '',
     eventTime: '',
     eventDetails: '',
-    budget: '',
-    notes: '',
-    paymentTermsType: 'flat_guarantee' as 'flat_guarantee' | 'door_split' | 'guarantee_vs_percentage',
-    doorSplitArtistPercent: '80',
-    guaranteeAmount: '',
+    budget: params.get('totalFee') || '',
+    notes: isRebook ? 'Rebooking from a previous engagement' : '',
+    paymentTermsType: (params.get('paymentTermsType') || 'flat_guarantee') as 'flat_guarantee' | 'door_split' | 'guarantee_vs_percentage',
+    doorSplitArtistPercent: params.get('doorSplitArtistPercent') || '80',
+    guaranteeAmount: params.get('guaranteeAmount') || '',
   });
 
   // Get venue profile for the logged-in user
@@ -118,9 +119,11 @@ export default function BookingCreate() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">
-              {artistProfile ? `Book ${artistProfile.artistName}` : 'Create Booking'}
+              {isRebook ? `Rebook ${artistProfile?.artistName || 'Artist'}` : artistProfile ? `Book ${artistProfile.artistName}` : 'Create Booking'}
             </h1>
-            <p className="text-sm text-gray-600">Send a booking request to this artist for your event</p>
+            <p className="text-sm text-gray-600">
+              {isRebook ? 'Previous payment terms have been pre-filled' : 'Send a booking request to this artist for your event'}
+            </p>
           </div>
         </div>
       </header>

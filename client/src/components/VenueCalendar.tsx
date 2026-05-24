@@ -9,6 +9,7 @@ interface Booking {
   eventTime?: string | null;
   status: string;
   artistName?: string;
+  artistId?: number;
   artistPhoto?: string | null;
   eventDetails?: string | null;
   totalFee?: string | null;

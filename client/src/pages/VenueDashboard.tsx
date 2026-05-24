@@ -538,11 +538,12 @@ export function VenueDashboard() {
                   // Navigate to event creation with booking data pre-filled
                   const params = new URLSearchParams({
                     bookingId: booking.id.toString(),
+                    artistId: (booking as any).artistId?.toString() || '',
                     artistName: booking.artistName || '',
-                    eventDate: typeof booking.eventDate === 'string' ? booking.eventDate : new Date(booking.eventDate).toISOString().split('T')[0],
-                    eventTime: booking.eventTime || '',
+                    date: typeof booking.eventDate === 'string' ? booking.eventDate : new Date(booking.eventDate).toISOString().split('T')[0],
+                    time: booking.eventTime || '',
                   });
-                  navigate(`/events/create?${params.toString()}`);
+                  navigate(`/venue/events/create?${params.toString()}`);
                 }}
               />
             )}

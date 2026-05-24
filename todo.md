@@ -2748,3 +2748,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Saved Artists tab in venue dashboard with quick-book buttons
 - [x] Payment terms selection (flat/door-split/guarantee-vs-%) in booking creation form
 - [x] Post Event button on confirmed calendar dates
+
+
+## VENUE FOLLOW-UPS ROUND 2 (May 23, 2026)
+- [x] Update EventCreate page to allow venue role (not just artist-only)
+- [x] Show payment terms on booking detail page for artists
+- [x] Add Rebook shortcut on completed bookings (pre-fill previous terms)

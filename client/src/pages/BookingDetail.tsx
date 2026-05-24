@@ -212,7 +212,44 @@ export default function BookingDetail() {
               )}
             </div>
 
+            {/* Payment Terms */}
+            {(booking as any).paymentTermsType && (booking as any).paymentTermsType !== 'flat_guarantee' && (
+              <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Payment Terms
+                </h3>
+                <div className="text-sm text-slate-600 space-y-1">
+                  {(booking as any).paymentTermsType === 'door_split' && (
+                    <>
+                      <p className="font-medium text-slate-800">Door Split</p>
+                      <p>Artist receives {(booking as any).doorSplitArtistPercent || 80}% of door revenue</p>
+                      <p>Venue retains {100 - ((booking as any).doorSplitArtistPercent || 80)}% of door revenue</p>
+                    </>
+                  )}
+                  {(booking as any).paymentTermsType === 'guarantee_vs_percentage' && (
+                    <>
+                      <p className="font-medium text-slate-800">Guarantee vs. Percentage</p>
+                      <p>Minimum guarantee: ${(booking as any).guaranteeAmount || '0'}</p>
+                      <p>OR {(booking as any).doorSplitArtistPercent || 80}% of door — whichever is higher</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
+            {(booking as any).paymentTermsType === 'flat_guarantee' && booking.totalFee && (
+              <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Payment Terms
+                </h3>
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium text-slate-800">Flat Guarantee</p>
+                  <p>Artist receives ${booking.totalFee} regardless of door revenue</p>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             {canUpdateStatus && booking.status === 'pending' && (
@@ -250,8 +287,28 @@ export default function BookingDetail() {
 
             {/* Report Issue - available on completed or cancelled bookings */}
             {(booking.status === 'completed' || booking.status === 'cancelled') && (
-              <div className="mt-6">
+              <div className="mt-6 flex items-center gap-3">
                 <ReportIssueDialog bookingId={bookingId} onDisputeFiled={() => refetch()} />
+                {/* Rebook shortcut for venues */}
+                {booking.bookingRole === 'venue' && (
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        artistId: booking.artistId?.toString() || '',
+                        paymentTermsType: (booking as any).paymentTermsType || 'flat_guarantee',
+                        ...(booking.totalFee ? { totalFee: booking.totalFee } : {}),
+                        ...((booking as any).doorSplitArtistPercent ? { doorSplitArtistPercent: (booking as any).doorSplitArtistPercent.toString() } : {}),
+                        ...((booking as any).guaranteeAmount ? { guaranteeAmount: (booking as any).guaranteeAmount } : {}),
+                      });
+                      navigate(`/booking/create?rebook=true&${params.toString()}`);
+                    }}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Rebook Artist
+                  </Button>
+                )}
               </div>
             )}
           </Card>
