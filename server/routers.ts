@@ -1953,6 +1953,10 @@ export const appRouter = router({
         bookingId: z.number(),
         venueId: z.number(),
         rating: z.number().min(1).max(5),
+        professionalismRating: z.number().min(1).max(5).optional(),
+        soundQualityRating: z.number().min(1).max(5).optional(),
+        greenRoomRating: z.number().min(1).max(5).optional(),
+        paymentTimelinessRating: z.number().min(1).max(5).optional(),
         reviewText: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -1982,6 +1986,10 @@ export const appRouter = router({
           venueId: input.venueId,
           artistId: artistProfile.id,
           rating: input.rating,
+          professionalismRating: input.professionalismRating,
+          soundQualityRating: input.soundQualityRating,
+          greenRoomRating: input.greenRoomRating,
+          paymentTimelinessRating: input.paymentTimelinessRating,
           comment: input.reviewText,
         });
         

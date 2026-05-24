@@ -442,6 +442,36 @@ export default function VenueProfile() {
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
+
+                    {/* Category Ratings */}
+                    {(review.professionalismRating || review.soundQualityRating || review.greenRoomRating || review.paymentTimelinessRating) && (
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 mb-3 text-sm">
+                        {review.professionalismRating && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Professionalism</span>
+                            <span className="font-medium">{review.professionalismRating}/5</span>
+                          </div>
+                        )}
+                        {review.soundQualityRating && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Sound Quality</span>
+                            <span className="font-medium">{review.soundQualityRating}/5</span>
+                          </div>
+                        )}
+                        {review.greenRoomRating && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Green Room</span>
+                            <span className="font-medium">{review.greenRoomRating}/5</span>
+                          </div>
+                        )}
+                        {review.paymentTimelinessRating && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Payment Timeliness</span>
+                            <span className="font-medium">{review.paymentTimelinessRating}/5</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     {review.comment && (
                       <p className="text-muted-foreground mb-3">{review.comment}</p>

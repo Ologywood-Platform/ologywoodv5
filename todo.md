@@ -2804,16 +2804,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] RiderRevisionPanel UI component with propose/approve/reject/history views
 
 ## AUTO-COMPLETE BOOKINGS CRON (May 24, 2026)
-- [ ] Register Heartbeat cron job to auto-complete past-date bookings (daily 6 AM UTC)
-- [ ] Mark confirmed bookings as "completed" when event date has passed
+- [x] Handler built and mounted at /api/scheduled/auto-complete-bookings
+- [x] Mark confirmed bookings as "completed" when event date has passed
+- [ ] Register Heartbeat cron (needs fresh deploy - internal server error on create, will retry after publish)
 
 ## VENUE REVIEWS/RATINGS SYSTEM (May 24, 2026)
-- [ ] Create venue_reviews table (professionalism, sound quality, green room, payment timeliness)
-- [ ] Build API routes for creating/reading venue reviews
-- [ ] Build VenueReviewForm UI component for artists on completed bookings
-- [ ] Display venue ratings on venue profile pages
+- [x] Create venue_reviews table (professionalism, sound quality, green room, payment timeliness)
+- [x] Build API routes for creating/reading venue reviews (create, getByVenue, getByBooking, getAverageRating, respondToReview)
+- [x] Build VenueReviewForm UI with category-specific star ratings
+- [x] Display venue ratings with category breakdown on venue profile pages
 
 ## RIDER TEMPLATE DEFAULTS (May 24, 2026)
-- [ ] Add isDefault column to rider_templates table
-- [ ] Add "Set as Default" button on Rider Builder page
-- [ ] Auto-populate new bookings with default rider template data
+- [x] Add isDefault column to rider_templates table (already existed)
+- [x] "Set as Default" star button on Rider Builder page (already existed)
+- [x] Auto-populate new bookings with default rider template data (built in prior session)

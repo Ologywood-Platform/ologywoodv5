@@ -342,7 +342,11 @@ export const venueReviews = mysqlTable("venue_reviews", {
   bookingId: int("bookingId").notNull().unique(),
   venueId: int("venueId").notNull(),
   artistId: int("artistId").notNull(),
-  rating: int("rating").notNull(), // 1-5
+  rating: int("rating").notNull(), // 1-5 overall
+  professionalismRating: int("professionalismRating"), // 1-5
+  soundQualityRating: int("soundQualityRating"), // 1-5
+  greenRoomRating: int("greenRoomRating"), // 1-5
+  paymentTimelinessRating: int("paymentTimelinessRating"), // 1-5
   comment: text("comment"),
   venueResponse: text("venueResponse"),
   respondedAt: timestamp("respondedAt"),
