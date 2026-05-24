@@ -1813,3 +1813,85 @@ export async function sendSettlementReminderEmail(params: {
 
   return sendEmail({ to: venueEmail, subject, html });
 }
+
+
+// ============= PERFORMANCE REQUEST EMAILS =============
+
+/**
+ * Send email to venue when an artist requests to perform
+ */
+export async function sendPerformanceRequestEmail(params: {
+  venueEmail: string;
+  venueName: string;
+  artistName: string;
+  eventName: string;
+  eventDate: string;
+  eventTime?: string;
+  message?: string;
+  paymentTermsType?: string;
+  proposedFee?: number;
+}): Promise<boolean> {
+  const { venueEmail, venueName, artistName, eventName, eventDate, eventTime, message, paymentTermsType, proposedFee } = params;
+
+  const eventDateStr = new Date(eventDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const termsLabels: Record<string, string> = {
+    flat_guarantee: 'Flat Guarantee',
+    door_split: 'Door Split %',
+    guarantee_vs_percentage: 'Guarantee vs. Percentage',
+  };
+
+  const termsLabel = paymentTermsType ? termsLabels[paymentTermsType] || paymentTermsType : 'Not specified';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 22px;">🎤 Performance Request</h1>
+        <p style="margin: 10px 0 0; opacity: 0.9;">An artist wants to perform at your venue</p>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p>Hi ${venueName},</p>
+        <p><strong>${artistName}</strong> has submitted a request to perform at your venue.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+          <h3 style="margin-top: 0; color: #6d28d9;">Request Details</h3>
+          <p><strong>Show Name:</strong> ${eventName}</p>
+          <p><strong>Preferred Date:</strong> ${eventDateStr}</p>
+          ${eventTime ? `<p><strong>Time:</strong> ${eventTime}</p>` : ''}
+          <p><strong>Payment Terms:</strong> ${termsLabel}</p>
+          ${proposedFee ? `<p><strong>Proposed Fee:</strong> $${proposedFee.toLocaleString()}</p>` : ''}
+        </div>
+        
+        ${message ? `
+        <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+          <h4 style="margin-top: 0; color: #374151;">Message from Artist:</h4>
+          <p style="color: #4b5563; margin: 0; white-space: pre-wrap;">${message}</p>
+        </div>
+        ` : ''}
+        
+        <p>Log in to your dashboard to review this request and respond to the artist.</p>
+        
+        <a href="${ENV.baseUrl}/dashboard" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+          Review Request
+        </a>
+        
+        <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+          <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=booking" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+          <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: venueEmail,
+    subject: `Performance Request from ${artistName} — ${eventName} on ${eventDateStr}`,
+    html,
+  });
+}

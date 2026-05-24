@@ -316,3 +316,21 @@ export async function notifyVenueContractExpiring(params: {
     `/booking/${params.bookingId}`
   );
 }
+
+// ============= PERFORMANCE REQUEST NOTIFICATIONS =============
+
+export async function notifyPerformanceRequest(params: {
+  venueUserId: number;
+  artistName: string;
+  eventName: string;
+  eventDate: string;
+  actionUrl?: string;
+}): Promise<void> {
+  await notify(
+    params.venueUserId,
+    "booking",
+    "Performance Request",
+    `${params.artistName} wants to perform at your venue — "${params.eventName}" on ${params.eventDate}`,
+    params.actionUrl || "/dashboard"
+  );
+}

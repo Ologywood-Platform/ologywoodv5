@@ -13,6 +13,7 @@ import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import SiteHeader from '@/components/SiteHeader';
+import { QuickBookingModal } from '@/components/QuickBookingModal';
 
 export default function VenueBrowse() {
   const { user, isAuthenticated } = useAuth();
@@ -24,6 +25,7 @@ export default function VenueBrowse() {
   const [showFilters, setShowFilters] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [bookingVenue, setBookingVenue] = useState<any>(null);
 
   // Set SEO meta tags
   useEffect(() => {
@@ -90,11 +92,11 @@ export default function VenueBrowse() {
     navigate(`/venue/${venueId}`);
   };
 
-  const handleBookVenue = (venueId: number) => {
+  const handleBookVenue = (venue: any) => {
     if (!isAuthenticated) {
       setShowSignupModal(true);
     } else {
-      navigate(`/booking/create?venueId=${venueId}`);
+      setBookingVenue(venue);
     }
   };
 
@@ -360,22 +362,24 @@ export default function VenueBrowse() {
                     </Button>
                     {user?.role === 'artist' && (
                       <Button
-                        onClick={() => handleBookVenue(venue.id)}
+                        onClick={() => handleBookVenue(venue)}
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                        title="Send a booking request to this venue"
                       >
                         <Calendar className="w-4 h-4 mr-1" />
-                        Book
+                        Request to Book
                       </Button>
                     )}
                     {!isAuthenticated && (
                       <Button
-                        onClick={() => handleMessageClick(venue.id)}
+                        onClick={() => handleBookVenue(venue)}
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                        title="Sign up to send a booking request"
                       >
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        Contact
+                        <Calendar className="w-4 h-4 mr-1" />
+                        Request to Book
                       </Button>
                     )}
                   </div>
@@ -422,6 +426,14 @@ export default function VenueBrowse() {
           onClose={() => setShowSignupModal(false)}
           actionType="message"
           targetType="venue"
+        />
+      )}
+
+      {/* Quick Booking Modal */}
+      {bookingVenue && (
+        <QuickBookingModal
+          venue={bookingVenue}
+          onClose={() => setBookingVenue(null)}
         />
       )}
     </div>

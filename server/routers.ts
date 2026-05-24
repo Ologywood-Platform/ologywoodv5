@@ -988,6 +988,63 @@ export const appRouter = router({
         return { success: true, bookingId: booking.id };
       }),
 
+    // Artist requests to perform at a venue
+    requestToPerform: artistProcedure
+      .input(z.object({
+        venueId: z.number(),
+        eventName: z.string().min(1),
+        eventDate: z.string(),
+        eventTime: z.string().optional(),
+        message: z.string().optional(),
+        paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage']).optional(),
+        proposedFee: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get the artist's profile
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist profile not found' });
+        }
+
+        // Get the venue profile
+        const venueProfile = await db.getVenueProfileById(input.venueId);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue not found' });
+        }
+
+        const formattedDate = new Date(input.eventDate).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Send in-app notification to venue owner
+        const artistName = artistProfile.artistName || 'An artist';
+        await notif.notifyPerformanceRequest({
+          venueUserId: venueProfile.userId,
+          artistName,
+          eventName: input.eventName,
+          eventDate: formattedDate,
+          actionUrl: '/dashboard',
+        });
+
+        // Send email to venue owner
+        const venueUser = await db.getUserById(venueProfile.userId);
+        if (venueUser?.email) {
+          email.sendPerformanceRequestEmail({
+            venueEmail: venueUser.email,
+            venueName: venueProfile.organizationName || 'Venue',
+            artistName,
+            eventName: input.eventName,
+            eventDate: input.eventDate,
+            eventTime: input.eventTime,
+            message: input.message,
+            paymentTermsType: input.paymentTermsType,
+            proposedFee: input.proposedFee,
+          }).catch((err) => console.error('[RequestToPerform] Email failed:', err));
+        }
+
+        return { success: true };
+      }),
+
     // Get bookings created by current user as a client (non-venue bookings)
     getMyClientBookings: protectedProcedure.query(async ({ ctx }) => {
       const allBookings = await db.getBookingsByVenueId(ctx.user.id);

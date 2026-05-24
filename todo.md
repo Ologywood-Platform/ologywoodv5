@@ -2766,3 +2766,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Venue Discovery browse page (/venues) with filters (location, capacity, genre, amenities)
 - [x] Auto-complete bookings scheduler (mark confirmed bookings as completed day after event)
 - [x] Venue analytics dashboard (profile views, booking requests, event clicks per week/month)
+
+
+## VENUE FOLLOW-UPS ROUND 5 (May 24, 2026)
+- [ ] Register auto-complete bookings Heartbeat cron job (daily 6 AM UTC)
+- [x] Add Request to Perform button on Venue Discovery page (artist → venue booking request)
+- [ ] Build venue reviews/ratings system (professionalism, sound quality, green room, payment timeliness)
+
+## RIDER CONTRACT TEMPLATE FOR BOOKING (May 24, 2026)
+- [ ] Build rider contract template with fields for simple booking solution
