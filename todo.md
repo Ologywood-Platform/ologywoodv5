@@ -2774,4 +2774,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Build venue reviews/ratings system (professionalism, sound quality, green room, payment timeliness)
 
 ## RIDER CONTRACT TEMPLATE FOR BOOKING (May 24, 2026)
-- [ ] Build rider contract template with fields for simple booking solution
+- [x] Simplify rider contract template to a single universal booking rider
+  - Consolidated from 4 complex templates (40-60 fields) to 1 universal template (17 fields)
+  - 5 clear sections: Booking Details, Payment, Technical, Hospitality, Terms
+  - Single-page checklist UI replaces multi-step wizard
+  - Legacy template IDs still resolve for backward compatibility
+  - Updated tests (25 passing)

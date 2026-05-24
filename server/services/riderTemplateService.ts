@@ -8,10 +8,7 @@ import { riderTemplates } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import {
   ALL_TEMPLATES,
-  SOLO_ARTIST_RIDER,
-  BAND_RIDER,
-  DJ_RIDER,
-  SPEAKER_RIDER,
+  SIMPLE_BOOKING_RIDER,
   validateRiderData,
   generateRiderHTML,
   getRiderTemplateById as getDefaultTemplateById,
