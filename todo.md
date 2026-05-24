@@ -2754,3 +2754,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update EventCreate page to allow venue role (not just artist-only)
 - [x] Show payment terms on booking detail page for artists
 - [x] Add Rebook shortcut on completed bookings (pre-fill previous terms)
+
+
+## VENUE FOLLOW-UPS ROUND 3 (May 24, 2026)
+- [x] My Events tab in venue dashboard (list posted events, edit/delete)
+- [x] Settlement email reminder after shows (notify venue to complete door-split settlement)
+- [x] Public venue profile page (upcoming events, past shows, venue photos, capacity info)

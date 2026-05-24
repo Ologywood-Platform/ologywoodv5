@@ -1747,3 +1747,69 @@ export async function sendDisputeFiled(params: {
     console.error(`[DisputeFiled] Failed to send respondent notice for dispute #${disputeId}:`, err);
   }
 }
+
+
+// ============= SETTLEMENT REMINDER EMAILS =============
+
+export async function sendSettlementReminderEmail(params: {
+  venueEmail: string;
+  venueName: string;
+  artistName: string;
+  eventDate: string;
+  bookingId: number;
+  paymentTermsType: string;
+  doorSplitArtistPercent?: number;
+  guaranteeAmount?: string;
+}): Promise<boolean> {
+  const { venueEmail, venueName, artistName, eventDate, bookingId, paymentTermsType, doorSplitArtistPercent, guaranteeAmount } = params;
+
+  const eventDateStr = new Date(eventDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  let termsDescription = '';
+  if (paymentTermsType === 'door_split') {
+    termsDescription = `<p><strong>Terms:</strong> Door Split — Artist receives ${doorSplitArtistPercent || 80}% of door revenue</p>`;
+  } else if (paymentTermsType === 'guarantee_vs_percentage') {
+    termsDescription = `<p><strong>Terms:</strong> Guarantee vs. Percentage — Minimum $${guaranteeAmount || '0'} OR ${doorSplitArtistPercent || 80}% of door (whichever is higher)</p>`;
+  } else {
+    termsDescription = `<p><strong>Terms:</strong> Flat Guarantee</p>`;
+  }
+
+  const subject = `Settlement Reminder: ${artistName} show on ${eventDateStr}`;
+
+  const html = `
+    <h2>Time to Settle Up</h2>
+    
+    <p>Hello ${venueName},</p>
+    
+    <p>The show with <strong>${artistName}</strong> on ${eventDateStr} is now complete. It's time to settle the payment based on your agreed terms.</p>
+    
+    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">Show Details</h3>
+      <p><strong>Artist:</strong> ${artistName}</p>
+      <p><strong>Date:</strong> ${eventDateStr}</p>
+      ${termsDescription}
+    </div>
+    
+    <p>Please log in to your dashboard to complete the settlement form. You'll need to enter the door revenue and attendance so the artist payout can be calculated.</p>
+    
+    <a href="${ENV.baseUrl}/bookings/${bookingId}" 
+       style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+      Complete Settlement
+    </a>
+    
+    <p>Settling promptly builds trust and keeps artists coming back to your venue.</p>
+    
+    <p>Best regards,<br>The Ologywood Team</p>
+    <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+      <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=reminders" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+      <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+    </p>
+  `;
+
+  return sendEmail({ to: venueEmail, subject, html });
+}

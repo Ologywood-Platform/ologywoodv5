@@ -1163,6 +1163,21 @@ export const appRouter = router({
                 }
               );
             }
+          } else if (input.status === 'completed') {
+            // Send settlement reminder to venue if door-split or guarantee-vs-percentage
+            const paymentTermsType = (booking as any).paymentTermsType || 'flat_guarantee';
+            if (paymentTermsType !== 'flat_guarantee' && venueUser?.email) {
+              email.sendSettlementReminderEmail({
+                venueEmail: venueUser.email,
+                venueName: venueProfile.organizationName,
+                artistName: artistProfile.artistName,
+                eventDate: booking.eventDate instanceof Date ? booking.eventDate.toISOString() : booking.eventDate,
+                bookingId: booking.id,
+                paymentTermsType,
+                doorSplitArtistPercent: (booking as any).doorSplitArtistPercent,
+                guaranteeAmount: (booking as any).guaranteeAmount,
+              }).catch((err) => console.error('[Email] Settlement reminder failed:', err));
+            }
           } else if (input.status === 'cancelled') {
             // In-app notifications for cancellation
             if (artistProfile.userId) {

@@ -7,7 +7,7 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
@@ -359,6 +359,10 @@ export function VenueDashboard() {
             <TabsTrigger value="saved" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Saved</span>
+            </TabsTrigger>
+            <TabsTrigger value="events" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">My Events</span>
             </TabsTrigger>
             <TabsTrigger value="gallery" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -757,6 +761,11 @@ export function VenueDashboard() {
           {/* Saved Artists Tab */}
           <TabsContent value="saved" className="space-y-4">
             <SavedArtistsTab navigate={navigate} />
+          </TabsContent>
+
+          {/* My Events Tab */}
+          <TabsContent value="events" className="space-y-4">
+            <MyEventsTab venueProfileId={profile?.id} />
           </TabsContent>
 
           {/* Gallery Tab */}
@@ -1740,6 +1749,100 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+
+function MyEventsTab({ venueProfileId }: { venueProfileId?: number }) {
+  const [, navigate] = useLocation();
+  const { data: events, isLoading } = trpc.events.getVenueEvents.useQuery(
+    {},
+    { enabled: !!venueProfileId }
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Megaphone className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Events Posted Yet</h3>
+          <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+            Post events from your confirmed bookings to promote shows and sell tickets directly to fans.
+          </p>
+          <Button onClick={() => navigate('/venue/events/create')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Event
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Your Events ({events.length})</h3>
+        <Button onClick={() => navigate('/venue/events/create')} size="sm" className="gap-2">
+          <Plus className="h-4 w-4" />
+          New Event
+        </Button>
+      </div>
+      {events.map((event: any) => (
+        <Card key={event.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold truncate">{event.title}</h4>
+                <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                  {event.eventTime && (
+                    <span>{event.eventTime}</span>
+                  )}
+                  {event.ticketPrice && (
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      {event.ticketPrice}
+                    </span>
+                  )}
+                </div>
+                {event.description && (
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{event.description}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                  event.status === 'published' ? 'bg-green-100 text-green-700' :
+                  event.status === 'draft' ? 'bg-gray-100 text-gray-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {event.status || 'published'}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/events/${event.id}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

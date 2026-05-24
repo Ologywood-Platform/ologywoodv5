@@ -334,6 +334,9 @@ export default function VenueProfile() {
           );
         })()}
 
+        {/* Upcoming Events */}
+        <VenueUpcomingEvents venueId={venueId} />
+
         {/* Photo Gallery */}
         {(() => {
           const gallery = (venueProfile as any)?.mediaGallery;
@@ -679,5 +682,96 @@ export default function VenueProfile() {
 
 
     </div>
+  );
+}
+
+
+function VenueUpcomingEvents({ venueId }: { venueId: number }) {
+  const [, navigate] = useLocation();
+  const { data: events, isLoading } = trpc.events.getByVenueId.useQuery(
+    { venueId },
+    { enabled: venueId > 0 }
+  );
+
+  if (isLoading) return null;
+
+  // Filter to only upcoming events
+  const now = new Date();
+  const upcomingEvents = (events || []).filter((e: any) => {
+    const eventDate = new Date(e.eventDate);
+    return eventDate >= now;
+  }).sort((a: any, b: any) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+
+  const pastEvents = (events || []).filter((e: any) => {
+    const eventDate = new Date(e.eventDate);
+    return eventDate < now;
+  }).sort((a: any, b: any) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()).slice(0, 5);
+
+  if (upcomingEvents.length === 0 && pastEvents.length === 0) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5" />
+          Events
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {upcomingEvents.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Upcoming</h4>
+            <div className="space-y-3">
+              {upcomingEvents.slice(0, 6).map((event: any) => (
+                <div
+                  key={event.id}
+                  className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/events/${event.id}`)}
+                >
+                  <div className="text-center min-w-[50px]">
+                    <p className="text-xs text-muted-foreground uppercase">
+                      {new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short' })}
+                    </p>
+                    <p className="text-xl font-bold">
+                      {new Date(event.eventDate).getDate()}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{event.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {event.eventTime || 'Time TBD'}
+                      {event.ticketPrice ? ` · $${event.ticketPrice}` : ' · Free'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {pastEvents.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Past Shows</h4>
+            <div className="space-y-2">
+              {pastEvents.map((event: any) => (
+                <div
+                  key={event.id}
+                  className="flex items-center gap-4 p-2 rounded-lg opacity-70"
+                >
+                  <div className="text-center min-w-[50px]">
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">{event.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

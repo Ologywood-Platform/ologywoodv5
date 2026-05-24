@@ -296,6 +296,18 @@ export const eventsRouter = router({
       }
     }),
 
+  // Get events by venue ID (public)
+  getByVenueId: publicProcedure
+    .input(z.object({ venueId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      try {
+        const events = await db.getEventsByVenueProfileId(input.venueId);
+        return events;
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch venue events');
+      }
+    }),
+
   // Update event
   update: protectedProcedure
     .input(updateEventSchema)
