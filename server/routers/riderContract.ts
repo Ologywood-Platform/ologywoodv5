@@ -7,6 +7,7 @@ import { generateRiderHTML, getRiderTemplateById } from "../services/riderContra
 import { sendContractSigned, sendContractForSignature } from "../email";
 import * as notif from "../services/notificationService";
 import crypto from "crypto";
+import { generateRiderPdf } from "../services/riderPdfService";
 
 export const riderContractRouter = router({
   /**
@@ -397,5 +398,67 @@ export const riderContractRouter = router({
           : null,
         createdAt: contract.createdAt,
       };
+    }),
+
+  /**
+   * Generate a polished PDF of the rider contract
+   * Returns base64-encoded PDF data
+   */
+  downloadPdf: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking || !booking.riderTemplateId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No rider attached to this booking" });
+      }
+
+      // Verify user is involved
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      // Get rider template data
+      const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+      if (!riderTemplate) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Rider template not found" });
+      }
+
+      const riderData = typeof riderTemplate.templateData === "string"
+        ? JSON.parse(riderTemplate.templateData)
+        : riderTemplate.templateData || {};
+
+      const templateType = riderTemplate.templateType || "simple_booking";
+
+      // Get signatures
+      const contract = await db.getContractByBookingId(input.bookingId);
+      let signatures: any[] = [];
+      let contractStatus = "pending";
+      if (contract) {
+        signatures = await db.getSignaturesByContractId(contract.id);
+        contractStatus = contract.status;
+      }
+
+      // Generate PDF
+      const pdfBuffer = await generateRiderPdf({
+        templateId: templateType,
+        data: riderData,
+        signatures: signatures.map(s => ({
+          signerRole: s.signerRole,
+          signerName: s.signerName,
+          signedAt: s.signedAt,
+          signatureData: s.signatureData,
+        })),
+        contractStatus,
+      });
+
+      const base64 = pdfBuffer.toString('base64');
+      const filename = `rider-${riderData.artist_name || 'artist'}-${riderData.event_name || 'booking'}.pdf`
+        .toLowerCase().replace(/[^a-z0-9.-]/g, '-');
+
+      return { pdf: base64, filename };
     }),
 });

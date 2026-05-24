@@ -532,6 +532,16 @@ export const venueRouter = router({
         const dateStr = input.preferredDate ? `\nPreferred Date: ${input.preferredDate}` : '';
         const fullMessage = `📩 ${inquiryLabel}: ${input.subject}${dateStr}\n\n${input.message}`;
 
+        // Auto-attach artist's default rider template if available
+        let defaultRiderId: number | undefined;
+        if (artistProfile) {
+          try {
+            const { getDefaultRiderForArtist } = await import('../services/riderTemplateService');
+            const defaultRider = await getDefaultRiderForArtist(artistProfile.userId);
+            if (defaultRider) defaultRiderId = defaultRider.id;
+          } catch (_) { /* fallback: no auto-attach */ }
+        }
+
         // Create a pending booking to hold this conversation
         const booking = await db.createBooking({
           artistId: artistProfile?.id || 0,
@@ -541,6 +551,8 @@ export const venueRouter = router({
           totalFee: null,
           eventDetails: `${inquiryLabel}: ${input.subject}`,
           status: 'pending',
+          riderTemplateId: defaultRiderId,
+          riderStatus: defaultRiderId ? 'pending' : undefined,
         });
 
         // Send the first message

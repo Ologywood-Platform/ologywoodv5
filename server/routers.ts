@@ -1016,6 +1016,28 @@ export const appRouter = router({
           year: 'numeric', month: 'long', day: 'numeric'
         });
 
+        // Auto-attach artist's default rider template if available
+        let defaultRiderId: number | undefined;
+        try {
+          const { getDefaultRiderForArtist } = await import('./services/riderTemplateService');
+          const defaultRider = await getDefaultRiderForArtist(ctx.user.id);
+          if (defaultRider) defaultRiderId = defaultRider.id;
+        } catch (_) { /* fallback: no auto-attach */ }
+
+        // Create a booking for this performance request
+        const booking = await db.createBooking({
+          artistId: artistProfile.id,
+          venueId: venueProfile.id,
+          eventDate: new Date(input.eventDate),
+          eventTime: input.eventTime || null,
+          eventDetails: input.eventName,
+          totalFee: input.proposedFee?.toString() || null,
+          status: 'pending',
+          bookingSource: 'artist_request',
+          riderTemplateId: defaultRiderId,
+          riderStatus: defaultRiderId ? 'pending' : undefined,
+        });
+
         // Send in-app notification to venue owner
         const artistName = artistProfile.artistName || 'An artist';
         await notif.notifyPerformanceRequest({
@@ -1023,7 +1045,7 @@ export const appRouter = router({
           artistName,
           eventName: input.eventName,
           eventDate: formattedDate,
-          actionUrl: '/dashboard',
+          actionUrl: `/bookings/${booking.id}`,
         });
 
         // Send email to venue owner
@@ -1042,7 +1064,7 @@ export const appRouter = router({
           }).catch((err) => console.error('[RequestToPerform] Email failed:', err));
         }
 
-        return { success: true };
+        return { success: true, bookingId: booking.id };
       }),
 
     // Get bookings created by current user as a client (non-venue bookings)

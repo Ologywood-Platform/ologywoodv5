@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, Download, Eye } from "lucide-react";
+import { FileText, Download, CheckCircle, Clock, PenLine } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 export interface RiderContractData {
   // Booking Details
@@ -40,12 +41,20 @@ interface RiderContractTemplateProps {
   initialData?: Partial<RiderContractData> & { venueAddress?: string; stageSize?: string; lightingRequired?: boolean; soundSystemProvided?: boolean; backlineEquipment?: string[] | string; securityRequired?: boolean; mealProvision?: string | boolean };
   onSave?: (data: RiderContractData) => void;
   readOnly?: boolean;
+  bookingId?: number;
+  contractStatus?: string;
+  currentUserRole?: 'artist' | 'venue' | null;
+  onSign?: () => void;
 }
 
 export function RiderContractTemplate({
   initialData,
   onSave,
-  readOnly = false
+  readOnly = false,
+  bookingId,
+  contractStatus,
+  currentUserRole,
+  onSign,
 }: RiderContractTemplateProps) {
   const [formData, setFormData] = useState<RiderContractData>({
     eventName: initialData?.eventName || "",
@@ -68,6 +77,9 @@ export function RiderContractTemplate({
     additionalNotes: initialData?.additionalNotes || "",
   });
 
+  const [downloading, setDownloading] = useState(false);
+  const downloadPdfMutation = trpc.riderContract.downloadPdf.useMutation();
+
   const handleChange = (field: keyof RiderContractData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -81,8 +93,42 @@ export function RiderContractTemplate({
     toast.success("Rider saved");
   };
 
-  const generateText = (): string => {
-    return `BOOKING RIDER CONTRACT
+  const downloadPdf = async () => {
+    if (!bookingId) {
+      // Fallback to text download if no bookingId
+      downloadText();
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const result = await downloadPdfMutation.mutateAsync({ bookingId });
+      // Convert base64 to blob and download
+      const byteCharacters = atob(result.pdf);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("PDF downloaded");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to generate PDF");
+      // Fallback to text
+      downloadText();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const downloadText = () => {
+    const text = `BOOKING RIDER CONTRACT
 ========================================
 
 BOOKING DETAILS
@@ -113,10 +159,7 @@ Notes: ${formData.additionalNotes || 'None'}
 
 Generated ${new Date().toLocaleDateString()}
 `;
-  };
-
-  const downloadRider = () => {
-    const blob = new Blob([generateText()], { type: 'text/plain' });
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -126,13 +169,54 @@ Generated ${new Date().toLocaleDateString()}
     toast.success("Rider downloaded");
   };
 
+  // Determine signing status for the venue counter-sign flow
+  const canSign = currentUserRole && contractStatus !== 'fully_signed' && (
+    (currentUserRole === 'venue' && contractStatus !== 'signed_by_venue') ||
+    (currentUserRole === 'artist' && contractStatus !== 'signed_by_artist')
+  );
+
+  const getStatusBadge = () => {
+    if (!contractStatus || contractStatus === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+          <Clock className="h-3 w-3" /> Awaiting Signatures
+        </span>
+      );
+    }
+    if (contractStatus === 'fully_signed') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+          <CheckCircle className="h-3 w-3" /> Fully Signed
+        </span>
+      );
+    }
+    if (contractStatus === 'signed_by_artist') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+          <PenLine className="h-3 w-3" /> Artist Signed — Awaiting Venue
+        </span>
+      );
+    }
+    if (contractStatus === 'signed_by_venue') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+          <PenLine className="h-3 w-3" /> Venue Signed — Awaiting Artist
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <FileText className="h-4 w-4" />
-          Booking Rider
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
+            Booking Rider
+          </CardTitle>
+          {contractStatus && getStatusBadge()}
+        </div>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Booking Details */}
@@ -241,17 +325,27 @@ Generated ${new Date().toLocaleDateString()}
         </div>
 
         {/* Actions */}
-        {!readOnly && (
-          <div className="flex gap-2 justify-end border-t pt-4">
-            <Button variant="outline" size="sm" onClick={downloadRider}>
+        <div className="flex flex-wrap gap-2 justify-between items-center border-t pt-4">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={downloadPdf} disabled={downloading}>
               <Download className="h-4 w-4 mr-1.5" />
-              Download
-            </Button>
-            <Button size="sm" onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
-              Save Rider
+              {downloading ? 'Generating...' : 'Download PDF'}
             </Button>
           </div>
-        )}
+          <div className="flex gap-2">
+            {canSign && onSign && (
+              <Button size="sm" onClick={onSign} className="bg-green-600 hover:bg-green-700">
+                <PenLine className="h-4 w-4 mr-1.5" />
+                {currentUserRole === 'venue' ? 'Accept & Sign' : 'Sign Rider'}
+              </Button>
+            )}
+            {!readOnly && (
+              <Button size="sm" onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
+                Save Rider
+              </Button>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

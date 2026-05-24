@@ -2780,3 +2780,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Single-page checklist UI replaces multi-step wizard
   - Legacy template IDs still resolve for backward compatibility
   - Updated tests (25 passing)
+
+## RIDER CONTRACT ENHANCEMENTS (May 24, 2026)
+- [x] Auto-attach default rider to bookings (populate artist name, fee, technical needs from saved template)
+- [x] Polished PDF export for rider contracts (server-side PDFKit generation with signatures & status)
+- [x] Venue counter-sign flow (venues review and digitally accept rider terms from booking detail)

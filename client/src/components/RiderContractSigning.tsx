@@ -94,29 +94,27 @@ export function RiderContractSigning({
   };
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const downloadPdfMutation = trpc.riderContract.downloadPdf.useMutation();
 
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(`/api/contract/${bookingId}/pdf`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Download failed' }));
-        throw new Error(err.error || 'Download failed');
+      const result = await downloadPdfMutation.mutateAsync({ bookingId });
+      // Convert base64 to blob and download
+      const byteCharacters = atob(result.pdf);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      const blob = await response.blob();
-      if (blob.size === 0) {
-        throw new Error('PDF generation returned empty file');
-      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rider-contract-booking-${bookingId}-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = result.filename;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      // Delay cleanup to allow download to start
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
@@ -304,10 +302,20 @@ export function RiderContractSigning({
             {!currentUserSigned && !isFullySigned && (
               <Button
                 onClick={() => setShowSigningForm(!showSigningForm)}
-                className="bg-purple-600 hover:bg-purple-700"
+                className={currentUserRole === 'venue' && contractStatus === 'signed_by_artist'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-purple-600 hover:bg-purple-700'
+                }
               >
                 <PenTool className="h-4 w-4 mr-2" />
-                {showSigningForm ? 'Cancel' : 'Sign Contract'}
+                {showSigningForm
+                  ? 'Cancel'
+                  : currentUserRole === 'venue' && contractStatus === 'signed_by_artist'
+                    ? 'Accept & Counter-Sign'
+                    : currentUserRole === 'artist' && contractStatus === 'signed_by_venue'
+                      ? 'Accept & Counter-Sign'
+                      : 'Sign Contract'
+                }
               </Button>
             )}
           </div>
