@@ -7,13 +7,14 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
 import ImageCropper from '../components/ImageCropper';
 import { VenueContractsDashboard } from '../components/VenueContractsDashboard';
 import VenueCalendar from '../components/VenueCalendar';
+import VenueAnalytics from '../components/VenueAnalytics';
 import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
@@ -367,6 +368,10 @@ export function VenueDashboard() {
             <TabsTrigger value="gallery" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Gallery</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -1034,6 +1039,11 @@ export function VenueDashboard() {
               </div>
             </div>
           )}
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <VenueAnalytics venueId={profile?.id || 0} bookings={bookings || []} />
+          </TabsContent>
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-4" id="venue-profile-section">

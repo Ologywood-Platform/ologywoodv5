@@ -2760,3 +2760,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] My Events tab in venue dashboard (list posted events, edit/delete)
 - [x] Settlement email reminder after shows (notify venue to complete door-split settlement)
 - [x] Public venue profile page (upcoming events, past shows, venue photos, capacity info)
+
+
+## VENUE FOLLOW-UPS ROUND 4 (May 24, 2026)
+- [x] Venue Discovery browse page (/venues) with filters (location, capacity, genre, amenities)
+- [x] Auto-complete bookings scheduler (mark confirmed bookings as completed day after event)
+- [x] Venue analytics dashboard (profile views, booking requests, event clicks per week/month)

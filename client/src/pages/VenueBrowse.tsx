@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check, MessageSquare, Calendar } from 'lucide-react';
+import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check, MessageSquare, Calendar, X, Music, SlidersHorizontal } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -14,19 +14,14 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import SiteHeader from '@/components/SiteHeader';
 
-interface Venue {
-  id: number;
-  organizationName: string;
-  location: string;
-  bio?: string;
-  contactPhone?: string;
-}
-
 export default function VenueBrowse() {
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedCapacity, setSelectedCapacity] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showSignupModal, setShowSignupModal] = useState(false);
 
@@ -35,33 +30,55 @@ export default function VenueBrowse() {
     setMetaTags(pageMetaTags.venues);
   }, []);
 
-  // Fetch venues from database
-  // NOTE: venue router was removed during cleanup - using empty data for now
-  const { data: venues = [], isLoading } = { data: [], isLoading: false };
+  // Fetch venues from database using the venue.search endpoint
+  const { data: venues = [], isLoading, refetch } = trpc.venue.search.useQuery({
+    searchQuery: searchQuery || undefined,
+    location: selectedLocation || undefined,
+    limit: 50,
+    offset: 0,
+  });
 
   // Pull-to-refresh
   const { PullIndicator } = usePullToRefresh({
     onRefresh: async () => {
-      // Venue data refresh - will work when venue router is restored
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await refetch();
     },
   });
 
-  // Get venue types for filter dropdown
-  const { data: venueTypes = [] } = { data: [] };
+  // Get venue types for filter
+  const { data: venueTypes = [] } = trpc.venue.getVenueTypes.useQuery();
 
-  // Filter venues by search query
+  // Filter venues by capacity and genre (client-side since search endpoint handles query/location)
   const filteredVenues = useMemo(() => {
-    if (!searchQuery) return venues;
-    
-    return venues.filter((venue: any) =>
-      venue.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (venue.bio && venue.bio.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  }, [venues, searchQuery]);
+    let result = venues as any[];
+
+    if (selectedCapacity) {
+      const minCapacity = parseInt(selectedCapacity);
+      if (!isNaN(minCapacity)) {
+        result = result.filter((v: any) => v.capacity && v.capacity >= minCapacity);
+      }
+    }
+
+    if (selectedGenre) {
+      result = result.filter((v: any) => {
+        const genres = v.genres || v.venueType || '';
+        return genres.toLowerCase().includes(selectedGenre.toLowerCase());
+      });
+    }
+
+    return result;
+  }, [venues, selectedCapacity, selectedGenre]);
+
+  const hasActiveFilters = searchQuery || selectedLocation || selectedCapacity || selectedGenre;
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedLocation('');
+    setSelectedCapacity('');
+    setSelectedGenre('');
+  };
 
   const handleMessageClick = (venueId: number) => {
-    // NOTE: venue router was removed during cleanup
     if (!isAuthenticated) {
       setShowSignupModal(true);
     } else {
@@ -73,6 +90,14 @@ export default function VenueBrowse() {
     navigate(`/venue/${venueId}`);
   };
 
+  const handleBookVenue = (venueId: number) => {
+    if (!isAuthenticated) {
+      setShowSignupModal(true);
+    } else {
+      navigate(`/booking/create?venueId=${venueId}`);
+    }
+  };
+
   const copyToClipboard = (text: string, venueId: number) => {
     navigator.clipboard.writeText(text);
     setCopiedId(venueId);
@@ -80,10 +105,10 @@ export default function VenueBrowse() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const shareOnSocial = (platform: string, venue: Venue) => {
+  const shareOnSocial = (platform: string, venue: any) => {
     const venueUrl = `${window.location.origin}/venue/${venue.id}`;
-    const text = `Check out ${venue.organizationName} on Ologywood - ${venue.bio || ''}`;
-    
+    const text = `Check out ${venue.venueName || venue.organizationName} on Ologywood`;
+
     const urls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(venueUrl)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(venueUrl)}`,
@@ -98,13 +123,12 @@ export default function VenueBrowse() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <SiteHeader />
-      {/* Pull-to-refresh indicator */}
       <PullIndicator />
 
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-4">Discover Venues</h1>
+          <h1 className="text-4xl font-bold mb-2">Discover Venues</h1>
           <p className="text-lg text-purple-100">Find the perfect venue for your next performance</p>
         </div>
       </div>
@@ -119,48 +143,117 @@ export default function VenueBrowse() {
             ]}
           />
         )}
-        {/* Search and Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Search & Filter
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Search Input */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Search Venues</label>
+
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name or description..."
+                placeholder="Search venues by name or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
+            <Button
+              variant={showFilters ? 'default' : 'outline'}
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+              {hasActiveFilters && (
+                <Badge className="ml-1 bg-purple-100 text-purple-700 text-xs">Active</Badge>
+              )}
+            </Button>
+          </div>
+        </div>
 
-            {/* Filters Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Location Filter */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Location</label>
-                <input
-                  type="text"
-                  placeholder="City, State"
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+        {/* Filters Panel */}
+        {showFilters && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Location Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="City, State..."
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Capacity Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Minimum Capacity
+                  </label>
+                  <select
+                    value={selectedCapacity}
+                    onChange={(e) => setSelectedCapacity(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  >
+                    <option value="">Any capacity</option>
+                    <option value="50">50+ people</option>
+                    <option value="100">100+ people</option>
+                    <option value="200">200+ people</option>
+                    <option value="500">500+ people</option>
+                    <option value="1000">1000+ people</option>
+                  </select>
+                </div>
+
+                {/* Genre/Type Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    <Music className="w-4 h-4 inline mr-1" />
+                    Venue Type
+                  </label>
+                  <select
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                  >
+                    <option value="">All types</option>
+                    {venueTypes.map((type: string) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Results */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold">
-            {isLoading ? 'Loading venues...' : `${filteredVenues.length} Venues Found`}
+              {hasActiveFilters && (
+                <div className="mt-4 flex justify-end">
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                    <X className="w-4 h-4 mr-1" />
+                    Clear All Filters
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results Count */}
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">
+            {isLoading ? 'Loading venues...' : `${filteredVenues.length} Venue${filteredVenues.length !== 1 ? 's' : ''} Found`}
           </h2>
         </div>
 
@@ -168,7 +261,7 @@ export default function VenueBrowse() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-lg h-96 animate-pulse" />
+              <div key={i} className="bg-white rounded-lg h-80 animate-pulse" />
             ))}
           </div>
         ) : filteredVenues.length === 0 ? (
@@ -176,91 +269,81 @@ export default function VenueBrowse() {
             <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-700 mb-2">No Venues Found</h3>
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Sorry, there are no venues matching your criteria at this time. Try adjusting your search or check back later.
+              {hasActiveFilters
+                ? 'No venues match your current filters. Try adjusting your search criteria.'
+                : 'No venues have been registered yet. Check back soon as new venues join the platform.'}
             </p>
-            <Button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedLocation('');
-              }}
-            >
-              Clear Filters
-            </Button>
+            {hasActiveFilters && (
+              <Button onClick={clearAllFilters}>
+                Clear Filters
+              </Button>
+            )}
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVenues.map((venue: any) => (
-              <Card key={venue.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+              <Card key={venue.id} className="hover:shadow-lg transition-shadow overflow-hidden group">
                 {/* Venue Image */}
+                {venue.profilePhotoUrl && (
+                  <div className="h-40 overflow-hidden">
+                    <LazyImage
+                      src={venue.profilePhotoUrl}
+                      alt={venue.venueName || venue.organizationName}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
 
-
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <div className="flex justify-between items-start gap-2">
                     <div>
                       <CardTitle
-                        className="cursor-pointer hover:text-purple-600 transition-colors"
+                        className="cursor-pointer hover:text-purple-600 transition-colors text-lg"
                         onClick={() => handleViewProfile(venue.id)}
                       >
-                        {venue.organizationName}
+                        {venue.venueName || venue.organizationName}
                       </CardTitle>
-                      <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                        <MapPin className="w-4 h-4" />
-                        {venue.location}
-                      </div>
+                      {venue.location && (
+                        <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {venue.location}
+                        </div>
+                      )}
                     </div>
-
+                    {venue.venueType && (
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        {venue.venueType}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-
-
-                  {/* Bio */}
-                  {venue.bio && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{venue.bio}</p>
+                <CardContent className="space-y-3 pt-0">
+                  {/* Description */}
+                  {(venue.description || venue.bio) && (
+                    <p className="text-sm text-gray-600 line-clamp-2">{venue.description || venue.bio}</p>
                   )}
 
                   {/* Capacity and Amenities */}
                   <div className="space-y-2 text-sm">
-                    {(venue as any)?.capacity && (
+                    {venue.capacity && (
                       <div className="flex items-center gap-2 text-gray-600">
                         <Users className="w-4 h-4" />
-                        Capacity: {(venue as any)?.capacity} people
+                        Capacity: {venue.capacity} people
                       </div>
                     )}
-                    {(venue as any)?.amenities && (venue as any)?.amenities.length > 0 && (
+                    {venue.amenities && venue.amenities.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {(venue as any)?.amenities.slice(0, 3).map((amenity: any) => (
-                          <Badge key={amenity} variant="secondary" className="text-xs">
+                        {venue.amenities.slice(0, 4).map((amenity: string) => (
+                          <Badge key={amenity} variant="outline" className="text-xs">
                             {amenity}
                           </Badge>
                         ))}
-                        {(venue as any)?.amenities.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{(venue as any)?.amenities.length - 3} more
+                        {venue.amenities.length > 4 && (
+                          <Badge variant="outline" className="text-xs text-gray-500">
+                            +{venue.amenities.length - 4} more
                           </Badge>
                         )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-2 text-sm border-t pt-3">
-                    {(venue as any)?.website && (
-                      <a
-                        href={(venue as any)?.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <Globe className="w-4 h-4" />
-                        Website
-                      </a>
-                    )}
-                    {venue.contactPhone && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        {venue.contactPhone}
                       </div>
                     )}
                   </div>
@@ -270,53 +353,59 @@ export default function VenueBrowse() {
                     <Button
                       onClick={() => handleViewProfile(venue.id)}
                       variant="outline"
+                      size="sm"
                       className="flex-1"
                     >
                       View Profile
                     </Button>
-                    <Button
-                      onClick={() => handleMessageClick(venue.id)}
-                      variant="default"
-                      className="flex-1"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      Message
-                    </Button>
+                    {user?.role === 'artist' && (
+                      <Button
+                        onClick={() => handleBookVenue(venue.id)}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Calendar className="w-4 h-4 mr-1" />
+                        Book
+                      </Button>
+                    )}
+                    {!isAuthenticated && (
+                      <Button
+                        onClick={() => handleMessageClick(venue.id)}
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Contact
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Share Buttons */}
-                  <div className="flex gap-2 justify-center pt-2 border-t">
+                  {/* Share Row */}
+                  <div className="flex gap-1 justify-center pt-2 border-t">
                     <button
                       onClick={() => copyToClipboard(`${window.location.origin}/venue/${venue.id}`, venue.id)}
-                      className="p-2 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                       title="Copy link"
                     >
                       {copiedId === venue.id ? (
-                        <Check className="w-4 h-4 text-green-600" />
+                        <Check className="w-3.5 h-3.5 text-green-600" />
                       ) : (
-                        <Copy className="w-4 h-4 text-gray-600" />
+                        <Copy className="w-3.5 h-3.5 text-gray-500" />
                       )}
                     </button>
                     <button
-                      onClick={() => shareOnSocial('facebook', venue as any)}
-                      className="p-2 hover:bg-gray-100 rounded transition-colors"
+                      onClick={() => shareOnSocial('facebook', venue)}
+                      className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                       title="Share on Facebook"
                     >
-                      <Facebook className="w-4 h-4 text-blue-600" />
+                      <Facebook className="w-3.5 h-3.5 text-blue-600" />
                     </button>
                     <button
-                      onClick={() => shareOnSocial('twitter', venue as any)}
-                      className="p-2 hover:bg-gray-100 rounded transition-colors"
+                      onClick={() => shareOnSocial('twitter', venue)}
+                      className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                       title="Share on Twitter"
                     >
-                      <Twitter className="w-4 h-4 text-blue-400" />
-                    </button>
-                    <button
-                      onClick={() => shareOnSocial('linkedin', venue as any)}
-                      className="p-2 hover:bg-gray-100 rounded transition-colors"
-                      title="Share on LinkedIn"
-                    >
-                      <Linkedin className="w-4 h-4 text-blue-700" />
+                      <Twitter className="w-3.5 h-3.5 text-blue-400" />
                     </button>
                   </div>
                 </CardContent>
@@ -335,7 +424,6 @@ export default function VenueBrowse() {
           targetType="venue"
         />
       )}
-
     </div>
   );
 }

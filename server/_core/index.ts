@@ -28,6 +28,7 @@ import { registerStorageProxy } from "./storageProxy";
 import ogPageRoutes from '../routes/ogPage';
 import { contractExpiryRemindersHandler } from '../routes/scheduledContractReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
+import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -177,6 +178,7 @@ async function startServer() {
   // Scheduled task handlers (Heartbeat cron) - MUST be before Vite/static fallthrough
   app.post('/api/scheduled/contract-expiry-reminders', contractExpiryRemindersHandler);
   app.post('/api/scheduled/credit-expiration', creditExpirationHandler);
+  app.post('/api/scheduled/auto-complete-bookings', autoCompleteBookingsHandler);
 
   // OG meta tags for social media crawlers - MUST be before Vite/static serving
   // This intercepts bot requests to /artist/:id, /venue/:id etc. and serves OG HTML
