@@ -2064,6 +2064,106 @@ export const appRouter = router({
       }),
   }),
 
+  // Artist Review Management (venues rate artists)
+  artistReview: router({
+    // Create artist review (venue only, for completed bookings)
+    create: venueProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        artistId: z.number(),
+        rating: z.number().min(1).max(5),
+        reliabilityRating: z.number().min(1).max(5).optional(),
+        stagePresenceRating: z.number().min(1).max(5).optional(),
+        crowdEngagementRating: z.number().min(1).max(5).optional(),
+        professionalismRating: z.number().min(1).max(5).optional(),
+        reviewText: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        if (booking.status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Can only review completed bookings' });
+        }
+        const existingReview = await db.getArtistReviewByBookingId(input.bookingId);
+        if (existingReview) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Review already exists for this booking' });
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave artist reviews' });
+        }
+        await db.createArtistReview({
+          bookingId: input.bookingId,
+          venueId: venueProfile.id,
+          artistId: input.artistId,
+          rating: input.rating,
+          reliabilityRating: input.reliabilityRating,
+          stagePresenceRating: input.stagePresenceRating,
+          crowdEngagementRating: input.crowdEngagementRating,
+          professionalismRating: input.professionalismRating,
+          comment: input.reviewText,
+        });
+        // Send notification to artist
+        const artistProfile = await db.getArtistProfileById(input.artistId);
+        if (artistProfile) {
+          const artistUser = await db.getUserById(artistProfile.userId);
+          if (artistUser?.email) {
+            await email.sendArtistReviewNotificationEmail({
+              artistEmail: artistUser.email,
+              artistName: artistProfile.artistName,
+              venueName: venueProfile.organizationName,
+              reviewText: input.reviewText || '',
+              rating: input.rating,
+              artistProfileUrl: `https://ologywood.com/artist/${input.artistId}`,
+            });
+          }
+        }
+        return { success: true };
+      }),
+
+    // Get artist reviews by artist ID
+    getByArtist: protectedProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getArtistReviewsByArtistId(input.artistId);
+      }),
+
+    // Get artist review by booking ID
+    getByBooking: protectedProcedure
+      .input(z.object({ bookingId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getArtistReviewByBookingId(input.bookingId) || null;
+      }),
+
+    // Get average rating for artist (public so profile pages can show it)
+    getAverageRating: publicProcedure
+      .input(z.object({ artistId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getAverageRatingForArtist(input.artistId);
+      }),
+
+    // Artist responds to review
+    respondToReview: artistProcedure
+      .input(z.object({
+        reviewId: z.number(),
+        response: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const review = await db.getArtistReviewById(input.reviewId);
+        if (!review) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Review not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || artistProfile.id !== review.artistId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only respond to reviews for your own profile' });
+        }
+        await db.updateArtistReview(input.reviewId, { artistResponse: input.response, respondedAt: new Date() });
+        return { success: true };
+      }),
+  }),
+
   // Subscription Management
   subscription: router({
     // Get current user's subscription

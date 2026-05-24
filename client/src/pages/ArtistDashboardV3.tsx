@@ -16,6 +16,7 @@ import { CalendarSync } from '@/components/CalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
 import { ReferralSection } from '@/components/ReferralSection';
+import BookingCalendar from '@/components/BookingCalendar';
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -351,6 +352,11 @@ export function ArtistDashboardV3() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Booking Calendar */}
+            {bookings && bookings.length > 0 && (
+              <BookingCalendar bookings={bookings} role="artist" />
+            )}
 
             {/* Upcoming Bookings */}
             {upcomingBookings.length > 0 && (

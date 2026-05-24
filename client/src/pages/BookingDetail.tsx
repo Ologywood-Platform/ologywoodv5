@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import BookingMessages from '@/components/BookingMessages';
 import { ReviewForm } from '@/components/ReviewForm';
 import { VenueReviewForm } from '@/components/VenueReviewForm';
+import ArtistReviewForm from '@/components/ArtistReviewForm';
 import PaymentSection from '@/components/PaymentSection';
 import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
@@ -68,6 +69,7 @@ export default function BookingDetail() {
   }, [bookingId]);
   const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
   const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
+  const { data: existingArtistReview } = trpc.artistReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
       toast.success('Booking status updated');
@@ -436,10 +438,10 @@ export default function BookingDetail() {
           {/* Venue Review of Artist - Only show for venues on completed bookings */}
           {booking.bookingRole === 'venue' && booking.status === 'completed' && (
             <div>
-              {existingReview ? (
+              {existingArtistReview ? (
                 <Card className="p-6">
                   <CardHeader>
-                    <CardTitle>Your Review</CardTitle>
+                    <CardTitle>Your Artist Review</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2 mb-2">
@@ -447,27 +449,27 @@ export default function BookingDetail() {
                         <Star
                           key={star}
                           className={`w-5 h-5 ${
-                            star <= (existingReview.rating ?? 0)
+                            star <= (existingArtistReview.rating ?? 0)
                               ? "fill-yellow-400 text-yellow-400"
                               : "text-gray-300"
                           }`}
                         />
                       ))}
                     </div>
-                    {(existingReview as any).comment && (
-                      <p className="text-muted-foreground">{(existingReview as any).comment}</p>
+                    {existingArtistReview.comment && (
+                      <p className="text-muted-foreground">{existingArtistReview.comment}</p>
                     )}
                     <p className="text-sm text-muted-foreground mt-2">
-                      Submitted on {new Date(existingReview.createdAt ?? new Date()).toLocaleDateString()}
+                      Submitted on {new Date(existingArtistReview.createdAt).toLocaleDateString()}
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                <ReviewForm
+                <ArtistReviewForm
                   bookingId={bookingId}
                   artistId={booking.artistId}
-                  artistName="this artist"
-                  onReviewSubmitted={() => refetch()}
+                  artistName={(booking as any).artistName || 'this artist'}
+                  onSuccess={() => refetch()}
                 />
               )}
             </div>

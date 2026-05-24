@@ -81,6 +81,14 @@ export default function ArtistProfile() {
     { artistId },
     { enabled: isValidId }
   );
+  const { data: artistReviews } = trpc.artistReview.getByArtist.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
+  const { data: artistAvgRating } = trpc.artistReview.getAverageRating.useQuery(
+    { artistId },
+    { enabled: isValidId }
+  );
   const { data: recentPhotos = [] } = trpc.events.getRecentPhotos.useQuery(
     { artistId, limit: 4 },
     { enabled: isValidId }
@@ -906,6 +914,76 @@ export default function ArtistProfile() {
                                 {new Date(review.respondedAt).toLocaleDateString()}
                               </p>
                             )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Venue Reviews of Artist */}
+            {artistReviews && artistReviews.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 fill-purple-400 text-purple-400" />
+                    Venue Reviews ({artistReviews.length})
+                    {artistAvgRating && artistAvgRating.averageRating > 0 && (
+                      <span className="text-lg font-normal text-muted-foreground">
+                        {artistAvgRating.averageRating.toFixed(1)} average
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Category breakdown */}
+                  {artistAvgRating && artistAvgRating.reviewCount > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Reliability</p>
+                        <p className="font-semibold">{artistAvgRating.reliability > 0 ? artistAvgRating.reliability.toFixed(1) : 'N/A'}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Stage Presence</p>
+                        <p className="font-semibold">{artistAvgRating.stagePresence > 0 ? artistAvgRating.stagePresence.toFixed(1) : 'N/A'}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Crowd Engagement</p>
+                        <p className="font-semibold">{artistAvgRating.crowdEngagement > 0 ? artistAvgRating.crowdEngagement.toFixed(1) : 'N/A'}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Professionalism</p>
+                        <p className="font-semibold">{artistAvgRating.professionalism > 0 ? artistAvgRating.professionalism.toFixed(1) : 'N/A'}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {artistReviews.map((review) => (
+                      <div key={review.id} className="border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= review.rating
+                                  ? "fill-purple-400 text-purple-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-muted-foreground">{review.comment}</p>
+                        )}
+                        {review.artistResponse && (
+                          <div className="mt-3 pl-4 border-l-2 border-purple-300">
+                            <p className="text-xs font-medium text-purple-600 mb-1">Artist Response:</p>
+                            <p className="text-sm text-muted-foreground">{review.artistResponse}</p>
                           </div>
                         )}
                       </div>

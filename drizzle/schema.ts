@@ -361,6 +361,32 @@ export type VenueReview = typeof venueReviews.$inferSelect;
 export type InsertVenueReview = typeof venueReviews.$inferInsert;
 
 /**
+ * Artist Reviews - venues rate artists after completed bookings
+ */
+export const artistReviews = mysqlTable("artist_reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull().unique(),
+  venueId: int("venueId").notNull(),
+  artistId: int("artistId").notNull(),
+  rating: int("rating").notNull(), // 1-5 overall
+  reliabilityRating: int("reliabilityRating"), // 1-5
+  stagePresenceRating: int("stagePresenceRating"), // 1-5
+  crowdEngagementRating: int("crowdEngagementRating"), // 1-5
+  professionalismRating: int("professionalismRating"), // 1-5
+  comment: text("comment"),
+  artistResponse: text("artistResponse"),
+  respondedAt: timestamp("respondedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_artist_reviews_venue").on(table.venueId),
+  artistIdx: index("idx_artist_reviews_artist").on(table.artistId),
+}));
+
+export type ArtistReview = typeof artistReviews.$inferSelect;
+export type InsertArtistReview = typeof artistReviews.$inferInsert;
+
+/**
  * Profile Views - track artist profile visits
  */
 export const profileViews = mysqlTable("profile_views", {

@@ -4,7 +4,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { getRiderTemplate } from "../services/riderTemplateService";
 import { generateRiderHTML, getRiderTemplateById } from "../services/riderContractTemplate";
-import { sendContractSigned, sendContractForSignature } from "../email";
+import { sendContractSigned, sendContractForSignature, sendRiderRevisionProposedEmail, sendRiderRevisionDecisionEmail } from "../email";
 import * as notif from "../services/notificationService";
 import crypto from "crypto";
 import { generateRiderPdf } from "../services/riderPdfService";
@@ -557,10 +557,11 @@ export const riderContractRouter = router({
         status: "pending",
       });
 
-      // Notify the other party
+      // Notify the other party (in-app + email)
       try {
         const proposerName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
         const fieldCount = Object.keys(input.changes).length;
+        const changeLabels = Object.values(input.changes).map(c => c.label);
 
         if (isArtist && venueProfile) {
           notif.notifyRiderRevisionProposed({
@@ -569,6 +570,18 @@ export const riderContractRouter = router({
             bookingId: input.bookingId,
             fieldCount,
           }).catch(() => {});
+          // Send email to venue
+          const venueUser = await db.getUserById(venueProfile.userId);
+          if (venueUser?.email) {
+            sendRiderRevisionProposedEmail({
+              recipientEmail: venueUser.email,
+              recipientName: venueProfile.organizationName,
+              proposerName,
+              bookingId: input.bookingId,
+              fieldCount,
+              changeLabels,
+            }).catch(() => {});
+          }
         } else if (isVenue && artistProfile) {
           notif.notifyRiderRevisionProposed({
             recipientUserId: artistProfile.userId,
@@ -576,6 +589,18 @@ export const riderContractRouter = router({
             bookingId: input.bookingId,
             fieldCount,
           }).catch(() => {});
+          // Send email to artist
+          const artistUser = await db.getUserById(artistProfile.userId);
+          if (artistUser?.email) {
+            sendRiderRevisionProposedEmail({
+              recipientEmail: artistUser.email,
+              recipientName: artistProfile.artistName,
+              proposerName,
+              bookingId: input.bookingId,
+              fieldCount,
+              changeLabels,
+            }).catch(() => {});
+          }
         }
       } catch (_) {}
 
@@ -684,7 +709,7 @@ export const riderContractRouter = router({
         reviewedAt: new Date(),
       });
 
-      // Notify proposer
+      // Notify proposer (in-app + email)
       try {
         const approverName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
         notif.notifyRiderRevisionApproved({
@@ -692,6 +717,17 @@ export const riderContractRouter = router({
           approverName,
           bookingId: revision.bookingId,
         }).catch(() => {});
+        // Send email to proposer
+        const proposerUser = await db.getUserById(revision.proposedByUserId);
+        if (proposerUser?.email) {
+          sendRiderRevisionDecisionEmail({
+            recipientEmail: proposerUser.email,
+            recipientName: proposerUser.name || 'User',
+            deciderName: approverName,
+            bookingId: revision.bookingId,
+            decision: 'approved',
+          }).catch(() => {});
+        }
       } catch (_) {}
 
       return { success: true };
@@ -742,7 +778,7 @@ export const riderContractRouter = router({
         reviewedAt: new Date(),
       });
 
-      // Notify proposer
+      // Notify proposer (in-app + email)
       try {
         const rejecterName = isArtist ? (artistProfile?.artistName || 'Artist') : (venueProfile?.organizationName || 'Venue');
         notif.notifyRiderRevisionRejected({
@@ -751,6 +787,18 @@ export const riderContractRouter = router({
           bookingId: revision.bookingId,
           reason: input.reason,
         }).catch(() => {});
+        // Send email to proposer
+        const proposerUser = await db.getUserById(revision.proposedByUserId);
+        if (proposerUser?.email) {
+          sendRiderRevisionDecisionEmail({
+            recipientEmail: proposerUser.email,
+            recipientName: proposerUser.name || 'User',
+            deciderName: rejecterName,
+            bookingId: revision.bookingId,
+            decision: 'rejected',
+            reason: input.reason,
+          }).catch(() => {});
+        }
       } catch (_) {}
 
       return { success: true };

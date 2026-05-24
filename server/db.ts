@@ -42,7 +42,8 @@ import {
   venueContracts, InsertVenueContract, VenueContract,
   venueContractSignatures, InsertVenueContractSignature, VenueContractSignature,
   savedArtists, SavedArtist, InsertSavedArtist,
-  riderRevisions, InsertRiderRevision, RiderRevision
+  riderRevisions, InsertRiderRevision, RiderRevision,
+  artistReviews, InsertArtistReview, ArtistReview
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -865,23 +866,7 @@ export async function getReviewsByArtistId(artistId: number): Promise<Review[]> 
   }
 }
 
-export async function getAverageRatingForArtist(artistId: number): Promise<{ averageRating: number; reviewCount: number }> {
-  const db = await getDb();
-  if (!db) return { averageRating: 0, reviewCount: 0 };
-  
-  const artistReviews = await getReviewsByArtistId(artistId);
-  if (artistReviews.length === 0) {
-    return { averageRating: 0, reviewCount: 0 };
-  }
-  
-  const totalRating = artistReviews.reduce((sum, review) => sum + review.rating, 0);
-  const averageRating = totalRating / artistReviews.length;
-  
-  return {
-    averageRating: Math.round(averageRating * 10) / 10,
-    reviewCount: artistReviews.length,
-  };
-}
+// getAverageRatingForArtist moved to artist reviews section below (with category breakdowns)
 
 
 
@@ -1475,6 +1460,59 @@ export async function updateVenueReview(id: number, data: Partial<InsertVenueRev
   if (!db) return undefined;
   await db.update(venueReviews).set({ ...data, updatedAt: new Date() }).where(eq(venueReviews.id, id));
   const result = await db.select().from(venueReviews).where(eq(venueReviews.id, id)).limit(1);
+  return result[0];
+}
+
+// Artist Review Functions
+export async function createArtistReview(data: InsertArtistReview): Promise<ArtistReview> {
+  const db = await getDb();
+  if (!db) throw new Error('Database not available');
+  const [inserted] = await db.insert(artistReviews).values(data);
+  const result = await db.select().from(artistReviews).where(eq(artistReviews.id, inserted.insertId)).limit(1);
+  return result[0];
+}
+
+export async function getArtistReviewsByArtistId(artistId: number): Promise<ArtistReview[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(artistReviews).where(eq(artistReviews.artistId, artistId));
+}
+
+export async function getArtistReviewByBookingId(bookingId: number): Promise<ArtistReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(artistReviews).where(eq(artistReviews.bookingId, bookingId)).limit(1);
+  return result[0];
+}
+
+export async function getAverageRatingForArtist(artistId: number): Promise<{ averageRating: number; reviewCount: number; reliability: number; stagePresence: number; crowdEngagement: number; professionalism: number }> {
+  const db = await getDb();
+  if (!db) return { averageRating: 0, reviewCount: 0, reliability: 0, stagePresence: 0, crowdEngagement: 0, professionalism: 0 };
+  const reviewsList = await db.select().from(artistReviews).where(eq(artistReviews.artistId, artistId));
+  if (reviewsList.length === 0) return { averageRating: 0, reviewCount: 0, reliability: 0, stagePresence: 0, crowdEngagement: 0, professionalism: 0 };
+  const avg = (arr: (number | null)[]) => { const valid = arr.filter(v => v != null) as number[]; return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0; };
+  return {
+    averageRating: avg(reviewsList.map(r => r.rating)),
+    reviewCount: reviewsList.length,
+    reliability: avg(reviewsList.map(r => r.reliabilityRating)),
+    stagePresence: avg(reviewsList.map(r => r.stagePresenceRating)),
+    crowdEngagement: avg(reviewsList.map(r => r.crowdEngagementRating)),
+    professionalism: avg(reviewsList.map(r => r.professionalismRating)),
+  };
+}
+
+export async function getArtistReviewById(reviewId: number): Promise<ArtistReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(artistReviews).where(eq(artistReviews.id, reviewId)).limit(1);
+  return result[0];
+}
+
+export async function updateArtistReview(id: number, data: Partial<InsertArtistReview>): Promise<ArtistReview | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(artistReviews).set({ ...data, updatedAt: new Date() }).where(eq(artistReviews.id, id));
+  const result = await db.select().from(artistReviews).where(eq(artistReviews.id, id)).limit(1);
   return result[0];
 }
 

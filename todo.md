@@ -2818,3 +2818,19 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add isDefault column to rider_templates table (already existed)
 - [x] "Set as Default" star button on Rider Builder page (already existed)
 - [x] Auto-populate new bookings with default rider template data (built in prior session)
+
+## ARTIST REVIEWS FROM VENUES (May 24, 2026)
+- [x] Add artist_reviews table (reliability, stage presence, crowd engagement, professionalism)
+- [x] Build API routes for creating/reading artist reviews (create, getByArtist, getByBooking, getAverageRating, respondToReview)
+- [x] Build ArtistReviewForm UI component for venues on completed bookings
+- [x] Display artist ratings with category breakdown on artist profile pages
+
+## BOOKING CALENDAR VIEW (May 24, 2026)
+- [x] Add BookingCalendar component to artist dashboard showing upcoming bookings
+- [x] Venue dashboard already has VenueCalendar component (fully functional)
+- [x] Calendar shows booking status with color coding (confirmed, pending, completed, cancelled)
+
+## EMAIL NOTIFICATIONS FOR RIDER REVISIONS (May 24, 2026)
+- [x] Send email when venue/artist proposes rider changes (sendRiderRevisionProposedEmail)
+- [x] Send email when artist/venue approves/rejects revisions (sendRiderRevisionDecisionEmail)
+- [x] All emails include unsubscribe links

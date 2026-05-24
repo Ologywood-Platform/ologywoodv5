@@ -568,6 +568,13 @@
       "when": 1779591679003,
       "tag": "0080_illegal_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "5",
+      "when": 1779593000398,
+      "tag": "0081_chubby_ravenous",
+      "breakpoints": true
     }
   ]
 }

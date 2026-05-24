@@ -639,6 +639,54 @@ export async function sendVenueReviewNotificationEmail(params: {
 
 
 /**
+ * Send artist review notification email (venue reviewed an artist)
+ */
+export async function sendArtistReviewNotificationEmail(params: {
+  artistEmail: string;
+  artistName: string;
+  venueName: string;
+  reviewText: string;
+  rating: number;
+  artistProfileUrl: string;
+}) {
+  const { artistEmail, artistName, venueName, reviewText, rating, artistProfileUrl } = params;
+  const stars = '⭐'.repeat(rating);
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">New Review from a Venue</h2>
+      <p>Hi ${artistName},</p>
+      <p><strong>${venueName}</strong> has left a review for you on Ologywood.</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0;"><strong>Rating: ${stars}</strong></p>
+        ${reviewText ? `<p style="margin: 0; font-style: italic; color: #6b7280;">"${reviewText}"</p>` : '<p style="margin: 0; color: #9ca3af;">No written review provided.</p>'}
+      </div>
+      
+      <p>You can respond to this review to show your appreciation or address any concerns.</p>
+      
+      <a href="${artistProfileUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+        View Review & Respond
+      </a>
+      
+      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+        This is an automated message from Ologywood. Please do not reply to this email.
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(artistEmail)}&type=reviews" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: artistEmail,
+    subject: `New Review from ${venueName}`,
+    html,
+  });
+}
+
+/**
  * Send availability update notification to venues who favorited the artist
  */
 export async function sendAvailabilityUpdateNotification(
@@ -1892,6 +1940,109 @@ export async function sendPerformanceRequestEmail(params: {
   return sendEmail({
     to: venueEmail,
     subject: `Performance Request from ${artistName} — ${eventName} on ${eventDateStr}`,
+    html,
+  });
+}
+
+
+/**
+ * Send email notification when a rider revision is proposed
+ */
+export async function sendRiderRevisionProposedEmail(params: {
+  recipientEmail: string;
+  recipientName: string;
+  proposerName: string;
+  bookingId: number;
+  fieldCount: number;
+  changeLabels: string[];
+}) {
+  const { recipientEmail, recipientName, proposerName, bookingId, fieldCount, changeLabels } = params;
+  const changesHtml = changeLabels.map(label => `<li>${label}</li>`).join('');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">Rider Revision Proposed</h2>
+      
+      <p>Hi ${recipientName},</p>
+      
+      <p><strong>${proposerName}</strong> has proposed ${fieldCount} change${fieldCount > 1 ? 's' : ''} to the rider contract for Booking #${bookingId}:</p>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <ul style="margin: 0; padding-left: 20px;">
+          ${changesHtml}
+        </ul>
+      </div>
+      
+      <p>Please review and approve or reject the proposed changes.</p>
+      
+      <a href="${ENV.baseUrl}/booking/${bookingId}"
+         style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        Review Changes
+      </a>
+      
+      <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=rider" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: recipientEmail,
+    subject: `Rider Revision Proposed by ${proposerName} — Booking #${bookingId}`,
+    html,
+  });
+}
+
+/**
+ * Send email notification when a rider revision is approved or rejected
+ */
+export async function sendRiderRevisionDecisionEmail(params: {
+  recipientEmail: string;
+  recipientName: string;
+  deciderName: string;
+  bookingId: number;
+  decision: 'approved' | 'rejected';
+  reason?: string;
+}) {
+  const { recipientEmail, recipientName, deciderName, bookingId, decision, reason } = params;
+  const isApproved = decision === 'approved';
+  const statusColor = isApproved ? '#10b981' : '#ef4444';
+  const statusText = isApproved ? 'Approved' : 'Rejected';
+  const emoji = isApproved ? '✓' : '✗';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">Rider Revision ${statusText}</h2>
+      
+      <p>Hi ${recipientName},</p>
+      
+      <p><strong>${deciderName}</strong> has <span style="color: ${statusColor}; font-weight: bold;">${emoji} ${decision}</span> your proposed rider changes for Booking #${bookingId}.</p>
+      
+      ${reason ? `
+      <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ef4444;">
+        <p style="margin: 0; font-weight: bold; color: #991b1b;">Reason:</p>
+        <p style="margin: 5px 0 0 0; color: #7f1d1d;">${reason}</p>
+      </div>
+      ` : ''}
+      
+      <p>${isApproved ? 'The changes have been applied to the rider contract.' : 'You can propose new changes or discuss further with the other party.'}</p>
+      
+      <a href="${ENV.baseUrl}/booking/${bookingId}"
+         style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
+        View Booking
+      </a>
+      
+      <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=rider" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: recipientEmail,
+    subject: `Rider Revision ${statusText} by ${deciderName} — Booking #${bookingId}`,
     html,
   });
 }
