@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
@@ -91,12 +91,53 @@ export default function Browse() {
     { enabled: activeTab === 'venues' }
   );
 
+  const [venueSort, setVenueSort] = useState<'newest' | 'capacity_desc' | 'capacity_asc' | 'alphabetical'>('newest');
+
   const hasVenueFilters = venueLocation || venueType || venueCapacityRange;
   const clearVenueFilters = () => {
     setVenueLocation('');
     setVenueType('');
     setVenueCapacityRange('');
   };
+
+  // Venue type icon mapping
+  const getVenueTypeIcon = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'bar': return <Wine className="h-3.5 w-3.5" />;
+      case 'club': return <Disc3 className="h-3.5 w-3.5" />;
+      case 'concert_hall': return <Mic2 className="h-3.5 w-3.5" />;
+      case 'theater': return <Theater className="h-3.5 w-3.5" />;
+      case 'arena': return <Trophy className="h-3.5 w-3.5" />;
+      case 'outdoor': return <TreePine className="h-3.5 w-3.5" />;
+      case 'restaurant': return <UtensilsCrossed className="h-3.5 w-3.5" />;
+      case 'lounge': return <Sofa className="h-3.5 w-3.5" />;
+      case 'festival_grounds': return <Tent className="h-3.5 w-3.5" />;
+      case 'private_event_space': return <Lock className="h-3.5 w-3.5" />;
+      default: return <Building2 className="h-3.5 w-3.5" />;
+    }
+  };
+
+  // Format venue type label
+  const formatVenueType = (type: string) => {
+    return type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Venue';
+  };
+
+  // Sort venues
+  const sortedVenues = (() => {
+    if (!venuesList) return [];
+    const venues = [...(venuesList as any[])];
+    switch (venueSort) {
+      case 'capacity_desc':
+        return venues.sort((a, b) => (b.capacity || 0) - (a.capacity || 0));
+      case 'capacity_asc':
+        return venues.sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
+      case 'alphabetical':
+        return venues.sort((a, b) => (a.organizationName || '').localeCompare(b.organizationName || ''));
+      case 'newest':
+      default:
+        return venues.sort((a, b) => (b.id || 0) - (a.id || 0));
+    }
+  })();
 
   const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
 
@@ -411,6 +452,20 @@ export default function Browse() {
                     Clear
                   </Button>
                 )}
+                <div className="ml-auto flex items-center gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Select value={venueSort} onValueChange={(v) => setVenueSort(v as any)}>
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="alphabetical">A → Z</SelectItem>
+                      <SelectItem value="capacity_desc">Largest first</SelectItem>
+                      <SelectItem value="capacity_asc">Smallest first</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {showVenueFilters && (
@@ -493,18 +548,18 @@ export default function Browse() {
               </div>
             )}
 
-            {!venuesLoading && venuesList && (venuesList as any[]).length > 0 && (
+            {!venuesLoading && sortedVenues.length > 0 && (
               <>
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground">
-                    Showing <strong>{(venuesList as any[]).length}</strong> venue{(venuesList as any[]).length !== 1 ? 's' : ''}
+                    Showing <strong>{sortedVenues.length}</strong> venue{sortedVenues.length !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {(venuesList as any[]).map((venue: any) => (
+                  {sortedVenues.map((venue: any) => (
                     <Link key={venue.id} href={`/venue/${venue.id}`}>
                       <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
-                        <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg">
+                        <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg relative">
                           {venue.profilePhotoUrl ? (
                             <LazyImage
                               src={venue.profilePhotoUrl}
@@ -515,6 +570,12 @@ export default function Browse() {
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                            </div>
+                          )}
+                          {/* Venue type icon overlay */}
+                          {venue.venueType && (
+                            <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
+                              {getVenueTypeIcon(venue.venueType)}
                             </div>
                           )}
                         </div>
@@ -528,10 +589,16 @@ export default function Browse() {
                           )}
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
                             {venue.venueType && (
-                              <Badge variant="secondary" className="text-xs">{venue.venueType}</Badge>
+                              <Badge variant="secondary" className="text-xs gap-1 flex items-center">
+                                {getVenueTypeIcon(venue.venueType)}
+                                {formatVenueType(venue.venueType)}
+                              </Badge>
                             )}
                             {venue.capacity && (
-                              <span className="text-xs text-muted-foreground">Cap: {venue.capacity}</span>
+                              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                <Users className="h-3 w-3" />
+                                {venue.capacity}
+                              </span>
                             )}
                           </div>
                         </CardContent>
@@ -542,7 +609,7 @@ export default function Browse() {
               </>
             )}
 
-            {!venuesLoading && (!venuesList || (venuesList as any[]).length === 0) && (
+            {!venuesLoading && sortedVenues.length === 0 && (
               <div className="text-center py-16">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Venues Found</h3>

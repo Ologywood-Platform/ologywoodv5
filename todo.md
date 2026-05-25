@@ -2899,3 +2899,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## BROWSE PAGE IMPROVEMENTS (May 25, 2026)
 - [x] Add venue search filters (location, capacity range, venue type) on Venues tab
 - [x] Rename "Browse Artists" button on homepage to "Browse"
+
+## VENUE BROWSE UX IMPROVEMENTS (May 25, 2026)
+- [x] Add distinct venue type icons on venue cards (bar glass, microphone for concert hall, etc.)
+- [x] Add sort dropdown for venues (newest, highest capacity, alphabetical)
