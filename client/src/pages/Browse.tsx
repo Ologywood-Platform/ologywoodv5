@@ -5,7 +5,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2 } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
 import { SearchFilters } from "@/components/SearchFilters";
@@ -54,8 +55,14 @@ export default function Browse() {
     targetType: 'artist',
   });
   
-  // Tab state for Artists/Events
-  const [activeTab, setActiveTab] = useState<'artists' | 'events'>('artists');
+  // Tab state for Artists/Events/Venues
+  const [activeTab, setActiveTab] = useState<'artists' | 'events' | 'venues'>('artists');
+
+  // Fetch venues for the venues tab
+  const { data: venuesList, isLoading: venuesLoading } = trpc.venue.search.useQuery(
+    { searchQuery: searchQuery || undefined, limit: 50 },
+    { enabled: activeTab === 'venues' }
+  );
 
   const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
 
@@ -188,10 +195,11 @@ export default function Browse() {
           </div>
         </div>
 
-        {/* Tabs for Artists/Events */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'artists' | 'events')} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-xs mb-4 sm:mb-6">
+        {/* Tabs for Artists/Events/Venues */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'artists' | 'events' | 'venues')} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-sm mb-4 sm:mb-6">
             <TabsTrigger value="artists">Artists</TabsTrigger>
+            <TabsTrigger value="venues">Venues</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
           
@@ -345,6 +353,85 @@ export default function Browse() {
           </TabsContent>
           
           {/* Events Tab */}
+          {/* Venues Tab */}
+          <TabsContent value="venues" className="mt-0">
+            {venuesLoading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <Card key={i} className="h-full animate-pulse">
+                    <div className="aspect-[4/3] bg-muted rounded-t-lg" />
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="space-y-2">
+                        <div className="h-4 bg-muted rounded w-3/4" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
+                        <div className="h-3 bg-muted rounded w-1/3" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {!venuesLoading && venuesList && (venuesList as any[]).length > 0 && (
+              <>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing <strong>{(venuesList as any[]).length}</strong> venue{(venuesList as any[]).length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {(venuesList as any[]).map((venue: any) => (
+                    <Link key={venue.id} href={`/venue/${venue.id}`}>
+                      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
+                        <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg">
+                          {venue.profilePhotoUrl ? (
+                            <LazyImage
+                              src={venue.profilePhotoUrl}
+                              alt={venue.organizationName}
+                              containerClassName="w-full h-full"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="h-16 w-16 text-muted-foreground/30" />
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="p-3 sm:p-4">
+                          <h3 className="font-semibold text-base sm:text-lg truncate">{venue.organizationName}</h3>
+                          {venue.location && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                              <MapPin className="h-3 w-3" />
+                              {venue.location}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            {venue.venueType && (
+                              <Badge variant="secondary" className="text-xs">{venue.venueType}</Badge>
+                            )}
+                            {venue.capacity && (
+                              <span className="text-xs text-muted-foreground">Cap: {venue.capacity}</span>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {!venuesLoading && (!venuesList || (venuesList as any[]).length === 0) && (
+              <div className="text-center py-16">
+                <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Venues Found</h3>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                  No venues match your search. Try a different query or check back as new venues join the platform.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="events" className="mt-0">
             <div className="text-center py-16">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />

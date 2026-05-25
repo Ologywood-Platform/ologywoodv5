@@ -2890,3 +2890,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add period selector (7d, 30d, 90d)
 - [x] Add venue profile view tracking (venue_profile_views table + trackProfileView endpoint)
 - [x] Track views on VenueProfile page automatically
+
+## BROWSE PAGE VENUES TAB (May 25, 2026)
+- [x] Add Venues tab to Browse page alongside Artists and Events
+- [x] Venue cards with photo, name, location, type badge, and capacity
+- [x] Lazy-loaded venue search query (only fetches when Venues tab is active)
