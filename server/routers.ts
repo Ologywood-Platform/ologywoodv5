@@ -1012,6 +1012,12 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue not found' });
         }
 
+        // Check if the requested date is blocked
+        const blockedDates = await db.getVenueBlockedDates(venueProfile.id, input.eventDate, input.eventDate);
+        if (blockedDates.length > 0) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This venue is unavailable on the selected date. Please choose a different date.' });
+        }
+
         const formattedDate = new Date(input.eventDate).toLocaleDateString('en-US', {
           year: 'numeric', month: 'long', day: 'numeric'
         });

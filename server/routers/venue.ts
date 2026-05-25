@@ -516,6 +516,14 @@ export const venueRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue not found' });
         }
 
+        // Check if the preferred date is blocked
+        if (input.preferredDate) {
+          const blockedDates = await db.getVenueBlockedDates(venueProfile.id, input.preferredDate, input.preferredDate);
+          if (blockedDates.length > 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'This venue is unavailable on the selected date. Please choose a different date.' });
+          }
+        }
+
         // Get sender's artist profile (if they have one)
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         const senderUser = await db.getUserById(ctx.user.id);
@@ -638,6 +646,21 @@ export const venueRouter = router({
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
       await db.blockVenueDates(venueProfile.id, input.dates, input.reason);
       return { success: true, count: input.dates.length };
+    }),
+
+  /**
+   * Get blocked dates for a venue (public - for venue profile display)
+   */
+  getBlockedDatesPublic: publicProcedure
+    .input(z.object({
+      venueId: z.number(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const dates = await db.getVenueBlockedDates(input.venueId, input.startDate, input.endDate);
+      // Only return the date strings (not reasons) for public view
+      return dates.map(d => d.date);
     }),
 
   /**

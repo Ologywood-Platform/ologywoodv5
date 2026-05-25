@@ -2848,3 +2848,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Block/unblock API endpoints on venue router
   - Visual indicators (red background, ban icon) on blocked dates
   - Popover with block reason input and confirm/cancel flow
+
+## CALENDAR FEATURES PHASE 2 (May 25, 2026)
+- [x] Blocked dates enforcement — reject booking requests on blocked dates, show "Unavailable" on public venue profile
+- [x] Weekly/monthly calendar view toggle for detailed time-slot view (with all-day row for unscheduled bookings)
+- [x] Calendar export to Google Calendar / iCal (.ics file download + Google Calendar URL)

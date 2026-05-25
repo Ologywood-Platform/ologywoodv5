@@ -1,8 +1,7 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Eye, Ban, X, GripHorizontal } from 'lucide-react';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Ban, X, GripHorizontal, Download, LayoutGrid, List } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
-import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { trpc } from '../lib/trpc';
 import { toast } from 'sonner';
 
@@ -29,6 +28,9 @@ interface VenueCalendarProps {
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const TIME_SLOTS = ['9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM'];
+
+type ViewMode = 'month' | 'week';
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -64,8 +66,56 @@ function formatDateStr(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function parseTimeToHour(timeStr: string | null | undefined): number | null {
+  if (!timeStr) return null;
+  const match = timeStr.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|AM|PM)?/);
+  if (!match) return null;
+  let hour = parseInt(match[1]);
+  const ampm = match[3]?.toLowerCase();
+  if (ampm === 'pm' && hour < 12) hour += 12;
+  if (ampm === 'am' && hour === 12) hour = 0;
+  return hour;
+}
+
+function generateICS(bookings: Booking[], venueName?: string): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Ologywood//Venue Calendar//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
+
+  bookings.forEach(booking => {
+    const eventDate = new Date(booking.eventDate);
+    const dateStr = formatDateStr(eventDate).replace(/-/g, '');
+    const summary = `${booking.artistName || 'Booking'} - ${booking.eventDetails || 'Event'}`;
+    const uid = `booking-${booking.id}@ologywood.com`;
+
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
+    lines.push(`DTEND;VALUE=DATE:${dateStr}`);
+    lines.push(`SUMMARY:${summary}`);
+    lines.push(`DESCRIPTION:Status: ${booking.status}${booking.totalFee ? ` | Fee: $${booking.totalFee}` : ''}`);
+    if (venueName) lines.push(`LOCATION:${venueName}`);
+    lines.push(`STATUS:${booking.status === 'confirmed' ? 'CONFIRMED' : booking.status === 'cancelled' ? 'CANCELLED' : 'TENTATIVE'}`);
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
 export default function VenueCalendar({ bookings, onDayClick, onBookingClick, onPostEvent, onCreateBooking }: VenueCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [popoverDate, setPopoverDate] = useState<Date | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [dragStart, setDragStart] = useState<Date | null>(null);
@@ -87,16 +137,16 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   );
   const blockMutation = trpc.venue.blockDates.useMutation({
     onSuccess: () => { refetchBlocked(); toast.success('Dates blocked'); },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => toast.error(err.message),
   });
   const unblockMutation = trpc.venue.unblockDates.useMutation({
     onSuccess: () => { refetchBlocked(); toast.success('Dates unblocked'); },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => toast.error(err.message),
   });
 
   const blockedSet = useMemo(() => {
     const set = new Set<string>();
-    blockedDates?.forEach(bd => set.add(bd.date));
+    blockedDates?.forEach((bd: any) => set.add(bd.date));
     return set;
   }, [blockedDates]);
 
@@ -105,16 +155,14 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
     const map: Record<string, Booking[]> = {};
     bookings.forEach(booking => {
       const d = new Date(booking.eventDate);
-      if (d.getFullYear() === year && d.getMonth() === month) {
-        const key = d.getDate().toString();
-        if (!map[key]) map[key] = [];
-        map[key].push(booking);
-      }
+      const key = formatDateStr(d);
+      if (!map[key]) map[key] = [];
+      map[key].push(booking);
     });
     return map;
-  }, [bookings, year, month]);
+  }, [bookings]);
 
-  // Calendar grid calculation
+  // Calendar grid calculation for month view
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -135,6 +183,14 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   const totalRows = firstDayOfMonth + daysInMonth > 35 ? 6 : 5;
   const displayDays = calendarDays.slice(0, totalRows * 7);
 
+  // Week view calculation
+  const weekStart = getWeekStart(currentDate);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
   const today = new Date();
   const isToday = (date: Date) =>
     date.getDate() === today.getDate() &&
@@ -143,6 +199,16 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
 
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+  const goToPrevWeek = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - 7);
+    setCurrentDate(d);
+  };
+  const goToNextWeek = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 7);
+    setCurrentDate(d);
+  };
   const goToToday = () => setCurrentDate(new Date());
 
   // Drag selection helpers
@@ -154,7 +220,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   }, [dragStart, dragEnd]);
 
   const handleMouseDown = (date: Date, isCurrentMonth: boolean) => {
-    if (!isCurrentMonth) return;
+    if (!isCurrentMonth && viewMode === 'month') return;
     const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
     if (isPast) return;
     dragRef.current = true;
@@ -164,7 +230,8 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   };
 
   const handleMouseEnter = (date: Date, isCurrentMonth: boolean) => {
-    if (!dragRef.current || !isCurrentMonth) return;
+    if (!dragRef.current) return;
+    if (!isCurrentMonth && viewMode === 'month') return;
     setDragEnd(date);
   };
 
@@ -178,11 +245,9 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
       const end = dragStart < dragEnd ? dragEnd : dragStart;
 
       if (start.getTime() === end.getTime()) {
-        // Single day click — show popover
         setPopoverDate(start);
         setPopoverOpen(true);
       } else {
-        // Multi-day drag — show create booking option
         setPopoverDate(start);
         setPopoverOpen(true);
       }
@@ -225,6 +290,54 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
     unblockMutation.mutate({ dates: [dateStr] });
   };
 
+  // Export to iCal
+  const handleExportICal = () => {
+    const activeBookings = bookings.filter(b => b.status !== 'cancelled');
+    if (activeBookings.length === 0) {
+      toast.error('No bookings to export');
+      return;
+    }
+    const icsContent = generateICS(activeBookings);
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ologywood-bookings-${formatDateStr(new Date())}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Calendar exported! Import the .ics file into Google Calendar, Apple Calendar, or Outlook.');
+  };
+
+  // Export to Google Calendar (opens URL)
+  const handleExportGoogle = () => {
+    const activeBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
+    if (activeBookings.length === 0) {
+      toast.error('No active bookings to export');
+      return;
+    }
+    // Export the next upcoming booking to Google Calendar
+    const upcoming = activeBookings
+      .filter(b => new Date(b.eventDate) >= today)
+      .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+    
+    if (upcoming.length === 0) {
+      toast.error('No upcoming bookings to export');
+      return;
+    }
+
+    const booking = upcoming[0];
+    const eventDate = new Date(booking.eventDate);
+    const dateStr = formatDateStr(eventDate).replace(/-/g, '');
+    const title = encodeURIComponent(`${booking.artistName || 'Booking'} - ${booking.eventDetails || 'Event'}`);
+    const details = encodeURIComponent(`Status: ${booking.status}${booking.totalFee ? ` | Fee: $${booking.totalFee}` : ''}\n\nManaged on Ologywood`);
+    
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}/${dateStr}&details=${details}`;
+    window.open(googleUrl, '_blank');
+    toast.success('Opening Google Calendar...');
+  };
+
   // Stats for the month
   const monthStats = useMemo(() => {
     const monthBookings = bookings.filter(b => {
@@ -240,7 +353,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   }, [bookings, year, month]);
 
   // Get popover bookings
-  const popoverBookings = popoverDate ? (bookingsByDate[popoverDate.getDate().toString()] || []) : [];
+  const popoverBookings = popoverDate ? (bookingsByDate[formatDateStr(popoverDate)] || []) : [];
   const popoverDateStr = popoverDate ? formatDateStr(popoverDate) : '';
   const isPopoverBlocked = blockedSet.has(popoverDateStr);
   const isMultiDaySelection = dragStart && dragEnd && dragStart.getTime() !== dragEnd.getTime();
@@ -248,20 +361,51 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   return (
     <div className="space-y-4" onMouseUp={handleMouseUp} onMouseLeave={() => { if (dragRef.current) { dragRef.current = false; setIsDragging(false); setDragStart(null); setDragEnd(null); } }}>
       {/* Calendar Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {MONTHS[month]} {year}
+            {viewMode === 'month' ? `${MONTHS[month]} ${year}` : (
+              `${weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+            )}
           </h2>
           <Button variant="outline" size="sm" onClick={goToToday} className="text-xs">
             Today
           </Button>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={goToPrevMonth}>
+          {/* View Toggle */}
+          <div className="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg mr-2 overflow-hidden">
+            <button
+              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1 transition-colors ${viewMode === 'month' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              onClick={() => setViewMode('month')}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Month
+            </button>
+            <button
+              className={`px-2.5 py-1.5 text-xs font-medium flex items-center gap-1 transition-colors ${viewMode === 'week' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+              onClick={() => setViewMode('week')}
+            >
+              <List className="h-3.5 w-3.5" />
+              Week
+            </button>
+          </div>
+
+          {/* Export Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={handleExportICal}>
+                <Download className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export to iCal / Google Calendar</TooltipContent>
+          </Tooltip>
+
+          {/* Navigation */}
+          <Button variant="ghost" size="sm" onClick={viewMode === 'month' ? goToPrevMonth : goToPrevWeek}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={goToNextMonth}>
+          <Button variant="ghost" size="sm" onClick={viewMode === 'month' ? goToNextMonth : goToNextWeek}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -290,76 +434,188 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden select-none">
-        {/* Day headers */}
-        <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-          {DAYS_OF_WEEK.map(day => (
-            <div key={day} className="px-1 py-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-              {day}
-            </div>
-          ))}
-        </div>
+      {/* MONTH VIEW */}
+      {viewMode === 'month' && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden select-none">
+          {/* Day headers */}
+          <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+            {DAYS_OF_WEEK.map(day => (
+              <div key={day} className="px-1 py-2 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                {day}
+              </div>
+            ))}
+          </div>
 
-        {/* Day cells */}
-        <div className="grid grid-cols-7">
-          {displayDays.map((cell, idx) => {
-            const dayBookings = cell.isCurrentMonth ? (bookingsByDate[cell.day.toString()] || []) : [];
-            const hasBookings = dayBookings.length > 0;
-            const isPast = cell.date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const dateStr = formatDateStr(cell.date);
-            const isBlocked = blockedSet.has(dateStr);
-            const inDragRange = isInDragRange(cell.date) && cell.isCurrentMonth;
+          {/* Day cells */}
+          <div className="grid grid-cols-7">
+            {displayDays.map((cell, idx) => {
+              const dateStr = formatDateStr(cell.date);
+              const dayBookings = bookingsByDate[dateStr] || [];
+              const hasBookings = dayBookings.length > 0;
+              const isPast = cell.date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+              const isBlocked = blockedSet.has(dateStr);
+              const inDragRange = isInDragRange(cell.date) && cell.isCurrentMonth;
 
-            return (
-              <div
-                key={idx}
-                className={`
-                  min-h-[80px] sm:min-h-[100px] p-1 border-b border-r border-gray-100 dark:border-gray-800
-                  ${!cell.isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-900/30' : ''}
-                  ${isToday(cell.date) ? 'bg-purple-50/50 dark:bg-purple-950/20' : ''}
-                  ${isBlocked ? 'bg-red-50/60 dark:bg-red-950/20' : ''}
-                  ${inDragRange ? 'bg-purple-100 dark:bg-purple-900/40 ring-1 ring-inset ring-purple-300 dark:ring-purple-700' : ''}
-                  ${cell.isCurrentMonth && !isPast ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''}
-                  transition-colors
-                `}
-                onMouseDown={() => handleMouseDown(cell.date, cell.isCurrentMonth)}
-                onMouseEnter={() => handleMouseEnter(cell.date, cell.isCurrentMonth)}
-              >
-                {/* Day number */}
-                <div className={`
-                  text-xs sm:text-sm font-medium mb-0.5 flex items-center justify-between
-                  ${!cell.isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : ''}
-                  ${isToday(cell.date) ? 'text-purple-700 dark:text-purple-300 font-bold' : 'text-gray-700 dark:text-gray-300'}
-                  ${isPast && cell.isCurrentMonth ? 'text-gray-400 dark:text-gray-500' : ''}
-                `}>
-                  <span className={isToday(cell.date) ? 'bg-purple-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs' : ''}>
-                    {cell.day}
-                  </span>
-                  {isBlocked && cell.isCurrentMonth && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          className="text-red-400 hover:text-red-600 transition-colors"
-                          onClick={(e) => { e.stopPropagation(); handleUnblockDate(dateStr); }}
-                        >
-                          <Ban className="h-3 w-3" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Click to unblock this date</TooltipContent>
-                    </Tooltip>
+              return (
+                <div
+                  key={idx}
+                  className={`
+                    min-h-[80px] sm:min-h-[100px] p-1 border-b border-r border-gray-100 dark:border-gray-800
+                    ${!cell.isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-900/30' : ''}
+                    ${isToday(cell.date) ? 'bg-purple-50/50 dark:bg-purple-950/20' : ''}
+                    ${isBlocked ? 'bg-red-50/60 dark:bg-red-950/20' : ''}
+                    ${inDragRange ? 'bg-purple-100 dark:bg-purple-900/40 ring-1 ring-inset ring-purple-300 dark:ring-purple-700' : ''}
+                    ${cell.isCurrentMonth && !isPast ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''}
+                    transition-colors
+                  `}
+                  onMouseDown={() => handleMouseDown(cell.date, cell.isCurrentMonth)}
+                  onMouseEnter={() => handleMouseEnter(cell.date, cell.isCurrentMonth)}
+                >
+                  {/* Day number */}
+                  <div className={`
+                    text-xs sm:text-sm font-medium mb-0.5 flex items-center justify-between
+                    ${!cell.isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : ''}
+                    ${isToday(cell.date) ? 'text-purple-700 dark:text-purple-300 font-bold' : 'text-gray-700 dark:text-gray-300'}
+                    ${isPast && cell.isCurrentMonth ? 'text-gray-400 dark:text-gray-500' : ''}
+                  `}>
+                    <span className={isToday(cell.date) ? 'bg-purple-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs' : ''}>
+                      {cell.day}
+                    </span>
+                    {isBlocked && cell.isCurrentMonth && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            className="text-red-400 hover:text-red-600 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleUnblockDate(dateStr); }}
+                          >
+                            <Ban className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Click to unblock this date</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+
+                  {/* Booking indicators */}
+                  {hasBookings && (
+                    <div className="space-y-0.5">
+                      {dayBookings.slice(0, 2).map((booking) => (
+                        <Tooltip key={booking.id}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={`
+                                text-[10px] sm:text-xs px-1 py-0.5 rounded truncate border
+                                ${getStatusBg(booking.status)} ${getStatusBorder(booking.status)}
+                                cursor-pointer hover:opacity-80 transition-opacity
+                              `}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onBookingClick?.(booking);
+                              }}
+                            >
+                              <div className="flex items-center gap-1">
+                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusColor(booking.status)}`}></div>
+                                <span className="truncate font-medium">
+                                  {booking.artistName || 'Artist'}
+                                </span>
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <div className="text-xs space-y-1">
+                              <p className="font-semibold">{booking.artistName}</p>
+                              <p>{booking.eventTime || 'Time TBA'} &bull; <span className="capitalize">{booking.status}</span></p>
+                              {booking.totalFee && <p className="text-green-600">${booking.totalFee}</p>}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                      {dayBookings.length > 2 && (
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 px-1">
+                          +{dayBookings.length - 2} more
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                {/* Booking indicators */}
-                {hasBookings && (
-                  <div className="space-y-0.5">
-                    {dayBookings.slice(0, 2).map((booking) => (
-                      <Tooltip key={booking.id}>
-                        <TooltipTrigger asChild>
+      {/* WEEK VIEW */}
+      {viewMode === 'week' && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden select-none">
+          {/* Day headers */}
+          <div className="grid grid-cols-8 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-2 py-2 text-center text-xs font-semibold text-gray-400 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
+              Time
+            </div>
+            {weekDays.map((day, idx) => {
+              const dateStr = formatDateStr(day);
+              const isBlockedDay = blockedSet.has(dateStr);
+              return (
+                <div key={idx} className={`px-1 py-2 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0 ${isToday(day) ? 'bg-purple-50 dark:bg-purple-950/20' : ''}`}>
+                  <div className={`text-xs font-semibold uppercase ${isToday(day) ? 'text-purple-700 dark:text-purple-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {DAYS_OF_WEEK[idx]}
+                  </div>
+                  <div className={`text-sm font-bold ${isToday(day) ? 'text-purple-700 dark:text-purple-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                    {day.getDate()}
+                  </div>
+                  {isBlockedDay && (
+                    <div className="text-[9px] text-red-500 font-medium mt-0.5">BLOCKED</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Time slot rows */}
+          <div className="max-h-[480px] overflow-y-auto">
+            {TIME_SLOTS.map((timeLabel, timeIdx) => {
+              const hour = timeIdx + 9; // 9 AM start
+              return (
+                <div key={timeLabel} className="grid grid-cols-8 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+                  {/* Time label */}
+                  <div className="px-2 py-3 text-xs text-gray-400 dark:text-gray-500 text-right pr-3 border-r border-gray-200 dark:border-gray-700 font-medium">
+                    {timeLabel}
+                  </div>
+                  {/* Day columns */}
+                  {weekDays.map((day, dayIdx) => {
+                    const dateStr = formatDateStr(day);
+                    const dayBookings = bookingsByDate[dateStr] || [];
+                    const slotBookings = dayBookings.filter(b => {
+                      const bookingHour = parseTimeToHour(b.eventTime);
+                      return bookingHour === hour;
+                    });
+                    const isBlockedDay = blockedSet.has(dateStr);
+                    const isPast = day < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                    return (
+                      <div
+                        key={dayIdx}
+                        className={`
+                          px-0.5 py-1 border-r border-gray-100 dark:border-gray-800 last:border-r-0 min-h-[44px]
+                          ${isBlockedDay ? 'bg-red-50/40 dark:bg-red-950/10' : ''}
+                          ${isToday(day) ? 'bg-purple-50/30 dark:bg-purple-950/10' : ''}
+                          ${!isPast && !isBlockedDay ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30' : ''}
+                          transition-colors
+                        `}
+                        onClick={() => {
+                          if (!isPast && !isBlockedDay) {
+                            setDragStart(day);
+                            setDragEnd(day);
+                            setPopoverDate(day);
+                            setPopoverOpen(true);
+                          }
+                        }}
+                      >
+                        {slotBookings.map(booking => (
                           <div
+                            key={booking.id}
                             className={`
-                              text-[10px] sm:text-xs px-1 py-0.5 rounded truncate border
+                              text-[10px] px-1.5 py-1 rounded border mb-0.5
                               ${getStatusBg(booking.status)} ${getStatusBorder(booking.status)}
                               cursor-pointer hover:opacity-80 transition-opacity
                             `}
@@ -370,45 +626,57 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                           >
                             <div className="flex items-center gap-1">
                               <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusColor(booking.status)}`}></div>
-                              <span className="truncate font-medium">
-                                {booking.artistName || 'Artist'}
-                              </span>
+                              <span className="truncate font-medium">{booking.artistName || 'Artist'}</span>
                             </div>
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[220px]">
-                          <div className="text-xs space-y-1">
-                            <p className="font-semibold">{booking.artistName}</p>
-                            <p>{booking.eventTime || 'Time TBA'} &bull; <span className="capitalize">{booking.status}</span></p>
-                            {booking.totalFee && <p className="text-green-600">${booking.totalFee}</p>}
-                            {booking.status === 'confirmed' && onPostEvent && (
-                              <button
-                                className="flex items-center gap-1 mt-1 text-purple-600 hover:text-purple-800 font-medium"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onPostEvent(booking);
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Post Event
-                              </button>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                    {dayBookings.length > 2 && (
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400 px-1">
-                        +{dayBookings.length - 2} more
+                        ))}
                       </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* All-day / unscheduled bookings row */}
+          {(() => {
+            const weekBookingsWithoutTime = weekDays.map(day => {
+              const dateStr = formatDateStr(day);
+              const dayBookings = bookingsByDate[dateStr] || [];
+              return dayBookings.filter(b => !parseTimeToHour(b.eventTime));
+            });
+            const hasAny = weekBookingsWithoutTime.some(arr => arr.length > 0);
+            if (!hasAny) return null;
+            return (
+              <div className="grid grid-cols-8 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20">
+                <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 text-right pr-3 border-r border-gray-200 dark:border-gray-700 font-medium">
+                  All Day
+                </div>
+                {weekBookingsWithoutTime.map((dayBookings, dayIdx) => (
+                  <div key={dayIdx} className="px-0.5 py-1 border-r border-gray-100 dark:border-gray-800 last:border-r-0">
+                    {dayBookings.slice(0, 3).map(booking => (
+                      <div
+                        key={booking.id}
+                        className={`
+                          text-[10px] px-1.5 py-0.5 rounded border mb-0.5
+                          ${getStatusBg(booking.status)} ${getStatusBorder(booking.status)}
+                          cursor-pointer hover:opacity-80
+                        `}
+                        onClick={() => onBookingClick?.(booking)}
+                      >
+                        <span className="truncate font-medium">{booking.artistName || 'Artist'}</span>
+                      </div>
+                    ))}
+                    {dayBookings.length > 3 && (
+                      <div className="text-[9px] text-gray-500 px-1">+{dayBookings.length - 3} more</div>
                     )}
                   </div>
-                )}
+                ))}
               </div>
             );
-          })}
+          })()}
         </div>
-      </div>
+      )}
 
       {/* Day Popover */}
       {popoverOpen && popoverDate && (
@@ -465,7 +733,14 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                 <Button
                   className="w-full justify-start gap-2"
                   variant="outline"
-                  onClick={() => setShowBlockInput(true)}
+                  onClick={() => {
+                    if (isPopoverBlocked && !isMultiDaySelection) {
+                      handleUnblockDate(popoverDateStr);
+                      setPopoverOpen(false);
+                    } else {
+                      setShowBlockInput(true);
+                    }
+                  }}
                 >
                   <Ban className="h-4 w-4 text-red-500" />
                   {isPopoverBlocked && !isMultiDaySelection ? 'Unblock Date' : (isMultiDaySelection ? 'Block Selected Dates' : 'Block This Date')}
@@ -491,16 +766,29 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                 </div>
               )}
 
-              {isPopoverBlocked && !isMultiDaySelection && !showBlockInput && (
-                <Button
-                  className="w-full justify-start gap-2 text-green-700"
-                  variant="outline"
-                  onClick={() => { handleUnblockDate(popoverDateStr); setPopoverOpen(false); }}
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                  Unblock This Date
-                </Button>
-              )}
+              {/* Export options */}
+              <div className="pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1 justify-center gap-1.5 text-xs"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExportICal}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Export iCal
+                  </Button>
+                  <Button
+                    className="flex-1 justify-center gap-1.5 text-xs"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExportGoogle}
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    Google Cal
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -510,7 +798,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
       <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-1">
         <div className="flex items-center gap-1.5">
           <GripHorizontal className="h-3.5 w-3.5" />
-          <span>Click a date for options, or drag across dates for multi-day actions</span>
+          <span>{viewMode === 'month' ? 'Click a date for options, or drag across dates for multi-day actions' : 'Click a time slot to create a booking'}</span>
         </div>
       </div>
     </div>

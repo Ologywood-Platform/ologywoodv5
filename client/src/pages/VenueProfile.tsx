@@ -44,6 +44,13 @@ export default function VenueProfile() {
     preferredDate: '',
   });
 
+  // Fetch blocked dates for the next 3 months (public)
+  const { data: blockedDatesPublic } = trpc.venue.getBlockedDatesPublic.useQuery(
+    { venueId, startDate: new Date().toISOString().split('T')[0] },
+    { enabled: venueId > 0, staleTime: 120_000 }
+  );
+  const blockedDatesSet = new Set(blockedDatesPublic || []);
+
   const contactVenueMutation = trpc.venue.contactVenue.useMutation({
     onSuccess: (data) => {
       toast.success('Inquiry sent! The venue will be notified.');
@@ -651,11 +658,24 @@ export default function VenueProfile() {
                       <input
                         type="date"
                         value={contactForm.preferredDate}
-                        onChange={(e) => setContactForm({ ...contactForm, preferredDate: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (blockedDatesSet.has(val)) {
+                            toast.error('This date is unavailable. Please choose a different date.');
+                            return;
+                          }
+                          setContactForm({ ...contactForm, preferredDate: val });
+                        }}
                         min={new Date().toISOString().split('T')[0]}
                         className="w-full pl-10 pr-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       />
                     </div>
+                    {contactForm.preferredDate && blockedDatesSet.has(contactForm.preferredDate) && (
+                      <p className="text-xs text-red-500 mt-1">⚠️ This date is marked as unavailable by the venue</p>
+                    )}
+                    {blockedDatesPublic && blockedDatesPublic.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">Some dates are unavailable for this venue</p>
+                    )}
                   </div>
                 )}
 
