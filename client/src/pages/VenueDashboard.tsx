@@ -381,7 +381,7 @@ export function VenueDashboard() {
               <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+            <TabsTrigger value="profile" id="venue-profile-tab" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Profile</span>
             </TabsTrigger>
@@ -420,8 +420,8 @@ export function VenueDashboard() {
                 profile={profile}
                 type="venue"
                 onEditProfile={() => {
-                  const el = document.getElementById('venue-profile-tab');
-                  if (el) el.click();
+                  setActiveTab('profile');
+                  setEditingProfile(true);
                 }}
               />
             )}
