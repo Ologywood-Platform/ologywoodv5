@@ -2903,3 +2903,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## VENUE BROWSE UX IMPROVEMENTS (May 25, 2026)
 - [x] Add distinct venue type icons on venue cards (bar glass, microphone for concert hall, etc.)
 - [x] Add sort dropdown for venues (newest, highest capacity, alphabetical)
+
+## REQUEST TO PERFORM BUTTON ON VENUE CARDS (May 25, 2026)
+- [x] Add "Request to Perform" button on venue cards in Browse page
+- [x] Only show for authenticated artists (toast error for non-artists)
+- [x] Non-authenticated users get prompted to sign up (toast error with message)
+- [x] Modal with event name, date picker, and optional message
+- [x] Calls existing booking.requestToPerform mutation
+- [x] Success toast and venue notification on submit

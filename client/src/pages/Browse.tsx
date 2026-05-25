@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown, Send, Loader2 } from "lucide-react";
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
@@ -138,6 +142,55 @@ export default function Browse() {
         return venues.sort((a, b) => (b.id || 0) - (a.id || 0));
     }
   })();
+
+  // Request to Perform modal state
+  const [showPerformModal, setShowPerformModal] = useState(false);
+  const [performVenue, setPerformVenue] = useState<any>(null);
+  const [performEventName, setPerformEventName] = useState('');
+  const [performDate, setPerformDate] = useState('');
+  const [performMessage, setPerformMessage] = useState('');
+
+  const requestToPerform = trpc.booking.requestToPerform.useMutation({
+    onSuccess: () => {
+      toast.success('Performance request sent! The venue will be notified.');
+      setShowPerformModal(false);
+      setPerformEventName('');
+      setPerformDate('');
+      setPerformMessage('');
+      setPerformVenue(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to send request');
+    },
+  });
+
+  const handleRequestToPerform = (e: React.MouseEvent, venue: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.error('Please sign up or log in to request a performance.');
+      return;
+    }
+    if (user?.role !== 'artist') {
+      toast.error('Only artists can request to perform at venues.');
+      return;
+    }
+    setPerformVenue(venue);
+    setShowPerformModal(true);
+  };
+
+  const submitPerformRequest = () => {
+    if (!performVenue || !performEventName || !performDate) {
+      toast.error('Please fill in the event name and date.');
+      return;
+    }
+    requestToPerform.mutate({
+      venueId: performVenue.id,
+      eventName: performEventName,
+      eventDate: performDate,
+      message: performMessage || undefined,
+    });
+  };
 
   const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
 
@@ -601,6 +654,16 @@ export default function Browse() {
                               </span>
                             )}
                           </div>
+                          {/* Request to Perform button - only for artists */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-3 w-full gap-1.5 text-xs"
+                            onClick={(e) => handleRequestToPerform(e, venue)}
+                          >
+                            <Send className="h-3 w-3" />
+                            Request to Perform
+                          </Button>
                         </CardContent>
                       </Card>
                     </Link>
@@ -640,6 +703,69 @@ export default function Browse() {
         actionType={modalConfig.actionType}
         targetType={modalConfig.targetType}
       />
+
+      {/* Request to Perform Modal */}
+      <Dialog open={showPerformModal} onOpenChange={setShowPerformModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Request to Perform
+            </DialogTitle>
+            <DialogDescription>
+              Send a performance request to <strong>{performVenue?.organizationName}</strong>. They'll receive a notification and can accept or decline.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="perform-event-name">Event / Show Name *</Label>
+              <Input
+                id="perform-event-name"
+                placeholder="e.g., Friday Night Live, Album Release Party"
+                value={performEventName}
+                onChange={(e) => setPerformEventName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="perform-date">Preferred Date *</Label>
+              <Input
+                id="perform-date"
+                type="date"
+                value={performDate}
+                onChange={(e) => setPerformDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="perform-message">Message (optional)</Label>
+              <Textarea
+                id="perform-message"
+                placeholder="Tell the venue about your act, set length, or any special requirements..."
+                value={performMessage}
+                onChange={(e) => setPerformMessage(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPerformModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitPerformRequest}
+              disabled={requestToPerform.isPending || !performEventName || !performDate}
+              className="gap-1.5"
+            >
+              {requestToPerform.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
+              Send Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
