@@ -287,7 +287,7 @@ export default function Browse() {
         <div className="mb-4 sm:mb-6">
           <div className="flex gap-2 sm:gap-3">
             <ClearableInput
-              placeholder="Search by name or genre..."
+              placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : 'Search artists by name or genre...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClear={() => setSearchQuery("")}
