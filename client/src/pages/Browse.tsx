@@ -295,21 +295,23 @@ export default function Browse() {
               className="text-xs sm:text-sm"
               wrapperClassName="flex-1"
             />
-            <Button
-              variant={showFilters ? "default" : "outline"}
-              size="sm"
-              className="gap-1.5 shrink-0"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
-              {activeFilterCount > 0 && (
-                <span className="bg-primary-foreground text-primary text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  {activeFilterCount}
-                </span>
-              )}
-            </Button>
-            {(searchQuery || activeFilterCount > 0) && (
+            {activeTab !== 'venues' && (
+              <Button
+                variant={showFilters ? "default" : "outline"}
+                size="sm"
+                className="gap-1.5 shrink-0"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="bg-primary-foreground text-primary text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            )}
+            {(searchQuery || activeFilterCount > 0) && activeTab !== 'venues' && (
               <Button
                 variant="ghost"
                 size="sm"
