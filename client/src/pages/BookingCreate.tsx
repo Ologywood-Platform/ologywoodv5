@@ -21,7 +21,7 @@ export default function BookingCreate() {
   const isRebook = params.get('rebook') === 'true';
   
   const [formData, setFormData] = useState({
-    eventDate: '',
+    eventDate: params.get('date') || '',
     eventTime: '',
     eventDetails: '',
     budget: params.get('totalFee') || '',

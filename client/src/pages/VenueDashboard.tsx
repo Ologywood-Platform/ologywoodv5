@@ -524,6 +524,10 @@ export function VenueDashboard() {
                     navigate(`/booking/${dayBookings[0].id}`);
                   } else if (dayBookings.length > 1) {
                     setActiveTab('bookings');
+                  } else {
+                    // Empty date — navigate to create a booking with the date pre-filled
+                    const dateStr = date.toISOString().split('T')[0];
+                    navigate(`/booking/create?date=${dateStr}`);
                   }
                 }}
                 onBookingClick={(booking) => {
