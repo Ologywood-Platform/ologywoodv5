@@ -589,6 +589,13 @@
       "when": 1779700441520,
       "tag": "0083_flawless_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "5",
+      "when": 1779702053744,
+      "tag": "0084_majestic_eddie_brock",
+      "breakpoints": true
     }
   ]
 }

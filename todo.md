@@ -2867,3 +2867,26 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Booking conflict warnings (yellow warning when new request overlaps existing confirmed booking)
   - Animated yellow ! badge on calendar dates with both pending + confirmed bookings
   - Tooltip explains the conflict
+
+## EARNINGS BREAKDOWN PAGE (May 25, 2026)
+- [x] Build earnings breakdown API endpoint (per-booking revenue, door split calculations, monthly/quarterly aggregation)
+- [x] Build EarningsBreakdown page with per-booking table, payment type indicators, and totals
+- [x] Add monthly/quarterly summary cards with period selector
+- [x] Add CSV export for earnings data
+- [x] Integrate into artist dashboard navigation (link from ArtistEarnings page)
+
+## IN-APP NOTIFICATION CENTER (May 25, 2026)
+- [x] Create in_app_notifications database table (already existed: notifications table)
+- [x] Build notification API endpoints (already existed: notifications router with list, markRead, markAllRead, delete)
+- [x] Create notification triggers for booking updates, rider changes, review activity (23 trigger functions in notificationService.ts)
+- [x] Build NotificationBell component with unread count badge (RealtimeNotifications.tsx)
+- [x] Build NotificationDropdown with recent notifications list (already built with polling)
+- [x] Integrate into SiteHeader and DashboardHeader (already integrated in SiteHeader)
+
+## BOOKING FUNNEL METRICS (May 25, 2026)
+- [x] Build funnel metrics API endpoint (venue.getBookingFunnel with profile views → requests → confirmed)
+- [x] Create BookingFunnel component with bar visualization and conversion rates
+- [x] Integrate funnel chart into venue analytics tab (VenueDashboard)
+- [x] Add period selector (7d, 30d, 90d)
+- [x] Add venue profile view tracking (venue_profile_views table + trackProfileView endpoint)
+- [x] Track views on VenueProfile page automatically

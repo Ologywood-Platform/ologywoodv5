@@ -2,9 +2,12 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
+import { getDb } from "../db";
 import { storagePut } from "../storage";
 import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail, sendEmail } from "../email";
 import * as notif from "../services/notificationService";
+import { venueProfileViews, bookings } from "../../drizzle/schema";
+import { eq, and, gte, sql, desc } from "drizzle-orm";
 
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -792,5 +795,96 @@ export const venueRouter = router({
       }
 
       return { success: true, imported: uniqueDates.length, message: `Imported ${uniqueDates.length} dates as blocked from your calendar.` };
+    }),
+
+  /**
+   * Track a venue profile view (public)
+   */
+  trackProfileView: publicProcedure
+    .input(z.object({ venueId: z.number() }))
+    .mutation(async ({ input }) => {
+      try {
+        const database = await getDb();
+        if (!database) return { success: true };
+        await database.insert(venueProfileViews).values({ venueId: input.venueId });
+      } catch (error) {
+        console.error('Error tracking venue profile view:', error);
+      }
+      return { success: true };
+    }),
+
+  /**
+   * Get booking funnel metrics for a venue
+   * Tracks: profile views → booking requests → confirmed bookings
+   */
+  getBookingFunnel: venueProcedure
+    .input(z.object({
+      days: z.enum(['7', '30', '90']).default('30'),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const database = await getDb();
+      if (!database) {
+        return { profileViews: 0, bookingRequests: 0, confirmedBookings: 0, completedBookings: 0, conversionRates: { viewToRequest: 0, requestToConfirmed: 0, overall: 0 } };
+      }
+
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      }
+
+      const days = parseInt(input?.days || '30');
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      // Profile views in period
+      const viewsResult = await database
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(venueProfileViews)
+        .where(and(
+          eq(venueProfileViews.venueId, venueProfile.id),
+          gte(venueProfileViews.viewedAt, startDate)
+        ));
+      const profileViews = viewsResult[0]?.count || 0;
+
+      // Booking requests (all bookings created in period)
+      const requestsResult = await database
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(bookings)
+        .where(and(
+          eq(bookings.venueId, venueProfile.id),
+          gte(bookings.createdAt, startDate)
+        ));
+      const bookingRequests = requestsResult[0]?.count || 0;
+
+      // Confirmed bookings in period
+      const confirmedResult = await database
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(bookings)
+        .where(and(
+          eq(bookings.venueId, venueProfile.id),
+          eq(bookings.status, 'confirmed'),
+          gte(bookings.createdAt, startDate)
+        ));
+      const confirmedBookings = confirmedResult[0]?.count || 0;
+
+      // Completed bookings in period
+      const completedResult = await database
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(bookings)
+        .where(and(
+          eq(bookings.venueId, venueProfile.id),
+          eq(bookings.status, 'completed'),
+          gte(bookings.createdAt, startDate)
+        ));
+      const completedBookings = completedResult[0]?.count || 0;
+
+      // Calculate conversion rates
+      const conversionRates = {
+        viewToRequest: profileViews > 0 ? Math.round((bookingRequests / profileViews) * 100) : 0,
+        requestToConfirmed: bookingRequests > 0 ? Math.round((confirmedBookings / bookingRequests) * 100) : 0,
+        overall: profileViews > 0 ? Math.round((confirmedBookings / profileViews) * 100) : 0,
+      };
+
+      return { profileViews, bookingRequests, confirmedBookings, completedBookings, conversionRates };
     }),
 });

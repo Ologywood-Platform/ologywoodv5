@@ -25,6 +25,15 @@ export default function VenueProfile() {
   const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
   const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
 
+  // Track venue profile view
+  const trackViewMutation = trpc.venue.trackProfileView.useMutation();
+  useEffect(() => {
+    if (venueId > 0) {
+      trackViewMutation.mutate({ venueId });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venueId]);
+
   // Set SEO meta tags when venue data loads
   useEffect(() => {
     if (venueProfile) {

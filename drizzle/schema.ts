@@ -1502,3 +1502,19 @@ export const venueRecurringBlocks = mysqlTable("venue_recurring_blocks", {
 
 export type VenueRecurringBlock = typeof venueRecurringBlocks.$inferSelect;
 export type InsertVenueRecurringBlock = typeof venueRecurringBlocks.$inferInsert;
+
+
+/**
+ * Venue Profile Views - tracks when someone views a venue's public profile
+ */
+export const venueProfileViews = mysqlTable("venue_profile_views", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_venue_profile_views_venue").on(table.venueId),
+  viewedAtIdx: index("idx_venue_profile_views_date").on(table.viewedAt),
+}));
+
+export type VenueProfileView = typeof venueProfileViews.$inferSelect;
+export type InsertVenueProfileView = typeof venueProfileViews.$inferInsert;

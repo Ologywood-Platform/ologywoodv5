@@ -19,6 +19,7 @@ import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
 import DashboardAnalyticsCards from '../components/DashboardAnalyticsCards';
+import BookingFunnel from '../components/BookingFunnel';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -1026,6 +1027,7 @@ export function VenueDashboard() {
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <VenueAnalytics venueId={profile?.id || 0} bookings={bookings || []} />
+            <BookingFunnel venueId={profile?.id || 0} />
           </TabsContent>
 
           {/* Profile Tab */}

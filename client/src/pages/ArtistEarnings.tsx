@@ -469,6 +469,22 @@ export default function ArtistEarnings() {
         </Card>
       </div>
 
+      {/* Detailed Breakdown Link */}
+      <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-800 dark:text-blue-300">Detailed Earnings Breakdown</h3>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">View per-booking revenue, door split calculations, and monthly/quarterly summaries with CSV export.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/earnings/breakdown')} className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-100">
+              <BarChart3 className="h-4 w-4" />
+              View Breakdown
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Release Sales Analytics */}
       <ReleaseSalesAnalytics />
 
