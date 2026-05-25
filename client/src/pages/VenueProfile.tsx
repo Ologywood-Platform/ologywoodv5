@@ -49,7 +49,15 @@ export default function VenueProfile() {
     { venueId, startDate: new Date().toISOString().split('T')[0] },
     { enabled: venueId > 0, staleTime: 120_000 }
   );
-  const blockedDatesSet = new Set(blockedDatesPublic || []);
+  const blockedDatesSet = new Set(blockedDatesPublic?.blockedDates || []);
+  const recurringBlockedDays = new Set(blockedDatesPublic?.recurringBlockedDays || []);
+  
+  // Helper to check if a date is blocked (explicit or recurring)
+  const isDateBlocked = (dateStr: string) => {
+    if (blockedDatesSet.has(dateStr)) return true;
+    const d = new Date(dateStr + 'T12:00:00');
+    return recurringBlockedDays.has(d.getDay());
+  };
 
   const contactVenueMutation = trpc.venue.contactVenue.useMutation({
     onSuccess: (data) => {
@@ -660,7 +668,7 @@ export default function VenueProfile() {
                         value={contactForm.preferredDate}
                         onChange={(e) => {
                           const val = e.target.value;
-                          if (blockedDatesSet.has(val)) {
+                          if (isDateBlocked(val)) {
                             toast.error('This date is unavailable. Please choose a different date.');
                             return;
                           }
@@ -670,12 +678,12 @@ export default function VenueProfile() {
                         className="w-full pl-10 pr-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       />
                     </div>
-                    {contactForm.preferredDate && blockedDatesSet.has(contactForm.preferredDate) && (
+                    {contactForm.preferredDate && isDateBlocked(contactForm.preferredDate) && (
                       <p className="text-xs text-red-500 mt-1">⚠️ This date is marked as unavailable by the venue</p>
                     )}
-                    {blockedDatesPublic && blockedDatesPublic.length > 0 && (
+                    {(blockedDatesPublic?.blockedDates?.length || blockedDatesPublic?.recurringBlockedDays?.length) ? (
                       <p className="text-xs text-muted-foreground mt-1">Some dates are unavailable for this venue</p>
-                    )}
+                    ) : null}
                   </div>
                 )}
 

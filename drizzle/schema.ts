@@ -1485,3 +1485,20 @@ export const venueBlockedDates = mysqlTable("venue_blocked_dates", {
 
 export type VenueBlockedDate = typeof venueBlockedDates.$inferSelect;
 export type InsertVenueBlockedDate = typeof venueBlockedDates.$inferInsert;
+
+/**
+ * Venue Recurring Blocks - weekly recurring blocked days (e.g., "closed every Monday")
+ */
+export const venueRecurringBlocks = mysqlTable("venue_recurring_blocks", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  dayOfWeek: int("dayOfWeek").notNull(), // 0=Sunday, 1=Monday, ..., 6=Saturday
+  reason: varchar("reason", { length: 255 }), // e.g., "Closed", "Staff day off", "Maintenance"
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_venue_recurring_blocks_venue").on(table.venueId),
+}));
+
+export type VenueRecurringBlock = typeof venueRecurringBlocks.$inferSelect;
+export type InsertVenueRecurringBlock = typeof venueRecurringBlocks.$inferInsert;

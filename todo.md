@@ -2853,3 +2853,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Blocked dates enforcement — reject booking requests on blocked dates, show "Unavailable" on public venue profile
 - [x] Weekly/monthly calendar view toggle for detailed time-slot view (with all-day row for unscheduled bookings)
 - [x] Calendar export to Google Calendar / iCal (.ics file download + Google Calendar URL)
+
+## CALENDAR FEATURES PHASE 3 (May 25, 2026)
+- [x] Recurring availability patterns (weekly recurring blocked days, e.g., "closed every Monday")
+  - venue_recurring_blocks table with dayOfWeek, reason, isActive
+  - Add/remove recurring block API endpoints
+  - UI toggle buttons for each day of week in calendar header
+  - Recurring blocks shown as red striped background on calendar
+- [x] Google Calendar sync import (import external calendar events as blocked dates)
+  - importCalendarBlocked tRPC endpoint (fetches iCal URL, parses events, creates blocked dates for next 90 days)
+  - Upload button in calendar header opens import modal
+  - Input for Google Calendar secret iCal URL
+- [x] Booking conflict warnings (yellow warning when new request overlaps existing confirmed booking)
+  - Animated yellow ! badge on calendar dates with both pending + confirmed bookings
+  - Tooltip explains the conflict

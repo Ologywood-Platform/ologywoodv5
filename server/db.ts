@@ -44,7 +44,8 @@ import {
   savedArtists, SavedArtist, InsertSavedArtist,
   riderRevisions, InsertRiderRevision, RiderRevision,
   artistReviews, InsertArtistReview, ArtistReview,
-  venueBlockedDates, InsertVenueBlockedDate, VenueBlockedDate
+  venueBlockedDates, InsertVenueBlockedDate, VenueBlockedDate,
+  venueRecurringBlocks, InsertVenueRecurringBlock, VenueRecurringBlock
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -3161,4 +3162,64 @@ export async function unblockVenueDates(venueId: number, dates: string[]): Promi
   await db.delete(venueBlockedDates).where(
     and(eq(venueBlockedDates.venueId, venueId), inArray(venueBlockedDates.date, dates))
   );
+}
+
+// ─── Venue Recurring Blocks ───────────────────────────────────────────────────
+
+export async function getVenueRecurringBlocks(venueId: number): Promise<VenueRecurringBlock[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(venueRecurringBlocks).where(
+    and(eq(venueRecurringBlocks.venueId, venueId), eq(venueRecurringBlocks.isActive, true))
+  );
+}
+
+export async function addVenueRecurringBlock(venueId: number, dayOfWeek: number, reason?: string): Promise<VenueRecurringBlock | null> {
+  const db = await getDb();
+  if (!db) return null;
+  // Check for existing active block on same day
+  const existing = await db.select().from(venueRecurringBlocks).where(
+    and(
+      eq(venueRecurringBlocks.venueId, venueId),
+      eq(venueRecurringBlocks.dayOfWeek, dayOfWeek),
+      eq(venueRecurringBlocks.isActive, true)
+    )
+  );
+  if (existing.length > 0) return existing[0];
+  const [result] = await db.insert(venueRecurringBlocks).values({ venueId, dayOfWeek, reason: reason || null });
+  const [inserted] = await db.select().from(venueRecurringBlocks).where(eq(venueRecurringBlocks.id, result.insertId));
+  return inserted || null;
+}
+
+export async function removeVenueRecurringBlock(venueId: number, dayOfWeek: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(venueRecurringBlocks)
+    .set({ isActive: false })
+    .where(and(eq(venueRecurringBlocks.venueId, venueId), eq(venueRecurringBlocks.dayOfWeek, dayOfWeek), eq(venueRecurringBlocks.isActive, true)));
+}
+
+export async function isDateBlockedForVenue(venueId: number, date: string): Promise<{ blocked: boolean; reason?: string }> {
+  const db = await getDb();
+  if (!db) return { blocked: false };
+  
+  // Check explicit blocked dates
+  const explicitBlock = await db.select().from(venueBlockedDates).where(
+    and(eq(venueBlockedDates.venueId, venueId), eq(venueBlockedDates.date, date))
+  );
+  if (explicitBlock.length > 0) return { blocked: true, reason: explicitBlock[0].reason || 'Blocked' };
+  
+  // Check recurring blocks
+  const d = new Date(date + 'T12:00:00'); // Use noon to avoid timezone issues
+  const dayOfWeek = d.getDay();
+  const recurringBlock = await db.select().from(venueRecurringBlocks).where(
+    and(
+      eq(venueRecurringBlocks.venueId, venueId),
+      eq(venueRecurringBlocks.dayOfWeek, dayOfWeek),
+      eq(venueRecurringBlocks.isActive, true)
+    )
+  );
+  if (recurringBlock.length > 0) return { blocked: true, reason: recurringBlock[0].reason || 'Recurring block' };
+  
+  return { blocked: false };
 }

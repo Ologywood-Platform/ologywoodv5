@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Ban, X, GripHorizontal, Download, LayoutGrid, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Ban, X, GripHorizontal, Download, Upload, LayoutGrid, List } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 import { trpc } from '../lib/trpc';
@@ -123,6 +123,8 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   const [isDragging, setIsDragging] = useState(false);
   const [blockReason, setBlockReason] = useState('');
   const [showBlockInput, setShowBlockInput] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [icalUrl, setIcalUrl] = useState('');
   const dragRef = useRef(false);
 
   const year = currentDate.getFullYear();
@@ -144,11 +146,42 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
     onError: (err: any) => toast.error(err.message),
   });
 
+  // Fetch recurring blocks
+  const { data: recurringBlocks, refetch: refetchRecurring } = trpc.venue.getRecurringBlocks.useQuery(
+    undefined,
+    { staleTime: 120_000 }
+  );
+  const addRecurringMutation = trpc.venue.addRecurringBlock.useMutation({
+    onSuccess: () => { refetchRecurring(); toast.success('Recurring block added'); },
+    onError: (err: any) => toast.error(err.message),
+  });
+  const removeRecurringMutation = trpc.venue.removeRecurringBlock.useMutation({
+    onSuccess: () => { refetchRecurring(); toast.success('Recurring block removed'); },
+    onError: (err: any) => toast.error(err.message),
+  });
+  const importCalendarMutation = trpc.venue.importCalendarBlocked.useMutation({
+    onSuccess: (data) => { refetchBlocked(); setShowImportModal(false); setIcalUrl(''); toast.success(data.message); },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const recurringBlockedDays = useMemo(() => {
+    const set = new Set<number>();
+    recurringBlocks?.forEach((rb: any) => set.add(rb.dayOfWeek));
+    return set;
+  }, [recurringBlocks]);
+
   const blockedSet = useMemo(() => {
     const set = new Set<string>();
     blockedDates?.forEach((bd: any) => set.add(bd.date));
     return set;
   }, [blockedDates]);
+
+  // Check if a date is blocked (explicit or recurring)
+  const isDateBlocked = (dateStr: string) => {
+    if (blockedSet.has(dateStr)) return true;
+    const d = new Date(dateStr + 'T12:00:00');
+    return recurringBlockedDays.has(d.getDay());
+  };
 
   // Build a map of date -> bookings for the current month
   const bookingsByDate = useMemo(() => {
@@ -355,7 +388,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   // Get popover bookings
   const popoverBookings = popoverDate ? (bookingsByDate[formatDateStr(popoverDate)] || []) : [];
   const popoverDateStr = popoverDate ? formatDateStr(popoverDate) : '';
-  const isPopoverBlocked = blockedSet.has(popoverDateStr);
+  const isPopoverBlocked = isDateBlocked(popoverDateStr);
   const isMultiDaySelection = dragStart && dragEnd && dragStart.getTime() !== dragEnd.getTime();
 
   return (
@@ -390,6 +423,16 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
               Week
             </button>
           </div>
+
+          {/* Import Calendar Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={() => setShowImportModal(true)}>
+                <Upload className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Import from Google Calendar</TooltipContent>
+          </Tooltip>
 
           {/* Export Button */}
           <Tooltip>
@@ -427,11 +470,35 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-red-300 dark:bg-red-700"></div>
-          <span className="text-gray-600 dark:text-gray-400">{blockedDates?.length || 0} blocked</span>
+          <span className="text-gray-600 dark:text-gray-400">{(blockedDates?.length || 0) + (recurringBlocks?.length || 0)} blocked</span>
         </div>
         <div className="text-gray-500 dark:text-gray-500 ml-auto">
           {monthStats.total} total this month
         </div>
+      </div>
+
+      {/* Recurring Blocks Management */}
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="text-gray-500 dark:text-gray-400 font-medium">Closed days:</span>
+        {DAYS_OF_WEEK.map((day, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              if (recurringBlockedDays.has(idx)) {
+                removeRecurringMutation.mutate({ dayOfWeek: idx });
+              } else {
+                addRecurringMutation.mutate({ dayOfWeek: idx, reason: `Closed every ${day}` });
+              }
+            }}
+            className={`px-2 py-1 rounded-md border text-xs font-medium transition-colors ${
+              recurringBlockedDays.has(idx)
+                ? 'bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            {day}
+          </button>
+        ))}
       </div>
 
       {/* MONTH VIEW */}
@@ -453,8 +520,10 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
               const dayBookings = bookingsByDate[dateStr] || [];
               const hasBookings = dayBookings.length > 0;
               const isPast = cell.date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-              const isBlocked = blockedSet.has(dateStr);
+              const isBlocked = isDateBlocked(dateStr);
               const inDragRange = isInDragRange(cell.date) && cell.isCurrentMonth;
+              // Conflict detection: pending + confirmed on same date
+              const hasConflict = dayBookings.some(b => b.status === 'pending') && dayBookings.some(b => b.status === 'confirmed');
 
               return (
                 <div
@@ -481,19 +550,31 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                     <span className={isToday(cell.date) ? 'bg-purple-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs' : ''}>
                       {cell.day}
                     </span>
-                    {isBlocked && cell.isCurrentMonth && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            className="text-red-400 hover:text-red-600 transition-colors"
-                            onClick={(e) => { e.stopPropagation(); handleUnblockDate(dateStr); }}
-                          >
-                            <Ban className="h-3 w-3" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>Click to unblock this date</TooltipContent>
-                      </Tooltip>
-                    )}
+                    <div className="flex items-center gap-0.5">
+                      {hasConflict && cell.isCurrentMonth && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 text-[9px] font-bold animate-pulse">
+                              !
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>Conflict: pending request overlaps with a confirmed booking</TooltipContent>
+                        </Tooltip>
+                      )}
+                      {isBlocked && cell.isCurrentMonth && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              className="text-red-400 hover:text-red-600 transition-colors"
+                              onClick={(e) => { e.stopPropagation(); handleUnblockDate(dateStr); }}
+                            >
+                              <Ban className="h-3 w-3" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to unblock this date</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
 
                   {/* Booking indicators */}
@@ -554,7 +635,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
             </div>
             {weekDays.map((day, idx) => {
               const dateStr = formatDateStr(day);
-              const isBlockedDay = blockedSet.has(dateStr);
+              const isBlockedDay = isDateBlocked(dateStr);
               return (
                 <div key={idx} className={`px-1 py-2 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0 ${isToday(day) ? 'bg-purple-50 dark:bg-purple-950/20' : ''}`}>
                   <div className={`text-xs font-semibold uppercase ${isToday(day) ? 'text-purple-700 dark:text-purple-300' : 'text-gray-500 dark:text-gray-400'}`}>
@@ -589,7 +670,7 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                       const bookingHour = parseTimeToHour(b.eventTime);
                       return bookingHour === hour;
                     });
-                    const isBlockedDay = blockedSet.has(dateStr);
+                    const isBlockedDay = isDateBlocked(dateStr);
                     const isPast = day < new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
                     return (
@@ -801,6 +882,42 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
           <span>{viewMode === 'month' ? 'Click a date for options, or drag across dates for multi-day actions' : 'Click a time slot to create a booking'}</span>
         </div>
       </div>
+
+      {/* Import Calendar Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowImportModal(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Import Google Calendar</h3>
+              <button onClick={() => setShowImportModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Paste your Google Calendar iCal URL to import events as blocked dates (next 90 days). 
+              Find it in Google Calendar → Settings → Calendar → "Secret address in iCal format".
+            </p>
+            <input
+              type="url"
+              value={icalUrl}
+              onChange={e => setIcalUrl(e.target.value)}
+              placeholder="https://calendar.google.com/calendar/ical/...basic.ics"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-background text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setShowImportModal(false)}>Cancel</Button>
+              <Button
+                size="sm"
+                disabled={!icalUrl || importCalendarMutation.isPending}
+                onClick={() => importCalendarMutation.mutate({ icalUrl })}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {importCalendarMutation.isPending ? 'Importing...' : 'Import Events'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

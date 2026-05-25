@@ -516,11 +516,11 @@ export const venueRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue not found' });
         }
 
-        // Check if the preferred date is blocked
+        // Check if the preferred date is blocked (explicit or recurring)
         if (input.preferredDate) {
-          const blockedDates = await db.getVenueBlockedDates(venueProfile.id, input.preferredDate, input.preferredDate);
-          if (blockedDates.length > 0) {
-            throw new TRPCError({ code: 'BAD_REQUEST', message: 'This venue is unavailable on the selected date. Please choose a different date.' });
+          const dateBlockStatus = await db.isDateBlockedForVenue(venueProfile.id, input.preferredDate);
+          if (dateBlockStatus.blocked) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: `This venue is unavailable on the selected date (${dateBlockStatus.reason}). Please choose a different date.` });
           }
         }
 
@@ -658,9 +658,13 @@ export const venueRouter = router({
       endDate: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const dates = await db.getVenueBlockedDates(input.venueId, input.startDate, input.endDate);
-      // Only return the date strings (not reasons) for public view
-      return dates.map(d => d.date);
+      const explicitDates = await db.getVenueBlockedDates(input.venueId, input.startDate, input.endDate);
+      const recurringBlocks = await db.getVenueRecurringBlocks(input.venueId);
+      // Return explicit dates + recurring day info for public view
+      return {
+        blockedDates: explicitDates.map(d => d.date),
+        recurringBlockedDays: recurringBlocks.map(b => b.dayOfWeek), // 0=Sun, 6=Sat
+      };
     }),
 
   /**
@@ -675,5 +679,118 @@ export const venueRouter = router({
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
       await db.unblockVenueDates(venueProfile.id, input.dates);
       return { success: true, count: input.dates.length };
+    }),
+
+  // ─── Recurring Blocks ─────────────────────────────────────────────────────
+
+  getRecurringBlocks: venueProcedure
+    .query(async ({ ctx }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      return await db.getVenueRecurringBlocks(venueProfile.id);
+    }),
+
+  addRecurringBlock: venueProcedure
+    .input(z.object({
+      dayOfWeek: z.number().min(0).max(6), // 0=Sunday, 6=Saturday
+      reason: z.string().max(255).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      const block = await db.addVenueRecurringBlock(venueProfile.id, input.dayOfWeek, input.reason);
+      return { success: true, block };
+    }),
+
+  removeRecurringBlock: venueProcedure
+    .input(z.object({
+      dayOfWeek: z.number().min(0).max(6),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      await db.removeVenueRecurringBlock(venueProfile.id, input.dayOfWeek);
+      return { success: true };
+    }),
+
+  getRecurringBlocksPublic: publicProcedure
+    .input(z.object({ venueId: z.number() }))
+    .query(async ({ input }) => {
+      return await db.getVenueRecurringBlocks(input.venueId);
+    }),
+
+  /**
+   * Import events from a Google Calendar iCal URL as blocked dates
+   */
+  importCalendarBlocked: venueProcedure
+    .input(z.object({
+      icalUrl: z.string().url(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+
+      // Fetch the iCal feed
+      const response = await fetch(input.icalUrl);
+      if (!response.ok) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Could not fetch calendar URL. Make sure it is a public iCal link.' });
+      }
+      const icalText = await response.text();
+
+      // Parse iCal events (simple parser for VEVENT blocks)
+      const events: { summary: string; startDate: string }[] = [];
+      const veventBlocks = icalText.split('BEGIN:VEVENT');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let i = 1; i < veventBlocks.length; i++) {
+        const block = veventBlocks[i];
+        const endIdx = block.indexOf('END:VEVENT');
+        const content = endIdx > -1 ? block.substring(0, endIdx) : block;
+
+        // Extract DTSTART
+        const dtStartMatch = content.match(/DTSTART[^:]*:(\d{4})(\d{2})(\d{2})/);
+        if (!dtStartMatch) continue;
+
+        const year = parseInt(dtStartMatch[1]);
+        const month = parseInt(dtStartMatch[2]);
+        const day = parseInt(dtStartMatch[3]);
+        const eventDate = new Date(year, month - 1, day);
+
+        // Only import future events (next 90 days)
+        const maxDate = new Date();
+        maxDate.setDate(maxDate.getDate() + 90);
+        if (eventDate < today || eventDate > maxDate) continue;
+
+        // Extract SUMMARY
+        const summaryMatch = content.match(/SUMMARY:(.+)/);
+        const summary = summaryMatch ? summaryMatch[1].trim().replace(/\\n/g, ' ').replace(/\\,/g, ',') : 'External event';
+
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        events.push({ summary, startDate: dateStr });
+      }
+
+      if (events.length === 0) {
+        return { success: true, imported: 0, message: 'No upcoming events found in the calendar feed.' };
+      }
+
+      // Block the dates with the event summary as reason
+      const datesToBlock = events.map(e => e.startDate);
+      const uniqueDates = [...new Set(datesToBlock)];
+      const reasons = events.reduce((acc, e) => {
+        acc[e.startDate] = e.summary;
+        return acc;
+      }, {} as Record<string, string>);
+
+      // Block each unique date with its reason
+      for (const date of uniqueDates) {
+        try {
+          await db.blockVenueDates(venueProfile.id, [date], `Calendar: ${reasons[date]}`);
+        } catch {
+          // Skip duplicates silently
+        }
+      }
+
+      return { success: true, imported: uniqueDates.length, message: `Imported ${uniqueDates.length} dates as blocked from your calendar.` };
     }),
 });
