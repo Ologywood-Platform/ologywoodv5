@@ -2839,3 +2839,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add server-side analytics endpoints (using existing profileAnalytics + venueReview/artistReview endpoints)
 - [x] Build analytics summary cards for artist dashboard (monthly bookings, total earnings, avg rating with trend)
 - [x] Build analytics summary cards for venue dashboard (replaced old simple stats with unified DashboardAnalyticsCards)
+
+## VENUE CALENDAR ENHANCEMENTS (May 25, 2026)
+- [x] Calendar day popover with options (View bookings / Create new booking) instead of immediate navigation
+- [x] Drag-to-create for multi-day bookings (festival/residency support)
+- [x] Calendar availability blocking (mark dates as unavailable to prevent booking requests)
+  - venue_blocked_dates table with reason field
+  - Block/unblock API endpoints on venue router
+  - Visual indicators (red background, ban icon) on blocked dates
+  - Popover with block reason input and confirm/cancel flow

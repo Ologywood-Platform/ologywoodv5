@@ -1468,3 +1468,20 @@ export const riderRevisions = mysqlTable("rider_revisions", {
 
 export type RiderRevision = typeof riderRevisions.$inferSelect;
 export type InsertRiderRevision = typeof riderRevisions.$inferInsert;
+
+/**
+ * Venue Blocked Dates - tracks dates when a venue is unavailable for bookings.
+ * Venues can mark specific dates as blocked to prevent booking requests.
+ */
+export const venueBlockedDates = mysqlTable("venue_blocked_dates", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD format
+  reason: varchar("reason", { length: 255 }), // Optional reason (e.g., "Private event", "Maintenance", "Holiday")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  venueDateIdx: index("idx_venue_blocked_dates_venue_date").on(table.venueId, table.date),
+}));
+
+export type VenueBlockedDate = typeof venueBlockedDates.$inferSelect;
+export type InsertVenueBlockedDate = typeof venueBlockedDates.$inferInsert;

@@ -1,7 +1,10 @@
-import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Eye, Ban, X, GripHorizontal } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
+import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
+import { trpc } from '../lib/trpc';
+import { toast } from 'sonner';
 
 interface Booking {
   id: number;
@@ -21,6 +24,7 @@ interface VenueCalendarProps {
   onDayClick?: (date: Date, bookings: Booking[]) => void;
   onBookingClick?: (booking: Booking) => void;
   onPostEvent?: (booking: Booking) => void;
+  onCreateBooking?: (startDate: string, endDate?: string) => void;
 }
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -56,11 +60,45 @@ function getStatusBg(status: string) {
   }
 }
 
-export default function VenueCalendar({ bookings, onDayClick, onBookingClick, onPostEvent }: VenueCalendarProps) {
+function formatDateStr(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export default function VenueCalendar({ bookings, onDayClick, onBookingClick, onPostEvent, onCreateBooking }: VenueCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [popoverDate, setPopoverDate] = useState<Date | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [dragStart, setDragStart] = useState<Date | null>(null);
+  const [dragEnd, setDragEnd] = useState<Date | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [blockReason, setBlockReason] = useState('');
+  const [showBlockInput, setShowBlockInput] = useState(false);
+  const dragRef = useRef(false);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+
+  // Fetch blocked dates for this venue
+  const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`;
+  const { data: blockedDates, refetch: refetchBlocked } = trpc.venue.getBlockedDates.useQuery(
+    { startDate, endDate },
+    { staleTime: 60_000 }
+  );
+  const blockMutation = trpc.venue.blockDates.useMutation({
+    onSuccess: () => { refetchBlocked(); toast.success('Dates blocked'); },
+    onError: (err) => toast.error(err.message),
+  });
+  const unblockMutation = trpc.venue.unblockDates.useMutation({
+    onSuccess: () => { refetchBlocked(); toast.success('Dates unblocked'); },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const blockedSet = useMemo(() => {
+    const set = new Set<string>();
+    blockedDates?.forEach(bd => set.add(bd.date));
+    return set;
+  }, [blockedDates]);
 
   // Build a map of date -> bookings for the current month
   const bookingsByDate = useMemo(() => {
@@ -81,39 +119,111 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-  // Build calendar grid (6 rows x 7 cols max)
   const calendarDays: { day: number; isCurrentMonth: boolean; date: Date }[] = [];
-  
-  // Previous month trailing days
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i;
     calendarDays.push({ day, isCurrentMonth: false, date: new Date(year, month - 1, day) });
   }
-  
-  // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
     calendarDays.push({ day: i, isCurrentMonth: true, date: new Date(year, month, i) });
   }
-  
-  // Next month leading days (fill to complete the grid)
   const remaining = 42 - calendarDays.length;
   for (let i = 1; i <= remaining; i++) {
     calendarDays.push({ day: i, isCurrentMonth: false, date: new Date(year, month + 1, i) });
   }
 
-  // Only show 5 rows if we don't need 6
   const totalRows = firstDayOfMonth + daysInMonth > 35 ? 6 : 5;
   const displayDays = calendarDays.slice(0, totalRows * 7);
 
   const today = new Date();
-  const isToday = (date: Date) => 
-    date.getDate() === today.getDate() && 
-    date.getMonth() === today.getMonth() && 
+  const isToday = (date: Date) =>
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear();
 
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
   const goToToday = () => setCurrentDate(new Date());
+
+  // Drag selection helpers
+  const isInDragRange = useCallback((date: Date) => {
+    if (!dragStart || !dragEnd) return false;
+    const start = dragStart < dragEnd ? dragStart : dragEnd;
+    const end = dragStart < dragEnd ? dragEnd : dragStart;
+    return date >= start && date <= end;
+  }, [dragStart, dragEnd]);
+
+  const handleMouseDown = (date: Date, isCurrentMonth: boolean) => {
+    if (!isCurrentMonth) return;
+    const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (isPast) return;
+    dragRef.current = true;
+    setIsDragging(true);
+    setDragStart(date);
+    setDragEnd(date);
+  };
+
+  const handleMouseEnter = (date: Date, isCurrentMonth: boolean) => {
+    if (!dragRef.current || !isCurrentMonth) return;
+    setDragEnd(date);
+  };
+
+  const handleMouseUp = () => {
+    if (!dragRef.current) return;
+    dragRef.current = false;
+    setIsDragging(false);
+
+    if (dragStart && dragEnd) {
+      const start = dragStart < dragEnd ? dragStart : dragEnd;
+      const end = dragStart < dragEnd ? dragEnd : dragStart;
+
+      if (start.getTime() === end.getTime()) {
+        // Single day click — show popover
+        setPopoverDate(start);
+        setPopoverOpen(true);
+      } else {
+        // Multi-day drag — show create booking option
+        setPopoverDate(start);
+        setPopoverOpen(true);
+      }
+    }
+  };
+
+  const handleCreateBooking = () => {
+    if (!dragStart || !dragEnd) return;
+    const start = dragStart < dragEnd ? dragStart : dragEnd;
+    const end = dragStart < dragEnd ? dragEnd : dragStart;
+    const startStr = formatDateStr(start);
+    const endStr = start.getTime() !== end.getTime() ? formatDateStr(end) : undefined;
+    if (onCreateBooking) {
+      onCreateBooking(startStr, endStr);
+    }
+    setPopoverOpen(false);
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  const handleBlockSelected = () => {
+    if (!dragStart || !dragEnd) return;
+    const start = dragStart < dragEnd ? dragStart : dragEnd;
+    const end = dragStart < dragEnd ? dragEnd : dragStart;
+    const dates: string[] = [];
+    const current = new Date(start);
+    while (current <= end) {
+      dates.push(formatDateStr(current));
+      current.setDate(current.getDate() + 1);
+    }
+    blockMutation.mutate({ dates, reason: blockReason || undefined });
+    setPopoverOpen(false);
+    setDragStart(null);
+    setDragEnd(null);
+    setBlockReason('');
+    setShowBlockInput(false);
+  };
+
+  const handleUnblockDate = (dateStr: string) => {
+    unblockMutation.mutate({ dates: [dateStr] });
+  };
 
   // Stats for the month
   const monthStats = useMemo(() => {
@@ -129,8 +239,14 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
     };
   }, [bookings, year, month]);
 
+  // Get popover bookings
+  const popoverBookings = popoverDate ? (bookingsByDate[popoverDate.getDate().toString()] || []) : [];
+  const popoverDateStr = popoverDate ? formatDateStr(popoverDate) : '';
+  const isPopoverBlocked = blockedSet.has(popoverDateStr);
+  const isMultiDaySelection = dragStart && dragEnd && dragStart.getTime() !== dragEnd.getTime();
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" onMouseUp={handleMouseUp} onMouseLeave={() => { if (dragRef.current) { dragRef.current = false; setIsDragging(false); setDragStart(null); setDragEnd(null); } }}>
       {/* Calendar Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -165,13 +281,17 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
           <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
           <span className="text-gray-600 dark:text-gray-400">{monthStats.completed} completed</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-300 dark:bg-red-700"></div>
+          <span className="text-gray-600 dark:text-gray-400">{blockedDates?.length || 0} blocked</span>
+        </div>
         <div className="text-gray-500 dark:text-gray-500 ml-auto">
           {monthStats.total} total this month
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden select-none">
         {/* Day headers */}
         <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
           {DAYS_OF_WEEK.map(day => (
@@ -187,6 +307,9 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
             const dayBookings = cell.isCurrentMonth ? (bookingsByDate[cell.day.toString()] || []) : [];
             const hasBookings = dayBookings.length > 0;
             const isPast = cell.date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const dateStr = formatDateStr(cell.date);
+            const isBlocked = blockedSet.has(dateStr);
+            const inDragRange = isInDragRange(cell.date) && cell.isCurrentMonth;
 
             return (
               <div
@@ -195,18 +318,17 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                   min-h-[80px] sm:min-h-[100px] p-1 border-b border-r border-gray-100 dark:border-gray-800
                   ${!cell.isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-900/30' : ''}
                   ${isToday(cell.date) ? 'bg-purple-50/50 dark:bg-purple-950/20' : ''}
+                  ${isBlocked ? 'bg-red-50/60 dark:bg-red-950/20' : ''}
+                  ${inDragRange ? 'bg-purple-100 dark:bg-purple-900/40 ring-1 ring-inset ring-purple-300 dark:ring-purple-700' : ''}
                   ${cell.isCurrentMonth && !isPast ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''}
                   transition-colors
                 `}
-                onClick={() => {
-                  if (cell.isCurrentMonth && onDayClick) {
-                    onDayClick(cell.date, dayBookings);
-                  }
-                }}
+                onMouseDown={() => handleMouseDown(cell.date, cell.isCurrentMonth)}
+                onMouseEnter={() => handleMouseEnter(cell.date, cell.isCurrentMonth)}
               >
                 {/* Day number */}
                 <div className={`
-                  text-xs sm:text-sm font-medium mb-0.5
+                  text-xs sm:text-sm font-medium mb-0.5 flex items-center justify-between
                   ${!cell.isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : ''}
                   ${isToday(cell.date) ? 'text-purple-700 dark:text-purple-300 font-bold' : 'text-gray-700 dark:text-gray-300'}
                   ${isPast && cell.isCurrentMonth ? 'text-gray-400 dark:text-gray-500' : ''}
@@ -214,6 +336,19 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
                   <span className={isToday(cell.date) ? 'bg-purple-600 text-white rounded-full w-6 h-6 inline-flex items-center justify-center text-xs' : ''}>
                     {cell.day}
                   </span>
+                  {isBlocked && cell.isCurrentMonth && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className="text-red-400 hover:text-red-600 transition-colors"
+                          onClick={(e) => { e.stopPropagation(); handleUnblockDate(dateStr); }}
+                        >
+                          <Ban className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Click to unblock this date</TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
 
                 {/* Booking indicators */}
@@ -275,11 +410,107 @@ export default function VenueCalendar({ bookings, onDayClick, onBookingClick, on
         </div>
       </div>
 
+      {/* Day Popover */}
+      {popoverOpen && popoverDate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={() => { setPopoverOpen(false); setDragStart(null); setDragEnd(null); setShowBlockInput(false); }}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-[320px] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                {isMultiDaySelection ? (
+                  <>
+                    {formatDateStr(dragStart! < dragEnd! ? dragStart! : dragEnd!)} → {formatDateStr(dragStart! < dragEnd! ? dragEnd! : dragStart!)}
+                  </>
+                ) : (
+                  popoverDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+                )}
+              </h3>
+              <button onClick={() => { setPopoverOpen(false); setDragStart(null); setDragEnd(null); setShowBlockInput(false); }} className="text-gray-400 hover:text-gray-600">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Show existing bookings for single day */}
+            {!isMultiDaySelection && popoverBookings.length > 0 && (
+              <div className="mb-3 space-y-2">
+                <p className="text-xs text-gray-500 font-medium uppercase">Bookings on this day</p>
+                {popoverBookings.map(b => (
+                  <button
+                    key={b.id}
+                    className={`w-full text-left px-3 py-2 rounded-lg border ${getStatusBg(b.status)} ${getStatusBorder(b.status)} hover:opacity-80 transition-opacity`}
+                    onClick={() => { onBookingClick?.(b); setPopoverOpen(false); }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor(b.status)}`}></div>
+                      <span className="text-sm font-medium">{b.artistName || 'Artist'}</span>
+                      <span className="text-xs text-gray-500 ml-auto capitalize">{b.status}</span>
+                    </div>
+                    {b.eventTime && <p className="text-xs text-gray-500 mt-0.5 ml-4">{b.eventTime}</p>}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="space-y-2">
+              <Button
+                className="w-full justify-start gap-2"
+                variant="outline"
+                onClick={handleCreateBooking}
+              >
+                <Plus className="h-4 w-4 text-purple-600" />
+                {isMultiDaySelection ? 'Create Multi-Day Booking' : 'Create New Booking'}
+              </Button>
+
+              {!showBlockInput ? (
+                <Button
+                  className="w-full justify-start gap-2"
+                  variant="outline"
+                  onClick={() => setShowBlockInput(true)}
+                >
+                  <Ban className="h-4 w-4 text-red-500" />
+                  {isPopoverBlocked && !isMultiDaySelection ? 'Unblock Date' : (isMultiDaySelection ? 'Block Selected Dates' : 'Block This Date')}
+                </Button>
+              ) : (
+                <div className="space-y-2 border border-red-200 dark:border-red-800 rounded-lg p-3 bg-red-50/50 dark:bg-red-950/20">
+                  <p className="text-xs font-medium text-red-700 dark:text-red-300">Block reason (optional)</p>
+                  <input
+                    type="text"
+                    placeholder="e.g., Private event, Maintenance..."
+                    value={blockReason}
+                    onChange={(e) => setBlockReason(e.target.value)}
+                    className="w-full text-sm px-3 py-1.5 rounded border border-red-200 dark:border-red-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300"
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="destructive" className="flex-1" onClick={handleBlockSelected}>
+                      Confirm Block
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setShowBlockInput(false); setBlockReason(''); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {isPopoverBlocked && !isMultiDaySelection && !showBlockInput && (
+                <Button
+                  className="w-full justify-start gap-2 text-green-700"
+                  variant="outline"
+                  onClick={() => { handleUnblockDate(popoverDateStr); setPopoverOpen(false); }}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                  Unblock This Date
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-1">
         <div className="flex items-center gap-1.5">
-          <CalendarIcon className="h-3.5 w-3.5" />
-          <span>Click any date to view details or create a booking</span>
+          <GripHorizontal className="h-3.5 w-3.5" />
+          <span>Click a date for options, or drag across dates for multi-day actions</span>
         </div>
       </div>
     </div>

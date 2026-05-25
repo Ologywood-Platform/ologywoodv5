@@ -519,22 +519,15 @@ export function VenueDashboard() {
             ) : (
               <VenueCalendar
                 bookings={bookings || []}
-                onDayClick={(date, dayBookings) => {
-                  if (dayBookings.length === 1) {
-                    navigate(`/booking/${dayBookings[0].id}`);
-                  } else if (dayBookings.length > 1) {
-                    setActiveTab('bookings');
-                  } else {
-                    // Empty date — navigate to create a booking with the date pre-filled
-                    const dateStr = date.toISOString().split('T')[0];
-                    navigate(`/booking/create?date=${dateStr}`);
-                  }
-                }}
                 onBookingClick={(booking) => {
                   navigate(`/booking/${booking.id}`);
                 }}
+                onCreateBooking={(startDate, endDate) => {
+                  const params = new URLSearchParams({ date: startDate });
+                  if (endDate) params.set('endDate', endDate);
+                  navigate(`/booking/create?${params.toString()}`);
+                }}
                 onPostEvent={(booking) => {
-                  // Navigate to event creation with booking data pre-filled
                   const params = new URLSearchParams({
                     bookingId: booking.id.toString(),
                     artistId: (booking as any).artistId?.toString() || '',

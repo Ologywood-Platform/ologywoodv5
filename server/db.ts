@@ -43,7 +43,8 @@ import {
   venueContractSignatures, InsertVenueContractSignature, VenueContractSignature,
   savedArtists, SavedArtist, InsertSavedArtist,
   riderRevisions, InsertRiderRevision, RiderRevision,
-  artistReviews, InsertArtistReview, ArtistReview
+  artistReviews, InsertArtistReview, ArtistReview,
+  venueBlockedDates, InsertVenueBlockedDate, VenueBlockedDate
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
@@ -3131,4 +3132,33 @@ export async function getVenueContractSignatures(venueContractId: number): Promi
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.venueContractId, venueContractId));
+}
+
+
+// ==================== VENUE BLOCKED DATES ====================
+
+export async function getVenueBlockedDates(venueId: number, startDate?: string, endDate?: string): Promise<VenueBlockedDate[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(venueBlockedDates.venueId, venueId)];
+  if (startDate) conditions.push(gte(venueBlockedDates.date, startDate));
+  if (endDate) conditions.push(lte(venueBlockedDates.date, endDate));
+  return await db.select().from(venueBlockedDates).where(and(...conditions));
+}
+
+export async function blockVenueDates(venueId: number, dates: string[], reason?: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  // Use INSERT IGNORE to avoid duplicates
+  for (const date of dates) {
+    await db.insert(venueBlockedDates).values({ venueId, date, reason: reason || null }).onDuplicateKeyUpdate({ set: { reason: reason || null } });
+  }
+}
+
+export async function unblockVenueDates(venueId: number, dates: string[]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(venueBlockedDates).where(
+    and(eq(venueBlockedDates.venueId, venueId), inArray(venueBlockedDates.date, dates))
+  );
 }

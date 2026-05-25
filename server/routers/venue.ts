@@ -610,4 +610,47 @@ export const venueRouter = router({
         });
       }
     }),
+
+  /**
+   * Get blocked dates for the logged-in venue
+   */
+  getBlockedDates: venueProcedure
+    .input(z.object({
+      startDate: z.string().optional(), // YYYY-MM-DD
+      endDate: z.string().optional(),
+    }).optional())
+    .query(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      return db.getVenueBlockedDates(venueProfile.id, input?.startDate, input?.endDate);
+    }),
+
+  /**
+   * Block one or more dates
+   */
+  blockDates: venueProcedure
+    .input(z.object({
+      dates: z.array(z.string()), // Array of YYYY-MM-DD strings
+      reason: z.string().max(255).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      await db.blockVenueDates(venueProfile.id, input.dates, input.reason);
+      return { success: true, count: input.dates.length };
+    }),
+
+  /**
+   * Unblock one or more dates
+   */
+  unblockDates: venueProcedure
+    .input(z.object({
+      dates: z.array(z.string()), // Array of YYYY-MM-DD strings
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+      await db.unblockVenueDates(venueProfile.id, input.dates);
+      return { success: true, count: input.dates.length };
+    }),
 });
