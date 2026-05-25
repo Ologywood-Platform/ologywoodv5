@@ -26,6 +26,9 @@ export const venueRouter = router({
       z.object({
         location: z.string().optional(),
         searchQuery: z.string().optional(),
+        venueType: z.string().optional(),
+        minCapacity: z.number().optional(),
+        maxCapacity: z.number().optional(),
         limit: z.number().default(20),
         offset: z.number().default(0),
       })
@@ -35,8 +38,10 @@ export const venueRouter = router({
         const venues = await db.searchVenues({
           query: input.searchQuery,
           location: input.location,
-          capacity: undefined,
+          capacity: input.minCapacity,
           amenities: undefined,
+          venueType: input.venueType,
+          maxCapacity: input.maxCapacity,
         });
         return venues;
       } catch (error) {

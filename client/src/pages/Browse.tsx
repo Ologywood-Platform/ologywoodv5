@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2 } from "lucide-react";
+import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SiteHeader from "@/components/SiteHeader";
 import { ClearableInput } from "@/components/ui/clearable-input";
 import { SearchFilters } from "@/components/SearchFilters";
@@ -58,11 +59,44 @@ export default function Browse() {
   // Tab state for Artists/Events/Venues
   const [activeTab, setActiveTab] = useState<'artists' | 'events' | 'venues'>('artists');
 
+  // Venue filter state
+  const [venueLocation, setVenueLocation] = useState('');
+  const [venueType, setVenueType] = useState('');
+  const [venueCapacityRange, setVenueCapacityRange] = useState('');
+  const [showVenueFilters, setShowVenueFilters] = useState(false);
+
+  // Parse capacity range into min/max
+  const getCapacityFilter = () => {
+    switch (venueCapacityRange) {
+      case 'small': return { minCapacity: 1, maxCapacity: 100 };
+      case 'medium': return { minCapacity: 101, maxCapacity: 500 };
+      case 'large': return { minCapacity: 501, maxCapacity: 1500 };
+      case 'xlarge': return { minCapacity: 1501, maxCapacity: undefined };
+      default: return { minCapacity: undefined, maxCapacity: undefined };
+    }
+  };
+
+  const capacityFilter = getCapacityFilter();
+
   // Fetch venues for the venues tab
   const { data: venuesList, isLoading: venuesLoading } = trpc.venue.search.useQuery(
-    { searchQuery: searchQuery || undefined, limit: 50 },
+    {
+      searchQuery: searchQuery || undefined,
+      location: venueLocation || undefined,
+      venueType: venueType || undefined,
+      minCapacity: capacityFilter.minCapacity,
+      maxCapacity: capacityFilter.maxCapacity,
+      limit: 50,
+    },
     { enabled: activeTab === 'venues' }
   );
+
+  const hasVenueFilters = venueLocation || venueType || venueCapacityRange;
+  const clearVenueFilters = () => {
+    setVenueLocation('');
+    setVenueType('');
+    setVenueCapacityRange('');
+  };
 
   const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
 
@@ -352,9 +386,96 @@ export default function Browse() {
             )}
           </TabsContent>
           
-          {/* Events Tab */}
           {/* Venues Tab */}
           <TabsContent value="venues" className="mt-0">
+            {/* Venue Filters */}
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={showVenueFilters ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowVenueFilters(!showVenueFilters)}
+                  className="gap-1.5"
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  Filters
+                  {hasVenueFilters && (
+                    <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                      {[venueLocation, venueType, venueCapacityRange].filter(Boolean).length}
+                    </Badge>
+                  )}
+                </Button>
+                {hasVenueFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearVenueFilters} className="gap-1 text-muted-foreground">
+                    <X className="h-3.5 w-3.5" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+
+              {showVenueFilters && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-muted/50 rounded-lg border">
+                  {/* Location Filter */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> Location
+                    </label>
+                    <Input
+                      placeholder="City or state..."
+                      value={venueLocation}
+                      onChange={(e) => setVenueLocation(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+
+                  {/* Venue Type Filter */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      <Building2 className="h-3 w-3" /> Venue Type
+                    </label>
+                    <Select value={venueType} onValueChange={setVenueType}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All types</SelectItem>
+                        <SelectItem value="bar">Bar</SelectItem>
+                        <SelectItem value="club">Club</SelectItem>
+                        <SelectItem value="concert_hall">Concert Hall</SelectItem>
+                        <SelectItem value="theater">Theater</SelectItem>
+                        <SelectItem value="arena">Arena</SelectItem>
+                        <SelectItem value="outdoor">Outdoor</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="lounge">Lounge</SelectItem>
+                        <SelectItem value="festival_grounds">Festival Grounds</SelectItem>
+                        <SelectItem value="private_event_space">Private Event Space</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Capacity Filter */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      <Users className="h-3 w-3" /> Capacity
+                    </label>
+                    <Select value={venueCapacityRange} onValueChange={setVenueCapacityRange}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Any size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any size</SelectItem>
+                        <SelectItem value="small">Small (1–100)</SelectItem>
+                        <SelectItem value="medium">Medium (101–500)</SelectItem>
+                        <SelectItem value="large">Large (501–1,500)</SelectItem>
+                        <SelectItem value="xlarge">XL (1,500+)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {venuesLoading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (

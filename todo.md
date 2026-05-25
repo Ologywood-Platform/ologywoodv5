@@ -2895,3 +2895,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Venues tab to Browse page alongside Artists and Events
 - [x] Venue cards with photo, name, location, type badge, and capacity
 - [x] Lazy-loaded venue search query (only fetches when Venues tab is active)
+
+## BROWSE PAGE IMPROVEMENTS (May 25, 2026)
+- [x] Add venue search filters (location, capacity range, venue type) on Venues tab
+- [x] Rename "Browse Artists" button on homepage to "Browse"

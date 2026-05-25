@@ -120,7 +120,7 @@ export default function Home() {
                 </Button>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
-                  Browse Artists
+                  Browse
                 </Button>
               </a>
             </div>

@@ -596,6 +596,8 @@ export async function searchVenues(filters: {
   query?: string;
   location?: string;
   capacity?: number;
+  maxCapacity?: number;
+  venueType?: string;
   amenities?: string[];
 }) {
   const db = await getDb();
@@ -606,8 +608,8 @@ export async function searchVenues(filters: {
     const params: any[] = [];
     
     if (filters.query) {
-      sql_query += ' AND (venueName LIKE ? OR description LIKE ?)';
-      params.push(`%${filters.query}%`, `%${filters.query}%`);
+      sql_query += ' AND (venueName LIKE ? OR description LIKE ? OR organizationName LIKE ?)';
+      params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
     }
     
     if (filters.location) {
@@ -618,6 +620,16 @@ export async function searchVenues(filters: {
     if (filters.capacity) {
       sql_query += ' AND capacity >= ?';
       params.push(filters.capacity);
+    }
+    
+    if (filters.maxCapacity) {
+      sql_query += ' AND capacity <= ?';
+      params.push(filters.maxCapacity);
+    }
+    
+    if (filters.venueType) {
+      sql_query += ' AND venueType = ?';
+      params.push(filters.venueType);
     }
     
     const [venues] = await (db as any).pool.query(sql_query, params);
