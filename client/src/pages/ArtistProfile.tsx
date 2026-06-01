@@ -20,6 +20,7 @@ import { RiderComparisonTool } from "../components/RiderComparisonTool";
 import { ReleaseCard } from "@/components/ReleaseCard";
 import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd, buildMusicRecordingJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
+import { MerchDisplay } from "@/components/MerchDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
 import { TipQRSection } from "@/components/TipQRCode";
@@ -868,6 +869,11 @@ export default function ArtistProfile() {
 
         {/* Full-width sections below the two-column grid */}
         <div className="space-y-6 sm:p-4 md:px-8">
+            {/* Merch Section */}
+            {artist && (
+              <MerchDisplay userId={artist.userId} userType="artist" />
+            )}
+
             {/* Reviews Section */}
             {reviews && reviews.length > 0 && (
               <Card>

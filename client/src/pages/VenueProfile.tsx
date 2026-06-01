@@ -9,6 +9,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
 import { ShareVenueModal } from '@/components/ShareVenueModal';
+import { MerchDisplay } from '@/components/MerchDisplay';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
@@ -430,6 +431,13 @@ export default function VenueProfile() {
             </Card>
           );
         })()}
+
+        {/* Shop & Offers Section */}
+        {venueProfile && (venueProfile as any)?.userId && (
+          <div className="mb-6">
+            <MerchDisplay userId={(venueProfile as any).userId} userType="venue" />
+          </div>
+        )}
 
         {/* Artist Reviews Section */}
         <Card className="mb-6">

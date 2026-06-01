@@ -11,6 +11,7 @@ export const PRICING_TIERS = {
     price: 0,
     bookingsPerMonth: 2,
     maxActiveReleases: 0,
+    maxMerchItems: 0,
     features: {
       basicProfile: true,
       messaging: true,
@@ -36,6 +37,7 @@ export const PRICING_TIERS = {
     price: 9,
     bookingsPerMonth: Infinity,
     maxActiveReleases: 2,
+    maxMerchItems: 6,
     features: {
       basicProfile: true,
       messaging: true,
@@ -61,6 +63,7 @@ export const PRICING_TIERS = {
     price: 29,
     bookingsPerMonth: Infinity,
     maxActiveReleases: Infinity,
+    maxMerchItems: 15,
     features: {
       basicProfile: true,
       messaging: true,

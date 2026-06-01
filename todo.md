@@ -2915,3 +2915,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## MOBILE CSS FIXES (May 26, 2026)
 - [x] Fix My Riders page mobile layout (card actions stack vertically, header responsive)
 - [x] Fix Earnings/Revenue page mobile layout (2-col cards, responsive text, hidden columns on mobile)
+
+## MERCH / SHOP FEATURE (Jun 1, 2026)
+- [x] Create merch_items table (userId, title, description, priceDisplay, externalUrl, imageUrls JSON, sortOrder, userType, isActive)
+- [x] Build merch CRUD API router (create, update, delete, reorder, myItems, getPublicItems, getLimitInfo)
+- [x] Image upload endpoint with validation (2MB max, JPEG/PNG/WebP only, max 2 images per item)
+- [x] Image delete endpoint
+- [x] Tier-gated limits: Free=0, Starter=6, Professional=15 (maxMerchItems in PRICING_TIERS)
+- [x] Artist merch management UI (MerchManager component with add/edit dialog, image upload, toggle active)
+- [x] Venue shop management UI (same component, auto-labeled "Shop & Offers" for venues)
+- [x] MerchPage route at /merch
+- [x] Artist dashboard quick action (ShoppingBag icon)
+- [x] Venue dashboard quick action (Shop & Offers card)
+- [x] Public merch grid on artist profile (MerchDisplay component with hover buy button)
+- [x] Public shop grid on venue profile (same component, labeled "Shop & Offers")
+- [x] Tier upgrade prompt when limit reached (shows upgrade link in getLimitInfo)

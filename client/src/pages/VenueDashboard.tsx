@@ -7,7 +7,7 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone, BarChart3 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone, BarChart3, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
@@ -427,7 +427,7 @@ export function VenueDashboard() {
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/venue-invoices')}>
@@ -477,6 +477,23 @@ export function VenueDashboard() {
                   </Card>
                 </TooltipTrigger>
                 <TooltipContent>Discuss event details, logistics, and rider needs with artists</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/merch')}>
+                    <CardContent className="py-5 flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
+                        <ShoppingBag className="h-6 w-6 text-pink-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">Shop & Offers</h3>
+                        <p className="text-sm text-muted-foreground">Branded items, gift cards, and VIP packages</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TooltipTrigger>
+                <TooltipContent>Showcase your branded merchandise and special offers on your profile</TooltipContent>
               </Tooltip>
             </div>
 

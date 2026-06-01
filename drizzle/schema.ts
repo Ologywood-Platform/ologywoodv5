@@ -1518,3 +1518,30 @@ export const venueProfileViews = mysqlTable("venue_profile_views", {
 
 export type VenueProfileView = typeof venueProfileViews.$inferSelect;
 export type InsertVenueProfileView = typeof venueProfileViews.$inferInsert;
+
+
+/**
+ * Merch Items - artists sell merch, venues sell shop items/offers.
+ * Images stored in S3, external purchase link for checkout.
+ * Tier-gated: Pro = 6 items, Premium = 15 items, Free = 0.
+ */
+export const merchItems = mysqlTable("merch_items", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  userType: mysqlEnum("userType", ["artist", "venue"]).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  priceDisplay: varchar("priceDisplay", { length: 50 }).notNull(), // e.g. "$25.00", "From $15"
+  externalUrl: varchar("externalUrl", { length: 2048 }).notNull(),
+  imageUrls: json("imageUrls").$type<string[]>().default([]),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_merch_items_user").on(table.userId, table.userType),
+  activeIdx: index("idx_merch_items_active").on(table.userId, table.isActive),
+}));
+
+export type MerchItem = typeof merchItems.$inferSelect;
+export type InsertMerchItem = typeof merchItems.$inferInsert;

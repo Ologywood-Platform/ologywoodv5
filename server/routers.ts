@@ -38,6 +38,7 @@ import { disputeRouter } from "./routers/dispute";
 import { ticketingRouter } from "./routers/ticketing";
 import { touringRouter } from "./routers/touring";
 import { referralRouter } from "./routers/referral";
+import { merchRouter } from "./routers/merch";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -3191,5 +3192,6 @@ export const appRouter = router({
   
   admin: adminRouter,
   dispute: disputeRouter,
+  merch: merchRouter,
 });
 export type AppRouter = typeof appRouter;

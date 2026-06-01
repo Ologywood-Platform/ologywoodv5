@@ -91,6 +91,7 @@ const MyTickets = lazy(() => import("./pages/MyTickets"));
 const EventTickets = lazy(() => import("./pages/EventTickets"));
 const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
 const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
+const MerchPage = lazy(() => import("./pages/MerchPage"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -126,6 +127,7 @@ function Router() {
           <Route path="/reset-password" component={ResetPassword} />
           <Route path="/earnings" component={ArtistEarnings} />
           <Route path="/earnings/breakdown" component={EarningsBreakdown} />
+          <Route path="/merch" component={MerchPage} />
           <Route path="/earnings-dashboard">{() => <Redirect to="/earnings" />}</Route>
           <Route path="/venue-invoices" component={VenueInvoiceDashboard} />
           <Route path="/help" component={Help} />
