@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2 } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -320,6 +320,30 @@ export default function Home() {
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   All payments and disputes are handled securely by Stripe. Chargebacks, refunds, and payment disputes follow card network rules &mdash; transparent and fair for everyone.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <ShoppingBag className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Merch & Shop</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Artists showcase merch and venues list shop items &amp; offers directly on their profiles. Link to your own store and keep 100% of sales &mdash; zero commission.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Building2 className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
+                <CardTitle className="text-base sm:text-lg">Venue Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Venues get a full dashboard with availability calendars, booking management, analytics, and a public profile to attract artists. Browse and filter venues by type, capacity, and location.
                 </p>
               </CardContent>
             </Card>
