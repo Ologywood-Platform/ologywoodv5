@@ -458,18 +458,18 @@ export default function RiderBuilder() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="shrink-0">
               <ArrowLeft className="h-4 w-4 mr-1.5" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </Button>
             <div>
-              <h1 className="text-xl font-bold">My Riders</h1>
-              <p className="text-sm text-muted-foreground">Your booking requirements, ready to attach</p>
+              <h1 className="text-lg sm:text-xl font-bold">My Riders</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Your booking requirements, ready to attach</p>
             </div>
           </div>
-          <Button onClick={startNew} className="gap-2 bg-purple-600 hover:bg-purple-700">
+          <Button onClick={startNew} className="gap-2 bg-purple-600 hover:bg-purple-700 self-end sm:self-center">
             <Plus className="h-4 w-4" />
             New Rider
           </Button>
@@ -508,16 +508,16 @@ export default function RiderBuilder() {
           <div className="space-y-3">
             {myTemplates.map((template: any) => (
               <Card key={template.id} className="hover:shadow-sm transition-shadow">
-                <CardContent className="py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
                       <FileText className="h-5 w-5" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm">{template.templateName || "Unnamed Rider"}</h3>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-sm truncate">{template.templateName || "Unnamed Rider"}</h3>
                         {template.isDefault && (
-                          <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-200">
+                          <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-200 shrink-0">
                             <Star className="h-3 w-3 mr-0.5 fill-amber-500" />
                             Default
                           </Badge>
@@ -529,7 +529,7 @@ export default function RiderBuilder() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
                     <Button variant="outline" size="sm" onClick={() => startEditing(template)}>
                       <Edit2 className="h-3.5 w-3.5 mr-1" />
                       Edit

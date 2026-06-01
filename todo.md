@@ -2911,3 +2911,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Modal with event name, date picker, and optional message
 - [x] Calls existing booking.requestToPerform mutation
 - [x] Success toast and venue notification on submit
+
+## MOBILE CSS FIXES (May 26, 2026)
+- [x] Fix My Riders page mobile layout (card actions stack vertically, header responsive)
+- [x] Fix Earnings/Revenue page mobile layout (2-col cards, responsive text, hidden columns on mobile)

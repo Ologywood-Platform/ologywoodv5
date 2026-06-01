@@ -292,16 +292,16 @@ export default function Riders() {
           ]}
         />
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
             <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="inline-flex">
+              <Button variant="ghost" size="icon" className="inline-flex shrink-0">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Rider Templates</h1>
-              <p className="text-slate-600">Manage your performance requirements and specifications</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Rider Templates</h1>
+              <p className="text-sm sm:text-base text-slate-600">Manage your performance requirements and specifications</p>
             </div>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -332,7 +332,7 @@ export default function Riders() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="stageWidth">Stage Width</Label>
                     <Input
@@ -353,7 +353,7 @@ export default function Riders() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="soundSystem">Sound System</Label>
                     <Textarea
@@ -376,7 +376,7 @@ export default function Riders() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="backline">Backline</Label>
                     <Textarea
@@ -399,7 +399,7 @@ export default function Riders() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="catering">Catering</Label>
                     <Textarea
@@ -422,7 +422,7 @@ export default function Riders() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="deposit">Deposit Amount</Label>
                     <Input
@@ -502,40 +502,41 @@ export default function Riders() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-4 border-t border-slate-200">
+                  <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 gap-2"
+                      className="flex-1 min-w-[70px] gap-1.5 text-xs sm:text-sm"
                       onClick={() => handleViewTemplate(template as RiderTemplate)}
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       View
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 gap-2"
+                      className="flex-1 min-w-[70px] gap-1.5 text-xs sm:text-sm"
                       onClick={() => handleOpenDialog(template as RiderTemplate)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       Edit
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2"
+                      className="gap-1.5"
                       onClick={() => handleDownloadPDF(template as RiderTemplate)}
                       title="Download as PDF"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       onClick={() => handleDeleteTemplate(template.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </CardContent>

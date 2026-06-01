@@ -73,7 +73,7 @@ function ReleaseSalesAnalytics() {
   return (
     <>
       {/* Release Sales Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Release Sales</CardTitle>
@@ -141,9 +141,9 @@ function ReleaseSalesAnalytics() {
                 <TableHead>Release</TableHead>
                 <TableHead className="text-center">Price</TableHead>
                 <TableHead className="text-center">Sales</TableHead>
-                <TableHead className="text-center">Gross</TableHead>
+                <TableHead className="text-center hidden sm:table-cell">Gross</TableHead>
                 <TableHead className="text-center">Net</TableHead>
-                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center hidden sm:table-cell">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,11 +172,11 @@ function ReleaseSalesAnalytics() {
                   </TableCell>
                   <TableCell className="text-center">{formatCents(release.priceInCents)}</TableCell>
                   <TableCell className="text-center font-semibold">{release.totalSales}</TableCell>
-                  <TableCell className="text-center">{formatCents(release.totalRevenueCents)}</TableCell>
+                  <TableCell className="text-center hidden sm:table-cell">{formatCents(release.totalRevenueCents)}</TableCell>
                   <TableCell className="text-center font-semibold text-green-600">
                     {formatCents(release.totalRevenueCents - (release.totalRevenueCents * 0.01))}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center hidden sm:table-cell">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       release.status === 'published'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -302,8 +302,8 @@ export default function ArtistEarnings() {
         </Button>
       </div>
       <div>
-        <h1 className="text-3xl font-bold">Earnings & Payouts</h1>
-        <p className="text-gray-600 mt-2">Track your earnings and manage your Stripe account</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Earnings & Payouts</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Track your earnings and manage your Stripe account</p>
       </div>
 
       {/* Stripe Connect Status Card */}
@@ -419,7 +419,7 @@ export default function ArtistEarnings() {
       </Card>
 
       {/* Earnings Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-gray-600">Total Earnings</CardTitle>
@@ -472,12 +472,12 @@ export default function ArtistEarnings() {
       {/* Detailed Breakdown Link */}
       <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-blue-800 dark:text-blue-300">Detailed Earnings Breakdown</h3>
-              <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">View per-booking revenue, door split calculations, and monthly/quarterly summaries with CSV export.</p>
+              <h3 className="font-semibold text-blue-800 dark:text-blue-300 text-sm sm:text-base">Detailed Earnings Breakdown</h3>
+              <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 mt-1">View per-booking revenue, door split calculations, and monthly/quarterly summaries with CSV export.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/earnings/breakdown')} className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-100">
+            <Button variant="outline" size="sm" onClick={() => navigate('/earnings/breakdown')} className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-100 shrink-0 self-start sm:self-center">
               <BarChart3 className="h-4 w-4" />
               View Breakdown
             </Button>
@@ -495,8 +495,8 @@ export default function ArtistEarnings() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium text-amber-800">Connect Stripe to receive payments</p>
-                <p className="text-sm text-amber-700 mt-1">
+                <p className="font-medium text-amber-800 text-sm sm:text-base">Connect Stripe to receive payments</p>
+                <p className="text-xs sm:text-sm text-amber-700 mt-1">
                   Until you connect your Stripe account, payments from release sales and bookings will be held by the platform. 
                   Connect your account above to start receiving payments directly.
                 </p>
