@@ -12,6 +12,9 @@ export const PRICING_TIERS = {
     bookingsPerMonth: 2,
     maxActiveReleases: 0,
     maxMerchItems: 0,
+    maxProjectPreviews: 0,
+    maxTracksPerProject: 0,
+    maxSnippetSeconds: 0,
     features: {
       basicProfile: true,
       messaging: true,
@@ -38,6 +41,9 @@ export const PRICING_TIERS = {
     bookingsPerMonth: Infinity,
     maxActiveReleases: 2,
     maxMerchItems: 6,
+    maxProjectPreviews: 1,
+    maxTracksPerProject: 6,
+    maxSnippetSeconds: 30,
     features: {
       basicProfile: true,
       messaging: true,
@@ -64,6 +70,9 @@ export const PRICING_TIERS = {
     bookingsPerMonth: Infinity,
     maxActiveReleases: Infinity,
     maxMerchItems: 15,
+    maxProjectPreviews: 3,
+    maxTracksPerProject: 12,
+    maxSnippetSeconds: 60,
     features: {
       basicProfile: true,
       messaging: true,
@@ -326,4 +335,58 @@ export async function canCreateRelease(userId: number, currentActiveCount: numbe
   }
 
   return { allowed: true, maxAllowed, currentCount: currentActiveCount };
+}
+
+
+/**
+ * Check if user can create a new project preview based on tier limits.
+ * Free: 0, Starter: 1, Professional: 3.
+ */
+export async function canCreateProjectPreview(userId: number, currentCount: number): Promise<{
+  allowed: boolean;
+  reason?: string;
+  maxAllowed: number;
+  currentCount: number;
+}> {
+  const subscription = await getUserSubscription(userId);
+  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  const maxAllowed = tier.maxProjectPreviews;
+
+  if (maxAllowed === 0) {
+    return {
+      allowed: false,
+      reason: "Upgrade to Starter or Professional to create Project Previews.",
+      maxAllowed: 0,
+      currentCount,
+    };
+  }
+
+  if (currentCount >= maxAllowed) {
+    return {
+      allowed: false,
+      reason: `You've reached your limit of ${maxAllowed} project preview${maxAllowed > 1 ? 's' : ''} on the ${tier.name} plan. Upgrade to Professional for up to 3 projects.`,
+      maxAllowed,
+      currentCount,
+    };
+  }
+
+  return { allowed: true, maxAllowed, currentCount };
+}
+
+/**
+ * Get the max tracks per project for a user's tier.
+ */
+export async function getMaxTracksPerProject(userId: number): Promise<number> {
+  const subscription = await getUserSubscription(userId);
+  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  return tier.maxTracksPerProject;
+}
+
+/**
+ * Get the max snippet seconds for a user's tier.
+ */
+export async function getMaxSnippetSeconds(userId: number): Promise<number> {
+  const subscription = await getUserSubscription(userId);
+  const tier = PRICING_TIERS[subscription.tier as PricingTier];
+  return tier.maxSnippetSeconds;
 }

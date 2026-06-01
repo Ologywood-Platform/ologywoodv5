@@ -1545,3 +1545,42 @@ export const merchItems = mysqlTable("merch_items", {
 
 export type MerchItem = typeof merchItems.$inferSelect;
 export type InsertMerchItem = typeof merchItems.$inferInsert;
+
+
+// ============= PROJECT PREVIEWS =============
+export const projectPreviews = mysqlTable("project_previews", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  releaseType: varchar("releaseType", { length: 50 }).notNull().default("album"), // album, ep, mixtape, deluxe, single_collection
+  coverArtUrl: text("coverArtUrl"),
+  releaseDate: date("releaseDate"),
+  externalLink: text("externalLink"), // Spotify, Apple Music, Bandcamp, etc.
+  description: text("description"),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, coming_soon, archived
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("idx_project_previews_user").on(table.userId),
+  statusIdx: index("idx_project_previews_status").on(table.userId, table.status),
+}));
+
+export type ProjectPreview = typeof projectPreviews.$inferSelect;
+export type InsertProjectPreview = typeof projectPreviews.$inferInsert;
+
+export const projectPreviewTracks = mysqlTable("project_preview_tracks", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  trackNumber: int("trackNumber").notNull(),
+  audioUrl: text("audioUrl"),
+  durationSeconds: int("durationSeconds").notNull().default(30),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  projectIdx: index("idx_project_preview_tracks_project").on(table.projectId),
+  orderIdx: index("idx_project_preview_tracks_order").on(table.projectId, table.trackNumber),
+}));
+
+export type ProjectPreviewTrack = typeof projectPreviewTracks.$inferSelect;
+export type InsertProjectPreviewTrack = typeof projectPreviewTracks.$inferInsert;

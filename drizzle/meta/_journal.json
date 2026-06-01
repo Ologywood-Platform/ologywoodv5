@@ -603,6 +603,13 @@
       "when": 1780330237493,
       "tag": "0085_far_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "5",
+      "when": 1780347661596,
+      "tag": "0086_flat_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

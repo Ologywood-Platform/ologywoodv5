@@ -2954,3 +2954,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] FeaturedVenuesCarousel component (responsive carousel matching artist pattern)
 - [x] Integrated on homepage below Featured Artists carousel
 - [x] 'View All Venues' button links to Browse page venues tab
+
+
+## PROJECT PREVIEWS FEATURE (Jun 1, 2026)
+- [x] Create project_previews table (userId, title, releaseType, coverArtUrl, releaseDate, externalLink, status, createdAt)
+- [x] Create project_preview_tracks table (projectId, title, trackNumber, audioUrl, durationSeconds, createdAt)
+- [x] Add tier limits: Starter=1 project/6 tracks/30s, Professional=3 projects/12 tracks/60s, Free=none
+- [x] Build CRUD API (create/update/delete project, add/remove/reorder tracks)
+- [x] Audio upload endpoint with validation (5MB max, MP3/WAV/M4A, enforce snippet duration per tier)
+- [x] Cover art upload endpoint (2MB max, JPEG/PNG/WebP)
+- [x] Public listing endpoint (getPublicProjects by userId)
+- [x] Build ProjectPreviewsManager component (create/edit projects, upload tracks, manage track list)
+- [x] Build ProjectPreviewsDisplay component for artist profile (cover art, track list, audio player)
+- [x] Simple audio player (play/pause, progress bar, track switching)
+- [x] "Coming Soon" badge for projects with future release dates
+- [x] Optional external link (Spotify, Apple Music, Bandcamp, etc.)
+- [x] Add "Projects" section on artist profile between Releases and Merch
+- [x] Add quick action on artist dashboard

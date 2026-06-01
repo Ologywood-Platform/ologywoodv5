@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag, Disc3 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -403,6 +403,20 @@ export function ArtistDashboardV3() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Showcase and link to your merchandise store</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/projects')}
+                      >
+                        <Disc3 className="h-5 w-5" />
+                        <span className="text-xs font-medium">Projects</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Preview releases</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Showcase upcoming albums, EPs, and mixtapes with audio snippets</TooltipContent>
                   </Tooltip>
                 </div>
               </CardContent>

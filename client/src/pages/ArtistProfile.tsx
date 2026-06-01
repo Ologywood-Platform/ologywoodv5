@@ -21,6 +21,7 @@ import { ReleaseCard } from "@/components/ReleaseCard";
 import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd, buildMusicRecordingJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { MerchDisplay } from "@/components/MerchDisplay";
+import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
 import { TipQRSection } from "@/components/TipQRCode";
@@ -869,6 +870,11 @@ export default function ArtistProfile() {
 
         {/* Full-width sections below the two-column grid */}
         <div className="space-y-6 sm:p-4 md:px-8">
+            {/* Project Previews Section */}
+            {artist && (
+              <ProjectPreviewDisplay userId={artist.userId} />
+            )}
+
             {/* Merch Section */}
             {artist && (
               <MerchDisplay userId={artist.userId} userType="artist" />

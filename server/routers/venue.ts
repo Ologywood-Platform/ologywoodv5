@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
-import { getDb } from "../db";
+import { getDb, getPool } from "../db";
 import { storagePut } from "../storage";
 import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail, sendEmail } from "../email";
 import * as notif from "../services/notificationService";
@@ -900,8 +900,9 @@ export const venueRouter = router({
   getAvailabilitySummary: publicProcedure
     .input(z.object({ venueIds: z.array(z.number()).max(50) }))
     .query(async ({ input }) => {
-      const database = await getDb();
-      if (!database) return {};
+      await getDb();
+      const pool = getPool();
+      if (!pool) return {};
 
       const results: Record<number, { hasOpenDates: boolean; blockedCount: number }> = {};
       const now = new Date();
@@ -910,28 +911,28 @@ export const venueRouter = router({
       for (const venueId of input.venueIds) {
         try {
           // Count blocked dates in next 30 days
-          const [blockedRows] = await (database as any).pool.query(
+          const [blockedRows] = await pool.query(
             `SELECT COUNT(*) as cnt FROM venue_blocked_dates 
              WHERE venueProfileId = ? AND blockedDate BETWEEN ? AND ?`,
             [venueId, now.toISOString().split('T')[0], thirtyDaysFromNow.toISOString().split('T')[0]]
           );
-          const blockedCount = blockedRows[0]?.cnt || 0;
+          const blockedCount = (blockedRows as any)[0]?.cnt || 0;
 
           // Count confirmed bookings in next 30 days
-          const [bookingRows] = await (database as any).pool.query(
+          const [bookingRows] = await pool.query(
             `SELECT COUNT(*) as cnt FROM bookings 
              WHERE venueId = ? AND status = 'confirmed' AND eventDate BETWEEN ? AND ?`,
             [venueId, now.toISOString().split('T')[0], thirtyDaysFromNow.toISOString().split('T')[0]]
           );
-          const confirmedCount = bookingRows[0]?.cnt || 0;
+          const confirmedCount = (bookingRows as any)[0]?.cnt || 0;
 
           // Count recurring blocks (days of week that are always blocked)
-          const [recurringRows] = await (database as any).pool.query(
+          const [recurringRows] = await pool.query(
             `SELECT COUNT(*) as cnt FROM venue_recurring_blocks 
              WHERE venueProfileId = ? AND isActive = 1`,
             [venueId]
           );
-          const recurringCount = recurringRows[0]?.cnt || 0;
+          const recurringCount = (recurringRows as any)[0]?.cnt || 0;
 
           // Total days in next 30 = 30, minus blocked + confirmed + (recurring * ~4 weeks)
           const totalBlocked = blockedCount + confirmedCount + (recurringCount * 4);
@@ -955,7 +956,9 @@ export const venueRouter = router({
       if (!database) return [];
 
       try {
-        const [venues] = await (database as any).pool.query(
+        const pool = getPool();
+        if (!pool) return [];
+        const [venues] = await pool.query(
           `SELECT * FROM venue_profiles 
            WHERE organizationName IS NOT NULL AND organizationName != ''
            ORDER BY reviewCount DESC, averageRating DESC, createdAt DESC
