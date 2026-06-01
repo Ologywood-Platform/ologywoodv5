@@ -320,13 +320,13 @@ const faqItems: FAQItem[] = [
     id: 'disputes-1',
     category: 'Disputes',
     question: 'What is a dispute and how do I file one?',
-    answer: 'A dispute is a formal claim you can file when there is an issue with a booking \u2014 such as a no-show, contract violation, or payment disagreement. Go to your booking details and click "File Dispute." Provide a description and any supporting evidence. Our admin team reviews all disputes and works toward a fair resolution for both parties.',
+    answer: 'If you have a payment issue with a booking \u2014 such as a no-show, unauthorized charge, or service not delivered \u2014 you can file a dispute directly with your bank or card issuer. Stripe, our payment processor, handles the entire chargeback and dispute process in accordance with card network rules (Visa, Mastercard, etc.). You can also report issues through the booking details page to flag concerns to the other party.',
   },
   {
     id: 'disputes-2',
     category: 'Disputes',
     question: 'How long does it take to resolve a dispute?',
-    answer: 'Most disputes are reviewed within 48-72 hours. Our admin team may reach out to both parties for additional information. You will receive notifications as the dispute progresses through review, and a final resolution will be communicated via email and in-app notification.',
+    answer: 'Payment disputes and chargebacks are managed by Stripe and follow card network timelines, which typically take 60-90 days for a final resolution. Stripe will notify the relevant parties throughout the process. For non-payment issues (e.g., communication problems or scheduling conflicts), use the Report Issue feature on the booking page to flag concerns directly.',
   },
   {
     id: 'disputes-3',

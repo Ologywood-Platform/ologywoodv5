@@ -315,11 +315,11 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Scale className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Dispute Resolution</CardTitle>
+                <CardTitle className="text-base sm:text-lg">Payment Protection</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Fair and transparent dispute handling for bookings. File claims, provide evidence, and get resolutions managed by our admin team.
+                  All payments and disputes are handled securely by Stripe. Chargebacks, refunds, and payment disputes follow card network rules &mdash; transparent and fair for everyone.
                 </p>
               </CardContent>
             </Card>

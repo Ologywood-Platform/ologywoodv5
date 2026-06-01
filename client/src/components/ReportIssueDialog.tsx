@@ -107,7 +107,7 @@ export default function ReportIssueDialog({ bookingId, onDisputeFiled }: ReportI
             <DialogHeader>
               <DialogTitle>Describe the Issue</DialogTitle>
               <DialogDescription>
-                Please provide details so our team can review and help resolve this.
+                Please provide details about the issue. For payment disputes, you can also contact your bank or card issuer directly.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
@@ -152,8 +152,8 @@ export default function ReportIssueDialog({ bookingId, onDisputeFiled }: ReportI
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Issue Reported</h3>
             <p className="text-sm text-gray-600 mb-6">
-              Our team will review your report and get back to you within 24-48 hours.
-              You can track the status of your dispute from your dashboard.
+              Your report has been submitted and the other party will be notified. For payment-related disputes, contact your bank or card issuer directly — Stripe handles all chargebacks per card network rules.
+              You can track the status of your report from your dashboard.
             </p>
             <Button onClick={handleClose}>Close</Button>
           </div>
