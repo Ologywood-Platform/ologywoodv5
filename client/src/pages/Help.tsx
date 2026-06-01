@@ -106,6 +106,38 @@ const faqItems: FAQItem[] = [
     question: 'Where can I see my booking payment status?',
     answer: 'Go to My Bookings from the user dropdown menu in the navigation bar. Each booking card shows a payment status badge: "Deposit Paid" (50% paid), "Paid in Full" (100% paid), or "Refunded" if applicable. You can also pay outstanding balances directly from this page.',
   },
+  {
+    id: 'payment-7',
+    category: 'Payments & Billing',
+    question: 'I received an email from Stripe about a failing webhook. What should I do?',
+    answer: 'This typically happens when a temporary development URL expires. Go to your Stripe Dashboard \u2192 Developers \u2192 Webhooks and delete any endpoint pointing to an old or expired URL (such as a sandbox URL ending in manus.computer). Then add a new webhook endpoint using your production domain: https://www.ologywood.com/api/stripe/webhook. Select all relevant events (checkout.session.completed, customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed, payment_intent.succeeded, charge.refunded). Copy the new Signing Secret and update it in your project\'s Settings \u2192 Payment. This does not affect existing payments \u2014 it only impacts real-time event notifications.',
+  },
+  {
+    id: 'payment-8',
+    category: 'Payments & Billing',
+    question: 'How do I set up Stripe for my production site?',
+    answer: 'Your Stripe test keys are automatically configured during development. To go live with real payments: (1) Complete Stripe\'s KYC verification in your Stripe Dashboard, (2) Once approved, enter your live API keys in Settings \u2192 Payment in the Ologywood management panel, (3) Add a production webhook endpoint at https://www.ologywood.com/api/stripe/webhook in your Stripe Dashboard \u2192 Developers \u2192 Webhooks, and (4) Update the webhook signing secret in Settings \u2192 Payment. Use test card 4242 4242 4242 4242 to verify everything works in test mode before switching to live.',
+  },
+
+  // Merch & Shop
+  {
+    id: 'merch-1',
+    category: 'Merch & Shop',
+    question: 'How does the Merch feature work for artists?',
+    answer: 'Artists on Starter and Professional plans can showcase merchandise on their public profile. Go to your Dashboard and click the Merch quick action (or navigate to /merch). Add items with a title, description, display price, and an external purchase link to your own store (Shopify, Big Cartel, Printful, etc.). Upload up to 2 images per item (JPEG, PNG, or WebP, max 2MB each). Fans see your merch on your artist profile and click \"Buy\" to be taken directly to your store. You keep 100% of merch revenue \u2014 Ologywood takes zero commission.',
+  },
+  {
+    id: 'merch-2',
+    category: 'Merch & Shop',
+    question: 'How does the Shop feature work for venues?',
+    answer: 'Venues on Starter and Professional plans can showcase branded items and offers on their public profile under \"Shop & Offers.\" This works the same as artist merch but is designed for venue merchandise (branded hats, glasses, shirts), gift cards, VIP packages, and promotional offers. Add items from your Dashboard \u2192 Shop & Offers quick action. Each item links out to your own store or ordering system. Starter plans allow up to 6 items; Professional plans allow up to 15.',
+  },
+  {
+    id: 'merch-3',
+    category: 'Merch & Shop',
+    question: 'What are the merch item limits per subscription tier?',
+    answer: 'Free accounts cannot add merch or shop items. Starter plan ($9/month) allows up to 6 items. Professional plan ($29/month) allows up to 15 items. If you reach your limit, you\'ll see an upgrade prompt. You can deactivate items without deleting them to free up slots.',
+  },
 
   // Music & Releases
   {
@@ -315,6 +347,20 @@ const faqItems: FAQItem[] = [
     category: 'Reviews',
     question: 'Can I edit or delete a review?',
     answer: 'Currently, reviews cannot be edited once submitted. If you believe a review violates our community guidelines or is fraudulent, contact support@ologywood.com and our team will investigate.',
+  },
+
+  // Platform Setup (Admin)
+  {
+    id: 'setup-1',
+    category: 'Platform Setup',
+    question: 'How do I update my Stripe webhook endpoint after deployment?',
+    answer: 'After deploying your site, go to the Stripe Dashboard \u2192 Developers \u2192 Webhooks. Remove any old endpoints pointing to expired development URLs. Click \"Add endpoint\" and enter your production webhook URL (e.g., https://www.ologywood.com/api/stripe/webhook). Select the events to listen for: checkout.session.completed, customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.paid, invoice.payment_failed, payment_intent.succeeded, payment_intent.payment_failed, charge.refunded, payout.paid, and payout.failed. Save the endpoint, then copy the new Signing Secret and update it in your project\'s Settings \u2192 Payment panel.',
+  },
+  {
+    id: 'setup-2',
+    category: 'Platform Setup',
+    question: 'Why is Stripe sending me emails about failing webhooks?',
+    answer: 'Stripe sends these emails when it cannot reach your webhook endpoint URL. The most common cause is that the URL points to an old development/sandbox server that has been shut down or restarted. This does not affect existing payments or payouts. To fix it: (1) Go to Stripe Dashboard \u2192 Developers \u2192 Webhooks, (2) Delete the failing endpoint, (3) If you still need webhooks, add a new endpoint with your current production URL. If you are only in test mode and not actively testing webhooks, you can safely remove the old endpoint to stop the emails.',
   },
 
   // Support & Contact

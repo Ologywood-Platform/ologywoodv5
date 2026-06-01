@@ -2930,3 +2930,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Public merch grid on artist profile (MerchDisplay component with hover buy button)
 - [x] Public shop grid on venue profile (same component, labeled "Shop & Offers")
 - [x] Tier upgrade prompt when limit reached (shows upgrade link in getLimitInfo)
+
+## FAQ & HELP PAGE UPDATES (Jun 1, 2026)
+- [x] Add Stripe webhook setup FAQ to Help page (Payments & Billing category: payment-7, payment-8)
+- [x] Add Merch/Shop FAQ entries to Help page (merch-1, merch-2, merch-3) and FAQ page
+- [x] Add Stripe webhook troubleshooting FAQ to FAQ page
+- [x] Add Platform Setup category to Help page (setup-1, setup-2)

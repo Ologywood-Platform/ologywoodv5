@@ -69,6 +69,13 @@ export default function FAQ() {
     // Roles
     { q: 'What roles are available on Ologywood?', a: 'Ologywood has several roles: Artist (performers who get booked and sell music), Venue (event organizers who book talent), User/Client (fans who browse, follow, book artists for private events, and purchase music), and Blogger (content creators who write blog posts for the platform). Admins manage the platform. You can request a role change by contacting support.' },
     
+    // Merch & Shop
+    { q: 'How does the Merch/Shop feature work?', a: 'Artists and venues on Starter or Professional plans can showcase products on their public profiles. Artists see it as "Merch" and venues as "Shop & Offers." Add items with a title, price, images (up to 2 per item, max 2MB), and an external purchase link to your own store. Fans click "Buy" and are taken directly to your store. You keep 100% of revenue — Ologywood takes zero commission on merch sales. Starter plans allow up to 6 items; Professional plans allow up to 15.' },
+    
+    // Stripe & Webhooks
+    { q: 'I got an email from Stripe about a failing webhook. What do I do?', a: 'This happens when a temporary development URL expires. Go to Stripe Dashboard → Developers → Webhooks, delete the old endpoint, and add a new one with your production URL (https://www.ologywood.com/api/stripe/webhook). Copy the new Signing Secret and update it in Settings → Payment. This does not affect existing payments.' },
+    { q: 'How do I set up Stripe for production?', a: 'Complete Stripe KYC verification, then enter your live API keys in Settings → Payment. Add a production webhook endpoint in Stripe Dashboard → Developers → Webhooks pointing to https://www.ologywood.com/api/stripe/webhook. Update the webhook signing secret in Settings → Payment. Test with card 4242 4242 4242 4242 before going live.' },
+    
     // Support
     { q: 'How do I contact support?', a: 'Email support@ologywood.com, use the Contact Us page, or the chat widget in the bottom-right corner. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
   ];
