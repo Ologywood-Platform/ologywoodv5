@@ -208,7 +208,7 @@ export default function Home() {
       {/* Features Section - Mobile Optimized */}
       <section className="py-8 sm:py-16 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood?</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood™?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
@@ -417,7 +417,7 @@ export default function Home() {
       {/* Footer - Mobile Optimized */}
       <footer className="bg-muted/50 border-t mt-8 sm:mt-16 py-6 sm:py-8">
         <div className="container mx-auto px-3 sm:px-4 text-center text-xs sm:text-sm text-muted-foreground">
-          <p>&copy; 2026 Ologywood. All rights reserved.</p>
+          <p>&copy; 2026 Ologywood™. All rights reserved.</p>
         </div>
       </footer>
       {/* Auth Modal */}

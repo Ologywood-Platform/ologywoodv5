@@ -359,7 +359,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">17. Intellectual Property</h2>
             <p className="text-base leading-relaxed">
-              The Platform and its original contents, features, and functionality (including but not limited to software, code, text, images, logos, design, and user interface) are owned by Ologywood and are protected by United States and international copyright, trademark, patent, trade secret, and other intellectual property laws. The Ologywood name, logo, and all related marks are trademarks of Ologywood. You may not copy, modify, distribute, sell, or create derivative works from any part of the Platform without our prior written permission.
+              The Platform and its original contents, features, and functionality (including but not limited to software, code, text, images, logos, design, and user interface) are owned by Ologywood and are protected by United States and international copyright, trademark, patent, trade secret, and other intellectual property laws. The Ologywood™ name, logo, and all related marks are trademarks of Ologywood. You may not copy, modify, distribute, sell, or create derivative works from any part of the Platform without our prior written permission.
             </p>
             <p className="text-base leading-relaxed mt-4">
               This section applies to Ologywood's own intellectual property and does not affect your ownership of Your Content as described in Section 5.

@@ -2986,3 +2986,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update ShareButton to use OG share URL for proper social media previews
 - [x] Add play count tracking for project preview tracks (increment on play)
 - [x] Add project stats summary on artist dashboard (total plays, project count)
+
+## TRADEMARK SYMBOL (Jun 1, 2026)
+- [x] Add ™ symbol to Ologywood branding across the platform (header, footer, key pages)

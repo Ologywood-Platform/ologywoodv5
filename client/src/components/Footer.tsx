@@ -239,7 +239,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-400 text-sm">
-            <p>&copy; {currentYear} Ologywood. All rights reserved.</p>
+            <p>&copy; {currentYear} Ologywood™. All rights reserved.</p>
           </div>
           
           <div className="flex gap-6 text-sm">

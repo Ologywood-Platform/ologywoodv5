@@ -118,7 +118,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             ) : (
               <img src="/logo-sm.png" alt="Ologywood" className="h-7 sm:h-8 w-7 sm:w-8 rounded" />
             )}
-            <span>Ologywood</span>
+            <span>Ologywood<sup className="text-[8px] align-super ml-0.5">™</sup></span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -417,7 +417,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
               <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-4">
                 <Download className="h-7 w-7 text-purple-600 dark:text-purple-400" />
               </div>
-              <h3 className="text-lg font-semibold dark:text-white mb-2">Install Ologywood</h3>
+              <h3 className="text-lg font-semibold dark:text-white mb-2">Install Ologywood™</h3>
               <p className="text-sm text-muted-foreground mb-5">
                 Add Ologywood to your home screen for a native app experience.
               </p>
