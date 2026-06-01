@@ -2936,3 +2936,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Merch/Shop FAQ entries to Help page (merch-1, merch-2, merch-3) and FAQ page
 - [x] Add Stripe webhook troubleshooting FAQ to FAQ page
 - [x] Add Platform Setup category to Help page (setup-1, setup-2)
+
+## SAVE/FAVORITE VENUES (Jun 1, 2026)
+- [x] Reuse existing follows system (followingType: 'venue') - no new table needed
+- [x] Heart icon on venue cards in Browse page (VenueCard sub-component)
+- [x] Toggle save/unsave with toast feedback
+- [x] Non-authenticated users get prompted to sign in
+- [x] Red filled heart when saved, outline when not
+
+## VENUE AVAILABILITY INDICATOR (Jun 1, 2026)
+- [x] Build getAvailabilitySummary endpoint (checks blocked dates + bookings in next 30 days)
+- [x] Green dot = 'Available' (open dates), Yellow dot = 'Limited' (mostly booked)
+- [x] Shown on venue cards in Browse page with label text
+
+## FEATURED VENUES ON HOMEPAGE (Jun 1, 2026)
+- [x] Build getFeatured endpoint (returns venues with profiles, ordered by review count/rating)
+- [x] FeaturedVenuesCarousel component (responsive carousel matching artist pattern)
+- [x] Integrated on homepage below Featured Artists carousel
+- [x] 'View All Venues' button links to Browse page venues tab

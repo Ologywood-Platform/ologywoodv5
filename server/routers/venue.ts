@@ -892,4 +892,91 @@ export const venueRouter = router({
 
       return { profileViews, bookingRequests, confirmedBookings, completedBookings, conversionRates };
     }),
+
+  /**
+   * Get availability summary for multiple venues (public)
+   * Returns whether each venue has open dates in the next 30 days
+   */
+  getAvailabilitySummary: publicProcedure
+    .input(z.object({ venueIds: z.array(z.number()).max(50) }))
+    .query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) return {};
+
+      const results: Record<number, { hasOpenDates: boolean; blockedCount: number }> = {};
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      for (const venueId of input.venueIds) {
+        try {
+          // Count blocked dates in next 30 days
+          const [blockedRows] = await (database as any).pool.query(
+            `SELECT COUNT(*) as cnt FROM venue_blocked_dates 
+             WHERE venueProfileId = ? AND blockedDate BETWEEN ? AND ?`,
+            [venueId, now.toISOString().split('T')[0], thirtyDaysFromNow.toISOString().split('T')[0]]
+          );
+          const blockedCount = blockedRows[0]?.cnt || 0;
+
+          // Count confirmed bookings in next 30 days
+          const [bookingRows] = await (database as any).pool.query(
+            `SELECT COUNT(*) as cnt FROM bookings 
+             WHERE venueId = ? AND status = 'confirmed' AND eventDate BETWEEN ? AND ?`,
+            [venueId, now.toISOString().split('T')[0], thirtyDaysFromNow.toISOString().split('T')[0]]
+          );
+          const confirmedCount = bookingRows[0]?.cnt || 0;
+
+          // Count recurring blocks (days of week that are always blocked)
+          const [recurringRows] = await (database as any).pool.query(
+            `SELECT COUNT(*) as cnt FROM venue_recurring_blocks 
+             WHERE venueProfileId = ? AND isActive = 1`,
+            [venueId]
+          );
+          const recurringCount = recurringRows[0]?.cnt || 0;
+
+          // Total days in next 30 = 30, minus blocked + confirmed + (recurring * ~4 weeks)
+          const totalBlocked = blockedCount + confirmedCount + (recurringCount * 4);
+          results[venueId] = { hasOpenDates: totalBlocked < 25, blockedCount: totalBlocked };
+        } catch {
+          results[venueId] = { hasOpenDates: true, blockedCount: 0 };
+        }
+      }
+
+      return results;
+    }),
+
+  /**
+   * Get featured venues for homepage (public)
+   * Returns top venues by review count and rating
+   */
+  getFeatured: publicProcedure
+    .input(z.object({ limit: z.number().default(8) }).optional().default({ limit: 8 }))
+    .query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) return [];
+
+      try {
+        const [venues] = await (database as any).pool.query(
+          `SELECT * FROM venue_profiles 
+           WHERE organizationName IS NOT NULL AND organizationName != ''
+           ORDER BY reviewCount DESC, averageRating DESC, createdAt DESC
+           LIMIT ?`,
+          [input.limit]
+        );
+
+        return (venues as any[]).map(v => ({
+          id: v.id,
+          userId: v.userId,
+          organizationName: v.organizationName,
+          location: v.location,
+          venueType: v.venueType,
+          capacity: v.capacity,
+          profilePhotoUrl: v.profilePhotoUrl,
+          averageRating: v.averageRating,
+          reviewCount: v.reviewCount,
+        }));
+      } catch (error) {
+        console.error('[Venue] getFeatured error:', error);
+        return [];
+      }
+    }),
 });

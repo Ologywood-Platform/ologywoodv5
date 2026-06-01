@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
+import { FeaturedVenuesCarousel } from "@/components/FeaturedVenuesCarousel";
 import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildHomepageJsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
@@ -19,6 +20,8 @@ export default function Home() {
   const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('signup');
   // Use artist.search with empty filters to get all artists (same as Browse page)
   const { data: artists, isLoading } = trpc.artist.search.useQuery({});
+  // Fetch featured venues
+  const { data: featuredVenues, isLoading: venuesLoading } = trpc.venue.getFeatured.useQuery();
 
   // Set SEO meta tags
   useEffect(() => {
@@ -144,6 +147,9 @@ export default function Home() {
 
       {/* Featured Artists Carousel - Show all artists, not filtered by search */}
       <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
+
+      {/* Featured Venues Carousel */}
+      <FeaturedVenuesCarousel venues={featuredVenues || []} isLoading={venuesLoading} />
 
       {/* Suggested Follows Section */}
       <section className="py-8 sm:py-16">

@@ -143,6 +143,44 @@ export default function Browse() {
     }
   })();
 
+  // Venue availability indicator
+  const venueIds = sortedVenues.map((v: any) => v.id);
+  const { data: availabilityData } = trpc.venue.getAvailabilitySummary.useQuery(
+    { venueIds },
+    { enabled: activeTab === 'venues' && venueIds.length > 0 }
+  );
+
+  // Save/follow venue mutations
+  const utils = trpc.useUtils();
+  const followVenue = trpc.follows.follow.useMutation({
+    onSuccess: () => {
+      utils.follows.isFollowing.invalidate();
+      toast.success('Venue saved!');
+    },
+    onError: (err) => toast.error(err.message || 'Failed to save venue'),
+  });
+  const unfollowVenue = trpc.follows.unfollow.useMutation({
+    onSuccess: () => {
+      utils.follows.isFollowing.invalidate();
+      toast.success('Venue removed from saved');
+    },
+    onError: (err) => toast.error(err.message || 'Failed to remove venue'),
+  });
+
+  const handleSaveVenue = (e: React.MouseEvent, venueUserId: number, isCurrentlySaved: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.error('Please sign in to save venues.');
+      return;
+    }
+    if (isCurrentlySaved) {
+      unfollowVenue.mutate({ followingId: venueUserId, followingType: 'venue' });
+    } else {
+      followVenue.mutate({ followingId: venueUserId, followingType: 'venue' });
+    }
+  };
+
   // Request to Perform modal state
   const [showPerformModal, setShowPerformModal] = useState(false);
   const [performVenue, setPerformVenue] = useState<any>(null);
@@ -612,63 +650,16 @@ export default function Browse() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {sortedVenues.map((venue: any) => (
-                    <Link key={venue.id} href={`/venue/${venue.id}`}>
-                      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
-                        <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg relative">
-                          {venue.profilePhotoUrl ? (
-                            <LazyImage
-                              src={venue.profilePhotoUrl}
-                              alt={venue.organizationName}
-                              containerClassName="w-full h-full"
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Building2 className="h-16 w-16 text-muted-foreground/30" />
-                            </div>
-                          )}
-                          {/* Venue type icon overlay */}
-                          {venue.venueType && (
-                            <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
-                              {getVenueTypeIcon(venue.venueType)}
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3 sm:p-4">
-                          <h3 className="font-semibold text-base sm:text-lg truncate">{venue.organizationName}</h3>
-                          {venue.location && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                              <MapPin className="h-3 w-3" />
-                              {venue.location}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            {venue.venueType && (
-                              <Badge variant="secondary" className="text-xs gap-1 flex items-center">
-                                {getVenueTypeIcon(venue.venueType)}
-                                {formatVenueType(venue.venueType)}
-                              </Badge>
-                            )}
-                            {venue.capacity && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-                                <Users className="h-3 w-3" />
-                                {venue.capacity}
-                              </span>
-                            )}
-                          </div>
-                          {/* Request to Perform button - only for artists */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mt-3 w-full gap-1.5 text-xs"
-                            onClick={(e) => handleRequestToPerform(e, venue)}
-                          >
-                            <Send className="h-3 w-3" />
-                            Request to Perform
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </Link>
+                    <VenueCard
+                      key={venue.id}
+                      venue={venue}
+                      availabilityData={availabilityData}
+                      getVenueTypeIcon={getVenueTypeIcon}
+                      formatVenueType={formatVenueType}
+                      handleRequestToPerform={handleRequestToPerform}
+                      handleSaveVenue={handleSaveVenue}
+                      isAuthenticated={isAuthenticated}
+                    />
                   ))}
                 </div>
               </>
@@ -770,5 +761,94 @@ export default function Browse() {
       </Dialog>
 
     </div>
+  );
+}
+
+
+// VenueCard sub-component with save button and availability indicator
+function VenueCard({ venue, availabilityData, getVenueTypeIcon, formatVenueType, handleRequestToPerform, handleSaveVenue, isAuthenticated }: any) {
+  // Check if user has saved/followed this venue
+  const { data: followData } = trpc.follows.isFollowing.useQuery(
+    { followingId: venue.userId, followingType: 'venue' as const },
+    { enabled: isAuthenticated }
+  );
+  const isSaved = followData?.isFollowing || false;
+  const availability = availabilityData?.[venue.id];
+
+  return (
+    <Link href={`/venue/${venue.id}`}>
+      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
+        <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg relative">
+          {venue.profilePhotoUrl ? (
+            <LazyImage
+              src={venue.profilePhotoUrl}
+              alt={venue.organizationName}
+              containerClassName="w-full h-full"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Building2 className="h-16 w-16 text-muted-foreground/30" />
+            </div>
+          )}
+          {/* Venue type icon overlay */}
+          {venue.venueType && (
+            <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm">
+              {getVenueTypeIcon(venue.venueType)}
+            </div>
+          )}
+          {/* Save/Heart button */}
+          <button
+            className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm hover:bg-background transition-colors"
+            onClick={(e) => handleSaveVenue(e, venue.userId, isSaved)}
+            title={isSaved ? 'Remove from saved' : 'Save venue'}
+          >
+            <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+          </button>
+          {/* Availability indicator */}
+          {availability && (
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
+              <div className={`h-2 w-2 rounded-full ${availability.hasOpenDates ? 'bg-green-500' : 'bg-yellow-500'}`} />
+              <span className="text-[10px] font-medium text-foreground">
+                {availability.hasOpenDates ? 'Available' : 'Limited'}
+              </span>
+            </div>
+          )}
+        </div>
+        <CardContent className="p-3 sm:p-4">
+          <h3 className="font-semibold text-base sm:text-lg truncate">{venue.organizationName}</h3>
+          {venue.location && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <MapPin className="h-3 w-3" />
+              {venue.location}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {venue.venueType && (
+              <Badge variant="secondary" className="text-xs gap-1 flex items-center">
+                {getVenueTypeIcon(venue.venueType)}
+                {formatVenueType(venue.venueType)}
+              </Badge>
+            )}
+            {venue.capacity && (
+              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                <Users className="h-3 w-3" />
+                {venue.capacity}
+              </span>
+            )}
+          </div>
+          {/* Request to Perform button - only for artists */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full gap-1.5 text-xs"
+            onClick={(e) => handleRequestToPerform(e, venue)}
+          >
+            <Send className="h-3 w-3" />
+            Request to Perform
+          </Button>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
