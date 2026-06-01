@@ -88,7 +88,7 @@ function ProjectCard({ project }: { project: any }) {
                   Listen
                 </Button>
               )}
-              <ShareButton projectTitle={project.title} />
+              <ShareButton projectId={project.id} projectTitle={project.title} />
             </div>
           </div>
         </div>
@@ -114,12 +114,11 @@ function ProjectCard({ project }: { project: any }) {
   );
 }
 
-function ShareButton({ projectTitle }: { projectTitle: string }) {
+function ShareButton({ projectId, projectTitle }: { projectId: number; projectTitle: string }) {
   const [copied, setCopied] = useState(false);
 
-  // Share URL points to the #projects section on the artist profile
-  const baseUrl = window.location.origin + window.location.pathname;
-  const shareUrl = `${baseUrl}#projects`;
+  // Use OG share URL for proper social media previews (cover art, title, description)
+  const shareUrl = `${window.location.origin}/api/og-page/project/${projectId}`;
   const shareText = `Check out "${projectTitle}" on Ologywood!`;
 
   const handleCopyLink = async () => {
@@ -232,6 +231,8 @@ function TrackRow({ track }: { track: any }) {
   const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const hasCountedPlay = useRef(false);
+  const incrementPlay = trpc.projectPreviews.incrementPlayCount.useMutation();
 
   const maxDuration = track.durationSeconds || 30;
 
@@ -310,6 +311,12 @@ function TrackRow({ track }: { track: any }) {
 
     await audio.play();
     setIsPlaying(true);
+
+    // Increment play count once per session
+    if (!hasCountedPlay.current) {
+      hasCountedPlay.current = true;
+      incrementPlay.mutate({ trackId: track.id });
+    }
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {

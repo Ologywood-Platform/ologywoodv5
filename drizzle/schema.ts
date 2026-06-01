@@ -1576,6 +1576,7 @@ export const projectPreviewTracks = mysqlTable("project_preview_tracks", {
   trackNumber: int("trackNumber").notNull(),
   audioUrl: text("audioUrl"),
   durationSeconds: int("durationSeconds").notNull().default(30),
+  playCount: int("playCount").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   projectIdx: index("idx_project_preview_tracks_project").on(table.projectId),

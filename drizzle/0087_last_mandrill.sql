@@ -1,0 +1,1 @@
+ALTER TABLE `project_preview_tracks` ADD `playCount` int DEFAULT 0 NOT NULL;

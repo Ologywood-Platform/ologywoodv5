@@ -473,4 +473,68 @@ router.get('/pricing', async (req: Request, res: Response) => {
   return res.status(200).set('Content-Type', 'text/html').send(html);
 });
 
+// Project Preview pages — /api/og-page/project/:id
+router.get('/project/:id', async (req: Request, res: Response) => {
+  const projectId = parseInt(req.params.id, 10);
+  if (isNaN(projectId)) {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+
+  let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
+  baseUrl = baseUrl.replace(/\/$/, '');
+
+  try {
+    const database = await getDb();
+    if (database) {
+      const { projectPreviews: pp, artistProfiles: ap } = await import('../../drizzle/schema');
+      const [project] = await database
+        .select({
+          id: pp.id,
+          title: pp.title,
+          releaseType: pp.releaseType,
+          coverArtUrl: pp.coverArtUrl,
+          description: pp.description,
+          userId: pp.userId,
+          status: pp.status,
+        })
+        .from(pp)
+        .where(eq(pp.id, projectId))
+        .limit(1);
+
+      if (project) {
+        // Get artist name for the OG card
+        const [artist] = await database
+          .select({ id: ap.id, artistName: ap.artistName })
+          .from(ap)
+          .where(eq(ap.userId, project.userId))
+          .limit(1);
+
+        const artistName = artist?.artistName || 'Artist';
+        const artistId = artist?.id;
+        const canonicalUrl = artistId ? `${baseUrl}/artist/${artistId}#projects` : baseUrl;
+        const description = project.description
+          ? project.description.substring(0, 200)
+          : `${project.title} — ${project.releaseType.replace('_', ' ')} by ${artistName}. Listen to previews on Ologywood.`;
+        const ogImage = project.coverArtUrl || DEFAULT_OG_IMAGE;
+
+        const html = generateOgHtml({
+          title: `${project.title} by ${artistName} | Ologywood`,
+          description,
+          image: ogImage,
+          url: `${baseUrl}/api/og-page/project/${projectId}`,
+          canonicalUrl,
+          type: 'music.album',
+        });
+
+        console.log(`[OG Page] Served project OG: id=${projectId}, title=${project.title}, artist=${artistName}`);
+        return res.status(200).set('Content-Type', 'text/html').send(html);
+      }
+    }
+  } catch (error) {
+    console.error('[OG Page] Error generating project OG:', error);
+  }
+
+  return res.redirect(302, baseUrl);
+});
+
 export default router;

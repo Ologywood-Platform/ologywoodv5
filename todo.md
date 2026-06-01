@@ -2980,3 +2980,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Project Previews FAQ entries to FAQ page
 - [x] Add track reorder support in ProjectPreviewManager (move up/down buttons)
 - [x] Improve share link with #projects anchor for direct section linking
+
+## PROJECT PREVIEWS ADVANCED FOLLOW-UPS (Jun 1, 2026)
+- [x] Add dedicated OG share route for project previews (/api/og-page/project/:id) with cover art social card
+- [x] Update ShareButton to use OG share URL for proper social media previews
+- [x] Add play count tracking for project preview tracks (increment on play)
+- [x] Add project stats summary on artist dashboard (total plays, project count)

@@ -64,6 +64,9 @@ export function ArtistDashboardV3() {
     { artistId: artistProfile?.id || 0 },
     { enabled: isArtist && !!artistProfile?.id, staleTime: 5 * 60 * 1000 }
   );
+  const { data: projectStats } = trpc.projectPreviews.getMyStats.useQuery(undefined, {
+    enabled: isArtist, staleTime: 5 * 60 * 1000,
+  });
   const deleteEventMutation = trpc.events.deleteArtistPost.useMutation({
     onSuccess: () => { refetchEvents(); },
   });
@@ -421,6 +424,26 @@ export function ArtistDashboardV3() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Project Stats */}
+            {projectStats && projectStats.projectCount > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Disc3 className="h-5 w-5 text-purple-600" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Project Previews</p>
+                      <p className="text-xs text-muted-foreground">
+                        {projectStats.projectCount} project{projectStats.projectCount !== 1 ? 's' : ''} · {projectStats.trackCount} track{projectStats.trackCount !== 1 ? 's' : ''} · {projectStats.totalPlays} play{projectStats.totalPlays !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/projects')} className="text-xs">
+                      Manage
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Booking Calendar */}
             {bookings && bookings.length > 0 && (

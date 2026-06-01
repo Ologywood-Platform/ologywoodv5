@@ -12,7 +12,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { projectPreviews, projectPreviewTracks } from "../../drizzle/schema";
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, sql, sum } from "drizzle-orm";
 import { storagePut } from "../storage";
 import {
   getUserSubscription,
@@ -507,8 +507,55 @@ export const projectPreviewsRouter = router({
     }),
 
   /**
-   * Public: Get project previews for a user (for profile display)
+   * Public: Increment play count for a track
    */
+  incrementPlayCount: publicProcedure
+    .input(z.object({ trackId: z.number().int().positive() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return { success: false };
+
+      await db
+        .update(projectPreviewTracks)
+        .set({ playCount: sql`${projectPreviewTracks.playCount} + 1` })
+        .where(eq(projectPreviewTracks.id, input.trackId));
+
+      return { success: true };
+    }),
+
+  /**
+   * Get project stats for the current user (total plays, project count)
+   */
+  getMyStats: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return { totalPlays: 0, projectCount: 0, trackCount: 0 };
+
+    const projects = await db
+      .select({ id: projectPreviews.id })
+      .from(projectPreviews)
+      .where(eq(projectPreviews.userId, ctx.user.id));
+
+    if (projects.length === 0) {
+      return { totalPlays: 0, projectCount: 0, trackCount: 0 };
+    }
+
+    const projectIds = projects.map((p) => p.id);
+
+    // Get total plays and track count across all user's projects
+    let totalPlays = 0;
+    let trackCount = 0;
+    for (const pid of projectIds) {
+      const tracks = await db
+        .select({ playCount: projectPreviewTracks.playCount })
+        .from(projectPreviewTracks)
+        .where(eq(projectPreviewTracks.projectId, pid));
+      trackCount += tracks.length;
+      totalPlays += tracks.reduce((acc, t) => acc + (t.playCount || 0), 0);
+    }
+
+    return { totalPlays, projectCount: projects.length, trackCount };
+  }),
+
   getPublicProjects: publicProcedure
     .input(z.object({ userId: z.number().int().positive() }))
     .query(async ({ input }) => {
