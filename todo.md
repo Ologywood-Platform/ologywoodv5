@@ -2971,3 +2971,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Optional external link (Spotify, Apple Music, Bandcamp, etc.)
 - [x] Add "Projects" section on artist profile between Releases and Merch
 - [x] Add quick action on artist dashboard
+
+## PROJECT PREVIEW SHARE BUTTON (Jun 1, 2026)
+- [x] Add share button to public ProjectPreviewDisplay component (copy link, Twitter, Facebook, WhatsApp)
