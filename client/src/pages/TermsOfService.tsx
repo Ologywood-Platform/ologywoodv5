@@ -362,6 +362,9 @@ export default function TermsOfService() {
               The Platform and its original contents, features, and functionality (including but not limited to software, code, text, images, logos, design, and user interface) are owned by Ologywood and are protected by United States and international copyright, trademark, patent, trade secret, and other intellectual property laws. The Ologywood™ name, logo, and all related marks are trademarks of Ologywood. You may not copy, modify, distribute, sell, or create derivative works from any part of the Platform without our prior written permission.
             </p>
             <p className="text-base leading-relaxed mt-4">
+              <strong>Trademark Notice:</strong> "Ologywood" is a trademark pending registration with the United States Patent and Trademark Office (USPTO). The ™ designation indicates that Ologywood claims trademark rights in the name and is actively pursuing federal registration. Unauthorized use of the Ologywood name, logo, or any confusingly similar marks in connection with competing or related services is strictly prohibited and may constitute trademark infringement under the Lanham Act (15 U.S.C. § 1125(a)) and applicable state laws, regardless of whether federal registration has been granted.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
               This section applies to Ologywood's own intellectual property and does not affect your ownership of Your Content as described in Section 5.
             </p>
           </section>

@@ -2989,3 +2989,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## TRADEMARK SYMBOL (Jun 1, 2026)
 - [x] Add ™ symbol to Ologywood branding across the platform (header, footer, key pages)
+- [x] Update Terms of Service to explicitly state Ologywood is a pending trademark with USPTO
