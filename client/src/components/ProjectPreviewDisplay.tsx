@@ -24,7 +24,7 @@ export function ProjectPreviewDisplay({ userId }: ProjectPreviewDisplayProps) {
   if (!projects || projects.length === 0) return null;
 
   return (
-    <div className="space-y-4">
+    <div id="projects" className="space-y-4">
       <div className="flex items-center gap-2">
         <Disc3 className="h-5 w-5 text-purple-600" />
         <h2 className="text-lg font-semibold">Projects</h2>
@@ -117,8 +117,9 @@ function ProjectCard({ project }: { project: any }) {
 function ShareButton({ projectTitle }: { projectTitle: string }) {
   const [copied, setCopied] = useState(false);
 
-  // The share URL is the current page (artist profile) since projects live on the artist profile
-  const shareUrl = window.location.href;
+  // Share URL points to the #projects section on the artist profile
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = `${baseUrl}#projects`;
   const shareText = `Check out "${projectTitle}" on Ologywood!`;
 
   const handleCopyLink = async () => {

@@ -139,6 +139,26 @@ const faqItems: FAQItem[] = [
     answer: 'Free accounts cannot add merch or shop items. Starter plan ($9/month) allows up to 6 items. Professional plan ($29/month) allows up to 15 items. If you reach your limit, you\'ll see an upgrade prompt. You can deactivate items without deleting them to free up slots.',
   },
 
+  // Project Previews
+  {
+    id: 'project-1',
+    category: 'Project Previews',
+    question: 'What are Project Previews?',
+    answer: 'Project Previews let artists showcase upcoming albums, EPs, mixtapes, and other unreleased projects on their public profile. You can upload cover art, add a track list with audio snippets, and link to streaming platforms. Fans can listen to short previews and share your project on social media. This feature is designed for building anticipation before a full release.',
+  },
+  {
+    id: 'project-2',
+    category: 'Project Previews',
+    question: 'How many projects and tracks can I add?',
+    answer: 'Project limits depend on your subscription tier. Starter plan ($9/month) allows 1 project with up to 6 tracks and 30-second audio snippets. Professional plan ($29/month) allows 3 projects with up to 12 tracks each and 60-second audio snippets. Free accounts do not have access to Project Previews.',
+  },
+  {
+    id: 'project-3',
+    category: 'Project Previews',
+    question: 'How do I manage my Project Previews?',
+    answer: 'Go to your Artist Dashboard and click the "Projects" quick action (or navigate to /projects). Create a new project by entering a title, release type (album, EP, mixtape, etc.), and optional release date. Upload cover art (JPEG, PNG, or WebP, max 2MB). Add tracks one by one, then upload audio snippets for each track (MP3, WAV, or M4A, max 5MB). Snippets are automatically limited to your tier\'s maximum duration. You can also add an external link to Spotify, Apple Music, or Bandcamp so fans can find the full release when it drops.',
+  },
+
   // Music & Releases
   {
     id: 'music-1',

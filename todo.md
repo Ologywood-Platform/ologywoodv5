@@ -2974,3 +2974,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## PROJECT PREVIEW SHARE BUTTON (Jun 1, 2026)
 - [x] Add share button to public ProjectPreviewDisplay component (copy link, Twitter, Facebook, WhatsApp)
+
+## PROJECT PREVIEWS FOLLOW-UP IMPROVEMENTS (Jun 1, 2026)
+- [x] Add Project Previews FAQ entries to Help page (project-1, project-2, project-3)
+- [x] Add Project Previews FAQ entries to FAQ page
+- [x] Add track reorder support in ProjectPreviewManager (move up/down buttons)
+- [x] Improve share link with #projects anchor for direct section linking

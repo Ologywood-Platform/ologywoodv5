@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import {
   Plus, Edit2, Trash2, Image as ImageIcon, Music, Upload,
-  Loader2, Crown, AlertTriangle, ExternalLink, Disc3, ListMusic
+  Loader2, Crown, AlertTriangle, ExternalLink, Disc3, ListMusic,
+  ChevronUp, ChevronDown
 } from 'lucide-react';
 
 const RELEASE_TYPES = [
@@ -107,6 +108,13 @@ export function ProjectPreviewManager() {
   const deleteTrackMutation = trpc.projectPreviews.deleteTrack.useMutation({
     onSuccess: () => {
       toast.success('Track removed');
+      refetchProjects();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const reorderTracksMutation = trpc.projectPreviews.reorderTracks.useMutation({
+    onSuccess: () => {
       refetchProjects();
     },
     onError: (err) => toast.error(err.message),
@@ -409,8 +417,32 @@ export function ProjectPreviewManager() {
                           </span>
                         </div>
                         <div className="space-y-1.5">
-                          {project.tracks.map((track: any) => (
-                            <div key={track.id} className="flex items-center gap-2 text-sm group">
+                          {project.tracks.map((track: any, idx: number) => (
+                            <div key={track.id} className="flex items-center gap-1 text-sm group">
+                              <div className="flex flex-col opacity-0 group-hover:opacity-100">
+                                <button
+                                  className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                  disabled={idx === 0}
+                                  onClick={() => {
+                                    const ids = project.tracks.map((t: any) => t.id);
+                                    [ids[idx - 1], ids[idx]] = [ids[idx], ids[idx - 1]];
+                                    reorderTracksMutation.mutate({ projectId: project.id, trackIds: ids });
+                                  }}
+                                >
+                                  <ChevronUp className="h-2.5 w-2.5" />
+                                </button>
+                                <button
+                                  className="h-3 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30"
+                                  disabled={idx === project.tracks.length - 1}
+                                  onClick={() => {
+                                    const ids = project.tracks.map((t: any) => t.id);
+                                    [ids[idx], ids[idx + 1]] = [ids[idx + 1], ids[idx]];
+                                    reorderTracksMutation.mutate({ projectId: project.id, trackIds: ids });
+                                  }}
+                                >
+                                  <ChevronDown className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
                               <span className="text-xs text-muted-foreground w-5 text-right">{track.trackNumber}.</span>
                               <span className="flex-1 truncate">{track.title}</span>
                               {track.audioUrl ? (
