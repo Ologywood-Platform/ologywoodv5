@@ -7,6 +7,7 @@ import { getSessionCookieOptions } from '../_core/cookies';
 import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
+import { persistAvatarToS3 } from '../utils/persistAvatar';
 import crypto from 'crypto';
 
 const router = Router();
@@ -160,6 +161,13 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       return res.redirect(302, `${origin}/get-started?oauth_error=DB_ERROR`);
     }
 
+    // Persist Google avatar to S3 for a permanent URL
+    let avatarUrl: string | null = null;
+    if (googleUser.picture) {
+      avatarUrl = await persistAvatarToS3(googleUser.picture, googleUser.id, 'google');
+      if (!avatarUrl) avatarUrl = googleUser.picture; // fallback to original if S3 upload fails
+    }
+
     // Check if user already exists with this Google ID
     const existingGoogleUser = await db.select().from(users)
       .where(eq(users.oauthProviderId, googleUser.id))
@@ -172,7 +180,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       user = existingGoogleUser[0];
       await db.update(users).set({
         lastSignedIn: new Date(),
-        avatarUrl: googleUser.picture || user.avatarUrl,
+        avatarUrl: avatarUrl || user.avatarUrl,
       }).where(eq(users.id, user.id));
       console.log(`[Google OAuth] Existing user login: ${user.email} (id: ${user.id})`);
     } else {
@@ -187,7 +195,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
         await db.update(users).set({
           oauthProvider: 'google',
           oauthProviderId: googleUser.id,
-          avatarUrl: googleUser.picture || user.avatarUrl,
+          avatarUrl: avatarUrl || user.avatarUrl,
           emailVerified: true, // Google verified the email
           lastSignedIn: new Date(),
         }).where(eq(users.id, user.id));
@@ -203,7 +211,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
           openId,
           oauthProvider: 'google',
           oauthProviderId: googleUser.id,
-          avatarUrl: googleUser.picture || null,
+          avatarUrl: avatarUrl || null,
           emailVerified: true, // Google verified the email
           lastSignedIn: new Date(),
         });

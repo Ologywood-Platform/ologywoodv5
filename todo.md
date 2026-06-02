@@ -3034,3 +3034,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Integrate template selection into the booking flow
 - [ ] Fix database schema (missing tables/columns from rollback) - DONE
 - [x] Fix database schema: Added artist_reviews, project_previews, project_preview_tracks, merch_items tables and venueId column to events table
+
+## AVATAR PERSISTENCE FIX (Jun 2, 2026)
+- [x] Create persistAvatarToS3 utility (downloads external avatar, uploads to S3 for permanent URL)
+- [x] Update Spotify OAuth callback to use persistAvatarToS3 instead of storing external URL
+- [x] Update Google OAuth callback to use persistAvatarToS3 instead of storing external URL
+- [x] Write unit tests for persistAvatarToS3 (4 tests passing)
+- [x] Note: User's current expired Facebook CDN avatar (403) will be fixed on next Spotify login

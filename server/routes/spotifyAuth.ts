@@ -7,6 +7,7 @@ import { getSessionCookieOptions } from '../_core/cookies';
 import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
+import { persistAvatarToS3 } from '../utils/persistAvatar';
 import crypto from 'crypto';
 
 const router = Router();
@@ -163,10 +164,15 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
       return res.redirect(302, `${origin}/get-started?oauth_error=DB_ERROR`);
     }
 
-    // Get the best profile image (largest available)
-    const avatarUrl = spotifyUser.images && spotifyUser.images.length > 0
+    // Get the best profile image (largest available) and persist to S3
+    const externalAvatarUrl = spotifyUser.images && spotifyUser.images.length > 0
       ? spotifyUser.images[spotifyUser.images.length - 1].url
       : null;
+    let avatarUrl: string | null = null;
+    if (externalAvatarUrl) {
+      avatarUrl = await persistAvatarToS3(externalAvatarUrl, spotifyUser.id, 'spotify');
+      if (!avatarUrl) avatarUrl = externalAvatarUrl; // fallback to original if S3 upload fails
+    }
 
     // Check if user already exists with this Spotify ID
     const existingSpotifyUser = await db.select().from(users)
