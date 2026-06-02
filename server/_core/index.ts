@@ -27,6 +27,7 @@ import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
 import ogPageRoutes from '../routes/ogPage';
 import googleAuthRoutes from '../routes/googleAuth';
+import spotifyAuthRoutes from '../routes/spotifyAuth';
 import { contractExpiryRemindersHandler } from '../routes/scheduledContractReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
@@ -152,6 +153,9 @@ async function startServer() {
 
   // Google OAuth routes (BEFORE Vite setup)
   app.use('/api/auth', googleAuthRoutes);
+
+  // Spotify OAuth routes (BEFORE Vite setup)
+  app.use('/api/auth', spotifyAuthRoutes);
 
   // OG Page endpoint - serves OG-rich HTML for social media crawlers
   // This is the primary OG solution for production since the Manus deployment

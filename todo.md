@@ -3000,3 +3000,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Sign in with Google" button to login/signup UI
 - [x] Write vitest tests for Google OAuth flow
 - [x] Test end-to-end
+
+## SPOTIFY OAUTH SOCIAL LOGIN (Jun 2, 2026)
+- [x] Configure SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET secrets
+- [x] Build /api/auth/spotify route (redirect to Spotify consent screen)
+- [x] Build /api/auth/spotify/callback route (exchange code, create/link user, issue JWT)
+- [x] Add "Sign in with Spotify" button to login/signup UI
+- [x] Write vitest tests for Spotify OAuth flow
