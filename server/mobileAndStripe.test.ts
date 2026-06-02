@@ -70,8 +70,8 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
   });
 
   it('should show full Ologywood text on all screens (not abbreviated)', () => {
-    // Desktop and mobile should both show "Ologywood"
-    expect(content).toContain('<span>Ologywood</span>');
+    // Desktop and mobile should both show "Ologywood" with TM symbol
+    expect(content).toContain('Ologywood<sup');
   });
 
   it('should have closeMobile callback for link clicks', () => {
