@@ -24,12 +24,22 @@ function getGoogleClientSecret(): string {
 }
 
 function getRedirectUri(req: Request): string {
+  // Always use BASE_URL in production to avoid Cloud Run URL mismatches
+  const baseUrl = process.env.BASE_URL;
+  if (baseUrl) {
+    return `${baseUrl}/api/auth/google/callback`;
+  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}/api/auth/google/callback`;
 }
 
 function getOrigin(req: Request): string {
+  // Always use BASE_URL in production for consistent redirects
+  const baseUrl = process.env.BASE_URL;
+  if (baseUrl) {
+    return baseUrl;
+  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}`;
