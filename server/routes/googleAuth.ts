@@ -244,4 +244,35 @@ router.get('/google/callback', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/auth/google/debug-cookie
+ * Diagnostic endpoint to test cookie behavior in production
+ */
+router.get('/google/debug-cookie', (req: Request, res: Response) => {
+  const cookieOptions = getSessionCookieOptions(req);
+  const cookies = req.headers.cookie || 'none';
+  const hasSession = cookies.includes(COOKIE_NAME);
+  
+  res.json({
+    cookieOptions,
+    requestHeaders: {
+      host: req.headers.host,
+      xForwardedHost: req.headers['x-forwarded-host'],
+      xForwardedProto: req.headers['x-forwarded-proto'],
+      origin: req.headers.origin,
+    },
+    env: {
+      BASE_URL: process.env.BASE_URL || 'NOT_SET',
+      NODE_ENV: process.env.NODE_ENV || 'NOT_SET',
+      hasJwtSecret: !!process.env.JWT_SECRET,
+    },
+    trustProxy: req.app.get('trust proxy'),
+    protocol: req.protocol,
+    secure: req.secure,
+    hostname: req.hostname,
+    hasSessionCookie: hasSession,
+    cookieHeader: cookies.substring(0, 100) + (cookies.length > 100 ? '...' : ''),
+  });
+});
+
 export default router;
