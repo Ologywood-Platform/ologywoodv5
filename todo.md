@@ -3023,3 +3023,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove getOAuthConfig endpoint from auth router
 - [x] Remove Manus OAuth references from docs (API.md, CI_CD_DEPLOYMENT.md, DEVELOPER_GUIDE.md)
 - [x] Remove oauth.ts import/registration from server/_core/index.ts
+- [x] Make Google/Spotify login buttons more prominent with official branded styling (larger, colored Spotify button, border emphasis on Google)
