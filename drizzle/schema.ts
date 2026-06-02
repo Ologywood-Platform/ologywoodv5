@@ -17,6 +17,7 @@ export const users = mysqlTable("users", {
   oauthProvider: varchar("oauthProvider", { length: 32 }), // 'google', 'spotify', etc.
   oauthProviderId: varchar("oauthProviderId", { length: 255 }), // Provider-specific user ID
   avatarUrl: varchar("avatarUrl", { length: 512 }), // Profile picture from OAuth provider
+  customAvatarUrl: varchar("customAvatarUrl", { length: 512 }), // User-uploaded profile picture (overrides OAuth avatar)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

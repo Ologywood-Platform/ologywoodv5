@@ -138,8 +138,8 @@ export function ArtistDashboardV3() {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
-            {(user as any)?.avatarUrl ? (
-              <img src={(user as any).avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+            {((user as any)?.customAvatarUrl || (user as any)?.avatarUrl) ? (
+              <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
             ) : artistProfile?.profilePhotoUrl ? (
               <img src={artistProfile.profilePhotoUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" />
             ) : null}

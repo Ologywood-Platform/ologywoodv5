@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailPreferencesCenter } from "@/components/EmailPreferencesCenter";
@@ -112,6 +112,175 @@ function NotificationPreferencesSection() {
   );
 }
 
+function ProfilePictureSection({ user }: { user: any }) {
+  const [uploading, setUploading] = useState(false);
+  const [removeConfirm, setRemoveConfirm] = useState(false);
+  const { refresh } = useAuth();
+  const uploadMutation = (trpc.auth as any).uploadCustomAvatar.useMutation({
+    onSuccess: () => {
+      refresh();
+      setUploading(false);
+    },
+    onError: () => {
+      setUploading(false);
+    },
+  });
+  const removeMutation = (trpc.auth as any).removeCustomAvatar.useMutation({
+    onSuccess: () => {
+      refresh();
+      setRemoveConfirm(false);
+    },
+  });
+
+  const currentAvatar = user?.customAvatarUrl || user?.avatarUrl;
+  const hasCustomAvatar = !!user?.customAvatarUrl;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a JPEG, PNG, or WebP image.');
+      return;
+    }
+    // Validate size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image must be under 2MB.');
+      return;
+    }
+
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      uploadMutation.mutate({
+        fileData: base64,
+        fileName: file.name,
+        mimeType: file.type,
+      });
+    };
+    reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <Camera className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <CardTitle>Profile Picture</CardTitle>
+            <CardDescription>
+              Upload a custom profile picture or use your Google/Spotify avatar
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-6">
+          {/* Current avatar preview */}
+          <div className="relative">
+            {currentAvatar ? (
+              <img
+                src={currentAvatar}
+                alt="Profile"
+                className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="h-20 w-20 rounded-full bg-purple-100 flex items-center justify-center border-2 border-gray-200">
+                <User className="h-10 w-10 text-purple-600" />
+              </div>
+            )}
+            {hasCustomAvatar && (
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                Custom
+              </span>
+            )}
+          </div>
+
+          {/* Upload / Remove buttons */}
+          <div className="space-y-2">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleFileSelect}
+                disabled={uploading}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={uploading}
+                asChild
+              >
+                <span>
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                  {uploading ? 'Uploading...' : 'Upload New Photo'}
+                </span>
+              </Button>
+            </label>
+            <p className="text-xs text-slate-500">JPEG, PNG, or WebP. Max 2MB.</p>
+
+            {hasCustomAvatar && (
+              removeConfirm ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={() => removeMutation.mutate()}
+                    disabled={removeMutation.isPending}
+                  >
+                    {removeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                    Confirm Remove
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setRemoveConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-xs text-red-600 hover:text-red-700 p-0 h-auto"
+                  onClick={() => setRemoveConfirm(true)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Remove custom photo
+                </Button>
+              )
+            )}
+
+            {!hasCustomAvatar && user?.avatarUrl && (
+              <p className="text-xs text-slate-500 flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Using your {user?.oauthProvider === 'google' ? 'Google' : user?.oauthProvider === 'spotify' ? 'Spotify' : 'social'} profile picture
+              </p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Settings() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
@@ -193,8 +362,11 @@ export default function Settings() {
           ]}
         />
 
-        {/* Email Preferences */}
+        {/* Profile Picture */}
         <div className="space-y-6">
+          <ProfilePictureSection user={user} />
+
+          {/* Email Preferences */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">

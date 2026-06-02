@@ -3011,3 +3011,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## OAUTH AVATAR DISPLAY (Jun 2, 2026)
 - [x] Expose avatarUrl in the user session/me endpoint
 - [x] Display OAuth profile picture in user dashboard and header (site header dropdown, mobile menu, artist dashboard, venue dashboard)
+
+## CUSTOM PROFILE PICTURE UPLOAD (Jun 2, 2026)
+- [x] Add customAvatarUrl column to users table (overrides OAuth avatarUrl)
+- [x] Create backend endpoint for uploading custom profile picture to S3
+- [x] Add profile picture section in user settings page with upload/remove functionality
+- [x] Update avatar display logic to prefer customAvatarUrl over OAuth avatarUrl

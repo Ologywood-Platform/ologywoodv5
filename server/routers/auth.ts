@@ -804,4 +804,34 @@ export const authRouter = router({
         appId,
       };
     }),
+
+  // Upload custom profile picture (overrides OAuth avatar)
+  uploadCustomAvatar: protectedProcedure
+    .input(z.object({
+      fileData: z.string(), // base64 encoded image
+      fileName: z.string(),
+      mimeType: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { handlePhotoUpload } = await import('../handlers/imageUploadHandler');
+      const { url } = await handlePhotoUpload(input, ctx.user.id, 'user-avatars');
+
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      await db.update(users).set({ customAvatarUrl: url }).where(eq(users.id, ctx.user.id));
+
+      return { url, success: true };
+    }),
+
+  // Remove custom profile picture (reverts to OAuth avatar)
+  removeCustomAvatar: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      await db.update(users).set({ customAvatarUrl: null }).where(eq(users.id, ctx.user.id));
+
+      return { success: true };
+    }),
 });

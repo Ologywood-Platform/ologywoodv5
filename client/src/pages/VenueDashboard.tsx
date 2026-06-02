@@ -324,8 +324,8 @@ export function VenueDashboard() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8 flex items-center gap-4">
-          {(user as any)?.avatarUrl ? (
-            <img src={(user as any).avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+          {((user as any)?.customAvatarUrl || (user as any)?.avatarUrl) ? (
+            <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
           ) : null}
           <div>
             <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">Venue Dashboard</h1>
