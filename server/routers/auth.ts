@@ -367,10 +367,14 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Login error:', error);
+        console.error('[Auth] Login error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        });
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Login failed',
+          message: `Login failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
       }
     }),
