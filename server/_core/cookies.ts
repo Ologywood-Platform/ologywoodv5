@@ -30,6 +30,25 @@ export function getSessionCookieOptions(
   const baseUrl = process.env.BASE_URL || '';
   const isSecure = isSecureRequest(req) || baseUrl.startsWith('https://');
 
+  // In production, set explicit cookie domain so the cookie works across
+  // www/non-www and any subdomains. This prevents host-only cookie scoping
+  // issues when OAuth callbacks arrive on a different hostname than the SPA.
+  let domain: string | undefined;
+  if (baseUrl) {
+    try {
+      const url = new URL(baseUrl);
+      const hostname = url.hostname;
+      // Only set domain for real domains (not localhost/IP)
+      if (!LOCAL_HOSTS.has(hostname) && !isIpAddress(hostname)) {
+        // Use the full hostname (e.g., www.ologywood.com) to ensure
+        // the cookie is scoped to exactly where the app runs
+        domain = hostname;
+      }
+    } catch {
+      // Ignore URL parse errors
+    }
+  }
+
   return {
     httpOnly: true,
     path: "/",
@@ -37,5 +56,6 @@ export function getSessionCookieOptions(
     // "lax" is correct for same-site navigation and top-level redirects (OAuth callbacks).
     sameSite: "lax",
     secure: isSecure,
+    domain,
   };
 }
