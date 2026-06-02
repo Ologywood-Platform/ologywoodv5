@@ -792,18 +792,6 @@ export const authRouter = router({
         return null;
       }
     }),
-  // Get OAuth configuration for frontend
-  // Note: oauthRedirectBase is no longer needed since the frontend now uses
-  // window.location.origin directly (per Manus support instructions).
-  getOAuthConfig: publicProcedure
-    .query(() => {
-      const oauthPortalUrl = process.env.VITE_OAUTH_PORTAL_URL || process.env.OAUTH_SERVER_URL || 'https://manus.im';
-      const appId = process.env.VITE_APP_ID || '';
-      return {
-        oauthPortalUrl,
-        appId,
-      };
-    }),
 
   // Upload custom profile picture (overrides OAuth avatar)
   uploadCustomAvatar: protectedProcedure

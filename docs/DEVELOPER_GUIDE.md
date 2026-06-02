@@ -50,9 +50,10 @@ Environment variables are managed through the Manus platform. In the Manus Manag
 | `AWS_ACCESS_KEY_ID` | S3 storage access |
 | `AWS_SECRET_ACCESS_KEY` | S3 storage secret |
 | `AWS_REGION` | S3 region |
-| `OAUTH_SERVER_URL` | Manus OAuth server |
-| `VITE_OAUTH_PORTAL_URL` | OAuth portal for frontend |
-| `VITE_OAUTH_REDIRECT_BASE_URL` | OAuth callback base URL |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `SPOTIFY_CLIENT_ID` | Spotify OAuth client ID |
+| `SPOTIFY_CLIENT_SECRET` | Spotify OAuth client secret |
 | `BASE_URL` | Production URL (https://www.ologywood.com) |
 | `OWNER_OPEN_ID` | Platform owner identification |
 | `OWNER_NAME` | Platform owner name (fallback) |

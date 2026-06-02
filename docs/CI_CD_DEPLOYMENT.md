@@ -112,9 +112,10 @@ All environment variables are managed through **Settings > Secrets** in the Manu
 | `AWS_ACCESS_KEY_ID` | S3 storage | Manus (auto) |
 | `AWS_SECRET_ACCESS_KEY` | S3 storage | Manus (auto) |
 | `AWS_REGION` | S3 region | Manus (auto) |
-| `OAUTH_SERVER_URL` | OAuth server | Manus (auto) |
-| `VITE_OAUTH_PORTAL_URL` | OAuth portal | Manus (auto) |
-| `VITE_OAUTH_REDIRECT_BASE_URL` | OAuth callback | Manus (auto) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Settings > Secrets |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Settings > Secrets |
+| `SPOTIFY_CLIENT_ID` | Spotify OAuth client ID | Settings > Secrets |
+| `SPOTIFY_CLIENT_SECRET` | Spotify OAuth client secret | Settings > Secrets |
 | `BASE_URL` | Production URL | Manus (auto) |
 | `OWNER_OPEN_ID` | Platform owner ID | Manus (auto) |
 | `OWNER_NAME` | Platform owner name | Manus (auto) |

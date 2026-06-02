@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
+
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import superjson from "superjson";
@@ -105,9 +105,6 @@ async function startServer() {
   // Add request logging middleware (optional - only if available)
   // app.use(requestLogger as any);
   
-  // Apply rate limiting to authentication endpoints
-  app.use('/api/oauth/login', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
-  app.use('/api/oauth/callback', createRateLimiter(RATE_LIMIT_CONFIGS.auth));
   
   // Health check endpoints (must be before rate limiting)
   // /health works in dev, /api/health works in production (CDN catches non-/api paths)
@@ -165,9 +162,7 @@ async function startServer() {
   // Regular users get redirected to the SPA page via JavaScript.
   app.use('/api/og-page', ogPageRoutes);
   
-  // OAuth callback under /api/oauth/callback
   registerStorageProxy(app);
-  registerOAuthRoutes(app);
   // Apply rate limiting to TRPC API
   app.use('/api/trpc', createRateLimiter(RATE_LIMIT_CONFIGS.api));
   

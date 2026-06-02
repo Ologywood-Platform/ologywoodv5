@@ -3017,3 +3017,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create backend endpoint for uploading custom profile picture to S3
 - [x] Add profile picture section in user settings page with upload/remove functionality
 - [x] Update avatar display logic to prefer customAvatarUrl over OAuth avatarUrl
+
+## REMOVE MANUS OAUTH (Jun 2, 2026)
+- [x] Remove server/_core/oauth.ts (Manus OAuth callback handler)
+- [x] Remove getOAuthConfig endpoint from auth router
+- [x] Remove Manus OAuth references from docs (API.md, CI_CD_DEPLOYMENT.md, DEVELOPER_GUIDE.md)
+- [x] Remove oauth.ts import/registration from server/_core/index.ts

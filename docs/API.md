@@ -8,14 +8,21 @@ The Ologywood platform uses two API layers: **tRPC** for the primary client-serv
 
 ## Authentication
 
-The platform supports two authentication methods: **Manus OAuth** and **Email/Password**. All protected endpoints require a valid session cookie (`app_session_id`) set during login.
+The platform supports three authentication methods: **Google OAuth**, **Spotify OAuth**, and **Email/Password**. All protected endpoints require a valid session cookie (`app_session_id`) set during login.
 
-### OAuth Flow
+### Google OAuth Flow
 
-1. Client calls `auth.getOAuthConfig` to get the OAuth portal URL
-2. User is redirected to Manus OAuth portal
-3. On success, callback at `/api/oauth/callback` sets a session cookie
-4. Client calls `auth.me` to get the authenticated user
+1. User clicks "Continue with Google" which navigates to `/api/auth/google`
+2. Server redirects to Google's consent screen
+3. On success, callback at `/api/auth/google/callback` creates/links the user and sets a session cookie
+4. User is redirected to the dashboard
+
+### Spotify OAuth Flow
+
+1. User clicks "Continue with Spotify" which navigates to `/api/auth/spotify`
+2. Server redirects to Spotify's authorization page
+3. On success, callback at `/api/auth/spotify/callback` creates/links the user and sets a session cookie
+4. User is redirected to the dashboard
 
 ### Email/Password Flow
 
@@ -29,7 +36,8 @@ The platform supports two authentication methods: **Manus OAuth** and **Email/Pa
 
 | Procedure | Access | Description |
 |-----------|--------|-------------|
-| `auth.getOAuthConfig` | Public | Returns OAuth portal URL and redirect configuration |
+| `auth.uploadCustomAvatar` | Protected | Upload a custom profile picture (overrides OAuth avatar) |
+| `auth.removeCustomAvatar` | Protected | Remove custom profile picture (reverts to OAuth avatar) |
 | `auth.me` | Public | Returns current authenticated user or null |
 | `auth.logout` | Protected | Clears session cookie |
 | `auth.setUserRole` | Protected | Sets user role (artist, venue, user) during onboarding |
