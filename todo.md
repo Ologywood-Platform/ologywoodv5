@@ -3024,3 +3024,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove Manus OAuth references from docs (API.md, CI_CD_DEPLOYMENT.md, DEVELOPER_GUIDE.md)
 - [x] Remove oauth.ts import/registration from server/_core/index.ts
 - [x] Make Google/Spotify login buttons more prominent with official branded styling (larger, colored Spotify button, border emphasis on Google)
+
+## RIDER CONTRACT TEMPLATE ENHANCEMENT (Jun 2, 2026)
+- [ ] Build a dedicated Rider Contract Template page accessible from artist dashboard
+- [ ] Create a clean, printable rider contract template with all essential booking fields
+- [ ] Include sections: Booking Details, Artist Info, Payment Terms, Technical Requirements, Hospitality, Cancellation Policy, Signatures
+- [ ] Add ability to save rider templates for reuse across bookings
+- [ ] Add PDF export of the rider contract template
+- [ ] Integrate template selection into the booking flow
+- [ ] Fix database schema (missing tables/columns from rollback) - DONE
+- [x] Fix database schema: Added artist_reviews, project_previews, project_preview_tracks, merch_items tables and venueId column to events table

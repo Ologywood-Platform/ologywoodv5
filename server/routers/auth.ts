@@ -791,6 +791,8 @@ export const authRouter = router({
           name: user.name,
           role: user.role,
           emailVerified: (user as any).emailVerified,
+          avatarUrl: (user as any).avatarUrl || null,
+          customAvatarUrl: (user as any).customAvatarUrl || null,
         };
       } catch (error) {
         return null;
