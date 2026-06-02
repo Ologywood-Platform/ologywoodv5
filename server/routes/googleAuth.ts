@@ -24,12 +24,20 @@ function getGoogleClientSecret(): string {
 }
 
 function getRedirectUri(req: Request): string {
+  // In production, always use BASE_URL to avoid Cloud Run internal hostname mismatch
+  if (process.env.BASE_URL) {
+    return `${process.env.BASE_URL}/api/auth/google/callback`;
+  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}/api/auth/google/callback`;
 }
 
 function getOrigin(req: Request): string {
+  // In production, always use BASE_URL for consistent redirects
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}`;
@@ -220,14 +228,22 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       { name: user.name || googleUser.name, expiresInMs: ONE_YEAR_MS }
     );
 
-    // Set session cookie
+    // Set session cookie and redirect via HTML page.
+    // We use a 200 HTML response instead of a 302 redirect because the CDN/proxy
+    // between the browser and Cloud Run can strip Set-Cookie headers from redirect responses.
+    // The HTML page receives the cookie on a normal 200 response, then redirects client-side.
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log(`[Google OAuth] Login successful, redirecting to: ${origin}${returnPath}`);
+    console.log(`[Google OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
 
-    // Redirect to the app
-    res.redirect(302, `${origin}${returnPath}`);
+    const redirectUrl = `${origin}${returnPath}`;
+    res.status(200).send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Signing in...</title>
+<style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f9fafb;color:#374151;}</style>
+</head><body><p>Signing you in...</p>
+<script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
+</body></html>`);
   } catch (error) {
     console.error('[Google OAuth] Callback error:', error);
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);
