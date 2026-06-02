@@ -24,22 +24,12 @@ function getSpotifyClientSecret(): string {
 }
 
 function getRedirectUri(req: Request): string {
-  // Always use BASE_URL in production to avoid Cloud Run URL mismatches
-  const baseUrl = process.env.BASE_URL;
-  if (baseUrl) {
-    return `${baseUrl}/api/auth/spotify/callback`;
-  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}/api/auth/spotify/callback`;
 }
 
 function getOrigin(req: Request): string {
-  // Always use BASE_URL in production for consistent redirects
-  const baseUrl = process.env.BASE_URL;
-  if (baseUrl) {
-    return baseUrl;
-  }
   const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || '';
   return `${proto}://${host}`;
@@ -263,21 +253,14 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
       { name: user.name || spotifyUser.display_name, expiresInMs: ONE_YEAR_MS }
     );
 
-    console.log(`[Spotify OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
-
-    // Instead of setting cookie on a 302 redirect (which some browsers/CDNs strip),
-    // serve an HTML page that sets the cookie via the Set-Cookie header on a 200 response,
-    // then redirects client-side via JavaScript.
+    // Set session cookie
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-    
-    const redirectUrl = `${origin}${returnPath}`;
-    res.status(200).send(`<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Signing in...</title></head>
-<body>
-<p>Signing you in...</p>
-<script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
-</body></html>`);
+
+    console.log(`[Spotify OAuth] Login successful, redirecting to: ${origin}${returnPath}`);
+
+    // Redirect to the app
+    res.redirect(302, `${origin}${returnPath}`);
   } catch (error) {
     console.error('[Spotify OAuth] Callback error:', error);
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);

@@ -24,22 +24,30 @@ function isSecureRequest(req: Request) {
 export function getSessionCookieOptions(
   req: Request
 ): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
-  // Determine if we're running in production (behind HTTPS)
-  // On Cloud Run, x-forwarded-proto may not be detected if trust proxy isn't set,
-  // so also check BASE_URL as a reliable indicator of production HTTPS.
-  const baseUrl = process.env.BASE_URL || '';
-  const isSecure = isSecureRequest(req) || baseUrl.startsWith('https://');
+  // const hostname = req.hostname;
+  // const shouldSetDomain =
+  //   hostname &&
+  //   !LOCAL_HOSTS.has(hostname) &&
+  //   !isIpAddress(hostname) &&
+  //   hostname !== "127.0.0.1" &&
+  //   hostname !== "::1";
 
-  // Do NOT set an explicit domain attribute.
-  // Without a domain attribute, the browser creates a "host-only" cookie
-  // scoped to the exact origin the browser sees (www.ologywood.com).
-  // This is the most compatible approach and works for both XHR and navigation responses.
+  // const domain =
+  //   shouldSetDomain && !hostname.startsWith(".")
+  //     ? `.${hostname}`
+  //     : shouldSetDomain
+  //       ? hostname
+  //       : undefined;
+
+  const isSecure = isSecureRequest(req);
 
   return {
     httpOnly: true,
     path: "/",
     // Use "lax" for first-party session cookies.
-    // "lax" is correct for same-site navigation and top-level redirects (OAuth callbacks).
+    // "none" was causing mobile browsers (especially iOS Safari with ITP)
+    // to block or ignore the session cookie, preventing login on mobile.
+    // "lax" is correct for same-site navigation and top-level requests.
     sameSite: "lax",
     secure: isSecure,
   };

@@ -55,12 +55,6 @@ async function startServer() {
   console.log('[Server] Starting Ologywood server...');
   const app = express();
   const server = createServer(app);
-
-  // Trust proxy in production (Cloud Run is behind a load balancer)
-  // This ensures x-forwarded-proto, x-forwarded-host, and req.secure work correctly
-  if (process.env.BASE_URL || process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-  }
   
   // Start rate limit cleanup
   startRateLimitCleanup(60000);

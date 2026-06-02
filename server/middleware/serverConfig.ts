@@ -17,10 +17,7 @@ import { fileUploadValidation, FILE_SIZE_LIMITS, ALLOWED_MIME_TYPES } from './fi
  */
 export function configureServer(app: Express): void {
   // Trust proxy - important for rate limiting behind reverse proxies
-  // Always trust proxy in production (Cloud Run is behind a load balancer)
-  // This ensures x-forwarded-proto and x-forwarded-host headers are respected
-  const isProduction = !!process.env.BASE_URL;
-  app.set('trust proxy', isProduction || process.env.TRUST_PROXY === 'true' ? 1 : false);
+  app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
 
   // Disable powered by header
   app.disable('x-powered-by');
