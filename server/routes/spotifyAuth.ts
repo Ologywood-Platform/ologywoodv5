@@ -263,14 +263,21 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
       { name: user.name || spotifyUser.display_name, expiresInMs: ONE_YEAR_MS }
     );
 
-    // Set session cookie
+    console.log(`[Spotify OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
+
+    // Instead of setting cookie on a 302 redirect (which some browsers/CDNs strip),
+    // serve an HTML page that sets the cookie via the Set-Cookie header on a 200 response,
+    // then redirects client-side via JavaScript.
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-
-    console.log(`[Spotify OAuth] Login successful, redirecting to: ${origin}${returnPath}`);
-
-    // Redirect to the app
-    res.redirect(302, `${origin}${returnPath}`);
+    
+    const redirectUrl = `${origin}${returnPath}`;
+    res.status(200).send(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Signing in...</title></head>
+<body>
+<p>Signing you in...</p>
+<script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
+</body></html>`);
   } catch (error) {
     console.error('[Spotify OAuth] Callback error:', error);
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);
