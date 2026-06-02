@@ -2990,3 +2990,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## TRADEMARK SYMBOL (Jun 1, 2026)
 - [x] Add ™ symbol to Ologywood branding across the platform (header, footer, key pages)
 - [x] Update Terms of Service to explicitly state Ologywood is a pending trademark with USPTO
+
+## GOOGLE OAUTH SOCIAL LOGIN (Jun 2, 2026)
+- [x] Configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET secrets
+- [x] Add oauth_provider and oauth_provider_id columns to users table
+- [x] Build /api/auth/google route (redirect to Google consent screen)
+- [x] Build /api/auth/google/callback route (exchange code, create/link user, issue JWT)
+- [x] Account linking (same email = merge with existing account)
+- [x] Add "Sign in with Google" button to login/signup UI
+- [x] Write vitest tests for Google OAuth flow
+- [x] Test end-to-end

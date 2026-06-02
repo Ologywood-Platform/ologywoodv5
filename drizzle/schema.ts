@@ -14,6 +14,9 @@ export const users = mysqlTable("users", {
   emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
   emailVerificationSentAt: timestamp("emailVerificationSentAt"),
   passwordHash: varchar("passwordHash", { length: 255 }), // For email/password auth (nullable for OAuth users)
+  oauthProvider: varchar("oauthProvider", { length: 32 }), // 'google', 'spotify', etc.
+  oauthProviderId: varchar("oauthProviderId", { length: 255 }), // Provider-specific user ID
+  avatarUrl: varchar("avatarUrl", { length: 512 }), // Profile picture from OAuth provider
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

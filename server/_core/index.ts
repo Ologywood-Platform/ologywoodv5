@@ -26,6 +26,7 @@ import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
 import ogPageRoutes from '../routes/ogPage';
+import googleAuthRoutes from '../routes/googleAuth';
 import { contractExpiryRemindersHandler } from '../routes/scheduledContractReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
@@ -148,6 +149,9 @@ async function startServer() {
   // OG Image proxy - converts WebP/PNG profile photos to JPEG for social media crawlers
   // MUST be before Vite/static setup so it doesn't get caught by SPA fallback
   app.use('/api/og-image', ogImageProxyRouter);
+
+  // Google OAuth routes (BEFORE Vite setup)
+  app.use('/api/auth', googleAuthRoutes);
 
   // OG Page endpoint - serves OG-rich HTML for social media crawlers
   // This is the primary OG solution for production since the Manus deployment
