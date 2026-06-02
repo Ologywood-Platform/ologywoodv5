@@ -3007,3 +3007,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build /api/auth/spotify/callback route (exchange code, create/link user, issue JWT)
 - [x] Add "Sign in with Spotify" button to login/signup UI
 - [x] Write vitest tests for Spotify OAuth flow
+
+## OAUTH AVATAR DISPLAY (Jun 2, 2026)
+- [x] Expose avatarUrl in the user session/me endpoint
+- [x] Display OAuth profile picture in user dashboard and header (site header dropdown, mobile menu, artist dashboard, venue dashboard)

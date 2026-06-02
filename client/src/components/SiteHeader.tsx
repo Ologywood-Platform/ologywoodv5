@@ -174,7 +174,11 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                     className="text-sm px-3 gap-1 dark:text-gray-300 dark:hover:text-white"
                     onClick={() => setUserMenuOpen((v) => !v)}
                   >
-                    <User className="h-4 w-4" />
+                    {(user as any)?.avatarUrl ? (
+                      <img src={(user as any).avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
                     <span className="hidden lg:inline max-w-[120px] truncate">{shortName}</span>
                     <ChevronDown className={`h-3 w-3 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                   </Button>
@@ -182,9 +186,18 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   {userMenuOpen && (
                     <div className="absolute right-0 top-full mt-1 w-64 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                       {/* User info */}
-                      <div className="px-4 py-2 border-b dark:border-gray-700">
-                        <p className="text-sm font-medium truncate dark:text-gray-200">{user?.name || 'User'}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      <div className="px-4 py-2 border-b dark:border-gray-700 flex items-center gap-3">
+                        {(user as any)?.avatarUrl ? (
+                          <img src={(user as any).avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                            <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate dark:text-gray-200">{user?.name || 'User'}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        </div>
                       </div>
 
                       {/* Nav links */}
@@ -369,9 +382,14 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                       Download App
                     </Button>
                   )}
-                  <p className="text-sm text-muted-foreground px-4 py-1 truncate">
-                    {user?.name || user?.email}
-                  </p>
+                  <div className="flex items-center gap-2 px-4 py-1">
+                    {(user as any)?.avatarUrl ? (
+                      <img src={(user as any).avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+                    ) : null}
+                    <p className="text-sm text-muted-foreground truncate">
+                      {user?.name || user?.email}
+                    </p>
+                  </div>
                   <LogoutButton onAction={closeMobile} />
                 </div>
               </>

@@ -323,9 +323,14 @@ export function VenueDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 px-3 py-4 sm:p-6 transition-colors duration-200">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">Venue Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your venue, bookings, and artist connections</p>
+        <div className="mb-6 sm:mb-8 flex items-center gap-4">
+          {(user as any)?.avatarUrl ? (
+            <img src={(user as any).avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" />
+          ) : null}
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">Venue Dashboard</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your venue, bookings, and artist connections</p>
+          </div>
         </div>
 
         {/* Profile Status Card */}
