@@ -523,8 +523,39 @@ export default function Browse() {
           
           {/* Venues Tab */}
           <TabsContent value="venues" className="mt-0">
-            {/* Venue Filters */}
+            {/* Venue Search & Filters */}
             <div className="mb-4 space-y-3">
+              {/* Search bar and location filter always visible */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <ClearableInput
+                  placeholder="Search venues by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClear={() => setSearchQuery("")}
+                  leftIcon={<Search className="h-4 w-4" />}
+                  className="text-xs sm:text-sm"
+                  wrapperClassName="flex-1"
+                />
+                <div className="relative flex-1 sm:max-w-[220px]">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="City or state..."
+                    value={venueLocation}
+                    onChange={(e) => setVenueLocation(e.target.value)}
+                    className="h-10 text-xs sm:text-sm pl-9"
+                  />
+                  {venueLocation && (
+                    <button
+                      onClick={() => setVenueLocation('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Additional filters row */}
               <div className="flex items-center gap-2">
                 <Button
                   variant={showVenueFilters ? 'default' : 'outline'}
@@ -533,17 +564,17 @@ export default function Browse() {
                   className="gap-1.5"
                 >
                   <Filter className="h-3.5 w-3.5" />
-                  Filters
+                  More Filters
                   {hasVenueFilters && (
                     <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
-                      {[venueLocation, venueType, venueCapacityRange].filter(Boolean).length}
+                      {[venueType, venueCapacityRange].filter(Boolean).length}
                     </Badge>
                   )}
                 </Button>
-                {hasVenueFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearVenueFilters} className="gap-1 text-muted-foreground">
+                {(hasVenueFilters || searchQuery || venueLocation) && (
+                  <Button variant="ghost" size="sm" onClick={() => { clearVenueFilters(); setSearchQuery(''); setVenueLocation(''); }} className="gap-1 text-muted-foreground">
                     <X className="h-3.5 w-3.5" />
-                    Clear
+                    Clear All
                   </Button>
                 )}
                 <div className="ml-auto flex items-center gap-1.5">
@@ -563,20 +594,7 @@ export default function Browse() {
               </div>
 
               {showVenueFilters && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-muted/50 rounded-lg border">
-                  {/* Location Filter */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> Location
-                    </label>
-                    <Input
-                      placeholder="City or state..."
-                      value={venueLocation}
-                      onChange={(e) => setVenueLocation(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
                   {/* Venue Type Filter */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">

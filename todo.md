@@ -3044,3 +3044,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## VIEW ALL VENUES BUG (Jun 2, 2026)
 - [x] Fix "View All Venues" button on homepage — Browse page now reads ?tab=venues from URL and opens the Venues tab
+
+## VENUE SEARCH & LOCATION FILTER (Jun 2, 2026)
+- [x] Add search bar to Venues tab for searching by venue name
+- [x] Add location filter to Venues tab for filtering by city/state

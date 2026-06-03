@@ -580,7 +580,9 @@ export async function getAllVenues() {
   if (!db) return [];
   
   try {
-    const [venues] = await (db as any).pool.query('SELECT * FROM venue_profiles');
+    const pool = getPool();
+    if (!pool) return [];
+    const [venues] = await pool.query('SELECT * FROM venue_profiles');
     return (venues as any[]).map(venue => ({
       ...venue,
       amenities: venue.amenities ? JSON.parse(venue.amenities) : [],
@@ -632,7 +634,9 @@ export async function searchVenues(filters: {
       params.push(filters.venueType);
     }
     
-    const [venues] = await (db as any).pool.query(sql_query, params);
+    const pool = getPool();
+    if (!pool) return [];
+    const [venues] = await pool.query(sql_query, params);
     
     return (venues as any[]).map(venue => ({
       ...venue,
