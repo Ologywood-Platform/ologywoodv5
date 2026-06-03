@@ -1,4 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Component, type ReactNode } from 'react';
+
+// Inline error boundary to prevent scanner crashes from taking down the page
+class ScannerErrorBoundary extends Component<{ children: ReactNode; onError: () => void }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch() { this.props.onError(); }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,10 +109,27 @@ export default function EventCheckIn() {
     if (!scannerActive || !scannerContainerRef.current) return;
 
     let html5QrCode: any = null;
+    let mounted = true;
 
     const startScanner = async () => {
       try {
+        // Check if camera is available before importing the library
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Camera not available. Please allow camera access or use manual entry below.');
+        }
+
+        // Wait a tick for DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!mounted) return;
+
+        const container = document.getElementById('qr-reader');
+        if (!container) {
+          throw new Error('Scanner container not ready');
+        }
+
         const { Html5Qrcode } = await import('html5-qrcode');
+        if (!mounted) return;
+        
         html5QrCode = new Html5Qrcode('qr-reader');
         scannerRef.current = html5QrCode;
 
@@ -117,23 +145,30 @@ export default function EventCheckIn() {
           },
           () => {} // ignore errors during scanning
         );
-      } catch (err) {
+      } catch (err: any) {
         console.error('Scanner error:', err);
-        toast.error('Could not access camera. Please use manual entry.');
-        setScannerActive(false);
+        if (mounted) {
+          toast.error(err?.message || 'Could not access camera. Please use manual entry.');
+          setScannerActive(false);
+        }
       }
     };
 
     startScanner();
 
     return () => {
+      mounted = false;
       if (html5QrCode) {
-        html5QrCode.stop().catch(() => {});
-        html5QrCode.clear();
+        try {
+          html5QrCode.stop().catch(() => {});
+          html5QrCode.clear();
+        } catch (e) {
+          // ignore cleanup errors
+        }
         scannerRef.current = null;
       }
     };
-  }, [scannerActive, handleValidate]);
+  }, [scannerActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (eventLoading) {
     return (
@@ -203,22 +238,24 @@ export default function EventCheckIn() {
         <Card className="bg-white/10 border-white/20 mb-4">
           <CardContent className="pt-4">
             {scannerActive ? (
-              <div className="space-y-3">
-                <div
-                  id="qr-reader"
-                  ref={scannerContainerRef}
-                  className="rounded-lg overflow-hidden"
-                  style={{ minHeight: '280px' }}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full border-white/30 text-white hover:bg-white/10"
-                  onClick={() => setScannerActive(false)}
-                >
-                  <CameraOff className="h-4 w-4 mr-2" />
-                  Stop Camera
-                </Button>
-              </div>
+              <ScannerErrorBoundary onError={() => { toast.error('Camera scanner failed. Please use manual entry.'); setScannerActive(false); }}>
+                <div className="space-y-3">
+                  <div
+                    id="qr-reader"
+                    ref={scannerContainerRef}
+                    className="rounded-lg overflow-hidden"
+                    style={{ minHeight: '280px' }}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full border-white/30 text-white hover:bg-white/10"
+                    onClick={() => setScannerActive(false)}
+                  >
+                    <CameraOff className="h-4 w-4 mr-2" />
+                    Stop Camera
+                  </Button>
+                </div>
+              </ScannerErrorBoundary>
             ) : (
               <Button
                 className="w-full h-32 text-lg bg-purple-600 hover:bg-purple-700"

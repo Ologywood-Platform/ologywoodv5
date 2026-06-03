@@ -3060,3 +3060,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Show CRM badge on artist browse/search cards
 - [x] Add "CRM Supporters" filter option on Browse Artists tab
 - [x] Show CRM badge on homepage featured artists carousel
+
+## TICKET MANAGEMENT BUGS (Jun 3, 2026)
+- [x] Fix crash on Promos page in ticket management (replaced useToastContext with sonner toast)
+- [x] Fix crash on Scan QR Code in Door Check page (added error boundary + camera check + DOM readiness wait)

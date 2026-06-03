@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tag, Plus, Trash2, Loader2, Percent, DollarSign } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-import { useToastContext } from '@/components/ErrorToast';
+import { toast } from 'sonner';
 
 interface PromoCodeManagerProps {
   eventId: number;
@@ -19,13 +19,13 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
   const [discountValue, setDiscountValue] = useState('');
   const [maxUses, setMaxUses] = useState('');
   const [minTickets, setMinTickets] = useState('1');
-  const toast = useToastContext();
+
 
   const { data: promoCodes, refetch } = trpc.ticketing.getPromoCodes.useQuery({ eventId });
 
   const createMutation = trpc.ticketing.createPromoCode.useMutation({
     onSuccess: () => {
-      toast.addSuccess('Promo code created', `Code "${code.toUpperCase()}" is now active`);
+      toast.success(`Code "${code.toUpperCase()}" is now active`);
       setShowForm(false);
       setCode('');
       setDiscountValue('');
@@ -34,17 +34,17 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
       refetch();
     },
     onError: (err) => {
-      toast.addError('Failed to create', err.message);
+      toast.error(`Failed to create: ${err.message}`);
     },
   });
 
   const deleteMutation = trpc.ticketing.deletePromoCode.useMutation({
     onSuccess: () => {
-      toast.addSuccess('Promo code deleted', 'The promo code has been removed');
+      toast.success('Promo code deleted');
       refetch();
     },
     onError: (err) => {
-      toast.addError('Failed to delete', err.message);
+      toast.error(`Failed to delete: ${err.message}`);
     },
   });
 
@@ -56,7 +56,7 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
 
     if (!value || value <= 0) return;
     if (discountType === 'percentage' && value > 100) {
-      toast.addError('Invalid discount', 'Percentage cannot exceed 100%');
+      toast.error('Percentage cannot exceed 100%');
       return;
     }
 
