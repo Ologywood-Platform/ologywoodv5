@@ -63,3 +63,5 @@ export function CrmBadge({ size = "md" }: CrmBadgeProps) {
     </div>
   );
 }
+
+// v2 - mobile tap + desktop hover support
