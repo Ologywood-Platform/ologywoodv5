@@ -3048,3 +3048,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## VENUE SEARCH & LOCATION FILTER (Jun 2, 2026)
 - [x] Add search bar to Venues tab for searching by venue name
 - [x] Add location filter to Venues tab for filtering by city/state
+
+## CREATORS' RIGHTS MOVEMENT BADGE (Jun 2, 2026)
+- [x] Upload CRM badge image to S3 for permanent hosting
+- [x] Add crmSupporter boolean column to artist_profiles table
+- [x] Add toggle in artist dashboard settings to opt-in to CRM badge
+- [x] Display CRM badge on artist public profile page when enabled
+- [x] Add tooltip explaining what the CRM badge means

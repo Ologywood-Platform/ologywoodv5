@@ -1,0 +1,1 @@
+ALTER TABLE `artist_profiles` ADD `crmSupporter` boolean DEFAULT false NOT NULL;

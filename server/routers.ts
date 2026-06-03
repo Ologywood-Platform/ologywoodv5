@@ -397,6 +397,7 @@ export const appRouter = router({
           zelle: z.string().optional(),
         }).optional(),
         profilePhotoUrl: z.string().optional(),
+        crmSupporter: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);

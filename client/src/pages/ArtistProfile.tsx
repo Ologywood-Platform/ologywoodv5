@@ -331,6 +331,19 @@ export default function ArtistProfile() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{artist.artistName}</h1>
+                {(artist as any).crmSupporter && (
+                  <div className="relative group">
+                    <img
+                      src="/manus-storage/crmbadge_5dc3a26b.png"
+                      alt="Creators' Rights Movement Supporter"
+                      className="w-10 h-10 object-contain"
+                    />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                      Creators' Rights Movement Supporter
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                )}
                 {user && artist.userId === user.id && (
                   <Button
                     variant="outline"

@@ -82,6 +82,8 @@ export default function ArtistEditProfile() {
   const [venmo, setVenmo] = useState("");
   const [paypal, setPaypal] = useState("");
   const [zelle, setZelle] = useState("");
+  // CRM badge state
+  const [crmSupporter, setCrmSupporter] = useState(false);
 
   // Populate form when profile loads
   useEffect(() => {
@@ -114,6 +116,7 @@ export default function ArtistEditProfile() {
         setPaypal(tips.paypal || "");
         setZelle(tips.zelle || "");
       }
+      setCrmSupporter(!!(profile as any).crmSupporter);
     }
   }, [profile]);
 
@@ -247,6 +250,7 @@ export default function ArtistEditProfile() {
         zelle: zelle.trim() || undefined,
       },
       profilePhotoUrl: profilePhotoUrl || undefined,
+      crmSupporter,
     });
   };
 
@@ -670,6 +674,43 @@ export default function ArtistEditProfile() {
 
           {/* Touring Availability */}
           <TouringSection />
+
+          {/* Creators' Rights Movement Badge */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Creators' Rights Movement</CardTitle>
+              <CardDescription>Show your support for creators' rights on your public profile</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <img
+                  src="/manus-storage/crmbadge_5dc3a26b.png"
+                  alt="Creators' Rights Movement Badge"
+                  className="w-16 h-16 object-contain"
+                />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    The Creators' Rights Movement is a grassroots organization committed to defending the full spectrum of creators' rights through decisive action. Display this badge on your profile to show solidarity.
+                  </p>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={crmSupporter}
+                      onChange={(e) => setCrmSupporter(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm font-medium">I support the Creators' Rights Movement</span>
+                  </label>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Learn more at{' '}
+                <a href="https://creatorsrightsmovement.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  creatorsrightsmovement.com
+                </a>
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pb-8">
