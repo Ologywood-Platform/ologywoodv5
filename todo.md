@@ -3041,3 +3041,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update Google OAuth callback to use persistAvatarToS3 instead of storing external URL
 - [x] Write unit tests for persistAvatarToS3 (4 tests passing)
 - [x] Note: User's current expired Facebook CDN avatar (403) will be fixed on next Spotify login
+
+## VIEW ALL VENUES BUG (Jun 2, 2026)
+- [x] Fix "View All Venues" button on homepage — Browse page now reads ?tab=venues from URL and opens the Venues tab

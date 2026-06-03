@@ -60,8 +60,9 @@ export default function Browse() {
     targetType: 'artist',
   });
   
-  // Tab state for Artists/Events/Venues
-  const [activeTab, setActiveTab] = useState<'artists' | 'events' | 'venues'>('artists');
+  // Tab state for Artists/Events/Venues - read from URL ?tab= param
+  const initialTab = new URLSearchParams(searchParams).get('tab') as 'artists' | 'events' | 'venues' | null;
+  const [activeTab, setActiveTab] = useState<'artists' | 'events' | 'venues'>(initialTab && ['artists', 'events', 'venues'].includes(initialTab) ? initialTab : 'artists');
 
   // Venue filter state
   const [venueLocation, setVenueLocation] = useState('');
