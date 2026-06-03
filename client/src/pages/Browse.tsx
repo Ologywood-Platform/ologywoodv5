@@ -23,6 +23,7 @@ import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { TouringBadge } from '@/components/TouringDisplay';
+import { CrmBadge } from '@/components/CrmBadge';
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -461,19 +462,7 @@ export default function Browse() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
-                                {(artist as any).crmSupporter && (
-                                  <div className="relative group/crm flex-shrink-0">
-                                    <img
-                                      src="/manus-storage/crmbadge_optimized_2553962d.png"
-                                      alt="CRM Supporter"
-                                      className="w-5 h-5 object-contain"
-                                    />
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md w-48 text-center opacity-0 group-hover/crm:opacity-100 transition-opacity pointer-events-none z-50">
-                                      This artist supports the Creators' Rights Movement — defending creators' rights through collective action.
-                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                )}
+                                {(artist as any).crmSupporter && <CrmBadge size="md" />}
                                 {touringStatus?.[artist.id] && <TouringBadge />}
                               </div>
                               {Array.isArray(artist.genre) && artist.genre.length > 0 && (
