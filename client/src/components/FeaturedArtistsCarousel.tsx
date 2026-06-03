@@ -112,12 +112,17 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                           {artist.artistName || 'Unknown Artist'}
                         </h3>
                         {(artist as any).crmSupporter && (
-                          <img
-                            src="/manus-storage/crmbadge_5dc3a26b.png"
-                            alt="CRM Supporter"
-                            className="w-4 h-4 object-contain flex-shrink-0"
-                            title="Creators' Rights Movement Supporter"
-                          />
+                          <div className="relative group/crm flex-shrink-0">
+                            <img
+                              src="/manus-storage/crmbadge_5dc3a26b.png"
+                              alt="CRM Supporter"
+                              className="w-4 h-4 object-contain"
+                            />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-md w-48 text-center opacity-0 group-hover/crm:opacity-100 transition-opacity pointer-events-none z-50">
+                              This artist supports the Creators' Rights Movement — defending creators' rights through collective action.
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                          </div>
                         )}
                       </div>
                       {artist.genre && (
