@@ -107,9 +107,19 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                       )}
                     </div>
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                        {artist.artistName || 'Unknown Artist'}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                          {artist.artistName || 'Unknown Artist'}
+                        </h3>
+                        {(artist as any).crmSupporter && (
+                          <img
+                            src="/manus-storage/crmbadge_5dc3a26b.png"
+                            alt="CRM Supporter"
+                            className="w-4 h-4 object-contain flex-shrink-0"
+                            title="Creators' Rights Movement Supporter"
+                          />
+                        )}
+                      </div>
                       {artist.genre && (
                         <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
                           {Array.isArray(artist.genre) ? artist.genre.join(', ') : artist.genre}

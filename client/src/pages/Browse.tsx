@@ -43,6 +43,7 @@ export default function Browse() {
     availableFrom?: string;
     availableTo?: string;
     touringOnly?: boolean;
+    crmOnly?: boolean;
   }>({});
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
   
@@ -261,6 +262,11 @@ export default function Browse() {
       if (!touringStatus[artist.id]) return false;
     }
     
+    // Apply CRM supporter filter
+    if (filters.crmOnly) {
+      if (!(artist as any).crmSupporter) return false;
+    }
+    
     return matchesSearch;
   });
 
@@ -385,6 +391,21 @@ export default function Browse() {
               }} />
             )}
 
+            {/* Quick Filter Badges */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                onClick={() => setFilters(f => ({ ...f, crmOnly: !f.crmOnly }))}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  filters.crmOnly
+                    ? 'bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300'
+                    : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <img src="/manus-storage/crmbadge_5dc3a26b.png" alt="" className="w-4 h-4 object-contain" />
+                CRM Supporters
+              </button>
+            </div>
+
             {/* Results Count */}
             {filteredArtists && filteredArtists.length > 0 && (
               <div className="mb-4">
@@ -440,6 +461,14 @@ export default function Browse() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
+                                {(artist as any).crmSupporter && (
+                                  <img
+                                    src="/manus-storage/crmbadge_5dc3a26b.png"
+                                    alt="CRM Supporter"
+                                    className="w-5 h-5 object-contain flex-shrink-0"
+                                    title="Creators' Rights Movement Supporter"
+                                  />
+                                )}
                                 {touringStatus?.[artist.id] && <TouringBadge />}
                               </div>
                               {Array.isArray(artist.genre) && artist.genre.length > 0 && (

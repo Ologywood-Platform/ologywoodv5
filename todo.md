@@ -3055,3 +3055,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add toggle in artist dashboard settings to opt-in to CRM badge
 - [x] Display CRM badge on artist public profile page when enabled
 - [x] Add tooltip explaining what the CRM badge means
+
+## CRM BADGE FOLLOW-UPS (Jun 2, 2026)
+- [x] Show CRM badge on artist browse/search cards
+- [x] Add "CRM Supporters" filter option on Browse Artists tab
+- [x] Show CRM badge on homepage featured artists carousel
