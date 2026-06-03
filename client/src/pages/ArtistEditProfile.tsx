@@ -684,7 +684,7 @@ export default function ArtistEditProfile() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <img
-                  src="/manus-storage/crmbadge_5dc3a26b.png"
+                  src="/manus-storage/crmbadge_optimized_2553962d.png"
                   alt="Creators' Rights Movement Badge"
                   className="w-16 h-16 object-contain"
                 />

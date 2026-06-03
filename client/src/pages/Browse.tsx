@@ -401,7 +401,7 @@ export default function Browse() {
                     : 'bg-background border-border text-muted-foreground hover:bg-muted'
                 }`}
               >
-                <img src="/manus-storage/crmbadge_5dc3a26b.png" alt="" className="w-4 h-4 object-contain" />
+                <img src="/manus-storage/crmbadge_optimized_2553962d.png" alt="" className="w-4 h-4 object-contain" />
                 CRM Supporters
               </button>
             </div>
@@ -464,7 +464,7 @@ export default function Browse() {
                                 {(artist as any).crmSupporter && (
                                   <div className="relative group/crm flex-shrink-0">
                                     <img
-                                      src="/manus-storage/crmbadge_5dc3a26b.png"
+                                      src="/manus-storage/crmbadge_optimized_2553962d.png"
                                       alt="CRM Supporter"
                                       className="w-5 h-5 object-contain"
                                     />

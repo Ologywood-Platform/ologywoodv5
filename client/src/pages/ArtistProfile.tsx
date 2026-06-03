@@ -334,7 +334,7 @@ export default function ArtistProfile() {
                 {(artist as any).crmSupporter && (
                   <div className="relative group">
                     <img
-                      src="/manus-storage/crmbadge_5dc3a26b.png"
+                      src="/manus-storage/crmbadge_optimized_2553962d.png"
                       alt="Creators' Rights Movement Supporter"
                       className="w-10 h-10 object-contain"
                     />

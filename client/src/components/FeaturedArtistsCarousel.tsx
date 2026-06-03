@@ -114,7 +114,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                         {(artist as any).crmSupporter && (
                           <div className="relative group/crm flex-shrink-0">
                             <img
-                              src="/manus-storage/crmbadge_5dc3a26b.png"
+                              src="/manus-storage/crmbadge_optimized_2553962d.png"
                               alt="CRM Supporter"
                               className="w-4 h-4 object-contain"
                             />
