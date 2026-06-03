@@ -571,12 +571,10 @@ export default function Browse() {
                     </Badge>
                   )}
                 </Button>
-                {(hasVenueFilters || searchQuery || venueLocation) && (
-                  <Button variant="ghost" size="sm" onClick={() => { clearVenueFilters(); setSearchQuery(''); setVenueLocation(''); }} className="gap-1 text-muted-foreground">
-                    <X className="h-3.5 w-3.5" />
-                    Clear All
-                  </Button>
-                )}
+                <Button variant="ghost" size="sm" onClick={() => { clearVenueFilters(); setSearchQuery(''); setVenueLocation(''); }} className="gap-1 text-muted-foreground">
+                  <X className="h-3.5 w-3.5" />
+                  Clear Filters
+                </Button>
                 <div className="ml-auto flex items-center gap-1.5">
                   <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                   <Select value={venueSort} onValueChange={(v) => setVenueSort(v as any)}>
@@ -597,8 +595,11 @@ export default function Browse() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg border">
                   {/* Venue Type Filter */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <Building2 className="h-3 w-3" /> Venue Type
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 justify-between">
+                      <span className="flex items-center gap-1"><Building2 className="h-3 w-3" /> Venue Type</span>
+                      {venueType && (
+                        <button onClick={() => setVenueType('')} className="text-[10px] text-muted-foreground hover:text-foreground underline">clear</button>
+                      )}
                     </label>
                     <Select value={venueType || '__all__'} onValueChange={(v) => setVenueType(v === '__all__' ? '' : v)}>
                       <SelectTrigger className="h-9 text-sm">
@@ -623,8 +624,11 @@ export default function Browse() {
 
                   {/* Capacity Filter */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <Users className="h-3 w-3" /> Capacity
+                    <label className="text-xs font-medium text-muted-foreground flex items-center gap-1 justify-between">
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" /> Capacity</span>
+                      {venueCapacityRange && (
+                        <button onClick={() => setVenueCapacityRange('')} className="text-[10px] text-muted-foreground hover:text-foreground underline">clear</button>
+                      )}
                     </label>
                     <Select value={venueCapacityRange || '__all__'} onValueChange={(v) => setVenueCapacityRange(v === '__all__' ? '' : v)}>
                       <SelectTrigger className="h-9 text-sm">
