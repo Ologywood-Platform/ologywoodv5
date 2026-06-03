@@ -600,12 +600,12 @@ export default function Browse() {
                     <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                       <Building2 className="h-3 w-3" /> Venue Type
                     </label>
-                    <Select value={venueType} onValueChange={setVenueType}>
+                    <Select value={venueType || '__all__'} onValueChange={(v) => setVenueType(v === '__all__' ? '' : v)}>
                       <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="All types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All types</SelectItem>
+                        <SelectItem value="__all__">All types</SelectItem>
                         <SelectItem value="bar">Bar</SelectItem>
                         <SelectItem value="club">Club</SelectItem>
                         <SelectItem value="concert_hall">Concert Hall</SelectItem>
@@ -626,12 +626,12 @@ export default function Browse() {
                     <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                       <Users className="h-3 w-3" /> Capacity
                     </label>
-                    <Select value={venueCapacityRange} onValueChange={setVenueCapacityRange}>
+                    <Select value={venueCapacityRange || '__all__'} onValueChange={(v) => setVenueCapacityRange(v === '__all__' ? '' : v)}>
                       <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="Any size" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any size</SelectItem>
+                        <SelectItem value="__all__">Any size</SelectItem>
                         <SelectItem value="small">Small (1–100)</SelectItem>
                         <SelectItem value="medium">Medium (101–500)</SelectItem>
                         <SelectItem value="large">Large (501–1,500)</SelectItem>
