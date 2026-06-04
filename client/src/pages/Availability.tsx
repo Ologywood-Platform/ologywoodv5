@@ -156,6 +156,9 @@ export default function Availability() {
           <p className="text-muted-foreground">
             Click on dates to mark your availability. This helps venues know when you're free to perform.
           </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Tip: Marking dates as "available" makes you show up in venue searches for those dates. Unmarked dates are treated as unknown.
+          </p>
         </div>
 
         <AvailabilityCalendar

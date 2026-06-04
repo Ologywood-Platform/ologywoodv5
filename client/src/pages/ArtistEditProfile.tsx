@@ -377,7 +377,9 @@ export default function ArtistEditProfile() {
                   placeholder="Tell venues and fans about yourself..."
                   rows={5}
                 />
-                <p className="text-xs text-muted-foreground mt-1">{bio.length}/1000 characters</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {bio.length}/1000 characters — Keep it short and engaging. Venues scan this in seconds. Mention your style, experience, and what makes your show unique.
+                </p>
               </div>
 
               <div>
@@ -439,6 +441,9 @@ export default function ArtistEditProfile() {
               <CardDescription>Set your fee range and touring party size</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground mb-3">
+                This is what venues see when deciding whether to book you. Set a range that reflects your flexibility.
+              </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="feeMin">Minimum Fee ($)</Label>

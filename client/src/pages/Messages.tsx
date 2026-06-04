@@ -300,7 +300,8 @@ export default function Messages() {
         ) : (
           <div className="text-center py-12">
             <MessageCircle className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No conversations found</p>
+             <p className="text-sm text-muted-foreground">No conversations found</p>
+             <p className="text-xs text-muted-foreground mt-1">Messages appear here when you have an active booking or inquiry. Start by browsing artists or venues.</p>
           </div>
         )}
       </div>

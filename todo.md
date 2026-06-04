@@ -3065,3 +3065,19 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix crash on Promos page in ticket management (replaced useToastContext with sonner toast)
 - [x] Fix crash on Scan QR Code in Door Check page (added error boundary + camera check + DOM readiness wait)
 - [x] Add helper note to manual entry section on check-in page explaining what code to enter
+
+## HELPER NOTES FOR USER-FRIENDLINESS
+- [x] Helper note 1: Artist Edit Profile → Fee Range
+- [x] Helper note 2: Artist Edit Profile → Bio
+- [x] Helper note 3: Availability Calendar tip
+- [x] Helper note 4: Event Create → Flyer Upload
+- [x] Helper note 5: Ticket Tier Manager → Total Quantity
+- [x] Helper note 6: Ticket Tier Manager → Max Per Order
+- [x] Helper note 7: Promo Code Manager → Max Uses
+- [x] Helper note 8: Promo Code Manager → Min Tickets
+- [x] Helper note 9: Booking Create → Event Details
+- [x] Helper note 10: Booking Create → Payment Terms
+- [x] Helper note 11: Venue Onboarding → Bio
+- [x] Helper note 12: Venue Onboarding → Contact Name
+- [x] Helper note 13: Messages empty state
+- [x] Helper note 14: Ticket Confirmation → QR Code

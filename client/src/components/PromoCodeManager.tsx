@@ -152,6 +152,7 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
                     min={1}
                     className="h-8 text-sm"
                   />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Leave blank for unlimited redemptions.</p>
                 </div>
                 <div>
                   <Label className="text-xs">Min Tickets</Label>
@@ -163,6 +164,7 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
                     min={1}
                     className="h-8 text-sm"
                   />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Buyer must purchase at least this many for the code to apply.</p>
                 </div>
               </div>
 

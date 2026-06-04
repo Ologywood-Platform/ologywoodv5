@@ -226,6 +226,7 @@ export function TicketTierManager({ eventId, eventTitle }: TicketTierManagerProp
                       value={formData.quantity}
                       onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Total tickets available for this tier, not per person.</p>
                   </div>
                 </div>
                 <div>
@@ -238,6 +239,7 @@ export function TicketTierManager({ eventId, eventTitle }: TicketTierManagerProp
                     value={formData.maxPerOrder}
                     onChange={(e) => setFormData(prev => ({ ...prev, maxPerOrder: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Limits how many one buyer can purchase per transaction. Helps prevent scalping.</p>
                 </div>
                 <Button
                   onClick={handleSubmit}

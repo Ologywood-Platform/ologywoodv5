@@ -195,7 +195,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
               >
                 <Upload className="h-8 w-8 mx-auto text-slate-400 mb-2" />
                 <p className="text-sm text-slate-600 font-medium">Click to upload your event flyer</p>
-                <p className="text-xs text-slate-400 mt-1">JPG, PNG, or WebP — max 10MB</p>
+                <p className="text-xs text-slate-400 mt-1">JPG, PNG, or WebP — max 10MB. A vertical image (1080×1350px) works best for social sharing.</p>
               </div>
             )}
             <input

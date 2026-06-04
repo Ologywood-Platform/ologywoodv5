@@ -171,6 +171,9 @@ export default function TicketConfirmation() {
           A confirmation email has been sent to {order.buyerEmail}. 
           Present your ticket QR code at the venue entrance for check-in.
         </p>
+        <p className="text-xs text-center text-muted-foreground mt-2 font-medium">
+          Tip: Screenshot this page or save the QR — you'll need it at the door.
+        </p>
       </div>
 
     </div>

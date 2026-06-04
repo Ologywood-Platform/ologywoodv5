@@ -229,6 +229,9 @@ export default function BookingCreate() {
                   rows={4}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Include the event type, expected audience size, set length, and any special requirements. The more detail, the faster artists respond.
+                </p>
               </div>
 
               {/* Payment Terms Section */}
@@ -240,6 +243,9 @@ export default function BookingCreate() {
 
                 <div className="space-y-2">
                   <Label htmlFor="paymentTermsType">Payment Structure</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Not sure which to choose? Flat Guarantee is simplest — the artist gets a fixed fee regardless of turnout.
+                  </p>
                   <select
                     id="paymentTermsType"
                     name="paymentTermsType"

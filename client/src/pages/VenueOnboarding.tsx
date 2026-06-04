@@ -187,6 +187,7 @@ export default function VenueOnboarding() {
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">This stays private — only shared with artists you're actively booking with.</p>
                 </div>
 
                 <div>
@@ -215,6 +216,7 @@ export default function VenueOnboarding() {
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">Describe your space, typical events, and what artists should know. This is public on your profile.</p>
                 </div>
 
                 {errors.submit && (
