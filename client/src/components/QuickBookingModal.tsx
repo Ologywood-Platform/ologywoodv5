@@ -194,6 +194,7 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                   step="50"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
+                <p className="text-xs text-gray-500 mt-1">This is your proposed fee — the venue may negotiate. Leave blank if you're flexible.</p>
               </div>
             )}
 
@@ -209,6 +210,7 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               />
+              <p className="text-xs text-gray-500 mt-1">Mention your expected draw, genre, and what makes your show a good fit. Venues respond faster to specific messages.</p>
             </div>
 
             {/* Submit */}

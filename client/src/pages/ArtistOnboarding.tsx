@@ -402,6 +402,7 @@ export default function ArtistOnboarding() {
                   />
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground -mt-2">Venues see this when deciding whether to book you. A wider range shows flexibility for different event sizes.</p>
 
               <div>
                 <Label htmlFor="partySize">Touring Party Size</Label>
@@ -414,7 +415,7 @@ export default function ArtistOnboarding() {
                   className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  How many people travel with you (including yourself)
+                  How many people travel with you (including yourself). Venues use this for hospitality planning (green room, meals, parking).
                 </p>
               </div>
             </div>

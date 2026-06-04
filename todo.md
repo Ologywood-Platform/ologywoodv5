@@ -3081,3 +3081,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Helper note 12: Venue Onboarding → Contact Name
 - [x] Helper note 13: Messages empty state
 - [x] Helper note 14: Ticket Confirmation → QR Code
+- [x] Helper note 15: QuickBookingModal - proposed fee and message guidance
+- [x] Helper note 16: EventBookingFlow - clarify booking is a request not final confirmation
+- [x] Helper note 17: TicketTransfer - explain how recipient claims the ticket
+- [x] Helper note 18: ArtistOnboarding - touring party size and fee range guidance
+- [x] Helper note 19: EventForm - location field and capacity guidance

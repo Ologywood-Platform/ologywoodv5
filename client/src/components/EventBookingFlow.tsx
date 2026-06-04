@@ -63,7 +63,7 @@ export function EventBookingFlow({
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Confirm Event Booking</CardTitle>
-          <CardDescription>Review the event details before booking</CardDescription>
+          <CardDescription>Review the event details before sending your booking request</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Event Summary */}
@@ -102,6 +102,10 @@ export function EventBookingFlow({
           </div>
 
           {/* Action Buttons */}
+          <p className="text-xs text-muted-foreground">
+            This sends a booking request — the artist will review and accept or message you to discuss details.
+          </p>
+
           <div className="flex gap-2 pt-4">
             <Button
               variant="outline"

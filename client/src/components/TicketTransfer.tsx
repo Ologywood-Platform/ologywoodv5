@@ -100,6 +100,7 @@ export function TicketTransfer({ ticketItemId, ticketCode, tierName, onTransferC
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-2">
+            <p className="text-[10px] text-muted-foreground">The recipient will get an email with a link to claim this ticket. Your ticket becomes invalid once they accept.</p>
             <div>
               <Label className="text-xs">Recipient's Email *</Label>
               <Input

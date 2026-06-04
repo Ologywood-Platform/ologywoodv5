@@ -275,6 +275,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
               className={errors.location ? 'border-red-500' : ''}
             />
             {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
+            <p className="text-xs text-muted-foreground">Include the full address so fans can find the venue easily. This appears on your event page and ticket.</p>
           </div>
 
           {/* Description */}
