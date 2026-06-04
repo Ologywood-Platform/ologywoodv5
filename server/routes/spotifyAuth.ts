@@ -275,7 +275,12 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
 
     console.log(`[Spotify OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
 
-    const redirectUrl = `${origin}${returnPath}`;
+    // Android fix: On Android, the Spotify app may intercept the OAuth flow and open
+    // the callback in a new browser context (Custom Tab or new tab). This can cause
+    // SameSite=Lax cookies to not be stored properly. As a fallback, we pass the
+    // session token in the URL hash fragment. The client-side code will detect this
+    // and call /api/auth/exchange-token to set the cookie via a same-origin fetch.
+    const redirectUrl = `${origin}${returnPath}#__session_token=${encodeURIComponent(sessionToken)}`;
     res.status(200).send(`<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Signing in...</title>
 <style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f9fafb;color:#374151;}</style>
@@ -285,6 +290,39 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[Spotify OAuth] Callback error:', error);
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);
+  }
+});
+
+/**
+ * POST /api/auth/exchange-token
+ * Fallback for Android/mobile: accepts a session token from the URL hash fragment
+ * and sets it as an httpOnly cookie via a same-origin fetch request.
+ * This bypasses SameSite cookie restrictions that occur when the Spotify app
+ * opens the callback in a new browser context.
+ */
+router.post('/exchange-token', async (req: Request, res: Response) => {
+  const { token } = req.body;
+
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ error: 'Missing token' });
+  }
+
+  try {
+    // Verify the token is valid before setting it as a cookie
+    const verified = await sdk.verifySession(token);
+    if (!verified) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Set the session cookie via this same-origin request
+    const cookieOptions = getSessionCookieOptions(req);
+    res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+    console.log(`[Auth] Token exchange successful for user: ${verified.openId}`);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('[Auth] Token exchange failed:', error);
+    return res.status(500).json({ error: 'Token exchange failed' });
   }
 });
 

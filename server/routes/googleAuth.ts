@@ -245,7 +245,9 @@ router.get('/google/callback', async (req: Request, res: Response) => {
 
     console.log(`[Google OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
 
-    const redirectUrl = `${origin}${returnPath}`;
+    // Include session token in URL hash as fallback for mobile browsers where
+    // Set-Cookie may not persist across OAuth redirect chains (Android Spotify app, etc.)
+    const redirectUrl = `${origin}${returnPath}#__session_token=${encodeURIComponent(sessionToken)}`;
     res.status(200).send(`<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Signing in...</title>
 <style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f9fafb;color:#374151;}</style>

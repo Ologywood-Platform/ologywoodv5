@@ -3090,3 +3090,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add helper notes to Rider Builder page (all sections)
 - [x] Replace existing inline helper notes with HelperNote component across platform
 - [x] Add toggle to hide/show helper notes (localStorage persistence)
+- [ ] Fix Spotify login issue on Android devices
+- [x] Fix Spotify login on Android - implement token-in-URL fallback for OAuth callback

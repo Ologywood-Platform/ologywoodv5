@@ -5,8 +5,14 @@ import { httpLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import { exchangeSessionTokenFromHash } from "./lib/sessionTokenExchange";
 
 import "./index.css";
+
+// Android OAuth fallback: check for session token in URL hash before app renders.
+// If found, exchange it for a cookie and reload. This handles the case where
+// the Spotify app opens the callback in a new browser context on Android.
+exchangeSessionTokenFromHash();
 
 const queryClient = new QueryClient({
   defaultOptions: {
