@@ -126,13 +126,11 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             {extraNav}
 
-            {!hideBrowse && (
-              <Link href="/browse">
-                <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
-                  Browse
-                </Button>
-              </Link>
-            )}
+            <Link href="/browse">
+              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/browse' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Browse
+              </Button>
+            </Link>
 
             <Link href="/events">
               <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
@@ -295,34 +293,32 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
           <nav className="md:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-1 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors">
             {extraNav}
 
-            {!hideBrowse && (
-              <Link href="/browse" onClick={closeMobile} className="block">
-                <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
-                  Browse
-                </Button>
-              </Link>
-            )}
+            <Link href="/browse" onClick={closeMobile} className="block">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/browse' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Browse
+              </Button>
+            </Link>
 
             <Link href="/events" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/events' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Events
               </Button>
             </Link>
 
             <Link href="/blog" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/blog' || location.startsWith('/blog/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Blog
               </Button>
             </Link>
 
             <Link href="/pricing" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/pricing' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Pricing
               </Button>
             </Link>
 
             <Link href="/faq" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/faq' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 FAQ
               </Button>
             </Link>

@@ -3092,3 +3092,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add toggle to hide/show helper notes (localStorage persistence)
 - [ ] Fix Spotify login issue on Android devices
 - [x] Fix Spotify login on Android - implement token-in-URL fallback for OAuth callback
+- [ ] Fix: Browse option missing from hamburger menu when on Browse page (should show all nav items like Events does)
