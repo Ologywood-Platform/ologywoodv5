@@ -3064,3 +3064,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## TICKET MANAGEMENT BUGS (Jun 3, 2026)
 - [x] Fix crash on Promos page in ticket management (replaced useToastContext with sonner toast)
 - [x] Fix crash on Scan QR Code in Door Check page (added error boundary + camera check + DOM readiness wait)
+- [x] Add helper note to manual entry section on check-in page explaining what code to enter

@@ -277,6 +277,9 @@ export default function EventCheckIn() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-slate-400 mb-2">
+              Type or paste the full ticket code shown on the attendee's ticket confirmation. This is the code embedded in their QR — use this if the camera can't read the QR.
+            </p>
             <div className="flex gap-2">
               <Input
                 placeholder="Enter ticket code..."
