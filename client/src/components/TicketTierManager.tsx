@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Ticket, Plus, Pencil, Trash2, DollarSign, Users, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
+import { HelperNote } from '@/components/HelperNote';
 
 interface TicketTierManagerProps {
   eventId: number;
@@ -214,7 +215,7 @@ export function TicketTierManager({ eventId, eventTitle }: TicketTierManagerProp
                       value={formData.price}
                       onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Set to 0 for free tickets</p>
+                    <HelperNote className="mt-1">Set to 0 for free tickets</HelperNote>
                   </div>
                   <div>
                     <Label htmlFor="tierQty">Total Quantity *</Label>
@@ -226,7 +227,7 @@ export function TicketTierManager({ eventId, eventTitle }: TicketTierManagerProp
                       value={formData.quantity}
                       onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Total tickets available for this tier, not per person.</p>
+                    <HelperNote className="mt-1">Total tickets available for this tier, not per person. Use "Max Per Order" to limit how many one buyer can purchase.</HelperNote>
                   </div>
                 </div>
                 <div>
@@ -239,7 +240,7 @@ export function TicketTierManager({ eventId, eventTitle }: TicketTierManagerProp
                     value={formData.maxPerOrder}
                     onChange={(e) => setFormData(prev => ({ ...prev, maxPerOrder: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Limits how many one buyer can purchase per transaction. Helps prevent scalping.</p>
+                  <HelperNote className="mt-1">Limits how many one buyer can purchase per transaction. Helps prevent scalping.</HelperNote>
                 </div>
                 <Button
                   onClick={handleSubmit}

@@ -40,6 +40,8 @@ import {
   Star,
 } from "lucide-react";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { HelperNote } from '@/components/HelperNote';
+import { HelperNotesToggle } from '@/components/HelperNotesToggle';
 
 // ============= TYPE DEFINITIONS =============
 
@@ -422,13 +424,33 @@ export default function RiderBuilder() {
               placeholder="e.g., My Standard Rider"
               className="text-base"
             />
+            <HelperNote>Give it a clear name like "Club Shows" or "Festival Rider" so you can quickly pick the right one for each booking.</HelperNote>
           </div>
+
+          <HelperNote size="sm" className="-mt-2">
+            A rider is your list of requirements for a show — sound, stage, hospitality, and payment terms. Fill in what matters to you; leave the rest blank. Venues see this when they confirm your booking.
+          </HelperNote>
 
           {/* All sections in one flow */}
           {templateStructure.sections.map((section) => (
             <Card key={section.id}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">{section.title}</CardTitle>
+                {section.id === 'hospitality' && (
+                  <HelperNote>What you need in the green room — drinks, meals, towels. Be specific so venues can prepare.</HelperNote>
+                )}
+                {section.id === 'technical' && (
+                  <HelperNote>Sound and lighting specs. If you bring your own engineer, mention it here.</HelperNote>
+                )}
+                {section.id === 'stage' && (
+                  <HelperNote>Minimum stage size, backline needs, and any setup requirements.</HelperNote>
+                )}
+                {section.id === 'payment' && (
+                  <HelperNote>Your fee, deposit terms, and payment method. This becomes part of the booking agreement.</HelperNote>
+                )}
+                {section.id === 'logistics' && (
+                  <HelperNote>Travel, parking, load-in times, and guest list details.</HelperNote>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -469,10 +491,13 @@ export default function RiderBuilder() {
               <p className="text-xs sm:text-sm text-muted-foreground">Your booking requirements, ready to attach</p>
             </div>
           </div>
-          <Button onClick={startNew} className="gap-2 bg-purple-600 hover:bg-purple-700 self-end sm:self-center">
-            <Plus className="h-4 w-4" />
-            New Rider
-          </Button>
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            <HelperNotesToggle />
+            <Button onClick={startNew} className="gap-2 bg-purple-600 hover:bg-purple-700">
+              <Plus className="h-4 w-4" />
+              New Rider
+            </Button>
+          </div>
         </div>
       </header>
 

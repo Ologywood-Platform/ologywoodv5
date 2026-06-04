@@ -8,6 +8,7 @@ import ErrorBoundary, { PageErrorBoundary } from "./components/ErrorBoundary";
 import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { RobotsMetaTag } from "./components/RobotsMetaTag";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { HelperNotesProvider } from "./contexts/HelperNotesContext";
 import { AIChatWidget } from "./components/AIChatWidget";
 import Footer from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -229,6 +230,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light" switchable={true}>
+        <HelperNotesProvider>
         <TooltipProvider>
           <Toaster />
           <CanonicalUpdater />
@@ -237,6 +239,7 @@ function App() {
           <AIChatWidget />
           <CookieConsent />
         </TooltipProvider>
+        </HelperNotesProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

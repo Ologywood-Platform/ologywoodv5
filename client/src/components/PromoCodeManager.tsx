@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tag, Plus, Trash2, Loader2, Percent, DollarSign } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { HelperNote } from '@/components/HelperNote';
 
 interface PromoCodeManagerProps {
   eventId: number;
@@ -152,7 +153,7 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
                     min={1}
                     className="h-8 text-sm"
                   />
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Leave blank for unlimited redemptions.</p>
+                  <HelperNote className="mt-0.5">Leave blank for unlimited redemptions.</HelperNote>
                 </div>
                 <div>
                   <Label className="text-xs">Min Tickets</Label>
@@ -164,7 +165,7 @@ export function PromoCodeManager({ eventId }: PromoCodeManagerProps) {
                     min={1}
                     className="h-8 text-sm"
                   />
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Buyer must purchase at least this many for the code to apply.</p>
+                  <HelperNote className="mt-0.5">Buyer must purchase at least this many for the code to apply.</HelperNote>
                 </div>
               </div>
 

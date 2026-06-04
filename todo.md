@@ -3086,3 +3086,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Helper note 17: TicketTransfer - explain how recipient claims the ticket
 - [x] Helper note 18: ArtistOnboarding - touring party size and fee range guidance
 - [x] Helper note 19: EventForm - location field and capacity guidance
+- [x] Create reusable HelperNote component with info icon and fade-in animation
+- [x] Add helper notes to Rider Builder page (all sections)
+- [x] Replace existing inline helper notes with HelperNote component across platform
+- [x] Add toggle to hide/show helper notes (localStorage persistence)

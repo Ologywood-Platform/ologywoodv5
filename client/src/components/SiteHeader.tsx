@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { QuickSignupModal } from './QuickSignupModal';
 import RealtimeNotifications from './RealtimeNotifications';
+import { HelperNotesToggle } from './HelperNotesToggle';
 import EarlyAccessBanner from './EarlyAccessBanner';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 
@@ -164,6 +165,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
                 <RealtimeNotifications />
 
+                <HelperNotesToggle />
                 <DarkModeToggle compact />
 
                 {/* User dropdown menu — consolidates Dashboard, Bookings, Purchases, Logout */}
