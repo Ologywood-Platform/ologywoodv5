@@ -154,21 +154,31 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
           <p className="text-xs text-muted-foreground mb-2">
             Find artists who are available for your event date
           </p>
-          <Input
-            id="available-date"
-            type="date"
-            value={availableDate}
-            onChange={(e) => setAvailableDate(e.target.value)}
-            min={today}
-            className="bg-background"
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              id="available-date"
+              type="date"
+              value={availableDate}
+              onChange={(e) => setAvailableDate(e.target.value)}
+              min={today}
+              className="bg-background flex-1"
+            />
+            {availableDate && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAvailableDate('')}
+                className="shrink-0 text-xs gap-1 h-9"
+              >
+                <X size={14} /> Clear
+              </Button>
+            )}
+          </div>
           {availableDate && (
-            <button
-              onClick={() => setAvailableDate('')}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
-            >
-              <X size={12} /> Clear date
-            </button>
+            <p className="text-xs text-primary font-medium mt-1">
+              Showing artists available on {new Date(availableDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
           )}
         </div>
         )}
@@ -432,47 +442,57 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
               <Label htmlFor="date-from" className="text-xs text-muted-foreground">
                 From
               </Label>
-              <Input
-                id="date-from"
-                type="date"
-                value={availableFrom}
-                onChange={(e) => {
-                  setAvailableFrom(e.target.value);
-                  validateDates(e.target.value, availableTo);
-                }}
-                min={today}
-              />
-              {availableFrom && (
-                <button
-                  onClick={() => { setAvailableFrom(''); setDateError(''); }}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
-                >
-                  <X size={12} /> Clear date
-                </button>
-              )}
+              <div className="flex items-center gap-1">
+                <Input
+                  id="date-from"
+                  type="date"
+                  value={availableFrom}
+                  onChange={(e) => {
+                    setAvailableFrom(e.target.value);
+                    validateDates(e.target.value, availableTo);
+                  }}
+                  min={today}
+                  className="flex-1"
+                />
+                {availableFrom && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvailableFrom(''); setDateError(''); }}
+                    className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    title="Clear start date"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="date-to" className="text-xs text-muted-foreground">
                 To
               </Label>
-              <Input
-                id="date-to"
-                type="date"
-                value={availableTo}
-                onChange={(e) => {
-                  setAvailableTo(e.target.value);
-                  validateDates(availableFrom, e.target.value);
-                }}
-                min={availableFrom || today}
-              />
-              {availableTo && (
-                <button
-                  onClick={() => { setAvailableTo(''); setDateError(''); }}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mt-1"
-                >
-                  <X size={12} /> Clear date
-                </button>
-              )}
+              <div className="flex items-center gap-1">
+                <Input
+                  id="date-to"
+                  type="date"
+                  value={availableTo}
+                  onChange={(e) => {
+                    setAvailableTo(e.target.value);
+                    validateDates(availableFrom, e.target.value);
+                  }}
+                  min={availableFrom || today}
+                  className="flex-1"
+                />
+                {availableTo && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvailableTo(''); setDateError(''); }}
+                    className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    title="Clear end date"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
