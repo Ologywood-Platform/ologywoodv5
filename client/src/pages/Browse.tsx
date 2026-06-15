@@ -321,6 +321,7 @@ export default function Browse() {
     setFilters({});
     setHasAppliedFilters(false);
     // Keep the filter panel open so user can select new criteria (UX fix)
+    setShowFilters(true);
   };
 
   return (

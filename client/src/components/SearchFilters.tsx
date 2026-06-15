@@ -507,12 +507,12 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-4">
-          <Button onClick={handleApplyFilters} className="flex-1" disabled={!!dateError}>
+          <Button type="button" onClick={handleApplyFilters} className="flex-1" disabled={!!dateError}>
             <Search className="h-4 w-4 mr-2" />
             Apply Filters
           </Button>
           {activeFilterCount > 0 && (
-            <Button onClick={handleReset} variant="outline">
+            <Button type="button" onClick={handleReset} variant="outline">
               <X className="h-4 w-4 mr-2" />
               Reset
             </Button>

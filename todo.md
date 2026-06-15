@@ -3097,3 +3097,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## FILTER RESULTS SCROLL POSITION FIX (Jun 14, 2026)
 - [x] Fix: After applying filters on Browse page, scroll to top of results (showing "X artists found" text first)
+
+## FILTER RESET BUTTON FIX (Jun 14, 2026)
+- [x] Fix: Reset button in SearchFilters should clear all selections and stay on filter screen, not navigate to home
