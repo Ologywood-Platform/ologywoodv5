@@ -641,16 +641,16 @@ export default function Browse() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__all__">All types</SelectItem>
+                        <SelectItem value="arena">Arena</SelectItem>
                         <SelectItem value="bar">Bar</SelectItem>
                         <SelectItem value="club">Club</SelectItem>
                         <SelectItem value="concert_hall">Concert Hall</SelectItem>
-                        <SelectItem value="theater">Theater</SelectItem>
-                        <SelectItem value="arena">Arena</SelectItem>
-                        <SelectItem value="outdoor">Outdoor</SelectItem>
-                        <SelectItem value="restaurant">Restaurant</SelectItem>
-                        <SelectItem value="lounge">Lounge</SelectItem>
                         <SelectItem value="festival_grounds">Festival Grounds</SelectItem>
+                        <SelectItem value="lounge">Lounge</SelectItem>
+                        <SelectItem value="outdoor">Outdoor</SelectItem>
                         <SelectItem value="private_event_space">Private Event Space</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="theater">Theater</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>

@@ -3139,3 +3139,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Remove duplicate search field on Venues tab — only display one search field for venue name/city/state
 - [x] Fix: Venue search by name or location not working from top search bar (added location to query search in searchVenues)
 - [x] Fix: Venue sort dropdown too small and missing options — widened to 170px, added "Sort by" label, added Z to A option, renamed to clearer labels (Largest capacity, Smallest capacity)
+- [x] Fix: Sort venue type list alphabetically with Other last (Browse.tsx and VenueDashboard.tsx)

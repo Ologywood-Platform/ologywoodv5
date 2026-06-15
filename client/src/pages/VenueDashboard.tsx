@@ -1156,21 +1156,21 @@ export function VenueDashboard() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                         >
                           <option value="">Select venue type...</option>
-                          <option value="Concert Hall">Concert Hall</option>
-                          <option value="Nightclub">Nightclub</option>
-                          <option value="Bar / Lounge">Bar / Lounge</option>
-                          <option value="Restaurant">Restaurant</option>
-                          <option value="Theater">Theater</option>
-                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
                           <option value="Arena / Stadium">Arena / Stadium</option>
-                          <option value="Rooftop">Rooftop</option>
-                          <option value="Event Space">Event Space</option>
                           <option value="Banquet Hall">Banquet Hall</option>
-                          <option value="Community Center">Community Center</option>
-                          <option value="Hotel Ballroom">Hotel Ballroom</option>
-                          <option value="Private Estate">Private Estate</option>
-                          <option value="Warehouse">Warehouse</option>
+                          <option value="Bar / Lounge">Bar / Lounge</option>
                           <option value="Church / Place of Worship">Church / Place of Worship</option>
+                          <option value="Community Center">Community Center</option>
+                          <option value="Concert Hall">Concert Hall</option>
+                          <option value="Event Space">Event Space</option>
+                          <option value="Hotel Ballroom">Hotel Ballroom</option>
+                          <option value="Nightclub">Nightclub</option>
+                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
+                          <option value="Private Estate">Private Estate</option>
+                          <option value="Restaurant">Restaurant</option>
+                          <option value="Rooftop">Rooftop</option>
+                          <option value="Theater">Theater</option>
+                          <option value="Warehouse">Warehouse</option>
                           <option value="Other">Other</option>
                         </select>
                       </div>
@@ -1426,21 +1426,21 @@ export function VenueDashboard() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
                         >
                           <option value="">Select venue type...</option>
-                          <option value="Concert Hall">Concert Hall</option>
-                          <option value="Nightclub">Nightclub</option>
-                          <option value="Bar / Lounge">Bar / Lounge</option>
-                          <option value="Restaurant">Restaurant</option>
-                          <option value="Theater">Theater</option>
-                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
                           <option value="Arena / Stadium">Arena / Stadium</option>
-                          <option value="Rooftop">Rooftop</option>
-                          <option value="Event Space">Event Space</option>
                           <option value="Banquet Hall">Banquet Hall</option>
-                          <option value="Community Center">Community Center</option>
-                          <option value="Hotel Ballroom">Hotel Ballroom</option>
-                          <option value="Private Estate">Private Estate</option>
-                          <option value="Warehouse">Warehouse</option>
+                          <option value="Bar / Lounge">Bar / Lounge</option>
                           <option value="Church / Place of Worship">Church / Place of Worship</option>
+                          <option value="Community Center">Community Center</option>
+                          <option value="Concert Hall">Concert Hall</option>
+                          <option value="Event Space">Event Space</option>
+                          <option value="Hotel Ballroom">Hotel Ballroom</option>
+                          <option value="Nightclub">Nightclub</option>
+                          <option value="Outdoor Amphitheater">Outdoor Amphitheater</option>
+                          <option value="Private Estate">Private Estate</option>
+                          <option value="Restaurant">Restaurant</option>
+                          <option value="Rooftop">Rooftop</option>
+                          <option value="Theater">Theater</option>
+                          <option value="Warehouse">Warehouse</option>
                           <option value="Other">Other</option>
                         </select>
                       </div>
