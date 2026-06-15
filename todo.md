@@ -3110,3 +3110,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add clear X icon to search field on Events tab when text is present
 - [x] Group Start Date and End Date fields together (remove separation by Min/Max Rate fields)
 - [x] Display Start and End dates on same line with unified Availability pattern (matching Artists filter)
+
+## EVENTS SEARCH - NO RESULTS BEFORE SEARCH (Jun 14, 2026)
+- [ ] Fix: Do not display event results on Search Events screen until user applies search criteria
+
+## EVENTS BOOKING FLOW FIXES (Jun 14, 2026)
+- [x] Fix: Wire up onBook handler in EventDiscovery so Book Now actually creates a booking request
+- [x] Fix: Change "Back to Home" button on booking complete step to "Go to Dashboard" and navigate to /dashboard

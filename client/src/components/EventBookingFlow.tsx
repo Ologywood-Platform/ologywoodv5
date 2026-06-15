@@ -201,9 +201,9 @@ export function EventBookingFlow({
 
         <Button
           className="w-full"
-          onClick={() => window.location.href = '/'}
+          onClick={() => window.location.href = '/dashboard'}
         >
-          Back to Home
+          Go to Dashboard
         </Button>
       </CardContent>
     </Card>

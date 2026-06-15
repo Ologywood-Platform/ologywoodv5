@@ -96,6 +96,7 @@ export default function EventDiscovery() {
 
   const saveEventMutation = trpc.events.saveEvent.useMutation();
   const unsaveEventMutation = trpc.events.unsaveEvent.useMutation();
+  const bookEventMutation = trpc.booking.clientCreate.useMutation();
   const utils = trpc.useUtils();
 
   // Client-side text search filter on top of API results
@@ -134,6 +135,22 @@ export default function EventDiscovery() {
       return;
     }
     navigate(`/messages?artistId=${artistId}`);
+  };
+
+  const handleBookEvent = async (eventId: number, eventData: any) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to book events');
+      return;
+    }
+    await bookEventMutation.mutateAsync({
+      artistId: eventData.artistId,
+      eventDate: typeof eventData.eventDate === 'string' ? eventData.eventDate : new Date(eventData.eventDate).toISOString(),
+      eventType: eventData.eventType || 'other',
+      venueName: eventData.location || 'TBD',
+      clientName: user?.name || 'Guest',
+      clientEmail: user?.email || '',
+      eventDetails: eventData.venueNotes || eventData.specialRequests || undefined,
+    });
   };
 
   const handleResetFilters = () => {
@@ -380,6 +397,7 @@ export default function EventDiscovery() {
                   isSaved={savedEventIds.includes(event.id)}
                   onSave={handleSaveEvent}
                   onMessage={handleMessageArtist}
+                  onBook={handleBookEvent}
                   showActions={true}
                 />
               ))}
