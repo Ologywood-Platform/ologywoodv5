@@ -62,9 +62,20 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
 
   const venueName = venue.venueName || venue.organizationName || 'Venue';
 
+  const resetAndClose = () => {
+    setEventDate('');
+    setEventTime('19:00');
+    setEventName('');
+    setMessage('');
+    setPaymentTerms('flat');
+    setFee('');
+    setSubmitted(false);
+    onClose();
+  };
+
   if (submitted) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={resetAndClose}>
         <Card className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
           <CardContent className="pt-8 pb-8 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -72,7 +83,7 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
             <p className="text-gray-600 mb-6">
               Your request to perform has been sent to <strong>{venueName}</strong>. They'll review it and get back to you.
             </p>
-            <Button onClick={onClose} className="w-full">Done</Button>
+            <Button onClick={resetAndClose} className="w-full">Done</Button>
           </CardContent>
         </Card>
       </div>
@@ -80,7 +91,7 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={resetAndClose}>
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
@@ -90,7 +101,7 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                 Send a performance request to <strong>{venueName}</strong>
               </p>
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <button onClick={resetAndClose} className="p-1 hover:bg-gray-100 rounded">
               <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>

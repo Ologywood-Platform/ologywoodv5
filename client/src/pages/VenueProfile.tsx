@@ -634,7 +634,7 @@ export default function VenueProfile() {
 
       {/* Contact Venue Modal */}
       {contactModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setContactModalOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setContactModalOpen(false); setContactForm({ inquiryType: 'booking', subject: '', message: '', preferredDate: '' }); }}>
           <div className="bg-background rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -642,7 +642,7 @@ export default function VenueProfile() {
                   <h2 className="text-xl font-bold">Contact {venueProfile?.organizationName}</h2>
                   <p className="text-sm text-muted-foreground mt-1">Send an inquiry directly to this venue</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setContactModalOpen(false)}>
+                <Button variant="ghost" size="icon" onClick={() => { setContactModalOpen(false); setContactForm({ inquiryType: 'booking', subject: '', message: '', preferredDate: '' }); }}>
                   <X className="h-5 w-5" />
                 </Button>
               </div>
@@ -734,7 +734,7 @@ export default function VenueProfile() {
 
                 {/* Submit */}
                 <div className="flex gap-3 pt-2">
-                  <Button variant="outline" onClick={() => setContactModalOpen(false)} className="flex-1">
+                  <Button variant="outline" onClick={() => { setContactModalOpen(false); setContactForm({ inquiryType: 'booking', subject: '', message: '', preferredDate: '' }); }} className="flex-1">
                     Cancel
                   </Button>
                   <Button
