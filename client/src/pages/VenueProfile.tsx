@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check, MessageSquare, Send, Loader2, CalendarDays } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
+import { QuickSignupModal } from '@/components/QuickSignupModal';
 import { toast } from 'sonner';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
@@ -47,6 +48,7 @@ export default function VenueProfile() {
   const [shareVenueOpen, setShareVenueOpen] = useState(false);
   const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [contactForm, setContactForm] = useState({
     inquiryType: 'booking' as 'booking' | 'general' | 'availability' | 'pricing',
     subject: '',
@@ -251,7 +253,7 @@ export default function VenueProfile() {
                     Contact Venue
                   </Button>
                 ) : (
-                  <Button onClick={() => navigate('/login')} variant="outline" className="w-full sm:w-auto gap-2">
+                  <Button onClick={() => setShowAuthModal(true)} variant="outline" className="w-full sm:w-auto gap-2">
                     <MessageSquare className="h-4 w-4" />
                     Log in to Contact Venue
                   </Button>
@@ -631,6 +633,14 @@ export default function VenueProfile() {
           venueCapacity={(venueProfile as any)?.capacity}
         />
       )}
+
+      {/* Auth Modal for unauthenticated users */}
+      <QuickSignupModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        targetType="venue"
+        defaultTab="login"
+      />
 
       {/* Contact Venue Modal */}
       {contactModalOpen && (
