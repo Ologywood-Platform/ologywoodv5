@@ -233,46 +233,80 @@ export default function EventDiscovery() {
               </div>
             </div>
 
-            {/* Date Range - Grouped together */}
-            <div className="space-y-2">
-              <Label>Event Date Range</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label htmlFor="startDate" className="text-xs text-muted-foreground">From</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                  />
-                  {filters.startDate && (
-                    <button
-                      onClick={() => setFilters(prev => ({ ...prev, startDate: '' }))}
-                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                    >
-                      <X size={12} /> Clear date
-                    </button>
-                  )}
+            {/* Event Dates - Unified section */}
+            <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/10">
+              <Label className="flex items-center gap-2 font-semibold">
+                <Calendar className="h-4 w-4 text-primary" />
+                Event Dates
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Find events on a specific date or within a date range. For a single date, enter the same date in both fields.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="startDate" className="text-xs text-muted-foreground font-medium">From</Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={filters.startDate}
+                      onChange={(e) => {
+                        setFilters(prev => ({ ...prev, startDate: e.target.value }));
+                        // Auto-fill end date if not set yet
+                        if (e.target.value && !filters.endDate) {
+                          setFilters(prev => ({ ...prev, startDate: e.target.value, endDate: e.target.value }));
+                        }
+                      }}
+                      className="flex-1 min-w-0 text-sm"
+                      style={{ minWidth: '140px' }}
+                    />
+                    {filters.startDate && (
+                      <button
+                        type="button"
+                        onClick={() => setFilters(prev => ({ ...prev, startDate: '', endDate: '' }))}
+                        className="shrink-0 p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                        title="Clear dates"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="endDate" className="text-xs text-muted-foreground">To</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                    min={filters.startDate || undefined}
-                  />
-                  {filters.endDate && (
-                    <button
-                      onClick={() => setFilters(prev => ({ ...prev, endDate: '' }))}
-                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                    >
-                      <X size={12} /> Clear date
-                    </button>
-                  )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="endDate" className="text-xs text-muted-foreground font-medium">To</Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={filters.endDate}
+                      onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                      min={filters.startDate || undefined}
+                      className="flex-1 min-w-0 text-sm"
+                      style={{ minWidth: '140px' }}
+                    />
+                    {filters.endDate && (
+                      <button
+                        type="button"
+                        onClick={() => setFilters(prev => ({ ...prev, endDate: '' }))}
+                        className="shrink-0 p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                        title="Clear end date"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
+              {filters.startDate && filters.endDate && filters.startDate === filters.endDate && (
+                <p className="text-xs text-primary font-medium mt-1">
+                  Showing events on {new Date(filters.startDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              )}
+              {filters.startDate && filters.endDate && filters.startDate !== filters.endDate && (
+                <p className="text-xs text-primary font-medium mt-1">
+                  Showing events between {new Date(filters.startDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} \u2013 {new Date(filters.endDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              )}
             </div>
 
             {/* Date Validation Error */}

@@ -3105,3 +3105,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Combine "Available on Date" and "Availability Date Range" into one unified "Availability" section with From/To fields
 - [x] Expand date input fields so full date is visible (not truncated)
 - [x] If user enters same date in both From and To, treat as single date filter
+
+## EVENTS FILTER UX IMPROVEMENTS (Jun 14, 2026)
+- [x] Add clear X icon to search field on Events tab when text is present
+- [x] Group Start Date and End Date fields together (remove separation by Min/Max Rate fields)
+- [x] Display Start and End dates on same line with unified Availability pattern (matching Artists filter)
