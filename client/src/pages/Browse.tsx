@@ -563,23 +563,14 @@ export default function Browse() {
           
           {/* Venues Tab */}
           <TabsContent value="venues" className="mt-0">
-            {/* Venue Search & Filters */}
+            {/* Venue Filters */}
             <div className="mb-4 space-y-3">
-              {/* Search bar and location filter always visible */}
+              {/* Location filter */}
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <ClearableInput
-                  placeholder="Search venues by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onClear={() => setSearchQuery("")}
-                  leftIcon={<Search className="h-4 w-4" />}
-                  className="text-xs sm:text-sm"
-                  wrapperClassName="flex-1"
-                />
-                <div className="relative flex-1 sm:max-w-[220px]">
+                <div className="relative flex-1 sm:max-w-[280px]">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="City or state..."
+                    placeholder="Filter by city or state..."
                     value={venueLocation}
                     onChange={(e) => setVenueLocation(e.target.value)}
                     className="h-10 text-xs sm:text-sm pl-9"

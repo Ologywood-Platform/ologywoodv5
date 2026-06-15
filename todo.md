@@ -3123,3 +3123,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Assumption 2: No results displayed before search/filter criteria applied (all screens)
 - [x] Assumption 3: Filtered results scroll to top of screen (all screens)
 - [x] Assumption 4: All search fields have X clear icon (all screens)
+
+## ENTERPRISE/SPONSOR TIER (4th Tier) — PENDING APPROVAL
+- [ ] Add 4th pricing tier ("Enterprise" or "Label") at $79-99/mo
+- [ ] Create Stripe product/price for the new tier
+- [ ] Build Sponsor Showcase section on artist profile (up to 5 sponsor slots)
+- [ ] Sponsor logos display on event pages and ticket confirmations
+- [ ] Sponsor Analytics — impressions, clicks, reach reports
+- [ ] Auto-generated media kit with platform stats for pitching sponsors
+- [ ] Branded event pages with sponsor logo integration
+- [ ] Gate sponsor features behind the new tier subscription
+- [ ] Update Pricing page with the 4th tier card
+
+## VENUE BROWSE UX FIXES (Jun 15, 2026)
+- [x] Fix: Remove duplicate search field on Venues tab — only display one search field for venue name/city/state
+- [x] Fix: Venue search by name or location not working from top search bar (added location to query search in searchVenues)

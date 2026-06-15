@@ -610,8 +610,8 @@ export async function searchVenues(filters: {
     const params: any[] = [];
     
     if (filters.query) {
-      sql_query += ' AND (venueName LIKE ? OR description LIKE ? OR organizationName LIKE ?)';
-      params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
+      sql_query += ' AND (venueName LIKE ? OR description LIKE ? OR organizationName LIKE ? OR location LIKE ?)';
+      params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
     }
     
     if (filters.location) {
