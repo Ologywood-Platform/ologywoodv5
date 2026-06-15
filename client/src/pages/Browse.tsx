@@ -95,12 +95,13 @@ export default function Browse() {
       maxCapacity: capacityFilter.maxCapacity,
       limit: 50,
     },
-    { enabled: activeTab === 'venues' }
+    { enabled: activeTab === 'venues' && !!(searchQuery || venueLocation || venueType || venueCapacityRange) }
   );
 
   const [venueSort, setVenueSort] = useState<'newest' | 'capacity_desc' | 'capacity_asc' | 'alphabetical'>('newest');
 
   const hasVenueFilters = venueLocation || venueType || venueCapacityRange;
+  const hasVenueSearched = !!(searchQuery || venueLocation || venueType || venueCapacityRange);
   const clearVenueFilters = () => {
     setVenueLocation('');
     setVenueType('');
@@ -233,7 +234,7 @@ export default function Browse() {
     });
   };
 
-  const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters);
+  const { data: artists, isLoading: artistsLoading, refetch: refetchArtists } = trpc.artist.search.useQuery(filters, { enabled: hasAppliedFilters || searchQuery.length > 0 });
 
   // Fetch touring status for all artists to show badges
   const artistIds = artists?.map(a => a.id) || [];
@@ -414,7 +415,7 @@ export default function Browse() {
             </div>
 
             {/* Results Count */}
-            {filteredArtists && filteredArtists.length > 0 && (
+            {(hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div ref={resultsRef} className="mb-4 scroll-mt-4">
                 <p className="text-sm text-muted-foreground">
                   Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
@@ -441,7 +442,7 @@ export default function Browse() {
             )}
 
             {/* Artists Grid */}
-            {!artistsLoading && filteredArtists && filteredArtists.length > 0 && (
+            {!artistsLoading && (hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredArtists.map(artist => (
                   <Link key={artist.id} href={`/artist/${artist.id}`}>
@@ -525,8 +526,18 @@ export default function Browse() {
               </div>
             )}
 
+            {/* Initial State - No search/filter applied yet */}
+            {!hasAppliedFilters && searchQuery.length === 0 && (
+              <div className="text-center py-16">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Search for Artists</h3>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                  Use the search bar above or open Filters to find artists by genre, location, availability, and more.
+                </p>
+              </div>
+            )}
             {/* No Results */}
-            {!artistsLoading && filteredArtists && filteredArtists.length === 0 && (
+            {(hasAppliedFilters || searchQuery.length > 0) && !artistsLoading && filteredArtists && filteredArtists.length === 0 && (
               <div ref={noResultsRef} className="text-center py-16">
                 <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Artists Found</h3>
@@ -693,7 +704,18 @@ export default function Browse() {
               </div>
             )}
 
-            {!venuesLoading && sortedVenues.length > 0 && (
+            {/* Initial State - No search/filter applied yet */}
+            {!hasVenueSearched && (
+              <div className="text-center py-16">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Search for Venues</h3>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                  Use the search bar above or filters to find venues by name, location, type, or capacity.
+                </p>
+              </div>
+            )}
+
+            {hasVenueSearched && !venuesLoading && sortedVenues.length > 0 && (
               <>
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground">
@@ -717,7 +739,7 @@ export default function Browse() {
               </>
             )}
 
-            {!venuesLoading && sortedVenues.length === 0 && (
+            {hasVenueSearched && !venuesLoading && sortedVenues.length === 0 && (
               <div className="text-center py-16">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">No Venues Found</h3>

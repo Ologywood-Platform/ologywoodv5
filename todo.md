@@ -3117,3 +3117,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## EVENTS BOOKING FLOW FIXES (Jun 14, 2026)
 - [x] Fix: Wire up onBook handler in EventDiscovery so Book Now actually creates a booking request
 - [x] Fix: Change "Back to Home" button on booking complete step to "Go to Dashboard" and navigate to /dashboard
+
+## GLOBAL UX ASSUMPTIONS AUDIT (Jun 14, 2026)
+- [x] Assumption 1: All date fields use same functionality (unified pattern with From/To, auto-fill, inline X clear)
+- [x] Assumption 2: No results displayed before search/filter criteria applied (all screens)
+- [x] Assumption 3: Filtered results scroll to top of screen (all screens)
+- [x] Assumption 4: All search fields have X clear icon (all screens)

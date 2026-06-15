@@ -32,13 +32,15 @@ export default function VenueBrowse() {
     setMetaTags(pageMetaTags.venues);
   }, []);
 
+  const [hasSearched, setHasSearched] = useState(false);
+
   // Fetch venues from database using the venue.search endpoint
   const { data: venues = [], isLoading, refetch } = trpc.venue.search.useQuery({
     searchQuery: searchQuery || undefined,
     location: selectedLocation || undefined,
     limit: 50,
     offset: 0,
-  });
+  }, { enabled: hasSearched });
 
   // Pull-to-refresh
   const { PullIndicator } = usePullToRefresh({
@@ -252,36 +254,55 @@ export default function VenueBrowse() {
           </Card>
         )}
 
+        {/* Apply Filters Button */}
+        {hasActiveFilters && (
+          <div className="mb-4 flex gap-2">
+            <Button onClick={() => { setHasSearched(true); refetch(); }} className="gap-1.5">
+              <Search className="h-4 w-4" />
+              Apply Filters
+            </Button>
+          </div>
+        )}
+
+        {/* Initial State - No search applied yet */}
+        {!hasSearched && (
+          <div className="text-center py-16">
+            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Search for Venues</h3>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto">
+              Enter a venue name, location, or use filters above, then click "Apply Filters" to see results.
+            </p>
+          </div>
+        )}
+
         {/* Results Count */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {isLoading ? 'Loading venues...' : `${filteredVenues.length} Venue${filteredVenues.length !== 1 ? 's' : ''} Found`}
-          </h2>
-        </div>
+        {hasSearched && (
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {isLoading ? 'Loading venues...' : `${filteredVenues.length} Venue${filteredVenues.length !== 1 ? 's' : ''} Found`}
+            </h2>
+          </div>
+        )}
 
         {/* Venues Grid */}
-        {isLoading ? (
+        {hasSearched && isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="bg-white rounded-lg h-80 animate-pulse" />
             ))}
           </div>
-        ) : filteredVenues.length === 0 ? (
+        ) : hasSearched && filteredVenues.length === 0 ? (
           <Card className="text-center py-16">
             <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-700 mb-2">No Venues Found</h3>
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              {hasActiveFilters
-                ? 'No venues match your current filters. Try adjusting your search criteria.'
-                : 'No venues have been registered yet. Check back soon as new venues join the platform.'}
+              No venues match your current filters. Try adjusting your search criteria.
             </p>
-            {hasActiveFilters && (
-              <Button onClick={clearAllFilters}>
-                Clear Filters
-              </Button>
-            )}
+            <Button onClick={clearAllFilters}>
+              Clear Filters
+            </Button>
           </Card>
-        ) : (
+        ) : hasSearched && filteredVenues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVenues.map((venue: any) => (
               <Card key={venue.id} className="hover:shadow-lg transition-shadow overflow-hidden group">
@@ -416,7 +437,7 @@ export default function VenueBrowse() {
               </Card>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Signup Modal */}
