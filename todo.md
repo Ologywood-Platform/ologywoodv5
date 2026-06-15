@@ -3094,3 +3094,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix Spotify login on Android - implement token-in-URL fallback for OAuth callback
 - [ ] Fix: Browse option missing from hamburger menu when on Browse page (should show all nav items like Events does)
 - [x] Fix calendar Clear button in Browse filter - should clear selected date and stay on calendar modal, not close it like Cancel
+
+## FILTER RESULTS SCROLL POSITION FIX (Jun 14, 2026)
+- [x] Fix: After applying filters on Browse page, scroll to top of results (showing "X artists found" text first)

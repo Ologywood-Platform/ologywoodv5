@@ -250,6 +250,7 @@ export default function Browse() {
   });
 
   const noResultsRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const filteredArtists = artists?.filter(artist => {
     const matchesSearch = searchQuery === "" || 
@@ -387,8 +388,12 @@ export default function Browse() {
                 setFilters(newFilters);
                 setHasAppliedFilters(true);
                 // Keep filter panel open so user can refine (UX consistency)
-                // Scroll to top of results so user sees first result immediately
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Scroll to results count so user sees "X artists found" first
+                setTimeout(() => {
+                  if (resultsRef.current) {
+                    resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
               }} />
             )}
 
@@ -409,7 +414,7 @@ export default function Browse() {
 
             {/* Results Count */}
             {filteredArtists && filteredArtists.length > 0 && (
-              <div className="mb-4">
+              <div ref={resultsRef} className="mb-4 scroll-mt-4">
                 <p className="text-sm text-muted-foreground">
                   Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
                 </p>
