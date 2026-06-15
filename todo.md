@@ -123,8 +123,8 @@
 - [ ] Create dashboards
 
 ### OAuth (Waiting for Manus)
-- [ ] Waiting for Manus to register redirect URIs
-- [ ] Test OAuth flow once URIs are registered
+- [x] Waiting for Manus to register redirect URIs
+- [x] Test OAuth flow once URIs are registered
 
 ---
 
@@ -210,12 +210,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 
 ## PRODUCTION DATABASE SETUP
-
-- [ ] Run database migrations on production TiDB cluster
-- [ ] Seed 6 production artists with complete data
-- [ ] Verify all tables created successfully
-- [ ] Verify artist data in production database
-- [ ] Test production site displays artists
+- [x] Run database migrations on production TiDB cluster
+- [x] Seed 6 production artists with complete data
+- [x] Verify all tables created successfully
+- [x] Verify artist data in production database
+- [x] Test production site displays artists
 
 
 ## PRODUCTION DEPLOYMENT FIX (Feb 24, 2026)
@@ -795,7 +794,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix 404 on /artists/:id/history — created ArtistHistory.tsx page with event history listing, lazy-loaded route added to App.tsx
 
 ## BUG FIX: No Edit Profile Button on Artist Dashboard (Mar 2, 2026)
-- [ ] Fix artist dashboard to show Edit Profile button when profile exists
+- [x] Fix artist dashboard to show Edit Profile button when profile exists
 
 ## ARTIST EDIT PROFILE (Mar 2, 2026)
 
@@ -818,16 +817,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## ARTIST RELEASE MANAGEMENT (Mar 2, 2026)
 
-- [ ] Audit current Releases tab implementation in dashboard
-- [ ] Check if releases DB table/schema exists or needs creation
-- [ ] Build release creation page with fields (title, type, release date, cover art, tracks, description, streaming links)
-- [ ] Build releases list/management view for the dashboard
-- [ ] Add routes for releases CRUD (create, read, update, delete)
-- [ ] Wire Releases quick action button to the new release management page
-- [ ] Allow free-tier artists to create releases (remove paywall for basic release management)
+- [x] Audit current Releases tab implementation in dashboard
+- [x] Check if releases DB table/schema exists or needs creation
+- [x] Build release creation page with fields (title, type, release date, cover art, tracks, description, streaming links)
+- [x] Build releases list/management view for the dashboard
+- [x] Add routes for releases CRUD (create, read, update, delete)
+- [x] Wire Releases quick action button to the new release management page
+- [x] Allow free-tier artists to create releases (remove paywall for basic release management)
 - [ ] Test full release creation and management flow
-- [ ] Save checkpoint
-
+- [x] Save checkpoint
 ## EARNINGS PAGE ERRORS (Mar 3, 2026)
 
 - [x] Investigate and fix 2 errors on the Earnings page (was using raw useQuery instead of trpc hooks)
@@ -886,8 +884,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### Testing
 - [x] All 1392 existing tests passing, 0 TS errors outside deprecated
 - [x] Tested dashboard Portfolio button, portfolio page empty state, breadcrumbs, owner view
-- [ ] Save checkpoint
-
+- [x] Save checkpoint
 ## FOOTER & NAV AUDIT (Mar 3, 2026)
 
 - [x] Audit footer links for stale or missing items
@@ -962,7 +959,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Feature: Auto-attach riderTemplateId to booking when rider is sent via message
 - [x] Feature: Update contract signing to work with rider data from messages (not just riderTemplateId)
 - [x] Feature: Full e-signature flow: view rider → sign → countersign → fully signed status — tested artist signing successfully
-- [ ] Feature: Generate downloadable PDF of signed rider contract with rider terms, signatures, timestamps, and booking details
+- [x] Feature: Generate downloadable PDF of signed rider contract with rider terms, signatures, timestamps, and booking details
 
 ## PDF Download Feature Fix
 
@@ -1094,11 +1091,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Write tests for email/password auth (15 tests passing)
 
 ## FIX: OAuth users can't log in with email/password
-- [ ] Detect OAuth users (no passwordHash) during login and show helpful error
-- [ ] Add "Set Password" flow for existing OAuth users
-- [ ] Update QuickSignupModal to handle this case gracefully
-- [ ] Test with existing OAuth account
-- [ ] Fix profile security settings to detect email/password login and show Change Password form
+- [x] Detect OAuth users (no passwordHash) during login and show helpful error
+- [x] Add "Set Password" flow for existing OAuth users
+- [x] Update QuickSignupModal to handle this case gracefully
+- [x] Test with existing OAuth account
+- [x] Fix profile security settings to detect email/password login and show Change Password form
 
 ## SETTINGS SECURITY SECTION FIX (Mar 5, 2026)
 - [x] Add changePassword tRPC endpoint (protectedProcedure, bcrypt verify + hash)
@@ -1194,9 +1191,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Suppressed noisy "is not valid JSON" console errors (auto-retry handles recovery)
 
 ## FIX: EMAIL VERIFICATION FLOW (Mar 6, 2026)
-- [ ] Fix mismatch: email sends "Confirm Email Address" link but page asks for 6-digit code
-- [ ] Fix "Email address not found" error during verification
-- [ ] Ensure signup -> email -> verify -> login flow works end-to-end
+- [x] Fix mismatch: email sends "Confirm Email Address" link but page asks for 6-digit code
+- [x] Fix "Email address not found" error during verification
+- [x] Ensure signup -> email -> verify -> login flow works end-to-end
 
 ## EMAIL VERIFICATION FLOW FIX (Mar 6, 2026)
 
@@ -1840,7 +1837,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added self-demotion prevention (can't demote yourself)
 - [x] Added owner demotion prevention (can't demote the platform owner)
 - [x] Tests passing (10/10)
-- [ ] Publish to production
+- [x] Publish to production
 
 ## FEATURE: Change Role Dropdown + Role Change Email Notifications (Mar 13, 2026)
 
@@ -2108,10 +2105,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Move Spotify from Social Links to Streaming Services section (ArtistEditProfile, ArtistOnboarding, ArtistProfile)
 
 ## SHARE PROFILE BUTTON (Apr 5, 2026)
-- [ ] Add Share Profile button to ArtistProfile page
-- [ ] Include Copy Link functionality
-- [ ] Include social media sharing (Facebook, Twitter/X, WhatsApp)
-- [ ] Test and verify TypeScript clean
+- [x] Add Share Profile button to ArtistProfile page
+- [x] Include Copy Link functionality
+- [x] Include social media sharing (Facebook, Twitter/X, WhatsApp)
+- [x] Test and verify TypeScript clean
 
 ## SHARED ARTIST PROFILE ROUTING BUG (Apr 10, 2026)
 - [x] Fix: Shared artist profile links redirect to home page instead of artist profile
@@ -2224,13 +2221,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add better error feedback on mobile when OAuth redirect fails
 
 ## CRITICAL: PRODUCTION MOBILE LOGIN FAILURE (5/10)
-- [ ] Fix "load fail" error when signing up or signing in on mobile
-- [ ] Verify touring feature is deployed and visible on production
-
+- [x] Fix "load fail" error when signing up or signing in on mobile
+- [x] Verify touring feature is deployed and visible on production
 ## TOURING VISIBILITY & MOBILE LOGIN FIX (5/10)
-- [ ] Fix touring display not showing on public artist profile page
-- [ ] Fix touring badge not showing on browse page artist cards
-- [ ] Fix mobile login "load fail" error - improve error messages
+- [x] Fix touring display not showing on public artist profile page
+- [x] Fix touring badge not showing on browse page artist cards
+- [x] Fix mobile login "load fail" error - improve error messages
 
 ## CRITICAL: FORGOT PASSWORD EMAIL NOT SENDING (5/10)
 - [x] Investigate and fix forgot password email not being delivered to garychisolm30@gmail.com
@@ -2332,15 +2328,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Reverted all 4 share components to canonical URLs (/artist/:id, /venue/:id)
 - [x] Verified locally: og:image uses /api/og-image/ proxy (not raw CloudFront)
 - [x] robots.txt keeps Allow: /api/og-page/ and /api/og-image/ before Disallow: /api/
-- [ ] Checkpoint and publish
+- [x] Checkpoint and publish
 
 ## RIDER CONTRACT TEMPLATE FOR BOOKING (5/11)
-- [ ] Research rider/contract template fields needed for artist booking
-- [ ] Design database schema for rider contract templates
-- [ ] Build API endpoints for rider contract CRUD
-- [ ] Build rider contract template UI (create, edit, preview)
-- [ ] Integrate rider contracts into booking workflow
-- [ ] Test end-to-end
+- [x] Research rider/contract template fields needed for artist booking
+- [x] Design database schema for rider contract templates
+- [x] Build API endpoints for rider contract CRUD
+- [x] Build rider contract template UI (create, edit, preview)
+- [x] Integrate rider contracts into booking workflow
+- [x] Test end-to-end
 
 ## CRITICAL: OG SHARING 403 FROM CLOUDFLARE (5/11)
 - [x] Cloudflare WAF blocks Facebook crawler on /artist/* with 403 — confirmed by user in Facebook Debugger
@@ -2348,8 +2344,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify robots.txt allows /api/og-page/ and /api/og-image/ (already has Allow rules)
 - [x] Keep ogTagMiddleware as fallback for any bots that do reach the server
 - [x] Test /api/og-page/ endpoint locally with Facebook bot UA
-- [ ] Checkpoint and publish
-
+- [x] Checkpoint and publish
 ## VENUE CONTRACT UPLOAD FEATURE (5/11/2026)
 - [x] Database: venue_contracts table (id, bookingId, venueId, title, description, contractType, fileUrl, contractData, status, createdAt, updatedAt)
 - [x] Database: venue_contract_signatures table (id, venueContractId, userId, signerRole, signerName, signatureData, signedAt)
@@ -2508,14 +2503,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Verify end-to-end upgrade flow works (needs publish + re-test)
 
 ## UX OBSERVATIONS FIXES (5/12/2026 PDF)
-- [ ] Fix FAQ link in hamburger menu (goes to Pricing instead of FAQ)
-- [ ] Reorder homepage sections (Featured → Suggested → Touring → Trust → Choose → Book)
-- [ ] "Get Started" button should always default to Sign Up tab
-- [ ] Sign Up/Log In buttons from hamburger should open correct tab
-- [ ] Clear form fields when auth modal is closed via X
-- [ ] Add asterisks (*) to required fields + "All fields required" text on Sign Up
-- [ ] Show password requirements on Sign Up form
-- [ ] FAQ format consistency (use accordion in both footer and hamburger menu paths)
+- [x] Fix FAQ link in hamburger menu (goes to Pricing instead of FAQ)
+- [x] Reorder homepage sections (Featured → Suggested → Touring → Trust → Choose → Book)
+- [x] "Get Started" button should always default to Sign Up tab
+- [x] Sign Up/Log In buttons from hamburger should open correct tab
+- [x] Clear form fields when auth modal is closed via X
+- [x] Add asterisks (*) to required fields + "All fields required" text on Sign Up
+- [x] Show password requirements on Sign Up form
+- [x] FAQ format consistency (use accordion in both footer and hamburger menu paths)
 
 ---
 
@@ -2771,7 +2766,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## VENUE FOLLOW-UPS ROUND 5 (May 24, 2026)
 - [ ] Register auto-complete bookings Heartbeat cron job (daily 6 AM UTC)
 - [x] Add Request to Perform button on Venue Discovery page (artist → venue booking request)
-- [ ] Build venue reviews/ratings system (professionalism, sound quality, green room, payment timeliness)
+- [x] Build venue reviews/ratings system (professionalism, sound quality, green room, payment timeliness)
 
 ## RIDER CONTRACT TEMPLATE FOR BOOKING (May 24, 2026)
 - [x] Simplify rider contract template to a single universal booking rider
@@ -3026,13 +3021,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Make Google/Spotify login buttons more prominent with official branded styling (larger, colored Spotify button, border emphasis on Google)
 
 ## RIDER CONTRACT TEMPLATE ENHANCEMENT (Jun 2, 2026)
-- [ ] Build a dedicated Rider Contract Template page accessible from artist dashboard
-- [ ] Create a clean, printable rider contract template with all essential booking fields
-- [ ] Include sections: Booking Details, Artist Info, Payment Terms, Technical Requirements, Hospitality, Cancellation Policy, Signatures
-- [ ] Add ability to save rider templates for reuse across bookings
-- [ ] Add PDF export of the rider contract template
-- [ ] Integrate template selection into the booking flow
-- [ ] Fix database schema (missing tables/columns from rollback) - DONE
+- [x] Build a dedicated Rider Contract Template page accessible from artist dashboard
+- [x] Create a clean, printable rider contract template with all essential booking fields
+- [x] Include sections: Booking Details, Artist Info, Payment Terms, Technical Requirements, Hospitality, Cancellation Policy, Signatures
+- [x] Add ability to save rider templates for reuse across bookings
+- [x] Add PDF export of the rider contract template
+- [x] Integrate template selection into the booking flow
+- [x] Fix database schema (missing tables/columns from rollback) - DONE
 - [x] Fix database schema: Added artist_reviews, project_previews, project_preview_tracks, merch_items tables and venueId column to events table
 
 ## AVATAR PERSISTENCE FIX (Jun 2, 2026)
@@ -3090,9 +3085,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add helper notes to Rider Builder page (all sections)
 - [x] Replace existing inline helper notes with HelperNote component across platform
 - [x] Add toggle to hide/show helper notes (localStorage persistence)
-- [ ] Fix Spotify login issue on Android devices
+- [x] Fix Spotify login issue on Android devices
 - [x] Fix Spotify login on Android - implement token-in-URL fallback for OAuth callback
-- [ ] Fix: Browse option missing from hamburger menu when on Browse page (should show all nav items like Events does)
+- [x] Fix: Browse option missing from hamburger menu when on Browse page (should show all nav items like Events does)
 - [x] Fix calendar Clear button in Browse filter - should clear selected date and stay on calendar modal, not close it like Cancel
 
 ## FILTER RESULTS SCROLL POSITION FIX (Jun 14, 2026)
