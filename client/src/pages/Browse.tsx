@@ -110,19 +110,24 @@ export default function Browse() {
 
   // Venue type icon mapping
   const getVenueTypeIcon = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'bar': return <Wine className="h-3.5 w-3.5" />;
-      case 'club': return <Disc3 className="h-3.5 w-3.5" />;
-      case 'concert_hall': return <Mic2 className="h-3.5 w-3.5" />;
-      case 'theater': return <Theater className="h-3.5 w-3.5" />;
-      case 'arena': return <Trophy className="h-3.5 w-3.5" />;
-      case 'outdoor': return <TreePine className="h-3.5 w-3.5" />;
-      case 'restaurant': return <UtensilsCrossed className="h-3.5 w-3.5" />;
-      case 'lounge': return <Sofa className="h-3.5 w-3.5" />;
-      case 'festival_grounds': return <Tent className="h-3.5 w-3.5" />;
-      case 'private_event_space': return <Lock className="h-3.5 w-3.5" />;
-      default: return <Building2 className="h-3.5 w-3.5" />;
-    }
+    const t = type?.toLowerCase() || '';
+    if (t.includes('bar') || t.includes('lounge')) return <Wine className="h-3.5 w-3.5" />;
+    if (t.includes('nightclub') || t.includes('club')) return <Disc3 className="h-3.5 w-3.5" />;
+    if (t.includes('concert')) return <Mic2 className="h-3.5 w-3.5" />;
+    if (t.includes('theater')) return <Theater className="h-3.5 w-3.5" />;
+    if (t.includes('arena') || t.includes('stadium')) return <Trophy className="h-3.5 w-3.5" />;
+    if (t.includes('outdoor') || t.includes('amphitheater')) return <TreePine className="h-3.5 w-3.5" />;
+    if (t.includes('restaurant')) return <UtensilsCrossed className="h-3.5 w-3.5" />;
+    if (t.includes('rooftop')) return <Sofa className="h-3.5 w-3.5" />;
+    if (t.includes('festival')) return <Tent className="h-3.5 w-3.5" />;
+    if (t.includes('private') || t.includes('estate')) return <Lock className="h-3.5 w-3.5" />;
+    if (t.includes('warehouse')) return <Building2 className="h-3.5 w-3.5" />;
+    if (t.includes('hotel') || t.includes('ballroom')) return <Building2 className="h-3.5 w-3.5" />;
+    if (t.includes('church') || t.includes('worship')) return <Building2 className="h-3.5 w-3.5" />;
+    if (t.includes('community')) return <Building2 className="h-3.5 w-3.5" />;
+    if (t.includes('banquet')) return <Building2 className="h-3.5 w-3.5" />;
+    if (t.includes('event space')) return <Building2 className="h-3.5 w-3.5" />;
+    return <Building2 className="h-3.5 w-3.5" />;
   };
 
   // Format venue type label
@@ -641,17 +646,22 @@ export default function Browse() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__all__">All types</SelectItem>
-                        <SelectItem value="arena">Arena</SelectItem>
-                        <SelectItem value="bar">Bar</SelectItem>
-                        <SelectItem value="club">Club</SelectItem>
-                        <SelectItem value="concert_hall">Concert Hall</SelectItem>
-                        <SelectItem value="festival_grounds">Festival Grounds</SelectItem>
-                        <SelectItem value="lounge">Lounge</SelectItem>
-                        <SelectItem value="outdoor">Outdoor</SelectItem>
-                        <SelectItem value="private_event_space">Private Event Space</SelectItem>
-                        <SelectItem value="restaurant">Restaurant</SelectItem>
-                        <SelectItem value="theater">Theater</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="Arena">Arena / Stadium</SelectItem>
+                        <SelectItem value="Banquet">Banquet Hall</SelectItem>
+                        <SelectItem value="Bar">Bar / Lounge</SelectItem>
+                        <SelectItem value="Church">Church / Place of Worship</SelectItem>
+                        <SelectItem value="Community">Community Center</SelectItem>
+                        <SelectItem value="Concert">Concert Hall</SelectItem>
+                        <SelectItem value="Event Space">Event Space</SelectItem>
+                        <SelectItem value="Hotel">Hotel Ballroom</SelectItem>
+                        <SelectItem value="Nightclub">Nightclub</SelectItem>
+                        <SelectItem value="Outdoor">Outdoor Amphitheater</SelectItem>
+                        <SelectItem value="Private">Private Estate</SelectItem>
+                        <SelectItem value="Restaurant">Restaurant</SelectItem>
+                        <SelectItem value="Rooftop">Rooftop</SelectItem>
+                        <SelectItem value="Theater">Theater</SelectItem>
+                        <SelectItem value="Warehouse">Warehouse</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -57,7 +57,24 @@ export const venueRouter = router({
    * Get venue types (public)
    */
   getVenueTypes: publicProcedure.query(async () => {
-    return ['Concert Hall', 'Bar', 'Club', 'Theater', 'Festival', 'Other'];
+    return [
+      'Arena / Stadium',
+      'Banquet Hall',
+      'Bar / Lounge',
+      'Church / Place of Worship',
+      'Community Center',
+      'Concert Hall',
+      'Event Space',
+      'Hotel Ballroom',
+      'Nightclub',
+      'Outdoor Amphitheater',
+      'Private Estate',
+      'Restaurant',
+      'Rooftop',
+      'Theater',
+      'Warehouse',
+      'Other',
+    ];
   }),
 
   /**

@@ -630,8 +630,8 @@ export async function searchVenues(filters: {
     }
     
     if (filters.venueType) {
-      sql_query += ' AND venueType = ?';
-      params.push(filters.venueType);
+      sql_query += ' AND LOWER(venueType) LIKE ?';
+      params.push(`%${filters.venueType.toLowerCase()}%`);
     }
     
     const pool = getPool();
