@@ -98,7 +98,7 @@ export default function Browse() {
     { enabled: activeTab === 'venues' && !!(searchQuery || venueLocation || venueType || venueCapacityRange) }
   );
 
-  const [venueSort, setVenueSort] = useState<'newest' | 'capacity_desc' | 'capacity_asc' | 'alphabetical'>('newest');
+  const [venueSort, setVenueSort] = useState<'newest' | 'capacity_desc' | 'capacity_asc' | 'alphabetical' | 'alphabetical_desc'>('newest');
 
   const hasVenueFilters = venueLocation || venueType || venueCapacityRange;
   const hasVenueSearched = !!(searchQuery || venueLocation || venueType || venueCapacityRange);
@@ -141,6 +141,8 @@ export default function Browse() {
         return venues.sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
       case 'alphabetical':
         return venues.sort((a, b) => (a.organizationName || '').localeCompare(b.organizationName || ''));
+      case 'alphabetical_desc':
+        return venues.sort((a, b) => (b.organizationName || '').localeCompare(a.organizationName || ''));
       case 'newest':
       default:
         return venues.sort((a, b) => (b.id || 0) - (a.id || 0));
@@ -607,16 +609,17 @@ export default function Browse() {
                   Clear Filters
                 </Button>
                 <div className="ml-auto flex items-center gap-1.5">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground hidden sm:inline">Sort by</span>
                   <Select value={venueSort} onValueChange={(v) => setVenueSort(v as any)}>
-                    <SelectTrigger className="h-8 w-[140px] text-xs">
+                    <SelectTrigger className="h-8 w-[170px] text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="alphabetical">A → Z</SelectItem>
-                      <SelectItem value="capacity_desc">Largest first</SelectItem>
-                      <SelectItem value="capacity_asc">Smallest first</SelectItem>
+                      <SelectItem value="alphabetical">A to Z</SelectItem>
+                      <SelectItem value="alphabetical_desc">Z to A</SelectItem>
+                      <SelectItem value="capacity_desc">Largest capacity</SelectItem>
+                      <SelectItem value="capacity_asc">Smallest capacity</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
