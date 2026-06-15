@@ -79,6 +79,8 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
 
   const handleApplyFilters = () => {
     if (dateError) return;
+    // If both dates are the same, treat as single date filter for backend compatibility
+    const isSingleDate = availableFrom && availableTo && availableFrom === availableTo;
     onFilterChange({
       genre: selectedGenres.length > 0 ? selectedGenres : undefined,
       eventType: selectedEventTypes.length > 0 ? selectedEventTypes : undefined,
@@ -89,9 +91,9 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
       maxCapacity: capacityRange[1] < 1000 ? capacityRange[1] : undefined,
       minRate: rateRange[0] > 0 ? rateRange[0] : undefined,
       maxRate: rateRange[1] < 5000 ? rateRange[1] : undefined,
-      availableFrom: availableFrom || undefined,
-      availableTo: availableTo || undefined,
-      availableDate: availableDate || undefined,
+      availableFrom: !isSingleDate && availableFrom ? availableFrom : undefined,
+      availableTo: !isSingleDate && availableTo ? availableTo : undefined,
+      availableDate: isSingleDate ? availableFrom : undefined,
       verifiedOnly: verifiedOnly || undefined,
       touringOnly: touringOnly || undefined,
     });
@@ -120,9 +122,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
     priceRange[0] > 0 || priceRange[1] < 10000,
     capacityRange[0] > 1 || capacityRange[1] < 1000,
     rateRange[0] > 0 || rateRange[1] < 5000,
-    availableFrom,
-    availableTo,
-    availableDate,
+    availableFrom || availableTo,
     verifiedOnly,
     touringOnly,
   ].filter(Boolean).length;
@@ -144,40 +144,88 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Available on Date - Most important filter for booking platforms */}
+        {/* Availability - Unified date section for single date or date range */}
         {isArtistFilter && (
-        <div className="space-y-2 p-4 rounded-lg bg-primary/5 border border-primary/10">
-          <Label htmlFor="available-date" className="flex items-center gap-2 font-semibold">
+        <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/10">
+          <Label className="flex items-center gap-2 font-semibold">
             <CalendarCheck className="h-4 w-4 text-primary" />
-            Available on Date
+            Availability
           </Label>
-          <p className="text-xs text-muted-foreground mb-2">
-            Find artists who are available for your event date
+          <p className="text-xs text-muted-foreground">
+            Find artists available on a specific date or within a date range. For a single date, enter the same date in both fields.
           </p>
-          <div className="flex items-center gap-2">
-            <Input
-              id="available-date"
-              type="date"
-              value={availableDate}
-              onChange={(e) => setAvailableDate(e.target.value)}
-              min={today}
-              className="bg-background flex-1"
-            />
-            {availableDate && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAvailableDate('')}
-                className="shrink-0 text-xs gap-1 h-9"
-              >
-                <X size={14} /> Clear
-              </Button>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="avail-from" className="text-xs text-muted-foreground font-medium">
+                From
+              </Label>
+              <div className="flex items-center gap-1">
+                <Input
+                  id="avail-from"
+                  type="date"
+                  value={availableFrom}
+                  onChange={(e) => {
+                    setAvailableFrom(e.target.value);
+                    validateDates(e.target.value, availableTo);
+                    // If no To date set yet, auto-fill with same date (single date mode)
+                    if (e.target.value && !availableTo) {
+                      setAvailableTo(e.target.value);
+                    }
+                  }}
+                  min={today}
+                  className="bg-background flex-1 min-w-0 text-sm"
+                  style={{ minWidth: '140px' }}
+                />
+                {availableFrom && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvailableFrom(''); setAvailableTo(''); setDateError(''); }}
+                    className="shrink-0 p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    title="Clear dates"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="avail-to" className="text-xs text-muted-foreground font-medium">
+                To
+              </Label>
+              <div className="flex items-center gap-1">
+                <Input
+                  id="avail-to"
+                  type="date"
+                  value={availableTo}
+                  onChange={(e) => {
+                    setAvailableTo(e.target.value);
+                    validateDates(availableFrom, e.target.value);
+                  }}
+                  min={availableFrom || today}
+                  className="bg-background flex-1 min-w-0 text-sm"
+                  style={{ minWidth: '140px' }}
+                />
+                {availableTo && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvailableTo(''); setDateError(''); }}
+                    className="shrink-0 p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                    title="Clear end date"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          {availableDate && (
+          {availableFrom && availableTo && availableFrom === availableTo && (
             <p className="text-xs text-primary font-medium mt-1">
-              Showing artists available on {new Date(availableDate + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              Showing artists available on {new Date(availableFrom + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+          )}
+          {availableFrom && availableTo && availableFrom !== availableTo && (
+            <p className="text-xs text-primary font-medium mt-1">
+              Showing artists available between {new Date(availableFrom + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – {new Date(availableTo + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           )}
         </div>
@@ -430,73 +478,7 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         </div>
         )}
 
-        {/* Availability Date Range (Artists Only) - kept for range filtering */}
-        {isArtistFilter && (
-        <div className="space-y-4">
-          <Label>Availability Date Range</Label>
-          <p className="text-xs text-muted-foreground -mt-2">
-            Filter by a range of dates (optional, use "Available on Date" above for a single date)
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date-from" className="text-xs text-muted-foreground">
-                From
-              </Label>
-              <div className="flex items-center gap-1">
-                <Input
-                  id="date-from"
-                  type="date"
-                  value={availableFrom}
-                  onChange={(e) => {
-                    setAvailableFrom(e.target.value);
-                    validateDates(e.target.value, availableTo);
-                  }}
-                  min={today}
-                  className="flex-1"
-                />
-                {availableFrom && (
-                  <button
-                    type="button"
-                    onClick={() => { setAvailableFrom(''); setDateError(''); }}
-                    className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-                    title="Clear start date"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="date-to" className="text-xs text-muted-foreground">
-                To
-              </Label>
-              <div className="flex items-center gap-1">
-                <Input
-                  id="date-to"
-                  type="date"
-                  value={availableTo}
-                  onChange={(e) => {
-                    setAvailableTo(e.target.value);
-                    validateDates(availableFrom, e.target.value);
-                  }}
-                  min={availableFrom || today}
-                  className="flex-1"
-                />
-                {availableTo && (
-                  <button
-                    type="button"
-                    onClick={() => { setAvailableTo(''); setDateError(''); }}
-                    className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-                    title="Clear end date"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-        )}
+
 
         {/* Date Validation Error */}
         {dateError && (

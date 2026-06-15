@@ -3100,3 +3100,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## FILTER RESET BUTTON FIX (Jun 14, 2026)
 - [x] Fix: Reset button in SearchFilters should clear all selections and stay on filter screen, not navigate to home
+
+## FILTER DATE FIELDS UX IMPROVEMENT (Jun 14, 2026)
+- [x] Combine "Available on Date" and "Availability Date Range" into one unified "Availability" section with From/To fields
+- [x] Expand date input fields so full date is visible (not truncated)
+- [x] If user enters same date in both From and To, treat as single date filter
