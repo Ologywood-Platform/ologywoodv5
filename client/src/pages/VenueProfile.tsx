@@ -89,8 +89,8 @@ export default function VenueProfile() {
       toast.error('Please enter a subject');
       return;
     }
-    if (contactForm.message.trim().length < 10) {
-      toast.error('Message must be at least 10 characters');
+    if (!contactForm.message.trim()) {
+      toast.error('Please enter a message');
       return;
     }
     contactVenueMutation.mutate({
@@ -706,7 +706,7 @@ export default function VenueProfile() {
 
                 {/* Subject */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Subject</label>
+                  <label className="text-sm font-medium mb-2 block">Subject <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={contactForm.subject}
@@ -715,12 +715,15 @@ export default function VenueProfile() {
                     maxLength={200}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <p className="text-xs text-muted-foreground mt-1 text-right">{contactForm.subject.length}/200</p>
+                  <div className="flex justify-between mt-1">
+                    <p className="text-xs text-muted-foreground">Required</p>
+                    <p className="text-xs text-muted-foreground">{contactForm.subject.length}/200</p>
+                  </div>
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Message</label>
+                  <label className="text-sm font-medium mb-2 block">Message <span className="text-red-500">*</span></label>
                   <Textarea
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
@@ -729,7 +732,10 @@ export default function VenueProfile() {
                     maxLength={2000}
                     className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground mt-1 text-right">{contactForm.message.length}/2000</p>
+                  <div className="flex justify-between mt-1">
+                    <p className="text-xs text-muted-foreground">Required</p>
+                    <p className="text-xs text-muted-foreground">{contactForm.message.length}/2000</p>
+                  </div>
                 </div>
 
                 {/* Submit */}
@@ -739,7 +745,7 @@ export default function VenueProfile() {
                   </Button>
                   <Button
                     onClick={handleContactSubmit}
-                    disabled={contactVenueMutation.isPending || !contactForm.subject.trim() || contactForm.message.trim().length < 10}
+                    disabled={contactVenueMutation.isPending || !contactForm.subject.trim() || !contactForm.message.trim()}
                     className="flex-1 gap-2"
                   >
                     {contactVenueMutation.isPending ? (
