@@ -441,20 +441,11 @@ export default function VenueProfile() {
           </div>
         )}
 
-        {/* Artist Reviews Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>What Artists Say</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">Read reviews from artists who have performed at this venue</p>
-          </CardContent>
-        </Card>
-
         {/* Reviews Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Reviews from Artists</CardTitle>
+            <CardTitle>What Artists Say</CardTitle>
+            <p className="text-sm text-muted-foreground">Reviews from artists who have performed at this venue</p>
           </CardHeader>
           <CardContent>
             {venueReviews && venueReviews.length > 0 ? (

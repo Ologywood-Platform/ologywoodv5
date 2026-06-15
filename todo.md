@@ -3146,3 +3146,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Request to Perform and Contact Venue modals now reset all form fields to blank when closed via Cancel button, X icon, or backdrop click
 - [x] Fix: Contact Venue modal Send Inquiry button — removed 10-char minimum on message field, now activates as soon as both Subject and Message have any text. Added asterisks (*) to required field labels and "Required" helper text below each field.
 - [x] Fix: 'Log in to Contact Venue' button no longer navigates to /login (404). Now opens the QuickSignupModal with login tab so users can authenticate without leaving the venue profile page.
+- [x] Fix: Consolidated duplicate review sections on venue profile page. Removed empty "What Artists Say" card and merged its title/description into the "Reviews from Artists" section that contains the actual reviews.
