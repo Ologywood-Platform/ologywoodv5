@@ -114,11 +114,13 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                 name="eventName"
                 type="text"
                 value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
+                onChange={(e) => setEventName(e.target.value.slice(0, 100))}
                 placeholder="e.g. Friday Night Live, Album Release Party"
+                maxLength={100}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
               />
+              <p className="text-xs text-gray-400 mt-1 text-right">{eventName.length}/100</p>
             </div>
 
             {/* Date and Time */}
@@ -205,12 +207,16 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                 id="performMessage"
                 name="performMessage"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => setMessage(e.target.value.slice(0, 500))}
                 placeholder="Tell the venue about your act, expected draw, genre, or any special requirements..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                maxLength={500}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none max-h-[120px] overflow-y-auto"
               />
-              <p className="text-xs text-gray-500 mt-1">Mention your expected draw, genre, and what makes your show a good fit. Venues respond faster to specific messages.</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-xs text-gray-500">Mention your expected draw, genre, and what makes your show a good fit.</p>
+                <p className={`text-xs ${message.length >= 450 ? 'text-orange-500' : 'text-gray-400'}`}>{message.length}/500</p>
+              </div>
             </div>
 
             {/* Submit */}
