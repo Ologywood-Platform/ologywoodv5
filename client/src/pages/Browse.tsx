@@ -100,10 +100,9 @@ export default function Browse() {
 
   const [venueSort, setVenueSort] = useState<'newest' | 'capacity_desc' | 'capacity_asc' | 'alphabetical' | 'alphabetical_desc'>('newest');
 
-  const hasVenueFilters = venueLocation || venueType || venueCapacityRange;
+  const hasVenueFilters = venueType || venueCapacityRange;
   const hasVenueSearched = !!(searchQuery || venueLocation || venueType || venueCapacityRange);
   const clearVenueFilters = () => {
-    setVenueLocation('');
     setVenueType('');
     setVenueCapacityRange('');
   };
@@ -609,7 +608,7 @@ export default function Browse() {
                     </Badge>
                   )}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => { clearVenueFilters(); setSearchQuery(''); setVenueLocation(''); }} className="gap-1 text-muted-foreground">
+                <Button variant="ghost" size="sm" onClick={() => { clearVenueFilters(); }} className="gap-1 text-muted-foreground">
                   <X className="h-3.5 w-3.5" />
                   Clear Filters
                 </Button>

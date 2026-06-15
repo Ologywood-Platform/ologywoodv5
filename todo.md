@@ -3141,3 +3141,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Venue sort dropdown too small and missing options — widened to 170px, added "Sort by" label, added Z to A option, renamed to clearer labels (Largest capacity, Smallest capacity)
 - [x] Fix: Sort venue type list alphabetically with Other last (Browse.tsx and VenueDashboard.tsx)
 - [x] Fix: Venue type filter uses partial/inclusive matching — selecting "Bar" now matches "Bar / Lounge" (changed SQL from exact = to LIKE, updated dropdown values to match stored types, updated getVenueTypes API)
+- [x] Fix: Clear Filters button now only clears filter options (venue type, capacity) — does NOT clear search text or location fields. VenueBrowse.tsx also updated with separate "Clear Filters" (filters only) and "Reset All" (everything) buttons.

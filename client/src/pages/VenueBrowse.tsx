@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check, MessageSquare, Calendar, X, Music, SlidersHorizontal } from 'lucide-react';
+import { Search, MapPin, Users, Star, Phone, Globe, Share2, Facebook, Twitter, Linkedin, Copy, Check, MessageSquare, Calendar, X, Music, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -75,7 +75,12 @@ export default function VenueBrowse() {
 
   const hasActiveFilters = searchQuery || selectedLocation || selectedCapacity || selectedGenre;
 
-  const clearAllFilters = () => {
+  const clearFiltersOnly = () => {
+    setSelectedCapacity('');
+    setSelectedGenre('');
+  };
+
+  const clearAll = () => {
     setSearchQuery('');
     setSelectedLocation('');
     setSelectedCapacity('');
@@ -243,10 +248,16 @@ export default function VenueBrowse() {
               </div>
 
               {hasActiveFilters && (
-                <div className="mt-4 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                    <X className="w-4 h-4 mr-1" />
-                    Clear All Filters
+                <div className="mt-4 flex justify-end gap-2">
+                  {(selectedCapacity || selectedGenre) && (
+                    <Button variant="ghost" size="sm" onClick={clearFiltersOnly}>
+                      <X className="w-4 h-4 mr-1" />
+                      Clear Filters
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" onClick={clearAll}>
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Reset All
                   </Button>
                 </div>
               )}
@@ -298,8 +309,8 @@ export default function VenueBrowse() {
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
               No venues match your current filters. Try adjusting your search criteria.
             </p>
-            <Button onClick={clearAllFilters}>
-              Clear Filters
+            <Button onClick={clearAll}>
+              Reset All
             </Button>
           </Card>
         ) : hasSearched && filteredVenues.length > 0 ? (
