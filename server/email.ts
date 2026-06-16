@@ -282,7 +282,7 @@ export async function sendSubscriptionCreatedEmail(params: {
     </div>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+      <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
     </div>
 
     <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
@@ -374,7 +374,7 @@ export async function sendSubscriptionCanceledEmail(params: {
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Reactivate Subscription</a>
+      <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Reactivate Subscription</a>
     </div>
 
     <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
@@ -425,7 +425,7 @@ export async function sendSubscriptionReactivatedEmail(params: {
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+      <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
     </div>
   `;
 
@@ -472,7 +472,7 @@ export async function sendSubscriptionPausedEmail(params: {
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Resume Subscription</a>
+      <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Resume Subscription</a>
     </div>
   `;
 
@@ -520,7 +520,7 @@ export async function sendSubscriptionResumedEmail(params: {
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
+      <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Go to Dashboard</a>
     </div>
   `;
 
@@ -1434,7 +1434,7 @@ export async function sendClientBookingNotificationToArtist(params: {
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${baseUrl}/artist-dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Review & Respond</a>
+          <a href="${baseUrl}/dashboard" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Review & Respond</a>
         </div>
 
         <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">

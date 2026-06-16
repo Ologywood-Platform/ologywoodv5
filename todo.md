@@ -3206,3 +3206,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Enterprise tables created: sponsor_slots, media_kits, sponsor_analytics
 - [x] Adonis (userId 7) tier updated to 'enterprise' with status 'active'
 - [x] Verified webhook handler and syncFromStripe logic is correct (code was fine, DB was the issue)
+- [x] Fixed email templates linking to /artist-dashboard (404) — changed to /dashboard (correct route)

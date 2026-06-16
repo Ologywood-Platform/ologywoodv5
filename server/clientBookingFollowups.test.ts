@@ -200,7 +200,7 @@ describe('Follow-up 3: Email Confirmations for Client Bookings', () => {
     });
 
     it('includes link to artist dashboard', () => {
-      expect(emailSrc).toContain('/artist-dashboard');
+      expect(emailSrc).toContain('/dashboard');
       expect(emailSrc).toContain('Review & Respond');
     });
 

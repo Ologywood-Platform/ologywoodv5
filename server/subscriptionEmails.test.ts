@@ -88,7 +88,7 @@ describe('Subscription Email Templates (email.ts)', () => {
     });
 
     it('includes a dashboard CTA button', () => {
-      expect(src).toContain('/artist-dashboard');
+      expect(src).toContain('/dashboard');
       expect(src).toContain('Go to Dashboard');
     });
 
@@ -211,7 +211,7 @@ describe('Subscription Email Templates (email.ts)', () => {
     it('includes dashboard CTA button', () => {
       const fnStart = src.indexOf('sendSubscriptionReactivatedEmail');
       const fnBlock = src.substring(fnStart, fnStart + 3000);
-      expect(fnBlock).toContain('/artist-dashboard');
+      expect(fnBlock).toContain('/dashboard');
       expect(fnBlock).toContain('Go to Dashboard');
     });
 
