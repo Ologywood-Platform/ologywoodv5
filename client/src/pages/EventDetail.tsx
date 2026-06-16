@@ -15,6 +15,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import { EventSponsorShowcase } from '@/components/EventSponsorShowcase';
 
 export default function EventDetail() {
   const { id: idParam } = useParams();
@@ -365,6 +366,9 @@ export default function EventDetail() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Sponsor Showcase - branded event page integration */}
+        <EventSponsorShowcase artistProfileId={event.artistId} eventId={eventId} />
 
         {/* Similar Events */}
         <SimilarEvents eventId={eventId} limit={6} />

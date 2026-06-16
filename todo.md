@@ -3120,15 +3120,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Assumption 4: All search fields have X clear icon (all screens)
 
 ## ENTERPRISE/SPONSOR TIER (4th Tier) — PENDING APPROVAL
-- [ ] Add 4th pricing tier ("Enterprise" or "Label") at $79-99/mo
-- [ ] Create Stripe product/price for the new tier
-- [ ] Build Sponsor Showcase section on artist profile (up to 5 sponsor slots)
-- [ ] Sponsor logos display on event pages and ticket confirmations
-- [ ] Sponsor Analytics — impressions, clicks, reach reports
-- [ ] Auto-generated media kit with platform stats for pitching sponsors
-- [ ] Branded event pages with sponsor logo integration
-- [ ] Gate sponsor features behind the new tier subscription
-- [ ] Update Pricing page with the 4th tier card
+- [x] Add 4th pricing tier ("Enterprise" or "Label") at $79-99/mo
+- [x] Create Stripe product/price for the new tier
+- [x] Build Sponsor Showcase section on artist profile (up to 5 sponsor slots)
+- [x] Sponsor logos display on event pages and ticket confirmations
+- [x] Sponsor Analytics — impressions, clicks, reach reports
+- [x] Auto-generated media kit with platform stats for pitching sponsors
+- [x] Branded event pages with sponsor logo integration
+- [x] Gate sponsor features behind the new tier subscription
+- [x] Update Pricing page with the 4th tier card
 
 ## VENUE BROWSE UX FIXES (Jun 15, 2026)
 - [x] Fix: Remove duplicate search field on Venues tab — only display one search field for venue name/city/state
@@ -3157,3 +3157,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update Pricing page with Enterprise tier card
 - [x] Write vitest tests for Enterprise tier features (7 tests passing)
 - [x] Verify TypeScript clean (0 errors)
+
+## ENTERPRISE TIER - SPONSOR INTEGRATION ON EVENTS (Jun 15, 2026)
+- [x] Display sponsor logos on event detail pages (pull from performing artist's active sponsors)
+- [x] Add sponsor logos to ticket confirmation emails
+- [x] Build branded event pages with sponsor logo integration

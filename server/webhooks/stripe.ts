@@ -768,6 +768,35 @@ async function sendTicketConfirmationEmail(params: {
   const [event] = await database.select().from(events).where(eq(events.id, params.eventId)).limit(1);
   if (!event) return;
 
+  // Get artist sponsors for the event (event.artistId is profile ID)
+  const { artistProfiles, sponsorSlots } = await import('../../drizzle/schema');
+  const { and: andOp } = await import('drizzle-orm');
+  let sponsorHtml = '';
+  try {
+    const [profile] = await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, event.artistId)).limit(1);
+    if (profile) {
+      const sponsors = await database.select({
+        sponsorName: sponsorSlots.sponsorName,
+        sponsorLogoUrl: sponsorSlots.sponsorLogoUrl,
+        sponsorWebsite: sponsorSlots.sponsorWebsite,
+      }).from(sponsorSlots).where(andOp(eq(sponsorSlots.artistId, profile.userId), eq(sponsorSlots.isActive, true))).orderBy(sponsorSlots.displayOrder);
+      if (sponsors.length > 0) {
+        const logos = sponsors.map(s => {
+          const logo = s.sponsorLogoUrl ? `<img src="${s.sponsorLogoUrl}" alt="${s.sponsorName}" style="height: 32px; max-width: 100px; object-fit: contain; margin: 0 8px;" />` : `<span style="font-size: 12px; color: #6b7280; margin: 0 8px;">${s.sponsorName}</span>`;
+          return s.sponsorWebsite ? `<a href="${s.sponsorWebsite}" target="_blank" style="text-decoration: none;">${logo}</a>` : logo;
+        }).join('');
+        sponsorHtml = `
+          <div style="text-align: center; margin: 20px 0; padding: 16px; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 12px;">Sponsored By</p>
+            <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px;">${logos}</div>
+          </div>
+        `;
+      }
+    }
+  } catch (e) {
+    // Non-critical: skip sponsors if lookup fails
+  }
+
   // Get tickets for this order
   const tickets = await database.select().from(ticketItems).where(eq(ticketItems.orderId, params.orderId));
   
@@ -833,6 +862,7 @@ async function sendTicketConfirmationEmail(params: {
           <li>You can transfer tickets to friends from the confirmation page</li>
         </ul>
       </div>
+      ${sponsorHtml}
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="color: #9ca3af; font-size: 12px; margin: 0;">
           <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(params.buyerEmail)}&type=ticket" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 

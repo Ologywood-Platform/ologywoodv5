@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { sponsorSlots, sponsorAnalytics, mediaKits } from "../../drizzle/schema";
+import { sponsorSlots, sponsorAnalytics, mediaKits, artistProfiles } from "../../drizzle/schema";
 import { eq, and, desc, sql, gte, lte, count } from "drizzle-orm";
 import { getUserSubscription } from "../services/pricingTierService";
 import type { SponsorSlot, SponsorAnalytic, MediaKit } from "../../drizzle/schema";
@@ -63,6 +63,43 @@ export const sponsorRouter = router({
         .from(sponsorSlots)
         .where(and(
           eq(sponsorSlots.artistId, input.artistId),
+          eq(sponsorSlots.isActive, true),
+        ))
+        .orderBy(sponsorSlots.displayOrder);
+
+      return slots;
+    }),
+
+  /**
+   * Get active sponsors by artist profile ID (for event pages where we have profileId not userId)
+   */
+  getPublicSponsorsByProfileId: publicProcedure
+    .input(z.object({ profileId: z.number() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      // Resolve profile ID to user ID
+      const [profile] = await db
+        .select({ userId: artistProfiles.userId })
+        .from(artistProfiles)
+        .where(eq(artistProfiles.id, input.profileId))
+        .limit(1);
+
+      if (!profile) return [];
+
+      const slots = await db
+        .select({
+          id: sponsorSlots.id,
+          sponsorName: sponsorSlots.sponsorName,
+          sponsorLogoUrl: sponsorSlots.sponsorLogoUrl,
+          sponsorWebsite: sponsorSlots.sponsorWebsite,
+          sponsorDescription: sponsorSlots.sponsorDescription,
+          displayOrder: sponsorSlots.displayOrder,
+        })
+        .from(sponsorSlots)
+        .where(and(
+          eq(sponsorSlots.artistId, profile.userId),
           eq(sponsorSlots.isActive, true),
         ))
         .orderBy(sponsorSlots.displayOrder);
