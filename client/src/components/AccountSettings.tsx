@@ -30,6 +30,7 @@ import { EmailPreferencesCenter } from './EmailPreferencesCenter';
 import { PhotoManagement } from './PhotoManagement';
 import { MediaGalleryManager } from './MediaGalleryManager';
 import { EmailVerificationModal } from './EmailVerificationModal';
+import { SubscriptionManagement } from './SubscriptionManagement';
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
@@ -76,8 +77,7 @@ export function AccountSettings() {
   const linkEmailPasswordMutation = (trpc.auth as any).linkEmailPassword.useMutation();
   // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
   
-  // Placeholder values
-  const subscription = undefined;
+  // Placeholder values (notification settings and deletion validation still needed)
   const notificationSettings = undefined;
   const deletionValidation = undefined;
 
@@ -572,127 +572,7 @@ export function AccountSettings() {
 
         {/* Subscription Tab */}
         <TabsContent value="subscription" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Subscription Plan</CardTitle>
-              <CardDescription>
-                Manage your subscription and billing
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {subscription ? (
-                <>
-                  {/* Current Plan */}
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg capitalize">
-                          Basic Plan
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          No active subscription
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold">
-                          $0
-                        </p>
-                        <p className="text-xs text-gray-600">per month</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Subscription Date */}
-                  {false && (
-                    <div className="space-y-2">
-                      <Label className="text-base font-semibold">
-                        Subscription Date
-                      </Label>
-                      <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
-                        <Clock className="h-4 w-4 text-gray-600" />
-                        <span className="text-sm">
-                          N/A
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Method */}
-                  <div className="space-y-2">
-                    <Label className="text-base font-semibold">
-                      Payment Method
-                    </Label>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-gray-600" />
-                        <span className="text-sm">Visa ending in 4242</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toast.info('Payment methods are managed through Stripe during checkout')}
-                      >
-                        Update
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3 pt-4 border-t">
-                    <Button
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      onClick={() => navigate('/bookings')}
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      View Bookings
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => navigate('/pricing')}
-                    >
-                      Upgrade Plan
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600 mb-4">
-                    No active subscription found
-                  </p>
-                  <Button
-                    className="bg-purple-600 hover:bg-purple-700"
-                    onClick={() => navigate('/pricing')}
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Choose a Plan
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Billing History */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <div>
-                    <p className="font-medium text-sm">February 2026</p>
-                    <p className="text-xs text-gray-600">Subscription renewal</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">$29.00</p>
-                    <p className="text-xs text-gray-600">Paid</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SubscriptionManagement />
         </TabsContent>
 
         {/* Notifications Tab */}
