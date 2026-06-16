@@ -311,6 +311,32 @@ export default function TermsOfService() {
             </p>
           </section>
 
+          {/* 13.5 Sponsor Showcase and Brand Partnerships */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">13.5 Sponsor Showcase and Brand Partnerships</h2>
+            <p className="text-base leading-relaxed">
+              The Platform offers a Sponsor Showcase feature available to Enterprise tier subscribers, allowing artists to display sponsor logos, names, and links on their public artist profile, event detail pages, and in ticket confirmation emails sent to ticket purchasers. By using the Sponsor Showcase feature, you agree to the following terms:
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Content Rights and Responsibility:</strong> You represent and warrant that you have obtained all necessary rights, licenses, and permissions from each sponsor to display their name, logo, trademarks, and other brand assets on the Platform. You are solely responsible for ensuring that all sponsor content you upload does not infringe upon the intellectual property rights, trademark rights, or any other rights of any third party. Ologywood is not responsible for verifying the existence, validity, or terms of any sponsorship arrangement between you and your sponsors.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>No Endorsement:</strong> The display of sponsor logos on the Platform does not constitute an endorsement, recommendation, or affiliation between Ologywood and any sponsor. Ologywood does not guarantee the quality, reliability, or legitimacy of any sponsor or their products and services. Users should exercise their own judgment when interacting with sponsor links.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Sponsor Analytics:</strong> The Platform provides analytics data (impressions, clicks, click-through rates) for sponsor placements as a convenience feature. While Ologywood makes reasonable efforts to provide accurate analytics, <strong>Ologywood does not guarantee the accuracy, completeness, or timeliness of sponsor analytics data</strong> and shall not be liable for any business decisions made based on such data.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Media Kit:</strong> The auto-generated Media Kit feature compiles your publicly available platform data (followers, bookings, reviews, genres, bio) into a shareable format. You control whether your Media Kit is public or private. Ologywood does not verify the accuracy of user-provided information displayed in Media Kits and is not responsible for any claims made by artists to sponsors based on Media Kit data.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Prohibited Sponsor Content:</strong> You may not use the Sponsor Showcase to display content that: (a) promotes illegal products or services; (b) contains adult, violent, or hateful material; (c) impersonates or falsely implies a sponsorship that does not exist; (d) violates any applicable advertising laws or regulations, including FTC disclosure requirements; or (e) infringes on any third party's intellectual property rights. Ologywood reserves the right to remove any sponsor content that violates these terms without notice.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Indemnification:</strong> You agree to indemnify and hold harmless Ologywood from any claims, damages, or liabilities arising from your use of the Sponsor Showcase feature, including but not limited to claims from sponsors, third parties, or regulatory bodies related to the display of sponsor content on the Platform.
+            </p>
+          </section>
+
           {/* 14. Prohibited Conduct */}
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">14. Prohibited Conduct</h2>

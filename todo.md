@@ -3162,3 +3162,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Display sponsor logos on event detail pages (pull from performing artist's active sponsors)
 - [x] Add sponsor logos to ticket confirmation emails
 - [x] Build branded event pages with sponsor logo integration
+
+## ENTERPRISE TIER - DOCUMENTATION & MARKETING (Jun 15, 2026)
+- [x] Add Enterprise/Sponsor Showcase FAQ section to Help page (6 new Q&As)
+- [x] Add Enterprise feature spotlight section to homepage (NEW badge + 3 feature cards)
+- [x] Add Sponsor Showcase card to "Why Choose" features grid on homepage
+- [x] Add Section 13.5 (Sponsor Showcase and Brand Partnerships) to Terms of Service
+- [x] Update FAQ.tsx subscription answer to mention 4 plans including Enterprise
+- [x] Add Enterprise/Sponsor FAQ entries to FAQ.tsx (3 new Q&As)

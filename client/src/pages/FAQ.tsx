@@ -54,7 +54,7 @@ export default function FAQ() {
     { q: 'How do I view my earnings and analytics?', a: 'Artists can view earnings from Dashboard > Earnings & Payouts. See total earnings, completed payments, pending amounts, and payouts. The Release Sales section shows per-release analytics including sales count, gross revenue, net revenue, and platform fees.' },
     
     // Subscription & Pricing
-    { q: 'What subscription plans are available?', a: 'We offer three plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), and Professional ($29/month, contracts, e-signatures, analytics, priority support). Visit our Pricing page for full details.' },
+    { q: 'What subscription plans are available?', a: 'We offer four plans: Free (2 bookings/month, basic features), Starter ($9/month, unlimited bookings, Rider Builder, fan updates), Professional ($29/month, contracts, e-signatures, analytics, priority support), and Enterprise ($79/month, Sponsor Showcase, Sponsor Analytics, Media Kit, plus everything in Professional). Visit our Pricing page for full details.' },
     { q: 'Can I change my plan?', a: 'Yes! Upgrade or downgrade anytime from your Dashboard. Changes take effect immediately. Upgrades are prorated; downgrades apply at the next billing cycle.' },
     
     // Disputes & Payment Protection
@@ -74,6 +74,11 @@ export default function FAQ() {
     
     // Project Previews
     { q: 'What are Project Previews and how do I use them?', a: 'Project Previews let artists on Starter or Professional plans showcase upcoming albums, EPs, and mixtapes with audio snippets on their public profile. Go to Dashboard → Projects to create a project, upload cover art, add tracks, and upload audio snippets. Starter allows 1 project (6 tracks, 30s snippets); Professional allows 3 projects (12 tracks, 60s snippets). Fans can listen to previews and share your project on social media.' },
+    
+    // Enterprise & Sponsors
+    { q: 'What is the Enterprise tier?', a: 'The Enterprise tier ($79/month or $790/year) is for established artists with brand partnerships. It includes everything in Professional plus: Sponsor Showcase (up to 5 sponsor slots on your profile and event pages), Sponsor Analytics (track impressions, clicks, and CTR), auto-generated Media Kit, and sponsor logo integration on ticket confirmation emails.' },
+    { q: 'How does the Sponsor Showcase work?', a: 'Enterprise artists can add up to 5 sponsors from their Dashboard. Upload a logo, enter the company name and website, and active sponsors appear on your profile, event pages, and ticket emails. Impressions and clicks are tracked automatically for reporting to brand partners.' },
+    { q: 'What is the Media Kit?', a: 'The Media Kit is an auto-generated, shareable press page with your platform stats, bio, achievements, genres, and contact info. Toggle it public or private and share the link with potential sponsors, labels, or press. Access it from Dashboard > Media Kit.' },
     
     // Stripe & Webhooks
     { q: 'I got an email from Stripe about a failing webhook. What do I do?', a: 'This happens when a temporary development URL expires. Go to Stripe Dashboard → Developers → Webhooks, delete the old endpoint, and add a new one with your production URL (https://ologywood.com/api/stripe/webhook). Note: the current active webhook is https://ologywood-mp6flm6c.manus.space/api/stripe/webhook. Copy the new Signing Secret and update it in Settings → Payment. This does not affect existing payments.' },

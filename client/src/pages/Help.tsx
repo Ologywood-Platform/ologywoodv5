@@ -28,7 +28,7 @@ const faqItems: FAQItem[] = [
     id: 'getting-started-3',
     category: 'Getting Started',
     question: 'Is there a fee to join Ologywood?',
-    answer: 'Joining is free! The Free tier includes basic features and up to 2 bookings per month. Premium subscriptions (Starter at $9/month and Professional at $29/month) unlock advanced features like unlimited bookings, Rider Builder, contracts, e-signatures, analytics, and more.',
+    answer: 'Joining is free! The Free tier includes basic features and up to 2 bookings per month. Premium subscriptions (Starter at $9/month, Professional at $29/month, and Enterprise at $79/month) unlock advanced features like unlimited bookings, Rider Builder, contracts, e-signatures, analytics, sponsor showcase, media kit, and more.',
   },
   {
     id: 'getting-started-4',
@@ -381,6 +381,44 @@ const faqItems: FAQItem[] = [
     category: 'Platform Setup',
     question: 'Why is Stripe sending me emails about failing webhooks?',
     answer: 'Stripe sends these emails when it cannot reach your webhook endpoint URL. The most common cause is that the URL points to an old development/sandbox server that has been shut down or restarted. This does not affect existing payments or payouts. To fix it: (1) Go to Stripe Dashboard \u2192 Developers \u2192 Webhooks, (2) Delete the failing endpoint, (3) If you still need webhooks, add a new endpoint with your current production URL (https://ologywood.com/api/stripe/webhook or https://ologywood-mp6flm6c.manus.space/api/stripe/webhook). If you are only in test mode and not actively testing webhooks, you can safely remove the old endpoint to stop the emails.',
+  },
+
+  // Enterprise & Sponsors
+  {
+    id: 'enterprise-1',
+    category: 'Enterprise & Sponsors',
+    question: 'What is the Enterprise tier?',
+    answer: 'The Enterprise tier ($79/month or $790/year) is our top-level plan designed for established artists with brand partnerships. It includes everything in the Professional plan plus: Sponsor Showcase (up to 5 sponsor slots on your profile and event pages), Sponsor Analytics (track impressions, clicks, and CTR for each sponsor), Auto-generated Media Kit (shareable press kit with your platform stats, bio, and achievements), and sponsor logo integration on ticket confirmation emails.',
+  },
+  {
+    id: 'enterprise-2',
+    category: 'Enterprise & Sponsors',
+    question: 'How does the Sponsor Showcase work?',
+    answer: 'Enterprise artists can add up to 5 sponsor slots from their Dashboard under the Sponsors section. For each sponsor, upload a logo, enter the company name, website URL, and optional description. Active sponsors appear in a "Sponsored By" section on your public artist profile and on all your event pages. Each sponsor\'s impressions and clicks are tracked automatically so you can report results to your brand partners.',
+  },
+  {
+    id: 'enterprise-3',
+    category: 'Enterprise & Sponsors',
+    question: 'What is Sponsor Analytics?',
+    answer: 'Sponsor Analytics is a dedicated dashboard (accessible from Dashboard > Sponsor Analytics) that shows how your sponsors are performing. Track total impressions (how many times sponsor logos were seen), clicks (how many times fans clicked through to sponsor websites), click-through rate (CTR), and breakdowns by source (profile views vs. event page views). Use these metrics to demonstrate value to your sponsors and negotiate better deals.',
+  },
+  {
+    id: 'enterprise-4',
+    category: 'Enterprise & Sponsors',
+    question: 'What is the Media Kit feature?',
+    answer: 'The Media Kit is an auto-generated, shareable press page that showcases your platform stats, bio, achievements, genres, and contact information. Access it from Dashboard > Media Kit. You can toggle it public or private and share the link with potential sponsors, labels, or press. It pulls your real platform data (followers, bookings, reviews) to create a professional pitch document.',
+  },
+  {
+    id: 'enterprise-5',
+    category: 'Enterprise & Sponsors',
+    question: 'Do sponsor logos appear on ticket confirmation emails?',
+    answer: 'Yes. When fans purchase tickets to your events, the confirmation email includes a "Sponsored By" section with your active sponsors\' logos and links. This gives your sponsors additional exposure beyond just your profile and event pages.',
+  },
+  {
+    id: 'enterprise-6',
+    category: 'Enterprise & Sponsors',
+    question: 'Can I track which source generates the most sponsor engagement?',
+    answer: 'Yes. Sponsor Analytics breaks down impressions and clicks by source: "profile" (from your artist profile page) and "event" (from your event detail pages). This helps you understand where fans interact with your sponsors most and optimize placement accordingly.',
   },
 
   // Support & Contact
