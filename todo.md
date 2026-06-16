@@ -3197,3 +3197,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verified: 2FA button correctly shows "Coming Soon" (acceptable for launch)
 - [x] Verified: advanced-search.ts mock data is NOT registered as a router (dead code, no user impact)
 - [x] TypeScript clean (0 errors), all tests passing (7/7)
+
+## Critical Fix: Stripe Subscription Tier Update (June 16, 2026)
+- [x] Diagnose why Stripe subscription tier not updating in database
+- [x] Root cause: DB enum column missing 'enterprise' value (migration 0091 not applied)
+- [x] ALTER TABLE to add 'enterprise' to tier enum
+- [x] Apply all pending migrations (0073-0091) to production database
+- [x] Enterprise tables created: sponsor_slots, media_kits, sponsor_analytics
+- [x] Adonis (userId 7) tier updated to 'enterprise' with status 'active'
+- [x] Verified webhook handler and syncFromStripe logic is correct (code was fine, DB was the issue)
