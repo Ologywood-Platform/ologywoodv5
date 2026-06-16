@@ -65,21 +65,16 @@ export function AccountSettings() {
     marketingUpdates: false,
   });
 
-  // const { data: subscription } = trpc.subscription.getStatus.useQuery();
-  // const { data: notificationSettings } = trpc.notificationPreference.get.useQuery();
+  const { data: notificationSettings } = (trpc.notifications as any).getPreferences.useQuery();
+  const { data: deletionValidation } = (trpc.account as any).validateDeletion.useQuery();
   
   const logoutMutation = (trpc.auth.logout as any).useMutation();
   const updateProfileMutation = (trpc.artist?.updateProfile as any)?.useMutation?.() || { mutateAsync: async () => {} };
-  // const updateNotificationsMutation = trpc.notificationPreference.update.useMutation();
+  const updateNotificationsMutation = (trpc.notifications as any).updatePreferences.useMutation();
   const deleteAccountMutation = (trpc.account.deleteAccount as any).useMutation();
   const changePasswordMutation = (trpc.auth as any).changePassword.useMutation();
   const setPasswordMutation = (trpc.auth as any).setPassword.useMutation();
   const linkEmailPasswordMutation = (trpc.auth as any).linkEmailPassword.useMutation();
-  // const { data: deletionValidation } = trpc.account.validateDeletion.useQuery();
-  
-  // Placeholder values (notification settings and deletion validation still needed)
-  const notificationSettings = undefined;
-  const deletionValidation = undefined;
 
   const handleLogout = async () => {
     try {
@@ -120,9 +115,21 @@ export function AccountSettings() {
     toast.success('Email updated and verified successfully');
   };
 
+  // Sync local state with server data when it loads
+  React.useEffect(() => {
+    if (notificationSettings) {
+      setNotificationPrefs({
+        bookingNotifications: notificationSettings.bookingNotifications ?? true,
+        messageNotifications: notificationSettings.messageNotifications ?? true,
+        bookingReminders: notificationSettings.bookingReminders ?? true,
+        marketingUpdates: notificationSettings.marketingUpdates ?? false,
+      });
+    }
+  }, [notificationSettings]);
+
   const handleSaveNotifications = async () => {
     try {
-      // Notification preferences update disabled - router not available
+      await updateNotificationsMutation.mutateAsync(notificationPrefs);
       toast.success('Notification preferences saved');
     } catch (error) {
       toast.error('Failed to save notification preferences');
@@ -131,9 +138,13 @@ export function AccountSettings() {
 
   const handleDeleteAccount = async () => {
     try {
-      // Account deletion validation disabled - router not available
       if (!user?.id) {
         toast.error('User not found');
+        setShowDeleteConfirm(false);
+        return;
+      }
+      if (deletionValidation && !deletionValidation.canDelete) {
+        toast.error(deletionValidation.reason || 'Cannot delete account at this time');
         setShowDeleteConfirm(false);
         return;
       }

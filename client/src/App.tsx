@@ -148,7 +148,7 @@ function Router() {
           <Route path="/artists/:id/history" component={ArtistHistory} />
           <Route path="/venues" component={VenueBrowse} />
           <Route path="/venue/:id" component={VenueProfile} />
-          <Route path="/venues/:id" component={VenueProfileDetail} />
+          <Route path="/venues/:id" component={VenueProfile} />
           
           {/* Core Booking Flow */}
           <Route path="/booking/create">{() => <PageErrorBoundary><BookingCreate /></PageErrorBoundary>}</Route>
