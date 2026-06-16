@@ -44,7 +44,7 @@ const PRICING_FAQS = [
   },
 ];
 
-type PlanSlug = 'starter' | 'professional';
+type PlanSlug = 'starter' | 'professional' | 'enterprise';
 type BillingInterval = 'month' | 'year';
 
 interface Tier {
@@ -142,6 +142,36 @@ const tiers: Tier[] = [
       { name: "Rider Builder & saved templates", included: true },
       { name: "Fan email list & Send Update", included: true },
       { name: "White Label Releases — unlimited singles", included: true },
+      { name: "Sponsor Showcase (5 slots)", included: false },
+      { name: "Sponsor Analytics & CTR tracking", included: false },
+      { name: "Auto-generated Media Kit", included: false },
+    ],
+  },
+  {
+    name: "Enterprise",
+    description: "For artists with sponsors & brand deals",
+    monthlyPrice: "$79",
+    yearlyPrice: "$790",
+    yearlyMonthly: "$65.83",
+    yearlySavings: "Save $158",
+    period: "month",
+    cta: "Go Enterprise",
+    highlight: false,
+    badge: "New",
+    planSlug: "enterprise",
+    features: [
+      { name: "Everything in Professional, plus:", included: true },
+      { name: "Sponsor Showcase — 5 sponsor slots on profile", included: true },
+      { name: "Sponsor Analytics — impressions, clicks, CTR", included: true },
+      { name: "Auto-generated Media Kit", included: true },
+      { name: "Branded event pages with sponsor logos", included: true },
+      { name: "Public shareable media kit link", included: true },
+      { name: "Contract management & e-signatures", included: true },
+      { name: "Advanced analytics dashboard", included: true },
+      { name: "Priority support", included: true },
+      { name: "Unlimited booking requests", included: true },
+      { name: "Rider Builder & saved templates", included: true },
+      { name: "White Label Releases — unlimited singles", included: true },
     ],
   },
 ];
@@ -151,6 +181,7 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }:
   const isCurrentPlan = currentTier && (
     (currentTier === 'starter' && tier.planSlug === 'starter') ||
     (currentTier === 'professional' && tier.planSlug === 'professional') ||
+    (currentTier === 'enterprise' && tier.planSlug === 'enterprise') ||
     (currentTier === 'free' && !tier.planSlug)
   );
   const isYearly = billingInterval === 'year';

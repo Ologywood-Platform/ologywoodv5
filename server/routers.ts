@@ -38,6 +38,7 @@ import { disputeRouter } from "./routers/dispute";
 import { ticketingRouter } from "./routers/ticketing";
 import { touringRouter } from "./routers/touring";
 import { referralRouter } from "./routers/referral";
+import { sponsorRouter } from "./routers/sponsor";
 import { merchRouter } from "./routers/merch";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { newsletterLimiter } from "./utils/rateLimiter";
@@ -130,6 +131,7 @@ export const appRouter = router({
   ticketing: ticketingRouter,
   touring: touringRouter,
   referral: referralRouter,
+  sponsor: sponsorRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({
@@ -2191,7 +2193,7 @@ export const appRouter = router({
       .input(z.object({
         successUrl: z.string(),
         cancelUrl: z.string(),
-        plan: z.enum(['starter', 'professional']).optional().default('professional'),
+        plan: z.enum(['starter', 'professional', 'enterprise']).optional().default('professional'),
         interval: z.enum(['month', 'year']).optional().default('month'),
         useCredits: z.boolean().optional().default(false),
       }))

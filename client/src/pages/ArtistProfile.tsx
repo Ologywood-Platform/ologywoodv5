@@ -33,6 +33,7 @@ import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { TouringDisplay } from '@/components/TouringDisplay';
+import { SponsorShowcase } from '@/components/SponsorShowcase';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
 import { CrmBadge } from "@/components/CrmBadge";
 
@@ -601,6 +602,7 @@ export default function ArtistProfile() {
 
             {/* Touring Availability */}
             <TouringDisplay artistProfileId={artistId} />
+            <SponsorShowcase artistId={artist?.userId || 0} />
 
             {/* Performance Video */}
             {(artist as any).performanceVideoUrl && ((artist as any).performanceVideoStatus === 'approved' || (artist as any).performanceVideoStatus === 'flagged') && (artist as any).performanceVideoStatus !== 'taken_down' && (

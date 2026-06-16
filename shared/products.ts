@@ -63,6 +63,26 @@ export const SUBSCRIPTION_PRODUCTS = {
       'Featured profile listing',
     ],
   },
+  ARTIST_ENTERPRISE: {
+    key: 'ARTIST_ENTERPRISE',
+    lookupKey: 'artist_enterprise_monthly',
+    yearlyLookupKey: 'artist_enterprise_yearly',
+    name: 'Enterprise Plan',
+    description: 'Sponsor showcase, analytics, auto-generated media kit, and everything in Professional.',
+    priceMonthly: 7900, // $79.00 in cents
+    priceYearly: 79000, // $790.00 in cents (10 months — 2 months free)
+    currency: 'usd' as const,
+    interval: 'month' as const,
+    trialDays: 14,
+    features: [
+      'Everything in Professional',
+      'Sponsor Showcase (up to 5 sponsors)',
+      'Sponsor Analytics (impressions, clicks, reach)',
+      'Auto-generated Media Kit',
+      'Branded event pages with sponsor logos',
+      'Sponsor logos on ticket confirmations',
+    ],
+  },
 } as const;
 
 /** Legacy alias – existing code that references ARTIST_BASIC now maps to Professional */
@@ -74,6 +94,7 @@ export type SubscriptionProductKey = keyof typeof SUBSCRIPTION_PRODUCTS;
 export const PLAN_SLUG_MAP: Record<string, SubscriptionProductKey> = {
   starter: 'ARTIST_STARTER',
   professional: 'ARTIST_PROFESSIONAL',
+  enterprise: 'ARTIST_ENTERPRISE',
 };
 
 /** Get the yearly savings percentage for a product */

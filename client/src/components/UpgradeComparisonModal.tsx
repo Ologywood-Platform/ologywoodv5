@@ -6,26 +6,30 @@ interface Feature {
   free: boolean;
   starter: boolean;
   professional: boolean;
+  enterprise: boolean;
 }
 
 const COMPARISON_FEATURES: Feature[] = [
-  { name: 'Artist or venue profile', free: true, starter: true, professional: true },
-  { name: 'Browse & messaging', free: true, starter: true, professional: true },
-  { name: 'Availability calendar', free: true, starter: true, professional: true },
-  { name: 'Follow artists & events', free: true, starter: true, professional: true },
-  { name: 'Booking requests', free: false, starter: true, professional: true },
-  { name: 'Rider Builder & templates', free: false, starter: true, professional: true },
-  { name: 'Fan email list & Send Update', free: false, starter: true, professional: true },
-  { name: 'White Label Releases', free: false, starter: true, professional: true },
-  { name: 'Contracts & e-signatures', free: false, starter: false, professional: true },
-  { name: 'Analytics dashboard', free: false, starter: false, professional: true },
-  { name: 'Priority support', free: false, starter: false, professional: true },
-  { name: 'Featured profile & branding', free: false, starter: false, professional: true },
-  { name: 'Bulk messaging', free: false, starter: false, professional: true },
+  { name: 'Artist or venue profile', free: true, starter: true, professional: true, enterprise: true },
+  { name: 'Browse & messaging', free: true, starter: true, professional: true, enterprise: true },
+  { name: 'Availability calendar', free: true, starter: true, professional: true, enterprise: true },
+  { name: 'Follow artists & events', free: true, starter: true, professional: true, enterprise: true },
+  { name: 'Booking requests', free: false, starter: true, professional: true, enterprise: true },
+  { name: 'Rider Builder & templates', free: false, starter: true, professional: true, enterprise: true },
+  { name: 'Fan email list & Send Update', free: false, starter: true, professional: true, enterprise: true },
+  { name: 'White Label Releases', free: false, starter: true, professional: true, enterprise: true },
+  { name: 'Contracts & e-signatures', free: false, starter: false, professional: true, enterprise: true },
+  { name: 'Analytics dashboard', free: false, starter: false, professional: true, enterprise: true },
+  { name: 'Priority support', free: false, starter: false, professional: true, enterprise: true },
+  { name: 'Featured profile & branding', free: false, starter: false, professional: true, enterprise: true },
+  { name: 'Bulk messaging', free: false, starter: false, professional: true, enterprise: true },
+  { name: 'Sponsor Showcase (5 slots)', free: false, starter: false, professional: false, enterprise: true },
+  { name: 'Sponsor Analytics & CTR', free: false, starter: false, professional: false, enterprise: true },
+  { name: 'Auto-generated Media Kit', free: false, starter: false, professional: false, enterprise: true },
 ];
 
 // Tier hierarchy for determining upgrade vs downgrade
-const TIER_RANK: Record<string, number> = { free: 0, starter: 1, professional: 2 };
+const TIER_RANK: Record<string, number> = { free: 0, starter: 1, professional: 2, enterprise: 3 };
 
 interface UpgradeComparisonModalProps {
   isOpen: boolean;
@@ -33,7 +37,7 @@ interface UpgradeComparisonModalProps {
   onConfirm: () => void;
   onSwitchToYearly?: () => void;
   isLoading: boolean;
-  targetPlan: 'starter' | 'professional';
+  targetPlan: 'starter' | 'professional' | 'enterprise';
   currentTier: string;
   billingInterval: 'month' | 'year';
   creditBalance?: number;
@@ -58,16 +62,25 @@ export function UpgradeComparisonModal({
 
   const isYearly = billingInterval === 'year';
   const isDowngrade = TIER_RANK[targetPlan] < TIER_RANK[currentTier];
-  const planLabel = targetPlan === 'starter' ? 'Starter' : 'Professional';
+  const planLabel = targetPlan === 'starter' ? 'Starter' : targetPlan === 'enterprise' ? 'Enterprise' : 'Professional';
   const priceLabel = targetPlan === 'starter'
     ? (isYearly ? '$7.50/mo (billed $90/year)' : '$9/month')
-    : (isYearly ? '$24.17/mo (billed $290/year)' : '$29/month');
+    : targetPlan === 'enterprise'
+      ? (isYearly ? '$65.83/mo (billed $790/year)' : '$79/month')
+      : (isYearly ? '$24.17/mo (billed $290/year)' : '$29/month');
+
+  const getTierValue = (f: Feature, tier: string) => {
+    if (tier === 'enterprise') return f.enterprise;
+    if (tier === 'professional') return f.professional;
+    if (tier === 'starter') return f.starter;
+    return f.free;
+  };
 
   // Features the user will GAIN (for upgrades)
   const getNewFeatures = () => {
     return COMPARISON_FEATURES.filter((f) => {
-      const hasNow = currentTier === 'starter' ? f.starter : currentTier === 'professional' ? f.professional : f.free;
-      const willHave = targetPlan === 'starter' ? f.starter : f.professional;
+      const hasNow = getTierValue(f, currentTier);
+      const willHave = getTierValue(f, targetPlan);
       return willHave && !hasNow;
     });
   };
@@ -75,8 +88,8 @@ export function UpgradeComparisonModal({
   // Features the user will LOSE (for downgrades)
   const getLostFeatures = () => {
     return COMPARISON_FEATURES.filter((f) => {
-      const hasNow = currentTier === 'starter' ? f.starter : currentTier === 'professional' ? f.professional : f.free;
-      const willHave = targetPlan === 'starter' ? f.starter : f.professional;
+      const hasNow = getTierValue(f, currentTier);
+      const willHave = getTierValue(f, targetPlan);
       return hasNow && !willHave;
     });
   };
@@ -85,7 +98,7 @@ export function UpgradeComparisonModal({
   const lostFeatures = getLostFeatures();
 
   // Annual savings calculation for the nudge
-  const monthlySavings = targetPlan === 'starter' ? 18 : 58;
+  const monthlySavings = targetPlan === 'starter' ? 18 : targetPlan === 'enterprise' ? 158 : 58;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -154,12 +167,13 @@ export function UpgradeComparisonModal({
 
           {/* Quick comparison table */}
           <div className="mt-6 bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-3 gap-2 text-xs text-center mb-2">
+            <div className="grid grid-cols-4 gap-2 text-xs text-center mb-2">
               <div className="font-medium text-gray-500">Free</div>
               <div className="font-medium text-gray-500">Starter</div>
               <div className="font-medium text-gray-500">Professional</div>
+              <div className="font-medium text-gray-500">Enterprise</div>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div className="text-sm font-semibold text-gray-400">$0</div>
               <div className={`text-sm font-semibold ${targetPlan === 'starter' ? 'text-blue-600' : 'text-gray-400'}`}>
                 {isYearly ? '$7.50/mo' : '$9/mo'}
@@ -167,11 +181,15 @@ export function UpgradeComparisonModal({
               <div className={`text-sm font-semibold ${targetPlan === 'professional' ? 'text-purple-600' : 'text-gray-400'}`}>
                 {isYearly ? '$24.17/mo' : '$29/mo'}
               </div>
+              <div className={`text-sm font-semibold ${targetPlan === 'enterprise' ? 'text-amber-600' : 'text-gray-400'}`}>
+                {isYearly ? '$65.83/mo' : '$79/mo'}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center mt-1">
+            <div className="grid grid-cols-4 gap-2 text-center mt-1">
               <div className="text-[10px] text-gray-400">2 bookings/mo</div>
               <div className="text-[10px] text-gray-400">Unlimited</div>
-              <div className="text-[10px] text-gray-400">Unlimited + contracts</div>
+              <div className="text-[10px] text-gray-400">+ contracts</div>
+              <div className="text-[10px] text-gray-400">+ sponsors</div>
             </div>
           </div>
 

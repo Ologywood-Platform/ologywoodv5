@@ -6,7 +6,7 @@ import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
 import { useLocation } from 'wouter';
 
-type SubscriptionTier = 'free' | 'starter' | 'professional';
+type SubscriptionTier = 'free' | 'starter' | 'professional' | 'enterprise';
 
 const TIER_INFO: Record<SubscriptionTier, {
   label: string;
@@ -35,6 +35,13 @@ const TIER_INFO: Record<SubscriptionTier, {
     bgColor: 'bg-purple-50',
     icon: Crown,
     description: 'Unlimited releases, contracts, analytics, priority support',
+  },
+  enterprise: {
+    label: 'Enterprise',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-50',
+    icon: Crown,
+    description: 'Sponsor showcase, analytics, media kit, branded events',
   },
 };
 
@@ -187,7 +194,7 @@ export function SubscriptionManagement() {
     return tier === 'starter' ? '$7.50/mo effective' : '$24.17/mo effective';
   };
 
-  const handleUpgrade = (plan: 'starter' | 'professional') => {
+  const handleUpgrade = (plan: 'starter' | 'professional' | 'enterprise') => {
     setActionLoading(`upgrade-${plan}`);
     const origin = window.location.origin;
     checkoutMutation.mutate({
@@ -507,6 +514,32 @@ export function SubscriptionManagement() {
               </Button>
               {upgradeInterval === 'year' && (
                 <p className="text-[11px] text-center text-gray-500">Billed $290/year. 2 months free vs monthly.</p>
+              )}
+            </div>
+          )}
+
+          {/* Enterprise upgrade — show for starter and professional users */}
+          {tier && tier !== 'enterprise' && tier !== 'free' && (
+            <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-amber-600" />
+                <h4 className="font-semibold text-amber-900">Upgrade to Enterprise</h4>
+              </div>
+              <p className="text-xs text-amber-800">Unlock Sponsor Showcase, Sponsor Analytics, auto-generated Media Kit, and branded event pages.</p>
+              <Button
+                onClick={() => handleUpgrade('enterprise')}
+                disabled={actionLoading === 'upgrade-enterprise'}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                {actionLoading === 'upgrade-enterprise' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                )}
+                Upgrade to Enterprise — {upgradeInterval === 'year' ? '$65.83/mo billed yearly' : '$79/mo'}
+              </Button>
+              {upgradeInterval === 'year' && (
+                <p className="text-[11px] text-center text-gray-500">Billed $790/year. 2 months free vs monthly.</p>
               )}
             </div>
           )}

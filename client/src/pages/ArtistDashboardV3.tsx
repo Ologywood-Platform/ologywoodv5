@@ -11,6 +11,7 @@ import { AccountSettings } from '@/components/AccountSettings';
 import { EventStatusManager } from '@/components/EventStatusManager';
 import { FansSection } from '@/components/FansSection';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
+import { SponsorManagement } from '@/components/SponsorManagement';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { CalendarSync } from '@/components/CalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
@@ -623,6 +624,11 @@ export function ArtistDashboardV3() {
             {/* Subscription Management */}
             <div id="subscription-management">
               <SubscriptionManagement />
+            </div>
+
+            {/* Sponsor Management (Enterprise tier) */}
+            <div id="sponsor-management">
+              <SponsorManagement />
             </div>
 
             {/* Referral Section */}

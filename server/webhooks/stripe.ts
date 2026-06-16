@@ -255,9 +255,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     // Determine tier from session metadata
     const { SUBSCRIPTION_PRODUCTS } = await import('../../shared/products');
     const planMetadata = session.metadata?.plan;
-    let tier: 'free' | 'starter' | 'professional' = 'professional';
+    let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional';
     if (planMetadata === 'ARTIST_STARTER') {
       tier = 'starter';
+    } else if (planMetadata === 'ARTIST_ENTERPRISE') {
+      tier = 'enterprise';
     }
     
     // Update or create subscription record with tier
@@ -293,13 +295,19 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const lookupKey = subData.items?.data?.[0]?.price?.lookup_key;
   const priceAmount = subData.items?.data?.[0]?.price?.unit_amount;
   
-  let tier: 'free' | 'starter' | 'professional' = 'professional'; // default
+  let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional'; // default
   if (planMetadata === 'ARTIST_STARTER' || 
       lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
       lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
       priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
       priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
     tier = 'starter';
+  } else if (planMetadata === 'ARTIST_ENTERPRISE' || 
+             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.lookupKey ||
+             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.yearlyLookupKey ||
+             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly ||
+             priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly) {
+    tier = 'enterprise';
   } else if (planMetadata === 'ARTIST_PROFESSIONAL' || 
              lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.lookupKey ||
              lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.yearlyLookupKey ||
@@ -346,6 +354,15 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
           ? `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly / 100}/year`
           : `$${SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly / 100}/month`;
         features = SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.features as unknown as string[];
+      } else if (emailLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.lookupKey ||
+          emailLookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.yearlyLookupKey ||
+          subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly ||
+          subData.items?.data?.[0]?.price?.unit_amount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly) {
+        planName = SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.name;
+        planPrice = emailInterval === 'year'
+          ? `$${SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly / 100}/year`
+          : `$${SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly / 100}/month`;
+        features = SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.features as unknown as string[];
       } else {
         planName = SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL.name;
         planPrice = emailInterval === 'year'

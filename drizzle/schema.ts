@@ -34,7 +34,7 @@ export type InsertUser = typeof users.$inferInsert;
 export const userSubscriptions = mysqlTable("user_subscriptions", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
-  tier: mysqlEnum("tier", ["free", "starter", "professional"]).default("free").notNull(),
+  tier: mysqlEnum("tier", ["free", "starter", "professional", "enterprise"]).default("free").notNull(),
   stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
   stripePriceId: varchar("stripePriceId", { length: 255 }),
@@ -1590,3 +1590,73 @@ export const projectPreviewTracks = mysqlTable("project_preview_tracks", {
 
 export type ProjectPreviewTrack = typeof projectPreviewTracks.$inferSelect;
 export type InsertProjectPreviewTrack = typeof projectPreviewTracks.$inferInsert;
+
+/**
+ * Sponsor Slots — artists on Enterprise tier can showcase up to 5 sponsors
+ */
+export const sponsorSlots = mysqlTable("sponsor_slots", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  sponsorName: varchar("sponsorName", { length: 200 }).notNull(),
+  sponsorLogoUrl: varchar("sponsorLogoUrl", { length: 512 }).notNull(),
+  sponsorWebsite: varchar("sponsorWebsite", { length: 512 }),
+  sponsorDescription: varchar("sponsorDescription", { length: 500 }),
+  displayOrder: int("displayOrder").notNull().default(0),
+  isActive: boolean("isActive").notNull().default(true),
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_sponsor_slots_artist").on(table.artistId),
+  activeIdx: index("idx_sponsor_slots_active").on(table.artistId, table.isActive),
+}));
+export type SponsorSlot = typeof sponsorSlots.$inferSelect;
+export type InsertSponsorSlot = typeof sponsorSlots.$inferInsert;
+
+/**
+ * Sponsor Analytics — tracks impressions and clicks for each sponsor slot
+ */
+export const sponsorAnalytics = mysqlTable("sponsor_analytics", {
+  id: int("id").autoincrement().primaryKey(),
+  sponsorSlotId: int("sponsorSlotId").notNull(),
+  artistId: int("artistId").notNull(),
+  eventType: mysqlEnum("eventType", ["impression", "click"]).notNull(),
+  eventDate: timestamp("eventDate").defaultNow().notNull(),
+  source: varchar("source", { length: 100 }), // 'profile', 'event_page', 'ticket_confirmation', 'media_kit'
+  viewerUserId: int("viewerUserId"), // null for anonymous views
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  slotIdx: index("idx_sponsor_analytics_slot").on(table.sponsorSlotId),
+  artistIdx: index("idx_sponsor_analytics_artist").on(table.artistId),
+  dateIdx: index("idx_sponsor_analytics_date").on(table.eventDate),
+}));
+export type SponsorAnalytic = typeof sponsorAnalytics.$inferSelect;
+export type InsertSponsorAnalytic = typeof sponsorAnalytics.$inferInsert;
+
+/**
+ * Media Kit — auto-generated media kit data for Enterprise artists
+ */
+export const mediaKits = mysqlTable("media_kits", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull().unique(),
+  bio: text("bio"),
+  pressPhotos: json("pressPhotos").$type<string[]>(), // Array of photo URLs
+  socialStats: json("socialStats").$type<{ platform: string; followers: number; url: string }[]>(),
+  achievements: json("achievements").$type<string[]>(), // Notable achievements
+  genres: json("genres").$type<string[]>(),
+  monthlyListeners: int("monthlyListeners"),
+  totalStreams: int("totalStreams"),
+  averageEventAttendance: int("averageEventAttendance"),
+  contactEmail: varchar("contactEmail", { length: 320 }),
+  managementContact: varchar("managementContact", { length: 320 }),
+  bookingContact: varchar("bookingContact", { length: 320 }),
+  isPublic: boolean("isPublic").notNull().default(false),
+  lastGeneratedAt: timestamp("lastGeneratedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_media_kits_artist").on(table.artistId),
+}));
+export type MediaKit = typeof mediaKits.$inferSelect;
+export type InsertMediaKit = typeof mediaKits.$inferInsert;

@@ -66,6 +66,21 @@ export const STRIPE_PRICING: Record<string, PricingTier> = {
     },
     currency: "usd",
   },
+  enterprise: {
+    name: "Enterprise",
+    productId: "prod_enterprise", // Will be auto-created on first checkout
+    monthly: {
+      priceId: "price_enterprise_monthly", // Will be created on first checkout
+      amount: 7900, // $79.00
+    },
+    yearly: {
+      priceId: "price_enterprise_yearly", // Will be created on first checkout
+      amount: 79000, // $790.00 (10 months)
+      monthlyEquivalent: 6583, // $65.83/mo effective
+      savings: 15800, // $158.00 saved
+    },
+    currency: "usd",
+  },
 };
 
 export type StripePricingTier = keyof typeof STRIPE_PRICING;
