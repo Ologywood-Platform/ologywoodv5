@@ -3178,3 +3178,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Getting Started empty-state card to Sponsor Management (first-time guidance)
 - [x] Add Getting Started empty-state card to Sponsor Analytics (no data yet guidance)
 - [x] Add Getting Started empty-state card to Media Kit (first-time setup guidance)
+
+## MEDIA KIT - PREVIEW MODE & PDF EXPORT (Jun 16, 2026)
+- [x] Add Preview Mode toggle to Media Kit page (shows how it looks to external viewers)
+- [x] Add PDF export/download button to Media Kit page (generates professional PDF)
