@@ -185,7 +185,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
 
   // Determine tier from the API response (user_subscriptions table)
   const effectiveTier = videoStatus?.tier || 'free';
-  const isPaidTier = effectiveTier === 'starter' || effectiveTier === 'professional';
+  const isPaidTier = effectiveTier === 'starter' || effectiveTier === 'professional' || effectiveTier === 'enterprise';
 
   // Free tier — show upgrade prompt
   if (!isPaidTier) {
@@ -228,7 +228,7 @@ export function PerformanceVideoUpload({ onUpgradeClick }: PerformanceVideoUploa
             <Video className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">Performance Video</CardTitle>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-              <Crown className="h-3 w-3" /> {effectiveTier === 'professional' ? 'Professional' : 'Starter'}
+              <Crown className="h-3 w-3" /> {effectiveTier === 'enterprise' ? 'Enterprise' : effectiveTier === 'professional' ? 'Professional' : 'Starter'}
             </span>
           </div>
           {videoStatus?.status && getStatusBadge(videoStatus.status)}
