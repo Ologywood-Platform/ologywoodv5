@@ -185,13 +185,18 @@ export function SubscriptionManagement() {
     if (tier === 'starter') {
       return billingInterval === 'year' ? '$90/year' : '$9/month';
     }
+    if (tier === 'enterprise') {
+      return billingInterval === 'year' ? '$790/year' : '$79/month';
+    }
     // professional
     return billingInterval === 'year' ? '$290/year' : '$29/month';
   };
 
   const getEffectiveMonthly = () => {
     if (billingInterval !== 'year') return null;
-    return tier === 'starter' ? '$7.50/mo effective' : '$24.17/mo effective';
+    if (tier === 'starter') return '$7.50/mo effective';
+    if (tier === 'enterprise') return '$65.83/mo effective';
+    return '$24.17/mo effective';
   };
 
   const handleUpgrade = (plan: 'starter' | 'professional' | 'enterprise') => {

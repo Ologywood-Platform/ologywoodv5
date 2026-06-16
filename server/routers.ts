@@ -2553,10 +2553,18 @@ export const appRouter = router({
         const planMetadata = activeSub.metadata?.plan;
         console.log('[SyncFromStripe] Price info:', { priceAmount, lookupKey, planMetadata });
 
-        let tier: 'free' | 'starter' | 'professional' = 'professional';
-        if (planMetadata === 'ARTIST_STARTER' ||
+        let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional';
+        if (planMetadata === 'ARTIST_ENTERPRISE' ||
+            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.lookupKey ||
+            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.yearlyLookupKey ||
+            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceMonthly ||
+            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE.priceYearly) {
+          tier = 'enterprise';
+        } else if (planMetadata === 'ARTIST_STARTER' ||
             lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.lookupKey ||
-            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly) {
+            lookupKey === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.yearlyLookupKey ||
+            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceMonthly ||
+            priceAmount === SUBSCRIPTION_PRODUCTS.ARTIST_STARTER.priceYearly) {
           tier = 'starter';
         }
 
