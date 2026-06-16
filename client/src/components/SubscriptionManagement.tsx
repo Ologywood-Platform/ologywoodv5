@@ -413,10 +413,11 @@ export function SubscriptionManagement() {
         </div>
 
         {/* Actions */}
-        <div className="space-y-2">
-          {/* Free tier — show upgrade options */}
-          {tier === 'free' && (
+        <div className="space-y-3">
+          {/* Plan selector — always show all tiers */}
+          {!cancelAtPeriodEnd && !isPaused && (
             <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-700">{tier === 'free' ? 'Choose a Plan' : 'Change Plan'}</h4>
               {/* Billing interval toggle */}
               <div className="flex items-center justify-center">
                 <div className="inline-flex items-center bg-gray-100 rounded-full p-0.5">
@@ -443,136 +444,85 @@ export function SubscriptionManagement() {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <Button
-                  onClick={() => handleUpgrade('starter')}
-                  disabled={actionLoading === 'upgrade-starter'}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+              <div className="grid grid-cols-1 gap-2">
+                {/* Starter */}
+                <button
+                  onClick={() => tier !== 'starter' && handleUpgrade('starter')}
+                  disabled={actionLoading === 'upgrade-starter' || tier === 'starter'}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    tier === 'starter'
+                      ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+                  } ${tier === 'starter' ? 'cursor-default' : 'cursor-pointer'}`}
                 >
-                  {actionLoading === 'upgrade-starter' ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Zap className="h-4 w-4 mr-2" />
-                  )}
-                  Starter — {upgradeInterval === 'year' ? '$7.50/mo' : '$9/mo'}
-                </Button>
-                <Button
-                  onClick={() => handleUpgrade('professional')}
-                  disabled={actionLoading === 'upgrade-professional'}
-                  variant="outline"
-                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-md ${tier === 'starter' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                      <Zap className={`h-4 w-4 ${tier === 'starter' ? 'text-blue-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-900">Starter</div>
+                      <div className="text-xs text-gray-500">Unlimited bookings, Rider Builder, 2 releases</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">{upgradeInterval === 'year' ? '$7.50/mo' : '$9/mo'}</div>
+                    {upgradeInterval === 'year' && <div className="text-[10px] text-gray-500">$90/yr</div>}
+                    {tier === 'starter' && <span className="text-[10px] font-medium text-blue-600">Current</span>}
+                  </div>
+                </button>
+                {/* Professional */}
+                <button
+                  onClick={() => tier !== 'professional' && handleUpgrade('professional')}
+                  disabled={actionLoading === 'upgrade-professional' || tier === 'professional'}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    tier === 'professional'
+                      ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-200'
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                  } ${tier === 'professional' ? 'cursor-default' : 'cursor-pointer'}`}
                 >
-                  {actionLoading === 'upgrade-professional' ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Crown className="h-4 w-4 mr-2" />
-                  )}
-                  Professional — {upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}
-                </Button>
-                <Button
-                  onClick={() => handleUpgrade('enterprise')}
-                  disabled={actionLoading === 'upgrade-enterprise'}
-                  variant="outline"
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-md ${tier === 'professional' ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                      <Crown className={`h-4 w-4 ${tier === 'professional' ? 'text-purple-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-900">Professional</div>
+                      <div className="text-xs text-gray-500">Unlimited releases, contracts, analytics, priority support</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">{upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}</div>
+                    {upgradeInterval === 'year' && <div className="text-[10px] text-gray-500">$290/yr</div>}
+                    {tier === 'professional' && <span className="text-[10px] font-medium text-purple-600">Current</span>}
+                  </div>
+                </button>
+                {/* Enterprise */}
+                <button
+                  onClick={() => tier !== 'enterprise' && handleUpgrade('enterprise')}
+                  disabled={actionLoading === 'upgrade-enterprise' || tier === 'enterprise'}
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    tier === 'enterprise'
+                      ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200'
+                      : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50/50'
+                  } ${tier === 'enterprise' ? 'cursor-default' : 'cursor-pointer'}`}
                 >
-                  {actionLoading === 'upgrade-enterprise' ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Crown className="h-4 w-4 mr-2" />
-                  )}
-                  Enterprise — {upgradeInterval === 'year' ? '$65.83/mo' : '$79/mo'}
-                </Button>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-md ${tier === 'enterprise' ? 'bg-amber-100' : 'bg-gray-100'}`}>
+                      <Crown className={`h-4 w-4 ${tier === 'enterprise' ? 'text-amber-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-900">Enterprise</div>
+                      <div className="text-xs text-gray-500">Sponsor showcase, analytics, media kit, branded events</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">{upgradeInterval === 'year' ? '$65.83/mo' : '$79/mo'}</div>
+                    {upgradeInterval === 'year' && <div className="text-[10px] text-gray-500">$790/yr</div>}
+                    {tier === 'enterprise' && <span className="text-[10px] font-medium text-amber-600">Current</span>}
+                  </div>
+                </button>
               </div>
               {upgradeInterval === 'year' && (
                 <p className="text-[11px] text-center text-gray-500">Billed annually. 2 months free vs monthly.</p>
-              )}
-            </div>
-          )}
-
-          {/* Starter tier — show upgrade to Professional */}
-          {tier === 'starter' && !cancelAtPeriodEnd && !isPaused && (
-            <div className="space-y-2">
-              {/* Billing interval toggle */}
-              <div className="flex items-center justify-center">
-                <div className="inline-flex items-center bg-gray-100 rounded-full p-0.5">
-                  <button
-                    onClick={() => setUpgradeInterval('month')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      upgradeInterval === 'month'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => setUpgradeInterval('year')}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      upgradeInterval === 'year'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    Yearly
-                    <span className="ml-1 text-[10px] font-semibold text-green-600">Save 17%</span>
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Button
-                  onClick={() => handleUpgrade('professional')}
-                  disabled={actionLoading === 'upgrade-professional'}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  {actionLoading === 'upgrade-professional' ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <ArrowUpRight className="h-4 w-4 mr-2" />
-                  )}
-                  Professional — {upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}
-                </Button>
-                <Button
-                  onClick={() => handleUpgrade('enterprise')}
-                  disabled={actionLoading === 'upgrade-enterprise'}
-                  variant="outline"
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
-                >
-                  {actionLoading === 'upgrade-enterprise' ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Crown className="h-4 w-4 mr-2" />
-                  )}
-                  Enterprise — {upgradeInterval === 'year' ? '$65.83/mo' : '$79/mo'}
-                </Button>
-              </div>
-              {upgradeInterval === 'year' && (
-                <p className="text-[11px] text-center text-gray-500">Billed annually. 2 months free vs monthly.</p>
-              )}
-            </div>
-          )}
-
-          {/* Enterprise upgrade — show for starter and professional users */}
-          {tier && tier !== 'enterprise' && tier !== 'free' && (
-            <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-amber-600" />
-                <h4 className="font-semibold text-amber-900">Upgrade to Enterprise</h4>
-              </div>
-              <p className="text-xs text-amber-800">Unlock Sponsor Showcase, Sponsor Analytics, auto-generated Media Kit, and branded event pages.</p>
-              <Button
-                onClick={() => handleUpgrade('enterprise')}
-                disabled={actionLoading === 'upgrade-enterprise'}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                {actionLoading === 'upgrade-enterprise' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                )}
-                Upgrade to Enterprise — {upgradeInterval === 'year' ? '$65.83/mo billed yearly' : '$79/mo'}
-              </Button>
-              {upgradeInterval === 'year' && (
-                <p className="text-[11px] text-center text-gray-500">Billed $790/year. 2 months free vs monthly.</p>
               )}
             </div>
           )}
