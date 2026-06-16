@@ -625,26 +625,24 @@ export function SubscriptionManagement() {
             </Button>
           )}
 
-          {/* Sync from Stripe — show when tier is free but user may have paid */}
-          {tier === 'free' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setActionLoading('sync');
-                syncMutation.mutate();
-              }}
-              disabled={actionLoading === 'sync'}
-              className="w-full text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
-            >
-              {actionLoading === 'sync' ? (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3 w-3 mr-1" />
-              )}
-              Already paid? Sync subscription
-            </Button>
-          )}
+          {/* Sync from Stripe — always available to re-sync tier from Stripe */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setActionLoading('sync');
+              syncMutation.mutate();
+            }}
+            disabled={actionLoading === 'sync'}
+            className="w-full text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+          >
+            {actionLoading === 'sync' ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3 mr-1" />
+            )}
+            Sync from Stripe
+          </Button>
 
           {/* View all plans */}
           <Button
