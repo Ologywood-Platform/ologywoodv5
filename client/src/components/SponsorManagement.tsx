@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
-import { Crown, Plus, Trash2, Edit2, GripVertical, ExternalLink, Eye, BarChart3, Loader2, X, Check, Image as ImageIcon } from 'lucide-react';
+import { Crown, Plus, Trash2, Edit2, GripVertical, ExternalLink, Eye, BarChart3, Loader2, X, Check, Image as ImageIcon, Info, Lightbulb, Rocket } from 'lucide-react';
 
 interface SponsorSlot {
   id: number;
@@ -16,6 +16,18 @@ interface SponsorSlot {
   isActive: boolean;
   startDate: string | null;
   endDate: string | null;
+}
+
+function Tip({ text }: { text: string }) {
+  return (
+    <div className="group relative inline-block ml-1">
+      <Info className="h-3.5 w-3.5 text-gray-400 hover:text-amber-600 cursor-help inline" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-56 p-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg shadow-lg">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-white border-b border-r border-gray-200 rotate-45" />
+      </div>
+    </div>
+  );
 }
 
 export function SponsorManagement() {
@@ -129,6 +141,7 @@ export function SponsorManagement() {
           <div className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-amber-600" />
             <CardTitle className="text-lg">Sponsor Showcase</CardTitle>
+            <Tip text="Sponsors you add here will appear on your public profile, event pages, and ticket confirmation emails sent to fans." />
           </div>
           <span className="text-sm text-gray-500">{slotsUsed}/{maxSlots} slots used</span>
         </div>
@@ -179,12 +192,41 @@ export function SponsorManagement() {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Getting Started Card - Empty State */}
         {sponsorList.length === 0 && !showAddForm && (
-          <div className="text-center py-8 border border-dashed border-amber-200 rounded-lg bg-amber-50/50">
-            <Crown className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-            <h3 className="font-medium text-gray-900 mb-1">No sponsors yet</h3>
-            <p className="text-sm text-gray-600 mb-4">Add your sponsors to showcase them on your profile and events.</p>
+          <div className="border border-dashed border-amber-200 rounded-lg bg-amber-50/50 p-6">
+            <div className="text-center mb-5">
+              <Rocket className="h-10 w-10 text-amber-400 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-1">Get Started with Sponsor Showcase</h3>
+              <p className="text-sm text-gray-600">Showcase your brand partners to fans on your profile, event pages, and ticket emails.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+              <div className="bg-white rounded-lg p-3 border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">1</span>
+                  <span className="text-xs font-medium text-gray-800">Add a Sponsor</span>
+                </div>
+                <p className="text-xs text-gray-500">Enter their name, logo URL, and website link.</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">2</span>
+                  <span className="text-xs font-medium text-gray-800">Activate Them</span>
+                </div>
+                <p className="text-xs text-gray-500">Toggle the eye icon to show/hide sponsors publicly.</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center">3</span>
+                  <span className="text-xs font-medium text-gray-800">Track Performance</span>
+                </div>
+                <p className="text-xs text-gray-500">View impressions & clicks in Sponsor Analytics.</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-amber-100 flex items-start gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600"><span className="font-medium">Pro tip:</span> Use a transparent PNG logo (200x200px or larger) for the best display across your profile, events, and emails.</p>
+            </div>
           </div>
         )}
 
@@ -199,7 +241,10 @@ export function SponsorManagement() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-gray-700">Sponsor Name *</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Sponsor Name *
+                  <Tip text="The brand or company name that will display publicly." />
+                </label>
                 <Input
                   value={formData.sponsorName}
                   onChange={(e) => setFormData(prev => ({ ...prev, sponsorName: e.target.value }))}
@@ -208,7 +253,10 @@ export function SponsorManagement() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-700">Logo URL *</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Logo URL *
+                  <Tip text="Direct link to the sponsor's logo image. Use a transparent PNG for best results. Recommended size: 200x200px or larger." />
+                </label>
                 <Input
                   value={formData.sponsorLogoUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, sponsorLogoUrl: e.target.value }))}
@@ -216,7 +264,10 @@ export function SponsorManagement() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-700">Website URL</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Website URL
+                  <Tip text="Where fans go when they click the sponsor logo. Clicks are tracked in your Sponsor Analytics." />
+                </label>
                 <Input
                   value={formData.sponsorWebsite}
                   onChange={(e) => setFormData(prev => ({ ...prev, sponsorWebsite: e.target.value }))}
@@ -224,7 +275,10 @@ export function SponsorManagement() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-700">Description</label>
+                <label className="text-xs font-medium text-gray-700">
+                  Description
+                  <Tip text="Optional internal note about the partnership (not shown publicly)." />
+                </label>
                 <Input
                   value={formData.sponsorDescription}
                   onChange={(e) => setFormData(prev => ({ ...prev, sponsorDescription: e.target.value }))}

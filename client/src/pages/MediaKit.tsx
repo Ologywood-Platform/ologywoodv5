@@ -5,10 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { Crown, FileText, Save, Globe, Eye, EyeOff, Plus, X, Loader2, ArrowLeft, Share2, Copy, Check } from 'lucide-react';
+import { Crown, FileText, Save, Globe, Eye, EyeOff, Plus, X, Loader2, ArrowLeft, Share2, Copy, Check, Info, Lightbulb, Rocket } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/components/ErrorToast';
 import SiteHeader from '@/components/SiteHeader';
+
+function Tip({ text }: { text: string }) {
+  return (
+    <div className="group relative inline-block ml-1">
+      <Info className="h-3.5 w-3.5 text-gray-400 hover:text-amber-600 cursor-help inline" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-60 p-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-lg shadow-lg">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-white border-b border-r border-gray-200 rotate-45" />
+      </div>
+    </div>
+  );
+}
 
 export default function MediaKit() {
   const { user } = useAuth();
@@ -46,6 +58,7 @@ export default function MediaKit() {
 
   const [newAchievement, setNewAchievement] = useState('');
   const [newGenre, setNewGenre] = useState('');
+  const [showGettingStarted, setShowGettingStarted] = useState(true);
 
   useEffect(() => {
     if (mediaKit) {
@@ -61,6 +74,10 @@ export default function MediaKit() {
         genres: mediaKit.genres || [],
         isPublic: mediaKit.isPublic || false,
       });
+      // Hide getting started if they've already filled in some data
+      if (mediaKit.bio || mediaKit.contactEmail || (mediaKit.achievements && mediaKit.achievements.length > 0)) {
+        setShowGettingStarted(false);
+      }
     }
   }, [mediaKit]);
 
@@ -163,6 +180,50 @@ export default function MediaKit() {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Getting Started Card */}
+            {showGettingStarted && (
+              <Card className="border-amber-200 bg-amber-50/30">
+                <CardContent className="pt-6 pb-5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <Rocket className="h-6 w-6 text-amber-500 mt-0.5" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Welcome to Your Media Kit</h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Your media kit is a professional one-page press sheet you can share with potential sponsors, labels, and press contacts.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                          <div className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <p className="text-xs text-gray-600">Fill in your bio, stats, and achievements below</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <p className="text-xs text-gray-600">Add your contact info for booking inquiries</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <p className="text-xs text-gray-600">Toggle to "Public" when ready to share</p>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                            <p className="text-xs text-gray-600">Copy the link and send to sponsors or press</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 bg-white rounded p-2 border border-amber-100">
+                          <Lightbulb className="h-3.5 w-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-gray-600"><span className="font-medium">Tip:</span> Keep your stats updated monthly. Sponsors look for growth trends, not just raw numbers.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowGettingStarted(false)} className="text-gray-400 hover:text-gray-600">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Visibility Toggle */}
             <Card>
               <CardContent className="pt-6">
@@ -174,7 +235,10 @@ export default function MediaKit() {
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     )}
                     <div>
-                      <p className="font-medium text-gray-900">{form.isPublic ? 'Public' : 'Private'}</p>
+                      <p className="font-medium text-gray-900">
+                        {form.isPublic ? 'Public' : 'Private'}
+                        <Tip text="When public, anyone with the link can view your media kit. Keep it private while you're still filling it in." />
+                      </p>
                       <p className="text-xs text-gray-500">
                         {form.isPublic ? 'Anyone with the link can view your media kit' : 'Only you can see your media kit'}
                       </p>
@@ -195,7 +259,10 @@ export default function MediaKit() {
             {/* Bio */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Artist Bio</CardTitle>
+                <CardTitle className="text-lg">
+                  Artist Bio
+                  <Tip text="Write in third person for a professional feel. Focus on your story, sound, and notable accomplishments. This is what press and sponsors will read first." />
+                </CardTitle>
                 <CardDescription>A professional bio for press and sponsors</CardDescription>
               </CardHeader>
               <CardContent>
@@ -214,13 +281,19 @@ export default function MediaKit() {
             {/* Stats */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Key Stats</CardTitle>
+                <CardTitle className="text-lg">
+                  Key Stats
+                  <Tip text="These numbers help sponsors evaluate your reach. Update them monthly for accuracy. Leave blank if you don't have the data yet." />
+                </CardTitle>
                 <CardDescription>Numbers that matter to sponsors</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs font-medium text-gray-700">Monthly Listeners</label>
+                    <label className="text-xs font-medium text-gray-700">
+                      Monthly Listeners
+                      <Tip text="From Spotify for Artists, Apple Music for Artists, or your primary streaming platform." />
+                    </label>
                     <Input
                       type="number"
                       value={form.monthlyListeners}
@@ -229,7 +302,10 @@ export default function MediaKit() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700">Total Streams</label>
+                    <label className="text-xs font-medium text-gray-700">
+                      Total Streams
+                      <Tip text="Combined streams across all platforms and releases. Check your distributor dashboard for this number." />
+                    </label>
                     <Input
                       type="number"
                       value={form.totalStreams}
@@ -238,7 +314,10 @@ export default function MediaKit() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-700">Avg. Event Attendance</label>
+                    <label className="text-xs font-medium text-gray-700">
+                      Avg. Event Attendance
+                      <Tip text="Average number of people at your live shows. Sponsors care about in-person reach too." />
+                    </label>
                     <Input
                       type="number"
                       value={form.averageEventAttendance}
@@ -253,7 +332,10 @@ export default function MediaKit() {
             {/* Genres */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Genres</CardTitle>
+                <CardTitle className="text-lg">
+                  Genres
+                  <Tip text="Add your primary genres so sponsors can quickly understand your audience demographic. Be specific (e.g., 'Neo-Soul' rather than just 'R&B')." />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -286,7 +368,10 @@ export default function MediaKit() {
             {/* Achievements */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Notable Achievements</CardTitle>
+                <CardTitle className="text-lg">
+                  Notable Achievements
+                  <Tip text="Include awards, chart positions, notable collaborations, festival appearances, press features, or streaming milestones. These build credibility with sponsors." />
+                </CardTitle>
                 <CardDescription>Awards, milestones, notable performances</CardDescription>
               </CardHeader>
               <CardContent>
@@ -320,7 +405,10 @@ export default function MediaKit() {
             {/* Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
+                <CardTitle className="text-lg">
+                  Contact Information
+                  <Tip text="These contacts are shown on your public media kit page. Use professional emails — sponsors and press will reach out here." />
+                </CardTitle>
                 <CardDescription>How sponsors and media can reach you</CardDescription>
               </CardHeader>
               <CardContent>

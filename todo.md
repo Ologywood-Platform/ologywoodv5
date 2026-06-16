@@ -3170,3 +3170,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Section 13.5 (Sponsor Showcase and Brand Partnerships) to Terms of Service
 - [x] Update FAQ.tsx subscription answer to mention 4 plans including Enterprise
 - [x] Add Enterprise/Sponsor FAQ entries to FAQ.tsx (3 new Q&As)
+
+## ENTERPRISE TIER - IN-APP TIPS & ONBOARDING (Jun 16, 2026)
+- [x] Add inline tips/tooltips to Sponsor Management (info icons with hover explanations)
+- [x] Add inline tips/tooltips to Sponsor Analytics (what impressions/clicks/CTR mean, how to improve)
+- [x] Add inline tips/tooltips to Media Kit page (what each section does, how to share)
+- [x] Add Getting Started empty-state card to Sponsor Management (first-time guidance)
+- [x] Add Getting Started empty-state card to Sponsor Analytics (no data yet guidance)
+- [x] Add Getting Started empty-state card to Media Kit (first-time setup guidance)
