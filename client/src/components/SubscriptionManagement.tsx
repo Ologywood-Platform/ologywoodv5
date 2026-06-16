@@ -443,7 +443,7 @@ export function SubscriptionManagement() {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Button
                   onClick={() => handleUpgrade('starter')}
                   disabled={actionLoading === 'upgrade-starter'}
@@ -468,6 +468,19 @@ export function SubscriptionManagement() {
                     <Crown className="h-4 w-4 mr-2" />
                   )}
                   Professional — {upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}
+                </Button>
+                <Button
+                  onClick={() => handleUpgrade('enterprise')}
+                  disabled={actionLoading === 'upgrade-enterprise'}
+                  variant="outline"
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  {actionLoading === 'upgrade-enterprise' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Crown className="h-4 w-4 mr-2" />
+                  )}
+                  Enterprise — {upgradeInterval === 'year' ? '$65.83/mo' : '$79/mo'}
                 </Button>
               </div>
               {upgradeInterval === 'year' && (
@@ -505,20 +518,35 @@ export function SubscriptionManagement() {
                   </button>
                 </div>
               </div>
-              <Button
-                onClick={() => handleUpgrade('professional')}
-                disabled={actionLoading === 'upgrade-professional'}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                {actionLoading === 'upgrade-professional' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                )}
-                Upgrade to Professional — {upgradeInterval === 'year' ? '$24.17/mo billed yearly' : '$29/mo'}
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  onClick={() => handleUpgrade('professional')}
+                  disabled={actionLoading === 'upgrade-professional'}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {actionLoading === 'upgrade-professional' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
+                  )}
+                  Professional — {upgradeInterval === 'year' ? '$24.17/mo' : '$29/mo'}
+                </Button>
+                <Button
+                  onClick={() => handleUpgrade('enterprise')}
+                  disabled={actionLoading === 'upgrade-enterprise'}
+                  variant="outline"
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  {actionLoading === 'upgrade-enterprise' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Crown className="h-4 w-4 mr-2" />
+                  )}
+                  Enterprise — {upgradeInterval === 'year' ? '$65.83/mo' : '$79/mo'}
+                </Button>
+              </div>
               {upgradeInterval === 'year' && (
-                <p className="text-[11px] text-center text-gray-500">Billed $290/year. 2 months free vs monthly.</p>
+                <p className="text-[11px] text-center text-gray-500">Billed annually. 2 months free vs monthly.</p>
               )}
             </div>
           )}
