@@ -3251,3 +3251,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Saved artists not showing in venue dashboard Saved tab (merged follows + saved_artists)
 - [x] Fix: Artists tab + Saved tab crashing with "useToastContext must be used within ToastProvider" — SaveArtistButton was using custom ToastProvider context that wasn't in the component tree. Switched to sonner toast which is globally available.
 - [x] Fix: Artist search filter Apply button not working (works on dev, production needs republish)
+
+## MESSAGING UX IMPROVEMENTS (Jun 17, 2026)
+- [x] Add artist/venue profile photos to conversation list in Messages page (replace generic letter avatars)
+  - Venue side: shows artist name + artist profile photo from enriched booking data
+  - Artist side: enriched getMyArtistBookings with venue name + venue profile photo
+  - Both conversation list and chat header show photos with fallback to letter avatar

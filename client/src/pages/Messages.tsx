@@ -124,22 +124,38 @@ export default function Messages() {
 
   // Build conversations from bookings
   useEffect(() => {
-    const allBookings = bookings || venueBookings || [];
     const convos: Conversation[] = [];
 
-    for (const booking of allBookings) {
-      const isArtist = user?.role === 'artist';
-
-      const conversation: Conversation = {
-        id: booking.id,
-        participantId: isArtist ? booking.venueId : booking.artistId,
-        participantName: isArtist ? `Venue #${booking.venueId}` : 'Artist',
-        participantRole: isArtist ? 'venue' : 'artist',
-        bookingId: booking.id,
-        bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
-        unreadCount: 0,
-      };
-      convos.push(conversation);
+    if (user?.role === 'venue' && venueBookings) {
+      // Venue bookings are enriched with artistName and artistPhoto
+      for (const booking of venueBookings) {
+        const conversation: Conversation = {
+          id: booking.id,
+          participantId: booking.artistId,
+          participantName: (booking as any).artistName || `Artist #${booking.artistId}`,
+          participantRole: 'artist',
+          participantPhoto: (booking as any).artistPhoto || undefined,
+          bookingId: booking.id,
+          bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
+          unreadCount: 0,
+        };
+        convos.push(conversation);
+      }
+    } else if (user?.role === 'artist' && bookings) {
+      // Artist bookings — use venueName/venuePhoto if available
+      for (const booking of bookings) {
+        const conversation: Conversation = {
+          id: booking.id,
+          participantId: booking.venueId,
+          participantName: (booking as any).venueName || `Venue #${booking.venueId}`,
+          participantRole: 'venue',
+          participantPhoto: (booking as any).venuePhoto || undefined,
+          bookingId: booking.id,
+          bookingTitle: `Booking - ${new Date(booking.eventDate).toLocaleDateString()}`,
+          unreadCount: 0,
+        };
+        convos.push(conversation);
+      }
     }
 
     setConversations(convos);
@@ -283,11 +299,19 @@ export default function Messages() {
             >
               <div className="flex items-center gap-3">
                 {/* Avatar */}
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-semibold text-primary">
-                    {conversation.participantName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {conversation.participantPhoto ? (
+                  <img
+                    src={conversation.participantPhoto}
+                    alt={conversation.participantName}
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-semibold text-primary">
+                      {conversation.participantName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -334,11 +358,19 @@ export default function Messages() {
         </button>
 
         {/* Avatar */}
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-semibold text-primary">
-            {selectedConversation?.participantName.charAt(0).toUpperCase()}
-          </span>
-        </div>
+        {selectedConversation?.participantPhoto ? (
+          <img
+            src={selectedConversation.participantPhoto}
+            alt={selectedConversation.participantName}
+            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="text-sm font-semibold text-primary">
+              {selectedConversation?.participantName.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-sm truncate">

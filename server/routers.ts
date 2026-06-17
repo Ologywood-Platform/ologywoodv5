@@ -1131,7 +1131,23 @@ export const appRouter = router({
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) return [];
       const bookings = await db.getBookingsByArtistId(profile.id);
-      return bookings || [];
+      if (!bookings || bookings.length === 0) return [];
+      // Enrich bookings with venue name and photo
+      const enrichedBookings = await Promise.all(
+        bookings.map(async (booking) => {
+          let venueName = `Venue #${booking.venueId}`;
+          let venuePhoto: string | null = null;
+          try {
+            const venueProfile = await db.getVenueProfileById(booking.venueId);
+            if (venueProfile) {
+              venueName = venueProfile.organizationName || venueName;
+              venuePhoto = venueProfile.profilePhotoUrl || null;
+            }
+          } catch (_) { /* fallback to default */ }
+          return { ...booking, venueName, venuePhoto };
+        })
+      );
+      return enrichedBookings;
     }),
     
     // Get bookings for current venue
