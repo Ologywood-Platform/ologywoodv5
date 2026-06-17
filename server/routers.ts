@@ -1418,15 +1418,39 @@ export const appRouter = router({
     getSavedArtists: venueProcedure.query(async ({ ctx }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) return [];
+      
+      // Get saved artists from saved_artists table
       const saved = await db.getSavedArtistsByVenueId(venueProfile.id);
-      // Enrich with artist profile data
-      const enriched = await Promise.all(
+      const enrichedSaved = await Promise.all(
         saved.map(async (s) => {
           const artist = await db.getArtistProfileById(s.artistId);
-          return artist ? { ...s, artist } : null;
+          return artist ? { ...s, artist, source: 'saved' as const } : null;
         })
       );
-      return enriched.filter(Boolean);
+      
+      // Also get followed artists from follows table
+      const { getFollowing } = await import('./services/followService');
+      const followedUsers = await getFollowing(ctx.user.id, 100, 0);
+      const followedArtists = followedUsers
+        .filter((f: any) => f.role === 'artist' && f.profileId)
+        .map((f: any) => ({
+          id: f.id,
+          artistId: f.profileId,
+          source: 'followed' as const,
+        }));
+      
+      // Enrich followed artists with full profile data (skip duplicates already in saved)
+      const savedArtistIds = new Set(saved.map(s => s.artistId));
+      const enrichedFollowed = await Promise.all(
+        followedArtists
+          .filter((f: any) => !savedArtistIds.has(f.artistId))
+          .map(async (f: any) => {
+            const artist = await db.getArtistProfileById(f.artistId);
+            return artist ? { ...f, artist, source: 'followed' as const } : null;
+          })
+      );
+      
+      return [...enrichedSaved.filter(Boolean), ...enrichedFollowed.filter(Boolean)];
     }),
 
     isArtistSaved: venueProcedure

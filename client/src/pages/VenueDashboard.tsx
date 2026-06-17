@@ -1700,8 +1700,8 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
       <Card>
         <CardContent className="py-12 text-center">
           <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-700 mb-2">No Saved Artists Yet</h3>
-          <p className="text-gray-500 mb-4">Browse artists and tap the heart icon to save them for quick rebooking.</p>
+          <h3 className="text-lg font-medium text-gray-700 mb-2">No Saved or Followed Artists Yet</h3>
+          <p className="text-gray-500 mb-4">Browse artists and tap the heart icon to save them, or follow artists from their profiles.</p>
           <Button
             variant="outline"
             onClick={() => navigate('/browse')}
@@ -1720,7 +1720,7 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Heart className="h-5 w-5 text-red-500 fill-current" />
-          Saved Artists ({savedArtists.length})
+          Saved & Followed Artists ({savedArtists.length})
         </h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1746,6 +1746,9 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
                     <h4 className="font-medium truncate">{artist.artistName}</h4>
                     <p className="text-sm text-gray-500 truncate">{artist.genre || 'No genre'}</p>
                     <p className="text-sm text-gray-400 truncate">{artist.location || 'No location'}</p>
+                    {item.source === 'followed' && (
+                      <span className="inline-block text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">Following</span>
+                    )}
                     {artist.minimumFee && (
                       <p className="text-sm font-medium text-green-600 mt-1">${artist.minimumFee}+</p>
                     )}

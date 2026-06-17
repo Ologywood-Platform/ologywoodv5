@@ -3246,3 +3246,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add tier/category filter to Sponsor Opportunities browse page
 - [x] Add validation: block contract signing if Performance Fee is $0 or empty
 - [x] Allow venue to set/override the performance fee before payment if artist didn't set one
+
+## VENUE DASHBOARD BUGS
+- [x] Fix: Saved artists not showing in venue dashboard Saved tab (merged follows + saved_artists)
+- [x] Fix: Artists tab crashing/showing error on venue dashboard (production needs republish with latest code)
+- [x] Fix: Artist search filter Apply button not working (works on dev, production needs republish)
