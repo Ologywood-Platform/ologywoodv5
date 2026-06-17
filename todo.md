@@ -3257,3 +3257,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Venue side: shows artist name + artist profile photo from enriched booking data
   - Artist side: enriched getMyArtistBookings with venue name + venue profile photo
   - Both conversation list and chat header show photos with fallback to letter avatar
+
+## MOBILE UI BUGS (Jun 17, 2026)
+- [x] Fix Artist Dashboard profile card: "Edit Profile" button overlaps with artist name on mobile (Android)
+  - Changed layout to flex-col on mobile, flex-row on sm+
+  - Added min-w-0 and break-words to prevent text overflow
+  - Added flex-shrink-0 to Edit Profile button

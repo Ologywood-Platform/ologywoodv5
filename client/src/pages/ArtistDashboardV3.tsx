@@ -170,18 +170,18 @@ export function ArtistDashboardV3() {
             {/* Profile Card */}
             <Card>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex items-center gap-4 min-w-0">
                     {artistProfile?.profilePhotoUrl && (
                       <img
                         src={artistProfile.profilePhotoUrl}
                         alt={artistProfile.artistName || 'Artist'}
-                        className="w-16 h-16 rounded-lg object-cover"
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                       />
                     )}
-                    <div>
-                      <CardTitle className="text-2xl">{artistProfile?.artistName || 'Artist'}</CardTitle>
-                      <CardDescription>{artistProfile?.genre || 'Genre not specified'}</CardDescription>
+                    <div className="min-w-0">
+                      <CardTitle className="text-xl sm:text-2xl break-words">{artistProfile?.artistName || 'Artist'}</CardTitle>
+                      <CardDescription className="break-words">{artistProfile?.genre || 'Genre not specified'}</CardDescription>
                       {artistProfile && (artistProfile as any)?.averageRating && (
                         <div className="flex items-center gap-1 mt-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -194,7 +194,7 @@ export function ArtistDashboardV3() {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate('/profile/edit')}
-                    className="gap-2"
+                    className="gap-2 flex-shrink-0 self-start"
                   >
                     <Settings className="h-4 w-4" />
                     Edit Profile
