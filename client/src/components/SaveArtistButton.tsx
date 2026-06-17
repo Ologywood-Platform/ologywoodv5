@@ -1,7 +1,7 @@
 import { Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { trpc } from '../lib/trpc';
-import { useToastContext } from './ErrorToast';
+import { toast } from 'sonner';
 
 interface SaveArtistButtonProps {
   artistId: number;
@@ -9,7 +9,6 @@ interface SaveArtistButtonProps {
 }
 
 export default function SaveArtistButton({ artistId, size = 'sm' }: SaveArtistButtonProps) {
-  const toast = useToastContext();
   const utils = trpc.useUtils();
   
   const { data: savedStatus } = trpc.booking.isArtistSaved.useQuery(
@@ -21,7 +20,7 @@ export default function SaveArtistButton({ artistId, size = 'sm' }: SaveArtistBu
     onSuccess: () => {
       utils.booking.isArtistSaved.invalidate({ artistId });
       utils.booking.getSavedArtists.invalidate();
-      toast.addSuccess('Artist saved', 'Added to your saved artists');
+      toast.success('Artist saved');
     },
   });
 
@@ -29,7 +28,7 @@ export default function SaveArtistButton({ artistId, size = 'sm' }: SaveArtistBu
     onSuccess: () => {
       utils.booking.isArtistSaved.invalidate({ artistId });
       utils.booking.getSavedArtists.invalidate();
-      toast.addSuccess('Artist removed', 'Removed from saved artists');
+      toast.success('Artist removed');
     },
   });
 

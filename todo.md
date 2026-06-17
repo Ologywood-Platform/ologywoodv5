@@ -3249,5 +3249,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## VENUE DASHBOARD BUGS
 - [x] Fix: Saved artists not showing in venue dashboard Saved tab (merged follows + saved_artists)
-- [x] Fix: Artists tab crashing/showing error on venue dashboard (production needs republish with latest code)
+- [x] Fix: Artists tab + Saved tab crashing with "useToastContext must be used within ToastProvider" — SaveArtistButton was using custom ToastProvider context that wasn't in the component tree. Switched to sonner toast which is globally available.
 - [x] Fix: Artist search filter Apply button not working (works on dev, production needs republish)
