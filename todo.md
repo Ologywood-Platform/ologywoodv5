@@ -3217,3 +3217,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update venue profile editing to use new structured components
 - [x] Update venue browse/filter to support city/state filtering
 - [x] Fix messaging input bug: can only type 1 character at a time, page scrolls to top on each keystroke (Messages page)
+
+## VENUE SPONSORSHIP FEATURE
+- [x] Schema: venue_sponsor_packages, venue_sponsor_applications, venue_active_sponsors tables
+- [x] TRPC router: full CRUD for packages, applications, public browse, stats
+- [x] Venue Dashboard: Sponsors tab with package management, application review, active sponsors
+- [x] Public: Sponsor Opportunities browse page with application form
+- [x] Integration: Sponsors section on Venue Profile page showing active sponsors
+- [x] Navigation: Sponsors link in SiteHeader (desktop + mobile)
+- [x] Tests: Schema and router tests passing

@@ -39,6 +39,7 @@ import { ticketingRouter } from "./routers/ticketing";
 import { touringRouter } from "./routers/touring";
 import { referralRouter } from "./routers/referral";
 import { sponsorRouter } from "./routers/sponsor";
+import { venueSponsorRouter } from "./routers/venueSponsor";
 import { merchRouter } from "./routers/merch";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { newsletterLimiter } from "./utils/rateLimiter";
@@ -132,6 +133,7 @@ export const appRouter = router({
   touring: touringRouter,
   referral: referralRouter,
   sponsor: sponsorRouter,
+  venueSponsor: venueSponsorRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

@@ -1683,3 +1683,87 @@ export const mediaKits = mysqlTable("media_kits", {
 }));
 export type MediaKit = typeof mediaKits.$inferSelect;
 export type InsertMediaKit = typeof mediaKits.$inferInsert;
+
+
+/**
+ * Venue Sponsor Packages — venues define sponsorship opportunities they offer
+ */
+export const venueSponsorPackages = mysqlTable("venue_sponsor_packages", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  name: varchar("name", { length: 200 }).notNull(), // e.g. "Main Stage Banner", "Bar Sponsor"
+  description: text("description"),
+  packageType: mysqlEnum("packageType", ["title_sponsor", "stage_sponsor", "bar_sponsor", "digital_signage", "event_mention", "custom"]).notNull().default("custom"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  duration: mysqlEnum("duration", ["per_event", "weekly", "monthly", "quarterly", "yearly"]).notNull().default("monthly"),
+  benefits: json("benefits").$type<string[]>(), // List of what the sponsor gets
+  maxSlots: int("maxSlots").notNull().default(1), // How many sponsors can fill this package
+  filledSlots: int("filledSlots").notNull().default(0),
+  isActive: boolean("isActive").notNull().default(true),
+  imageUrl: varchar("imageUrl", { length: 512 }), // Example placement photo
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_venue_sponsor_packages_venue").on(table.venueId),
+  activeIdx: index("idx_venue_sponsor_packages_active").on(table.venueId, table.isActive),
+  typeIdx: index("idx_venue_sponsor_packages_type").on(table.packageType),
+}));
+export type VenueSponsorPackage = typeof venueSponsorPackages.$inferSelect;
+export type InsertVenueSponsorPackage = typeof venueSponsorPackages.$inferInsert;
+
+/**
+ * Venue Sponsor Applications — brands/businesses apply to sponsor a venue
+ */
+export const venueSponsorApplications = mysqlTable("venue_sponsor_applications", {
+  id: int("id").autoincrement().primaryKey(),
+  packageId: int("packageId").notNull(),
+  venueId: int("venueId").notNull(),
+  applicantUserId: int("applicantUserId"), // If the applicant is a registered user
+  companyName: varchar("companyName", { length: 200 }).notNull(),
+  contactName: varchar("contactName", { length: 200 }).notNull(),
+  contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+  contactPhone: varchar("contactPhone", { length: 50 }),
+  companyWebsite: varchar("companyWebsite", { length: 512 }),
+  companyLogoUrl: varchar("companyLogoUrl", { length: 512 }),
+  message: text("message"), // Why they want to sponsor
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "expired"]).notNull().default("pending"),
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  reviewedAt: timestamp("reviewedAt"),
+  reviewNotes: text("reviewNotes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  packageIdx: index("idx_venue_sponsor_apps_package").on(table.packageId),
+  venueIdx: index("idx_venue_sponsor_apps_venue").on(table.venueId),
+  statusIdx: index("idx_venue_sponsor_apps_status").on(table.venueId, table.status),
+  applicantIdx: index("idx_venue_sponsor_apps_applicant").on(table.applicantUserId),
+}));
+export type VenueSponsorApplication = typeof venueSponsorApplications.$inferSelect;
+export type InsertVenueSponsorApplication = typeof venueSponsorApplications.$inferInsert;
+
+/**
+ * Active Venue Sponsors — approved sponsors currently displayed at the venue
+ */
+export const venueActiveSponsors = mysqlTable("venue_active_sponsors", {
+  id: int("id").autoincrement().primaryKey(),
+  venueId: int("venueId").notNull(),
+  packageId: int("packageId").notNull(),
+  applicationId: int("applicationId").notNull(),
+  companyName: varchar("companyName", { length: 200 }).notNull(),
+  companyLogoUrl: varchar("companyLogoUrl", { length: 512 }).notNull(),
+  companyWebsite: varchar("companyWebsite", { length: 512 }),
+  companyDescription: varchar("companyDescription", { length: 500 }),
+  displayOrder: int("displayOrder").notNull().default(0),
+  isActive: boolean("isActive").notNull().default(true),
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  venueIdx: index("idx_venue_active_sponsors_venue").on(table.venueId),
+  activeIdx: index("idx_venue_active_sponsors_active").on(table.venueId, table.isActive),
+  packageIdx: index("idx_venue_active_sponsors_package").on(table.packageId),
+}));
+export type VenueActiveSponsor = typeof venueActiveSponsors.$inferSelect;
+export type InsertVenueActiveSponsor = typeof venueActiveSponsors.$inferInsert;

@@ -53,6 +53,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const SponsorAnalytics = lazy(() => import("./pages/SponsorAnalytics"));
+const SponsorOpportunities = lazy(() => import("./pages/SponsorOpportunities"));
 const MediaKit = lazy(() => import("./pages/MediaKit"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe").then(m => ({ default: m.Unsubscribe })));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
@@ -197,6 +198,7 @@ function Router() {
           {/* How It Works */}
           <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/pricing" component={Pricing} />
+          <Route path="/sponsor-opportunities" component={SponsorOpportunities} />
           <Route path="/sponsor-analytics" component={SponsorAnalytics} />
           <Route path="/media-kit" component={MediaKit} />
           <Route path="/contact" component={Contact} />

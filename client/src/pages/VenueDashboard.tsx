@@ -7,7 +7,7 @@ import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone, BarChart3, ShoppingBag } from 'lucide-react';
+import { AlertCircle, CheckCircle, Settings, Calendar, CalendarDays as CalendarIcon, Users, Plus, Edit2, Eye, ClipboardList, X, DollarSign, FileText, Camera, Upload, Loader2, ImageIcon, Trash2, GripVertical, Pencil, ExternalLink, Heart, Megaphone, BarChart3, ShoppingBag, Handshake } from 'lucide-react';
 import { toast } from 'sonner';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import { Skeleton } from '../components/ui/skeleton';
@@ -19,6 +19,7 @@ import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
 import DashboardAnalyticsCards from '../components/DashboardAnalyticsCards';
+import VenueSponsorManagement from '../components/VenueSponsorManagement';
 import BookingFunnel from '../components/BookingFunnel';
 import { LocationInput } from '../components/LocationInput';
 import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
@@ -396,6 +397,10 @@ export function VenueDashboard() {
             <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="truncate">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="sponsors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
+              <Handshake className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="truncate">Sponsors</span>
             </TabsTrigger>
             <TabsTrigger value="profile" id="venue-profile-tab" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-1 sm:px-3 py-2">
               <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -1061,6 +1066,11 @@ export function VenueDashboard() {
           <TabsContent value="analytics" className="space-y-6">
             <VenueAnalytics venueId={profile?.id || 0} bookings={bookings || []} />
             <BookingFunnel venueId={profile?.id || 0} />
+          </TabsContent>
+
+          {/* Sponsors Tab */}
+          <TabsContent value="sponsors" className="space-y-4">
+            <VenueSponsorManagement />
           </TabsContent>
 
           {/* Profile Tab */}

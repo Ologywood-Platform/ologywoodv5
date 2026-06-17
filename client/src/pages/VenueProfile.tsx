@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Handshake, ExternalLink as ExtLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check, MessageSquare, Send, Loader2, CalendarDays } from 'lucide-react';
@@ -363,6 +364,9 @@ export default function VenueProfile() {
 
         {/* Upcoming Events */}
         <VenueUpcomingEvents venueId={venueId} />
+
+        {/* Venue Sponsors */}
+        <VenueSponsorsSection venueId={venueId} />
 
         {/* Photo Gallery */}
         {(() => {
@@ -853,6 +857,57 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
             </div>
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+
+function VenueSponsorsSection({ venueId }: { venueId: number }) {
+  const { data: sponsors } = trpc.venueSponsor.getPublicSponsors.useQuery(
+    { venueId },
+    { enabled: venueId > 0 }
+  );
+
+  if (!sponsors || sponsors.length === 0) return null;
+
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Handshake className="h-5 w-5" />
+          Our Sponsors
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {sponsors.map(sponsor => (
+            <div key={sponsor.id} className="flex flex-col items-center text-center p-3 rounded-lg border hover:shadow-sm transition-shadow">
+              {sponsor.companyLogoUrl ? (
+                <img
+                  src={sponsor.companyLogoUrl}
+                  alt={sponsor.companyName}
+                  className="w-12 h-12 rounded object-contain mb-2"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center mb-2">
+                  <span className="text-lg font-bold text-primary">{sponsor.companyName.charAt(0)}</span>
+                </div>
+              )}
+              <p className="text-xs font-medium truncate w-full">{sponsor.companyName}</p>
+              {sponsor.companyWebsite && (
+                <a
+                  href={sponsor.companyWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-primary hover:underline mt-1 flex items-center gap-0.5"
+                >
+                  <ExtLink className="h-2.5 w-2.5" /> Visit
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

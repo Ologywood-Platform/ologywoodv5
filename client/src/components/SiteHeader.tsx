@@ -144,6 +144,12 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
               </Button>
             </Link>
 
+            <Link href="/sponsor-opportunities">
+              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/sponsor-opportunities' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Sponsors
+              </Button>
+            </Link>
+
             {isAuthenticated ? (
               <>
                 <Link href="/following">
@@ -308,6 +314,12 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             <Link href="/blog" onClick={closeMobile} className="block">
               <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/blog' || location.startsWith('/blog/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Blog
+              </Button>
+            </Link>
+
+            <Link href="/sponsor-opportunities" onClick={closeMobile} className="block">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/sponsor-opportunities' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Sponsors
               </Button>
             </Link>
 
