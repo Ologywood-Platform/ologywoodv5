@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -145,7 +145,8 @@ export default function Messages() {
     setConversations(convos);
   }, [bookings, venueBookings, user?.role]);
 
-  // Update messages when selectedMessages changes
+  // Update messages when selectedMessages changes — use stable comparison to avoid unnecessary re-renders
+  const prevMessagesJsonRef = useRef('');
   useEffect(() => {
     if (selectedMessages && selectedMessages.length > 0) {
       const formattedMessages = selectedMessages.map((msg: any) => ({
@@ -158,8 +159,14 @@ export default function Messages() {
         timestamp: msg.sentAt || msg.createdAt,
         read: msg.readAt !== null,
       }));
-      setMessages(formattedMessages);
-    } else {
+      // Only update state if messages actually changed (prevents re-render on identical poll results)
+      const newJson = JSON.stringify(formattedMessages.map(m => m.id + m.content));
+      if (newJson !== prevMessagesJsonRef.current) {
+        prevMessagesJsonRef.current = newJson;
+        setMessages(formattedMessages);
+      }
+    } else if (prevMessagesJsonRef.current !== '[]') {
+      prevMessagesJsonRef.current = '[]';
       setMessages([]);
     }
   }, [selectedMessages, user?.id]);
@@ -179,12 +186,16 @@ export default function Messages() {
     }
   }, [messages]);
 
-  // Polling for real-time message updates
+  // Polling for real-time message updates — only poll when input is NOT focused
+  const inputFocusedRef = useRef(false);
   useEffect(() => {
     if (!selectedConversation?.bookingId) return;
     const pollInterval = setInterval(() => {
-      refetchMessages();
-    }, 2000);
+      // Skip polling while user is actively typing to prevent re-renders
+      if (!inputFocusedRef.current) {
+        refetchMessages();
+      }
+    }, 3000);
     return () => clearInterval(pollInterval);
   }, [selectedConversation?.bookingId, refetchMessages]);
 
@@ -510,6 +521,8 @@ export default function Messages() {
             placeholder="Type a message..."
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
+            onFocus={() => { inputFocusedRef.current = true; }}
+            onBlur={() => { inputFocusedRef.current = false; }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

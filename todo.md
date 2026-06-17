@@ -3216,3 +3216,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update VenueOnboarding to use new LocationInput and OperatingHoursEditor
 - [x] Update venue profile editing to use new structured components
 - [x] Update venue browse/filter to support city/state filtering
+- [x] Fix messaging input bug: can only type 1 character at a time, page scrolls to top on each keystroke (Messages page)
