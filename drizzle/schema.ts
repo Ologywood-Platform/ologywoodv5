@@ -1725,6 +1725,7 @@ export const venueSponsorApplications = mysqlTable("venue_sponsor_applications",
   contactPhone: varchar("contactPhone", { length: 50 }),
   companyWebsite: varchar("companyWebsite", { length: 512 }),
   companyLogoUrl: varchar("companyLogoUrl", { length: 512 }),
+  promoMaterialUrls: json("promoMaterialUrls").$type<string[]>(), // URLs to promo images/PDFs
   message: text("message"), // Why they want to sponsor
   status: mysqlEnum("status", ["pending", "approved", "rejected", "expired"]).notNull().default("pending"),
   startDate: timestamp("startDate"),

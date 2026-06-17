@@ -3226,3 +3226,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Integration: Sponsors section on Venue Profile page showing active sponsors
 - [x] Navigation: Sponsors link in SiteHeader (desktop + mobile)
 - [x] Tests: Schema and router tests passing
+
+## VENUE SPONSORSHIP ENHANCEMENTS
+- [x] Add search bar to Sponsor Opportunities browse page (search by venue name, package name)
+- [x] Add price sorting (low-to-high, high-to-low) to Sponsor Opportunities browse page
+- [x] Add company logo upload for sponsor applications and active sponsor profiles
+- [x] Add promo materials upload for sponsors (PDFs, images)
+- [x] Add in-app notification when a sponsor submits an application (notify venue)
+- [x] Add in-app notification when application is approved/rejected (notify sponsor applicant)

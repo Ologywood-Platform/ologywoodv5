@@ -397,3 +397,47 @@ export async function notifyRiderRevisionRejected(params: {
     `/bookings/${params.bookingId}`
   );
 }
+
+// ============= SPONSOR NOTIFICATIONS =============
+
+export async function notifySponsorApplicationReceived(params: {
+  venueUserId: number;
+  companyName: string;
+  packageName: string;
+}): Promise<void> {
+  await notify(
+    params.venueUserId,
+    "booking", // reuse booking type
+    "New Sponsor Application",
+    `${params.companyName} applied for your "${params.packageName}" sponsorship package. Review their application.`,
+    "/dashboard?tab=sponsors"
+  );
+}
+
+export async function notifySponsorApplicationApproved(params: {
+  applicantUserId: number;
+  venueName: string;
+  packageName: string;
+}): Promise<void> {
+  await notify(
+    params.applicantUserId,
+    "booking",
+    "Sponsorship Approved!",
+    `Your sponsorship application for "${params.packageName}" at ${params.venueName} has been approved. Welcome aboard!`,
+    "/sponsor-opportunities"
+  );
+}
+
+export async function notifySponsorApplicationRejected(params: {
+  applicantUserId: number;
+  venueName: string;
+  packageName: string;
+}): Promise<void> {
+  await notify(
+    params.applicantUserId,
+    "booking",
+    "Sponsorship Application Update",
+    `Your sponsorship application for "${params.packageName}" at ${params.venueName} was not approved at this time.`,
+    "/sponsor-opportunities"
+  );
+}

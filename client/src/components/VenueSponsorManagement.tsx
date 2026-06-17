@@ -480,6 +480,22 @@ export default function VenueSponsorManagement() {
                             <ExternalLink className="h-3 w-3" /> {app.companyWebsite}
                           </a>
                         )}
+                        {/* Logo & Promo Materials */}
+                        {(app.companyLogoUrl || (app as any).promoMaterialUrls?.length > 0) && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {app.companyLogoUrl && (
+                              <div className="flex items-center gap-2 bg-muted/50 rounded px-2 py-1">
+                                <img src={app.companyLogoUrl} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                                <span className="text-[10px] text-muted-foreground">Logo</span>
+                              </div>
+                            )}
+                            {(app as any).promoMaterialUrls?.map((url: string, idx: number) => (
+                              <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 bg-muted/50 rounded px-2 py-1 text-[10px] text-primary hover:underline">
+                                {url.endsWith('.pdf') ? '📄' : '🖼️'} Material {idx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       {app.status === 'pending' && (
                         <div className="flex gap-1">

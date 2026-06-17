@@ -1,0 +1,1 @@
+ALTER TABLE `venue_sponsor_applications` ADD `promoMaterialUrls` json;

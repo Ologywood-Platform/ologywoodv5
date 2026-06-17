@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { venueSponsorPackages, venueSponsorApplications, venueActiveSponsors, venueProfiles } from "../../drizzle/schema";
 import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
+import { notifySponsorApplicationReceived, notifySponsorApplicationApproved, notifySponsorApplicationRejected } from "../services/notificationService";
 
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -252,6 +253,21 @@ export const venueSponsorRouter = router({
         .set({ filledSlots: pkg.filledSlots + 1 })
         .where(eq(venueSponsorPackages.id, application.packageId));
 
+      // Notify the applicant if they are a registered user
+      if (application.applicantUserId) {
+        // Get venue name for the notification
+        const [venueProfile] = await db
+          .select({ organizationName: venueProfiles.organizationName })
+          .from(venueProfiles)
+          .where(eq(venueProfiles.userId, ctx.user.id))
+          .limit(1);
+        notifySponsorApplicationApproved({
+          applicantUserId: application.applicantUserId,
+          venueName: venueProfile?.organizationName || 'A venue',
+          packageName: pkg.name,
+        });
+      }
+
       return { message: 'Application approved. Sponsor is now active.' };
     }),
 
@@ -287,6 +303,20 @@ export const venueSponsorRouter = router({
           reviewNotes: input.reviewNotes || null,
         })
         .where(eq(venueSponsorApplications.id, input.applicationId));
+
+      // Notify the applicant if they are a registered user
+      if (application.applicantUserId) {
+        const [venueProfile] = await db
+          .select({ organizationName: venueProfiles.organizationName })
+          .from(venueProfiles)
+          .where(eq(venueProfiles.userId, ctx.user.id))
+          .limit(1);
+        notifySponsorApplicationRejected({
+          applicantUserId: application.applicantUserId,
+          venueName: venueProfile?.organizationName || 'A venue',
+          packageName: 'sponsorship', // Generic since we don't fetch pkg here
+        });
+      }
 
       return { message: 'Application rejected' };
     }),
@@ -417,6 +447,7 @@ export const venueSponsorRouter = router({
       contactPhone: z.string().max(50).optional(),
       companyWebsite: z.string().url().max(512).optional(),
       companyLogoUrl: z.string().url().max(512).optional(),
+      promoMaterialUrls: z.array(z.string().url()).max(5).optional(),
       message: z.string().max(2000).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -449,7 +480,15 @@ export const venueSponsorRouter = router({
         contactPhone: input.contactPhone || null,
         companyWebsite: input.companyWebsite || null,
         companyLogoUrl: input.companyLogoUrl || null,
+        promoMaterialUrls: input.promoMaterialUrls || null,
         message: input.message || null,
+      });
+
+      // Notify the venue owner about the new application
+      notifySponsorApplicationReceived({
+        venueUserId: pkg.venueId,
+        companyName: input.companyName,
+        packageName: pkg.name,
       });
 
       return { id: result[0].insertId, message: 'Application submitted successfully. The venue will review your request.' };
