@@ -3207,3 +3207,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Adonis (userId 7) tier updated to 'enterprise' with status 'active'
 - [x] Verified webhook handler and syncFromStripe logic is correct (code was fine, DB was the issue)
 - [x] Fixed email templates linking to /artist-dashboard (404) — changed to /dashboard (correct route)
+- [x] Fixed venue profile creation failure - venue_profiles table missing 9 columns (mediaGallery, website, email, venueType, amenities, listingViews, emailVerified, profileCompletionScore, profileCompletionUpdatedAt)
+- [x] Fixed merch_items table missing columns (userType, priceDisplay, externalUrl, imageUrls, isActive)
