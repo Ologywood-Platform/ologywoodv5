@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, Clock, CreditCard, DollarSign, ArrowRight, Shield, Banknote } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { AlertCircle, CheckCircle2, Clock, CreditCard, DollarSign, ArrowRight, Shield, Banknote, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
@@ -29,17 +30,36 @@ export default function PaymentSection({
   finalPaidAt,
 }: PaymentSectionProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showFeeOverride, setShowFeeOverride] = useState(false);
+  const [overrideFee, setOverrideFee] = useState('');
+  const [effectiveFee, setEffectiveFee] = useState(totalFee);
 
   // tRPC mutations for Stripe checkout
   const depositCheckout = trpc.payment.createDepositCheckout.useMutation();
   const fullPaymentCheckout = trpc.payment.createFullPaymentCheckout.useMutation();
+  const setPerformanceFee = trpc.riderContract.setPerformanceFee.useMutation({
+    onSuccess: (data) => {
+      const newFee = parseFloat(overrideFee);
+      setEffectiveFee(newFee);
+      setShowFeeOverride(false);
+      toast.success(`Performance fee set to $${newFee.toFixed(2)}`);
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to set fee');
+    },
+  });
 
   // Calculate amounts
-  const deposit = depositAmount || Math.round(totalFee / 2 * 100) / 100;
-  const remaining = Math.round((totalFee - deposit) * 100) / 100;
+  const fee = effectiveFee || totalFee;
+  const deposit = depositAmount || Math.round(fee / 2 * 100) / 100;
+  const remaining = Math.round((fee - deposit) * 100) / 100;
 
   // Handle Stripe checkout redirect
   const handlePayment = async (paymentType: 'deposit' | 'final') => {
+    if (fee <= 0) {
+      toast.error('Performance fee must be set before making a payment. Please set the fee first.');
+      return;
+    }
     setIsProcessing(true);
     try {
       const mutation = paymentType === 'deposit' ? depositCheckout : fullPaymentCheckout;
@@ -56,6 +76,15 @@ export default function PaymentSection({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleSetFee = () => {
+    const feeValue = parseFloat(overrideFee);
+    if (!feeValue || feeValue <= 0) {
+      toast.error('Please enter a valid fee amount');
+      return;
+    }
+    setPerformanceFee.mutate({ bookingId, performanceFee: feeValue });
   };
 
   // Payment status badge
@@ -144,11 +173,70 @@ export default function PaymentSection({
 
       <CardContent className="space-y-6">
         <StripeTestModeBanner />
+
+        {/* Fee Not Set Warning + Override */}
+        {fee <= 0 && paymentStatus === 'unpaid' && (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Performance Fee Not Set</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  The artist hasn't set a performance fee in their rider. {isVenue ? 'You can set the agreed fee below to enable payments.' : 'Please edit your rider and add a performance fee to enable payments.'}
+                </p>
+              </div>
+            </div>
+            {isVenue && !showFeeOverride && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowFeeOverride(true)}
+              >
+                <Edit2 className="h-3.5 w-3.5" />
+                Set Agreed Fee
+              </Button>
+            )}
+            {isVenue && showFeeOverride && (
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-amber-800 mb-1 block">Performance Fee (USD)</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="0.01"
+                    placeholder="e.g., 500"
+                    value={overrideFee}
+                    onChange={(e) => setOverrideFee(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleSetFee}
+                  disabled={setPerformanceFee.isPending}
+                  className="h-9"
+                >
+                  {setPerformanceFee.isPending ? 'Saving...' : 'Confirm Fee'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowFeeOverride(false)}
+                  className="h-9"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Payment Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 bg-gray-50 rounded-lg text-center">
             <div className="text-xs text-gray-500 mb-1">Total Fee</div>
-            <div className="text-lg font-bold">${totalFee.toFixed(2)}</div>
+            <div className="text-lg font-bold">${fee.toFixed(2)}</div>
           </div>
           <div className={`p-3 rounded-lg text-center ${paymentStatus === 'deposit_paid' || paymentStatus === 'fully_paid' ? 'bg-green-50' : 'bg-gray-50'}`}>
             <div className="text-xs text-gray-500 mb-1">Deposit (50%)</div>
@@ -214,7 +302,7 @@ export default function PaymentSection({
         {isVenue && (
           <div className="space-y-3">
             {/* Pay Deposit Button */}
-            {paymentStatus === 'unpaid' && bookingStatus !== 'pending' && (
+            {paymentStatus === 'unpaid' && bookingStatus !== 'pending' && fee > 0 && (
               <Button
                 onClick={() => handlePayment('deposit')}
                 disabled={isProcessing}
@@ -287,7 +375,7 @@ export default function PaymentSection({
               </div>
             )}
 
-            {paymentStatus === 'unpaid' && bookingStatus !== 'pending' && (
+            {paymentStatus === 'unpaid' && bookingStatus !== 'pending' && fee > 0 && (
               <div className="flex gap-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
                 <DollarSign className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <p>Booking accepted. Waiting for the venue to pay the 50% deposit (${deposit.toFixed(2)}).</p>
@@ -308,7 +396,7 @@ export default function PaymentSection({
               <div className="flex gap-2 p-3 bg-green-50 rounded-lg text-sm text-green-700">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Fully paid — ${totalFee.toFixed(2)}</p>
+                  <p className="font-medium">Fully paid — ${fee.toFixed(2)}</p>
                   <p className="mt-1">All payments received. Funds will be deposited to your connected Stripe account.</p>
                 </div>
               </div>

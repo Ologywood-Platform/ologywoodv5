@@ -53,6 +53,8 @@ export default function VenueSponsorManagement() {
     name: '',
     description: '',
     packageType: 'custom' as PackageType,
+    tier: 'custom' as string,
+    category: '' as string,
     price: '',
     duration: 'monthly' as Duration,
     benefits: [''],
@@ -126,6 +128,8 @@ export default function VenueSponsorManagement() {
       name: '',
       description: '',
       packageType: 'custom',
+      tier: 'custom',
+      category: '',
       price: '',
       duration: 'monthly',
       benefits: [''],
@@ -140,6 +144,8 @@ export default function VenueSponsorManagement() {
       name: formData.name,
       description: formData.description || undefined,
       packageType: formData.packageType,
+      tier: (formData.tier || undefined) as "custom" | "bronze" | "silver" | "gold" | "platinum" | undefined,
+      category: formData.category || undefined,
       price: formData.price,
       duration: formData.duration,
       benefits: filteredBenefits.length > 0 ? filteredBenefits : undefined,
@@ -280,6 +286,8 @@ export default function VenueSponsorManagement() {
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="text-sm font-semibold">{pkg.name}</h4>
                         <Badge variant="outline" className="text-[10px]">{PACKAGE_TYPE_LABELS[pkg.packageType as PackageType]}</Badge>
+                        {(pkg as any).tier && (pkg as any).tier !== 'custom' && <Badge className="text-[10px] capitalize">{(pkg as any).tier}</Badge>}
+                        {(pkg as any).category && <Badge variant="secondary" className="text-[10px]">{(pkg as any).category}</Badge>}
                         {!pkg.isActive && <Badge variant="destructive" className="text-[10px]">Inactive</Badge>}
                       </div>
                       <p className="text-xs text-muted-foreground mb-2">{pkg.description || 'No description'}</p>
@@ -385,6 +393,31 @@ export default function VenueSponsorManagement() {
                       <option key={key} value={key}>{label}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Tier</label>
+                  <select
+                    value={formData.tier}
+                    onChange={e => setFormData(prev => ({ ...prev, tier: e.target.value }))}
+                    className="w-full mt-1 p-2 border rounded-md text-sm bg-background"
+                  >
+                    <option value="platinum">Platinum</option>
+                    <option value="gold">Gold</option>
+                    <option value="silver">Silver</option>
+                    <option value="bronze">Bronze</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Category</label>
+                  <Input
+                    value={formData.category}
+                    onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    placeholder="e.g. Food & Beverage, Tech, Music"
+                  />
                 </div>
               </div>
 

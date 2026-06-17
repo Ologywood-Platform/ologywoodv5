@@ -37,6 +37,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export default function SponsorOpportunities() {
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [tierFilter, setTierFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [applyingTo, setApplyingTo] = useState<{ packageId: number; venueName: string; packageName: string } | null>(null);
@@ -177,6 +178,11 @@ export default function SponsorOpportunities() {
       );
     }
 
+    // Tier filter
+    if (tierFilter) {
+      results = results.filter(opp => (opp as any).tier === tierFilter);
+    }
+
     // Sort
     switch (sortBy) {
       case 'price_low':
@@ -195,7 +201,7 @@ export default function SponsorOpportunities() {
     }
 
     return results;
-  }, [data?.opportunities, searchQuery, sortBy]);
+  }, [data?.opportunities, searchQuery, sortBy, tierFilter]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -241,13 +247,13 @@ export default function SponsorOpportunities() {
         </div>
 
         {/* Type Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant={typeFilter === '' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTypeFilter('')}
           >
-            All
+            All Types
           </Button>
           {Object.entries(PACKAGE_TYPE_LABELS).map(([key, label]) => (
             <Button
@@ -257,6 +263,28 @@ export default function SponsorOpportunities() {
               onClick={() => setTypeFilter(key)}
             >
               {label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Tier Filters */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button
+            variant={tierFilter === '' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTierFilter('')}
+          >
+            All Tiers
+          </Button>
+          {['platinum', 'gold', 'silver', 'bronze', 'custom'].map(tier => (
+            <Button
+              key={tier}
+              variant={tierFilter === tier ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTierFilter(tier)}
+              className="capitalize"
+            >
+              {tier}
             </Button>
           ))}
         </div>
@@ -284,9 +312,14 @@ export default function SponsorOpportunities() {
                         <h3 className="font-semibold text-sm">{opp.name}</h3>
                         <p className="text-xs text-muted-foreground mt-0.5">{opp.venueName}</p>
                       </div>
-                      <Badge variant="outline" className="text-[10px] shrink-0">
-                        {PACKAGE_TYPE_LABELS[opp.packageType as PackageType]}
-                      </Badge>
+                      <div className="flex gap-1 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">
+                          {PACKAGE_TYPE_LABELS[opp.packageType as PackageType]}
+                        </Badge>
+                        {(opp as any).tier && (opp as any).tier !== 'custom' && (
+                          <Badge className="text-[10px] capitalize">{(opp as any).tier}</Badge>
+                        )}
+                      </div>
                     </div>
 
                     {opp.description && (

@@ -441,3 +441,16 @@ export async function notifySponsorApplicationRejected(params: {
     "/sponsor-opportunities"
   );
 }
+
+export async function notifySponsorMessage(params: {
+  recipientUserId: number;
+  senderRole: string;
+}): Promise<void> {
+  await notify(
+    params.recipientUserId,
+    "message",
+    "New Sponsor Message",
+    `You have a new message regarding your sponsorship ${params.senderRole === 'venue' ? 'application' : 'package'}.`,
+    "/sponsor-dashboard"
+  );
+}

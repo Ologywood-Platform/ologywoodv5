@@ -1700,6 +1700,8 @@ export const venueSponsorPackages = mysqlTable("venue_sponsor_packages", {
   maxSlots: int("maxSlots").notNull().default(1), // How many sponsors can fill this package
   filledSlots: int("filledSlots").notNull().default(0),
   isActive: boolean("isActive").notNull().default(true),
+  tier: mysqlEnum("tier", ["bronze", "silver", "gold", "platinum", "custom"]).notNull().default("custom"), // Sponsorship tier level
+  category: varchar("category", { length: 100 }), // Custom category label
   imageUrl: varchar("imageUrl", { length: 512 }), // Example placement photo
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -1768,3 +1770,19 @@ export const venueActiveSponsors = mysqlTable("venue_active_sponsors", {
 }));
 export type VenueActiveSponsor = typeof venueActiveSponsors.$inferSelect;
 export type InsertVenueActiveSponsor = typeof venueActiveSponsors.$inferInsert;
+
+
+// ============ VENUE SPONSOR MESSAGES ============
+export const venueSponsorMessages = mysqlTable("venue_sponsor_messages", {
+  id: int("id").primaryKey().autoincrement(),
+  applicationId: int("applicationId").notNull(),
+  senderUserId: int("senderUserId").notNull(),
+  senderRole: mysqlEnum("senderRole", ["venue", "sponsor"]).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  applicationIdx: index("idx_sponsor_messages_application").on(table.applicationId),
+  senderIdx: index("idx_sponsor_messages_sender").on(table.senderUserId),
+}));
+export type VenueSponsorMessage = typeof venueSponsorMessages.$inferSelect;
+export type InsertVenueSponsorMessage = typeof venueSponsorMessages.$inferInsert;

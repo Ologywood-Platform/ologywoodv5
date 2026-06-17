@@ -3234,3 +3234,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add promo materials upload for sponsors (PDFs, images)
 - [x] Add in-app notification when a sponsor submits an application (notify venue)
 - [x] Add in-app notification when application is approved/rejected (notify sponsor applicant)
+
+## DEPOSIT AMOUNT FIX
+- [x] Investigate where deposit amount is set in rider/contract flow
+- [x] Make deposit amount clearly visible and editable in the contract/rider builder
+
+## SPONSORSHIP FOLLOW-UPS
+- [x] Extend messaging system to support venue-sponsor conversations
+- [x] Build dedicated Sponsor Dashboard page (track application status, active sponsorships, communications)
+- [x] Add customizable tiers/categories to sponsorship packages
+- [x] Add tier/category filter to Sponsor Opportunities browse page
+- [x] Add validation: block contract signing if Performance Fee is $0 or empty
+- [x] Allow venue to set/override the performance fee before payment if artist didn't set one

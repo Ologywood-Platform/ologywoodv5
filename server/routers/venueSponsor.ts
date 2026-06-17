@@ -2,9 +2,9 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { venueSponsorPackages, venueSponsorApplications, venueActiveSponsors, venueProfiles } from "../../drizzle/schema";
+import { venueSponsorPackages, venueSponsorApplications, venueActiveSponsors, venueProfiles, venueSponsorMessages } from "../../drizzle/schema";
 import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
-import { notifySponsorApplicationReceived, notifySponsorApplicationApproved, notifySponsorApplicationRejected } from "../services/notificationService";
+import { notifySponsorApplicationReceived, notifySponsorApplicationApproved, notifySponsorApplicationRejected, notifySponsorMessage } from "../services/notificationService";
 
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -46,6 +46,8 @@ export const venueSponsorRouter = router({
       benefits: z.array(z.string().max(200)).max(10).optional(),
       maxSlots: z.number().min(1).max(50).default(1),
       imageUrl: z.string().url().max(512).optional(),
+      tier: z.enum(["bronze", "silver", "gold", "platinum", "custom"]).default("custom"),
+      category: z.string().max(100).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -61,6 +63,8 @@ export const venueSponsorRouter = router({
         benefits: input.benefits || [],
         maxSlots: input.maxSlots,
         imageUrl: input.imageUrl || null,
+        tier: input.tier,
+        category: input.category || null,
       });
 
       return { id: result[0].insertId, message: 'Sponsor package created successfully' };
@@ -81,6 +85,8 @@ export const venueSponsorRouter = router({
       maxSlots: z.number().min(1).max(50).optional(),
       isActive: z.boolean().optional(),
       imageUrl: z.string().url().max(512).optional().nullable(),
+      tier: z.enum(["bronze", "silver", "gold", "platinum", "custom"]).optional(),
+      category: z.string().max(100).optional().nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -520,6 +526,8 @@ export const venueSponsorRouter = router({
           name: venueSponsorPackages.name,
           description: venueSponsorPackages.description,
           packageType: venueSponsorPackages.packageType,
+          tier: venueSponsorPackages.tier,
+          category: venueSponsorPackages.category,
           price: venueSponsorPackages.price,
           duration: venueSponsorPackages.duration,
           benefits: venueSponsorPackages.benefits,
@@ -610,5 +618,212 @@ export const venueSponsorRouter = router({
       pendingApplications: pendingApps?.count || 0,
       estimatedRevenue: totalRevenue,
     };
+  }),
+
+  // ─── MESSAGING (Venue <-> Sponsor) ─────────────────────────
+
+  /**
+   * Get messages for a specific application
+   */
+  getMessages: protectedProcedure
+    .input(z.object({ applicationId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+      // Verify user has access to this application
+      const [application] = await db
+        .select()
+        .from(venueSponsorApplications)
+        .where(eq(venueSponsorApplications.id, input.applicationId))
+        .limit(1);
+
+      if (!application) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Application not found' });
+      }
+
+      // Check if user is the venue owner or the applicant
+      const isApplicant = application.applicantUserId === ctx.user.id;
+      const [venueProfile] = await db
+        .select()
+        .from(venueProfiles)
+        .where(eq(venueProfiles.id, application.packageId))
+        .limit(1);
+
+      // Get the package to find the venue
+      const [pkg] = await db
+        .select()
+        .from(venueSponsorPackages)
+        .where(eq(venueSponsorPackages.id, application.packageId))
+        .limit(1);
+
+      const isVenueOwner = pkg && ctx.user.id === pkg.venueId;
+
+      if (!isApplicant && !isVenueOwner) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to view these messages' });
+      }
+
+      const msgs = await db
+        .select()
+        .from(venueSponsorMessages)
+        .where(eq(venueSponsorMessages.applicationId, input.applicationId))
+        .orderBy(venueSponsorMessages.createdAt);
+
+      return msgs;
+    }),
+
+  /**
+   * Send a message in a sponsor application thread
+   */
+  sendMessage: protectedProcedure
+    .input(z.object({
+      applicationId: z.number(),
+      content: z.string().min(1).max(2000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+      // Verify user has access
+      const [application] = await db
+        .select()
+        .from(venueSponsorApplications)
+        .where(eq(venueSponsorApplications.id, input.applicationId))
+        .limit(1);
+
+      if (!application) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Application not found' });
+      }
+
+      const isApplicant = application.applicantUserId === ctx.user.id;
+      const [pkg] = await db
+        .select()
+        .from(venueSponsorPackages)
+        .where(eq(venueSponsorPackages.id, application.packageId))
+        .limit(1);
+      const isVenueOwner = pkg && ctx.user.id === pkg.venueId;
+
+      if (!isApplicant && !isVenueOwner) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to send messages here' });
+      }
+
+      const senderRole = isVenueOwner ? 'venue' : 'sponsor';
+
+      const [msg] = await db.insert(venueSponsorMessages).values({
+        applicationId: input.applicationId,
+        senderUserId: ctx.user.id,
+        senderRole,
+        content: input.content,
+      }).$returningId();
+
+      // Send notification to the other party
+      const recipientUserId = isVenueOwner ? application.applicantUserId : pkg!.venueId;
+      if (recipientUserId) {
+        try {
+          await notifySponsorMessage({ recipientUserId, senderRole });
+        } catch (_) {}
+      }
+
+      return { id: msg.id, success: true };
+    }),
+
+  // ─── SPONSOR DASHBOARD (for applicants) ─────────────────────────
+
+  /**
+   * Get all applications submitted by the current user (sponsor dashboard)
+   */
+  getSponsorDashboardApplications: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+    const applications = await db
+      .select()
+      .from(venueSponsorApplications)
+      .where(eq(venueSponsorApplications.applicantUserId, ctx.user.id))
+      .orderBy(desc(venueSponsorApplications.createdAt));
+
+    // Enrich with package info
+    if (applications.length === 0) return [];
+
+    const packageIds = [...new Set(applications.map(a => a.packageId))];
+    const packages = await db
+      .select()
+      .from(venueSponsorPackages)
+      .where(inArray(venueSponsorPackages.id, packageIds));
+
+    const packageMap = new Map(packages.map(p => [p.id, p]));
+
+    // Get venue names
+    const venueIds = [...new Set(packages.map(p => p.venueId))];
+    const venues = venueIds.length > 0 ? await db
+      .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+      .from(venueProfiles)
+      .where(inArray(venueProfiles.id, venueIds)) : [];
+    const venueMap = new Map(venues.map(v => [v.id, v.organizationName]));
+
+    return applications.map(app => {
+      const pkg = packageMap.get(app.packageId);
+      return {
+        ...app,
+        packageName: pkg?.name || 'Unknown Package',
+        packageType: pkg?.packageType || 'custom',
+        tier: pkg?.tier || 'custom',
+        venueName: pkg ? (venueMap.get(pkg.venueId) || 'Unknown Venue') : 'Unknown Venue',
+        price: pkg?.price || '0',
+      };
+    });
+  }),
+
+  /**
+   * Get active sponsorships for the current user
+   */
+  getSponsorDashboardActiveSponsors: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+
+    // Find active sponsors via applications submitted by this user
+    const myApplications = await db
+      .select()
+      .from(venueSponsorApplications)
+      .where(eq(venueSponsorApplications.applicantUserId, ctx.user.id));
+    const myAppIds = myApplications.map(a => a.id);
+    if (myAppIds.length === 0) return [];
+
+    const active = await db
+      .select()
+      .from(venueActiveSponsors)
+      .where(and(
+        inArray(venueActiveSponsors.applicationId, myAppIds),
+        eq(venueActiveSponsors.isActive, true)
+      ))
+      .orderBy(desc(venueActiveSponsors.createdAt));
+
+    if (active.length === 0) return [];
+
+    const packageIds = [...new Set(active.map(a => a.packageId))];
+    const packages = await db
+      .select()
+      .from(venueSponsorPackages)
+      .where(inArray(venueSponsorPackages.id, packageIds));
+    const packageMap = new Map(packages.map(p => [p.id, p]));
+
+    const venueIds = [...new Set(packages.map(p => p.venueId))];
+    const venues = venueIds.length > 0 ? await db
+      .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+      .from(venueProfiles)
+      .where(inArray(venueProfiles.id, venueIds)) : [];
+    const venueMap = new Map(venues.map(v => [v.id, v.organizationName]));
+
+    return active.map(s => {
+      const pkg = packageMap.get(s.packageId);
+      return {
+        ...s,
+        packageName: pkg?.name || 'Unknown',
+        packageType: pkg?.packageType || 'custom',
+        tier: pkg?.tier || 'custom',
+        venueName: pkg ? (venueMap.get(pkg.venueId) || 'Unknown Venue') : 'Unknown Venue',
+        price: pkg?.price || '0',
+      };
+    });
   }),
 });

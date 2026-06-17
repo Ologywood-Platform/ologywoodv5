@@ -157,6 +157,23 @@ export const riderContractRouter = router({
 
       const signerRole = isArtist ? "artist" : "venue";
 
+      // Validate performance fee is set before allowing signing
+      if (booking.riderTemplateId) {
+        const riderTemplateCheck = await getRiderTemplate(booking.riderTemplateId);
+        if (riderTemplateCheck) {
+          const riderDataCheck = typeof riderTemplateCheck.templateData === 'string'
+            ? JSON.parse(riderTemplateCheck.templateData)
+            : riderTemplateCheck.templateData || {};
+          const fee = parseFloat(riderDataCheck.performance_fee || '0');
+          if (fee <= 0) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Cannot sign contract: Performance Fee must be set before signing. Please edit the rider and add a fee amount.',
+            });
+          }
+        }
+      }
+
       // Get or create contract
       let contract = await db.getContractByBookingId(input.bookingId);
       if (!contract) {
@@ -859,10 +876,48 @@ export const riderContractRouter = router({
         contractStatus,
       });
 
-      const base64 = pdfBuffer.toString('base64');
+            const base64 = pdfBuffer.toString('base64');
       const filename = `rider-${riderData.artist_name || 'artist'}-${riderData.event_name || 'booking'}.pdf`
         .toLowerCase().replace(/[^a-z0-9.-]/g, '-');
-
       return { pdf: base64, filename };
+    }),
+
+  /**
+   * Set/override performance fee for a booking (venue can set if artist didn't)
+   */
+  setPerformanceFee: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      performanceFee: z.number().min(1, 'Fee must be at least $1'),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+      }
+
+      // Only venue can set the fee override
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      if (!venueProfile || booking.venueId !== venueProfile.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the venue can set the performance fee' });
+      }
+
+      // Update the rider template data with the fee
+      if (booking.riderTemplateId) {
+        const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+        if (riderTemplate) {
+          const templateData = typeof riderTemplate.templateData === 'string'
+            ? JSON.parse(riderTemplate.templateData)
+            : riderTemplate.templateData || {};
+          templateData.performance_fee = input.performanceFee.toString();
+          // Update the rider template
+          await db.updateRiderTemplate(booking.riderTemplateId, { templateData: templateData as any });
+        }
+      }
+
+      // Also update the booking's totalFee field
+      await db.updateBooking(input.bookingId, { totalFee: input.performanceFee.toString() });
+
+      return { success: true, performanceFee: input.performanceFee };
     }),
 });
