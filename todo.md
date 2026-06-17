@@ -3209,3 +3209,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fixed email templates linking to /artist-dashboard (404) — changed to /dashboard (correct route)
 - [x] Fixed venue profile creation failure - venue_profiles table missing 9 columns (mediaGallery, website, email, venueType, amenities, listingViews, emailVerified, profileCompletionScore, profileCompletionUpdatedAt)
 - [x] Fixed merch_items table missing columns (userType, priceDisplay, externalUrl, imageUrls, isActive)
+- [x] Add structured location fields (city, state, country) to venue_profiles schema and DB
+- [x] Convert operatingHours from free text to structured JSON schedule format
+- [x] Build OperatingHoursEditor component (day/time picker, closed toggle)
+- [x] Build LocationInput component (city, state, country with suggestions)
+- [x] Update VenueOnboarding to use new LocationInput and OperatingHoursEditor
+- [x] Update venue profile editing to use new structured components
+- [x] Update venue browse/filter to support city/state filtering

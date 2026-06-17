@@ -14,6 +14,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import SiteHeader from '@/components/SiteHeader';
 import { QuickBookingModal } from '@/components/QuickBookingModal';
+import { US_STATES } from '../../../shared/locationData';
 
 export default function VenueBrowse() {
   const { user, isAuthenticated } = useAuth();
@@ -197,15 +198,18 @@ export default function VenueBrowse() {
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     <MapPin className="w-4 h-4 inline mr-1" />
-                    Location
+                    State
                   </label>
-                  <input
-                    type="text"
-                    placeholder="City, State..."
+                  <select
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800"
+                  >
+                    <option value="">All states</option>
+                    {US_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>{s.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Capacity Filter */}

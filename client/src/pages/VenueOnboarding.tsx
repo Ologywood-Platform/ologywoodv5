@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, User, Phone, FileText, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
+import { LocationInput } from '../components/LocationInput';
+import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
 
 export default function VenueOnboarding() {
   const [, navigate] = useLocation();
@@ -13,10 +15,13 @@ export default function VenueOnboarding() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     organizationName: '',
-    location: '',
+    city: '',
+    state: '',
+    country: 'US',
     contactName: '',
     contactPhone: '',
     bio: '',
+    operatingHours: null as any,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -79,10 +84,13 @@ export default function VenueOnboarding() {
     setErrors({});
     await createProfileMutation.mutateAsync({
       organizationName: form.organizationName.trim(),
-      location: form.location.trim() || undefined,
+      city: form.city.trim() || undefined,
+      state: form.state || undefined,
+      country: form.country || 'US',
       contactName: form.contactName.trim() || undefined,
       contactPhone: form.contactPhone.trim() || undefined,
       bio: form.bio.trim() || undefined,
+      operatingHours: form.operatingHours || undefined,
     });
   };
 
@@ -140,17 +148,12 @@ export default function VenueOnboarding() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">Location</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={form.location}
-                      onChange={(e) => setForm({ ...form, location: e.target.value })}
-                      placeholder="City, State (e.g., Atlanta, GA)"
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
+                  <LocationInput
+                    city={form.city}
+                    state={form.state}
+                    country={form.country}
+                    onChange={({ city, state, country }) => setForm({ ...form, city, state, country })}
+                  />
                 </div>
 
                 <Button onClick={handleNext} className="w-full bg-purple-600 hover:bg-purple-700 mt-2">
@@ -217,6 +220,13 @@ export default function VenueOnboarding() {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Describe your space, typical events, and what artists should know. This is public on your profile.</p>
+                </div>
+
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <OperatingHoursEditor
+                    value={form.operatingHours}
+                    onChange={(schedule) => setForm({ ...form, operatingHours: schedule })}
+                  />
                 </div>
 
                 {errors.submit && (

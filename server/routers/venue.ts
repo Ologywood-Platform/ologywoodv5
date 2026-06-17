@@ -121,12 +121,23 @@ export const venueRouter = router({
         contactName: z.string().optional(),
         contactPhone: z.string().optional(),
         location: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        country: z.string().optional(),
         bio: z.string().optional(),
         venueType: z.string().optional(),
         capacity: z.number().int().positive().optional(),
         email: z.string().email().optional(),
         amenities: z.record(z.string(), z.any()).optional(),
-        operatingHours: z.string().optional(),
+        operatingHours: z.object({
+          monday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          tuesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          wednesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          thursday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          friday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          saturday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          sunday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+        }).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -140,19 +151,25 @@ export const venueRouter = router({
           });
         }
 
+        // Build display location from structured fields
+        const locationDisplay = [input.city, input.state].filter(Boolean).join(', ') || input.location || null;
+
         await db.createVenueProfile({
           userId: ctx.user.id,
           organizationName: input.organizationName,
           contactName: input.contactName || null,
           contactPhone: input.contactPhone || null,
-          location: input.location || null,
+          location: locationDisplay,
+          city: input.city || null,
+          state: input.state || null,
+          country: input.country || 'US',
           bio: input.bio || null,
           venueType: input.venueType || null,
           capacity: input.capacity || null,
           email: input.email || null,
           amenities: input.amenities || null,
           operatingHours: input.operatingHours || null,
-        });
+        } as any);
 
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
         return { success: true, profile };
@@ -176,13 +193,24 @@ export const venueRouter = router({
         contactName: z.string().optional(),
         contactPhone: z.string().optional(),
         location: z.string().optional(),
+        city: z.string().optional().nullable(),
+        state: z.string().optional().nullable(),
+        country: z.string().optional().nullable(),
         bio: z.string().optional(),
         profilePhotoUrl: z.string().optional(),
         venueType: z.string().optional(),
         capacity: z.number().int().positive().optional().nullable(),
         email: z.string().email().optional().nullable(),
         amenities: z.record(z.string(), z.any()).optional().nullable(),
-        operatingHours: z.string().optional().nullable(),
+        operatingHours: z.object({
+          monday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          tuesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          wednesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          thursday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          friday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          saturday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+          sunday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+        }).optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -195,7 +223,7 @@ export const venueRouter = router({
           });
         }
 
-        await db.updateVenueProfile(profile.id, input);
+        await db.updateVenueProfile(profile.id, input as any);
         const updated = await db.getVenueProfileByUserId(ctx.user.id);
         return { success: true, profile: updated };
       } catch (error) {

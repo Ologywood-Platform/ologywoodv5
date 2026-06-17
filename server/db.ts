@@ -610,13 +610,14 @@ export async function searchVenues(filters: {
     const params: any[] = [];
     
     if (filters.query) {
-      sql_query += ' AND (venueName LIKE ? OR description LIKE ? OR organizationName LIKE ? OR location LIKE ?)';
+      sql_query += ' AND (organizationName LIKE ? OR location LIKE ? OR city LIKE ? OR bio LIKE ?)';
       params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
     }
     
     if (filters.location) {
-      sql_query += ' AND location LIKE ?';
-      params.push(`%${filters.location}%`);
+      // Support both state code filtering and free-text location search
+      sql_query += ' AND (state = ? OR location LIKE ? OR city LIKE ?)';
+      params.push(filters.location, `%${filters.location}%`, `%${filters.location}%`);
     }
     
     if (filters.capacity) {
@@ -638,11 +639,21 @@ export async function searchVenues(filters: {
     if (!pool) return [];
     const [venues] = await pool.query(sql_query, params);
     
-    return (venues as any[]).map(venue => ({
-      ...venue,
-      amenities: venue.amenities ? JSON.parse(venue.amenities) : [],
-      socialLinks: venue.socialLinks ? JSON.parse(venue.socialLinks) : {},
-    }));
+    return (venues as any[]).map(venue => {
+      let parsedAmenities = venue.amenities;
+      if (typeof venue.amenities === 'string') {
+        try { parsedAmenities = JSON.parse(venue.amenities); } catch { parsedAmenities = []; }
+      }
+      let parsedHours = venue.operatingHours;
+      if (typeof venue.operatingHours === 'string') {
+        try { parsedHours = JSON.parse(venue.operatingHours); } catch { parsedHours = null; }
+      }
+      return {
+        ...venue,
+        amenities: parsedAmenities || [],
+        operatingHours: parsedHours,
+      };
+    });
   } catch (error) {
     console.error("[searchVenues] Error searching venues:", error);
     return [];

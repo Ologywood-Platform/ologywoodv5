@@ -1,6 +1,26 @@
 import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date, unique } from "drizzle-orm/mysql-core";
 
 /**
+ * Operating hours schedule type for venues.
+ * Each day has open/close times or is marked as closed.
+ */
+export type DaySchedule = {
+  open: string; // HH:MM format (24h)
+  close: string; // HH:MM format (24h)
+  closed: boolean;
+};
+
+export type OperatingHoursSchedule = {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+};
+
+/**
  * Core user table backing auth flow.
  */
 export const users = mysqlTable("users", {
@@ -164,6 +184,9 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   mediaGallery: json("mediaGallery").$type<Record<string, any>>(),
   profilePhotoUrl: text("profilePhotoUrl"),
   location: varchar("location", { length: 255 }),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }).default("US"),
   bio: text("bio"),
   isListed: boolean("isListed").default(true).notNull(),
   website: text("website"),
@@ -171,7 +194,7 @@ export const venueProfiles = mysqlTable("venue_profiles", {
   capacity: int("capacity"),
   venueType: varchar("venueType", { length: 100 }),
   amenities: json("amenities").$type<Record<string, any>>(),
-  operatingHours: text("operatingHours"),
+  operatingHours: json("operatingHours").$type<OperatingHoursSchedule>(),
   averageRating: decimal("averageRating", { precision: 3, scale: 2 }).default("0.00"),
   reviewCount: int("reviewCount").default(0),
   listingViews: int("listingViews").default(0),

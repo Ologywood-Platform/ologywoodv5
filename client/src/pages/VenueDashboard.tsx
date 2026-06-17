@@ -20,6 +20,8 @@ import SettlementForm from '../components/SettlementForm';
 import SaveArtistButton from '../components/SaveArtistButton';
 import DashboardAnalyticsCards from '../components/DashboardAnalyticsCards';
 import BookingFunnel from '../components/BookingFunnel';
+import { LocationInput } from '../components/LocationInput';
+import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
 
 export function VenueDashboard() {
   const [, navigate] = useLocation();
@@ -30,6 +32,9 @@ export function VenueDashboard() {
   const [profileForm, setProfileForm] = useState({
     organizationName: '',
     location: '',
+    city: '',
+    state: '',
+    country: 'US',
     contactName: '',
     contactPhone: '',
     bio: '',
@@ -37,7 +42,7 @@ export function VenueDashboard() {
     capacity: '' as string | number,
     email: '',
     amenities: {} as Record<string, boolean>,
-    operatingHours: '',
+    operatingHours: null as any,
   });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [cropperImage, setCropperImage] = useState<string | null>(null);
@@ -96,6 +101,9 @@ export function VenueDashboard() {
       setProfileForm({
         organizationName: profile.organizationName || '',
         location: profile.location || '',
+        city: (profile as any).city || '',
+        state: (profile as any).state || '',
+        country: (profile as any).country || 'US',
         contactName: profile.contactName || '',
         contactPhone: profile.contactPhone || '',
         bio: profile.bio || '',
@@ -103,7 +111,7 @@ export function VenueDashboard() {
         capacity: (profile as any).capacity || '',
         email: (profile as any).email || '',
         amenities: (profile as any).amenities || {},
-        operatingHours: (profile as any).operatingHours || '',
+        operatingHours: (profile as any).operatingHours || null,
       });
     }
   }, [profile]);
@@ -231,8 +239,11 @@ export function VenueDashboard() {
         alert('Organization name is required');
         return;
       }
+      // Build display location from structured fields
+      const locationDisplay = [profileForm.city, profileForm.state].filter(Boolean).join(', ') || profileForm.location;
       const formData = {
         ...profileForm,
+        location: locationDisplay,
         capacity: profileForm.capacity ? Number(profileForm.capacity) : undefined,
         venueType: profileForm.venueType || undefined,
         email: profileForm.email || undefined,
@@ -1121,12 +1132,11 @@ export function VenueDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Location</label>
-                      <input
-                        type="text"
-                        value={profileForm.location}
-                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      <LocationInput
+                        city={profileForm.city}
+                        state={profileForm.state}
+                        country={profileForm.country}
+                        onChange={({ city, state, country }) => setProfileForm({ ...profileForm, city, state, country })}
                       />
                     </div>
                     <div>
@@ -1210,13 +1220,9 @@ export function VenueDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Operating Hours</label>
-                      <input
-                        type="text"
+                      <OperatingHoursEditor
                         value={profileForm.operatingHours}
-                        onChange={(e) => setProfileForm({ ...profileForm, operatingHours: e.target.value })}
-                        placeholder="e.g. Mon-Fri 6PM-2AM, Sat-Sun 4PM-2AM"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onChange={(schedule) => setProfileForm({ ...profileForm, operatingHours: schedule })}
                       />
                     </div>
                     <div>
@@ -1388,13 +1394,11 @@ export function VenueDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Location</label>
-                      <input
-                        type="text"
-                        value={profileForm.location}
-                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
-                        placeholder="City, State"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      <LocationInput
+                        city={profileForm.city}
+                        state={profileForm.state}
+                        country={profileForm.country}
+                        onChange={({ city, state, country }) => setProfileForm({ ...profileForm, city, state, country })}
                       />
                     </div>
                     <div>
@@ -1480,13 +1484,9 @@ export function VenueDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Operating Hours</label>
-                      <input
-                        type="text"
+                      <OperatingHoursEditor
                         value={profileForm.operatingHours}
-                        onChange={(e) => setProfileForm({ ...profileForm, operatingHours: e.target.value })}
-                        placeholder="e.g. Mon-Fri 6PM-2AM, Sat-Sun 4PM-2AM"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        onChange={(schedule) => setProfileForm({ ...profileForm, operatingHours: schedule })}
                       />
                     </div>
                     <div>
