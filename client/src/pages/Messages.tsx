@@ -255,8 +255,8 @@ export default function Messages() {
 
   const totalUnread = unreadData?.count || 0;
 
-  // ─── Conversation List ───
-  const ConversationList = () => (
+  // ─── Conversation List (inline JSX, not a component) ───
+  const conversationListJsx = (
     <div className="flex flex-col h-full">
       {/* Search */}
       <div className="p-3 sm:p-4 border-b">
@@ -319,8 +319,8 @@ export default function Messages() {
     </div>
   );
 
-  // ─── Chat Panel ───
-  const ChatPanel = () => (
+  // ─── Chat Panel (inline JSX, not a component) ───
+  const chatPanelJsx = (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
       <div className="flex items-center gap-2 p-3 sm:p-4 border-b bg-background">
@@ -544,8 +544,8 @@ export default function Messages() {
     </div>
   );
 
-  // ─── Empty State ───
-  const EmptyChat = () => (
+  // ─── Empty State (inline JSX) ───
+  const emptyChatJsx = (
     <div className="hidden sm:flex h-full items-center justify-center">
       <div className="text-center">
         <MessageCircle className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
@@ -591,12 +591,12 @@ export default function Messages() {
         <div className="hidden sm:grid sm:grid-cols-3 h-[calc(100vh-80px)]">
           {/* Conversation List - always visible on desktop */}
           <div className="col-span-1 border-r overflow-hidden">
-            <ConversationList />
+            {conversationListJsx}
           </div>
 
           {/* Chat Panel or Empty State - desktop */}
           <div className="col-span-2 overflow-hidden">
-            {selectedConversation ? <ChatPanel /> : <EmptyChat />}
+            {selectedConversation ? chatPanelJsx : emptyChatJsx}
           </div>
         </div>
 
@@ -608,7 +608,7 @@ export default function Messages() {
               mobileShowChat ? '-translate-x-full' : 'translate-x-0'
             }`}
           >
-            <ConversationList />
+            {conversationListJsx}
           </div>
 
           {/* Chat Panel - slides in from right */}
@@ -617,7 +617,7 @@ export default function Messages() {
               mobileShowChat ? 'translate-x-0' : 'translate-x-full'
             }`}
           >
-            {selectedConversation && <ChatPanel />}
+            {selectedConversation && chatPanelJsx}
           </div>
         </div>
       </div>
