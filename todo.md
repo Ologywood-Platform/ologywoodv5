@@ -3280,3 +3280,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build UI: Accept Invitation page (/team/accept?token=...) for invited users
 - [x] Build UI: Quick Action button on Artist Dashboard linking to /team
 - [ ] Build UI: Profile switcher in header/nav for team members managing artist profiles (future enhancement)
+
+## REFERRAL URL FIX (Jun 18, 2026)
+- [x] Fix: Referral share URL was pointing to /signup (404) — changed to /get-started which is the actual route that handles the ?ref= param

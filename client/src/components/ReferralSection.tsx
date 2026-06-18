@@ -15,7 +15,7 @@ export function ReferralSection() {
 
   const referralCode = codeData?.code || "";
   const referralLink = referralCode
-    ? `${window.location.origin}/signup?ref=${referralCode}`
+    ? `${window.location.origin}/get-started?ref=${referralCode}`
     : "";
 
   const handleCopy = async () => {
