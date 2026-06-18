@@ -3263,3 +3263,20 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - Changed layout to flex-col on mobile, flex-row on sm+
   - Added min-w-0 and break-words to prevent text overflow
   - Added flex-shrink-0 to Edit Profile button
+
+## TEAM MANAGEMENT FEATURE (Jun 18, 2026)
+- [x] Create database schema: artist_team_members table (artistProfileId, userId, role, invitedByUserId, status, permissions, createdAt)
+- [x] Create database schema: artist_team_invitations table (artistProfileId, email, role, token, status, expiresAt, createdAt)
+- [x] Create database schema: artist_team_activity_log table (artistProfileId, userId, action, details, createdAt)
+- [x] Build API: invite team member by email (sends invitation)
+- [x] Build API: accept/decline invitation
+- [x] Build API: list team members for an artist profile
+- [x] Build API: update team member role
+- [x] Build API: remove team member
+- [x] Build API: switch active managed profile (getManagedProfiles endpoint)
+- [x] Build UI: Team Management page (/team route) with back to dashboard
+- [x] Build UI: Invite modal (email + role selector with Manager/Team Member cards)
+- [x] Build UI: Team member list with role badges, role change dropdown, and remove button
+- [x] Build UI: Accept Invitation page (/team/accept?token=...) for invited users
+- [x] Build UI: Quick Action button on Artist Dashboard linking to /team
+- [ ] Build UI: Profile switcher in header/nav for team members managing artist profiles (future enhancement)

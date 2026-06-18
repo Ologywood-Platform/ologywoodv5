@@ -427,6 +427,20 @@ export function ArtistDashboardV3() {
                     </TooltipTrigger>
                     <TooltipContent>Showcase upcoming albums, EPs, and mixtapes with audio snippets</TooltipContent>
                   </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/team')}
+                      >
+                        <Users className="h-5 w-5" />
+                        <span className="text-xs font-medium">Team</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Manage access</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Invite your manager and team members to help manage your profile</TooltipContent>
+                  </Tooltip>
                 </div>
               </CardContent>
             </Card>

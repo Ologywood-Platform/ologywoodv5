@@ -1786,3 +1786,73 @@ export const venueSponsorMessages = mysqlTable("venue_sponsor_messages", {
 }));
 export type VenueSponsorMessage = typeof venueSponsorMessages.$inferSelect;
 export type InsertVenueSponsorMessage = typeof venueSponsorMessages.$inferInsert;
+
+
+/**
+ * Artist Team Members - tracks who has access to manage an artist profile.
+ * Roles: owner (the artist themselves), manager, team_member
+ */
+export const artistTeamMembers = mysqlTable("artist_team_members", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(), // references artistProfiles.id
+  userId: int("userId").notNull(), // references users.id
+  role: mysqlEnum("teamRole", ["owner", "manager", "team_member"]).notNull().default("team_member"),
+  permissions: json("permissions").$type<{
+    editProfile: boolean;
+    manageBookings: boolean;
+    sendMessages: boolean;
+    manageCalendar: boolean;
+    uploadMedia: boolean;
+    viewEarnings: boolean;
+    manageTeam: boolean;
+  }>(),
+  invitedByUserId: int("invitedByUserId"), // who invited this member
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistProfileIdx: index("idx_team_members_artist").on(table.artistProfileId),
+  userIdx: index("idx_team_members_user").on(table.userId),
+  uniqueMember: unique("uniq_artist_team_member").on(table.artistProfileId, table.userId),
+}));
+export type ArtistTeamMember = typeof artistTeamMembers.$inferSelect;
+export type InsertArtistTeamMember = typeof artistTeamMembers.$inferInsert;
+
+/**
+ * Artist Team Invitations - pending invitations sent by email.
+ */
+export const artistTeamInvitations = mysqlTable("artist_team_invitations", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  role: mysqlEnum("inviteRole", ["manager", "team_member"]).notNull().default("team_member"),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  status: mysqlEnum("inviteStatus", ["pending", "accepted", "declined", "expired"]).notNull().default("pending"),
+  invitedByUserId: int("invitedByUserId").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  acceptedAt: timestamp("acceptedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistProfileIdx: index("idx_team_invitations_artist").on(table.artistProfileId),
+  tokenIdx: index("idx_team_invitations_token").on(table.token),
+  emailIdx: index("idx_team_invitations_email").on(table.email),
+}));
+export type ArtistTeamInvitation = typeof artistTeamInvitations.$inferSelect;
+export type InsertArtistTeamInvitation = typeof artistTeamInvitations.$inferInsert;
+
+/**
+ * Artist Team Activity Log - audit trail for team actions.
+ */
+export const artistTeamActivityLog = mysqlTable("artist_team_activity_log", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  userId: int("userId").notNull(), // who performed the action
+  action: varchar("action", { length: 100 }).notNull(), // e.g. 'profile_edited', 'booking_accepted', 'media_uploaded'
+  details: json("details").$type<Record<string, any>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistProfileIdx: index("idx_team_activity_artist").on(table.artistProfileId),
+  userIdx: index("idx_team_activity_user").on(table.userId),
+}));
+export type ArtistTeamActivityLog = typeof artistTeamActivityLog.$inferSelect;
+export type InsertArtistTeamActivityLog = typeof artistTeamActivityLog.$inferInsert;

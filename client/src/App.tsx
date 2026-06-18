@@ -98,6 +98,8 @@ const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
 const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
 const MerchPage = lazy(() => import("./pages/MerchPage"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
+const AcceptTeamInvite = lazy(() => import("./pages/AcceptTeamInvite").then(m => ({ default: m.AcceptTeamInvite })));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -207,6 +209,8 @@ function Router() {
           <Route path="/faq" component={FAQ} />
           <Route path="/unsubscribe" component={Unsubscribe} />
           <Route path="/settings" component={Settings} />
+          <Route path="/team" component={TeamManagement} />
+          <Route path="/team/accept" component={AcceptTeamInvite} />
           <Route path="/disputes" component={MyDisputes} />
           
           {/* Legal Pages (compliance only) */}

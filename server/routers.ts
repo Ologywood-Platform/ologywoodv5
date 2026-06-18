@@ -42,6 +42,7 @@ import { sponsorRouter } from "./routers/sponsor";
 import { venueSponsorRouter } from "./routers/venueSponsor";
 import { merchRouter } from "./routers/merch";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
+import { teamRouter } from "./routers/team";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -3248,5 +3249,6 @@ export const appRouter = router({
   dispute: disputeRouter,
   merch: merchRouter,
   projectPreviews: projectPreviewsRouter,
+  team: teamRouter,
 });
 export type AppRouter = typeof appRouter;
