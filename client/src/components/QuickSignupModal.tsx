@@ -413,7 +413,8 @@ export function QuickSignupModal({
                   variant="outline"
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800 transition-all shadow-sm"
                   onClick={() => {
-                    window.location.href = '/api/auth/google?returnPath=/';
+                    const returnPath = window.location.pathname + window.location.search;
+                    window.location.href = `/api/auth/google?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -599,7 +600,8 @@ export function QuickSignupModal({
                   variant="outline"
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800 transition-all shadow-sm"
                   onClick={() => {
-                    window.location.href = '/api/auth/google?returnPath=/';
+                    const returnPath = window.location.pathname + window.location.search;
+                    window.location.href = `/api/auth/google?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">

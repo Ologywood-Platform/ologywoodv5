@@ -3283,3 +3283,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## REFERRAL URL FIX (Jun 18, 2026)
 - [x] Fix: Referral share URL was pointing to /signup (404) — changed to /get-started which is the actual route that handles the ?ref= param
+- [x] Fix: Google OAuth sign-in was losing ?ref= query param — returnPath now preserves full path + query string so referral code gets applied after OAuth redirect
