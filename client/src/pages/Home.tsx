@@ -446,7 +446,7 @@ export default function Home() {
                   <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                     New to Ologywood? Create your profile, set up your rider, and start booking in minutes.
                   </p>
-                  <a href="/get-started" className="text-xs sm:text-sm text-primary font-medium hover:underline">
+                  <a href={isAuthenticated ? "/get-started" : "/"} className="text-xs sm:text-sm text-primary font-medium hover:underline">
                     Set up your account →
                   </a>
                 </div>

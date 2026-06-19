@@ -3345,3 +3345,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## ARTIST PROFILE SETUP VALIDATION (Jun 19, 2026) — Ray's feedback
 - [x] Fix: Touring Party Size must be > 0; shows toast error if value is 0 or blank when Next is clicked on step 2
 - [x] Add URL format validation for social/website fields (validates protocol + domain format on submit using new URL() parser)
+
+## NEED HELP SECTION NAVIGATION BUG (Jun 19, 2026) — Ray's feedback
+- [x] Fix: "Set up your account" link in Need Help section now goes to "/" for unauthenticated users instead of "/get-started" (same fix as Pricing page — avoids Stay Updated flash and broken back button)
