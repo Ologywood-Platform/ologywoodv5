@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2, Ticket, ExternalLink } from 'lucide-react';
 import { TicketPurchase } from '@/components/TicketPurchase';
 import { toast } from 'sonner';
+import { formatEventTime } from '@/lib/utils';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
@@ -245,8 +246,8 @@ export default function EventDetail() {
                   <p className="text-sm font-medium text-slate-600">Date & Time</p>
                   <p className="text-base font-semibold">
                     {formatDate(event.eventDate)}
-                    {event.eventTime && ` at ${event.eventTime}`}
-                    {event.eventEndTime && ` - ${event.eventEndTime}`}
+                    {event.eventTime && ` at ${formatEventTime(event.eventTime)}`}
+                    {event.eventEndTime && ` - ${formatEventTime(event.eventEndTime)}`}
                   </p>
                 </div>
               </div>

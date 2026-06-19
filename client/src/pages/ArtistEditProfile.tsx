@@ -17,10 +17,10 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import TouringSection from '@/components/TouringSection';
 
 const GENRE_OPTIONS = [
-  "Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Blues", "Country", "Electronic",
-  "Classical", "Reggae", "Latin", "Folk", "Metal", "Punk", "Soul", "Funk",
-  "Gospel", "Indie", "Alternative", "World", "Afrobeats", "Dancehall",
-  "House", "Techno", "Trap", "Lo-fi", "Ambient", "Experimental", "Other"
+  "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
+  "Dancehall", "Electronic", "Experimental", "Folk", "Funk", "Gospel",
+  "Hip-Hop", "House", "Indie", "Jazz", "Latin", "Lo-fi", "Metal", "Pop",
+  "Punk", "R&B", "Reggae", "Rock", "Soul", "Techno", "Trap", "World", "Other"
 ];
 
 export default function ArtistEditProfile() {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
+import { formatEventTime } from '../lib/utils';
 import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox, MessageCircle, CreditCard, Loader2 } from 'lucide-react';
 import TestModeBadge from '@/components/TestModeBadge';
@@ -197,7 +198,7 @@ export default function MyBookings() {
               {booking.eventTime && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  {booking.eventTime}
+                  {formatEventTime(booking.eventTime)}
                 </span>
               )}
               {(booking.venueName || booking.venueAddress) && (

@@ -3328,3 +3328,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add required field validation: location required on step 1, genre (at least 1) required on step 2
 - [x] Add autoCapitalize="sentences" to bio textarea on Edit Profile
 
+## RAY'S UX OBSERVATIONS — ARTIST PROFILE & BOOKING (Jun 19, 2026)
+- [x] Fix Total Revenue: already correct — only counts completed/pending/paid_out from artist_earnings (records only created on Stripe payment_intent.succeeded webhook, never for cancelled bookings)
+- [x] Sort genre options alphabetically with "Other" as last option (Onboarding + Edit Profile + ArtistFilters + SearchFilters)
+- [x] Sort Event Type options alphabetically with "Other" as last option (SearchFilters + EventForm)
+- [x] Convert 24-hour time to civilian format (12-hour with AM/PM) across all pages: ArtistProfile, ArtistDashboardV3, BookingDetail, ClientBooking, EventDetail, EventBookingFlow, EventCard, SimilarEvents, MyBookings, VenueDashboard, VenueProfile

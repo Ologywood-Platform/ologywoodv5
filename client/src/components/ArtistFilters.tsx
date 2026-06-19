@@ -19,9 +19,9 @@ export interface ArtistFilterValues {
 }
 
 const COMMON_GENRES = [
-  'Hip-Hop', 'R&B', 'Jazz', 'Soul', 'Blues', 'Rock', 'Indie',
-  'Electronic', 'Pop', 'Country', 'Reggae', 'Latin', 'Gospel',
-  'Punk', 'Metal', 'Folk', 'Funk', 'Classical', 'DJ'
+  'Blues', 'Classical', 'Country', 'DJ', 'Electronic', 'Folk',
+  'Funk', 'Gospel', 'Hip-Hop', 'Indie', 'Jazz', 'Latin', 'Metal',
+  'Pop', 'Punk', 'R&B', 'Reggae', 'Rock', 'Soul', 'Other'
 ];
 
 export default function ArtistFilters({ onFilterChange, isLoading }: ArtistFiltersProps) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
+import { formatEventTime } from '../lib/utils';
 import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, User, Mail, Phone, ArrowLeft, ArrowRight, Check, Music, ChevronLeft } from 'lucide-react';
 
@@ -532,7 +533,7 @@ export default function ClientBooking() {
                   {form.eventTime && (
                     <>
                       <span className="text-gray-500">Time</span>
-                      <span className="text-gray-900 dark:text-white">{form.eventTime}</span>
+                      <span className="text-gray-900 dark:text-white">{formatEventTime(form.eventTime)}</span>
                     </>
                   )}
                 </div>

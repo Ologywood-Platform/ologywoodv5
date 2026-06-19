@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 import { EventBookingFlow } from '@/components/EventBookingFlow';
+import { formatEventTime } from '@/lib/utils';
 
 interface EventCardProps {
   id: number;
@@ -149,7 +150,7 @@ export function EventCard({
           <div className="flex items-center gap-2 text-slate-600">
             <Calendar className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">
-              {formatDate(eventDate)} {eventTime && `at ${eventTime}`}
+              {formatDate(eventDate)} {eventTime && `at ${formatEventTime(eventTime)}`}
             </span>
           </div>
 

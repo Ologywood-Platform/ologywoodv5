@@ -29,12 +29,12 @@ interface SearchFiltersProps {
 
 const GENRES = [
   'Blues', 'Classical', 'Country', 'Electronic', 'Folk', 'Gospel', 'Hip-Hop',
-  'Indie', 'Jazz', 'Latin', 'Pop', 'R&B', 'Reggae', 'Rock', 'Soul'
+  'Indie', 'Jazz', 'Latin', 'Pop', 'Punk', 'R&B', 'Reggae', 'Rock', 'Soul', 'Other'
 ];
 
 const EVENT_TYPES = [
-  'Wedding', 'Corporate', 'Birthday', 'Festival', 'Club', 'Bar',
-  'Restaurant', 'Private Party', 'Conference', 'Gala', 'Concert', 'Other'
+  'Bar', 'Birthday', 'Club', 'Concert', 'Conference', 'Corporate',
+  'Festival', 'Gala', 'Private Party', 'Restaurant', 'Wedding', 'Other'
 ];
 
 

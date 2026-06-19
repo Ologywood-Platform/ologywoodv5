@@ -1,5 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { formatEventTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -189,7 +190,7 @@ export default function BookingDetail() {
                   <Clock className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Event Time</p>
-                    <p className="font-medium">{booking.eventTime}</p>
+                    <p className="font-medium">{formatEventTime(booking.eventTime)}</p>
                   </div>
                 </div>
               )}

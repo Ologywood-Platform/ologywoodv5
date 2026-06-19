@@ -28,3 +28,18 @@ export function formatTime(date: Date | string): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Convert a 24-hour time string (HH:MM) to 12-hour civilian format (e.g., "8:00 PM")
+ */
+export function formatEventTime(time: string): string {
+  if (!time) return '';
+  const parts = time.split(':');
+  if (parts.length < 2) return time;
+  const hour = parseInt(parts[0], 10);
+  const minute = parts[1];
+  if (isNaN(hour)) return time;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${h12}:${minute} ${ampm}`;
+}

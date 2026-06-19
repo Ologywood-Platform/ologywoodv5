@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 import { trpc } from '@/lib/trpc';
+import { formatEventTime } from '@/lib/utils';
 
 interface SimilarEventsProps {
   eventId: number;
@@ -121,7 +122,7 @@ export function SimilarEvents({ eventId, limit = 6 }: SimilarEventsProps) {
                   <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
                   <span>{formatEventDate(event.eventDate)}</span>
                   {event.eventTime && (
-                    <span className="text-slate-400">at {event.eventTime}</span>
+                    <span className="text-slate-400">at {formatEventTime(event.eventTime)}</span>
                   )}
                 </div>
 

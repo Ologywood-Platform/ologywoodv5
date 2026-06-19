@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDate, formatEventTime } from '@/lib/utils';
 
 interface EventBookingFlowProps {
   eventData: {
@@ -73,7 +74,7 @@ export function EventBookingFlow({
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="h-4 w-4" />
-                <span>{formatDate(eventData.eventDate)} {eventData.eventTime && `at ${eventData.eventTime}`}</span>
+                <span>{formatDate(eventData.eventDate)} {eventData.eventTime && `at ${formatEventTime(eventData.eventTime)}`}</span>
               </div>
               
               <div className="flex items-center gap-2 text-slate-600">

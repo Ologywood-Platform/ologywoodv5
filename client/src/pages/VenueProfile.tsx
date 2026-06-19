@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
 import { toast } from 'sonner';
+import { formatEventTime } from '@/lib/utils';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
@@ -825,7 +826,7 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{event.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      {event.eventTime || 'Time TBD'}
+                      {event.eventTime ? formatEventTime(event.eventTime) : 'Time TBD'}
                       {event.ticketPrice ? ` · $${event.ticketPrice}` : ' · Free'}
                     </p>
                   </div>

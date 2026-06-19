@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
+import { formatEventTime } from '../lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
@@ -628,7 +629,7 @@ export function VenueDashboard() {
                         <div>
                           <CardTitle className="text-lg">{(booking as any).artistName || `Artist #${booking.artistId}`}</CardTitle>
                           <CardDescription>
-                            {new Date(booking.eventDate).toLocaleDateString()} at {booking.eventTime || 'TBA'} • <span className={`capitalize ${booking.status === 'confirmed' ? 'text-green-600' : booking.status === 'pending' ? 'text-yellow-600' : booking.status === 'cancelled' ? 'text-red-600' : ''}`}>{booking.status}</span>
+                            {new Date(booking.eventDate).toLocaleDateString()} at {booking.eventTime ? formatEventTime(booking.eventTime) : 'TBA'} • <span className={`capitalize ${booking.status === 'confirmed' ? 'text-green-600' : booking.status === 'pending' ? 'text-yellow-600' : booking.status === 'cancelled' ? 'text-red-600' : ''}`}>{booking.status}</span>
                           </CardDescription>
                         </div>
                       </div>
@@ -1840,7 +1841,7 @@ function MyEventsTab({ venueProfileId }: { venueProfileId?: number }) {
                     {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
                   {event.eventTime && (
-                    <span>{event.eventTime}</span>
+                    <span>{formatEventTime(event.eventTime)}</span>
                   )}
                   {event.ticketPrice && (
                     <span className="flex items-center gap-1">

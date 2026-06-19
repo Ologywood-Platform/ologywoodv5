@@ -30,12 +30,12 @@ interface EventFormProps {
 }
 
 const EVENT_TYPES = [
-  { value: 'concert', label: 'Concert' },
-  { value: 'wedding', label: 'Wedding' },
-  { value: 'corporate', label: 'Corporate Event' },
-  { value: 'private_party', label: 'Private Party' },
-  { value: 'festival', label: 'Festival' },
   { value: 'bar_gig', label: 'Bar / Club Gig' },
+  { value: 'concert', label: 'Concert' },
+  { value: 'corporate', label: 'Corporate Event' },
+  { value: 'festival', label: 'Festival' },
+  { value: 'private_party', label: 'Private Party' },
+  { value: 'wedding', label: 'Wedding' },
   { value: 'other', label: 'Other' },
 ];
 
