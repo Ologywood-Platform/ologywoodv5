@@ -815,6 +815,86 @@ export const appRouter = router({
         await db.deleteAvailability(input.id);
         return { success: true };
       }),
+
+    // Set availability for a date range (artist only)
+    setRange: artistProcedure
+      .input(z.object({
+        fromDate: z.string(),
+        toDate: z.string(),
+        status: z.enum(['available', 'booked', 'unavailable']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        // Generate all dates in range
+        const dates: string[] = [];
+        const start = new Date(input.fromDate + 'T00:00:00');
+        const end = new Date(input.toDate + 'T00:00:00');
+        if (end < start) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'End date must be after start date' });
+        }
+        // Limit range to 90 days max
+        const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays > 90) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Date range cannot exceed 90 days' });
+        }
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          dates.push(d.toISOString().split('T')[0]);
+        }
+        // Set availability for each date
+        for (const dateStr of dates) {
+          await db.setAvailability({
+            artistId: profile.id,
+            date: dateStr,
+            status: input.status,
+          });
+        }
+        // Send notifications to venues who favorited this artist (only for available)
+        if (input.status === 'available') {
+          const venues = await db.getVenuesWhoFavoritedArtist(profile.id);
+          for (const venue of venues) {
+            const venueUser = await db.getUserById(venue.userId);
+            if (venueUser && venueUser.email) {
+              await email.sendAvailabilityUpdateNotification(
+                venueUser.email,
+                venue.organizationName || 'Venue',
+                profile.artistName,
+                profile.id,
+                dates
+              );
+            }
+          }
+        }
+        return { success: true, datesSet: dates.length };
+      }),
+
+    // Delete availability for a date range (artist only)
+    deleteRange: artistProcedure
+      .input(z.object({
+        fromDate: z.string(),
+        toDate: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        // Get all availability entries for this artist in the date range
+        const allAvailability = await db.getAvailabilityByArtistId(profile.id);
+        const start = new Date(input.fromDate + 'T00:00:00');
+        const end = new Date(input.toDate + 'T00:00:00');
+        let deletedCount = 0;
+        for (const avail of allAvailability) {
+          const aDate = new Date((typeof avail.date === 'string' ? avail.date : new Date(avail.date).toISOString().split('T')[0]) + 'T00:00:00');
+          if (aDate >= start && aDate <= end) {
+            await db.deleteAvailability(avail.id);
+            deletedCount++;
+          }
+        }
+        return { success: true, datesRemoved: deletedCount };
+      }),
   }),
 
   // Booking Management

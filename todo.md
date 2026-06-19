@@ -3301,3 +3301,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add disconnect/update Stripe account button to Earnings page (with confirmation dialog)
 - [x] Add visual income breakdown chart (SVG donut chart showing bookings vs releases vs tickets with legend)
 - [x] Add 'Export to CSV' button to transaction history table on Earnings page
+
+## REMOVE MOCK ARTISTS (Jun 19, 2026)
+- [x] Remove 6 mock/seed artists (IDs 1-6, userIds 1-6) with @ologywood.com emails from database
+  - Deleted: 3 follows, 2 messages, 2 bookings, 1 notification, 2 blog_posts, 6 artist_profiles, 6 users
+  - Verified: 0 mock profiles remaining
+
+## DATE RANGE AVAILABILITY FEATURE (Jun 19, 2026) — Ray's feedback
+- [x] Add From/To date fields to Set Availability modal for date range selection
+- [x] Keep single-date selection as default (existing behavior preserved)
+- [x] Highlight selected date range on calendar with availability type color
+- [x] Add "Remove All" button when editing a date range to clear entire range
+- [x] Keep "Remove" button for individual date removal within a range
+- [x] Allow changing availability type for entire date range at once ("Change All" button)
+- [x] Update API to handle bulk date range set/remove/change operations (setRange + deleteRange endpoints)
+- [x] Add mode toggle (Single Date / Date Range) for intuitive switching
+- [x] Manual date entry + calendar click both supported in range mode
+- [x] Auto-detect consecutive ranges when clicking single dates that are part of a range
+- [x] 90-day max range limit to prevent abuse

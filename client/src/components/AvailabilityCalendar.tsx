@@ -16,12 +16,16 @@ interface AvailabilityCalendarProps {
   availability?: DateAvailability[];
   onDateClick?: (date: string, currentStatus?: AvailabilityStatus) => void;
   readOnly?: boolean;
+  rangeFrom?: string;
+  rangeTo?: string;
 }
 
 export default function AvailabilityCalendar({ 
   availability = [], 
   onDateClick,
-  readOnly = false 
+  readOnly = false,
+  rangeFrom,
+  rangeTo
 }: AvailabilityCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -112,6 +116,15 @@ export default function AvailabilityCalendar({
     return date < today;
   };
 
+  const isInRange = (day: number) => {
+    if (!rangeFrom) return false;
+    const dateStr = formatDate(day);
+    if (rangeFrom && !rangeTo) {
+      return dateStr === rangeFrom;
+    }
+    return dateStr >= rangeFrom && dateStr <= (rangeTo || rangeFrom);
+  };
+
   // Generate calendar grid
   const calendarDays = [];
   
@@ -137,7 +150,8 @@ export default function AvailabilityCalendar({
           past && "opacity-40 cursor-not-allowed",
           !readOnly && !past && "cursor-pointer",
           readOnly && "cursor-default",
-          today && "ring-2 ring-primary"
+          today && "ring-2 ring-primary",
+          isInRange(day) && "ring-2 ring-primary bg-primary/10"
         )}
       >
         <span className="text-sm font-medium">{day}</span>
