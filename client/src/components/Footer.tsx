@@ -29,6 +29,7 @@ const Footer = () => {
         { label: 'Events', path: '/events' },
         { label: 'Pricing', path: '/pricing' },
         { label: 'How It Works', path: '/how-it-works' },
+        { label: 'Help Center', path: '/help' },
         { label: 'FAQ', path: '/faq' },
         { label: 'Contact Us', path: '/contact' },
         { label: 'Blog', path: '/blog' },

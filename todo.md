@@ -3348,3 +3348,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## NEED HELP SECTION NAVIGATION BUG (Jun 19, 2026) — Ray's feedback
 - [x] Fix: "Set up your account" link in Need Help section now goes to "/" for unauthenticated users instead of "/get-started" (same fix as Pricing page — avoids Stay Updated flash and broken back button)
+
+## HELP CENTER DISCOVERABILITY (Jun 19, 2026) — Ray's feedback
+- [x] Add Help Center link to the Footer under Platform section (visible on every page for all users)
