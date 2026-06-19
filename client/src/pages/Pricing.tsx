@@ -338,12 +338,17 @@ export default function Pricing() {
 
   const handleCTA = (tier: Tier) => {
     if (!tier.planSlug) {
-      navigate("/get-started");
+      // Free plan: go to home where they can sign up
+      if (!isAuthenticated) {
+        navigate("/");
+      } else {
+        navigate("/get-started");
+      }
       return;
     }
     if (!isAuthenticated) {
       toastCtx.addInfo("Sign in required", "Create an account or sign in first, then you can upgrade your plan.");
-      navigate("/get-started");
+      navigate("/");
       return;
     }
     // Show comparison modal before checkout

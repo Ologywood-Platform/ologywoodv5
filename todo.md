@@ -3333,3 +3333,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Sort genre options alphabetically with "Other" as last option (Onboarding + Edit Profile + ArtistFilters + SearchFilters)
 - [x] Sort Event Type options alphabetically with "Other" as last option (SearchFilters + EventForm)
 - [x] Convert 24-hour time to civilian format (12-hour with AM/PM) across all pages: ArtistProfile, ArtistDashboardV3, BookingDetail, ClientBooking, EventDetail, EventBookingFlow, EventCard, SimilarEvents, MyBookings, VenueDashboard, VenueProfile
+
+## PRICING PAGE NAVIGATION BUG (Jun 19, 2026) — Ray's feedback
+- [x] Fix: Pricing page buttons (Upgrade to Starter, Go Professional, Get Started) now navigate directly to "/" (home) for unauthenticated users instead of "/get-started" which caused the intermediate Stay Updated flash
+- [x] Back button from home page now returns user directly to Pricing screen (no intermediate /get-started in history)
