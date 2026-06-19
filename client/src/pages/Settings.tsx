@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User, DollarSign, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailPreferencesCenter } from "@/components/EmailPreferencesCenter";
@@ -403,6 +403,37 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <NotificationPreferencesSection />
+            </CardContent>
+          </Card>
+
+          {/* Payments & Banking */}
+          <Card className="border-purple-200 bg-gradient-to-r from-purple-50/50 to-cyan-50/50">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle>Payments & Banking</CardTitle>
+                  <CardDescription>
+                    Connect your bank account to receive earnings from bookings, ticket sales, and tips
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">
+                  Set up Stripe Connect to receive payments directly to your bank account. Once connected, earnings from bookings, ticket sales, and fan tips will be deposited automatically.
+                </p>
+                <Button
+                  onClick={() => navigate("/earnings")}
+                  className="bg-purple-600 hover:bg-purple-700 gap-2"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Set Up Payments / Connect to Stripe
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

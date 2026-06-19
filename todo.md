@@ -3351,3 +3351,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## HELP CENTER DISCOVERABILITY (Jun 19, 2026) — Ray's feedback
 - [x] Add Help Center link to the Footer under Platform section (visible on every page for all users)
+
+## STRIPE CONNECT ON SETTINGS PAGE (Jun 19, 2026)
+- [x] Add a "Set Up Payments / Connect to Stripe" card on the Settings page that links to the Earnings page where Stripe connect flow lives
