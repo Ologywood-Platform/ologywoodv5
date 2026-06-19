@@ -3363,3 +3363,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Client: Tip button on artist profile (only shows if artist has Stripe Connect active)
 - [x] Webhook: Handle tip payment_intent.succeeded — record in artist_earnings
 - [x] Email: Send notification to artist when they receive a tip
+
+## STRIPE CONNECT BUTTON FIX (Jun 19, 2026)
+- [x] Fix: "Connect Stripe Account" button spins and goes nowhere — browser was blocking window.open() after async call. Changed to window.location.href for all 3 Stripe Connect actions (create account, dashboard, onboarding)

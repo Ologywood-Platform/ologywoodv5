@@ -436,15 +436,8 @@ export default function ArtistEarnings() {
   // Stripe Connect mutations
   const createAccountMutation = trpc.stripeConnect.createAccount.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
-      toast.addSuccess(
-        'Stripe Connect',
-        data.isExisting
-          ? 'Complete your Stripe setup in the new tab.'
-          : 'Your Stripe account has been created. Complete setup in the new tab.'
-      );
-      setIsConnecting(false);
-      setTimeout(() => refetchConnect(), 5000);
+      // Use location.href to avoid popup blockers (window.open after async is blocked)
+      window.location.href = data.url;
     },
     onError: (error: any) => {
       toast.addError('Connection failed', error.message || 'Failed to create Stripe account');
@@ -454,7 +447,7 @@ export default function ArtistEarnings() {
 
   const getDashboardMutation = trpc.stripeConnect.getDashboardLink.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
+      window.location.href = data.url;
     },
     onError: (error: any) => {
       toast.addError('Error', error.message || 'Failed to open Stripe dashboard');
@@ -463,9 +456,7 @@ export default function ArtistEarnings() {
 
   const getOnboardingMutation = trpc.stripeConnect.getOnboardingLink.useMutation({
     onSuccess: (data) => {
-      window.open(data.url, '_blank');
-      toast.addSuccess('Stripe Connect', 'Complete your setup in the new tab.');
-      setTimeout(() => refetchConnect(), 5000);
+      window.location.href = data.url;
     },
     onError: (error: any) => {
       toast.addError('Error', error.message || 'Failed to get onboarding link');
