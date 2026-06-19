@@ -3337,3 +3337,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## PRICING PAGE NAVIGATION BUG (Jun 19, 2026) — Ray's feedback
 - [x] Fix: Pricing page buttons (Upgrade to Starter, Go Professional, Get Started) now navigate directly to "/" (home) for unauthenticated users instead of "/get-started" which caused the intermediate Stay Updated flash
 - [x] Back button from home page now returns user directly to Pricing screen (no intermediate /get-started in history)
+
+## EVENT DATE FIELD CLEARING BUG (Jun 19, 2026) — Ray's feedback
+- [x] Fix: 'x' icon on From date field now only clears the From field (was clearing both From and To)
+- [x] Fix: 'x' icon on To date field only clears the To field (already worked correctly, confirmed)

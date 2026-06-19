@@ -179,9 +179,9 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
                 {availableFrom && (
                   <button
                     type="button"
-                    onClick={() => { setAvailableFrom(''); setAvailableTo(''); setDateError(''); }}
+                    onClick={() => { setAvailableFrom(''); setDateError(''); }}
                     className="shrink-0 p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-                    title="Clear dates"
+                    title="Clear start date"
                   >
                     <X size={14} />
                   </button>
