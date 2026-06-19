@@ -2909,10 +2909,32 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'No deposit amount could be determined. Please set a total fee for this booking.' });
         }
         
-        // Create Stripe checkout session
+        // Create Stripe checkout session with Connect routing
         if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
-        const session = await stripe.checkout.sessions.create({
+        const amountCents = Math.round(depositAmount * 100);
+        const platformFeeCents = Math.max(1, Math.round(amountCents * 0.01)); // 1% platform fee
+
+        // Look up artist's connected Stripe account
+        const artistProfile = await db.getArtistProfileById(booking.artistId);
+        let connectAccountId: string | null = null;
+        if (artistProfile) {
+          const database = await db.getDb();
+          if (database) {
+            const { stripeConnectAccounts } = await import('../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            const [account] = await database
+              .select()
+              .from(stripeConnectAccounts)
+              .where(eq(stripeConnectAccounts.artistId, artistProfile.userId))
+              .limit(1);
+            if (account && account.status === 'active' && account.chargesEnabled) {
+              connectAccountId = account.stripeAccountId;
+            }
+          }
+        }
+
+        const sessionParams: any = {
           payment_method_types: ['card'],
           customer_email: ctx.user.email || undefined,
           line_items: [{
@@ -2922,7 +2944,7 @@ export const appRouter = router({
                 name: `Booking Deposit - ${booking.eventDetails || 'Event'}`,
                 description: booking.eventDetails || 'Event booking deposit',
               },
-              unit_amount: Math.round(depositAmount * 100),
+              unit_amount: amountCents,
             },
             quantity: 1,
           }],
@@ -2937,8 +2959,22 @@ export const appRouter = router({
             userId: ctx.user.id.toString(),
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
+            platformFeeAmount: platformFeeCents.toString(),
           },
-        });
+        };
+
+        // Route payment to artist's connected Stripe account if available
+        if (connectAccountId) {
+          sessionParams.payment_intent_data = {
+            application_fee_amount: platformFeeCents,
+            transfer_data: { destination: connectAccountId },
+          };
+          console.log(`[DepositCheckout] Using Stripe Connect: ${connectAccountId}, fee: ${platformFeeCents}c`);
+        } else {
+          console.log(`[DepositCheckout] No Connect account for artist ${booking.artistId}, payment goes to platform`);
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams);
         
         return { sessionId: session.id, url: session.url };
       }),
@@ -2965,16 +3001,39 @@ export const appRouter = router({
         
         if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
-        const session = await stripe.checkout.sessions.create({
+        const amountCents = Math.round(remainingAmount * 100);
+        const platformFeeCents = Math.max(1, Math.round(amountCents * 0.01)); // 1% platform fee
+
+        // Look up artist's connected Stripe account
+        const artistProfile = await db.getArtistProfileById(booking.artistId);
+        let connectAccountId: string | null = null;
+        if (artistProfile) {
+          const database = await db.getDb();
+          if (database) {
+            const { stripeConnectAccounts } = await import('../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            const [account] = await database
+              .select()
+              .from(stripeConnectAccounts)
+              .where(eq(stripeConnectAccounts.artistId, artistProfile.userId))
+              .limit(1);
+            if (account && account.status === 'active' && account.chargesEnabled) {
+              connectAccountId = account.stripeAccountId;
+            }
+          }
+        }
+
+        const sessionParams: any = {
           payment_method_types: ['card'],
           customer_email: ctx.user.email || undefined,
           line_items: [{
             price_data: {
               currency: 'usd',
               product_data: {
-                name: `Remaining Balance - ${booking.eventDetails || 'Event'}`,               description: booking.eventDetails || 'Event booking payment',
+                name: `Remaining Balance - ${booking.eventDetails || 'Event'}`,
+                description: booking.eventDetails || 'Event booking payment',
               },
-              unit_amount: Math.round(remainingAmount * 100),
+              unit_amount: amountCents,
             },
             quantity: 1,
           }],
@@ -2989,8 +3048,22 @@ export const appRouter = router({
             userId: ctx.user.id.toString(),
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
+            platformFeeAmount: platformFeeCents.toString(),
           },
-        });
+        };
+
+        // Route payment to artist's connected Stripe account if available
+        if (connectAccountId) {
+          sessionParams.payment_intent_data = {
+            application_fee_amount: platformFeeCents,
+            transfer_data: { destination: connectAccountId },
+          };
+          console.log(`[FullPaymentCheckout] Using Stripe Connect: ${connectAccountId}, fee: ${platformFeeCents}c`);
+        } else {
+          console.log(`[FullPaymentCheckout] No Connect account for artist ${booking.artistId}, payment goes to platform`);
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams);
         
         return { sessionId: session.id, url: session.url };
       }),

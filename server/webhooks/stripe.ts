@@ -149,6 +149,39 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       // Update booking payment status with payment type for proper tracking
       await db.updateBookingPaymentStatus(parseInt(bookingId), paymentStatus, session.id, paymentType || undefined);
       
+      // Record artist earnings when payment is fully paid
+      if (paymentStatus === 'fully_paid') {
+        try {
+          const booking = await db.getBookingById(parseInt(bookingId));
+          if (booking && booking.totalFee) {
+            const { artistEarnings } = await import('../../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            const database = await db.getDb();
+            if (database) {
+              // Check if earnings already recorded for this booking (idempotency)
+              const [existing] = await database.select().from(artistEarnings)
+                .where(eq(artistEarnings.bookingId, parseInt(bookingId))).limit(1);
+              if (!existing) {
+                const grossAmount = Number(booking.totalFee);
+                const fee = Math.max(0.01, grossAmount * 0.01); // 1% platform fee
+                const netAmount = grossAmount - fee;
+                await database.insert(artistEarnings).values({
+                  artistId: booking.artistId,
+                  bookingId: parseInt(bookingId),
+                  grossAmount: grossAmount.toFixed(2),
+                  platformFee: fee.toFixed(2),
+                  netAmount: netAmount.toFixed(2),
+                  status: 'pending',
+                });
+                console.log(`[Stripe Webhook] Artist earnings recorded: booking=${bookingId}, gross=$${grossAmount.toFixed(2)}, net=$${netAmount.toFixed(2)}`);
+              }
+            }
+          }
+        } catch (earningsErr) {
+          console.error('[Stripe Webhook] Error recording artist earnings:', earningsErr);
+        }
+      }
+      
       // Log platform fee collection
       if (platformFeeAmount > 0) {
         console.log(`[Stripe Webhook] Platform fee collected: $${(platformFeeAmount / 100).toFixed(2)} for booking ${bookingId}`);

@@ -2,7 +2,7 @@ import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
 import type { TicketTier, TicketOrder, TicketItem } from '../../drizzle/schema';
-import { ticketTiers, ticketOrders, ticketItems, events, ticketPromoCodes, ticketTransfers } from '../../drizzle/schema';
+import { ticketTiers, ticketOrders, ticketItems, events, ticketPromoCodes, ticketTransfers, stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq, and, sql, desc, asc } from 'drizzle-orm';
 import { stripe } from '../stripe';
 import { TRPCError } from '@trpc/server';
@@ -285,9 +285,28 @@ export const ticketingRouter = router({
         orderNumber,
       }).$returningId();
 
+      // Look up the artist's connected Stripe account for ticket revenue routing
+      const dbInstance = await getDatabase();
+      let connectAccountId: string | null = null;
+      const [artistProfile] = await dbInstance
+        .select()
+        .from(artistProfiles)
+        .where(eq(artistProfiles.id, event.artistId))
+        .limit(1);
+      if (artistProfile) {
+        const [account] = await dbInstance
+          .select()
+          .from(stripeConnectAccounts)
+          .where(eq(stripeConnectAccounts.artistId, artistProfile.userId))
+          .limit(1);
+        if (account && account.status === 'active' && account.chargesEnabled) {
+          connectAccountId = account.stripeAccountId;
+        }
+      }
+
       // Create Stripe Checkout Session
       const origin = (ctx.req as any)?.headers?.origin || process.env.BASE_URL || 'https://www.ologywood.com';
-      const session = await stripe.checkout.sessions.create({
+      const sessionParams: any = {
         mode: 'payment',
         line_items: lineItems,
         customer_email: buyerEmail || undefined,
@@ -304,7 +323,22 @@ export const ticketingRouter = router({
         success_url: `${origin}/tickets/confirmation/${orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/events/${input.eventId}?checkout=cancelled`,
         allow_promotion_codes: true,
-      });
+      };
+
+      // Route ticket revenue to artist's connected Stripe account (platform keeps service fee)
+      if (connectAccountId) {
+        // The platform fee is already a separate line item ($0.99/ticket)
+        // Route the ticket price portion to the artist
+        sessionParams.payment_intent_data = {
+          application_fee_amount: platformFee, // Platform keeps the service fee
+          transfer_data: { destination: connectAccountId },
+        };
+        console.log(`[Ticketing] Using Stripe Connect: ${connectAccountId}, platform fee: ${platformFee}c`);
+      } else {
+        console.log(`[Ticketing] No Connect account for artist ${event.artistId}, payment goes to platform`);
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
 
       // Update order with Stripe session ID
       await (await getDatabase()).update(ticketOrders)

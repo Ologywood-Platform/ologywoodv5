@@ -3284,3 +3284,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## REFERRAL URL FIX (Jun 18, 2026)
 - [x] Fix: Referral share URL was pointing to /signup (404) — changed to /get-started which is the actual route that handles the ?ref= param
 - [x] Fix: Google OAuth sign-in was losing ?ref= query param — returnPath now preserves full path + query string so referral code gets applied after OAuth redirect
+
+## STRIPE CONNECT PAYMENT ROUTING (Jun 19, 2026)
+- [x] Add transfer_data to booking deposit checkout (route to artist's connected Stripe account)
+- [x] Add transfer_data to booking full payment checkout (route to artist's connected Stripe account)
+- [x] Add transfer_data to release purchase checkout (already in Express route, verified)
+- [x] Add transfer_data to ticket purchase checkout (route to event artist's connected Stripe account)
+- [x] Add application_fee_amount (1% platform fee) to all payment checkout sessions
+- [x] Handle fallback when artist has no connected account (payment goes to platform, manual payout later)
+- [x] Update webhook to record artist_earnings when booking payment fully completes (with idempotency)
+- [x] Fix booking checkout artist lookup: booking.artistId is profileId, resolved to userId for stripeConnectAccounts

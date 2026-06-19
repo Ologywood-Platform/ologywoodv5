@@ -14,7 +14,7 @@
 import { Router } from 'express';
 import Stripe from 'stripe';
 import { getDb } from '../db';
-import { bookings, stripeConnectAccounts } from '../../drizzle/schema';
+import { bookings, stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq, and } from 'drizzle-orm';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -103,12 +103,23 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
     // Calculate platform fee (1%)
     const platformFeeCents = Math.max(1, Math.round(amountCents * PLATFORM_FEE_PERCENT / 100));
 
-    // Look up the artist's Stripe Connect account
-    const [connectAccount] = await db
+    // Look up the artist's userId from their profile (booking.artistId is the profile ID)
+    const [artistProfile] = await db
       .select()
-      .from(stripeConnectAccounts)
-      .where(eq(stripeConnectAccounts.artistId, booking.artistId))
+      .from(artistProfiles)
+      .where(eq(artistProfiles.id, booking.artistId))
       .limit(1);
+
+    // Look up the artist's Stripe Connect account using their userId
+    let connectAccount = null;
+    if (artistProfile) {
+      const [account] = await db
+        .select()
+        .from(stripeConnectAccounts)
+        .where(eq(stripeConnectAccounts.artistId, artistProfile.userId))
+        .limit(1);
+      connectAccount = account || null;
+    }
 
     // Build checkout session params
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
