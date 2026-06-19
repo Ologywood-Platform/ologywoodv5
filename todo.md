@@ -3300,3 +3300,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add transaction history table to Earnings page (date, type, source, gross, fee, net, status) with filter buttons
 - [x] Add disconnect/update Stripe account button to Earnings page (with confirmation dialog)
 - [x] Add visual income breakdown chart (SVG donut chart showing bookings vs releases vs tickets with legend)
+- [x] Add 'Export to CSV' button to transaction history table on Earnings page

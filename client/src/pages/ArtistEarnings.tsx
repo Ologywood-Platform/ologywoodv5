@@ -30,6 +30,7 @@ import {
   Calendar,
   Unlink,
   RefreshCw,
+  Download,
 } from 'lucide-react';
 
 // Simple donut chart component using SVG
@@ -161,6 +162,32 @@ function TransactionHistoryTable() {
   const transactions = data?.transactions || [];
   const filtered = filter === 'all' ? transactions : transactions.filter(t => t.type === filter);
 
+  const exportToCsv = (rows: typeof transactions) => {
+    const headers = ['Date', 'Type', 'Source', 'Gross Amount', 'Platform Fee', 'Net Amount', 'Status'];
+    const csvRows = [
+      headers.join(','),
+      ...rows.map(tx => [
+        new Date(tx.date).toLocaleDateString('en-US'),
+        tx.type,
+        `"${tx.source.replace(/"/g, '""')}"`,
+        tx.grossAmount.toFixed(2),
+        tx.platformFee.toFixed(2),
+        tx.netAmount.toFixed(2),
+        tx.status,
+      ].join(','))
+    ];
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ologywood-earnings-${filter}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'booking': return <Calendar className="h-4 w-4 text-purple-600" />;
@@ -207,19 +234,32 @@ function TransactionHistoryTable() {
               {filtered.length} transaction{filtered.length !== 1 ? 's' : ''} — showing where your money came from
             </CardDescription>
           </div>
-          {/* Filter buttons */}
-          <div className="flex gap-1.5 flex-wrap">
-            {(['all', 'booking', 'release', 'ticket'] as const).map(f => (
+          {/* Filter and Export buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
+              {(['all', 'booking', 'release', 'ticket'] as const).map(f => (
+                <Button
+                  key={f}
+                  variant={filter === f ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilter(f)}
+                  className="text-xs h-7 px-2.5"
+                >
+                  {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1) + 's'}
+                </Button>
+              ))}
+            </div>
+            {filtered.length > 0 && (
               <Button
-                key={f}
-                variant={filter === f ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => setFilter(f)}
-                className="text-xs h-7 px-2.5"
+                onClick={() => exportToCsv(filtered)}
+                className="text-xs h-7 px-2.5 gap-1"
               >
-                {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1) + 's'}
+                <Download className="h-3.5 w-3.5" />
+                Export CSV
               </Button>
-            ))}
+            )}
           </div>
         </div>
       </CardHeader>
