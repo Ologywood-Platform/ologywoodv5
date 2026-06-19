@@ -185,6 +185,11 @@ export default function ArtistOnboarding() {
         toast.error("Please select at least one genre");
         return;
       }
+      const partySize = parseInt(touringPartySize);
+      if (!touringPartySize || isNaN(partySize) || partySize < 1) {
+        toast.error("Touring party size must be at least 1 (including yourself)");
+        return;
+      }
     }
     
     if (currentStep < totalSteps) {
@@ -195,6 +200,17 @@ export default function ArtistOnboarding() {
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // Validate URL format (optional fields - only validate if user entered something)
+  const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // empty is OK for optional fields
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
     }
   };
 
@@ -210,6 +226,25 @@ export default function ArtistOnboarding() {
     if (genres.length === 0) {
       toast.error("Please select at least one genre");
       return;
+    }
+
+    // Validate URL fields
+    const urlFields = [
+      { value: websiteUrl, label: 'Website' },
+      { value: instagram, label: 'Instagram' },
+      { value: facebook, label: 'Facebook' },
+      { value: youtube, label: 'YouTube' },
+      { value: spotify, label: 'Spotify' },
+      { value: appleMusic, label: 'Apple Music' },
+      { value: tidal, label: 'Tidal' },
+      { value: soundcloud, label: 'SoundCloud' },
+      { value: otherStreaming, label: 'Other Streaming' },
+    ];
+    for (const field of urlFields) {
+      if (field.value && !isValidUrl(field.value)) {
+        toast.error(`${field.label} URL is not valid. Please enter a full URL (e.g., https://example.com)`);
+        return;
+      }
     }
 
     // Upload photo first if one is selected but not yet uploaded

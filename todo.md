@@ -3341,3 +3341,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## EVENT DATE FIELD CLEARING BUG (Jun 19, 2026) — Ray's feedback
 - [x] Fix: 'x' icon on From date field now only clears the From field (was clearing both From and To)
 - [x] Fix: 'x' icon on To date field only clears the To field (already worked correctly, confirmed)
+
+## ARTIST PROFILE SETUP VALIDATION (Jun 19, 2026) — Ray's feedback
+- [x] Fix: Touring Party Size must be > 0; shows toast error if value is 0 or blank when Next is clicked on step 2
+- [x] Add URL format validation for social/website fields (validates protocol + domain format on submit using new URL() parser)
