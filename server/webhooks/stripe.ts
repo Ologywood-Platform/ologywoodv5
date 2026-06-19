@@ -488,6 +488,12 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  // Handle tips separately
+  if (paymentIntent.metadata?.type === 'tip') {
+    await handleTipSucceeded(paymentIntent);
+    return;
+  }
+
   const bookingId = paymentIntent.metadata?.bookingId;
   if (!bookingId) return;
 
@@ -913,4 +919,80 @@ async function sendTicketConfirmationEmail(params: {
   });
 
   console.log(`[TicketEmail] Confirmation sent to ${params.buyerEmail} for order ${params.orderNumber}`);
+}
+
+/**
+ * Handle successful tip payment — record in artist_earnings and notify artist
+ */
+async function handleTipSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  const artistId = paymentIntent.metadata?.artistId;
+  const artistUserId = paymentIntent.metadata?.artistUserId;
+  const tipperName = paymentIntent.metadata?.tipperName || 'Anonymous';
+  const tipMessage = paymentIntent.metadata?.message || '';
+
+  if (!artistId || !artistUserId) {
+    console.error('[Stripe Webhook] Tip payment missing artistId or artistUserId metadata');
+    return;
+  }
+
+  const amount = paymentIntent.amount / 100;
+  console.log(`[Stripe Webhook] Tip of $${amount.toFixed(2)} received for artist ${artistId} from ${tipperName}`);
+
+  const database = await db.getDb();
+  if (!database) return;
+
+  const { artistEarnings, artistProfiles } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+
+  // Record the tip as an earning (no platform fee — 100% to artist)
+  try {
+    await database.insert(artistEarnings).values({
+      artistId: parseInt(artistId),
+      bookingId: -Math.abs(parseInt(paymentIntent.id.replace(/\D/g, '').slice(0, 9)) || Date.now()),
+      grossAmount: amount.toFixed(2),
+      platformFee: '0.00',
+      netAmount: amount.toFixed(2),
+      status: 'completed',
+    });
+    console.log(`[Stripe Webhook] Tip earning recorded for artist ${artistId}: $${amount.toFixed(2)}`);
+  } catch (err) {
+    console.warn('[Stripe Webhook] Could not insert tip earning (may be duplicate):', err);
+  }
+
+  // Send notification email to the artist
+  try {
+    const [artistProfile] = await database
+      .select()
+      .from(artistProfiles)
+      .where(eq(artistProfiles.id, parseInt(artistId)))
+      .limit(1);
+
+    if (artistProfile) {
+      const artistUser = await db.getUserById(artistProfile.userId);
+      if (artistUser?.email) {
+        await email.sendEmail({
+          to: artistUser.email,
+          subject: `You received a $${amount.toFixed(2)} tip!`,
+          html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #7c3aed; margin: 0; font-size: 24px;">Ologywood</h1></div>
+            <div style="background: #f5f3ff; padding: 24px; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+              <div style="font-size: 48px; margin-bottom: 12px;">&hearts;</div>
+              <h2 style="margin: 0; color: #5b21b6; font-size: 22px;">You received a tip!</h2>
+              <p style="color: #7c3aed; font-size: 32px; font-weight: bold; margin: 12px 0;">$${amount.toFixed(2)}</p>
+              <p style="color: #6d28d9; margin: 0; font-size: 14px;">From: ${tipperName}</p>
+              ${tipMessage ? `<p style="color: #4c1d95; margin: 12px 0 0; font-style: italic; font-size: 14px;">&ldquo;${tipMessage}&rdquo;</p>` : ''}
+            </div>
+            <p style="color: #333; font-size: 15px;">Hi ${artistProfile.artistName},</p>
+            <p style="color: #333; font-size: 15px;">Someone just showed their appreciation by sending you a tip through Ologywood. The full amount has been sent directly to your connected Stripe account &mdash; no platform fees.</p>
+            <div style="text-align: center; margin: 24px 0;"><a href="https://www.ologywood.com/earnings" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Your Earnings</a></div>
+            <p style="color: #6b7280; font-size: 13px; margin-top: 24px;">Keep making great music!</p>
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;"><p style="color: #9ca3af; font-size: 11px;">Ologywood &mdash; Book Talented Artists for Your Events</p></div>
+          </div>`,
+        });
+        console.log(`[Stripe Webhook] Tip notification email sent to ${artistUser.email}`);
+      }
+    }
+  } catch (emailErr) {
+    console.error('[Stripe Webhook] Error sending tip notification email:', emailErr);
+  }
 }

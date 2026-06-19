@@ -3354,3 +3354,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## STRIPE CONNECT ON SETTINGS PAGE (Jun 19, 2026)
 - [x] Add a "Set Up Payments / Connect to Stripe" card on the Settings page that links to the Earnings page where Stripe connect flow lives
+
+## STRIPE-POWERED TIP FEATURE (Jun 19, 2026)
+- [x] Server: Create tip router with canReceiveTips query and createTipPayment mutation
+- [x] Server: Stripe Payment Intent with transfer_data to artist's connected account (no platform fee)
+- [x] Client: TipModal component with preset amounts ($5/$10/$25/$50) + custom amount
+- [x] Client: Stripe Elements integration for secure card payment
+- [x] Client: Tip button on artist profile (only shows if artist has Stripe Connect active)
+- [x] Webhook: Handle tip payment_intent.succeeded — record in artist_earnings
+- [x] Email: Send notification to artist when they receive a tip
