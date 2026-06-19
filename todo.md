@@ -3319,3 +3319,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Manual date entry + calendar click both supported in range mode
 - [x] Auto-detect consecutive ranges when clicking single dates that are part of a range
 - [x] 90-day max range limit to prevent abuse
+
+## ARTIST PROFILE SETUP UX IMPROVEMENTS (Jun 19, 2026) — Ray's feedback
+- [x] Fix: Input fields displaying all caps on mobile — added autoCapitalize="words" to name/location inputs (both Onboarding and Edit Profile)
+- [x] Make Location a required field with validation (helps venues find local talent)
+- [x] Change Genre to multi-select badge UI with 29 predefined genre options + custom genre add (matches Edit Profile)
+- [x] Add "Min ($)" and "Max ($)" placeholder text to Fee Range fields
+- [x] Add required field validation: location required on step 1, genre (at least 1) required on step 2
+- [x] Add autoCapitalize="sentences" to bio textarea on Edit Profile
+

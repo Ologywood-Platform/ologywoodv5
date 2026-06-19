@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
@@ -43,11 +43,32 @@ export default function ArtistOnboarding() {
   const [showCropper, setShowCropper] = useState(false);
 
   // Step 2: Genre & Performance Details
-  const [genreInput, setGenreInput] = useState("");
   const [genres, setGenres] = useState<string[]>([]);
+  const [customGenre, setCustomGenre] = useState("");
   const [feeRangeMin, setFeeRangeMin] = useState("");
   const [feeRangeMax, setFeeRangeMax] = useState("");
   const [touringPartySize, setTouringPartySize] = useState("1");
+
+  const GENRE_OPTIONS = [
+    "Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Blues", "Country", "Electronic",
+    "Classical", "Reggae", "Latin", "Folk", "Metal", "Punk", "Soul", "Funk",
+    "Gospel", "Indie", "Alternative", "World", "Afrobeats", "Dancehall",
+    "House", "Techno", "Trap", "Lo-fi", "Ambient", "Experimental", "Other"
+  ];
+
+  const toggleGenre = (genre: string) => {
+    setGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
+    );
+  };
+
+  const addCustomGenre = () => {
+    const trimmed = customGenre.trim();
+    if (trimmed && !genres.includes(trimmed)) {
+      setGenres((prev) => [...prev, trimmed]);
+      setCustomGenre("");
+    }
+  };
 
   // Step 3: Social Links
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -80,16 +101,7 @@ export default function ArtistOnboarding() {
     },
   });
 
-  const handleAddGenre = () => {
-    if (genreInput.trim() && !genres.includes(genreInput.trim())) {
-      setGenres([...genres, genreInput.trim()]);
-      setGenreInput("");
-    }
-  };
 
-  const handleRemoveGenre = (genre: string) => {
-    setGenres(genres.filter(g => g !== genre));
-  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,6 +175,16 @@ export default function ArtistOnboarding() {
         toast.error("Please enter your artist name");
         return;
       }
+      if (!location.trim()) {
+        toast.error("Please enter your location — this helps venues find local talent");
+        return;
+      }
+    }
+    if (currentStep === 2) {
+      if (genres.length === 0) {
+        toast.error("Please select at least one genre");
+        return;
+      }
     }
     
     if (currentStep < totalSteps) {
@@ -179,6 +201,14 @@ export default function ArtistOnboarding() {
   const handleSubmit = async () => {
     if (!artistName.trim()) {
       toast.error("Artist name is required");
+      return;
+    }
+    if (!location.trim()) {
+      toast.error("Location is required");
+      return;
+    }
+    if (genres.length === 0) {
+      toast.error("Please select at least one genre");
       return;
     }
 
@@ -254,19 +284,24 @@ export default function ArtistOnboarding() {
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
                   placeholder="Your stage name or band name"
+                  autoCapitalize="words"
                   className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">Location *</Label>
                 <Input
                   id="location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="City, State or Region"
+                  autoCapitalize="words"
                   className="mt-1"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Helps venues find local talent in their area
+                </p>
               </div>
 
               <div>
@@ -354,27 +389,35 @@ export default function ArtistOnboarding() {
               </div>
 
               <div>
-                <Label htmlFor="genre">Genres</Label>
-                <div className="flex gap-2 mt-1">
+                <Label>Genres * <span className="text-xs text-muted-foreground font-normal">(select all that apply)</span></Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {GENRE_OPTIONS.map((genre) => (
+                    <Badge
+                      key={genre}
+                      variant={genres.includes(genre) ? "default" : "outline"}
+                      className="cursor-pointer select-none"
+                      onClick={() => toggleGenre(genre)}
+                    >
+                      {genre}
+                      {genres.includes(genre) && <X className="h-3 w-3 ml-1" />}
+                    </Badge>
+                  ))}
+                </div>
+                {/* Custom genre */}
+                <div className="flex gap-2 mt-3">
                   <Input
-                    id="genre"
-                    value={genreInput}
-                    onChange={(e) => setGenreInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddGenre())}
-                    placeholder="e.g., Jazz, Rock, Hip-Hop"
+                    value={customGenre}
+                    onChange={(e) => setCustomGenre(e.target.value)}
+                    placeholder="Add custom genre..."
+                    autoCapitalize="words"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
                   />
-                  <Button type="button" onClick={handleAddGenre} variant="outline">
+                  <Button type="button" variant="outline" onClick={addCustomGenre} disabled={!customGenre.trim()}>
                     Add
                   </Button>
                 </div>
                 {genres.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {genres.map((genre) => (
-                      <Badge key={genre} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveGenre(genre)}>
-                        {genre} ×
-                      </Badge>
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">Selected: {genres.join(", ")}</p>
                 )}
               </div>
 
@@ -386,8 +429,9 @@ export default function ArtistOnboarding() {
                     type="number"
                     value={feeRangeMin}
                     onChange={(e) => setFeeRangeMin(e.target.value)}
-                    placeholder="500"
+                    placeholder="Min ($)"
                     className="mt-1"
+                    min="0"
                   />
                 </div>
                 <div>
@@ -397,8 +441,9 @@ export default function ArtistOnboarding() {
                     type="number"
                     value={feeRangeMax}
                     onChange={(e) => setFeeRangeMax(e.target.value)}
-                    placeholder="2000"
+                    placeholder="Max ($)"
                     className="mt-1"
+                    min="0"
                   />
                 </div>
               </div>

@@ -365,6 +365,7 @@ export default function ArtistEditProfile() {
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
                   placeholder="Your stage name"
+                  autoCapitalize="words"
                 />
               </div>
 
@@ -376,6 +377,7 @@ export default function ArtistEditProfile() {
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell venues and fans about yourself..."
                   rows={5}
+                  autoCapitalize="sentences"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {bio.length}/1000 characters — Keep it short and engaging. Venues scan this in seconds. Mention your style, experience, and what makes your show unique.
@@ -389,6 +391,7 @@ export default function ArtistEditProfile() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="City, State"
+                  autoCapitalize="words"
                 />
               </div>
             </CardContent>
