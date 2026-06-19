@@ -3294,3 +3294,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Handle fallback when artist has no connected account (payment goes to platform, manual payout later)
 - [x] Update webhook to record artist_earnings when booking payment fully completes (with idempotency)
 - [x] Fix booking checkout artist lookup: booking.artistId is profileId, resolved to userId for stripeConnectAccounts
+
+## EARNINGS PAGE ENHANCEMENTS (Jun 19, 2026)
+- [x] Add API endpoint for detailed transaction history (bookings, releases, tickets with dates, amounts, sources)
+- [x] Add transaction history table to Earnings page (date, type, source, gross, fee, net, status) with filter buttons
+- [x] Add disconnect/update Stripe account button to Earnings page (with confirmation dialog)
+- [x] Add visual income breakdown chart (SVG donut chart showing bookings vs releases vs tickets with legend)

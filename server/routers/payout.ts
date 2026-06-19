@@ -1,8 +1,8 @@
 import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
-import { artistEarnings, artistPayouts, bookings } from '../../drizzle/schema';
-import { eq, sql, and, gte, lte, desc } from 'drizzle-orm';
+import { artistEarnings, artistPayouts, bookings, releasePurchases, artistReleases, ticketOrders, events, artistProfiles } from '../../drizzle/schema';
+import { eq, sql, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import * as db from '../db';
 
 export const payoutRouter = router({
@@ -283,4 +283,130 @@ export const payoutRouter = router({
 
       return { success: true, message: 'Payout completed' };
     }),
+
+  /**
+   * Unified transaction history: combines bookings, release sales, and ticket sales
+   * into a single chronological list for the Earnings page
+   */
+  getTransactionHistory: protectedProcedure.query(async ({ ctx }: any) => {
+    const database = await getDb();
+    if (!database) {
+      return { transactions: [], summary: { bookings: 0, releases: 0, tickets: 0 } };
+    }
+
+    const userId = ctx.user.id;
+    const transactions: Array<{
+      id: string;
+      type: 'booking' | 'release' | 'ticket';
+      source: string;
+      date: string;
+      grossAmount: number;
+      platformFee: number;
+      netAmount: number;
+      status: string;
+    }> = [];
+
+    // 1. Get artist profile to find bookings and events
+    const [profile] = await database.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
+
+    // 2. Booking earnings (from artist_earnings table which links to bookings)
+    const earningsRows = await database.select().from(artistEarnings).where(eq(artistEarnings.artistId, userId));
+    
+    for (const earning of earningsRows) {
+      // Try to get booking details for source name
+      let sourceName = `Booking #${earning.bookingId}`;
+      try {
+        const [booking] = await database.select().from(bookings).where(eq(bookings.id, earning.bookingId)).limit(1);
+        if (booking) {
+          sourceName = booking.eventType || `Booking #${booking.id}`;
+        }
+      } catch (e) { /* fallback to generic name */ }
+
+      transactions.push({
+        id: `booking-${earning.id}`,
+        type: 'booking',
+        source: sourceName,
+        date: earning.createdAt.toISOString(),
+        grossAmount: parseFloat(earning.grossAmount as string) || 0,
+        platformFee: parseFloat(earning.platformFee as string) || 0,
+        netAmount: parseFloat(earning.netAmount as string) || 0,
+        status: earning.status,
+      });
+    }
+
+    // 3. Release sales (from release_purchases joined with artist_releases)
+    if (profile) {
+      const artistReleasesRows = await database.select({ id: artistReleases.id, title: artistReleases.title })
+        .from(artistReleases)
+        .where(eq(artistReleases.artistId, profile.id));
+
+      if (artistReleasesRows.length > 0) {
+        const releaseIds = artistReleasesRows.map(r => r.id);
+        const purchases = await database.select().from(releasePurchases)
+          .where(inArray(releasePurchases.releaseId, releaseIds));
+
+        for (const purchase of purchases) {
+          const release = artistReleasesRows.find(r => r.id === purchase.releaseId);
+          const gross = purchase.amountPaidCents / 100;
+          const fee = purchase.platformFeeCents / 100;
+          const net = purchase.artistNetCents / 100;
+
+          transactions.push({
+            id: `release-${purchase.id}`,
+            type: 'release',
+            source: release?.title || `Release #${purchase.releaseId}`,
+            date: purchase.purchasedAt.toISOString(),
+            grossAmount: gross,
+            platformFee: fee,
+            netAmount: net,
+            status: 'completed',
+          });
+        }
+      }
+
+      // 4. Ticket sales (from ticket_orders joined with events)
+      const artistEvents = await database.select({ id: events.id, eventTitle: events.eventTitle })
+        .from(events)
+        .where(eq(events.artistId, profile.id));
+
+      if (artistEvents.length > 0) {
+        const eventIds = artistEvents.map(e => e.id);
+        const orders = await database.select().from(ticketOrders)
+          .where(and(
+            inArray(ticketOrders.eventId, eventIds),
+            eq(ticketOrders.status, 'completed')
+          ));
+
+        for (const order of orders) {
+          const event = artistEvents.find(e => e.id === order.eventId);
+          const gross = order.totalAmount / 100;
+          const fee = order.platformFee / 100;
+          const net = (order.totalAmount - order.platformFee) / 100;
+
+          transactions.push({
+            id: `ticket-${order.id}`,
+            type: 'ticket',
+            source: event?.eventTitle || `Event #${order.eventId}`,
+            date: order.createdAt.toISOString(),
+            grossAmount: gross,
+            platformFee: fee,
+            netAmount: net,
+            status: 'completed',
+          });
+        }
+      }
+    }
+
+    // Sort by date descending
+    transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Income summary by source type
+    const summary = {
+      bookings: transactions.filter(t => t.type === 'booking').reduce((sum, t) => sum + t.netAmount, 0),
+      releases: transactions.filter(t => t.type === 'release').reduce((sum, t) => sum + t.netAmount, 0),
+      tickets: transactions.filter(t => t.type === 'ticket').reduce((sum, t) => sum + t.netAmount, 0),
+    };
+
+    return { transactions, summary };
+  }),
 });
