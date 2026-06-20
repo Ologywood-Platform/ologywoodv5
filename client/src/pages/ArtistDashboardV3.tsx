@@ -15,6 +15,7 @@ import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { SponsorManagement } from '@/components/SponsorManagement';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { CalendarSync } from '@/components/CalendarSync';
+import { GoogleCalendarSync } from '@/components/GoogleCalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
 import { ReferralSection } from '@/components/ReferralSection';
@@ -507,6 +508,9 @@ export function ArtistDashboardV3() {
 
             {/* Calendar Sync */}
             <CalendarSync />
+
+            {/* Google Calendar Two-Way Sync */}
+            <GoogleCalendarSync />
 
             {/* Events Section */}
             <Card>

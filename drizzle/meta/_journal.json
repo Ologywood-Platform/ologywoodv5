@@ -680,6 +680,13 @@
       "when": 1781814184346,
       "tag": "0096_little_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "5",
+      "when": 1781950663075,
+      "tag": "0097_huge_gauntlet",
+      "breakpoints": true
     }
   ]
 }

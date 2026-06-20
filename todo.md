@@ -3366,3 +3366,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## STRIPE CONNECT BUTTON FIX (Jun 19, 2026)
 - [x] Fix: "Connect Stripe Account" button spins and goes nowhere — browser was blocking window.open() after async call. Changed to window.location.href for all 3 Stripe Connect actions (create account, dashboard, onboarding)
+
+## VENUE iCAL FEED + ARTIST TWO-WAY GOOGLE CALENDAR SYNC (Jun 20, 2026)
+- [x] Server: Create venue iCal feed endpoint (/api/calendar/venue/:venueId/events.ics) with token auth
+- [x] Server: Add venue.getCalendarFeedUrl tRPC query in venue router
+- [x] Client: Add VenueCalendarSync component to Venue Dashboard calendar tab
+- [x] Server: Google Calendar OAuth flow with calendar.readonly scope (googleCalendarSync route)
+- [x] Server: Create endpoint to import artist's Google Calendar busy times as unavailable blocks
+- [x] Client: Add GoogleCalendarSync component on artist dashboard (connect/sync/disconnect)
+- [x] Server: Store google_calendar_integrations in DB + import busy blocks to availability table
+- [x] Display Google Calendar status on artist dashboard with sync/disconnect controls

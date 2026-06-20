@@ -3250,3 +3250,31 @@ export async function isDateBlockedForVenue(venueId: number, date: string): Prom
   
   return { blocked: false };
 }
+
+// Google Calendar integration helpers
+export async function getGoogleCalendarStatus(artistId: number): Promise<{ connected: boolean; googleEmail?: string | null; lastSyncedAt?: string | null }> {
+  const database = await getDb();
+  if (!database) return { connected: false };
+  const [integration] = await database
+    .select()
+    .from(schema.googleCalendarIntegrations)
+    .where(eq(schema.googleCalendarIntegrations.artistId, artistId))
+    .limit(1);
+  if (!integration || !integration.syncEnabled) {
+    return { connected: false };
+  }
+  return {
+    connected: true,
+    googleEmail: integration.googleEmail,
+    lastSyncedAt: integration.lastSyncedAt?.toISOString() || null,
+  };
+}
+
+export async function disconnectGoogleCalendar(artistId: number): Promise<void> {
+  const database = await getDb();
+  if (!database) throw new Error('Database not available');
+  await database
+    .update(schema.googleCalendarIntegrations)
+    .set({ syncEnabled: false })
+    .where(eq(schema.googleCalendarIntegrations.artistId, artistId));
+}

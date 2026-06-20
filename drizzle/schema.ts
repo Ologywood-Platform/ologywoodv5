@@ -1856,3 +1856,26 @@ export const artistTeamActivityLog = mysqlTable("artist_team_activity_log", {
 }));
 export type ArtistTeamActivityLog = typeof artistTeamActivityLog.$inferSelect;
 export type InsertArtistTeamActivityLog = typeof artistTeamActivityLog.$inferInsert;
+
+
+/**
+ * Google Calendar Integration — stores OAuth tokens for artists who connect their Google Calendar.
+ * Used for two-way sync: importing busy times as unavailable blocks.
+ */
+export const googleCalendarIntegrations = mysqlTable("google_calendar_integrations", {
+  id: int("id").autoincrement().primaryKey(),
+  artistId: int("artistId").notNull(),
+  googleEmail: varchar("googleEmail", { length: 255 }),
+  accessToken: text("accessToken").notNull(),
+  refreshToken: text("refreshToken").notNull(),
+  tokenExpiresAt: timestamp("tokenExpiresAt"),
+  calendarId: varchar("calendarId", { length: 255 }).default("primary"),
+  syncEnabled: boolean("syncEnabled").default(true),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_gcal_artist").on(table.artistId),
+}));
+export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
+export type InsertGoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferInsert;

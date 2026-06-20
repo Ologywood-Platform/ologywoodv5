@@ -1027,4 +1027,27 @@ export const venueRouter = router({
         return [];
       }
     }),
+
+  /**
+   * Get the venue's iCal calendar feed URL for subscribing in external calendar apps
+   */
+  getCalendarFeedUrl: venueProcedure.query(async ({ ctx }) => {
+    const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+    if (!venueProfile) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+    }
+    const crypto = await import('crypto');
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+    const token = crypto
+      .createHmac('sha256', JWT_SECRET)
+      .update(`venue-calendar-feed-${venueProfile.id}`)
+      .digest('hex')
+      .substring(0, 32);
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    return {
+      feedUrl: `${baseUrl}/api/calendar/venue/${venueProfile.id}/events.ics?token=${token}`,
+      venueId: venueProfile.id,
+      token,
+    };
+  }),
 });

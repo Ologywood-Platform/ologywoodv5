@@ -2875,6 +2875,37 @@ export const appRouter = router({
           token,
         };
       }),
+
+    getGoogleCalendarStatus: artistProcedure.query(async ({ ctx }) => {
+      const profile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+      }
+      const status = await db.getGoogleCalendarStatus(profile.id);
+      return status;
+    }),
+
+    syncGoogleCalendar: artistProcedure.mutation(async ({ ctx }) => {
+      const profile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+      }
+      const { syncGoogleCalendarForArtist } = await import('./routes/googleCalendarSync');
+      const result = await syncGoogleCalendarForArtist(profile.id);
+      if (result.error) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: result.error });
+      }
+      return { synced: result.synced };
+    }),
+
+    disconnectGoogleCalendar: artistProcedure.mutation(async ({ ctx }) => {
+      const profile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+      }
+      await db.disconnectGoogleCalendar(profile.id);
+      return { success: true };
+    }),
   }),
   
   // Reminders router (for testing/manual trigger)

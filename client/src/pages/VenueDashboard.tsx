@@ -15,6 +15,7 @@ import { Skeleton } from '../components/ui/skeleton';
 import ImageCropper from '../components/ImageCropper';
 import { VenueContractsDashboard } from '../components/VenueContractsDashboard';
 import VenueCalendar from '../components/VenueCalendar';
+import { VenueCalendarSync } from '../components/VenueCalendarSync';
 import VenueAnalytics from '../components/VenueAnalytics';
 import ArtistFilters, { ArtistFilterValues } from '../components/ArtistFilters';
 import SettlementForm from '../components/SettlementForm';
@@ -579,6 +580,9 @@ export function VenueDashboard() {
                 }}
               />
             )}
+            <div className="mt-6">
+              <VenueCalendarSync />
+            </div>
           </TabsContent>
 
           {/* Bookings Tab */}
