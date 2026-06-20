@@ -3376,3 +3376,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Client: Add GoogleCalendarSync component on artist dashboard (connect/sync/disconnect)
 - [x] Server: Store google_calendar_integrations in DB + import busy blocks to availability table
 - [x] Display Google Calendar status on artist dashboard with sync/disconnect controls
+
+## DASHBOARD 404 BUG FIX (Jun 20, 2026)
+- [x] Fix: GoogleCalendarSync component was importing useSearchParams from react-router-dom but app uses wouter — caused crash/error boundary on /dashboard. Replaced with native URLSearchParams + window.history.replaceState

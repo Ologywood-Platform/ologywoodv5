@@ -1,27 +1,28 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 export function GoogleCalendarSync() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setLocation] = useLocation();
   const [syncing, setSyncing] = useState(false);
 
-  // Check for gcal callback params
+  // Check for gcal callback params in the URL
   useEffect(() => {
-    const gcalStatus = searchParams.get('gcal');
+    const params = new URLSearchParams(window.location.search);
+    const gcalStatus = params.get('gcal');
     if (gcalStatus === 'connected') {
       toast.success('Google Calendar connected successfully! Your busy times are now synced.');
-      searchParams.delete('gcal');
-      setSearchParams(searchParams, { replace: true });
+      // Remove the query params from the URL without a full reload
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
     } else if (gcalStatus === 'error') {
-      const reason = searchParams.get('reason') || 'unknown';
+      const reason = params.get('reason') || 'unknown';
       toast.error(`Failed to connect Google Calendar: ${reason}`);
-      searchParams.delete('gcal');
-      searchParams.delete('reason');
-      setSearchParams(searchParams, { replace: true });
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
     }
-  }, [searchParams, setSearchParams]);
+  }, []);
 
   // Query to check if Google Calendar is connected
   const { data: integration, isLoading, refetch } = trpc.profileAnalytics.getGoogleCalendarStatus.useQuery();
