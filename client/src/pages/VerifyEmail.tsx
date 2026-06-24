@@ -272,15 +272,14 @@ export function VerifyEmail() {
           </div>
 
           <div className="pt-2">
-            <Button
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              onClick={() => window.location.href = '/get-started'}
-            >
-              Continue to Account Setup
-            </Button>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              You can verify your email later. Let's get your profile set up first!
-            </p>
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <p className="text-sm text-purple-700 text-center font-medium">
+                You must verify your email before setting up your profile.
+              </p>
+              <p className="text-xs text-purple-600 text-center mt-1">
+                This helps us keep the platform safe from spam and fake accounts.
+              </p>
+            </div>
           </div>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">

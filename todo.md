@@ -3379,3 +3379,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## DASHBOARD 404 BUG FIX (Jun 20, 2026)
 - [x] Fix: GoogleCalendarSync component was importing useSearchParams from react-router-dom but app uses wouter — caused crash/error boundary on /dashboard. Replaced with native URLSearchParams + window.history.replaceState
+
+## EMAIL VERIFICATION GATE & ANTI-BOT (Jun 23, 2026)
+- [x] Block profile creation (ArtistOnboarding, VenueOnboarding) until email is verified
+- [x] Show "Verify your email" screen for unverified users who try to create a profile
+- [x] Update admin panel to show "Pending Verification" status for unverified users
+- [x] Add rate limiting on signup endpoint to prevent spam bots (already exists, verified: 5 per 15 min per IP)
+- [x] Remove "Continue to Account Setup" bypass on VerifyEmail page
+- [x] Test full flow: signup → verify email → can create profile (10 tests passing)

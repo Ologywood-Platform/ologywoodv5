@@ -20,6 +20,14 @@ export default function ArtistOnboarding() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
 
+  // Block unverified users from creating a profile
+  useEffect(() => {
+    if (user && !user.emailVerified) {
+      toast.error("Please verify your email before setting up your profile.");
+      navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
+    }
+  }, [user, navigate]);
+
   // Check if user already has an artist profile — redirect to dashboard if so
   const existingProfile = trpc.artist.getMyProfile.useQuery(undefined, {
     enabled: !!user,

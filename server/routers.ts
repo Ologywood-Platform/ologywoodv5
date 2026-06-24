@@ -469,6 +469,13 @@ export const appRouter = router({
         }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Block profile creation if email is not verified
+        if (!ctx.user.emailVerified) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Please verify your email address before creating a profile. Check your inbox for the verification link.',
+          });
+        }
         // Check if user already has an artist profile
         const existing = await db.getArtistProfileByUserId(ctx.user.id);
         if (existing) {

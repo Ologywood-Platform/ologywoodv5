@@ -142,6 +142,13 @@ export const venueRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        // Block profile creation if email is not verified
+        if (!ctx.user.emailVerified) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Please verify your email address before creating a profile. Check your inbox for the verification link.',
+          });
+        }
         // Check if profile already exists
         const existing = await db.getVenueProfileByUserId(ctx.user.id);
         if (existing) {

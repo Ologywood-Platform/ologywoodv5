@@ -441,6 +441,7 @@ function UsersTab({
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
                   <th className="text-right py-3 px-4 font-medium text-gray-700">Change Role</th>
                 </tr>
@@ -463,6 +464,13 @@ function UsersTab({
                         <span className={`px-2 py-1 rounded text-xs font-medium ${isUserOwner ? 'bg-yellow-100 text-yellow-700' : getRoleBadgeColor(user.role)}`}>
                           {isUserOwner ? 'Owner' : user.role}
                         </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {user.emailVerified ? (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">Verified</span>
+                        ) : (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-700">Pending Verification</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-right">

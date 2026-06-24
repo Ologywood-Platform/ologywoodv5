@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, User, Phone, FileText, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import SiteHeader from '../components/SiteHeader';
 import { LocationInput } from '../components/LocationInput';
 import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
@@ -24,6 +25,14 @@ export default function VenueOnboarding() {
     operatingHours: null as any,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Block unverified users from creating a profile
+  useEffect(() => {
+    if (user && !user.emailVerified) {
+      toast.error("Please verify your email before setting up your profile.");
+      navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
+    }
+  }, [user, navigate]);
 
   // Check if venue already has a profile
   const { data: existingProfile, isLoading: profileLoading } = trpc.venue.getMyProfile.useQuery(
