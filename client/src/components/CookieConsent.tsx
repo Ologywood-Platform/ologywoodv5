@@ -32,7 +32,7 @@ export default function CookieConsent() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-0 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-md"
+      className="fixed bottom-0 left-0 right-0 z-40 p-4 sm:p-0 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-md"
       role="dialog"
       aria-label="Cookie notice"
     >

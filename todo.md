@@ -3387,3 +3387,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add rate limiting on signup endpoint to prevent spam bots (already exists, verified: 5 per 15 min per IP)
 - [x] Remove "Continue to Account Setup" bypass on VerifyEmail page
 - [x] Test full flow: signup → verify email → can create profile (10 tests passing)
+
+## VISUAL AUDIT: OVERFLOW & OVERLAY FIXES (Jul 10, 2026)
+- [x] Run programmatic overflow detection on all public pages (desktop + mobile)
+- [x] Identify all elements outside visible bounding box on desktop views (NONE found)
+- [x] Identify all elements outside visible bounding box on mobile views (2 real issues found)
+- [x] Fix chat widget (z-40) hidden behind cookie consent (z-50) on mobile — raised to z-[60]
+- [x] Fix StickyBookingBar on artist profiles pushed below viewport by cookie consent — raised to z-[55]
+- [x] Lower cookie consent z-index from z-50 to z-40 (lowest priority overlay)
+- [x] Verify TypeScript compiles with 0 errors after changes

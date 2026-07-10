@@ -91,7 +91,7 @@ export function AIChatWidget() {
       {/* Chat Button - Positioned to the right */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed ${buttonBottom} ${buttonRight} bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-40 flex items-center justify-center hover:scale-110`}
+        className={`fixed ${buttonBottom} ${buttonRight} bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-[60] flex items-center justify-center hover:scale-110`}
         aria-label="Open chat"
         title="Chat with AI Support"
       >
@@ -104,7 +104,7 @@ export function AIChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-40 border border-gray-200 overflow-hidden`}>
+        <div className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-[60] border border-gray-200 overflow-hidden`}>
           {/* Header - Fixed height to prevent text cutoff */}
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg flex-shrink-0">
             <h3 className="font-semibold text-lg whitespace-nowrap overflow-hidden text-overflow-ellipsis">
