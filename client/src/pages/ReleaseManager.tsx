@@ -237,6 +237,7 @@ function ReleaseForm({
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const audioInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -381,19 +382,34 @@ function ReleaseForm({
     setIsUploadingCover(false);
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!title.trim()) {
+      errors.title = "Title is required";
+    }
+    if (!audioFileKey) {
+      errors.audio = "Audio file is required";
+    }
+    if (!coverArtKey) {
+      errors.cover = "Cover art is required";
+    }
+    if (priceInCents < 50) {
+      errors.price = "Minimum price is $0.50";
+    }
+    if (!isEditing && !rightsCertified) {
+      errors.rights = "You must certify that you own the rights to this music";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!audioFileKey) {
-      toast.addError("Missing audio", "Please upload an audio file.");
-      return;
-    }
-    if (!coverArtKey) {
-      toast.addError("Missing cover art", "Please upload cover art.");
-      return;
-    }
-    if (!isEditing && !rightsCertified) {
-      toast.addError("Rights certification required", "You must certify that you own the rights to this music.");
+    if (!validateForm()) {
+      toast.addError("Missing required fields", "Please fill in all required fields highlighted below.");
       return;
     }
 
@@ -449,11 +465,17 @@ function ReleaseForm({
             <Input
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (fieldErrors.title && e.target.value.trim()) {
+                  setFieldErrors((prev) => { const n = { ...prev }; delete n.title; return n; });
+                }
+              }}
               placeholder="Enter track title"
-              required
               maxLength={255}
+              className={fieldErrors.title ? 'border-red-500' : ''}
             />
+            {fieldErrors.title && <p className="text-xs text-red-500">{fieldErrors.title}</p>}
           </div>
 
           {/* Description */}
@@ -483,18 +505,23 @@ function ReleaseForm({
 
           {/* Audio Upload */}
           <div className="space-y-2">
-            <Label>Audio File * (MP3, WAV, FLAC, AAC — max 50 MB)</Label>
+            <Label className={fieldErrors.audio ? 'text-red-500' : ''}>Audio File * (MP3, WAV, FLAC, AAC — max 50 MB)</Label>
             <input
               ref={audioInputRef}
               type="file"
               accept=".mp3,.wav,.flac,.aac,.m4a,audio/*"
-              onChange={handleAudioUpload}
+              onChange={(e) => {
+                handleAudioUpload(e);
+                if (fieldErrors.audio) {
+                  setFieldErrors((prev) => { const n = { ...prev }; delete n.audio; return n; });
+                }
+              }}
               className="hidden"
             />
             <div className="flex items-center gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant={fieldErrors.audio ? "destructive" : "outline"}
                 onClick={() => audioInputRef.current?.click()}
                 disabled={isUploadingAudio}
               >
@@ -511,22 +538,28 @@ function ReleaseForm({
                 </span>
               )}
             </div>
+            {fieldErrors.audio && <p className="text-xs text-red-500">{fieldErrors.audio}</p>}
           </div>
 
           {/* Cover Art Upload */}
           <div className="space-y-2">
-            <Label>Cover Art * (JPG, PNG, WebP — max 10 MB)</Label>
+            <Label className={fieldErrors.cover ? 'text-red-500' : ''}>Cover Art * (JPG, PNG, WebP — max 10 MB)</Label>
             <input
               ref={coverInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={handleCoverUpload}
+              onChange={(e) => {
+                handleCoverUpload(e);
+                if (fieldErrors.cover) {
+                  setFieldErrors((prev) => { const n = { ...prev }; delete n.cover; return n; });
+                }
+              }}
               className="hidden"
             />
             <div className="flex items-center gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant={fieldErrors.cover ? "destructive" : "outline"}
                 onClick={() => coverInputRef.current?.click()}
                 disabled={isUploadingCover}
               >
@@ -544,6 +577,7 @@ function ReleaseForm({
                 <span className="text-sm text-muted-foreground">Cover art uploaded</span>
               )}
             </div>
+            {fieldErrors.cover && <p className="text-xs text-red-500">{fieldErrors.cover}</p>}
           </div>
 
            {/* Price */}
@@ -581,12 +615,13 @@ function ReleaseForm({
                     setPriceInCents(100);
                   }
                 }}
-                className="w-32"
+                className={`w-32 ${fieldErrors.price ? 'border-red-500' : ''}`}
               />
               <span className="text-sm text-muted-foreground">
                 You receive ${((priceInCents * 0.99) / 100).toFixed(2)} (1% platform fee)
               </span>
             </div>
+            {fieldErrors.price && <p className="text-xs text-red-500">{fieldErrors.price}</p>}
           </div>
 
           {/* Pay What You Want */}
@@ -603,15 +638,20 @@ function ReleaseForm({
 
           {/* Rights Certification (only for new releases) */}
           {!isEditing && (
-            <div className="border rounded-lg p-4 bg-muted/30">
+            <div className={`border rounded-lg p-4 bg-muted/30 ${fieldErrors.rights ? 'border-red-500' : ''}`}>
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="rights"
                   checked={rightsCertified}
-                  onCheckedChange={(checked) => setRightsCertified(checked === true)}
+                  onCheckedChange={(checked) => {
+                    setRightsCertified(checked === true);
+                    if (checked && fieldErrors.rights) {
+                      setFieldErrors((prev) => { const n = { ...prev }; delete n.rights; return n; });
+                    }
+                  }}
                 />
                 <div>
-                  <Label htmlFor="rights" className="text-sm font-medium">
+                  <Label htmlFor="rights" className={`text-sm font-medium ${fieldErrors.rights ? 'text-red-500' : ''}`}>
                     Rights Certification *
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -620,6 +660,7 @@ function ReleaseForm({
                     uploading copyrighted material without authorization may result in removal of
                     the content and suspension of my account.
                   </p>
+                  {fieldErrors.rights && <p className="text-xs text-red-500 mt-1">{fieldErrors.rights}</p>}
                 </div>
               </div>
             </div>

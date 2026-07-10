@@ -3410,3 +3410,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## RELEASE PRICE INPUT BUG FIX (Jul 10, 2026)
 - [x] Fix: Price field cursor/backspace issue — replaced type="number" with text input + regex validation so cursor works normally
+
+## RELEASE FORM VALIDATION - ALL REQUIRED FIELDS (Jul 10, 2026)
+- [x] Fix: Display per-field error messages for all required fields when Create Draft is clicked (not just Title)
+- [x] Required fields: Title, Audio file, Cover art, Price, Rights certification — all show individual error messages
