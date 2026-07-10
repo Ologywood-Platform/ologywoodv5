@@ -3403,3 +3403,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Each required field should display its own error message below the field
 - [x] Server-side validation also enforces required fields on create/update
 - [x] Verify fix works end-to-end (25 tests passing)
+
+## RELEASE SCREEN UI FIXES (Jul 10, 2026)
+- [x] Fix: "+ New Release" button overlaps the screen title (flex-col on mobile, flex-row on desktop)
+- [x] Fix: Remove duplicate "New Release" option — only one clear way to create a release (removed empty-state button)

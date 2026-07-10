@@ -136,9 +136,9 @@ export default function ReleaseManager() {
         ]}
       />
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")} className="shrink-0">
             <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
           </Button>
           <div>
@@ -149,7 +149,7 @@ export default function ReleaseManager() {
           </div>
         </div>
         {canCreate?.allowed && !showCreateForm && !editingRelease && (
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={() => setShowCreateForm(true)} className="shrink-0 self-end sm:self-center">
             <Plus className="h-4 w-4 mr-2" /> New Release
           </Button>
         )}
@@ -181,14 +181,9 @@ export default function ReleaseManager() {
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Music className="h-16 w-16 text-muted-foreground/30 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No releases yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Upload your first single and start selling to fans.
+                <p className="text-muted-foreground">
+                  Upload your first single and start selling to fans. Use the "+ New Release" button above to get started.
                 </p>
-                {canCreate?.allowed && (
-                  <Button onClick={() => setShowCreateForm(true)}>
-                    <Plus className="h-4 w-4 mr-2" /> Create Your First Release
-                  </Button>
-                )}
               </CardContent>
             </Card>
           ) : (
