@@ -220,6 +220,7 @@ function ReleaseForm({
   const [description, setDescription] = useState(release?.description || "");
   const [genre, setGenre] = useState(release?.genre || "");
   const [priceInCents, setPriceInCents] = useState(release?.priceInCents || 100);
+  const [priceDisplay, setPriceDisplay] = useState((release?.priceInCents || 100) / 100 + "");
   const [allowPayWhatYouWant, setAllowPayWhatYouWant] = useState(release?.allowPayWhatYouWant || false);
   const [rightsCertified, setRightsCertified] = useState(false);
 
@@ -545,18 +546,41 @@ function ReleaseForm({
             </div>
           </div>
 
-          {/* Price */}
+           {/* Price */}
           <div className="space-y-2">
             <Label htmlFor="price">Price (USD) *</Label>
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <Input
                 id="price"
-                type="number"
-                min="0.50"
-                step="0.01"
-                value={(priceInCents / 100).toFixed(2)}
-                onChange={(e) => setPriceInCents(Math.round(parseFloat(e.target.value || "0") * 100))}
+                type="text"
+                inputMode="decimal"
+                placeholder="1.00"
+                value={priceDisplay}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Allow only digits and one decimal point
+                  if (/^\d*\.?\d{0,2}$/.test(val) || val === "") {
+                    setPriceDisplay(val);
+                    const num = parseFloat(val);
+                    if (!isNaN(num) && num >= 0) {
+                      setPriceInCents(Math.round(num * 100));
+                    } else if (val === "" || val === ".") {
+                      setPriceInCents(0);
+                    }
+                  }
+                }}
+                onBlur={() => {
+                  // Format nicely on blur
+                  const num = parseFloat(priceDisplay);
+                  if (!isNaN(num) && num > 0) {
+                    setPriceDisplay(num.toFixed(2));
+                    setPriceInCents(Math.round(num * 100));
+                  } else {
+                    setPriceDisplay("1.00");
+                    setPriceInCents(100);
+                  }
+                }}
                 className="w-32"
               />
               <span className="text-sm text-muted-foreground">

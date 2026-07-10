@@ -3407,3 +3407,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## RELEASE SCREEN UI FIXES (Jul 10, 2026)
 - [x] Fix: "+ New Release" button overlaps the screen title (flex-col on mobile, flex-row on desktop)
 - [x] Fix: Remove duplicate "New Release" option — only one clear way to create a release (removed empty-state button)
+
+## RELEASE PRICE INPUT BUG FIX (Jul 10, 2026)
+- [x] Fix: Price field cursor/backspace issue — replaced type="number" with text input + regex validation so cursor works normally
