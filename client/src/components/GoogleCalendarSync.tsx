@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 
-// Set this to true once Google verifies the calendar scope
-const GOOGLE_CALENDAR_VERIFIED = false;
+// Google Calendar integration is active
+const GOOGLE_CALENDAR_VERIFIED = true;
 
 export function GoogleCalendarSync() {
   const [syncing, setSyncing] = useState(false);

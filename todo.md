@@ -3419,3 +3419,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: After Save/Cancel/Create Draft, scroll to top so Release list is visible (not "Stay Updated" footer)
 - [x] Feature: Allow deleting or re-publishing archived releases (both UI buttons + server-side rules updated)
 - [x] Fix: Add visible character counter to Description field (2000 char limit shown as X/2000)
+
+## GOOGLE CALENDAR SYNC - ACTIVATE (Jul 10, 2026)
+- [x] Remove "Coming Soon" placeholder and make Google Calendar connect button functional
+- [x] Implement server-side Google Calendar OAuth flow (calendar.readonly scope) — already built
+- [x] Fetch busy/free blocks from Google Calendar API — already built (next 90 days)
+- [x] Import busy blocks into artist availability system — already built
+- [x] Allow artists to disconnect Google Calendar — already built
+- [x] Show synced calendar status on dashboard — already built (connected email, last synced date)
