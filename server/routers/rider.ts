@@ -64,6 +64,14 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
+      // Validate required fields before saving
+      const templateType = input.templateType || "simple_booking";
+      const formData = input.templateData?.formData || input.templateData || {};
+      const validation = validateTemplate(templateType, formData);
+      if (!validation.valid) {
+        throw new Error(`Missing required fields: ${validation.errors.join(', ')}`);
+      }
+
       return await createRiderTemplate(
         userId,
         input.templateName,
@@ -107,6 +115,15 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
+
+      // Validate required fields if templateData is being updated
+      if (input.templateData) {
+        const formData = input.templateData?.formData || input.templateData || {};
+        const validation = validateTemplate("simple_booking", formData);
+        if (!validation.valid) {
+          throw new Error(`Missing required fields: ${validation.errors.join(', ')}`);
+        }
+      }
 
       return await updateRiderTemplate(
         input.templateId,

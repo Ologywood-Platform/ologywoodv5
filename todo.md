@@ -3396,3 +3396,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix StickyBookingBar on artist profiles pushed below viewport by cookie consent — raised to z-[55]
 - [x] Lower cookie consent z-index from z-50 to z-40 (lowest priority overlay)
 - [x] Verify TypeScript compiles with 0 errors after changes
+
+## RIDER BUILDER VALIDATION BUG FIX (Jul 10, 2026)
+- [x] Fix: All required fields must show individual error messages when left blank
+- [x] Fix: Form cannot be saved unless ALL required fields are filled (not just Rider Name)
+- [x] Each required field should display its own error message below the field
+- [x] Server-side validation also enforces required fields on create/update
+- [x] Verify fix works end-to-end (25 tests passing)

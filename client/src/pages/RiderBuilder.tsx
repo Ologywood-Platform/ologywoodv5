@@ -90,6 +90,8 @@ export default function RiderBuilder() {
   const [showPreview, setShowPreview] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [attempted, setAttempted] = useState(false);
 
   // tRPC
   const { data: myTemplates, refetch: refetchTemplates, isLoading: templatesLoading } =
@@ -191,17 +193,54 @@ export default function RiderBuilder() {
     setRiderName("");
     setEditingTemplateId(null);
     setShowPreview(false);
+    setFieldErrors({});
+    setAttempted(false);
   };
 
   // Handle field changes
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    // Clear error for this field when user types
+    if (fieldErrors[fieldId]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[fieldId];
+        return next;
+      });
+    }
+  };
+
+  // Validate all required fields
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!riderName.trim()) {
+      errors['riderName'] = 'Rider Name is required';
+    }
+
+    if (templateStructure) {
+      for (const section of templateStructure.sections) {
+        for (const field of section.fields) {
+          if (field.required) {
+            const value = formData[field.id];
+            if (value === undefined || value === '' || value === null) {
+              errors[field.id] = `${field.label} is required`;
+            }
+          }
+        }
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Save
   const handleSave = () => {
-    if (!riderName.trim()) {
-      toast.error("Give your rider a name (e.g., 'My Standard Rider')");
+    setAttempted(true);
+
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -289,6 +328,7 @@ export default function RiderBuilder() {
 
   const renderField = (field: RiderField) => {
     const value = formData[field.id];
+    const error = fieldErrors[field.id];
 
     if (field.type === "checkbox") {
       return (
@@ -319,13 +359,14 @@ export default function RiderBuilder() {
             id={field.id}
             value={value || field.defaultValue || ""}
             onChange={(e) => handleFieldChange(field.id, e.target.value)}
-            className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={`w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${error ? 'border-red-500' : ''}`}
           >
             <option value="">Select...</option>
             {field.options?.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
+          {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
         </div>
       );
     }
@@ -343,8 +384,9 @@ export default function RiderBuilder() {
             onChange={(e) => handleFieldChange(field.id, e.target.value)}
             placeholder={field.placeholder}
             rows={2}
-            className="resize-y"
+            className={`resize-y ${error ? 'border-red-500' : ''}`}
           />
+          {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
         </div>
       );
     }
@@ -363,7 +405,9 @@ export default function RiderBuilder() {
           value={value ?? ""}
           onChange={(e) => handleFieldChange(field.id, field.type === "number" ? (e.target.value ? parseFloat(e.target.value) : "") : e.target.value)}
           placeholder={field.placeholder}
+          className={error ? 'border-red-500' : ''}
         />
+        {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
       </div>
     );
   };
@@ -420,10 +464,16 @@ export default function RiderBuilder() {
             <Input
               id="riderName"
               value={riderName}
-              onChange={(e) => setRiderName(e.target.value)}
+              onChange={(e) => {
+                setRiderName(e.target.value);
+                if (fieldErrors['riderName'] && e.target.value.trim()) {
+                  setFieldErrors((prev) => { const next = { ...prev }; delete next['riderName']; return next; });
+                }
+              }}
               placeholder="e.g., My Standard Rider"
-              className="text-base"
+              className={`text-base ${fieldErrors['riderName'] ? 'border-red-500' : ''}`}
             />
+            {fieldErrors['riderName'] && <p className="text-xs text-red-500 mt-0.5">{fieldErrors['riderName']}</p>}
             <HelperNote>Give it a clear name like "Club Shows" or "Festival Rider" so you can quickly pick the right one for each booking.</HelperNote>
           </div>
 
