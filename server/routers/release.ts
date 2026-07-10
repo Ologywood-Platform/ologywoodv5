@@ -230,10 +230,10 @@ export const releaseRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Release not found" });
       }
 
-      if (release.status !== "draft") {
+      if (release.status !== "draft" && release.status !== "archived") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Only draft releases can be published.",
+          message: "Only draft or archived releases can be published.",
         });
       }
 
@@ -332,10 +332,10 @@ export const releaseRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Release not found" });
       }
 
-      if (release.status !== "draft") {
+      if (release.status !== "draft" && release.status !== "archived") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Only draft releases can be deleted. Archive published releases instead.",
+          message: "Only draft or archived releases can be deleted.",
         });
       }
 

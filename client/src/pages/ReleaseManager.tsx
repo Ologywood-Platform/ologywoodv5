@@ -62,6 +62,7 @@ export default function ReleaseManager() {
     setEditingRelease(null);
     myReleasesQuery.refetch();
     canCreateQuery.refetch();
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   if (canCreateQuery.isLoading) {
@@ -169,7 +170,7 @@ export default function ReleaseManager() {
         <ReleaseForm
           release={editingRelease}
           onSuccess={handleCreated}
-          onCancel={() => { setShowCreateForm(false); setEditingRelease(null); }}
+          onCancel={() => { setShowCreateForm(false); setEditingRelease(null); window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }}
         />
       )}
 
@@ -489,6 +490,7 @@ function ReleaseForm({
               maxLength={2000}
               rows={3}
             />
+            <p className="text-xs text-muted-foreground text-right">{description.length}/2000 characters</p>
           </div>
 
           {/* Genre */}
@@ -840,7 +842,30 @@ function ReleaseListItem({
               </>
             )}
             {release.status === "archived" && (
-              <Badge variant="outline" className="text-xs">Archived</Badge>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { setIsActing(true); publishMutation.mutate({ id: release.id }); }}
+                  disabled={isActing}
+                >
+                  {isActing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Eye className="h-3 w-3 mr-1" />}
+                  Re-publish
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    if (confirm("Permanently delete this archived release? This cannot be undone.")) {
+                      setIsActing(true);
+                      deleteMutation.mutate({ id: release.id });
+                    }
+                  }}
+                  disabled={isActing}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" /> Delete
+                </Button>
+              </>
             )}
           </div>
         </div>

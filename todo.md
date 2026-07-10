@@ -3414,3 +3414,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## RELEASE FORM VALIDATION - ALL REQUIRED FIELDS (Jul 10, 2026)
 - [x] Fix: Display per-field error messages for all required fields when Create Draft is clicked (not just Title)
 - [x] Required fields: Title, Audio file, Cover art, Price, Rights certification — all show individual error messages
+
+## RELEASE SCREEN - SCROLL, ARCHIVE, CHARACTER LIMIT (Jul 10, 2026)
+- [x] Fix: After Save/Cancel/Create Draft, scroll to top so Release list is visible (not "Stay Updated" footer)
+- [x] Feature: Allow deleting or re-publishing archived releases (both UI buttons + server-side rules updated)
+- [x] Fix: Add visible character counter to Description field (2000 char limit shown as X/2000)
