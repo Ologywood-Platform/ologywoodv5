@@ -3491,3 +3491,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Ensure Stripe Connect transfer_data routes 85% to talent's connected account
 - [x] Display revenue share breakdown in Fan Club Manager dashboard (earnings summary)
 - [x] Show talent their net earnings after platform fee in payout section
+
+## TERMS OF SERVICE UPDATE (Jul 11, 2026)
+
+- [x] Update Section 2 (Platform Role) to include athletes, creators, and Fan Club features
+- [x] Update Section 4 (User Roles) to reflect talent types (Artist/Athlete/Creator) and Fan terminology
+- [x] Add new Section: Fan Club Memberships (tiers, subscriptions, exclusive content, cancellation)
+- [x] Update Section 8 (Payments) fee table to include Fan Club 85/15 revenue share
+- [x] Update Section 9 (Tips) to reflect current tipping method (external links/QR codes, no Stripe tip)
+- [x] Update Section 8.4 (Subscriptions) to cover both platform subscriptions and Fan Club memberships
+- [x] Update "Last updated" date to July 11, 2026
+- [x] Remove DRAFT notice (ToS is now finalized for current features)
