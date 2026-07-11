@@ -116,12 +116,15 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
   tipLinks: json("tipLinks").$type<{ cashapp?: string, venmo?: string, paypal?: string, zelle?: string }>(),
   crmSupporter: boolean("crmSupporter").default(false).notNull(),
+  talentType: mysqlEnum("talentType", ["artist", "athlete", "creator"]).default("artist").notNull(),
+  sportCategory: varchar("sportCategory", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   artistNameIdx: index("idx_artist_profiles_name").on(table.artistName),
   locationIdx: index("idx_artist_profiles_location").on(table.location),
   feeRangeIdx: index("idx_artist_profiles_fee").on(table.feeRangeMin, table.feeRangeMax),
+  talentTypeIdx: index("idx_artist_profiles_talent_type").on(table.talentType),
 }));
 
 export type ArtistProfile = typeof artistProfiles.$inferSelect;
@@ -1882,3 +1885,73 @@ export const googleCalendarIntegrations = mysqlTable("google_calendar_integratio
 }));
 export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
 export type InsertGoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferInsert;
+
+
+/**
+ * Fan Club Tiers — talent defines membership tiers with pricing and perks
+ */
+export const fanClubTiers = mysqlTable("fan_club_tiers", {
+  id: int("id").autoincrement().primaryKey(),
+  talentUserId: int("talentUserId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  priceMonthly: int("priceMonthly").notNull(), // in cents
+  description: text("description"),
+  perks: json("perks").$type<string[]>(),
+  stripePriceId: varchar("stripePriceId", { length: 255 }),
+  stripeProductId: varchar("stripeProductId", { length: 255 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  talentIdx: index("idx_fan_club_tiers_talent").on(table.talentUserId),
+}));
+export type FanClubTier = typeof fanClubTiers.$inferSelect;
+export type InsertFanClubTier = typeof fanClubTiers.$inferInsert;
+
+/**
+ * Fan Club Memberships — tracks which fans are subscribed to which talent's tier
+ */
+export const fanClubMemberships = mysqlTable("fan_club_memberships", {
+  id: int("id").autoincrement().primaryKey(),
+  fanUserId: int("fanUserId").notNull(),
+  talentUserId: int("talentUserId").notNull(),
+  tierId: int("tierId").notNull(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  status: mysqlEnum("status", ["active", "cancelled", "past_due", "incomplete"]).default("active").notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  cancelledAt: timestamp("cancelledAt"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  fanIdx: index("idx_fan_club_memberships_fan").on(table.fanUserId),
+  talentIdx: index("idx_fan_club_memberships_talent").on(table.talentUserId),
+  tierIdx: index("idx_fan_club_memberships_tier").on(table.tierId),
+  uniqueMembership: index("idx_fan_club_unique_membership").on(table.fanUserId, table.talentUserId),
+}));
+export type FanClubMembership = typeof fanClubMemberships.$inferSelect;
+export type InsertFanClubMembership = typeof fanClubMemberships.$inferInsert;
+
+/**
+ * Fan Club Posts — exclusive content posted by talent for their fan club members
+ */
+export const fanClubPosts = mysqlTable("fan_club_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  talentUserId: int("talentUserId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content"),
+  mediaUrl: text("mediaUrl"),
+  mediaType: mysqlEnum("mediaType", ["image", "video", "audio", "none"]).default("none").notNull(),
+  visibility: mysqlEnum("visibility", ["public", "members_only", "tier_specific"]).default("members_only").notNull(),
+  requiredTierId: int("requiredTierId"),
+  likesCount: int("likesCount").default(0).notNull(),
+  commentsCount: int("commentsCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  talentIdx: index("idx_fan_club_posts_talent").on(table.talentUserId),
+  visibilityIdx: index("idx_fan_club_posts_visibility").on(table.visibility),
+  createdAtIdx: index("idx_fan_club_posts_created").on(table.createdAt),
+}));
+export type FanClubPost = typeof fanClubPosts.$inferSelect;
+export type InsertFanClubPost = typeof fanClubPosts.$inferInsert;

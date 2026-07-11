@@ -44,6 +44,7 @@ import { merchRouter } from "./routers/merch";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { teamRouter } from "./routers/team";
 import { tipRouter } from "./routers/tip";
+import { fanClubRouter } from "./routers/fanClub";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -449,6 +450,7 @@ export const appRouter = router({
     createProfile: artistProcedure
       .input(z.object({
         artistName: z.string(),
+        talentType: z.enum(['artist', 'athlete', 'creator']).optional().default('artist'),
         location: z.string().optional(),
         bio: z.string().optional(),
         genre: z.array(z.string()).optional(),
@@ -3443,5 +3445,6 @@ export const appRouter = router({
   projectPreviews: projectPreviewsRouter,
   team: teamRouter,
   tip: tipRouter,
+  fanClub: fanClubRouter,
 });
 export type AppRouter = typeof appRouter;

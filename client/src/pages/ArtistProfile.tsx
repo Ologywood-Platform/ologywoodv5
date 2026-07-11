@@ -26,6 +26,7 @@ import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
 import { TipQRSection } from "@/components/TipQRCode";
+import { FanClubSection } from "@/components/FanClubSection";
 
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
@@ -730,6 +731,11 @@ export default function ArtistProfile() {
               </Card>
             )}
             
+            {/* Fan Club Section */}
+            {artist && artist.userId && (
+              <FanClubSection artistUserId={artist.userId} artistName={artist.artistName} />
+            )}
+
             {/* Support This Artist - Tip Links */}
             {hasTipLinks && (
               <Card>

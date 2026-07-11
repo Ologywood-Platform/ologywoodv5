@@ -3454,3 +3454,33 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## REMOVE STRIPE TIP BUTTON (Jul 11, 2026)
 - [x] Remove the purple Stripe-powered Tip button from artist profiles
 - [x] Keep "Support This Artist" section with QR codes and clickable links as the tipping method
+
+## FAN CLUB MVP (Jul 11, 2026)
+
+### Phase 1: Profile Types
+- [x] Add "Athlete" and "Creator" as selectable profile types during onboarding
+- [x] Update schema to support new profile types (reuse artist infrastructure)
+- [x] Ensure Athlete/Creator profiles get the same dashboard as artists
+
+### Phase 2: Fan Club Membership Tiers
+- [x] Create fan_club_tiers table (talent sets their own tiers: name, price, perks)
+- [x] Create fan_club_memberships table (fan subscribes to a talent's tier)
+- [x] Build Stripe subscription integration for recurring fan club payments
+- [x] Add "Manage Fan Club" section to talent dashboard (create/edit tiers)
+- [x] Add "Join Fan Club" button on talent profiles for fans
+
+### Phase 3: Exclusive Content
+- [x] Create fan_club_posts table (title, content, media, visibility: public/members-only)
+- [x] Build post creation UI in talent dashboard (mark as exclusive or public)
+- [x] Build content feed on talent profile (gated for members-only posts)
+- [x] Show lock icon and "Join to unlock" for non-members viewing exclusive content
+
+### Phase 4: Profile Fan Club Section
+- [x] Add "Fan Club" tab to talent profiles showing tiers and member count
+- [x] Show membership badge on fan's profile when they're a member
+- [x] Display Fan Club member count on talent profile
+
+### Phase 5: Homepage Positioning
+- [x] Update hero headline to broader positioning (artists, athletes, creators)
+- [x] Update supporting text to reflect expanded platform identity
+- [x] Keep all existing functionality unchanged

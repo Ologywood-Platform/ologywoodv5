@@ -110,20 +110,20 @@ export default function Home() {
       <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 text-foreground">
-            Book Artists. Sell Tickets. Own Your Events.
+            Build Your Brand. Grow Your Fans. Create More Opportunities.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            The all-in-one platform to discover artists, manage bookings, and sell tickets directly to fans &mdash; with transparent fees and no monopoly.
+            OlogyWood connects artists, athletes, entertainers, and creators with the fans and opportunities that fuel lasting careers. Build your community, book events, share exclusive content, and turn followers into lifelong supporters.
           </p>
           
           {!isAuthenticated && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-                  Get Started
+                  Join as Talent
                 </Button>
               <a href="/browse" className="no-underline">
                 <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
-                  Browse
+                  Join as a Fan
                 </Button>
               </a>
             </div>
@@ -404,7 +404,7 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join thousands of artists, venues, and fans who use Ologywood to discover, book, and enjoy live talent.
+            Join artists, athletes, entertainers, and creators who use OlogyWood to build their brand, grow their fan base, and create more opportunities.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
