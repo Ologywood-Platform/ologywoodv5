@@ -26,7 +26,7 @@ import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2 } from "lucide-react";
 import { TipQRSection } from "@/components/TipQRCode";
-import { TipModal } from "@/components/TipModal";
+
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from "@/components/SkeletonLoader";
@@ -66,10 +66,7 @@ export default function ArtistProfile() {
     { enabled: isValidId }
   );
 
-  const { data: tipStatus } = trpc.tip.canReceiveTips.useQuery(
-    { artistId },
-    { enabled: isValidId }
-  );
+
 
   // Set SEO meta tags when artist data loads
   useEffect(() => {
@@ -153,7 +150,7 @@ export default function ArtistProfile() {
   const [totalFee, setTotalFee] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
-  const [tipModalOpen, setTipModalOpen] = useState(false);
+
   const heroRef = useRef<HTMLDivElement>(null);
   
   const toggleRiderExpanded = (riderId: number) => {
@@ -584,17 +581,7 @@ export default function ArtistProfile() {
                   <Share2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Share</span>
                 </Button>
-                {tipStatus?.canReceive && (
-                  <Button
-                    onClick={() => setTipModalOpen(true)}
-                    variant="outline"
-                    size="lg"
-                    className="gap-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 text-purple-700"
-                  >
-                    <DollarSign className="w-4 h-4" />
-                    <span className="hidden sm:inline">Tip</span>
-                  </Button>
-                )}
+
                 <span className="text-sm text-muted-foreground flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" />
                   <FollowerCount artistUserId={artist.userId || artistId} />
@@ -604,13 +591,7 @@ export default function ArtistProfile() {
           </div>
         </div>
 
-        {/* Stripe Tip Modal */}
-        <TipModal
-          isOpen={tipModalOpen}
-          onClose={() => setTipModalOpen(false)}
-          artistId={artistId}
-          artistName={artist.artistName}
-        />
+
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:p-4 md:p-8">
           {/* Main Content - Left Column */}

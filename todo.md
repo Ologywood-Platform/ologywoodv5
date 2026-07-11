@@ -3450,3 +3450,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Stripe PaymentElement stuck on "Loading payment form" — fixed: removed application_fee_amount, added automatic_payment_methods, added null check for missing publishable key
 - [x] Fix: Make QR code tip links clickable on desktop (QR codes and "Click to send tip" links now open payment app in new tab)
 - [x] Fix: Database column mismatch (createdAt → purchasedAt) causing release purchase queries to fail
+
+## REMOVE STRIPE TIP BUTTON (Jul 11, 2026)
+- [x] Remove the purple Stripe-powered Tip button from artist profiles
+- [x] Keep "Support This Artist" section with QR codes and clickable links as the tipping method
