@@ -3484,3 +3484,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update hero headline to broader positioning (artists, athletes, creators)
 - [x] Update supporting text to reflect expanded platform identity
 - [x] Keep all existing functionality unchanged
+
+## FAN CLUB REVENUE SHARE (Jul 11, 2026)
+
+- [x] Implement 85/15 revenue share on Fan Club subscriptions (15% platform fee via Stripe application_fee_percent)
+- [x] Ensure Stripe Connect transfer_data routes 85% to talent's connected account
+- [x] Display revenue share breakdown in Fan Club Manager dashboard (earnings summary)
+- [x] Show talent their net earnings after platform fee in payout section

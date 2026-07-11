@@ -3,9 +3,12 @@ import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { getDb } from "../db";
-import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles } from "../../drizzle/schema";
+import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles, stripeConnectAccounts } from "../../drizzle/schema";
 import { stripe } from "../stripe";
 import { ENV } from "../_core/env";
+
+// Platform revenue share: 15% to Ologywood, 85% to talent
+const PLATFORM_FEE_PERCENT = 15;
 
 function getStripe() {
   if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe not configured' });
@@ -190,10 +193,19 @@ export const fanClubRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'You already have an active membership with this talent' });
       }
 
-      // Create Stripe Checkout Session for subscription
+      // Create Stripe Checkout Session for subscription with 85/15 revenue share
       const baseUrl = ENV.baseUrl || 'https://www.ologywood.com';
       const s = getStripe();
-      const session = await s.checkout.sessions.create({
+
+      // Look up talent's Stripe Connect account for direct payouts
+      let connectAccountId: string | null = null;
+      const [connectAccount] = await db.select().from(stripeConnectAccounts)
+        .where(eq(stripeConnectAccounts.artistId, tier.talentUserId));
+      if (connectAccount && connectAccount.status === 'active' && connectAccount.chargesEnabled) {
+        connectAccountId = connectAccount.stripeAccountId;
+      }
+
+      const sessionParams: any = {
         mode: 'subscription',
         line_items: [{ price: tier.stripePriceId!, quantity: 1 }],
         success_url: `${baseUrl}/fan-club/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -203,6 +215,7 @@ export const fanClubRouter = router({
           fanUserId: String(ctx.user.id),
           talentUserId: String(tier.talentUserId),
           tierId: String(tier.id),
+          platformFeePercent: String(PLATFORM_FEE_PERCENT),
         },
         subscription_data: {
           metadata: {
@@ -212,7 +225,19 @@ export const fanClubRouter = router({
             tierId: String(tier.id),
           },
         },
-      });
+      };
+
+      // Route 85% to talent's connected Stripe account, 15% platform fee
+      if (connectAccountId) {
+        sessionParams.subscription_data.application_fee_percent = PLATFORM_FEE_PERCENT;
+        sessionParams.subscription_data.transfer_data = { destination: connectAccountId };
+        console.log(`[FanClub] Subscribe: routing to ${connectAccountId}, ${PLATFORM_FEE_PERCENT}% platform fee`);
+      } else {
+        // No Connect account — all revenue goes to platform until talent connects Stripe
+        console.log(`[FanClub] Subscribe: No Connect account for talent ${tier.talentUserId}, revenue stays on platform`);
+      }
+
+      const session = await s.checkout.sessions.create(sessionParams);
 
       return { checkoutUrl: session.url };
     }),
