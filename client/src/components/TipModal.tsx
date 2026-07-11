@@ -38,25 +38,52 @@ function TipPaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    setError(null);
+
+    if (!stripe || !elements) {
+      setError('Payment system is still loading. Please wait a moment and try again.');
+      toast.error('Payment system is still loading. Please wait a moment and try again.');
+      return;
+    }
 
     setProcessing(true);
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: window.location.href,
-      },
-      redirect: 'if_required',
-    });
 
-    if (error) {
-      toast.error(error.message || 'Payment failed. Please try again.');
+    try {
+      // First validate the form
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        setError(submitError.message || 'Please check your payment details.');
+        toast.error(submitError.message || 'Please check your payment details.');
+        setProcessing(false);
+        return;
+      }
+
+      // Then confirm the payment
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.href,
+        },
+        redirect: 'if_required',
+      });
+
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed. Please try again.');
+        toast.error(confirmError.message || 'Payment failed. Please try again.');
+        setProcessing(false);
+      } else {
+        onSuccess();
+      }
+    } catch (err: any) {
+      const msg = err?.message || 'An unexpected error occurred. Please try again.';
+      setError(msg);
+      toast.error(msg);
       setProcessing(false);
-    } else {
-      onSuccess();
     }
   };
 
@@ -68,7 +95,21 @@ function TipPaymentForm({
         </p>
         <p className="text-xs text-purple-500 mt-1">100% goes directly to the artist</p>
       </div>
-      <PaymentElement />
+      <PaymentElement
+        onReady={() => setReady(true)}
+        onChange={() => setError(null)}
+      />
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+      {!ready && (
+        <div className="flex items-center justify-center py-4 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          Loading payment form...
+        </div>
+      )}
       <div className="flex gap-3">
         <Button
           type="button"
@@ -81,7 +122,7 @@ function TipPaymentForm({
         </Button>
         <Button
           type="submit"
-          disabled={!stripe || processing}
+          disabled={!ready || processing}
           className="flex-1 bg-purple-600 hover:bg-purple-700"
         >
           {processing ? (
@@ -111,11 +152,15 @@ export function TipModal({ isOpen, onClose, artistId, artistName }: TipModalProp
 
   const createTipMutation = trpc.tip.createTipPayment.useMutation({
     onSuccess: (data) => {
-      setClientSecret(data.clientSecret);
-      setStep('payment');
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+        setStep('payment');
+      } else {
+        toast.error('Failed to initialize payment. Please try again.');
+      }
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create tip payment');
+      toast.error(error.message || 'Failed to create tip payment. Please try again.');
     },
   });
 
@@ -153,6 +198,7 @@ export function TipModal({ isOpen, onClose, artistId, artistName }: TipModalProp
 
   const handleSuccess = () => {
     setStep('success');
+    toast.success(`Tip sent to ${artistName}!`);
   };
 
   return (

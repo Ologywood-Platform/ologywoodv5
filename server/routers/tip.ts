@@ -80,6 +80,10 @@ export const tipRouter = router({
       const paymentIntent = await stripe.paymentIntents.create({
         amount: input.amount,
         currency: 'usd',
+        automatic_payment_methods: {
+          enabled: true,
+        },
+        application_fee_amount: 0,
         transfer_data: {
           destination: account.stripeAccountId,
         },

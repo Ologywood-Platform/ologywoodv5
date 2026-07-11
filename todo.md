@@ -3442,3 +3442,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Player page: Styled in Ologywood purple/gradient colors
 - [x] Navigation: Add "My Music" link to user menu/dashboard
 - [x] PWA: Installable as app on device (already supported)
+
+## TIP FEATURE BUG FIX (Jul 11, 2026)
+- [x] Fix: Send Tip button does not work — added automatic_payment_methods, elements.submit() validation, onReady state, and visible error messages
