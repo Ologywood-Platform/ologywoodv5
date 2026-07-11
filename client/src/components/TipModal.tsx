@@ -220,7 +220,7 @@ export function TipModal({ isOpen, onClose, artistId, artistName }: TipModalProp
           </CardTitle>
           {step === 'amount' && (
             <p className="text-sm text-slate-500 mt-1">
-              Show your support — 100% goes directly to the artist
+              Show your support — 100% goes directly to the artist via their connected Stripe account
             </p>
           )}
         </CardHeader>
