@@ -1023,6 +1023,9 @@ export const releasePurchases = mysqlTable("release_purchases", {
   maxDownloads: int("maxDownloads").default(5).notNull(),
   lastDownloadedAt: timestamp("lastDownloadedAt"),
 
+  // Library management — soft-hide from player without deleting purchase record
+  hiddenFromLibrary: boolean("hiddenFromLibrary").default(false).notNull(),
+
   purchasedAt: timestamp("purchasedAt").defaultNow().notNull(),
 }, (table) => ({
   releaseIdx: index("idx_purchases_release").on(table.releaseId),

@@ -3427,3 +3427,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Import busy blocks into artist availability system — already built
 - [x] Allow artists to disconnect Google Calendar — already built
 - [x] Show synced calendar status on dashboard — already built (connected email, last synced date)
+
+## MUSIC PLAYER - WEB-BASED LIBRARY & PLAYER (Jul 10, 2026)
+- [x] Server API: Get user's purchased music library (myLibrary endpoint)
+- [x] Server API: Delete a purchase from library (hideFromLibrary soft-delete)
+- [x] Server API: Get download URL for purchased track (getStreamUrl endpoint)
+- [x] Player page: Full playback controls (play, pause, skip forward/back, seek bar, volume)
+- [x] Player page: Now Playing display with album art
+- [x] Player page: Library list with cover art thumbnails
+- [x] Player page: Sort by artist, title, date purchased, genre
+- [x] Player page: Shuffle/random play mode
+- [x] Player page: Delete track from library (with confirmation)
+- [x] Player page: Download track to device
+- [x] Player page: Styled in Ologywood purple/gradient colors
+- [x] Navigation: Add "My Music" link to user menu/dashboard
+- [x] PWA: Installable as app on device (already supported)

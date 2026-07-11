@@ -1,0 +1,1 @@
+ALTER TABLE `release_purchases` ADD `hiddenFromLibrary` boolean DEFAULT false NOT NULL;

@@ -745,6 +745,108 @@ export const releaseRouter = router({
     }),
 
   /**
+   * Get user's music library for the player — all visible purchased tracks with streaming URLs.
+   */
+  myLibrary: protectedProcedure.query(async ({ ctx }) => {
+    const purchases = await db.getUserPurchases(ctx.user.id, ctx.user.email || undefined);
+    // Filter out hidden purchases and resolve URLs
+    const visible = purchases.filter((p: any) => !p.hiddenFromLibrary);
+    const results = await Promise.all(
+      visible.map(async (p) => {
+        let coverArtUrl: string | null = null;
+        let artistName: string | null = null;
+        if (p.release?.coverArtKey) {
+          try {
+            const { url } = await storageGet(p.release.coverArtKey);
+            coverArtUrl = url;
+          } catch {}
+        }
+        if (p.release?.artistId) {
+          try {
+            const profile = await db.getArtistProfileById(p.release.artistId);
+            artistName = profile?.artistName || null;
+          } catch {}
+        }
+        return {
+          purchaseId: p.id,
+          releaseId: p.releaseId,
+          title: p.release?.title || 'Unknown Track',
+          artistName: artistName || 'Unknown Artist',
+          artistId: p.release?.artistId || null,
+          genre: p.release?.genre || null,
+          durationSeconds: p.release?.durationSeconds || 0,
+          fileFormat: p.release?.fileFormat || 'mp3',
+          coverArtUrl,
+          purchasedAt: p.purchasedAt,
+          amountPaidCents: p.amountPaidCents,
+        };
+      })
+    );
+    return results;
+  }),
+
+  /**
+   * Get a streaming URL for a purchased track (presigned S3 URL).
+   */
+  getStreamUrl: protectedProcedure
+    .input(z.object({ purchaseId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const purchase = await db.getPurchaseById(input.purchaseId);
+      if (!purchase) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Purchase not found' });
+      }
+      const isOwner = purchase.buyerUserId === ctx.user.id ||
+        (ctx.user.email && purchase.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase());
+      if (!isOwner) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not your purchase' });
+      }
+      const release = await db.getReleaseById(purchase.releaseId);
+      if (!release || !release.audioFileKey) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Audio file not available' });
+      }
+      const { url } = await storageGet(release.audioFileKey);
+      return { streamUrl: url, title: release.title, fileFormat: release.fileFormat };
+    }),
+
+  /**
+   * Hide a purchase from the music library (soft delete).
+   */
+  hideFromLibrary: protectedProcedure
+    .input(z.object({ purchaseId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const purchase = await db.getPurchaseById(input.purchaseId);
+      if (!purchase) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Purchase not found' });
+      }
+      const isOwner = purchase.buyerUserId === ctx.user.id ||
+        (ctx.user.email && purchase.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase());
+      if (!isOwner) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not your purchase' });
+      }
+      await db.hidePurchaseFromLibrary(input.purchaseId);
+      return { success: true };
+    }),
+
+  /**
+   * Restore a hidden purchase back to the music library.
+   */
+  restoreToLibrary: protectedProcedure
+    .input(z.object({ purchaseId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const purchase = await db.getPurchaseById(input.purchaseId);
+      if (!purchase) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Purchase not found' });
+      }
+      const isOwner = purchase.buyerUserId === ctx.user.id ||
+        (ctx.user.email && purchase.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase());
+      if (!isOwner) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not your purchase' });
+      }
+      await db.restorePurchaseToLibrary(input.purchaseId);
+      return { success: true };
+    }),
+
+  /**
    * Get sales analytics for the artist's releases.
    * Returns per-release stats and overall summary.
    */

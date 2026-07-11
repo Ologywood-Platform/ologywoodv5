@@ -68,6 +68,7 @@ const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const ArtistTaxReporting = lazy(() => import("./pages/ArtistTaxReporting"));
 const ReleaseManager = lazy(() => import("./pages/ReleaseManager"));
 const MyPurchases = lazy(() => import("./pages/MyPurchases"));
+const MyMusic = lazy(() => import("./pages/MyMusic"));
 const PurchaseSuccess = lazy(() => import("./pages/PurchaseSuccess"));
 const ClientBooking = lazy(() => import("./pages/ClientBooking"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
@@ -178,6 +179,7 @@ function Router() {
           <Route path="/book/:artistId">{(params: any) => <PageErrorBoundary><ClientBooking {...params} /></PageErrorBoundary>}</Route>
           <Route path="/my-bookings" component={MyBookings} />
           <Route path="/my-purchases" component={MyPurchases} />
+          <Route path="/my-music" component={MyMusic} />
           <Route path="/purchase-success" component={PurchaseSuccess} />
           
           {/* Rider System */}

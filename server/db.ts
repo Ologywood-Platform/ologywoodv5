@@ -2280,6 +2280,24 @@ export async function incrementDownloadCount(purchaseId: number): Promise<void> 
 }
 
 /**
+ * Hide a purchase from the user's music library (soft delete).
+ */
+export async function hidePurchaseFromLibrary(purchaseId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(releasePurchases).set({ hiddenFromLibrary: true }).where(eq(releasePurchases.id, purchaseId));
+}
+
+/**
+ * Restore a hidden purchase back to the user's music library.
+ */
+export async function restorePurchaseToLibrary(purchaseId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(releasePurchases).set({ hiddenFromLibrary: false }).where(eq(releasePurchases.id, purchaseId));
+}
+
+/**
  * Get total sales stats for an artist across all releases.
  */
 export async function getArtistReleaseSalesStats(artistId: number): Promise<{
