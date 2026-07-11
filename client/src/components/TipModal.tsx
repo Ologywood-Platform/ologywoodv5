@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { X, Heart, DollarSign, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = STRIPE_KEY ? loadStripe(STRIPE_KEY) : null;
 
 const PRESET_AMOUNTS = [
   { label: '$5', value: 500 },
@@ -40,6 +41,15 @@ function TipPaymentForm({
   const [processing, setProcessing] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  // If payment form doesn't load within 10 seconds, show error
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!ready) setLoadTimeout(true);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,7 +312,19 @@ export function TipModal({ isOpen, onClose, artistId, artistName }: TipModalProp
             </div>
           )}
 
-          {step === 'payment' && clientSecret && (
+          {step === 'payment' && clientSecret && !stripePromise && (
+            <div className="space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                <p className="font-medium">Payment system unavailable</p>
+                <p className="mt-1">The payment form could not be loaded. Please try again later or use the external tip links below the artist's profile.</p>
+              </div>
+              <Button variant="outline" onClick={onClose} className="w-full">
+                Close
+              </Button>
+            </div>
+          )}
+
+          {step === 'payment' && clientSecret && stripePromise && (
             <Elements
               stripe={stripePromise}
               options={{

@@ -3445,3 +3445,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## TIP FEATURE BUG FIX (Jul 11, 2026)
 - [x] Fix: Send Tip button does not work — added automatic_payment_methods, elements.submit() validation, onReady state, and visible error messages
+
+## TIP FEATURE - PAYMENT FORM STUCK + QR CLICKABLE (Jul 11, 2026)
+- [x] Fix: Stripe PaymentElement stuck on "Loading payment form" — fixed: removed application_fee_amount, added automatic_payment_methods, added null check for missing publishable key
+- [x] Fix: Make QR code tip links clickable on desktop (QR codes and "Click to send tip" links now open payment app in new tab)
+- [x] Fix: Database column mismatch (createdAt → purchasedAt) causing release purchase queries to fail

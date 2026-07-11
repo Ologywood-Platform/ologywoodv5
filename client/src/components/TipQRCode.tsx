@@ -64,16 +64,18 @@ function QRCard({
   const url = service.getUrl(handle);
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="bg-white p-2 rounded-lg shadow-sm border">
-        <QRCodeSVG
-          value={url}
-          size={size}
-          bgColor="#ffffff"
-          fgColor="#000000"
-          level="M"
-          includeMargin={false}
-        />
-      </div>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+        <div className="bg-white p-2 rounded-lg shadow-sm border hover:border-purple-300 hover:shadow-md transition-all cursor-pointer">
+          <QRCodeSVG
+            value={url}
+            size={size}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            level="M"
+            includeMargin={false}
+          />
+        </div>
+      </a>
       <div className="flex items-center gap-1.5">
         <span
           className="inline-flex items-center justify-center w-4 h-4 rounded"
@@ -83,7 +85,14 @@ function QRCard({
         </span>
         <span className="text-xs font-medium">{service.label}</span>
       </div>
-      <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">{handle}</span>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[10px] text-purple-600 hover:text-purple-800 underline truncate max-w-[140px] font-medium"
+      >
+        Click to send tip
+      </a>
     </div>
   );
 }

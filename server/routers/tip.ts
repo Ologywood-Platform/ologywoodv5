@@ -77,13 +77,14 @@ export const tipRouter = router({
         throw new Error('Artist is not set up to receive tips. They need to connect their Stripe account first.');
       }
 
+      console.log(`[Tip] Creating PaymentIntent for artist ${artist.artistName} (${account.stripeAccountId}), amount: ${input.amount}`);
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: input.amount,
         currency: 'usd',
         automatic_payment_methods: {
           enabled: true,
         },
-        application_fee_amount: 0,
         transfer_data: {
           destination: account.stripeAccountId,
         },
@@ -97,6 +98,12 @@ export const tipRouter = router({
         },
         description: `Tip for ${artist.artistName}`,
       });
+
+      console.log(`[Tip] PaymentIntent created: ${paymentIntent.id}, clientSecret exists: ${!!paymentIntent.client_secret}`);
+
+      if (!paymentIntent.client_secret) {
+        throw new Error('Failed to create payment. Please try again.');
+      }
 
       return {
         clientSecret: paymentIntent.client_secret,
