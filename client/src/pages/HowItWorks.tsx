@@ -448,6 +448,7 @@ export default function HowItWorks() {
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Browse artists & venues</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> In-platform messaging</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Availability calendar</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> AI Ad Assistant & Promote</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 2 booking requests/month</li>
                   </ul>
                 </div>
@@ -460,6 +461,7 @@ export default function HowItWorks() {
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Unlimited booking requests</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Rider Builder & templates</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Fan email list & Send Update</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> AI Ad Assistant & Promote</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 2 White Label singles</li>
                   </ul>
                 </div>
@@ -471,6 +473,7 @@ export default function HowItWorks() {
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Contracts & e-signatures</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Advanced analytics</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Unlimited releases</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> AI Ad Assistant & Promote</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Priority support</li>
                   </ul>
                 </div>
@@ -483,6 +486,7 @@ export default function HowItWorks() {
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Sponsor Showcase (5 slots)</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Sponsor Analytics & CTR</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Auto-generated Media Kit</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> AI Ad Assistant & Promote</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Branded event pages</li>
                   </ul>
                 </div>
