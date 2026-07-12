@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Music, Upload, Plus, Edit, Trash2, Eye, EyeOff, Archive,
-  Loader2, DollarSign, AlertTriangle, Crown, ArrowLeft, ExternalLink
+  Loader2, DollarSign, AlertTriangle, Crown, ArrowLeft, ExternalLink, Megaphone
 } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
@@ -696,6 +696,7 @@ function ReleaseListItem({
   onRefresh: () => void;
 }) {
   const toast = useToast();
+  const [, navigate] = useLocation();
   const [isActing, setIsActing] = useState(false);
 
   const publishMutation = trpc.release.publish.useMutation({
@@ -823,6 +824,14 @@ function ReleaseListItem({
             )}
             {release.status === "published" && (
               <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                  onClick={() => navigate(`/promote?type=release&name=${encodeURIComponent(release.title)}`)}
+                >
+                  <Megaphone className="h-3 w-3 mr-1" /> Promote
+                </Button>
                 <Button
                   size="sm"
                   variant="outline"

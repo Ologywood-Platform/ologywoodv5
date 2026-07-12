@@ -282,7 +282,16 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }:
                 <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
               )}
               <span className={feature.included ? "text-gray-900 text-sm" : "text-gray-400 text-sm"}>
-                {feature.name}
+                {feature.name === "AI Ad Assistant & Promote tools" ? (
+                  <span className="group relative cursor-help">
+                    {feature.name}
+                    <span className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 w-64 rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg">
+                      Generates professional ad copy, hashtags, and targeting suggestions for your events, releases, or profile. Includes platform-specific templates for Instagram, Facebook, TikTok, and more.
+                    </span>
+                  </span>
+                ) : (
+                  feature.name
+                )}
               </span>
             </div>
           ))}

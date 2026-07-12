@@ -3492,3 +3492,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update How It Works fan steps to include Join Fan Clubs
 - [x] Update How It Works language to include Athletes/Creators
 - [x] Add Fan Club feature highlight section to homepage
+
+## PROMOTE BUTTON + TOOLTIP (Jul 12, 2026)
+- [x] Add Promote This button to artist release pages that opens AI Ad Assistant
+- [x] Verify Promote This button on event detail page works correctly
+- [x] Add hover tooltip to AI Ad Assistant feature on Pricing page
