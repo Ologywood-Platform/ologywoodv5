@@ -438,26 +438,29 @@ export default function HowItWorks() {
             {/* Subscription Plans */}
             <div className="mt-12 pt-12 border-t-2 border-gray-200">
               <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Choose Your Plan</h3>
-              <p className="text-gray-600 text-center mb-8">Start free, upgrade when you're ready. All plans include a 14-day trial.</p>
-              <div className="grid md:grid-cols-3 gap-6">
+              <p className="text-gray-600 text-center mb-8">Start free, upgrade when you're ready.</p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                   <h4 className="font-bold text-gray-900 text-lg mb-2">Free</h4>
                   <p className="text-3xl font-bold text-gray-900 mb-4">$0<span className="text-sm font-normal text-gray-500">/mo</span></p>
                   <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Basic profile</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Receive bookings</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> In-app messaging</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 1 music release</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Artist or venue profile</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Browse artists & venues</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> In-platform messaging</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Availability calendar</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 2 booking requests/month</li>
                   </ul>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-600">
-                  <h4 className="font-bold text-purple-700 text-lg mb-2">Starter</h4>
+                  <span className="text-xs font-semibold bg-purple-600 text-white px-2 py-0.5 rounded-full">Most Popular</span>
+                  <h4 className="font-bold text-purple-700 text-lg mb-2 mt-2">Starter</h4>
                   <p className="text-3xl font-bold text-gray-900 mb-4">$9<span className="text-sm font-normal text-gray-500">/mo</span></p>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Everything in Free</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Up to 5 releases</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Basic analytics</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Priority in search</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Unlimited booking requests</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Rider Builder & templates</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Fan email list & Send Update</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> 2 White Label singles</li>
                   </ul>
                 </div>
                 <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-800">
@@ -465,10 +468,22 @@ export default function HowItWorks() {
                   <p className="text-3xl font-bold text-gray-900 mb-4">$29<span className="text-sm font-normal text-gray-500">/mo</span></p>
                   <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Everything in Starter</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Contracts & e-signatures</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Advanced analytics</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Unlimited releases</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Digital contracts</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Full analytics</li>
                     <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Priority support</li>
+                  </ul>
+                </div>
+                <div className="bg-indigo-50 p-6 rounded-lg border-2 border-indigo-600">
+                  <span className="text-xs font-semibold bg-indigo-600 text-white px-2 py-0.5 rounded-full">New</span>
+                  <h4 className="font-bold text-indigo-700 text-lg mb-2 mt-2">Enterprise</h4>
+                  <p className="text-3xl font-bold text-gray-900 mb-4">$79<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Everything in Professional</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Sponsor Showcase (5 slots)</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Sponsor Analytics & CTR</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Auto-generated Media Kit</li>
+                    <li className="flex items-center gap-2"><CheckCircle size={14} className="text-green-500" /> Branded event pages</li>
                   </ul>
                 </div>
               </div>
