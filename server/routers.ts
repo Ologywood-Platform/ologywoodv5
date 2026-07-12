@@ -45,6 +45,8 @@ import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { teamRouter } from "./routers/team";
 import { tipRouter } from "./routers/tip";
 import { promoteRouter } from "./routers/promote";
+import { fanClubRouter } from "./routers/fanClub";
+import { aiChatRouter } from "./routers/aiChat";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -450,6 +452,8 @@ export const appRouter = router({
     createProfile: artistProcedure
       .input(z.object({
         artistName: z.string(),
+        talentType: z.string().optional(),
+        sportCategory: z.string().optional(),
         location: z.string().optional(),
         bio: z.string().optional(),
         genre: z.array(z.string()).optional(),
@@ -3445,5 +3449,7 @@ export const appRouter = router({
   team: teamRouter,
   tip: tipRouter,
   promote: promoteRouter,
+  fanClub: fanClubRouter,
+  aiChat: aiChatRouter,
 });
 export type AppRouter = typeof appRouter;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, AlertCircle } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { trpc } from "../lib/trpc";
 
 interface Message {
@@ -17,25 +17,23 @@ export function AIChatWidget() {
       id: "1",
       role: "assistant",
       content:
-        "👋 Hi! I'm Ologywood's AI support assistant. How can I help you today?",
+        "Hi! I'm Ologywood's AI support assistant. Ask me anything about bookings, tickets, fan clubs, music, payments, or any platform feature.",
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // Note: aiChat router is disabled in MVP. These mutations are kept for future enhancement.
-  // const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
-  // const topicsQuery = trpc.aiChat.getSuggestedTopics.useQuery();
+
+  const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const scrollToBottom = () => {
@@ -50,35 +48,62 @@ export function AIChatWidget() {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: inputValue.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = inputValue.trim();
     setInputValue("");
     setIsLoading(true);
 
-    // Direct users to the help center for support
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: "Thanks for your message! For the best support experience, please visit our Help Center at /help where you'll find answers to common questions about bookings, payments, and riders. You can also reach our team directly at support@ologywood.com.",
-      timestamp: new Date(),
-    };
+    try {
+      // Build history from existing messages (exclude the initial greeting)
+      const history = messages
+        .filter((m) => m.id !== "1")
+        .map((m) => ({ role: m.role, content: m.content }));
 
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsLoading(false);
+      const result = await sendMessageMutation.mutateAsync({
+        message: currentInput,
+        history,
+      });
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: result.response,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error: any) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content:
+          "I'm having trouble connecting right now. Please try again or visit our Help Center at /help for answers.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const suggestedQuestions = [
+    "How do I book an artist?",
+    "What are the fees?",
+    "How do fan clubs work?",
+    "How do I sell tickets?",
+  ];
 
   const handleSuggestedTopic = (topic: string) => {
     setInputValue(topic);
   };
 
-  // Calculate chat window dimensions based on screen size
   const chatWindowWidth = isMobile ? "calc(100vw - 1rem)" : "w-96";
   const chatWindowMaxHeight = isMobile ? "max-h-[70vh]" : "max-h-[600px]";
   const buttonBottom = isMobile ? "bottom-4" : "bottom-6";
@@ -88,7 +113,7 @@ export function AIChatWidget() {
 
   return (
     <>
-      {/* Chat Button - Positioned to the right */}
+      {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed ${buttonBottom} ${buttonRight} bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-[60] flex items-center justify-center hover:scale-110`}
@@ -104,18 +129,16 @@ export function AIChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-[60] border border-gray-200 overflow-hidden`}>
-          {/* Header - Fixed height to prevent text cutoff */}
+        <div
+          className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-[60] border border-gray-200 overflow-hidden`}
+        >
+          {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg flex-shrink-0">
-            <h3 className="font-semibold text-lg whitespace-nowrap overflow-hidden text-overflow-ellipsis">
-              Ologywood Support
-            </h3>
-            <p className="text-sm text-purple-100 whitespace-nowrap overflow-hidden text-overflow-ellipsis">
-              💡 AI-powered assistance 24/7
-            </p>
+            <h3 className="font-semibold text-lg">Ologywood Support</h3>
+            <p className="text-sm text-purple-100">AI-powered assistance 24/7</p>
           </div>
 
-          {/* Messages - Scrollable */}
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div
@@ -168,12 +191,28 @@ export function AIChatWidget() {
               </div>
             )}
 
-            {/* Suggested Topics - Disabled in MVP */}
+            {/* Suggested Questions - show only when there's just the greeting */}
+            {messages.length === 1 && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500 font-medium">Quick questions:</p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestedQuestions.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => handleSuggestedTopic(q)}
+                      className="text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full border border-purple-200 hover:bg-purple-100 transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input - Fixed at bottom */}
+          {/* Input */}
           <form
             onSubmit={handleSendMessage}
             className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg flex-shrink-0"
@@ -196,9 +235,6 @@ export function AIChatWidget() {
                 <Send className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2 break-words">
-              💡 Tip: Type "help" or ask any question about bookings, payments, or riders
-            </p>
           </form>
         </div>
       )}

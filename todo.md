@@ -3476,3 +3476,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Promote" button on event detail pages
 - [x] Add "Promote" button on release pages
 - [x] Add "Promote" link in artist dashboard navigation
+
+## HELP CENTER & AI CHAT UPDATE (Jul 12, 2026)
+- [x] Add Fan Club FAQ section (tiers, membership, exclusive content, 85/15 revenue share)
+- [x] Add Promote/AI Ad Assistant FAQ section
+- [x] Add expanded talent types FAQ (Athlete, Creator)
+- [x] Add Team Management FAQ section
+- [x] Update account types to reflect Athlete/Creator
+- [x] Build working AI chat assistant with LLM backend (replace static response)
+- [x] Create server-side aiChat router with invokeLLM integration
+- [x] Give AI chat comprehensive system prompt with all platform knowledge

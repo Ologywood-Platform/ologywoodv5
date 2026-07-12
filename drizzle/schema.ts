@@ -1885,6 +1885,62 @@ export type InsertGoogleCalendarIntegration = typeof googleCalendarIntegrations.
 
 
 /**
+ * Fan Club Tiers — talent sets their own membership tiers
+ */
+export const fanClubTiers = mysqlTable("fan_club_tiers", {
+  id: int("id").autoincrement().primaryKey(),
+  artistUserId: int("artistUserId").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  priceCents: int("priceCents").notNull(),
+  perks: json("perks").$type<string[]>(),
+  stripePriceId: varchar("stripePriceId", { length: 255 }),
+  stripeProductId: varchar("stripeProductId", { length: 255 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_fct_artist").on(table.artistUserId),
+}));
+export type FanClubTier = typeof fanClubTiers.$inferSelect;
+export type InsertFanClubTier = typeof fanClubTiers.$inferInsert;
+
+/**
+ * Fan Club Memberships — fan subscribes to a talent's tier
+ */
+export const fanClubMemberships = mysqlTable("fan_club_memberships", {
+  id: int("id").autoincrement().primaryKey(),
+  fanUserId: int("fanUserId").notNull(),
+  artistUserId: int("artistUserId").notNull(),
+  tierId: int("tierId").notNull(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  status: mysqlEnum("status", ["active", "cancelled", "past_due"]).default("active").notNull(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  cancelledAt: timestamp("cancelledAt"),
+}, (table) => ({
+  fanIdx: index("idx_fcm_fan").on(table.fanUserId),
+  artistIdx: index("idx_fcm_artist").on(table.artistUserId),
+}));
+export type FanClubMembership = typeof fanClubMemberships.$inferSelect;
+export type InsertFanClubMembership = typeof fanClubMemberships.$inferInsert;
+
+/**
+ * Fan Club Posts — exclusive content from talent
+ */
+export const fanClubPosts = mysqlTable("fan_club_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  artistUserId: int("artistUserId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  mediaUrl: text("mediaUrl"),
+  visibility: mysqlEnum("visibility", ["public", "members_only"]).default("public").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_fcp_artist").on(table.artistUserId),
+}));
+export type FanClubPost = typeof fanClubPosts.$inferSelect;
+export type InsertFanClubPost = typeof fanClubPosts.$inferInsert;
+
+
+/**
  * Promotion Requests — managed ad service ("Boost My Event") intake
  */
 export const promotionRequests = mysqlTable("promotion_requests", {

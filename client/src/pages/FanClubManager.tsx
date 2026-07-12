@@ -121,8 +121,8 @@ export default function FanClubManager() {
   const handleEditTier = (tier: any) => {
     setEditingTierId(tier.id);
     setTierName(tier.name);
-    setTierDescription(tier.description || "");
-    setTierPrice((tier.priceMonthly / 100).toFixed(2));
+    setTierDescription((tier as any).description || "");
+    setTierPrice((tier.priceCents / 100).toFixed(2));
     setTierBenefits((tier.benefits || []).join("\n"));
     setShowTierForm(true);
   };
@@ -145,7 +145,7 @@ export default function FanClubManager() {
 
   const totalMonthlyRevenue = members.reduce((sum, m) => {
     const tier = tiers.find(t => t.id === m.tierId);
-    return sum + (tier?.priceMonthly || 0);
+    return sum + (tier?.priceCents || 0);
   }, 0);
 
   // Revenue share: 85% goes to talent, 15% platform fee
@@ -344,8 +344,8 @@ export default function FanClubManager() {
                             <div>
                               <h3 className="font-semibold">{tier.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                ${(tier.priceMonthly / 100).toFixed(2)}/month
-                                {tier.description && ` — ${tier.description}`}
+                                ${(tier.priceCents / 100).toFixed(2)}/month
+                                {(tier as any).description && ` — ${(tier as any).description}`}
                               </p>
                             </div>
                           </div>
@@ -467,7 +467,7 @@ export default function FanClubManager() {
                           <option value="">Any paid tier</option>
                           {tiers.map((tier) => (
                             <option key={tier.id} value={tier.id}>
-                              {tier.name} (${(tier.priceMonthly / 100).toFixed(2)}/mo)
+                              {tier.name} (${(tier.priceCents / 100).toFixed(2)}/mo)
                             </option>
                           ))}
                         </select>
@@ -569,7 +569,7 @@ export default function FanClubManager() {
                               <div>
                                 <p className="font-medium text-sm">Fan #{member.fanUserId}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Joined {new Date(member.createdAt).toLocaleDateString()}
+                                  Joined {new Date(member.startedAt).toLocaleDateString()}
                                 </p>
                               </div>
                             </div>

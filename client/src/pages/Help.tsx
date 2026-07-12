@@ -22,7 +22,7 @@ const faqItems: FAQItem[] = [
     id: 'getting-started-2',
     category: 'Getting Started',
     question: 'What are the different account types?',
-    answer: 'Ologywood has several account types tailored to different needs. Artist accounts are for performers and musicians who want to get booked, sell music, and grow their fanbase. Venue accounts are for event organizers and clubs looking to book talent. User/Client accounts let you browse, follow artists, book talent for private events, purchase music, and leave reviews. Blogger accounts are for content creators who write blog posts for the platform. Each role has specific features and dashboard access.',
+    answer: 'Ologywood has several account types tailored to different needs. Talent accounts (Artist, Athlete, Creator, Band, DJ, Comedian, Actor, Influencer, Speaker) are for performers and creators who want to get booked, sell music, grow their fanbase, and run Fan Clubs. Venue accounts are for event organizers and clubs looking to book talent. Fan/User accounts let you browse, follow talent, book for private events, purchase music, join Fan Clubs, and leave reviews. Blogger accounts are for content creators who write blog posts for the platform.',
   },
   {
     id: 'getting-started-3',
@@ -189,6 +189,70 @@ const faqItems: FAQItem[] = [
     category: 'Music & Releases',
     question: 'How many times can I download a purchased release?',
     answer: 'Each purchase allows up to 5 downloads. You can download from the Purchase Success page immediately after buying, or return to My Purchases anytime to download again. The remaining download count is shown on each purchase card.',
+  },
+
+  // Fan Club
+  {
+    id: 'fanclub-1',
+    category: 'Fan Club',
+    question: 'What is the Fan Club feature?',
+    answer: 'Fan Club lets talent (artists, athletes, creators) create paid membership tiers for their fans. Fans subscribe monthly to get access to exclusive content, behind-the-scenes posts, and special perks. It\'s a way for talent to build recurring revenue and deepen their connection with supporters.',
+  },
+  {
+    id: 'fanclub-2',
+    category: 'Fan Club',
+    question: 'How do I create a Fan Club as talent?',
+    answer: 'Go to your Dashboard and click the "Fan Club" button (or navigate to /fan-club). From the Fan Club Manager, click "Create Tier" to set up membership levels with a name, monthly price, and list of perks. You can create multiple tiers at different price points. Each tier is automatically connected to Stripe for recurring payments.',
+  },
+  {
+    id: 'fanclub-3',
+    category: 'Fan Club',
+    question: 'How do I join an artist\'s Fan Club?',
+    answer: 'Visit the talent\'s public profile and click the "Fan Club" tab. You\'ll see available membership tiers with pricing and perks. Click "Join" on your preferred tier, which opens a Stripe checkout for the monthly subscription. Once subscribed, you\'ll have access to their exclusive members-only content.',
+  },
+  {
+    id: 'fanclub-4',
+    category: 'Fan Club',
+    question: 'What is the revenue share for Fan Club subscriptions?',
+    answer: 'The revenue split is 85% to the talent and 15% to Ologywood (platform fee). Stripe processing fees (~2.9% + $0.30) are deducted separately before the split. For example, on a $10/month subscription: Stripe takes ~$0.59, Ologywood takes $1.41 (15%), and the talent receives ~$8.00 (85% of net).',
+  },
+  {
+    id: 'fanclub-5',
+    category: 'Fan Club',
+    question: 'What is exclusive content and how does it work?',
+    answer: 'Talent can post content marked as "Members Only" from their Fan Club Manager. These posts are only visible to paying subscribers. Non-members see a lock icon with a "Join to unlock" prompt. Public posts are visible to everyone. This lets talent reward their paying fans with behind-the-scenes content, early access, or special announcements.',
+  },
+  {
+    id: 'fanclub-6',
+    category: 'Fan Club',
+    question: 'How do I cancel my Fan Club membership?',
+    answer: 'You can cancel your subscription anytime from the talent\'s profile Fan Club section. Your access continues until the end of your current billing period. After that, you\'ll lose access to members-only content but can rejoin at any time.',
+  },
+
+  // Promote & AI Ad Assistant
+  {
+    id: 'promote-1',
+    category: 'Promote & Ads',
+    question: 'What is the AI Ad Assistant?',
+    answer: 'The AI Ad Assistant (accessible from Dashboard > Promote or /promote) generates ready-to-use social media ad copy for your events, releases, or profile. Choose your target platform (Instagram, Facebook, TikTok, YouTube, or X), select a tone, and the AI creates headlines, ad copy, hashtags, targeting suggestions, and creative direction instantly.',
+  },
+  {
+    id: 'promote-2',
+    category: 'Promote & Ads',
+    question: 'How does Boost My Event work?',
+    answer: 'Boost My Event is a managed promotion service. Submit a request with your budget (minimum $50), goals, target audience, preferred platforms, and timeline. The Ologywood team reviews your request and runs the ad campaign on your behalf. You can track the status (submitted, in review, in progress, completed) from the Promote page.',
+  },
+  {
+    id: 'promote-3',
+    category: 'Promote & Ads',
+    question: 'Does the AI Ad Assistant cost anything?',
+    answer: 'No, the AI Ad Copy Generator is free to use for all talent on the platform. It generates ad copy and suggestions that you can copy and use on your own social media ad accounts. The Boost My Event managed service has a separate fee based on your campaign budget.',
+  },
+  {
+    id: 'promote-4',
+    category: 'Promote & Ads',
+    question: 'What is the Budget Calculator?',
+    answer: 'The Budget Calculator on the Promote page helps you estimate how many people you can reach with a given ad spend. Enter your daily budget and campaign duration, and it provides estimated reach based on typical social media advertising costs for entertainment and events.',
   },
 
   // Tips & Support Artists
