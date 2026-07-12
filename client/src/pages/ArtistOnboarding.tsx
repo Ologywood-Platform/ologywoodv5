@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
@@ -39,6 +39,9 @@ export default function ArtistOnboarding() {
       navigate("/profile/edit");
     }
   }, [existingProfile.data, navigate]);
+
+  // Talent type selection
+  const [talentType, setTalentType] = useState<'artist' | 'athlete' | 'creator'>('artist');
 
   // Step 1: Basic Info
   const [artistName, setArtistName] = useState("");
@@ -267,6 +270,7 @@ export default function ArtistOnboarding() {
 
     createProfile.mutate({
       artistName,
+      talentType,
       location: location || undefined,
       bio: bio || undefined,
       genre: genres.length > 0 ? genres : undefined,
@@ -300,7 +304,7 @@ export default function ArtistOnboarding() {
             <div className="flex items-center gap-2">
               <img src="/logo-sm.png" alt="Ologywood" className="h-8 w-8 rounded" />
               <div>
-                <CardTitle>Create Your Artist Profile</CardTitle>
+                <CardTitle>Create Your Profile</CardTitle>
                 <CardDescription>Step {currentStep} of {totalSteps}</CardDescription>
               </div>
             </div>
@@ -316,17 +320,65 @@ export default function ArtistOnboarding() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Let's start with the basics. Tell us about yourself as an artist.
+                  Let's start with the basics. Tell us about yourself.
+                </p>
+              </div>
+
+              {/* Talent Type Selector */}
+              <div>
+                <Label className="mb-2 block">I am a... *</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTalentType('artist')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      talentType === 'artist'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <Mic2 className={`h-6 w-6 ${talentType === 'artist' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${talentType === 'artist' ? 'text-primary' : 'text-muted-foreground'}`}>Artist</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTalentType('athlete')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      talentType === 'athlete'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <Trophy className={`h-6 w-6 ${talentType === 'athlete' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${talentType === 'athlete' ? 'text-primary' : 'text-muted-foreground'}`}>Athlete</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTalentType('creator')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      talentType === 'creator'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <Sparkles className={`h-6 w-6 ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`}>Creator</span>
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {talentType === 'artist' && 'Musicians, DJs, bands, comedians, actors, and entertainers'}
+                  {talentType === 'athlete' && 'Professional and college athletes building their brand and fan community'}
+                  {talentType === 'creator' && 'Content creators, influencers, coaches, and public speakers'}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="artistName">Artist Name *</Label>
+                <Label htmlFor="artistName">{talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : 'Creator Name'} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder="Your stage name or band name"
+                  placeholder={talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : 'Your creator name'}
                   autoCapitalize="words"
                   className="mt-1"
                 />

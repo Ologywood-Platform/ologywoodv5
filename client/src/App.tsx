@@ -102,6 +102,7 @@ const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const Promote = lazy(() => import("./pages/Promote"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
 const AcceptTeamInvite = lazy(() => import("./pages/AcceptTeamInvite").then(m => ({ default: m.AcceptTeamInvite })));
+const FanClubManager = lazy(() => import("./pages/FanClubManager"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -181,6 +182,7 @@ function Router() {
           <Route path="/my-bookings" component={MyBookings} />
           <Route path="/my-purchases" component={MyPurchases} />
           <Route path="/my-music" component={MyMusic} />
+          <Route path="/fan-club" component={FanClubManager} />
           <Route path="/purchase-success" component={PurchaseSuccess} />
           
           {/* Rider System */}

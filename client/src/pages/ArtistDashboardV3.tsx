@@ -336,6 +336,20 @@ export function ArtistDashboardV3() {
                       <Button
                         variant="outline"
                         className="w-full flex flex-col items-center gap-2 h-auto py-4"
+                        onClick={() => navigate('/fan-club')}
+                      >
+                        <Users className="h-5 w-5" />
+                        <span className="text-xs font-medium">Fan Club</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Grow your fans</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Manage your fan club, membership tiers, and exclusive content</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4"
                         onClick={() => navigate('/releases')}
                       >
                         <Download className="h-5 w-5" />
