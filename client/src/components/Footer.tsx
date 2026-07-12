@@ -228,7 +228,7 @@ const Footer = () => {
               <div className="flex gap-3 flex-wrap">
                 <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Secure Payments</div>
                 <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Verified Users</div>
-                <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Dedicated Support</div>
+                <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ 24/7 Support</div>
               </div>
               <p className="text-gray-500 text-xs mt-4">
                 All payments processed securely by Stripe. Disputes and chargebacks are handled directly by Stripe in accordance with card network rules.
