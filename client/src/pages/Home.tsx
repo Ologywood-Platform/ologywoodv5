@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2, Award, BarChart3 } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2, Award, BarChart3, Users, Crown, Lock } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -369,28 +369,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* New Feature Spotlight */}
-      <section className="py-8 sm:py-12 bg-gradient-to-r from-purple-50 to-indigo-50">
+      {/* Fan Club Feature Highlight */}
+      <section className="py-8 sm:py-12 bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">NEW</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Enterprise Tier &mdash; Sponsor Showcase &amp; Media Kit</h2>
+            <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">FAN CLUB</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Turn Followers Into Paying Members</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
+              Launch your Fan Club with custom membership tiers. Share exclusive content, offer VIP perks, and build recurring revenue &mdash; all powered by Stripe.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <Crown className="h-6 w-6 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">Custom Tiers</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Create unlimited membership tiers with your own pricing and perks. Fans choose the level that fits them.</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <Lock className="h-6 w-6 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">Exclusive Content</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Post members-only content that only your paying fans can see. Behind-the-scenes, early access, and more.</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <Users className="h-6 w-6 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">You Keep 85%</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Competitive 85/15 revenue split. You keep 85% of every subscription &mdash; better than most platforms.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enterprise Feature Spotlight */}
+      <section className="py-8 sm:py-12 bg-gradient-to-r from-indigo-50 to-blue-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">ENTERPRISE</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Sponsor Showcase &amp; Media Kit</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
               Monetize your brand partnerships. Display sponsor logos on your profile, event pages, and ticket confirmation emails. Track real engagement with Sponsor Analytics and pitch new partners with your auto-generated Media Kit.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Award className="h-6 w-6 text-purple-600 mb-2" />
+                <Award className="h-6 w-6 text-indigo-600 mb-2" />
                 <h3 className="font-semibold text-sm sm:text-base mb-1">5 Sponsor Slots</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">Showcase up to 5 sponsors with logos, links, and descriptions on your profile and events.</p>
               </div>
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <BarChart3 className="h-6 w-6 text-purple-600 mb-2" />
+                <BarChart3 className="h-6 w-6 text-indigo-600 mb-2" />
                 <h3 className="font-semibold text-sm sm:text-base mb-1">Sponsor Analytics</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">Track impressions, clicks, and CTR per sponsor. Show brands real ROI from your audience.</p>
               </div>
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <FileText className="h-6 w-6 text-purple-600 mb-2" />
+                <FileText className="h-6 w-6 text-indigo-600 mb-2" />
                 <h3 className="font-semibold text-sm sm:text-base mb-1">Media Kit</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">Auto-generated press kit with your stats, bio, and achievements. Share with sponsors and labels.</p>
               </div>
@@ -420,7 +450,7 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Need Help?</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-              Our support team is here Monday through Friday to help you get the most out of Ologywood.
+              Our AI-powered support is available 24/7, plus our team is here Monday through Friday for complex questions.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="flex items-start gap-4 p-4 sm:p-6 rounded-lg border bg-card text-left">

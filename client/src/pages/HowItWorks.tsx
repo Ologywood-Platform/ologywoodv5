@@ -14,10 +14,10 @@ const artistSteps: Step[] = [
   {
     number: 1,
     title: 'Create Your Profile',
-    description: 'Sign up and build your artist profile with your bio, genres, photos, and pricing. Show venues exactly what you offer.',
+    description: 'Sign up and build your talent profile with your bio, genres or specialties, photos, and pricing. Choose your type: Artist, Athlete, Creator, DJ, Band, Comedian, Actor, Influencer, or Speaker.',
     items: [
       'Upload professional photos and videos',
-      'List your genres and performance style',
+      'List your genres, skills, or performance style',
       'Set your booking rates',
       'Add social links (Instagram, Spotify, etc.)',
       'Get a verification badge for added credibility',
@@ -90,6 +90,29 @@ const artistSteps: Step[] = [
   },
   {
     number: 8,
+    title: 'Launch Your Fan Club',
+    description: 'Create membership tiers for your most dedicated fans. Offer exclusive content, early access, and VIP perks — all with recurring revenue.',
+    items: [
+      'Create custom membership tiers with monthly pricing',
+      'Post exclusive members-only content',
+      'Fans subscribe via Stripe (you keep 85%, platform takes 15%)',
+      'Track member count and earnings from your dashboard',
+      'Build a loyal community that supports you monthly',
+    ],
+  },
+  {
+    number: 9,
+    title: 'Promote Your Brand',
+    description: 'Use the AI Ad Assistant to generate professional ad copy and targeting suggestions for your events, releases, or profile. Or submit a Boost request for hands-off promotion.',
+    items: [
+      'AI generates platform-specific ad copy (Instagram, Facebook, TikTok, YouTube, X)',
+      'Get hashtag suggestions and audience targeting recommendations',
+      'Budget calculator estimates reach based on your spend',
+      'Submit a "Boost My Event" request for managed promotion',
+    ],
+  },
+  {
+    number: 10,
     title: 'Grow Your Fan Base',
     description: 'Build a following on Ologywood. Fans can follow you, tip you, and buy your music. Refer friends and earn credits.',
     items: [
@@ -101,12 +124,12 @@ const artistSteps: Step[] = [
     ],
   },
   {
-    number: 9,
+    number: 11,
     title: 'Track Your Analytics',
     description: 'Monitor your growth with a comprehensive analytics dashboard. Track bookings, earnings, fan engagement, and music sales.',
     items: [
       'Booking conversion rates and trends',
-      'Earnings breakdown by source (bookings, music, tips)',
+      'Earnings breakdown by source (bookings, music, Fan Club, tips)',
       'Fan growth and engagement metrics',
       'Music sales and download analytics',
     ],
@@ -198,7 +221,7 @@ const fanSteps: Step[] = [
   {
     number: 1,
     title: 'Create Your Account',
-    description: 'Sign up for free and select "Fan" as your role. Your account is ready immediately to start discovering artists.',
+    description: 'Sign up for free and select "Fan" as your role. Your account is ready immediately to start discovering artists, athletes, and creators.',
     items: [
       'Sign up with email or social login',
       'Select the Fan role during onboarding',
@@ -207,13 +230,13 @@ const fanSteps: Step[] = [
   },
   {
     number: 2,
-    title: 'Discover & Follow Artists',
-    description: 'Browse the artist directory to find performers you love. Follow them to stay updated on their latest shows and releases.',
+    title: 'Discover & Follow Talent',
+    description: 'Browse the directory to find artists, athletes, and creators you love. Follow them to stay updated on their latest shows and releases.',
     items: [
-      'Browse artists by genre, location, and style',
-      'Click "Follow" on any artist profile',
-      'View all followed artists from "Following" in the nav',
-      'Get email updates when artists post events or updates',
+      'Browse talent by genre, sport, location, and style',
+      'Click "Follow" on any profile',
+      'View all followed talent from "Following" in the nav',
+      'Get email updates when they post events or updates',
     ],
   },
   {
@@ -242,20 +265,31 @@ const fanSteps: Step[] = [
   },
   {
     number: 5,
-    title: 'Support Artists with Tips',
-    description: 'Show your appreciation by tipping artists directly through their preferred payment apps. Zero platform fees on tips.',
+    title: 'Join Fan Clubs',
+    description: 'Subscribe to your favorite talent\'s Fan Club for exclusive content, early access, and VIP perks. Support them with a monthly membership.',
     items: [
-      'Tip via Cash App, Venmo, PayPal, or Zelle',
-      'Find tip links on artist profiles under "Support This Artist"',
-      'Tips go 100% to the artist',
+      'Browse available membership tiers on any talent profile',
+      'Subscribe monthly for exclusive members-only content',
+      'Cancel anytime — no long-term commitment',
+      'Get a membership badge on your profile',
     ],
   },
   {
     number: 6,
+    title: 'Support with Tips',
+    description: 'Show your appreciation by tipping talent directly through their preferred payment apps. Zero platform fees on tips.',
+    items: [
+      'Tip via Cash App, Venmo, PayPal, or Zelle',
+      'Find tip links on profiles under "Support This Artist"',
+      'Tips go 100% to the talent',
+    ],
+  },
+  {
+    number: 7,
     title: 'Leave Reviews & Refer Friends',
     description: 'Share your experience by leaving reviews. Refer friends to earn credits and get them 50% off their first month.',
     items: [
-      'Rate and review artists after events or purchases',
+      'Rate and review talent after events or purchases',
       'Share your unique referral link with friends',
       'Earn $5 credit for every friend who signs up',
       'Referred friends get 50% off their first month',
@@ -310,7 +344,7 @@ export default function HowItWorks() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">How Ologywood Works</h1>
           <p className="text-xl text-purple-100">
-            Connect talented artists with venues and fans. Simple, secure, and seamless.
+            Connect talented artists, athletes, and creators with venues and fans. Simple, secure, and seamless.
           </p>
         </div>
       </div>
@@ -357,7 +391,7 @@ export default function HowItWorks() {
         {activeTab === 'artists' && (
           <div className="space-y-8">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-              Get Booked. Sell Music. Grow Your Career.
+              Get Booked. Build Your Fan Club. Grow Your Career.
             </h2>
 
             {artistSteps.map((step) => (

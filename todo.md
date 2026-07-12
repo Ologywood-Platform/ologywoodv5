@@ -3486,3 +3486,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build working AI chat assistant with LLM backend (replace static response)
 - [x] Create server-side aiChat router with invokeLLM integration
 - [x] Give AI chat comprehensive system prompt with all platform knowledge
+
+## HOW IT WORKS + HOMEPAGE FAN CLUB UPDATE (Jul 12, 2026)
+- [x] Update How It Works artist steps to include Fan Club and Promote
+- [x] Update How It Works fan steps to include Join Fan Clubs
+- [x] Update How It Works language to include Athletes/Creators
+- [x] Add Fan Club feature highlight section to homepage
