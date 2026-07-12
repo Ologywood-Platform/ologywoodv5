@@ -3454,3 +3454,25 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## REMOVE STRIPE TIP BUTTON (Jul 11, 2026)
 - [x] Remove the purple Stripe-powered Tip button from artist profiles
 - [x] Keep "Support This Artist" section with QR codes and clickable links as the tipping method
+
+## PROMOTE FEATURE - AI AD ASSISTANT + BOOST MY EVENT (Jul 11, 2026)
+
+### Option A: AI Ad Copy & Creative Generator (Self-Service)
+- [x] Create /promote page accessible from artist dashboard
+- [x] Build "Promote This" selection (event, release, or profile)
+- [x] Integrate built-in LLM to generate ad copy, hashtags, targeting suggestions
+- [x] Generate platform-specific templates (Instagram Story, Facebook Post, TikTok caption)
+- [x] Add Ad Budget Calculator (spend estimate based on budget, location, interests)
+- [x] Allow artist to copy generated content or download formatted creative
+
+### Option B: Managed Ad Service (Boost My Event)
+- [x] Create promotion_requests table (artist, type, budget, goals, status, notes)
+- [x] Build "Boost My Event" intake form (budget, goals, event/release selection, target audience)
+- [x] Integrate Stripe payment for managed service fee
+- [x] Build admin panel to view/manage promotion requests
+- [x] Add status tracking for artists (submitted, in progress, completed, report ready)
+
+### Integration
+- [x] Add "Promote" button on event detail pages
+- [x] Add "Promote" button on release pages
+- [x] Add "Promote" link in artist dashboard navigation

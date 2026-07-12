@@ -1882,3 +1882,35 @@ export const googleCalendarIntegrations = mysqlTable("google_calendar_integratio
 }));
 export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
 export type InsertGoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferInsert;
+
+
+/**
+ * Promotion Requests — managed ad service ("Boost My Event") intake
+ */
+export const promotionRequests = mysqlTable("promotion_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  artistUserId: int("artistUserId").notNull(),
+  type: mysqlEnum("type", ["event", "release", "profile"]).notNull(),
+  targetId: int("targetId"), // event ID or release ID (null for profile)
+  targetName: varchar("targetName", { length: 255 }).notNull(), // display name of what's being promoted
+  budget: int("budget").notNull(), // in cents
+  goals: text("goals").notNull(), // what the artist wants to achieve
+  targetAudience: text("targetAudience"), // age, location, interests
+  platforms: json("platforms").$type<string[]>(), // ['instagram', 'facebook', 'tiktok', 'youtube']
+  timeline: varchar("timeline", { length: 100 }), // e.g. "7 days", "14 days"
+  additionalNotes: text("additionalNotes"),
+  status: mysqlEnum("status", ["submitted", "in_review", "in_progress", "completed", "cancelled"]).default("submitted").notNull(),
+  adminNotes: text("adminNotes"),
+  reportUrl: text("reportUrl"), // link to campaign report
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  paidAt: timestamp("paidAt"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_promo_requests_artist").on(table.artistUserId),
+  statusIdx: index("idx_promo_requests_status").on(table.status),
+  typeIdx: index("idx_promo_requests_type").on(table.type),
+}));
+export type PromotionRequest = typeof promotionRequests.$inferSelect;
+export type InsertPromotionRequest = typeof promotionRequests.$inferInsert;

@@ -44,6 +44,7 @@ import { merchRouter } from "./routers/merch";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { teamRouter } from "./routers/team";
 import { tipRouter } from "./routers/tip";
+import { promoteRouter } from "./routers/promote";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -3443,5 +3444,6 @@ export const appRouter = router({
   projectPreviews: projectPreviewsRouter,
   team: teamRouter,
   tip: tipRouter,
+  promote: promoteRouter,
 });
 export type AppRouter = typeof appRouter;

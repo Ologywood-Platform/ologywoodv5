@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2, Ticket, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Users, DollarSign, ArrowLeft, MessageSquare, Heart, Share2, Loader2, Ticket, ExternalLink, Megaphone } from 'lucide-react';
 import { TicketPurchase } from '@/components/TicketPurchase';
 import { toast } from 'sonner';
 import { formatEventTime } from '@/lib/utils';
@@ -320,6 +320,16 @@ export default function EventDetail() {
                 {isSaved ? 'Saved' : 'Save Event'}
               </Button>
 
+              {user && user.role === 'artist' && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                  onClick={() => navigate(`/promote?type=event&name=${encodeURIComponent((event as any).name || '')}`)}
+                >
+                  <Megaphone className="h-4 w-4" />
+                  Promote
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="gap-2 ml-auto"

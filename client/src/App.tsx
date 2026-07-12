@@ -99,6 +99,7 @@ const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
 const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
 const MerchPage = lazy(() => import("./pages/MerchPage"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const Promote = lazy(() => import("./pages/Promote"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
 const AcceptTeamInvite = lazy(() => import("./pages/AcceptTeamInvite").then(m => ({ default: m.AcceptTeamInvite })));
 
@@ -224,6 +225,7 @@ function Router() {
           <Route path="/accessibility" component={Accessibility} />
           <Route path="/dmca" component={DMCAPolicy} />
           <Route path="/sell-music" component={SellMusic} />
+          <Route path="/promote" component={Promote} />
           <Route path="/blog" component={Blog} />
           <Route path="/blog/:slug">{(params: any) => <BlogPost {...params} />}</Route>
           
