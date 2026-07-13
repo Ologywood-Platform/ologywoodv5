@@ -3497,3 +3497,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Promote This button to artist release pages that opens AI Ad Assistant
 - [x] Verify Promote This button on event detail page works correctly
 - [x] Add hover tooltip to AI Ad Assistant feature on Pricing page
+
+## PWA OFFLINE CACHING (Jul 13, 2026)
+- [x] Upgrade Service Worker with multi-strategy caching (static, dynamic, API)
+- [x] Add network-first strategy for API calls with cache fallback
+- [x] Add stale-while-revalidate for static assets
+- [x] Add offline detection banner (shows when disconnected, auto-hides on reconnect)
+- [x] Register Service Worker in main.tsx
+- [x] Add cache size limits to prevent unbounded growth
