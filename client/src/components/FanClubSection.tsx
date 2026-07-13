@@ -4,7 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Lock, Globe, Users, Check, Loader2 } from "lucide-react";
+import { Crown, Lock, Globe, Users, Check, Loader2, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface FanClubSectionProps {
@@ -15,6 +15,7 @@ interface FanClubSectionProps {
 export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps) {
   const { user } = useAuth();
   const [joiningTierId, setJoiningTierId] = useState<number | null>(null);
+  const [sortAsc, setSortAsc] = useState(true);
 
   const tiersQuery = trpc.fanClub.getTalentTiers.useQuery({ talentUserId: artistUserId });
   const postsQuery = trpc.fanClub.getTalentFeed.useQuery({ talentUserId: artistUserId });
@@ -43,12 +44,17 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
     onError: (err: any) => toast.error(err.message || "Failed to cancel"),
   });
 
-  const tiers = tiersQuery.data || [];
+  const rawTiers = tiersQuery.data || [];
+  const tiers = [...rawTiers].sort((a: any, b: any) => {
+    const priceA = a.priceCents || a.priceMonthly || 0;
+    const priceB = b.priceCents || b.priceMonthly || 0;
+    return sortAsc ? priceA - priceB : priceB - priceA;
+  });
   const posts = postsQuery.data || [];
   const membership = membershipQuery.data;
 
   // Don't show section if talent has no fan club set up
-  if (tiers.length === 0 && posts.length === 0) return null;
+  if (rawTiers.length === 0 && posts.length === 0) return null;
 
   const handleJoin = (tierId: number) => {
     if (!user) {
@@ -62,13 +68,26 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
   return (
     <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-center gap-2">
-        <Crown className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-bold">Fan Club</h2>
-        {membership && membership.status === "active" && (
-          <Badge className="bg-primary/10 text-primary border-primary/20">
-            <Check className="h-3 w-3 mr-1" /> Member
-          </Badge>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold">Fan Club</h2>
+          {membership && membership.status === "active" && (
+            <Badge className="bg-primary/10 text-primary border-primary/20">
+              <Check className="h-3 w-3 mr-1" /> Member
+            </Badge>
+          )}
+        </div>
+        {tiers.length > 1 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs text-muted-foreground"
+            onClick={() => setSortAsc(!sortAsc)}
+          >
+            <ArrowUpDown className="h-3.5 w-3.5" />
+            {sortAsc ? "Low to High" : "High to Low"}
+          </Button>
         )}
       </div>
 
@@ -77,6 +96,7 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier: any) => {
             const isCurrentTier = membership?.tierId === tier.id && membership?.status === "active";
+            const price = tier.priceCents || tier.priceMonthly || 0;
             return (
               <Card key={tier.id} className={isCurrentTier ? "border-primary ring-1 ring-primary/20" : ""}>
                 <CardHeader className="pb-3">
@@ -89,10 +109,13 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
                       <Badge variant="default" className="text-xs">Current</Badge>
                     )}
                   </div>
-                  <p className="text-2xl font-bold">
-                    ${(tier.priceMonthly / 100).toFixed(2)}
-                    <span className="text-sm font-normal text-muted-foreground">/month</span>
-                  </p>
+                  <div className="mt-2">
+                    <p className="text-3xl font-bold text-primary">
+                      ${(price / 100).toFixed(2)}
+                      <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Billed monthly · Cancel anytime</p>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {tier.description && (
@@ -108,32 +131,34 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
                       ))}
                     </ul>
                   )}
-                  {isCurrentTier ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        if (confirm("Cancel your membership? You'll retain access until the end of your billing period.")) {
-                          cancelMembership.mutate({ talentUserId: artistUserId });
-                        }
-                      }}
-                      disabled={cancelMembership.isPending}
-                    >
-                      Cancel Membership
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleJoin(tier.id)}
-                      disabled={joinTier.isPending && joiningTierId === tier.id}
-                    >
-                      {joinTier.isPending && joiningTierId === tier.id ? (
-                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Joining...</>
-                      ) : "Join This Tier"}
-                    </Button>
-                  )}
+                  <div className="border-t pt-3">
+                    {isCurrentTier ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          if (confirm("Cancel your membership? You'll retain access until the end of your billing period.")) {
+                            cancelMembership.mutate({ talentUserId: artistUserId });
+                          }
+                        }}
+                        disabled={cancelMembership.isPending}
+                      >
+                        Cancel Membership
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleJoin(tier.id)}
+                        disabled={joinTier.isPending && joiningTierId === tier.id}
+                      >
+                        {joinTier.isPending && joiningTierId === tier.id ? (
+                          <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Joining...</>
+                        ) : "Join This Tier"}
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );

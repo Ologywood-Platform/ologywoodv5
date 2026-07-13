@@ -3505,3 +3505,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add offline detection banner (shows when disconnected, auto-hides on reconnect)
 - [x] Register Service Worker in main.tsx
 - [x] Add cache size limits to prevent unbounded growth
+
+## UI IMPROVEMENTS (Jul 13, 2026)
+- [x] Add success notification and loading spinner when artist sends team invitation
+- [x] Add promotion request status badge on artist dashboard
+- [x] Display clear pricing for each Fan Club tier on public profile
+- [x] Add sorting option for Fan Club tiers (lowest to highest price)

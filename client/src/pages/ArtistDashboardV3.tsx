@@ -67,6 +67,11 @@ export function ArtistDashboardV3() {
     { artistId: artistProfile?.id || 0 },
     { enabled: isArtist && !!artistProfile?.id, staleTime: 5 * 60 * 1000 }
   );
+  const { data: promoRequests } = trpc.promote.getMyRequests.useQuery(undefined, {
+    enabled: isArtist, staleTime: 2 * 60 * 1000,
+  });
+  const activePromoRequest = promoRequests?.find((r: any) => r.status === 'submitted' || r.status === 'in_review' || r.status === 'in_progress');
+
   const { data: projectStats } = trpc.projectPreviews.getMyStats.useQuery(undefined, {
     enabled: isArtist, staleTime: 5 * 60 * 1000,
   });
@@ -461,9 +466,14 @@ export function ArtistDashboardV3() {
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full flex flex-col items-center gap-2 h-auto py-4 border-purple-200 hover:bg-purple-50"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4 border-purple-200 hover:bg-purple-50 relative"
                         onClick={() => navigate('/promote')}
                       >
+                        {activePromoRequest && (
+                          <span className={`absolute top-1.5 right-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${activePromoRequest.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : activePromoRequest.status === 'in_review' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}`}>
+                            {activePromoRequest.status === 'in_progress' ? 'Active' : activePromoRequest.status === 'in_review' ? 'Review' : 'Pending'}
+                          </span>
+                        )}
                         <Megaphone className="h-5 w-5 text-purple-600" />
                         <span className="text-xs font-medium">Promote</span>
                         <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">AI ad copy</span>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Users, Mail, Shield, UserPlus, Trash2, Clock, Crown, UserCheck, X } from 'lucide-react';
+import { ArrowLeft, Users, Mail, Shield, UserPlus, Trash2, Clock, Crown, UserCheck, X, Loader2, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -20,13 +20,18 @@ export function TeamManagement() {
 
   const inviteMutation = trpc.team.invite.useMutation({
     onSuccess: () => {
-      toast.success('Invitation sent!');
+      toast.success('Invitation sent successfully!', {
+        description: `A team invitation has been sent to ${inviteEmail.trim()}. They'll receive an email with instructions to join.`,
+        duration: 5000,
+      });
       setShowInviteModal(false);
       setInviteEmail('');
       refetchInvitations();
     },
     onError: (err) => {
-      toast.error(err.message);
+      toast.error('Failed to send invitation', {
+        description: err.message,
+      });
     },
   });
 
@@ -378,11 +383,15 @@ export function TeamManagement() {
               </div>
 
               <Button
-                className="w-full"
+                className="w-full gap-2"
                 onClick={handleInvite}
                 disabled={inviteMutation.isPending}
               >
-                {inviteMutation.isPending ? 'Sending...' : 'Send Invitation'}
+                {inviteMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Sending Invitation...</>
+                ) : (
+                  <><Mail className="h-4 w-4" /> Send Invitation</>
+                )}
               </Button>
             </div>
           </div>
