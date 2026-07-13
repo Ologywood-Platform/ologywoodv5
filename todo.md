@@ -3516,3 +3516,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Resend and Cancel buttons next to pending team invitations
 - [x] Add expandable View Perks section to Fan Club tiers for fans
 - [x] Make promotion status badge clickable with details/timeline modal
+
+## UI IMPROVEMENTS BATCH 3 (Jul 13)
+- [x] Add confirmation modal when canceling a pending team invitation
+- [x] Add Edit Request button in promo details modal (only when status is pending/submitted)

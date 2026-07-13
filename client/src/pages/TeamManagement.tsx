@@ -5,6 +5,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 export function TeamManagement() {
@@ -13,6 +14,7 @@ export function TeamManagement() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'manager' | 'team_member'>('team_member');
+  const [cancelConfirm, setCancelConfirm] = useState<{ id: number; email: string } | null>(null);
 
   const { data: members, refetch: refetchMembers } = trpc.team.getMembers.useQuery();
   const { data: pendingInvitations, refetch: refetchInvitations } = trpc.team.getPendingInvitations.useQuery();
@@ -262,7 +264,7 @@ export function TeamManagement() {
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:text-destructive"
-                        onClick={() => cancelInviteMutation.mutate({ invitationId: invite.id })}
+                        onClick={() => setCancelConfirm({ id: invite.id, email: invite.email })}
                         disabled={cancelInviteMutation.isPending}
                       >
                         <X className="h-4 w-4 mr-1" /> Cancel
@@ -425,6 +427,36 @@ export function TeamManagement() {
           </div>
         </div>
       )}
+      {/* Cancel Invitation Confirmation Modal */}
+      <Dialog open={!!cancelConfirm} onOpenChange={() => setCancelConfirm(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cancel Invitation?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel the invitation to <span className="font-medium text-foreground">{cancelConfirm?.email}</span>? They will no longer be able to join your team with this invite link.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCancelConfirm(null)}>
+              Keep Invitation
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (cancelConfirm) {
+                  cancelInviteMutation.mutate({ invitationId: cancelConfirm.id });
+                  setCancelConfirm(null);
+                }
+              }}
+              disabled={cancelInviteMutation.isPending}
+            >
+              {cancelInviteMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Canceling...</>
+              ) : "Yes, Cancel Invite"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -73,6 +73,15 @@ export function ArtistDashboardV3() {
   });
   const activePromoRequest = promoRequests?.find((r: any) => r.status === 'submitted' || r.status === 'in_review' || r.status === 'in_progress');
   const [showPromoModal, setShowPromoModal] = useState(false);
+  const [editingPromo, setEditingPromo] = useState(false);
+  const [editBudget, setEditBudget] = useState('');
+  const [editGoals, setEditGoals] = useState('');
+  const editPromoMutation = trpc.promote.editBoostRequest.useMutation({
+    onSuccess: () => {
+      setEditingPromo(false);
+      setShowPromoModal(false);
+    },
+  });
 
   const { data: projectStats } = trpc.projectPreviews.getMyStats.useQuery(undefined, {
     enabled: isArtist, staleTime: 5 * 60 * 1000,
@@ -798,6 +807,63 @@ export function ArtistDashboardV3() {
                   <p className="text-sm bg-muted/50 rounded-lg p-3">{activePromoRequest.adminNotes}</p>
                 </div>
               )}
+              {/* Edit Mode */}
+              {editingPromo && activePromoRequest.status === 'submitted' ? (
+                <div className="border-t pt-3 space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground block mb-1">Budget ($)</label>
+                    <input
+                      type="number"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                      value={editBudget}
+                      onChange={(e) => setEditBudget(e.target.value)}
+                      min={50}
+                      step={10}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground block mb-1">Goals</label>
+                    <textarea
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background min-h-[80px]"
+                      value={editGoals}
+                      onChange={(e) => setEditGoals(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        editPromoMutation.mutate({
+                          requestId: activePromoRequest.id,
+                          budget: Math.round(parseFloat(editBudget) * 100),
+                          goals: editGoals,
+                        });
+                      }}
+                      disabled={editPromoMutation.isPending}
+                    >
+                      {editPromoMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingPromo(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : activePromoRequest.status === 'submitted' ? (
+                <div className="border-t pt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setEditBudget(String((activePromoRequest.budget || 0) / 100));
+                      setEditGoals(activePromoRequest.goals || '');
+                      setEditingPromo(true);
+                    }}
+                  >
+                    Edit Request
+                  </Button>
+                </div>
+              ) : null}
             </div>
           </DialogContent>
         </Dialog>

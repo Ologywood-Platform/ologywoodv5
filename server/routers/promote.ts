@@ -332,4 +332,45 @@ Generate compelling, ready-to-use ad copy.`;
 
       return { success: true };
     }),
+
+  /** Edit a pending boost request (only if status is 'submitted') */
+  editBoostRequest: artistProcedure
+    .input(z.object({
+      requestId: z.number(),
+      budget: z.number().min(5000).optional(),
+      goals: z.string().min(10).optional(),
+      targetAudience: z.string().optional(),
+      timeline: z.string().optional(),
+      additionalNotes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const database = await db.getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      // Verify the request belongs to this user and is still editable
+      const [request] = await database
+        .select()
+        .from(promotionRequests)
+        .where(eq(promotionRequests.id, input.requestId));
+
+      if (!request) throw new TRPCError({ code: "NOT_FOUND", message: "Request not found" });
+      if (request.artistUserId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Not your request" });
+      if (request.status !== "submitted") throw new TRPCError({ code: "BAD_REQUEST", message: "Can only edit pending requests" });
+
+      const updates: Record<string, any> = {};
+      if (input.budget !== undefined) updates.budget = input.budget;
+      if (input.goals !== undefined) updates.goals = input.goals;
+      if (input.targetAudience !== undefined) updates.targetAudience = input.targetAudience;
+      if (input.timeline !== undefined) updates.timeline = input.timeline;
+      if (input.additionalNotes !== undefined) updates.additionalNotes = input.additionalNotes;
+
+      if (Object.keys(updates).length > 0) {
+        await database
+          .update(promotionRequests)
+          .set(updates)
+          .where(eq(promotionRequests.id, input.requestId));
+      }
+
+      return { success: true };
+    }),
 });
