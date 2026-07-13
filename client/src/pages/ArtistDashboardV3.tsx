@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -71,6 +72,7 @@ export function ArtistDashboardV3() {
     enabled: isArtist, staleTime: 2 * 60 * 1000,
   });
   const activePromoRequest = promoRequests?.find((r: any) => r.status === 'submitted' || r.status === 'in_review' || r.status === 'in_progress');
+  const [showPromoModal, setShowPromoModal] = useState(false);
 
   const { data: projectStats } = trpc.projectPreviews.getMyStats.useQuery(undefined, {
     enabled: isArtist, staleTime: 5 * 60 * 1000,
@@ -470,7 +472,11 @@ export function ArtistDashboardV3() {
                         onClick={() => navigate('/promote')}
                       >
                         {activePromoRequest && (
-                          <span className={`absolute top-1.5 right-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${activePromoRequest.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : activePromoRequest.status === 'in_review' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}`}>
+                          <span
+                            className={`absolute top-1.5 right-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold cursor-pointer hover:opacity-80 ${activePromoRequest.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : activePromoRequest.status === 'in_review' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}`}
+                            onClick={(e) => { e.stopPropagation(); setShowPromoModal(true); }}
+                            title="Click for details"
+                          >
                             {activePromoRequest.status === 'in_progress' ? 'Active' : activePromoRequest.status === 'in_review' ? 'Review' : 'Pending'}
                           </span>
                         )}
@@ -712,10 +718,91 @@ export function ArtistDashboardV3() {
         )}
       </div>
 
-      {/* Mobile Bottom Navigation */}
+            {/* Mobile Bottom Navigation */}
       <MobileBottomNav mode="dashboard" />
+
+      {/* Promotion Request Details Modal */}
+      {activePromoRequest && (
+        <Dialog open={showPromoModal} onOpenChange={setShowPromoModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-purple-600" />
+                Boost Request Details
+              </DialogTitle>
+              <DialogDescription>Your current promotion request status and timeline</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              {/* Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Status</span>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${activePromoRequest.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : activePromoRequest.status === 'in_review' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'}`}>
+                  {activePromoRequest.status === 'in_progress' ? 'In Progress' : activePromoRequest.status === 'in_review' ? 'Under Review' : 'Submitted'}
+                </span>
+              </div>
+              {/* Target */}
+              {activePromoRequest.targetName && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Promoting</span>
+                  <span className="text-sm font-medium">{activePromoRequest.targetName}</span>
+                </div>
+              )}
+              {/* Type */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Type</span>
+                <span className="text-sm capitalize">{activePromoRequest.type?.replace('_', ' ') || 'General'}</span>
+              </div>
+              {/* Budget */}
+              {activePromoRequest.budget && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Budget</span>
+                  <span className="text-sm font-medium">${activePromoRequest.budget}</span>
+                </div>
+              )}
+              {/* Timeline */}
+              {activePromoRequest.timeline && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">Timeline</span>
+                  <span className="text-sm">{activePromoRequest.timeline}</span>
+                </div>
+              )}
+              {/* Platforms */}
+              {activePromoRequest.platforms && (
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground block mb-1">Platforms</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(Array.isArray(activePromoRequest.platforms) ? activePromoRequest.platforms : [activePromoRequest.platforms]).map((p: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 bg-muted rounded text-xs capitalize">{p}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Goals */}
+              {activePromoRequest.goals && (
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground block mb-1">Goals</span>
+                  <p className="text-sm">{activePromoRequest.goals}</p>
+                </div>
+              )}
+              {/* Submitted Date */}
+              {activePromoRequest.createdAt && (
+                <div className="flex items-center justify-between border-t pt-3">
+                  <span className="text-sm font-medium text-muted-foreground">Submitted</span>
+                  <span className="text-sm">{new Date(activePromoRequest.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+              )}
+              {/* Admin Notes */}
+              {activePromoRequest.adminNotes && (
+                <div className="border-t pt-3">
+                  <span className="text-sm font-medium text-muted-foreground block mb-1">Team Notes</span>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3">{activePromoRequest.adminNotes}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
-
 export default ArtistDashboardV3;

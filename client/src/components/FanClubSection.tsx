@@ -4,7 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Lock, Globe, Users, Check, Loader2, ArrowUpDown } from "lucide-react";
+import { Crown, Lock, Globe, Users, Check, Loader2, ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 interface FanClubSectionProps {
@@ -16,6 +16,7 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
   const { user } = useAuth();
   const [joiningTierId, setJoiningTierId] = useState<number | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
+  const [expandedPerks, setExpandedPerks] = useState<Record<number, boolean>>({});
 
   const tiersQuery = trpc.fanClub.getTalentTiers.useQuery({ talentUserId: artistUserId });
   const postsQuery = trpc.fanClub.getTalentFeed.useQuery({ talentUserId: artistUserId });
@@ -122,14 +123,28 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
                     <p className="text-sm text-muted-foreground mb-3">{tier.description}</p>
                   )}
                   {tier.perks && tier.perks.length > 0 && (
-                    <ul className="space-y-2 mb-4">
-                      {tier.perks.map((perk: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                          <span>{perk}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="mb-4">
+                      <button
+                        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors mb-2"
+                        onClick={() => setExpandedPerks(prev => ({ ...prev, [tier.id]: !prev[tier.id] }))}
+                      >
+                        {expandedPerks[tier.id] ? (
+                          <><ChevronUp className="h-4 w-4" /> Hide Perks</>
+                        ) : (
+                          <><ChevronDown className="h-4 w-4" /> View Perks ({tier.perks.length})</>
+                        )}
+                      </button>
+                      {expandedPerks[tier.id] && (
+                        <ul className="space-y-2 animate-in slide-in-from-top-1 duration-200">
+                          {tier.perks.map((perk: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2 text-sm">
+                              <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                              <span>{perk}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   )}
                   <div className="border-t pt-3">
                     {isCurrentTier ? (

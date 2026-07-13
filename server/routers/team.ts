@@ -360,6 +360,59 @@ export const teamRouter = router({
       return { success: true };
     }),
 
+  // Resend a pending invitation (regenerate token, reset expiry, re-send email)
+  resendInvitation: teamAccessProcedure
+    .input(z.object({ invitationId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      if (!artistProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+
+      const [invitation] = await database.select().from(artistTeamInvitations)
+        .where(and(
+          eq(artistTeamInvitations.id, input.invitationId),
+          eq(artistTeamInvitations.artistProfileId, artistProfile.id),
+          eq(artistTeamInvitations.status, 'pending')
+        ))
+        .limit(1);
+
+      if (!invitation) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Pending invitation not found' });
+      }
+
+      // Regenerate token and reset expiry
+      const newToken = crypto.randomBytes(32).toString('hex');
+      const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      await database.update(artistTeamInvitations)
+        .set({ token: newToken, expiresAt: newExpiresAt })
+        .where(eq(artistTeamInvitations.id, invitation.id));
+
+      // Re-send email
+      try {
+        const { sendEmail } = await import('../email');
+        const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
+        const inviteLink = `${baseUrl}/team/accept?token=${newToken}`;
+        const roleName = invitation.role === 'manager' ? 'Manager' : 'Team Member';
+        await sendEmail({
+          to: invitation.email,
+          subject: `Reminder: You're invited to join ${artistProfile.artistName || 'an artist'}'s team on Ologywood`,
+          html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Team Invitation Reminder</h2>
+            <p><strong>${ctx.user.name || 'Someone'}</strong> has re-sent your invitation to join <strong>${artistProfile.artistName || 'an artist'}</strong>'s team as a <strong>${roleName}</strong> on Ologywood.</p>
+            <p style="margin: 24px 0;"><a href="${inviteLink}" style="background: #6d28d9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Accept Invitation</a></p>
+            <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
+          </div>`,
+        });
+      } catch (e) {
+        console.error('[Team] Failed to resend invitation email:', e);
+      }
+
+      return { success: true, message: 'Invitation resent' };
+    }),
+
   // Cancel a pending invitation
   cancelInvitation: teamAccessProcedure
     .input(z.object({ invitationId: z.number() }))

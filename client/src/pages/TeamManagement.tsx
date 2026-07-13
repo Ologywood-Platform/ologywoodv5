@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Users, Mail, Shield, UserPlus, Trash2, Clock, Crown, UserCheck, X, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Users, Mail, Shield, UserPlus, Trash2, Clock, Crown, UserCheck, X, Loader2, CheckCircle, RefreshCw } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -62,6 +62,18 @@ export function TeamManagement() {
     },
     onError: (err) => {
       toast.error(err.message);
+    },
+  });
+
+  const resendInviteMutation = trpc.team.resendInvitation.useMutation({
+    onSuccess: () => {
+      toast.success('Invitation resent!', {
+        description: 'A new invitation email has been sent. The link expires in 7 days.',
+      });
+      refetchInvitations();
+    },
+    onError: (err) => {
+      toast.error('Failed to resend', { description: err.message });
     },
   });
 
@@ -232,14 +244,30 @@ export function TeamManagement() {
                         {invite.role === 'manager' ? 'Manager' : 'Team Member'} · Expires {new Date(invite.expiresAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive flex-shrink-0"
-                      onClick={() => cancelInviteMutation.mutate({ invitationId: invite.id })}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-primary hover:text-primary"
+                        onClick={() => resendInviteMutation.mutate({ invitationId: invite.id })}
+                        disabled={resendInviteMutation.isPending}
+                      >
+                        {resendInviteMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <><RefreshCw className="h-3.5 w-3.5 mr-1" /> Resend</>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => cancelInviteMutation.mutate({ invitationId: invite.id })}
+                        disabled={cancelInviteMutation.isPending}
+                      >
+                        <X className="h-4 w-4 mr-1" /> Cancel
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -3511,3 +3511,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add promotion request status badge on artist dashboard
 - [x] Display clear pricing for each Fan Club tier on public profile
 - [x] Add sorting option for Fan Club tiers (lowest to highest price)
+
+## UI IMPROVEMENTS BATCH 2 (Jul 13)
+- [x] Add Resend and Cancel buttons next to pending team invitations
+- [x] Add expandable View Perks section to Fan Club tiers for fans
+- [x] Make promotion status badge clickable with details/timeline modal
