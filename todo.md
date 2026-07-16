@@ -3826,3 +3826,58 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### Testing
 - [x] Write tests for Ology Live schema and routes (46 tests passing)
 - [x] Write tests for experience creation and booking flow
+
+---
+
+## Ology Live — Phase 2 (Engagement & NIL Compliance)
+
+### NIL Session Contract Auto-Generation
+- [x] Create ology_live_session_contracts table (links booking to auto-generated NIL agreement)
+- [x] Auto-generate NIL-compliant contract when booking is confirmed (parties, compensation, media rights, duration, platform)
+- [x] Contract includes NCAA compliance disclaimers and athlete protections
+- [x] Contract viewable/downloadable by both parties from booking detail
+- [x] Contract status tracking (generated, viewed, signed_by_fan, signed_by_talent, fully_executed)
+
+### Recurring Availability System
+- [x] Add recurring schedule support (e.g., "every Tuesday 7-9 PM", "weekdays 6-8 PM")
+- [x] Auto-generate time slots from recurring schedule (up to 8 weeks ahead)
+- [x] Avoid duplicate time slots and only generate future slots
+- [x] Show recurring schedule on experience detail page
+
+### Automated Session Reminders
+- [x] Create sessionReminders handler for Heartbeat cron
+- [x] Query upcoming sessions within reminder window (1 hour before)
+- [x] Send notifications to both talent and fan
+- [x] Register handler at /api/scheduled/session-reminders
+- [x] Apply CRON_OPEN_ID_PREFIX patch to sdk.ts for cron auth
+
+### Post-Session Review System
+- [x] Add submitReview endpoint (rating 1-5, comment, bookingId)
+- [x] Update experience averageRating after each review
+- [x] Store reviews in ology_live_reviews table
+- [x] Only allow reviews for completed sessions
+- [x] Show review prompt in fan My Sessions page
+
+### Fan "My Sessions" Page
+- [x] Create OlogyLiveMySessions page showing upcoming and past sessions
+- [x] Upcoming sessions show join link and cancel option
+- [x] Past sessions show review prompt if not yet reviewed
+- [x] Add route /ology-live/my-sessions
+
+### Talent Profile Integration
+- [x] Add "Ology Live" section to talent public profile page (OlogyLiveProfileSection component)
+- [x] Show active experiences with pricing, duration, and category
+- [x] Link to individual experience pages for direct booking
+
+### NIL Earnings Tracking
+- [x] Create OlogyLiveEarnings page at /ology-live/earnings
+- [x] Track per-session revenue with NIL categorization in ology_live_earnings table
+- [x] Show monthly breakdown with net earnings, gross revenue, platform fees
+- [x] Earnings by NIL category (gaming, Q&A, workshop, etc.)
+- [x] NIL Compliance Report section with disclaimer
+- [x] Support year filtering for reports
+
+### Testing & Schema Sync
+- [x] Write tests for all Phase 2 features (54 tests passing)
+- [x] Verify all schema changes are migrated to production (6 tables confirmed)
+- [x] Verify production database tables match schema.ts (zero TS errors)

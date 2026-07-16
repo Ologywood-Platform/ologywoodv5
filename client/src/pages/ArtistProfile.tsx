@@ -38,6 +38,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { TouringDisplay } from '@/components/TouringDisplay';
 import { SponsorShowcase } from '@/components/SponsorShowcase';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
+import { OlogyLiveProfileSection } from "@/components/OlogyLiveProfileSection";
 import { CrmBadge } from "@/components/CrmBadge";
 
 export default function ArtistProfile() {
@@ -1565,6 +1566,14 @@ export default function ArtistProfile() {
               </CardContent>
             </Card>
         </div>
+
+        {/* Ology Live Section */}
+        {artist && (
+          <OlogyLiveProfileSection
+            talentId={artist.userId || artistId}
+            talentName={artist.artistName}
+          />
+        )}
       </div>
 
       {/* Sticky Booking Bar for Mobile */}

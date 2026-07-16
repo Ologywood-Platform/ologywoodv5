@@ -476,4 +476,158 @@ export const ologyLiveRouter = router({
         .limit(input?.limit || 20)
         .offset(input?.offset || 0);
     }),
+
+  // ===== RECURRING AVAILABILITY =====
+
+  /** Set recurring availability for an experience (e.g., every Tuesday 7-9 PM) */
+  setRecurringSchedule: talentProcedure
+    .input(z.object({
+      experienceId: z.number(),
+      schedule: z.object({
+        dayOfWeek: z.array(z.number().min(0).max(6)), // 0=Sunday, 6=Saturday
+        startHour: z.number().min(0).max(23),
+        startMinute: z.number().min(0).max(59),
+        endHour: z.number().min(0).max(23),
+        endMinute: z.number().min(0).max(59),
+        timezone: z.string().default("America/New_York"),
+        weeksAhead: z.number().min(1).max(8).default(4), // Generate slots this many weeks ahead
+      }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      // Verify ownership
+      const exp = (await db.select().from(ologyLiveExperiences)
+        .where(and(
+          eq(ologyLiveExperiences.id, input.experienceId),
+          eq(ologyLiveExperiences.talentId, ctx.user.id)
+        )).limit(1))[0];
+
+      if (!exp) throw new TRPCError({ code: 'NOT_FOUND', message: 'Experience not found or not yours' });
+
+      // Save the recurring schedule to the experience
+      await db.update(ologyLiveExperiences)
+        .set({ recurringSchedule: JSON.stringify(input.schedule) })
+        .where(eq(ologyLiveExperiences.id, input.experienceId));
+
+      // Generate time slots for the next N weeks
+      const slotsCreated = await generateRecurringSlots(
+        db,
+        input.experienceId,
+        ctx.user.id,
+        input.schedule,
+        exp.duration
+      );
+
+      return { success: true, slotsCreated };
+    }),
+
+  /** Regenerate time slots from recurring schedule (e.g., weekly cron) */
+  regenerateSlots: talentProcedure
+    .input(z.object({ experienceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      const exp = (await db.select().from(ologyLiveExperiences)
+        .where(and(
+          eq(ologyLiveExperiences.id, input.experienceId),
+          eq(ologyLiveExperiences.talentId, ctx.user.id)
+        )).limit(1))[0];
+
+      if (!exp) throw new TRPCError({ code: 'NOT_FOUND', message: 'Experience not found' });
+      if (!exp.recurringSchedule) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No recurring schedule set' });
+
+      const schedule = typeof exp.recurringSchedule === 'string'
+        ? JSON.parse(exp.recurringSchedule)
+        : exp.recurringSchedule;
+
+      const slotsCreated = await generateRecurringSlots(
+        db,
+        input.experienceId,
+        ctx.user.id,
+        schedule,
+        exp.duration
+      );
+
+      return { success: true, slotsCreated };
+    }),
 });
+
+// Helper: Generate recurring time slots
+async function generateRecurringSlots(
+  db: any,
+  experienceId: number,
+  talentId: number,
+  schedule: {
+    dayOfWeek: number[];
+    startHour: number;
+    startMinute: number;
+    endHour: number;
+    endMinute: number;
+    timezone: string;
+    weeksAhead: number;
+  },
+  durationMinutes: number
+): Promise<number> {
+  const now = new Date();
+  const slotsToCreate: any[] = [];
+
+  for (let week = 0; week < schedule.weeksAhead; week++) {
+    for (const day of schedule.dayOfWeek) {
+      // Calculate the date for this day of the week
+      const targetDate = new Date(now);
+      targetDate.setDate(now.getDate() + (week * 7) + ((day - now.getDay() + 7) % 7));
+
+      // Skip dates in the past
+      if (targetDate < now && week === 0) continue;
+
+      // Set start time
+      const startTime = new Date(targetDate);
+      startTime.setHours(schedule.startHour, schedule.startMinute, 0, 0);
+
+      // Set end time
+      const endTime = new Date(targetDate);
+      endTime.setHours(schedule.endHour, schedule.endMinute, 0, 0);
+
+      // Generate individual slots within the time window based on duration
+      let slotStart = new Date(startTime);
+      while (slotStart.getTime() + durationMinutes * 60000 <= endTime.getTime()) {
+        const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
+
+        // Only create future slots
+        if (slotStart > now) {
+          slotsToCreate.push({
+            experienceId,
+            talentId,
+            startTime: slotStart,
+            endTime: slotEnd,
+            spotsTotal: 1, // Will be updated based on capacity type
+            spotsTaken: 0,
+            isAvailable: true,
+          });
+        }
+
+        slotStart = new Date(slotEnd);
+      }
+    }
+  }
+
+  // Batch insert (avoid duplicates by checking existing slots)
+  let created = 0;
+  for (const slot of slotsToCreate) {
+    const existing = (await db.select().from(ologyLiveTimeSlots)
+      .where(and(
+        eq(ologyLiveTimeSlots.experienceId, experienceId),
+        eq(ologyLiveTimeSlots.startTime, slot.startTime)
+      )).limit(1))[0];
+
+    if (!existing) {
+      await db.insert(ologyLiveTimeSlots).values(slot);
+      created++;
+    }
+  }
+
+  return created;
+}

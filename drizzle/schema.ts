@@ -2155,3 +2155,102 @@ export const ologyLiveTimeSlots = mysqlTable("ology_live_time_slots", {
 }));
 export type OlogyLiveTimeSlot = typeof ologyLiveTimeSlots.$inferSelect;
 export type InsertOlogyLiveTimeSlot = typeof ologyLiveTimeSlots.$inferInsert;
+
+
+/**
+ * Ology Live Session Contracts — auto-generated NIL-compliant agreements for each booking
+ * Ties directly to a booking and includes full contract content, signatures, and status tracking
+ */
+export const ologyLiveSessionContracts = mysqlTable("ology_live_session_contracts", {
+  id: int("id").primaryKey().autoincrement(),
+  bookingId: int("bookingId").notNull(),
+  experienceId: int("experienceId").notNull(),
+  talentId: int("talentId").notNull(),
+  fanId: int("fanId").notNull(),
+  // Contract content (JSON with structured NIL agreement)
+  contractContent: json("contractContent"),
+  // Status tracking
+  status: varchar("status", { length: 30 }).default("generated").notNull(), // generated, viewed, signed_by_fan, signed_by_talent, fully_executed
+  // Signatures
+  talentSignature: text("talentSignature"),
+  talentSignedAt: timestamp("talentSignedAt"),
+  fanSignature: text("fanSignature"),
+  fanSignedAt: timestamp("fanSignedAt"),
+  // NIL compliance fields
+  compensationAmount: decimal("compensationAmount", { precision: 10, scale: 2 }),
+  mediaRightsGranted: json("mediaRightsGranted"), // what media rights fan gets (recording, streaming, etc.)
+  ncaaComplianceNote: text("ncaaComplianceNote"),
+  // Metadata
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_ology_live_contracts_booking").on(table.bookingId),
+  talentIdx: index("idx_ology_live_contracts_talent").on(table.talentId),
+  fanIdx: index("idx_ology_live_contracts_fan").on(table.fanId),
+  statusIdx: index("idx_ology_live_contracts_status").on(table.status),
+}));
+export type OlogyLiveSessionContract = typeof ologyLiveSessionContracts.$inferSelect;
+export type InsertOlogyLiveSessionContract = typeof ologyLiveSessionContracts.$inferInsert;
+
+/**
+ * Ology Live Reviews — post-session reviews from fans about their experience
+ */
+export const ologyLiveReviews = mysqlTable("ology_live_reviews", {
+  id: int("id").primaryKey().autoincrement(),
+  bookingId: int("bookingId").notNull(),
+  experienceId: int("experienceId").notNull(),
+  talentId: int("talentId").notNull(),
+  fanId: int("fanId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  reviewText: text("reviewText"),
+  // Talent can respond to reviews
+  talentResponse: text("talentResponse"),
+  talentRespondedAt: timestamp("talentRespondedAt"),
+  // Moderation
+  isPublic: boolean("isPublic").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_ology_live_reviews_booking").on(table.bookingId),
+  experienceIdx: index("idx_ology_live_reviews_experience").on(table.experienceId),
+  talentIdx: index("idx_ology_live_reviews_talent").on(table.talentId),
+  fanIdx: index("idx_ology_live_reviews_fan").on(table.fanId),
+  ratingIdx: index("idx_ology_live_reviews_rating").on(table.rating),
+}));
+export type OlogyLiveReview = typeof ologyLiveReviews.$inferSelect;
+export type InsertOlogyLiveReview = typeof ologyLiveReviews.$inferInsert;
+
+/**
+ * Ology Live Earnings — tracks per-session revenue for NIL reporting
+ */
+export const ologyLiveEarnings = mysqlTable("ology_live_earnings", {
+  id: int("id").primaryKey().autoincrement(),
+  talentId: int("talentId").notNull(),
+  bookingId: int("bookingId").notNull(),
+  experienceId: int("experienceId").notNull(),
+  // Financial
+  grossAmount: decimal("grossAmount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: decimal("platformFee", { precision: 10, scale: 2 }).notNull(),
+  netAmount: decimal("netAmount", { precision: 10, scale: 2 }).notNull(),
+  // NIL categorization
+  nilCategory: varchar("nilCategory", { length: 50 }).default("virtual_appearance").notNull(), // virtual_appearance, gaming_session, qa_session, workshop, etc.
+  // Session details for reporting
+  sessionDate: timestamp("sessionDate").notNull(),
+  sessionDuration: int("sessionDuration").notNull(), // minutes
+  platform: varchar("platform", { length: 50 }),
+  // Payout tracking
+  payoutStatus: varchar("payoutStatus", { length: 30 }).default("pending").notNull(), // pending, processing, paid
+  paidAt: timestamp("paidAt"),
+  stripeTransferId: varchar("stripeTransferId", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  talentIdx: index("idx_ology_live_earnings_talent").on(table.talentId),
+  bookingIdx: index("idx_ology_live_earnings_booking").on(table.bookingId),
+  dateIdx: index("idx_ology_live_earnings_date").on(table.sessionDate),
+  nilCategoryIdx: index("idx_ology_live_earnings_category").on(table.nilCategory),
+  payoutIdx: index("idx_ology_live_earnings_payout").on(table.payoutStatus),
+}));
+export type OlogyLiveEarning = typeof ologyLiveEarnings.$inferSelect;
+export type InsertOlogyLiveEarning = typeof ologyLiveEarnings.$inferInsert;

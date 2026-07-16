@@ -108,6 +108,8 @@ const FanClubManager = lazy(() => import("./pages/FanClubManager"));
 const OlogyLiveDashboard = lazy(() => import("./pages/OlogyLiveDashboard"));
 const OlogyLiveBrowse = lazy(() => import("./pages/OlogyLiveBrowse"));
 const OlogyLiveExperience = lazy(() => import("./pages/OlogyLiveExperience"));
+const OlogyLiveMySessions = lazy(() => import("./pages/OlogyLiveMySessions"));
+const OlogyLiveEarnings = lazy(() => import("./pages/OlogyLiveEarnings"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -192,6 +194,8 @@ function Router() {
           {/* Ology Live */}
           <Route path="/ology-live">{() => <PageErrorBoundary><OlogyLiveBrowse /></PageErrorBoundary>}</Route>
           <Route path="/ology-live/dashboard">{() => <PageErrorBoundary><OlogyLiveDashboard /></PageErrorBoundary>}</Route>
+          <Route path="/ology-live/my-sessions">{() => <PageErrorBoundary><OlogyLiveMySessions /></PageErrorBoundary>}</Route>
+          <Route path="/ology-live/earnings">{() => <PageErrorBoundary><OlogyLiveEarnings /></PageErrorBoundary>}</Route>
           <Route path="/ology-live/:id">{(params: any) => <PageErrorBoundary><OlogyLiveExperience {...params} /></PageErrorBoundary>}</Route>
           <Route path="/purchase-success" component={PurchaseSuccess} />
           
