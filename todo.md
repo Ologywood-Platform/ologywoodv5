@@ -3524,27 +3524,27 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## ATHLETE FEATURES - FULL BUILD (Jul 14, 2026)
 
 ### 1. Athlete-Specific Onboarding
-- [ ] Add sport, position, team, achievements fields to onboarding when talentType=athlete
-- [ ] Add sportCategory selector (Basketball, Football, Soccer, Baseball, Track, Tennis, MMA, Boxing, Golf, Swimming, Other)
-- [ ] Add highlight reel upload option during onboarding
-- [ ] Conditional language throughout onboarding for athletes
+- [x] Add sport, position, team, achievements fields to onboarding when talentType=athlete (done in COMPLETE ATHLETE EXPERIENCE BUILD)
+- [x] Add sportCategory selector (Basketball, Football, Soccer, Baseball, Track, Tennis, MMA, Boxing, Golf, Swimming, Other) (done)
+- [x] Add highlight reel upload option during onboarding (done via video portfolio)
+- [x] Conditional language throughout onboarding for athletes (done)
 
 ### 2. Athlete Profile Enhancements
-- [ ] Add athlete stats section to public profile (career stats, records)
-- [ ] Add career highlights/achievements display
-- [ ] Add NIL availability badge and categories
-- [ ] Add highlight reel player on profile
-- [ ] Add training videos section
+- [x] Add athlete stats section to public profile (career stats, records) (done)
+- [x] Add career highlights/achievements display (done)
+- [x] Add NIL availability badge and categories (done via nilDeals JSON)
+- [x] Add highlight reel player on profile (done via video portfolio modal)
+- [x] Add training videos section (done via video portfolio categories)
 
 ### 3. Athlete Booking Use Cases
-- [ ] Add athlete-specific booking types (Appearances, Autograph Signings, Speaking Engagements, Camps/Clinics, Brand Endorsements)
-- [ ] Update booking creation flow to show athlete-relevant options
-- [ ] Add appearance-specific fields (duration, type of appearance, meet & greet included)
+- [x] Add athlete-specific booking types (Appearances, Autograph Signings, Speaking Engagements, Camps/Clinics, Brand Endorsements) (done)
+- [x] Update booking creation flow to show athlete-relevant options (done)
+- [x] Add appearance-specific fields (duration, type of appearance, meet & greet included) (done via booking type + budget)
 
 ### 4. Athlete-Specific Rider Templates
-- [ ] Create pre-built rider templates for athletes (Travel, Security, Equipment, Appearance)
-- [ ] Add athlete rider categories in Rider Builder
-- [ ] Include athlete-specific items (training equipment, dietary requirements, security detail)
+- [x] Create pre-built rider templates for athletes (Travel, Security, Equipment, Appearance) (done - 4 templates)
+- [x] Add athlete rider categories in Rider Builder (done)
+- [x] Include athlete-specific items (training equipment, dietary requirements, security detail) (done)
 
 ### 5. NIL Marketplace
 - [ ] Create nil_opportunities table (brand posts deal opportunities)
@@ -3554,15 +3554,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [ ] Build NIL application flow and status tracking
 
 ### 6. Athlete Fan Club Content Types
-- [ ] Add athlete-specific content type options (Training Clips, Behind-the-Scenes, Game Day, Q&A Sessions)
-- [ ] Update Fan Club post creation with content type selector
-- [ ] Add content type badges/filters on Fan Club feed
+- [x] Add athlete-specific content type options (Training Clips, Behind-the-Scenes, Game Day, Q&A Sessions) (done)
+- [x] Update Fan Club post creation with content type selector (done)
+- [x] Add content type badges/filters on Fan Club feed (done)
 
 ### 7. Schema & Production Sync
-- [ ] Add all new columns to artist_profiles schema
-- [ ] Create all new tables in schema
-- [ ] Sync all changes to production database
-- [ ] Add missing columns that already exist in code but not in prod
+- [x] Add all new columns to artist_profiles schema (done)
+- [x] Create all new tables in schema (done)
+- [x] Sync all changes to production database (done)
+- [x] Add missing columns that already exist in code but not in prod (done)
 
 
 ## ATHLETE RIDER TEMPLATES (Jul 15, 2026)
