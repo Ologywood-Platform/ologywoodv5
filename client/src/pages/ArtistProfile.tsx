@@ -505,9 +505,50 @@ export default function ArtistProfile() {
                     )}
                   </div>
 
+                  {/* Calendar Availability Picker */}
+                  {availability && (availability as any[]).length > 0 && (
+                    <div className="rounded-md border p-3 bg-muted/30">
+                      <Label className="text-sm font-medium mb-2 block">Available Dates</Label>
+                      <p className="text-xs text-muted-foreground mb-2">Green dates are confirmed available. Tap to select.</p>
+                      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                        {(availability as any[])
+                          .filter((slot: any) => {
+                            const slotDate = new Date(slot.date);
+                            return slotDate >= new Date() && slot.isAvailable;
+                          })
+                          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                          .slice(0, 30)
+                          .map((slot: any) => {
+                            const d = new Date(slot.date);
+                            const dateStr = d.toISOString().split('T')[0];
+                            const isSelected = eventDate === dateStr;
+                            return (
+                              <button
+                                key={slot.id}
+                                type="button"
+                                onClick={() => setEventDate(dateStr)}
+                                className={`text-xs px-2 py-1 rounded-md border transition-colors ${
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
+                                }`}
+                              >
+                                {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="eventDate" className="text-sm font-medium">Event Date *</Label>
+                      <Label htmlFor="eventDate" className="text-sm font-medium">
+                        Event Date *
+                        {eventDate && availability && (availability as any[]).some((s: any) => new Date(s.date).toISOString().split('T')[0] === eventDate && s.isAvailable) && (
+                          <span className="ml-1.5 text-green-600 text-xs">✓ Available</span>
+                        )}
+                      </Label>
                       <input
                         id="eventDate"
                         type="date"
@@ -858,21 +899,82 @@ export default function ArtistProfile() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                  {/* Video player */}
-                  <div className="rounded-lg overflow-hidden bg-black aspect-video">
+                  {/* Video player with title overlay */}
+                  <div className="rounded-lg overflow-hidden bg-black aspect-video relative group">
                     <video
                       src={activeVideo.url}
                       controls
                       autoPlay
                       className="w-full h-full object-contain"
                     />
+                    {/* Title overlay - shows on hover */}
+                    <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      <h3 className="text-white font-semibold text-lg drop-shadow-md">{activeVideo.title}</h3>
+                      <p className="text-white/70 text-sm capitalize">{(activeVideo.category || '').replace('_', ' ')}</p>
+                    </div>
                   </div>
-                  {/* Video info */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <h3 className="text-white font-medium text-lg">{activeVideo.title}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded bg-white/20 text-white/80 capitalize">
-                      {(activeVideo.category || '').replace('_', ' ')}
-                    </span>
+                  {/* Video info + Share buttons */}
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white font-medium text-lg">{activeVideo.title}</h3>
+                      <span className="text-xs px-2 py-0.5 rounded bg-white/20 text-white/80 capitalize">
+                        {(activeVideo.category || '').replace('_', ' ')}
+                      </span>
+                    </div>
+                    {/* Social sharing buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
+                          navigator.clipboard.writeText(shareUrl);
+                          alert('Link copied!');
+                        }}
+                        className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="Copy link"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this clip: ${activeVideo.title}`)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                        }}
+                        className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="Share on X"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+                        }}
+                        className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="Share on Facebook"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
+                          window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this clip: ${activeVideo.title} ${shareUrl}`)}`, '_blank');
+                        }}
+                        className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="Share on WhatsApp"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.604-1.467A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.65-5.865-1.878l-.42-.282-2.732.87.914-2.654-.31-.464A9.72 9.72 0 012.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -969,7 +1071,7 @@ export default function ArtistProfile() {
             
             {/* Fan Club Section */}
             {artist && artist.userId && (
-              <FanClubSection artistUserId={artist.userId} artistName={artist.artistName} />
+              <FanClubSection artistUserId={artist.userId} artistName={artist.artistName} talentType={(artist as any).talentType} />
             )}
 
             {/* Support This Artist - Tip Links */}

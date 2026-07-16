@@ -10,13 +10,31 @@ import { toast } from "sonner";
 interface FanClubSectionProps {
   artistUserId: number;
   artistName: string;
+  talentType?: string;
 }
 
-export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps) {
+export function FanClubSection({ artistUserId, artistName, talentType }: FanClubSectionProps) {
   const { user } = useAuth();
   const [joiningTierId, setJoiningTierId] = useState<number | null>(null);
   const [sortAsc, setSortAsc] = useState(true);
   const [expandedPerks, setExpandedPerks] = useState<Record<number, boolean>>({});
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const athleteCategories = [
+    { key: 'all', label: 'All' },
+    { key: 'training', label: 'Training' },
+    { key: 'game_day', label: 'Game Day' },
+    { key: 'behind_the_scenes', label: 'Behind the Scenes' },
+    { key: 'qa_session', label: 'Q&A' },
+  ];
+  const artistCategories = [
+    { key: 'all', label: 'All' },
+    { key: 'studio_session', label: 'Studio' },
+    { key: 'live_performance', label: 'Live' },
+    { key: 'behind_the_scenes', label: 'Behind the Scenes' },
+    { key: 'qa_session', label: 'Q&A' },
+  ];
+  const categories = talentType === 'athlete' ? athleteCategories : artistCategories;
 
   const tiersQuery = trpc.fanClub.getTalentTiers.useQuery({ talentUserId: artistUserId });
   const postsQuery = trpc.fanClub.getTalentFeed.useQuery({ talentUserId: artistUserId });
@@ -184,19 +202,44 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
       {/* Exclusive Content Feed */}
       {posts.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Lock className="h-4 w-4" /> Exclusive Content
-          </h3>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Lock className="h-4 w-4" /> Exclusive Content
+            </h3>
+            {/* Category filter chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => setCategoryFilter(cat.key)}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    categoryFilter === cat.key
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-transparent hover:bg-muted'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="space-y-3">
-            {posts.map((post: any) => {
+            {posts
+              .filter((post: any) => categoryFilter === 'all' || post.contentCategory === categoryFilter)
+              .map((post: any) => {
               const isLocked = post.visibility === "members_only" && (!membership || membership.status !== "active");
               return (
                 <Card key={post.id} className={isLocked ? "opacity-75" : ""}>
                   <CardContent className="py-4">
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h4 className="font-medium">{post.title}</h4>
+                          {post.contentCategory && (
+                            <Badge variant="secondary" className="text-[10px] capitalize">
+                              {post.contentCategory.replace('_', ' ')}
+                            </Badge>
+                          )}
                           <Badge variant="outline" className="text-xs">
                             {post.visibility === "public" ? (
                               <><Globe className="h-3 w-3 mr-1" /> Public</>
@@ -211,7 +254,17 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
                             <span>Join the fan club to unlock this content</span>
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
+                          <>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
+                            {post.mediaUrl && post.mediaType === 'video' && (
+                              <div className="mt-2 rounded-lg overflow-hidden bg-black aspect-video max-w-md">
+                                <video src={post.mediaUrl} controls preload="metadata" className="w-full h-full object-contain" />
+                              </div>
+                            )}
+                            {post.mediaUrl && post.mediaType === 'image' && (
+                              <img src={post.mediaUrl} alt={post.title} className="mt-2 rounded-lg max-w-md max-h-64 object-contain" />
+                            )}
+                          </>
                         )}
                         <p className="text-xs text-muted-foreground mt-2">
                           {new Date(post.createdAt).toLocaleDateString()}
@@ -222,6 +275,9 @@ export function FanClubSection({ artistUserId, artistName }: FanClubSectionProps
                 </Card>
               );
             })}
+            {posts.filter((post: any) => categoryFilter === 'all' || post.contentCategory === categoryFilter).length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No content in this category yet.</p>
+            )}
           </div>
         </div>
       )}

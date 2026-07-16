@@ -3634,3 +3634,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Connect merch display to athlete public profile (pre-pay merchandise with image uploads)
 - [x] Enhance booking form with athlete-specific options (appearances, autograph signings, sports camps)
 - [x] Add modal video player to Highlight Clips grid for seamless viewing
+- [x] Calendar availability picker in athlete booking form (show available dates from artist's availability)
+- [x] Social sharing buttons + title overlay in video modal player
+- [x] Fan Club section on athlete profile with content categories (BTS, Q&A, Training, Game Day)
