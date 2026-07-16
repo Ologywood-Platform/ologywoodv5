@@ -149,6 +149,7 @@ export default function ArtistProfile() {
   const [venueZip, setVenueZip] = useState("");
   const [eventDetails, setEventDetails] = useState("");
   const [totalFee, setTotalFee] = useState("");
+  const [bookingType, setBookingType] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
 
@@ -248,7 +249,8 @@ export default function ArtistProfile() {
       venueAddress: fullAddress || undefined,
       eventDetails,
       totalFee: totalFee ? parseFloat(totalFee) : undefined,
-    });
+      bookingType: bookingType || undefined,
+    } as any);
     
     // Note: selectedRiderId is stored in state for future use in rider acknowledgment workflow
     if (selectedRiderId) {
@@ -352,11 +354,18 @@ export default function ArtistProfile() {
                   </Button>
                 )}
               </div>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
-                {Array.isArray(artist.genre) && artist.genre.length > 0 
-                  ? artist.genre.join(", ") 
-                  : "Various Genres"}
-              </p>
+              {/* Subtitle: genre for artists, sport/position/team for athletes */}
+              {(artist as any).talentType === 'athlete' ? (
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
+                  {[(artist as any).sportCategory, (artist as any).sportPosition, (artist as any).sportTeam].filter(Boolean).join(' · ') || 'Athlete'}
+                </p>
+              ) : (
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
+                  {Array.isArray(artist.genre) && artist.genre.length > 0 
+                    ? artist.genre.join(", ") 
+                    : "Various Genres"}
+                </p>
+              )}
               
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 {artist.location && (
@@ -371,7 +380,7 @@ export default function ArtistProfile() {
                     <span>${artist.feeRangeMin} - ${artist.feeRangeMax}</span>
                   </div>
                 )}
-                {artist.touringPartySize && (
+                {(artist as any).talentType !== 'athlete' && artist.touringPartySize && (
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     <span>{artist.touringPartySize} {artist.touringPartySize === 1 ? 'person' : 'people'}</span>
@@ -449,6 +458,37 @@ export default function ArtistProfile() {
                     </div>
                   )}
                   
+                  {/* Booking Type - shows athlete types for athletes, artist types for artists */}
+                  <div>
+                    <Label htmlFor="bookingType" className="text-sm font-medium">Booking Type</Label>
+                    <select
+                      id="bookingType"
+                      className="flex h-11 sm:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm"
+                      value={bookingType}
+                      onChange={(e) => setBookingType(e.target.value)}
+                    >
+                      <option value="">Select type...</option>
+                      {(artist as any).talentType === 'athlete' ? (
+                        <>
+                          <option value="appearance">Appearance / Meet & Greet</option>
+                          <option value="autograph_signing">Autograph Signing</option>
+                          <option value="speaking">Speaking Engagement</option>
+                          <option value="camp_clinic">Camp / Clinic</option>
+                          <option value="brand_endorsement">Brand Endorsement</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="performance">Live Performance</option>
+                          <option value="dj_set">DJ Set</option>
+                          <option value="private_event">Private Event</option>
+                          <option value="festival">Festival</option>
+                          <option value="corporate">Corporate Event</option>
+                          <option value="appearance">Appearance / Meet & Greet</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="eventDate" className="text-sm font-medium">Event Date *</Label>
@@ -607,6 +647,83 @@ export default function ArtistProfile() {
                   <p className="text-muted-foreground whitespace-pre-wrap">{artist.bio}</p>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Athlete Stats & Achievements (only for athletes) */}
+            {(artist as any).talentType === 'athlete' && (
+              <>
+                {/* Career Stats */}
+                {(artist as any).athleteStats && Array.isArray(JSON.parse((artist as any).athleteStats || '[]')) && JSON.parse((artist as any).athleteStats || '[]').length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Career Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {JSON.parse((artist as any).athleteStats).map((stat: { label: string; value: string }, idx: number) => (
+                          <div key={idx} className="text-center p-3 bg-muted/50 rounded-lg">
+                            <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                            <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Achievements */}
+                {(artist as any).athleteAchievements && Array.isArray(JSON.parse((artist as any).athleteAchievements || '[]')) && JSON.parse((artist as any).athleteAchievements || '[]').length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Achievements</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {JSON.parse((artist as any).athleteAchievements).map((ach: { title: string; year?: string; description?: string }, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                              <span className="text-amber-600 text-sm">🏆</span>
+                            </div>
+                            <div>
+                              <div className="font-medium">{ach.title}</div>
+                              {ach.year && <div className="text-xs text-muted-foreground">{ach.year}</div>}
+                              {ach.description && <div className="text-sm text-muted-foreground mt-1">{ach.description}</div>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* NIL Deals */}
+                {(artist as any).nilDeals && Array.isArray(JSON.parse((artist as any).nilDeals || '[]')) && JSON.parse((artist as any).nilDeals || '[]').length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Brand Partnerships</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {JSON.parse((artist as any).nilDeals).filter((d: any) => d.active !== false).map((deal: { brand: string; description?: string; logoUrl?: string }, idx: number) => (
+                          <div key={idx} className="flex items-center gap-3 p-3 border rounded-lg">
+                            {deal.logoUrl ? (
+                              <img src={deal.logoUrl} alt={deal.brand} className="w-10 h-10 rounded object-contain" />
+                            ) : (
+                              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-xs font-bold">
+                                {deal.brand.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium text-sm">{deal.brand}</div>
+                              {deal.description && <div className="text-xs text-muted-foreground">{deal.description}</div>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
 
             {/* Touring Availability */}

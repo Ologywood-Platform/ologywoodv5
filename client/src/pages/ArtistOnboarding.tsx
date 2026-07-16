@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
@@ -53,12 +53,54 @@ export default function ArtistOnboarding() {
   const [cropperImage, setCropperImage] = useState<string | null>(null);
   const [showCropper, setShowCropper] = useState(false);
 
-  // Step 2: Genre & Performance Details
+  // Step 2: Genre & Performance Details (Artist)
   const [genres, setGenres] = useState<string[]>([]);
   const [customGenre, setCustomGenre] = useState("");
   const [feeRangeMin, setFeeRangeMin] = useState("");
   const [feeRangeMax, setFeeRangeMax] = useState("");
   const [touringPartySize, setTouringPartySize] = useState("1");
+
+  // Step 2: Athlete-specific fields
+  const [sportCategory, setSportCategory] = useState("");
+  const [sportPosition, setSportPosition] = useState("");
+  const [sportTeam, setSportTeam] = useState("");
+  const [athleteStats, setAthleteStats] = useState<{ label: string; value: string }[]>([]);
+  const [newStatLabel, setNewStatLabel] = useState("");
+  const [newStatValue, setNewStatValue] = useState("");
+  const [athleteAchievements, setAthleteAchievements] = useState<{ title: string; year?: string }[]>([]);
+  const [newAchievement, setNewAchievement] = useState("");
+  const [newAchievementYear, setNewAchievementYear] = useState("");
+
+  const SPORT_OPTIONS = [
+    "Basketball", "Football", "Baseball", "Soccer", "Track & Field",
+    "Swimming", "Tennis", "Golf", "Volleyball", "Wrestling",
+    "Gymnastics", "Lacrosse", "Hockey", "Softball", "Boxing",
+    "MMA", "Esports", "Other"
+  ];
+
+  const addStat = () => {
+    if (newStatLabel.trim() && newStatValue.trim()) {
+      setAthleteStats(prev => [...prev, { label: newStatLabel.trim(), value: newStatValue.trim() }]);
+      setNewStatLabel("");
+      setNewStatValue("");
+    }
+  };
+
+  const removeStat = (idx: number) => {
+    setAthleteStats(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const addAchievement = () => {
+    if (newAchievement.trim()) {
+      setAthleteAchievements(prev => [...prev, { title: newAchievement.trim(), year: newAchievementYear.trim() || undefined }]);
+      setNewAchievement("");
+      setNewAchievementYear("");
+    }
+  };
+
+  const removeAchievement = (idx: number) => {
+    setAthleteAchievements(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const GENRE_OPTIONS = [
     "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
@@ -192,14 +234,21 @@ export default function ArtistOnboarding() {
       }
     }
     if (currentStep === 2) {
-      if (genres.length === 0) {
-        toast.error("Please select at least one genre");
-        return;
-      }
-      const partySize = parseInt(touringPartySize);
-      if (!touringPartySize || isNaN(partySize) || partySize < 1) {
-        toast.error("Touring party size must be at least 1 (including yourself)");
-        return;
+      if (talentType === 'athlete') {
+        if (!sportCategory) {
+          toast.error("Please select your sport");
+          return;
+        }
+      } else {
+        if (genres.length === 0) {
+          toast.error("Please select at least one genre");
+          return;
+        }
+        const partySize = parseInt(touringPartySize);
+        if (!touringPartySize || isNaN(partySize) || partySize < 1) {
+          toast.error("Touring party size must be at least 1 (including yourself)");
+          return;
+        }
       }
     }
     
@@ -234,7 +283,7 @@ export default function ArtistOnboarding() {
       toast.error("Location is required");
       return;
     }
-    if (genres.length === 0) {
+    if (talentType !== 'athlete' && genres.length === 0) {
       toast.error("Please select at least one genre");
       return;
     }
@@ -276,7 +325,12 @@ export default function ArtistOnboarding() {
       genre: genres.length > 0 ? genres : undefined,
       feeRangeMin: feeRangeMin ? parseInt(feeRangeMin) : undefined,
       feeRangeMax: feeRangeMax ? parseInt(feeRangeMax) : undefined,
-      touringPartySize: parseInt(touringPartySize),
+      touringPartySize: parseInt(touringPartySize) || 1,
+      sportCategory: sportCategory || undefined,
+      sportPosition: sportPosition || undefined,
+      sportTeam: sportTeam || undefined,
+      athleteStats: athleteStats.length > 0 ? athleteStats : undefined,
+      athleteAchievements: athleteAchievements.length > 0 ? athleteAchievements : undefined,
       websiteUrl: websiteUrl || undefined,
       profilePhotoUrl: photoUrl || undefined,
       socialLinks: {
@@ -473,8 +527,162 @@ export default function ArtistOnboarding() {
             </div>
           )}
 
-          {/* Step 2: Genre & Performance Details */}
-          {currentStep === 2 && (
+          {/* Step 2: Details (conditional based on talent type) */}
+          {currentStep === 2 && talentType === 'athlete' && (
+            <div className="space-y-4 animate-fade-in">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Athlete Details</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Tell us about your sport and accomplishments. This helps brands and event organizers find you.
+                </p>
+              </div>
+
+              <div>
+                <Label>Sport *</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {SPORT_OPTIONS.map((sport) => (
+                    <Badge
+                      key={sport}
+                      variant={sportCategory === sport ? "default" : "outline"}
+                      className="cursor-pointer select-none"
+                      onClick={() => setSportCategory(sport)}
+                    >
+                      {sport}
+                      {sportCategory === sport && <Check className="h-3 w-3 ml-1" />}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sportPosition">Position</Label>
+                  <Input
+                    id="sportPosition"
+                    value={sportPosition}
+                    onChange={(e) => setSportPosition(e.target.value)}
+                    placeholder="e.g., Point Guard, Wide Receiver"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sportTeam">Team / School</Label>
+                  <Input
+                    id="sportTeam"
+                    value={sportTeam}
+                    onChange={(e) => setSportTeam(e.target.value)}
+                    placeholder="e.g., Duke Blue Devils"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* Key Stats */}
+              <div>
+                <Label>Key Stats <span className="text-xs text-muted-foreground font-normal">(optional — add your top numbers)</span></Label>
+                {athleteStats.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                    {athleteStats.map((stat, idx) => (
+                      <Badge key={idx} variant="secondary" className="gap-1">
+                        {stat.label}: {stat.value}
+                        <button type="button" onClick={() => removeStat(idx)} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={newStatLabel}
+                    onChange={(e) => setNewStatLabel(e.target.value)}
+                    placeholder="Stat name (e.g., PPG)"
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addStat())}
+                  />
+                  <Input
+                    value={newStatValue}
+                    onChange={(e) => setNewStatValue(e.target.value)}
+                    placeholder="Value (e.g., 22.5)"
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addStat())}
+                  />
+                  <Button type="button" variant="outline" size="icon" onClick={addStat} disabled={!newStatLabel.trim() || !newStatValue.trim()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Add stats that showcase your talent — these appear on your public profile.</p>
+              </div>
+
+              {/* Achievements */}
+              <div>
+                <Label>Achievements <span className="text-xs text-muted-foreground font-normal">(optional — awards, records, honors)</span></Label>
+                {athleteAchievements.length > 0 && (
+                  <div className="space-y-1 mt-2 mb-2">
+                    {athleteAchievements.map((ach, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm">
+                        <Trophy className="h-3 w-3 text-amber-500 flex-shrink-0" />
+                        <span>{ach.title}{ach.year ? ` (${ach.year})` : ''}</span>
+                        <button type="button" onClick={() => removeAchievement(idx)} className="ml-auto hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={newAchievement}
+                    onChange={(e) => setNewAchievement(e.target.value)}
+                    placeholder="Achievement title"
+                    className="flex-[2]"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAchievement())}
+                  />
+                  <Input
+                    value={newAchievementYear}
+                    onChange={(e) => setNewAchievementYear(e.target.value)}
+                    placeholder="Year"
+                    className="flex-1 max-w-[80px]"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAchievement())}
+                  />
+                  <Button type="button" variant="outline" size="icon" onClick={addAchievement} disabled={!newAchievement.trim()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Fee Range (same for athletes) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="feeMin">Appearance Fee Min ($)</Label>
+                  <Input
+                    id="feeMin"
+                    type="number"
+                    value={feeRangeMin}
+                    onChange={(e) => setFeeRangeMin(e.target.value)}
+                    placeholder="Min ($)"
+                    className="mt-1"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="feeMax">Appearance Fee Max ($)</Label>
+                  <Input
+                    id="feeMax"
+                    type="number"
+                    value={feeRangeMax}
+                    onChange={(e) => setFeeRangeMax(e.target.value)}
+                    placeholder="Max ($)"
+                    className="mt-1"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-2">Your fee range for appearances, signings, and events. A wider range shows flexibility.</p>
+            </div>
+          )}
+
+          {currentStep === 2 && talentType !== 'athlete' && (
             <div className="space-y-4 animate-fade-in">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Performance Details</h3>

@@ -19,6 +19,7 @@ import { CalendarSync } from '@/components/CalendarSync';
 import { GoogleCalendarSync } from '@/components/GoogleCalendarSync';
 import ProfileCompletenessCard from '@/components/ProfileCompletenessCard';
 import { PerformanceVideoUpload } from '@/components/PerformanceVideoUpload';
+import { VideoPortfolioManager } from '@/components/VideoPortfolioManager';
 import { ReferralSection } from '@/components/ReferralSection';
 import BookingCalendar from '@/components/BookingCalendar';
 import DashboardAnalyticsCards from '@/components/DashboardAnalyticsCards';
@@ -443,7 +444,7 @@ export function ArtistDashboardV3() {
                         <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sell products</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Showcase and link to your merchandise store</TooltipContent>
+                    <TooltipContent>Sell merch to fans — pre-order/made-to-order, upload designs, set prices</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -692,6 +693,9 @@ export function ArtistDashboardV3() {
                 if (subSection) subSection.scrollIntoView({ behavior: 'smooth' });
               }}
             />
+
+            {/* Video Portfolio (Multi-video clips) */}
+            <VideoPortfolioManager talentType={(artistProfile as any)?.talentType || 'artist'} />
 
             {/* Subscription Management */}
             <div id="subscription-management">

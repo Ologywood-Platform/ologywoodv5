@@ -11,6 +11,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus, Trash2, Edit2, Crown, Lock, Globe, Image, Loader2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 
+const ATHLETE_CONTENT_CATEGORIES = [
+  { value: 'training_clips', label: 'Training Clips' },
+  { value: 'game_day', label: 'Game Day' },
+  { value: 'behind_the_scenes', label: 'Behind the Scenes' },
+  { value: 'qa_session', label: 'Q&A Session' },
+  { value: 'general', label: 'General Update' },
+];
+
+const ARTIST_CONTENT_CATEGORIES = [
+  { value: 'behind_the_scenes', label: 'Behind the Scenes' },
+  { value: 'live_performance', label: 'Live Performance' },
+  { value: 'studio_session', label: 'Studio Session' },
+  { value: 'qa_session', label: 'Q&A Session' },
+  { value: 'general', label: 'General Update' },
+];
+
 export default function FanClubManager() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
@@ -29,6 +45,11 @@ export default function FanClubManager() {
   const [postContent, setPostContent] = useState("");
   const [postVisibility, setPostVisibility] = useState<"public" | "members_only">("members_only");
   const [postMinTier, setPostMinTier] = useState<number | undefined>(undefined);
+  const [postCategory, setPostCategory] = useState("general");
+
+  const profileQuery = trpc.artist.getMyProfile.useQuery(undefined, { enabled: !!user });
+  const talentType = (profileQuery.data as any)?.talentType || 'artist';
+  const contentCategories = talentType === 'athlete' ? ATHLETE_CONTENT_CATEGORIES : ARTIST_CONTENT_CATEGORIES;
 
   const tiersQuery = trpc.fanClub.getMyTiers.useQuery(undefined, { enabled: !!user });
   const membersQuery = trpc.fanClub.getMyMembers.useQuery(undefined, { enabled: !!user });
@@ -92,6 +113,7 @@ export default function FanClubManager() {
     setPostContent("");
     setPostVisibility("members_only");
     setPostMinTier(undefined);
+    setPostCategory("general");
   };
 
   const handleCreateTier = () => {
@@ -136,7 +158,8 @@ export default function FanClubManager() {
       content: postContent.trim(),
       visibility: postVisibility,
       requiredTierId: postMinTier,
-    });
+      contentCategory: postCategory || undefined,
+    } as any);
   };
 
   const tiers = tiersQuery.data || [];
@@ -426,6 +449,19 @@ export default function FanClubManager() {
                         className="mt-1"
                       />
                       <p className="text-xs text-muted-foreground mt-1">{postContent.length}/5000 characters</p>
+                    </div>
+                    <div>
+                      <Label>Content Category</Label>
+                      <select
+                        value={postCategory}
+                        onChange={(e) => setPostCategory(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border rounded-md bg-background text-sm"
+                      >
+                        {contentCategories.map((cat) => (
+                          <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground mt-1">Helps fans find specific content types</p>
                     </div>
                     <div>
                       <Label>Visibility</Label>

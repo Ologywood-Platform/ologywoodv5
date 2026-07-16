@@ -387,6 +387,12 @@ export const appRouter = router({
         feeRangeMin: z.number().optional(),
         feeRangeMax: z.number().optional(),
         touringPartySize: z.number().optional(),
+        sportCategory: z.string().nullable().optional(),
+        sportPosition: z.string().nullable().optional(),
+        sportTeam: z.string().nullable().optional(),
+        athleteStats: z.array(z.object({ label: z.string(), value: z.string() })).nullable().optional(),
+        athleteAchievements: z.array(z.object({ title: z.string(), year: z.string().optional(), description: z.string().optional() })).nullable().optional(),
+        nilDeals: z.array(z.object({ brand: z.string(), description: z.string().optional(), logoUrl: z.string().optional(), active: z.boolean().optional() })).nullable().optional(),
         websiteUrl: z.string().nullable().optional(),
         socialLinks: z.object({
           instagram: z.string().optional(),
@@ -454,6 +460,11 @@ export const appRouter = router({
         artistName: z.string(),
         talentType: z.string().optional(),
         sportCategory: z.string().optional(),
+        sportPosition: z.string().optional(),
+        sportTeam: z.string().optional(),
+        athleteStats: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+        athleteAchievements: z.array(z.object({ title: z.string(), year: z.string().optional(), description: z.string().optional() })).optional(),
+        nilDeals: z.array(z.object({ brand: z.string(), description: z.string().optional(), logoUrl: z.string().optional(), active: z.boolean().optional() })).optional(),
         location: z.string().optional(),
         bio: z.string().optional(),
         genre: z.array(z.string()).optional(),
@@ -760,6 +771,169 @@ export const appRouter = router({
       .input(z.object({ artistProfileId: z.number() }))
       .query(async ({ ctx, input }) => {
         return await db.hasUserFlaggedVideo(input.artistProfileId, ctx.user.id);
+      }),
+
+    // === VIDEO PORTFOLIO (multi-video, up to 10 clips) ===
+    getVideoPortfolio: publicProcedure
+      .input(z.object({ artistProfileId: z.number() }))
+      .query(async ({ input }) => {
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) return [];
+        const [rows] = await pool.execute(
+          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status = ? ORDER BY sortOrder ASC, createdAt DESC',
+          [input.artistProfileId, 'active']
+        );
+        return (rows as any[]) || [];
+      }),
+
+    getMyVideoPortfolio: artistProcedure
+      .query(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) return [];
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) return [];
+        const [rows] = await pool.execute(
+          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status != ? ORDER BY sortOrder ASC, createdAt DESC',
+          [profile.id, 'removed']
+        );
+        return (rows as any[]) || [];
+      }),
+
+    addPortfolioVideo: artistProcedure
+      .input(z.object({
+        title: z.string().min(1).max(255),
+        videoUrl: z.string().url(),
+        thumbnailUrl: z.string().optional(),
+        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']),
+        duration: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        // Check limit (max 10)
+        const [existing] = await pool.execute(
+          'SELECT COUNT(*) as cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',
+          [profile.id, 'active']
+        );
+        const count = (existing as any[])[0]?.cnt || 0;
+        if (count >= 10) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Maximum 10 videos allowed in your portfolio. Remove one to add another.' });
+        }
+        const [result] = await pool.execute(
+          'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, thumbnailUrl, category, duration, sortOrder) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [profile.id, input.title, input.videoUrl, input.thumbnailUrl || null, input.category, input.duration || null, count]
+        );
+        return { success: true, id: (result as any).insertId };
+      }),
+
+    updatePortfolioVideo: artistProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().min(1).max(255).optional(),
+        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']).optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        // Verify ownership
+        const [rows] = await pool.execute(
+          'SELECT id FROM video_portfolio WHERE id = ? AND artistProfileId = ?',
+          [input.id, profile.id]
+        );
+        if (!(rows as any[]).length) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Video not found' });
+        }
+        const updates: string[] = [];
+        const values: any[] = [];
+        if (input.title) { updates.push('title = ?'); values.push(input.title); }
+        if (input.category) { updates.push('category = ?'); values.push(input.category); }
+        if (input.sortOrder !== undefined) { updates.push('sortOrder = ?'); values.push(input.sortOrder); }
+        if (updates.length > 0) {
+          values.push(input.id);
+          await pool.execute(`UPDATE video_portfolio SET ${updates.join(', ')} WHERE id = ?`, values);
+        }
+        return { success: true };
+      }),
+
+    removePortfolioVideo: artistProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        // Verify ownership
+        const [rows] = await pool.execute(
+          'SELECT id FROM video_portfolio WHERE id = ? AND artistProfileId = ?',
+          [input.id, profile.id]
+        );
+        if (!(rows as any[]).length) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Video not found' });
+        }
+        await pool.execute('UPDATE video_portfolio SET status = ? WHERE id = ?', ['removed', input.id]);
+        return { success: true };
+      }),
+
+    uploadPortfolioVideo: artistProcedure
+      .input(z.object({
+        title: z.string().min(1).max(255),
+        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']),
+        fileName: z.string(),
+        mimeType: z.string(),
+        fileData: z.string(), // base64
+        duration: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        // Check limit
+        const [existing] = await pool.execute(
+          'SELECT COUNT(*) as cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',
+          [profile.id, 'active']
+        );
+        const count = (existing as any[])[0]?.cnt || 0;
+        if (count >= 10) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Maximum 10 videos allowed. Remove one to add another.' });
+        }
+        // Validate file type
+        const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+        if (!allowedTypes.includes(input.mimeType)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only MP4, MOV, and WebM videos are allowed' });
+        }
+        // Upload to S3
+        const timestamp = Date.now();
+        const ext = input.fileName.split('.').pop() || 'mp4';
+        const fileKey = `video-portfolio/${ctx.user.id}/${timestamp}.${ext}`;
+        const base64Data = input.fileData.split(',')[1] || input.fileData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        // Insert into DB
+        const [result] = await pool.execute(
+          'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, category, duration, sortOrder) VALUES (?, ?, ?, ?, ?, ?)',
+          [profile.id, input.title, url, input.category, input.duration || null, count]
+        );
+        return { success: true, id: (result as any).insertId, url };
       }),
   }),
 

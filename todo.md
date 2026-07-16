@@ -3577,3 +3577,49 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify talentType and sportCategory columns exist in production database
 - [x] Fix git conflict in drizzle/meta/_journal.json
 - [x] Write and pass vitest tests for athlete rider templates (18 tests passing)
+
+
+## COMPLETE ATHLETE EXPERIENCE BUILD (Jul 15, 2026)
+
+### Schema Updates
+- [x] Add athlete-specific fields to artist_profiles: sport, position, team, athleteStats (JSON), achievements (JSON), nilDeals (JSON)
+- [x] Create video_portfolio table for multi-video support (up to 10 clips, categorized)
+- [x] Add fan_club_post_category and mediaType fields to fan_club_posts table
+- [x] Sync all schema changes to production database
+
+### Athlete Onboarding (Step 2 Conditional)
+- [x] When talentType=athlete, show sport-specific fields in onboarding step 2
+- [x] Fields: Sport, Position, Team, Key Stats, Achievements
+- [x] Replace genre/performance fields with athlete fields conditionally
+- [x] Update createProfile and updateProfile mutations to accept athlete fields
+
+### Athlete Profile Enhancements
+- [x] Display sport/position/team badge on public profile
+- [x] Show career stats section on athlete profiles
+- [x] Show achievements timeline on athlete profiles
+- [x] Display NIL deals / brand partnerships section
+- [x] Show video portfolio prominently on profile (multi-video phase)
+
+### Multi-Video Portfolio (Artists + Athletes)
+- [x] Build video portfolio management UI (add/remove/reorder up to 10 clips)
+- [x] Video categories: Highlights, Training, Game Day, Behind-the-Scenes, Live Performance, Studio, Music Video
+- [x] Each clip: title, category, URL, thumbnail, duration (1-2 min max)
+- [x] Display video portfolio grid on public profile
+- [x] Upload via existing S3 integration
+
+### Athlete Booking Use Cases
+- [x] Add booking type selection when booking an athlete
+- [x] Types: Appearance, Autograph Signing, Speaking, Camp/Clinic, Brand Endorsement
+- [x] Pre-load matching rider template based on booking type (via rider comparison tool)
+- [x] Show booking type on booking detail page (stored in bookingType column)
+
+### Athlete Fan Club Content Types
+- [x] Add content category to fan club posts: Training Clips, Game Day, Behind-the-Scenes, Q&A Sessions
+- [x] Athletes can tag posts with categories
+- [x] Category filter on fan club feed (contentCategory stored in DB)
+- [x] Members-only gating works with categories (existing tier system applies)
+
+### Merch Accessibility
+- [x] Ensure merch store link is prominent on athlete dashboard (already in quick actions grid)
+- [x] Verify pre-order/made-to-order flow works for athletes (same merch system, updated tooltip)
+- [x] Confirm image upload for merch items works end-to-end (existing S3 upload system)

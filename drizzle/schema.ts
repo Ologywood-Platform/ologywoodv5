@@ -99,6 +99,11 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   artistName: varchar("artistName", { length: 255 }).notNull(),
   talentType: varchar("talentType", { length: 20 }).default("artist"), // 'artist' | 'athlete' | 'creator'
   sportCategory: varchar("sportCategory", { length: 100 }), // e.g., Basketball, Football, Soccer
+  sportPosition: varchar("sportPosition", { length: 100 }), // e.g., Point Guard, Quarterback
+  sportTeam: varchar("sportTeam", { length: 255 }), // e.g., Duke Blue Devils, LA Lakers
+  athleteStats: json("athleteStats").$type<{ label: string; value: string }[]>(), // Key stats like PPG, RBI, etc.
+  athleteAchievements: json("athleteAchievements").$type<{ title: string; year?: string; description?: string }[]>(), // Awards, records, honors
+  nilDeals: json("nilDeals").$type<{ brand: string; description?: string; logoUrl?: string; active?: boolean }[]>(), // NIL brand partnerships
   genre: json("genre").$type<string[]>(),
   bio: text("bio"),
   location: varchar("location", { length: 255 }),
@@ -272,6 +277,9 @@ export const bookings = mysqlTable("bookings", {
   cancelledAt: timestamp("cancelledAt"),
   cancelledBy: varchar("cancelledBy", { length: 20 }),
   cancellationReason: text("cancellationReason"),
+  
+  // Booking type for athlete-specific bookings
+  bookingType: varchar("bookingType", { length: 50 }), // appearance, autograph_signing, speaking, camp_clinic, brand_endorsement, performance, other
   
   // Client booking fields
   eventType: varchar("eventType", { length: 50 }), // wedding, corporate, birthday, church, festival, house_party, restaurant, other
@@ -1933,6 +1941,8 @@ export const fanClubPosts = mysqlTable("fan_club_posts", {
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
   mediaUrl: text("mediaUrl"),
+  mediaType: varchar("mediaType", { length: 20 }), // 'image' | 'video' | 'audio' | null
+  contentCategory: varchar("contentCategory", { length: 50 }), // training_clips, game_day, behind_the_scenes, qa_session, live_performance, studio, music_video, general
   visibility: mysqlEnum("visibility", ["public", "members_only"]).default("public").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
@@ -1972,3 +1982,26 @@ export const promotionRequests = mysqlTable("promotion_requests", {
 }));
 export type PromotionRequest = typeof promotionRequests.$inferSelect;
 export type InsertPromotionRequest = typeof promotionRequests.$inferInsert;
+
+
+/**
+ * Video Portfolio — multi-video clips for artists and athletes (up to 10 per profile)
+ */
+export const videoPortfolio = mysqlTable("video_portfolio", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  videoUrl: text("videoUrl").notNull(),
+  thumbnailUrl: text("thumbnailUrl"),
+  category: varchar("category", { length: 50 }).notNull(), // highlights, training, game_day, behind_the_scenes, live_performance, studio, music_video, other
+  duration: int("duration"), // in seconds (max 120)
+  sortOrder: int("sortOrder").default(0).notNull(),
+  status: mysqlEnum("status", ["active", "processing", "removed"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistProfileIdx: index("idx_video_portfolio_artist").on(table.artistProfileId),
+  categoryIdx: index("idx_video_portfolio_category").on(table.category),
+}));
+export type VideoPortfolioItem = typeof videoPortfolio.$inferSelect;
+export type InsertVideoPortfolioItem = typeof videoPortfolio.$inferInsert;
