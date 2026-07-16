@@ -300,6 +300,12 @@ export const bookings = mysqlTable("bookings", {
   settlementNotes: text("settlementNotes"), // Notes about the settlement
   settledAt: timestamp("settledAt"), // When settlement was completed
 
+  // Counter offer fields
+  counterOfferAmount: decimal("counterOfferAmount", { precision: 10, scale: 2 }),
+  counterOfferMessage: text("counterOfferMessage"),
+  counterOfferAt: timestamp("counterOfferAt"),
+  counterOfferBy: varchar("counterOfferBy", { length: 20 }), // 'artist' or 'venue'
+
   // Rider template linked to this booking
   riderTemplateId: int("riderTemplateId"),
   riderStatus: varchar("riderStatus", { length: 50 }).default("pending"),
@@ -2024,6 +2030,7 @@ export const fanClubPostComments = mysqlTable("fan_club_post_comments", {
   userId: int("userId").notNull(),
   userName: varchar("userName", { length: 255 }).notNull(),
   content: text("content").notNull(),
+  parentId: int("parentId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({
   postIdx: index("idx_fc_comments_post").on(table.postId),

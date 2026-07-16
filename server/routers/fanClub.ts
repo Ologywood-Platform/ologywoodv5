@@ -446,7 +446,7 @@ export const fanClubRouter = router({
 
   // Add comment to a post
   addComment: protectedProcedure
-    .input(z.object({ postId: z.number(), content: z.string().min(1).max(500) }))
+    .input(z.object({ postId: z.number(), content: z.string().min(1).max(500), parentId: z.number().optional() }))
     .mutation(async ({ ctx, input }) => {
       const db = (await getDb())!;
       const [result] = await db.insert(fanClubPostComments).values({
@@ -454,6 +454,7 @@ export const fanClubRouter = router({
         userId: ctx.user.id,
         userName: ctx.user.name || ctx.user.email || 'Anonymous',
         content: input.content,
+        parentId: input.parentId || null,
       });
       return { id: result.insertId };
     }),

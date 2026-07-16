@@ -1586,6 +1586,28 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Artist counter offer on a booking
+    counterOffer: artistProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        counterAmount: z.number().min(0),
+        message: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        if (booking.artistId !== profile.id) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not your booking' });
+        await db.updateBooking(input.bookingId, {
+          counterOfferAmount: String(input.counterAmount),
+          counterOfferMessage: input.message || null,
+          counterOfferAt: new Date(),
+          counterOfferBy: 'artist',
+        } as any);
+        return { success: true };
+      }),
+
     // Venue respond to booking (accept/decline)
     venueRespond: venueProcedure
       .input(z.object({

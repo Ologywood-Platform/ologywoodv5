@@ -3640,3 +3640,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Subscription paywall overlay on locked Fan Club content (blurred preview + subscribe CTA)
 - [x] Comments and likes on Fan Club posts for subscribed fans (schema + endpoints + UI)
 - [x] Budget field and dynamic price summary on booking form based on appearance type
+- [x] Connect paywall "Subscribe to Unlock" button to tier checkout modal (Stripe)
+- [x] Add reply functionality to Fan Club comments (athlete can respond to individual comments)
+- [x] Update athlete booking dashboard: review requests, see budget, accept/decline/counter offers

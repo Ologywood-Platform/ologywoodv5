@@ -38,6 +38,7 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
 
   const [commentingPostId, setCommentingPostId] = useState<number | null>(null);
   const [commentText, setCommentText] = useState('');
+  const [showTierModal, setShowTierModal] = useState(false);
 
   const tiersQuery = trpc.fanClub.getTalentTiers.useQuery({ talentUserId: artistUserId });
   const postsQuery = trpc.fanClub.getTalentFeed.useQuery({ talentUserId: artistUserId });
@@ -302,8 +303,8 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
                                   size="sm"
                                   className="gap-1.5"
                                   onClick={() => {
-                                    const lowestTier = tiers[0];
-                                    if (lowestTier) handleJoin(lowestTier.id);
+                                    if (!user) { toast.error('Please sign in to subscribe'); return; }
+                                    setShowTierModal(true);
                                   }}
                                   disabled={joinTier.isPending}
                                 >
@@ -408,26 +409,165 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
           <span>Join {artistName}'s exclusive community</span>
         </div>
       )}
+
+      {/* Tier Selection Checkout Modal */}
+      {showTierModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowTierModal(false)}>
+          <div className="bg-background rounded-xl shadow-xl max-w-md w-full mx-4 p-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-bold">Choose Your Tier</h3>
+              </div>
+              <button onClick={() => setShowTierModal(false)} className="text-muted-foreground hover:text-foreground">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">Subscribe to {artistName}'s Fan Club and unlock exclusive content.</p>
+            <div className="space-y-3">
+              {tiers.map((tier: any) => {
+                const price = (tier.priceCents || tier.priceMonthly || 0) / 100;
+                return (
+                  <div key={tier.id} className="border rounded-lg p-4 hover:border-primary transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{tier.name}</h4>
+                      <span className="text-primary font-bold">${price}/mo</span>
+                    </div>
+                    {tier.description && (
+                      <p className="text-xs text-muted-foreground mb-3">{tier.description}</p>
+                    )}
+                    {tier.perks && (
+                      <ul className="text-xs text-muted-foreground space-y-1 mb-3">
+                        {(typeof tier.perks === 'string' ? JSON.parse(tier.perks) : tier.perks || []).slice(0, 3).map((perk: string, i: number) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                            <span>{perk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setShowTierModal(false);
+                        handleJoin(tier.id);
+                      }}
+                      disabled={joinTier.isPending && joiningTierId === tier.id}
+                    >
+                      {joinTier.isPending && joiningTierId === tier.id ? (
+                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Processing...</>
+                      ) : (
+                        <>Subscribe — ${price}/mo</>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-4">Secure payment via Stripe. Cancel anytime.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Sub-component for comments list
+// Sub-component for comments list with reply support
 function CommentsSection({ postId }: { postId: number }) {
+  const { user } = useAuth();
   const commentsQuery = trpc.fanClub.getPostComments.useQuery({ postId });
   const comments = commentsQuery.data || [];
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState('');
+
+  const addReply = trpc.fanClub.addComment.useMutation({
+    onSuccess: () => {
+      setReplyText('');
+      setReplyingTo(null);
+      commentsQuery.refetch();
+      toast.success('Reply posted');
+    },
+    onError: (err: any) => toast.error(err.message || 'Failed to reply'),
+  });
 
   if (comments.length === 0) return <p className="text-xs text-muted-foreground mt-2">No comments yet. Be the first!</p>;
 
+  // Separate top-level comments and replies
+  const topLevel = comments.filter((c: any) => !c.parentId);
+  const replies = comments.filter((c: any) => c.parentId);
+  const getReplies = (commentId: number) => replies.filter((r: any) => r.parentId === commentId);
+
   return (
-    <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
-      {comments.map((c: any) => (
-        <div key={c.id} className="flex gap-2 text-sm">
-          <span className="font-medium text-xs">{c.userName}</span>
-          <span className="text-xs text-muted-foreground flex-1">{c.content}</span>
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-            {new Date(c.createdAt).toLocaleDateString()}
-          </span>
+    <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+      {topLevel.map((c: any) => (
+        <div key={c.id}>
+          <div className="flex items-start gap-2 text-sm">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-xs">{c.userName}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {new Date(c.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{c.content}</p>
+              {user && (
+                <button
+                  className="text-[10px] text-primary hover:underline mt-0.5"
+                  onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
+                >
+                  Reply
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Replies */}
+          {getReplies(c.id).length > 0 && (
+            <div className="ml-4 mt-1 space-y-1 border-l-2 border-muted pl-2">
+              {getReplies(c.id).map((r: any) => (
+                <div key={r.id} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-[10px]">{r.userName}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(r.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{r.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Reply input */}
+          {replyingTo === c.id && (
+            <div className="ml-4 mt-1 flex gap-1.5">
+              <input
+                type="text"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={`Reply to ${c.userName}...`}
+                className="flex-1 text-xs border rounded px-2 py-1 bg-background"
+                maxLength={500}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && replyText.trim()) {
+                    addReply.mutate({ postId, content: replyText.trim(), parentId: c.id });
+                  }
+                }}
+              />
+              <button
+                className="text-xs text-primary font-medium px-2 py-1 hover:bg-muted rounded"
+                disabled={!replyText.trim() || addReply.isPending}
+                onClick={() => {
+                  if (replyText.trim()) {
+                    addReply.mutate({ postId, content: replyText.trim(), parentId: c.id });
+                  }
+                }}
+              >
+                Send
+              </button>
+            </div>
+          )}
         </div>
       ))}
     </div>

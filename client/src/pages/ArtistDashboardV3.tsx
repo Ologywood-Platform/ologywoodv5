@@ -526,25 +526,55 @@ export function ArtistDashboardV3() {
               <BookingCalendar bookings={bookings} role="artist" />
             )}
 
-            {/* Upcoming Bookings */}
-            {upcomingBookings.length > 0 && (
-              <Card>
+            {/* Incoming Booking Requests */}
+            {bookings && bookings.filter((b: any) => b.status === 'pending').length > 0 && (
+              <Card className="border-amber-200 bg-amber-50/30">
                 <CardHeader>
-                  <CardTitle className="text-lg">Upcoming Bookings</CardTitle>
-                  <CardDescription>{upcomingBookings.length} event(s) scheduled</CardDescription>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-amber-600" />
+                    Incoming Requests
+                  </CardTitle>
+                  <CardDescription>{bookings.filter((b: any) => b.status === 'pending').length} pending request(s) awaiting your response</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {upcomingBookings.slice(0, 3).map((booking) => (
+                    {bookings.filter((b: any) => b.status === 'pending').slice(0, 5).map((booking: any) => (
+                      <BookingRequestCard key={booking.id} booking={booking} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Upcoming Bookings (confirmed) */}
+            {upcomingBookings.filter((b: any) => b.status === 'confirmed').length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Upcoming Bookings</CardTitle>
+                  <CardDescription>{upcomingBookings.filter((b: any) => b.status === 'confirmed').length} confirmed event(s)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {upcomingBookings.filter((b: any) => b.status === 'confirmed').slice(0, 3).map((booking: any) => (
                       <div
                         key={booking.id}
                         className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
                       >
                         <div>
-                          <p className="font-semibold text-sm">Booking #{booking.id}</p>
-                          <p className="text-xs text-slate-600">
-                            {new Date(booking.eventDate).toLocaleDateString()}
-                          </p>
+                          <p className="font-semibold text-sm">{booking.venueName || `Booking #${booking.id}`}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-slate-600">
+                              {new Date(booking.eventDate).toLocaleDateString()}
+                            </p>
+                            {booking.bookingType && (
+                              <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded capitalize">
+                                {booking.bookingType.replace('_', ' ')}
+                              </span>
+                            )}
+                          </div>
+                          {booking.totalFee && (
+                            <p className="text-xs font-medium text-green-700 mt-0.5">${Number(booking.totalFee).toLocaleString()}</p>
+                          )}
                         </div>
                         <Button
                           variant="ghost"
@@ -876,3 +906,158 @@ export function ArtistDashboardV3() {
   );
 }
 export default ArtistDashboardV3;
+
+// Booking Request Card with Accept / Decline / Counter
+function BookingRequestCard({ booking }: { booking: any }) {
+  const [, navigate] = useLocation();
+  const [showCounter, setShowCounter] = useState(false);
+  const [counterAmount, setCounterAmount] = useState('');
+  const [counterMessage, setCounterMessage] = useState('');
+  const utils = trpc.useUtils();
+
+  const updateStatus = trpc.booking.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.booking.getMyArtistBookings.invalidate();
+    },
+  });
+
+  const counterOffer = trpc.booking.counterOffer.useMutation({
+    onSuccess: () => {
+      setShowCounter(false);
+      setCounterAmount('');
+      setCounterMessage('');
+      utils.booking.getMyArtistBookings.invalidate();
+    },
+  });
+
+  return (
+    <div className="p-4 bg-white rounded-lg border border-amber-200 space-y-3">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-semibold text-sm">{booking.venueName || booking.clientName || `Request #${booking.id}`}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-slate-600">
+              {new Date(booking.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            </p>
+            {booking.eventTime && (
+              <span className="text-xs text-slate-500">at {booking.eventTime}</span>
+            )}
+          </div>
+          {booking.bookingType && (
+            <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded capitalize">
+              {booking.bookingType.replace('_', ' ')}
+            </span>
+          )}
+        </div>
+        <div className="text-right">
+          {booking.totalFee && (
+            <p className="text-sm font-bold text-green-700">${Number(booking.totalFee).toLocaleString()}</p>
+          )}
+          <p className="text-[10px] text-slate-500">Proposed Budget</p>
+        </div>
+      </div>
+
+      {/* Event Details */}
+      {booking.eventDetails && (
+        <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded line-clamp-2">{booking.eventDetails}</p>
+      )}
+
+      {/* Counter Offer (if already countered) */}
+      {booking.counterOfferAmount && (
+        <div className="text-xs bg-blue-50 border border-blue-200 p-2 rounded">
+          <p className="font-medium text-blue-800">Counter Offer: ${Number(booking.counterOfferAmount).toLocaleString()}</p>
+          {booking.counterOfferMessage && <p className="text-blue-600 mt-0.5">{booking.counterOfferMessage}</p>}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {!showCounter ? (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="flex-1 bg-green-600 hover:bg-green-700"
+            onClick={() => updateStatus.mutate({ id: booking.id, status: 'confirmed' })}
+            disabled={updateStatus.isPending}
+          >
+            Accept
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => setShowCounter(true)}
+          >
+            Counter
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={() => updateStatus.mutate({ id: booking.id, status: 'cancelled' })}
+            disabled={updateStatus.isPending}
+          >
+            Decline
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
+          <p className="text-xs font-medium">Your Counter Offer</p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">$</span>
+              <input
+                type="number"
+                value={counterAmount}
+                onChange={(e) => setCounterAmount(e.target.value)}
+                placeholder="Amount"
+                className="w-full pl-5 pr-2 py-1.5 text-sm border rounded bg-white"
+              />
+            </div>
+          </div>
+          <input
+            type="text"
+            value={counterMessage}
+            onChange={(e) => setCounterMessage(e.target.value)}
+            placeholder="Optional message (e.g., 'Includes travel')..."
+            className="w-full px-2 py-1.5 text-xs border rounded bg-white"
+            maxLength={500}
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                if (counterAmount) {
+                  counterOffer.mutate({
+                    bookingId: booking.id,
+                    counterAmount: Number(counterAmount),
+                    message: counterMessage || undefined,
+                  });
+                }
+              }}
+              disabled={!counterAmount || counterOffer.isPending}
+            >
+              Send Counter
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowCounter(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* View Details Link */}
+      <button
+        className="text-[10px] text-primary hover:underline"
+        onClick={() => navigate(`/booking/${booking.id}`)}
+      >
+        View Full Details →
+      </button>
+    </div>
+  );
+}
