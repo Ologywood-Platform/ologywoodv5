@@ -117,6 +117,11 @@ export default function ArtistProfile() {
     { artistId },
     { enabled: isValidId }
   );
+
+  const { data: videoPortfolio = [] } = trpc.artist.getVideoPortfolio.useQuery(
+    { artistProfileId: artistId },
+    { enabled: isValidId }
+  );
   
   // Show error if no valid ID
   if (!isValidId) {
@@ -759,6 +764,41 @@ export default function ArtistProfile() {
               </Card>
             )}
             
+            {/* Video Portfolio */}
+            {(videoPortfolio as any[]).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Video className="h-5 w-5 text-primary" />
+                    <CardTitle>{(artist as any).talentType === 'athlete' ? 'Highlight Clips' : 'Video Portfolio'}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {(videoPortfolio as any[]).map((video: any) => (
+                      <div key={video.id} className="rounded-lg overflow-hidden border">
+                        <div className="relative bg-black aspect-video">
+                          <video
+                            src={video.videoUrl}
+                            controls
+                            preload="metadata"
+                            className="w-full h-full object-contain"
+                            poster={video.thumbnailUrl || undefined}
+                          />
+                        </div>
+                        <div className="p-2 flex items-center gap-2">
+                          <span className="text-sm font-medium truncate flex-1">{video.title}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">
+                            {(video.category || '').replace('_', ' ')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Media Gallery */}
             {mediaGallery && (mediaGallery.photos.length > 0 || mediaGallery.videos.length > 0) && (
               <Card>

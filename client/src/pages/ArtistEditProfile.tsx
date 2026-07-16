@@ -85,6 +85,12 @@ export default function ArtistEditProfile() {
   const [zelle, setZelle] = useState("");
   // CRM badge state
   const [crmSupporter, setCrmSupporter] = useState(false);
+  // Athlete-specific fields
+  const [sportCategory, setSportCategory] = useState("");
+  const [sportPosition, setSportPosition] = useState("");
+  const [sportTeam, setSportTeam] = useState("");
+  const [athleteStats, setAthleteStats] = useState<{label: string; value: string}[]>([]);
+  const [athleteAchievements, setAthleteAchievements] = useState<{title: string; year?: string; description?: string}[]>([]);
 
   // Populate form when profile loads
   useEffect(() => {
@@ -119,6 +125,12 @@ export default function ArtistEditProfile() {
         setZelle(tips.zelle || "");
       }
       setCrmSupporter(!!(profile as any).crmSupporter);
+      // Athlete fields
+      setSportCategory((profile as any).sportCategory || "");
+      setSportPosition((profile as any).sportPosition || "");
+      setSportTeam((profile as any).sportTeam || "");
+      setAthleteStats(Array.isArray((profile as any).athleteStats) ? (profile as any).athleteStats : []);
+      setAthleteAchievements(Array.isArray((profile as any).athleteAchievements) ? (profile as any).athleteAchievements : []);
     }
   }, [profile]);
 
@@ -254,6 +266,12 @@ export default function ArtistEditProfile() {
       },
       profilePhotoUrl: profilePhotoUrl || undefined,
       crmSupporter,
+      // Athlete fields
+      sportCategory: sportCategory.trim() || undefined,
+      sportPosition: sportPosition.trim() || undefined,
+      sportTeam: sportTeam.trim() || undefined,
+      athleteStats: athleteStats.length > 0 ? athleteStats : undefined,
+      athleteAchievements: athleteAchievements.length > 0 ? athleteAchievements : undefined,
     });
   };
 
@@ -429,45 +447,164 @@ export default function ArtistEditProfile() {
             </CardContent>
           </Card>
 
-          {/* Genres */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Genres</CardTitle>
-              <CardDescription>Select the genres that best describe your music</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {GENRE_OPTIONS.map((genre) => (
-                  <Badge
-                    key={genre}
-                    variant={genres.includes(genre) ? "default" : "outline"}
-                    className="cursor-pointer select-none"
-                    onClick={() => toggleGenre(genre)}
+          {/* Conditional: Genres for Artists / Sport Details for Athletes */}
+          {talentType === 'athlete' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Sport Details</CardTitle>
+                <CardDescription>Tell bookers and fans about your athletic career</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="sportCategory">Sport</Label>
+                  <select
+                    id="sportCategory"
+                    value={sportCategory}
+                    onChange={(e) => setSportCategory(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   >
-                    {genre}
-                    {genres.includes(genre) && <X className="h-3 w-3 ml-1" />}
-                  </Badge>
-                ))}
-              </div>
-              {/* Custom genre */}
-              <div className="flex gap-2">
-                <Input
-                  value={customGenre}
-                  onChange={(e) => setCustomGenre(e.target.value)}
-                  placeholder="Add custom genre..."
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
-                />
-                <Button variant="outline" size="icon" onClick={addCustomGenre} disabled={!customGenre.trim()}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {genres.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-sm text-muted-foreground">Selected: {genres.join(", ")}</p>
+                    <option value="">Select your sport...</option>
+                    {['Basketball', 'Football', 'Baseball', 'Soccer', 'Track & Field', 'Swimming', 'Tennis', 'Golf', 'Volleyball', 'Wrestling', 'Boxing/MMA', 'Hockey', 'Lacrosse', 'Gymnastics', 'Esports', 'Other'].map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div>
+                  <Label htmlFor="sportPosition">Position / Event</Label>
+                  <Input
+                    id="sportPosition"
+                    value={sportPosition}
+                    onChange={(e) => setSportPosition(e.target.value)}
+                    placeholder="e.g., Point Guard, Wide Receiver, 100m Sprint"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sportTeam">Team / School</Label>
+                  <Input
+                    id="sportTeam"
+                    value={sportTeam}
+                    onChange={(e) => setSportTeam(e.target.value)}
+                    placeholder="e.g., Duke University, LA Lakers"
+                  />
+                </div>
+
+                {/* Stats */}
+                <div>
+                  <Label>Key Stats</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Add your standout statistics (e.g., PPG: 22.5, Rushing Yards: 1,200)</p>
+                  {athleteStats.map((stat, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <Input
+                        value={stat.label}
+                        onChange={(e) => {
+                          const updated = [...athleteStats];
+                          updated[idx] = { ...updated[idx], label: e.target.value };
+                          setAthleteStats(updated);
+                        }}
+                        placeholder="Stat name (e.g., PPG)"
+                        className="flex-1"
+                      />
+                      <Input
+                        value={stat.value}
+                        onChange={(e) => {
+                          const updated = [...athleteStats];
+                          updated[idx] = { ...updated[idx], value: e.target.value };
+                          setAthleteStats(updated);
+                        }}
+                        placeholder="Value (e.g., 22.5)"
+                        className="flex-1"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => setAthleteStats(athleteStats.filter((_, i) => i !== idx))}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {athleteStats.length < 8 && (
+                    <Button variant="outline" size="sm" onClick={() => setAthleteStats([...athleteStats, { label: '', value: '' }])}>
+                      <Plus className="h-3 w-3 mr-1" /> Add Stat
+                    </Button>
+                  )}
+                </div>
+
+                {/* Achievements */}
+                <div>
+                  <Label>Achievements</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Highlight awards, records, and milestones</p>
+                  {athleteAchievements.map((ach, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <Input
+                        value={ach.title}
+                        onChange={(e) => {
+                          const updated = [...athleteAchievements];
+                          updated[idx] = { ...updated[idx], title: e.target.value };
+                          setAthleteAchievements(updated);
+                        }}
+                        placeholder="Achievement (e.g., All-Conference 2024)"
+                        className="flex-[2]"
+                      />
+                      <Input
+                        value={ach.year || ''}
+                        onChange={(e) => {
+                          const updated = [...athleteAchievements];
+                          updated[idx] = { ...updated[idx], year: e.target.value };
+                          setAthleteAchievements(updated);
+                        }}
+                        placeholder="Year"
+                        className="w-20"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => setAthleteAchievements(athleteAchievements.filter((_, i) => i !== idx))}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {athleteAchievements.length < 10 && (
+                    <Button variant="outline" size="sm" onClick={() => setAthleteAchievements([...athleteAchievements, { title: '', year: '' }])}>
+                      <Plus className="h-3 w-3 mr-1" /> Add Achievement
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Genres</CardTitle>
+                <CardDescription>Select the genres that best describe your music</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {GENRE_OPTIONS.map((genre) => (
+                    <Badge
+                      key={genre}
+                      variant={genres.includes(genre) ? "default" : "outline"}
+                      className="cursor-pointer select-none"
+                      onClick={() => toggleGenre(genre)}
+                    >
+                      {genre}
+                      {genres.includes(genre) && <X className="h-3 w-3 ml-1" />}
+                    </Badge>
+                  ))}
+                </div>
+                {/* Custom genre */}
+                <div className="flex gap-2">
+                  <Input
+                    value={customGenre}
+                    onChange={(e) => setCustomGenre(e.target.value)}
+                    placeholder="Add custom genre..."
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
+                  />
+                  <Button variant="outline" size="icon" onClick={addCustomGenre} disabled={!customGenre.trim()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {genres.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">Selected: {genres.join(", ")}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Pricing & Touring */}
           <Card>

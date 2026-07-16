@@ -3628,3 +3628,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] FIX: Existing artist profiles blocked from dashboard — forced to "Complete Profile" due to new athlete fields being null (root cause: columns missing from production DB + genre requirement too strict)
 - [x] FIX: Profile Edit needs talentType selector so users can change from artist to athlete/creator/entertainer/influencer
 - [x] FIX: Browse page needs talent type filter tabs (All, Artists, Athletes, Creators, Entertainers, Influencers)
+- [x] Edit Profile: Show athlete-specific fields (sport, position, team, stats) when talentType=athlete
+- [x] Browse cards: Show sport/team badge instead of genre for athlete profiles
+- [x] Video portfolio: Implement functional S3 upload for multiple 1-2 min highlight clips + public profile display

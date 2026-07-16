@@ -493,8 +493,17 @@ export default function Browse() {
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                            <Music className="h-10 w-10 text-primary/30" />
-                            <span className="text-xs text-muted-foreground/60">No photo yet</span>
+                            {(artist as any).talentType === 'athlete' ? (
+                              <>
+                                <svg className="h-10 w-10 text-primary/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                <span className="text-xs text-muted-foreground/60">Athlete</span>
+                              </>
+                            ) : (
+                              <>
+                                <Music className="h-10 w-10 text-primary/30" />
+                                <span className="text-xs text-muted-foreground/60">No photo yet</span>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -507,8 +516,14 @@ export default function Browse() {
                                 {(artist as any).crmSupporter && <CrmBadge size="md" />}
                                 {touringStatus?.[artist.id] && <TouringBadge />}
                               </div>
-                              {Array.isArray(artist.genre) && artist.genre.length > 0 && (
-                                <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist.genre.join(", ")}</p>
+                              {(artist as any).talentType === 'athlete' ? (
+                                <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                                  {[(artist as any).sportCategory, (artist as any).sportPosition, (artist as any).sportTeam].filter(Boolean).join(' · ') || 'Athlete'}
+                                </p>
+                              ) : (
+                                Array.isArray(artist.genre) && artist.genre.length > 0 && (
+                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist.genre.join(", ")}</p>
+                                )
                               )}
                             </div>
                             <FavoriteButton artistId={artist.id} size="sm" />
