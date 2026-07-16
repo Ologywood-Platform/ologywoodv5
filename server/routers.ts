@@ -48,6 +48,7 @@ import { promoteRouter } from "./routers/promote";
 import { fanClubRouter } from "./routers/fanClub";
 import { aiChatRouter } from "./routers/aiChat";
 import { contractAnalyzerRouter } from "./routers/contractAnalyzer";
+import { ologyLiveRouter } from "./routers/ologyLive";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -3650,5 +3651,6 @@ export const appRouter = router({
   fanClub: fanClubRouter,
   aiChat: aiChatRouter,
   contractAnalyzer: contractAnalyzerRouter,
+  ologyLive: ologyLiveRouter,
 });
 export type AppRouter = typeof appRouter;

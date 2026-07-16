@@ -74,12 +74,15 @@ export const fanClubRouter = router({
       const sortOrder = (existing[0]?.count || 0);
 
       const [tier] = await db.insert(fanClubTiers).values({
+        talentUserId: ctx.user.id,
         artistUserId: ctx.user.id,
         name: input.name,
+        priceMonthly: input.priceMonthly,
         priceCents: input.priceMonthly,
         perks: input.perks || [],
         stripePriceId: price.id,
         stripeProductId: product.id,
+        sortOrder,
       }).$returningId();
 
       return { id: tier.id, stripePriceId: price.id };
@@ -181,10 +184,11 @@ export const fanClubRouter = router({
       }
 
       // Check if already subscribed to this talent
+      const talentId = tier.artistUserId ?? tier.talentUserId;
       const [existing] = await db.select().from(fanClubMemberships)
         .where(and(
           eq(fanClubMemberships.fanUserId, ctx.user.id),
-          eq(fanClubMemberships.artistUserId, tier.artistUserId),
+          eq(fanClubMemberships.talentUserId, talentId),
           eq(fanClubMemberships.status, 'active')
         ));
       if (existing) {
@@ -198,7 +202,7 @@ export const fanClubRouter = router({
       // Look up talent's Stripe Connect account for direct payouts
       let connectAccountId: string | null = null;
       const [connectAccount] = await db.select().from(stripeConnectAccounts)
-        .where(eq(stripeConnectAccounts.artistId, tier.artistUserId));
+        .where(eq(stripeConnectAccounts.artistId, talentId));
       if (connectAccount && connectAccount.status === 'active' && connectAccount.chargesEnabled) {
         connectAccountId = connectAccount.stripeAccountId;
       }
@@ -320,6 +324,7 @@ export const fanClubRouter = router({
       }
 
       const [post] = await db.insert(fanClubPosts).values({
+        talentUserId: ctx.user.id,
         artistUserId: ctx.user.id,
         title: input.title,
         content: input.content || "",

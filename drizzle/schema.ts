@@ -1905,16 +1905,21 @@ export type InsertGoogleCalendarIntegration = typeof googleCalendarIntegrations.
  */
 export const fanClubTiers = mysqlTable("fan_club_tiers", {
   id: int("id").autoincrement().primaryKey(),
-  artistUserId: int("artistUserId").notNull(),
+  talentUserId: int("talentUserId").notNull(),
   name: varchar("name", { length: 100 }).notNull(),
-  priceCents: int("priceCents").notNull(),
+  priceMonthly: int("priceMonthly").notNull(),
+  description: text("description"),
   perks: json("perks").$type<string[]>(),
   stripePriceId: varchar("stripePriceId", { length: 255 }),
   stripeProductId: varchar("stripeProductId", { length: 255 }),
   isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  artistUserId: int("artistUserId"),
+  priceCents: int("priceCents").default(0),
 }, (table) => ({
-  artistIdx: index("idx_fct_artist").on(table.artistUserId),
+  talentIdx: index("idx_fan_club_tiers_talent").on(table.talentUserId),
 }));
 export type FanClubTier = typeof fanClubTiers.$inferSelect;
 export type InsertFanClubTier = typeof fanClubTiers.$inferInsert;
@@ -1925,15 +1930,20 @@ export type InsertFanClubTier = typeof fanClubTiers.$inferInsert;
 export const fanClubMemberships = mysqlTable("fan_club_memberships", {
   id: int("id").autoincrement().primaryKey(),
   fanUserId: int("fanUserId").notNull(),
-  artistUserId: int("artistUserId").notNull(),
+  talentUserId: int("talentUserId").notNull(),
   tierId: int("tierId").notNull(),
   stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
-  status: mysqlEnum("status", ["active", "cancelled", "past_due"]).default("active").notNull(),
+  status: mysqlEnum("status", ["active", "cancelled", "past_due", "incomplete"]).default("active").notNull(),
   startedAt: timestamp("startedAt").defaultNow().notNull(),
   cancelledAt: timestamp("cancelledAt"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  artistUserId: int("artistUserId"),
 }, (table) => ({
-  fanIdx: index("idx_fcm_fan").on(table.fanUserId),
-  artistIdx: index("idx_fcm_artist").on(table.artistUserId),
+  fanIdx: index("idx_fan_club_memberships_fan").on(table.fanUserId),
+  talentIdx: index("idx_fan_club_memberships_talent").on(table.talentUserId),
+  tierIdx: index("idx_fan_club_memberships_tier").on(table.tierId),
+  uniqueMembership: index("idx_fan_club_unique_membership").on(table.fanUserId, table.talentUserId),
 }));
 export type FanClubMembership = typeof fanClubMemberships.$inferSelect;
 export type InsertFanClubMembership = typeof fanClubMemberships.$inferInsert;
@@ -1943,16 +1953,23 @@ export type InsertFanClubMembership = typeof fanClubMemberships.$inferInsert;
  */
 export const fanClubPosts = mysqlTable("fan_club_posts", {
   id: int("id").autoincrement().primaryKey(),
-  artistUserId: int("artistUserId").notNull(),
+  talentUserId: int("talentUserId").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
-  content: text("content").notNull(),
+  content: text("content"),
   mediaUrl: text("mediaUrl"),
-  mediaType: varchar("mediaType", { length: 20 }), // 'image' | 'video' | 'audio' | null
-  contentCategory: varchar("contentCategory", { length: 50 }), // training_clips, game_day, behind_the_scenes, qa_session, live_performance, studio, music_video, general
-  visibility: mysqlEnum("visibility", ["public", "members_only"]).default("public").notNull(),
+  mediaType: mysqlEnum("mediaType", ["image", "video", "audio", "none"]).default("none").notNull(),
+  visibility: mysqlEnum("visibility", ["public", "members_only", "tier_specific"]).default("members_only").notNull(),
+  requiredTierId: int("requiredTierId"),
+  likesCount: int("likesCount").default(0).notNull(),
+  commentsCount: int("commentsCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  artistUserId: int("artistUserId"),
+  contentCategory: varchar("contentCategory", { length: 50 }),
 }, (table) => ({
-  artistIdx: index("idx_fcp_artist").on(table.artistUserId),
+  talentIdx: index("idx_fan_club_posts_talent").on(table.talentUserId),
+  visibilityIdx: index("idx_fan_club_posts_visibility").on(table.visibility),
+  createdIdx: index("idx_fan_club_posts_created").on(table.createdAt),
 }));
 export type FanClubPost = typeof fanClubPosts.$inferSelect;
 export type InsertFanClubPost = typeof fanClubPosts.$inferInsert;
@@ -2035,3 +2052,106 @@ export const fanClubPostComments = mysqlTable("fan_club_post_comments", {
 }, (table) => ({
   postIdx: index("idx_fc_comments_post").on(table.postId),
 }));
+
+
+/**
+ * Ology Live Experiences — virtual bookable experiences (1-on-1, small group, broadcast)
+ * Talent creates these offerings; fans book and pay through the platform.
+ */
+export const ologyLiveExperiences = mysqlTable("ology_live_experiences", {
+  id: int("id").autoincrement().primaryKey(),
+  talentId: int("talentId").notNull(), // references users.id (the talent offering this)
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  duration: int("duration").notNull(), // in minutes (15, 30, 45, 60, 90, 120)
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // price per person
+  capacityType: mysqlEnum("capacityType", ["one_on_one", "small_group", "broadcast"]).notNull(),
+  maxAttendees: int("maxAttendees").default(1), // 1 for one_on_one, 2-10 for small_group, null/unlimited for broadcast
+  platform: varchar("platform", { length: 50 }).notNull(), // twitch, discord, zoom, facetime, google_meet, youtube_live, other
+  platformLink: varchar("platformLink", { length: 512 }), // pre-set link or "sent after booking"
+  linkSentAfterBooking: boolean("linkSentAfterBooking").default(false),
+  category: varchar("category", { length: 50 }).notNull(), // gaming, music, fitness, qa, workshop, listening_party, film_breakdown, comedy, photography, production, brand_building, other
+  tags: json("tags"), // additional tags like ["call_of_duty", "fortnite", "songwriting"]
+  coverImageUrl: varchar("coverImageUrl", { length: 512 }), // optional cover image
+  // Availability
+  recurringSchedule: json("recurringSchedule"), // { monday: [{start: "19:00", end: "21:00"}], tuesday: [...] }
+  isActive: boolean("isActive").default(true).notNull(), // talent can pause offerings
+  // Stats
+  totalBookings: int("totalBookings").default(0),
+  averageRating: decimal("averageRating", { precision: 3, scale: 2 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  talentIdx: index("idx_ology_live_talent").on(table.talentId),
+  categoryIdx: index("idx_ology_live_category").on(table.category),
+  activeIdx: index("idx_ology_live_active").on(table.isActive),
+  capacityIdx: index("idx_ology_live_capacity").on(table.capacityType),
+}));
+export type OlogyLiveExperience = typeof ologyLiveExperiences.$inferSelect;
+export type InsertOlogyLiveExperience = typeof ologyLiveExperiences.$inferInsert;
+
+/**
+ * Ology Live Bookings — fan bookings for live experiences
+ */
+export const ologyLiveBookings = mysqlTable("ology_live_bookings", {
+  id: int("id").autoincrement().primaryKey(),
+  experienceId: int("experienceId").notNull(), // references ologyLiveExperiences.id
+  fanId: int("fanId").notNull(), // references users.id (the fan booking)
+  talentId: int("talentId").notNull(), // references users.id (denormalized for quick queries)
+  scheduledAt: timestamp("scheduledAt").notNull(), // when the session is scheduled
+  duration: int("duration").notNull(), // in minutes (copied from experience at booking time)
+  status: mysqlEnum("status", ["pending", "confirmed", "completed", "cancelled", "no_show"]).default("pending").notNull(),
+  // Payment
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: decimal("platformFee", { precision: 10, scale: 2 }), // Ologywood's cut
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid", "refunded"]).default("unpaid").notNull(),
+  paidAt: timestamp("paidAt"),
+  refundedAt: timestamp("refundedAt"),
+  // Session details
+  joinLink: varchar("joinLink", { length: 512 }), // link sent to fan for the session
+  platform: varchar("platform", { length: 50 }), // copied from experience
+  // Cancellation
+  cancelledAt: timestamp("cancelledAt"),
+  cancelledBy: varchar("cancelledBy", { length: 20 }), // 'fan' or 'talent'
+  cancellationReason: text("cancellationReason"),
+  // Review
+  fanRating: int("fanRating"), // 1-5 stars
+  fanReview: text("fanReview"),
+  reviewedAt: timestamp("reviewedAt"),
+  // Metadata
+  notes: text("notes"), // fan can add notes when booking (e.g., "I want to play Warzone")
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  experienceIdx: index("idx_ology_live_bookings_experience").on(table.experienceId),
+  fanIdx: index("idx_ology_live_bookings_fan").on(table.fanId),
+  talentIdx: index("idx_ology_live_bookings_talent").on(table.talentId),
+  statusIdx: index("idx_ology_live_bookings_status").on(table.status),
+  scheduledIdx: index("idx_ology_live_bookings_scheduled").on(table.scheduledAt),
+}));
+export type OlogyLiveBooking = typeof ologyLiveBookings.$inferSelect;
+export type InsertOlogyLiveBooking = typeof ologyLiveBookings.$inferInsert;
+
+/**
+ * Ology Live Time Slots — available time slots for experiences
+ * Generated from recurring schedule or manually added by talent
+ */
+export const ologyLiveTimeSlots = mysqlTable("ology_live_time_slots", {
+  id: int("id").autoincrement().primaryKey(),
+  experienceId: int("experienceId").notNull(),
+  talentId: int("talentId").notNull(),
+  startTime: timestamp("startTime").notNull(),
+  endTime: timestamp("endTime").notNull(),
+  spotsTotal: int("spotsTotal").default(1).notNull(), // total capacity for this slot
+  spotsTaken: int("spotsTaken").default(0).notNull(), // how many booked
+  isAvailable: boolean("isAvailable").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  experienceIdx: index("idx_ology_live_slots_experience").on(table.experienceId),
+  talentIdx: index("idx_ology_live_slots_talent").on(table.talentId),
+  startIdx: index("idx_ology_live_slots_start").on(table.startTime),
+  availableIdx: index("idx_ology_live_slots_available").on(table.isAvailable),
+}));
+export type OlogyLiveTimeSlot = typeof ologyLiveTimeSlots.$inferSelect;
+export type InsertOlogyLiveTimeSlot = typeof ologyLiveTimeSlots.$inferInsert;

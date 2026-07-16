@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag, Disc3, Megaphone } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag, Disc3, Megaphone, Video } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -361,6 +361,20 @@ export function ArtistDashboardV3() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Manage your fan club, membership tiers, and exclusive content</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full flex flex-col items-center gap-2 h-auto py-4 border-purple-200 hover:bg-purple-50"
+                        onClick={() => navigate('/ology-live/dashboard')}
+                      >
+                        <Video className="h-5 w-5 text-purple-600" />
+                        <span className="text-xs font-medium">Ology Live</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Virtual sessions</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Create and manage virtual live sessions — gaming, Q&A, workshops, and more</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>

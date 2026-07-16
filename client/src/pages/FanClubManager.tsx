@@ -144,7 +144,7 @@ export default function FanClubManager() {
     setEditingTierId(tier.id);
     setTierName(tier.name);
     setTierDescription((tier as any).description || "");
-    setTierPrice((tier.priceCents / 100).toFixed(2));
+    setTierPrice(((tier.priceCents ?? tier.priceMonthly ?? 0) / 100).toFixed(2));
     setTierBenefits((tier.benefits || []).join("\n"));
     setShowTierForm(true);
   };
@@ -367,7 +367,7 @@ export default function FanClubManager() {
                             <div>
                               <h3 className="font-semibold">{tier.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                ${(tier.priceCents / 100).toFixed(2)}/month
+                                ${((tier.priceCents ?? tier.priceMonthly ?? 0) / 100).toFixed(2)}/month
                                 {(tier as any).description && ` — ${(tier as any).description}`}
                               </p>
                             </div>
@@ -503,7 +503,7 @@ export default function FanClubManager() {
                           <option value="">Any paid tier</option>
                           {tiers.map((tier) => (
                             <option key={tier.id} value={tier.id}>
-                              {tier.name} (${(tier.priceCents / 100).toFixed(2)}/mo)
+                              {tier.name} (${((tier.priceCents ?? tier.priceMonthly ?? 0) / 100).toFixed(2)}/mo)
                             </option>
                           ))}
                         </select>

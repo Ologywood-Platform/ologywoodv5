@@ -105,6 +105,9 @@ const Promote = lazy(() => import("./pages/Promote"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
 const AcceptTeamInvite = lazy(() => import("./pages/AcceptTeamInvite").then(m => ({ default: m.AcceptTeamInvite })));
 const FanClubManager = lazy(() => import("./pages/FanClubManager"));
+const OlogyLiveDashboard = lazy(() => import("./pages/OlogyLiveDashboard"));
+const OlogyLiveBrowse = lazy(() => import("./pages/OlogyLiveBrowse"));
+const OlogyLiveExperience = lazy(() => import("./pages/OlogyLiveExperience"));
 
 // Loading fallback for lazy-loaded pages
 function PageLoader() {
@@ -185,6 +188,11 @@ function Router() {
           <Route path="/my-purchases" component={MyPurchases} />
           <Route path="/my-music" component={MyMusic} />
           <Route path="/fan-club" component={FanClubManager} />
+          
+          {/* Ology Live */}
+          <Route path="/ology-live">{() => <PageErrorBoundary><OlogyLiveBrowse /></PageErrorBoundary>}</Route>
+          <Route path="/ology-live/dashboard">{() => <PageErrorBoundary><OlogyLiveDashboard /></PageErrorBoundary>}</Route>
+          <Route path="/ology-live/:id">{(params: any) => <PageErrorBoundary><OlogyLiveExperience {...params} /></PageErrorBoundary>}</Route>
           <Route path="/purchase-success" component={PurchaseSuccess} />
           
           {/* Rider System */}

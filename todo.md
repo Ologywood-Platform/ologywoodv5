@@ -3783,3 +3783,46 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Provide option to discard saved draft
 - [x] Clear draft on successful form submission
 - [x] Write tests for auto-save functionality
+
+---
+
+## Ology Live — Phase 1 (Virtual Experiences)
+
+### Database & Schema
+- [x] Create ologyLiveExperiences table (title, description, duration, price, capacity type, platform, platformLink, category tags, talentId, recurring availability)
+- [x] Create ologyLiveBookings table (experienceId, fanId, status, paymentId, joinLink, bookedSlot)
+- [x] Create ologyLiveTimeSlots table (experienceId, talentId, startTime, endTime, spotsTotal, spotsTaken)
+- [x] Run database migration (all 3 tables confirmed in production)
+
+### Server Routes
+- [x] Create ologyLive router with CRUD for experiences
+- [x] Create experience endpoint (talent creates offering)
+- [x] List experiences endpoint (by talent, by category, public browse)
+- [x] Book experience endpoint (fan books and pays via Stripe)
+- [x] Cancel/refund experience booking endpoint
+- [x] Get my bookings (fan side) and get my sessions (talent side)
+- [x] Add time slot management (addTimeSlot, getAvailableSlots)
+- [x] 15% platform fee on all bookings
+
+### Talent-Side UI
+- [x] Create OlogyLive dashboard page for talent to manage their experiences
+- [x] Experience creation form (title, description, duration, price, capacity, platform, link, category, availability)
+- [x] Experience list/management view (edit, pause, delete offerings)
+- [x] Upcoming sessions view (who booked, when, join link)
+
+### Fan-Side UI
+- [x] Ology Live browse page with category filtering and search
+- [x] Experience detail page with time slot selection and booking flow
+- [x] Stripe checkout integration for experience payments
+- [ ] Post-session review prompt (Phase 2)
+
+### Navigation & Routing
+- [x] Add Ology Live route to App.tsx (/ology-live, /ology-live/dashboard, /ology-live/:id)
+- [x] Add Ology Live link to site header (desktop + mobile)
+- [x] Add Ology Live quick action in artist dashboard
+- [ ] Add Ology Live section to talent public profile (Phase 2)
+- [ ] Add "My Sessions" to fan dashboard (Phase 2)
+
+### Testing
+- [x] Write tests for Ology Live schema and routes (46 tests passing)
+- [x] Write tests for experience creation and booking flow

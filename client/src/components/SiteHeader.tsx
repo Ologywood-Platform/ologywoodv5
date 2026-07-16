@@ -133,8 +133,13 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             </Link>
 
             <Link href="/events">
-              <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
+              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/events' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Events
+              </Button>
+            </Link>
+            <Link href="/ology-live">
+              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Ology Live
               </Button>
             </Link>
 
@@ -315,6 +320,12 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             <Link href="/events" onClick={closeMobile} className="block">
               <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/events' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Events
+              </Button>
+            </Link>
+
+            <Link href="/ology-live" onClick={closeMobile} className="block">
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                Ology Live
               </Button>
             </Link>
 
