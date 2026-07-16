@@ -113,7 +113,7 @@ export default function Home() {
             Build Your Brand. Grow Your Fans. Create More Opportunities.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            OlogyWood connects artists, athletes, entertainers, and creators with the fans and opportunities that fuel lasting careers. Build your community, book events, share exclusive content, and turn followers into lifelong supporters.
+            OlogyWood connects artists, athletes, entertainers, and creators with the fans and opportunities that fuel lasting careers. Build your community, book events, Sell Tickets, share exclusive content, and turn followers into lifelong supporters.
           </p>
           
           {!isAuthenticated && (
@@ -135,10 +135,10 @@ export default function Home() {
       <section className="py-8 sm:py-12 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">Find Your Perfect Artist</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">Find Your Perfect Talent</h2>
             <ArtistSearchDropdown
               inputClassName="py-2 sm:py-6 text-sm sm:text-base"
-              placeholder="Search by artist name, genre, or location..."
+              placeholder="Search by name, sport, genre, or location..."
               maxResults={5}
             />
           </div>
@@ -158,13 +158,68 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Touring Feature Highlight Section */}
+      {/* NIL & College Sports Blueprint Section */}
+      <section className="py-10 sm:py-16 bg-gradient-to-b from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <span className="inline-block bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-semibold px-3 py-1 rounded-full mb-4">NIL &amp; COLLEGE SPORTS</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">The Blueprint for Athlete Bookings &amp; NIL Deals</h2>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+              Purpose-built for college athletes navigating NIL. Professional contracts, compliance-ready templates, and a platform that treats athletes like the brands they are.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto">
+            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
+              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <FileText className="h-6 w-6 text-green-700 dark:text-green-300" />
+              </div>
+              <h3 className="font-semibold text-sm sm:text-base mb-1">NIL Contracts</h3>
+              <p className="text-xs text-muted-foreground">
+                Auto-generated engagement contracts with compliance language, e-signatures, and PDF export.
+              </p>
+            </div>
+
+            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
+              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Award className="h-6 w-6 text-green-700 dark:text-green-300" />
+              </div>
+              <h3 className="font-semibold text-sm sm:text-base mb-1">Athlete Profiles</h3>
+              <p className="text-xs text-muted-foreground">
+                Sport, position, stats, achievements, and highlight reels &mdash; all showcased on a professional profile.
+              </p>
+            </div>
+
+            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
+              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Calendar className="h-6 w-6 text-green-700 dark:text-green-300" />
+              </div>
+              <h3 className="font-semibold text-sm sm:text-base mb-1">Booking Types</h3>
+              <p className="text-xs text-muted-foreground">
+                Appearances, signings, speaking, camps/clinics, and brand endorsements &mdash; each with its own rider template.
+              </p>
+            </div>
+
+            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
+              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Shield className="h-6 w-6 text-green-700 dark:text-green-300" />
+              </div>
+              <h3 className="font-semibold text-sm sm:text-base mb-1">NCAA Compliant</h3>
+              <p className="text-xs text-muted-foreground">
+                Built-in compliance language for NIL deals. School approval workflows and disclosure requirements included.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Touring & Availability Section */}
       <section className="py-10 sm:py-16 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Built for Touring Artists</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Built for Touring Artists &amp; Athlete Appearances</h2>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-              Plan your tour, get discovered by venues, and manage everything in one place &mdash; no more juggling multiple tools.
+              Plan your tour or set your appearance availability. Get discovered by venues and brands &mdash; no more juggling multiple tools.
             </p>
           </div>
 
@@ -173,9 +228,9 @@ export default function Home() {
               <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-base sm:text-lg mb-2">Plan Your Tour</h3>
+              <h3 className="font-semibold text-base sm:text-lg mb-2">Set Your Availability</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Set your touring availability, mark cities you're visiting, and let venues find you. No more cold emails.
+                Mark your available dates and cities. Venues and brands find you when you're open for bookings.
               </p>
             </div>
 
@@ -185,7 +240,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-base sm:text-lg mb-2">Get Discovered</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Your "On Tour" badge shows venues you're available. They book you directly &mdash; no middleman, no agents taking 20%.
+                Your availability badge shows bookers you're open. They book you directly &mdash; no middleman, no agents taking 20%.
               </p>
             </div>
 
@@ -195,7 +250,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-base sm:text-lg mb-2">One Platform, Everything</h3>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Bookings, contracts, riders, tickets, payments, and messaging &mdash; all handled here. Focus on performing, not admin.
+                Bookings, contracts, riders, tickets, payments, and messaging &mdash; all handled here. Focus on your craft, not admin.
               </p>
             </div>
           </div>
@@ -313,7 +368,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Artists can upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite artists.
+                  Upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite talent.
                 </p>
               </CardContent>
             </Card>
@@ -337,7 +392,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Artists showcase merch and venues list shop items &amp; offers directly on their profiles. Link to your own store and keep 100% of sales &mdash; zero commission.
+                  Showcase merch directly on your profile. Athletes can offer pre-pay merchandise &mdash; fans order, you produce and ship. Keep 100% of sales.
                 </p>
               </CardContent>
             </Card>
@@ -376,7 +431,7 @@ export default function Home() {
             <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">FAN CLUB</span>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Turn Followers Into Paying Members</h2>
             <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Launch your Fan Club with custom membership tiers. Share exclusive content, offer VIP perks, and build recurring revenue &mdash; all powered by Stripe.
+              Launch your Fan Club with custom membership tiers. Share training clips, behind-the-scenes content, game day footage, Q&amp;A sessions, and more &mdash; all powered by Stripe.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
@@ -387,7 +442,7 @@ export default function Home() {
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                 <Lock className="h-6 w-6 text-purple-600 mb-2" />
                 <h3 className="font-semibold text-sm sm:text-base mb-1">Exclusive Content</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Post members-only content that only your paying fans can see. Behind-the-scenes, early access, and more.</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Post members-only content: training clips, game day footage, studio sessions, Q&amp;A &mdash; only your paying fans can see it.</p>
               </div>
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                 <Users className="h-6 w-6 text-purple-600 mb-2" />
@@ -432,9 +487,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
         <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Book Your Next Event?</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Build Your Brand?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join artists, athletes, entertainers, and creators who use OlogyWood to build their brand, grow their fan base, and create more opportunities.
+            Join artists, athletes, entertainers, and creators who use OlogyWood to manage bookings, sign NIL deals, grow their fan base, and create lasting opportunities.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>

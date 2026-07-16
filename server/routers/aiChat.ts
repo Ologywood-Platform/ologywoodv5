@@ -46,6 +46,10 @@ KEY FEATURES:
 - Digital contracts generated from booking terms
 - Electronic signatures with IP logging and timestamps
 - Contract dashboard to view all contracts
+- NIL Engagement Contract: Professional 10-section contract for athlete bookings (Parties, Engagement Details, Compensation, Travel & Logistics, Security, Equipment & Facilities, Media Rights, NIL Compliance, Cancellation, Signatures)
+- Inline clause editing: Athletes can modify compensation, travel terms, and add custom terms before finalizing
+- Digital signature pad: Draw or type signatures directly on the platform
+- Contract status tracking: Pending → Signed by one party → Fully Executed
 
 4. EVENTS & TICKETING:
 - Create events with date, time, location, description
@@ -61,12 +65,16 @@ KEY FEATURES:
 - Platform fee: 1% on music sales
 - My Purchases page for buyers
 
-6. FAN CLUB (NEW):
+6. FAN CLUB:
 - Talent creates membership tiers with name, price/month, and perks
 - Fans subscribe via Stripe recurring payments
 - Exclusive content posting (public or members-only)
 - Revenue share: 85% to talent, 15% to Ologywood (after Stripe fees ~2.9% + $0.30)
-- Lock icon on exclusive content for non-members
+- Subscription paywall: Blurred preview with tier selection checkout modal for non-members
+- Content categories for athletes: Training Clips, Game Day, Behind-the-Scenes, Q&A Sessions
+- Content categories for artists: Live Performance, Studio Session, Music Video, Backstage
+- Likes and comments on posts (subscribed fans can interact)
+- Threaded replies: Athletes/artists can respond directly to individual fan comments
 
 7. PROMOTE / AI AD ASSISTANT (NEW):
 - AI Ad Copy Generator: Select event/release/profile, choose platform (Instagram, Facebook, TikTok, YouTube, X), get ready-to-use ad copy with headlines, hashtags, targeting suggestions
@@ -74,10 +82,12 @@ KEY FEATURES:
 - Boost My Event: Submit managed promotion request with budget ($50 min), goals, target audience. Team handles the campaign.
 
 8. MERCH & SHOP:
-- Artists showcase merchandise with external purchase links
+- Artists and athletes showcase merchandise with external purchase links
+- Athletes: Pre-pay merchandise model (fans order and pay upfront, athlete produces and ships)
 - Venues showcase branded items and offers
 - Limits: Starter = 6 items, Professional = 15 items
 - Zero platform commission on merch
+- Image uploads for product photos via S3
 
 9. PROJECT PREVIEWS:
 - Showcase upcoming albums/EPs/mixtapes with cover art and audio snippets
@@ -105,9 +115,30 @@ KEY FEATURES:
 - Email notifications for bookings, payments, messages, contracts
 
 14. FOLLOWING & FANS:
-- Follow artists to get updates
-- Artists send branded email updates to followers (paid plans)
+- Follow artists/athletes to get updates
+- Talent sends branded email updates to followers (paid plans)
 - Leave reviews after performances
+
+15. ATHLETE & NIL FEATURES:
+- Athlete-specific onboarding: Sport, position, team, stats, achievements
+- Talent types: Artist, Athlete, Creator, Entertainer, Influencer (selectable in Edit Profile)
+- Video Portfolio: Up to 10 short clips (1-2 min each), categorized (Highlights, Training, Game Day, Behind-the-Scenes)
+- Modal video player with social sharing (Copy Link, X, Facebook, WhatsApp)
+- Athlete booking types: Appearances, Autograph Signings, Speaking Engagements, Camps/Clinics, Brand Endorsements/NIL Deals
+- Calendar availability picker: Shows available dates as green chips on booking form
+- Budget field with dynamic price summary based on booking type
+- Athlete rider templates: Appearance Rider, Autograph Signing Rider, Speaking Engagement Rider, Camp/Clinic Rider
+- NIL Engagement Contract: Auto-generated professional contract with NCAA compliance language
+- Booking dashboard: Accept/Decline/Counter offers with visual contract status
+- Browse page: Filter by talent type (All, Artists, Athletes, Creators, Entertainers, Influencers)
+- Athlete cards show sport and team instead of genre
+
+16. NIL COMPLIANCE:
+- Built-in NCAA/conference compliance language in contracts
+- Disclosure requirements and school approval workflows
+- Prohibited activities under NCAA rules
+- Athlete representation warranties
+- Athletes should verify specific requirements with their school's compliance office
 
 PAYMENTS:
 - Powered by Stripe
@@ -125,11 +156,17 @@ CONTACT/SUPPORT:
 
 COMMON USER QUESTIONS:
 - "How do I book an artist?" → Browse directory, click booking button, fill in details, artist reviews and accepts
+- "How do I book an athlete?" → Same as artist: browse, select booking type (appearance, signing, camp, etc.), pick available date, set budget, submit
 - "How do I sell tickets?" → Create event, go to Ticket Management, add ticket tiers
 - "How do I join a fan club?" → Visit talent profile, click Fan Club tab, choose a tier, subscribe
 - "How do I promote my event?" → Go to /promote from dashboard, use AI Generator or submit Boost request
 - "How do I get paid?" → Connect Stripe from Dashboard > Earnings & Payouts
 - "What are the fees?" → Bookings: 1%, Music: 1%, Tickets: $0.99/ticket, Fan Club: 15%, Merch/Tips: 0%
+- "How do I set up my athlete profile?" → Select Athlete in onboarding or Edit Profile, fill in sport/position/team/stats/achievements, upload highlight clips
+- "What is the NIL contract?" → Auto-generated 10-section professional contract for athlete bookings with NCAA compliance, e-signatures, and PDF download
+- "How do I upload highlight clips?" → Dashboard > Video Portfolio, add up to 10 clips with title and category
+- "How do I change from artist to athlete?" → Edit Profile > Basic Information > select Athlete from the talent type grid
+- "Can athletes sell merch?" → Yes! Same merch feature, supports pre-pay model. Upload images, set prices, fans pay upfront
 `;
 
 export const aiChatRouter = router({

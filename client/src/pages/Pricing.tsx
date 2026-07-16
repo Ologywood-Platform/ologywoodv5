@@ -32,15 +32,19 @@ const PRICING_FAQS = [
   },
   {
     question: 'What is the Rider Builder?',
-    answer: 'The Rider Builder lets artists create professional technical riders with equipment needs, hospitality requirements, and stage specifications. Available on Starter and Professional plans.',
+    answer: 'The Rider Builder lets talent create professional riders. Artists use it for technical specs, hospitality, and stage requirements. Athletes have specialized templates for Appearances, Autograph Signings, Speaking Engagements, and Camps/Clinics. Available on Starter and Professional plans.',
   },
   {
     question: 'Can I send email updates to my fans?',
-    answer: 'Yes! Artists on Starter and Professional plans can send branded email updates to all their followers, up to once per day.',
+    answer: 'Yes! All talent (artists, athletes, creators) on Starter and Professional plans can send branded email updates to all their followers, up to once per day.',
   },
   {
     question: 'What are White Label Releases?',
     answer: 'White Label Releases let artists sell singles directly from their Ologywood profile. Starter plans include up to 2 active singles with pay-what-you-want pricing. Professional plans get unlimited releases. Ologywood takes just a 1% platform fee on each sale.',
+  },
+  {
+    question: 'Do athletes need a paid plan for NIL contracts?',
+    answer: 'NIL Engagement Contracts with digital signatures are available on the Professional plan ($29/month). Free and Starter plans can still receive bookings and use basic rider templates.',
   },
 ];
 
@@ -74,8 +78,8 @@ const tiers: Tier[] = [
     cta: "Get Started",
     highlight: false,
     features: [
-      { name: "Artist or venue profile", included: true },
-      { name: "Browse artists and venues", included: true },
+      { name: "Talent or venue profile", included: true },
+      { name: "Browse talent and venues", included: true },
       { name: "In-platform messaging", included: true },
       { name: "Availability calendar", included: true },
       { name: "Follow artists & event discovery", included: true },
@@ -92,7 +96,7 @@ const tiers: Tier[] = [
   },
   {
     name: "Starter",
-    description: "For active artists and bookers",
+    description: "For active talent and bookers",
     monthlyPrice: "$9",
     yearlyPrice: "$90",
     yearlyMonthly: "$7.50",
@@ -121,7 +125,7 @@ const tiers: Tier[] = [
   },
   {
     name: "Professional",
-    description: "Full-featured for serious professionals",
+    description: "Full-featured for serious talent",
     monthlyPrice: "$29",
     yearlyPrice: "$290",
     yearlyMonthly: "$24.17",
@@ -152,7 +156,7 @@ const tiers: Tier[] = [
   },
   {
     name: "Enterprise",
-    description: "For artists with sponsors & brand deals",
+    description: "For talent with sponsors & brand deals",
     monthlyPrice: "$79",
     yearlyPrice: "$790",
     yearlyMonthly: "$65.83",

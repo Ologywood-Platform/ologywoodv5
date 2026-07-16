@@ -25,7 +25,7 @@ const Footer = () => {
     {
       title: 'Platform',
       links: [
-        { label: 'Browse Artists', path: '/browse' },
+        { label: 'Browse Talent', path: '/browse' },
         { label: 'Events', path: '/events' },
         { label: 'Pricing', path: '/pricing' },
         { label: 'How It Works', path: '/how-it-works' },
@@ -36,7 +36,7 @@ const Footer = () => {
       ],
     },
     {
-      title: 'For Artists',
+      title: 'For Talent',
       links: [
         { label: 'Artist Dashboard', path: '/dashboard' },
         { label: 'Browse Venues', path: '/venues' },
@@ -51,7 +51,7 @@ const Footer = () => {
       title: 'For Venues',
       links: [
         { label: 'Venue Dashboard', path: '/venue-dashboard' },
-        { label: 'Browse Artists', path: '/browse' },
+        { label: 'Browse Talent', path: '/browse' },
         { label: 'Events', path: '/events' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Invoices', path: '/venue-invoices' },
@@ -106,7 +106,7 @@ const Footer = () => {
         <div className="mb-12 pb-12 border-b border-gray-800">
           <div className="max-w-md">
             <h3 className="text-white text-lg font-semibold mb-2">Stay Updated</h3>
-            <p className="text-gray-400 text-sm mb-4">Get the latest news about artists, venues, and booking opportunities.</p>
+            <p className="text-gray-400 text-sm mb-4">Get the latest news about talent, venues, and booking opportunities.</p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
@@ -224,11 +224,11 @@ const Footer = () => {
             
             {/* Trust Badges */}
             <div className="mt-6 pt-6 border-t border-gray-800">
-              <p className="text-gray-400 text-xs mb-3">Trusted by artists and venues worldwide</p>
+              <p className="text-gray-400 text-xs mb-3">Trusted by artists, athletes, and venues worldwide</p>
               <div className="flex gap-3 flex-wrap">
                 <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Secure Payments</div>
                 <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Verified Users</div>
-                <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ 24/7 Support</div>
+                <div className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300">✓ Dedicated Support</div>
               </div>
               <p className="text-gray-500 text-xs mt-4">
                 All payments processed securely by Stripe. Disputes and chargebacks are handled directly by Stripe in accordance with card network rules.

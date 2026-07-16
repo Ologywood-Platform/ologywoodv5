@@ -27,7 +27,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: July 11, 2026
+          Last updated: July 16, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -77,7 +77,15 @@ export default function TermsOfService() {
               <li><strong>Fans</strong> — Users who follow talent, discover events, purchase tickets, buy music releases, join Fan Clubs, and engage with exclusive content.</li>
             </ul>
             <p className="text-base leading-relaxed mt-4">
-              During onboarding, Talent users select their talent type (Artist, Athlete, or Creator). Each role has specific profile requirements and features. Users may hold only one role per account.
+              During onboarding, Talent users select their talent type (Artist, Athlete, Creator, Entertainer, or Influencer). Each talent type has specific profile requirements and features. Users may hold only one role per account but may change their talent type at any time through Edit Profile.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">4.1 Athlete Profiles and Data</h3>
+            <p className="text-base leading-relaxed">
+              Athletes who create profiles on the Platform may provide additional information specific to their athletic career, including but not limited to: sport, position, team affiliation, athletic statistics, achievements, and NIL deal history. By providing this information, you represent that it is accurate, current, and that you have the right to share it publicly. Athletic statistics and achievements displayed on your profile are self-reported; Ologywood does not independently verify athletic credentials or statistics.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Team and Institutional References:</strong> If you reference a team, school, or organization on your profile, you represent that you are (or were) legitimately affiliated with that entity. Displaying a team or school name on your profile does not imply endorsement by that institution. Ologywood reserves the right to remove team or institutional references if we receive a valid complaint from the referenced entity.
             </p>
             <p className="text-base leading-relaxed mt-4">
               You are responsible for the accuracy of all profile information, including your bio, photos, location, genre or category, rates, and availability. Profiles that contain false, misleading, or fraudulent information may be suspended or terminated without notice. Public profile information (name, photo, bio, genre, location) is visible to all Platform users and may appear in search results and social media previews.
@@ -88,16 +96,24 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">5. Content Ownership and Licensing</h2>
             <p className="text-base leading-relaxed">
-              <strong>You retain full ownership of all content you upload, create, or submit to the Platform.</strong> This includes, without limitation, profile photos, music recordings, album artwork, videos, performance media, rider templates, contract documents, event descriptions, blog posts, Fan Club posts, and any other materials you provide ("Your Content"). Ologywood does not claim any ownership interest in Your Content.
+              <strong>You retain full ownership of all content you upload, create, or submit to the Platform.</strong> This includes, without limitation, profile photos, music recordings, album artwork, videos, highlight clips, performance media, video portfolio content, rider templates, contract documents, event descriptions, blog posts, Fan Club posts, and any other materials you provide ("Your Content"). Ologywood does not claim any ownership interest in Your Content.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              By uploading Your Content to the Platform, you grant Ologywood a limited, non-exclusive, royalty-free, revocable license to host, store, display, reproduce, and distribute Your Content <strong>solely for the purpose of operating the Platform and providing the services you have requested.</strong> This license includes the right to display Your Content on your public profile, in search results, in social media previews (Open Graph), in Fan Club feeds, and in connection with the features you use (such as event listings, music releases, and booking pages). This license does not grant Ologywood the right to sell, sublicense, or commercially exploit Your Content for any purpose unrelated to operating the Platform.
+              By uploading Your Content to the Platform, you grant Ologywood a limited, non-exclusive, royalty-free, revocable license to host, store, display, reproduce, and distribute Your Content <strong>solely for the purpose of operating the Platform and providing the services you have requested.</strong> This license includes the right to display Your Content on your public profile, in search results, in social media previews (Open Graph), in Fan Club feeds, in your video portfolio, and in connection with the features you use (such as event listings, music releases, booking pages, and highlight clip galleries). This license does not grant Ologywood the right to sell, sublicense, or commercially exploit Your Content for any purpose unrelated to operating the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
               <strong>Content removal:</strong> You may remove Your Content at any time through your account settings or by contacting us. Upon removal or account deletion, Ologywood will remove Your Content from public display within a commercially reasonable timeframe. Copies of Your Content may be retained in backups for up to thirty (30) days after deletion, after which they will be permanently purged. Content that has been incorporated into executed contracts or completed transactions may be retained as part of the transaction record as required by law or for dispute resolution purposes.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              You represent and warrant that you own or have obtained all necessary rights, licenses, and permissions for all content you upload, and that Your Content does not infringe upon the intellectual property rights, privacy rights, or any other rights of any third party. You are solely responsible for ensuring that your music, images, and other media comply with all applicable copyright laws.
+              You represent and warrant that you own or have obtained all necessary rights, licenses, and permissions for all content you upload, and that Your Content does not infringe upon the intellectual property rights, privacy rights, or any other rights of any third party. You are solely responsible for ensuring that your music, images, videos, highlight clips, and other media comply with all applicable copyright laws.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">5.1 Video Portfolio and Highlight Clips</h3>
+            <p className="text-base leading-relaxed">
+              Athletes and other Talent may upload video content to their Video Portfolio (up to 10 clips per profile). By uploading video content, you represent and warrant that: (a) you own or have obtained all necessary rights to the video content, including any music, commentary, or third-party footage contained therein; (b) the video content does not violate any broadcast rights, league media policies, or institutional media agreements; (c) you have obtained consent from any identifiable individuals appearing in the video (other than yourself); and (d) the video content does not contain material that violates these Terms or applicable law.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Athlete-Specific Video Content:</strong> If you are a student-athlete, you acknowledge that certain game footage, broadcast clips, and institutional media may be owned by your school, conference, or broadcast partners. You are solely responsible for ensuring that any highlight clips you upload do not infringe on broadcast rights or violate your institution's media policies. Ologywood is not responsible for verifying the ownership or licensing status of uploaded video content.
             </p>
           </section>
 
@@ -116,13 +132,71 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">7. Rider Contracts and E-Signatures</h2>
             <p className="text-base leading-relaxed">
-              Talent may create rider templates specifying their technical requirements (sound, lighting, stage setup), hospitality needs (green room, meals, beverages), payment terms, cancellation policies, and other performance conditions. Rider templates can be attached to bookings to form part of the booking agreement between the parties.
+              Talent may create rider templates specifying their technical requirements (sound, lighting, stage setup), hospitality needs (green room, meals, beverages), payment terms, cancellation policies, and other performance conditions. Rider templates can be attached to bookings to form part of the booking agreement between the parties. The Platform provides pre-built rider templates for various talent types, including artist performance riders and athlete-specific riders (Appearance, Autograph Signing, Speaking Engagement, and Camp/Clinic).
             </p>
             <p className="text-base leading-relaxed mt-4">
               The Platform provides an electronic signature (e-signature) system for signing rider contracts. By using the e-signature feature, you acknowledge and agree that: (a) your electronic signature is legally binding and carries the same legal effect as a handwritten signature under the Electronic Signatures in Global and National Commerce Act (E-SIGN Act) and the Uniform Electronic Transactions Act (UETA); (b) when you sign a contract, the Platform records your signature (drawn or typed), the signing timestamp, your IP address, and your user agent for verification purposes; and (c) you consent to conducting this transaction electronically.
             </p>
             <p className="text-base leading-relaxed mt-4">
               Both the talent and the venue or organizer must sign a rider contract for it to be considered fully executed. <strong>Ologywood stores signed contracts and makes them available to both parties but does not enforce, interpret, or adjudicate the terms of rider contracts.</strong> The terms of each rider contract, including but not limited to payout timing, cancellation penalties, and performance obligations, are solely between the contracting parties. Any disputes regarding rider contract terms must be resolved directly between the parties or through appropriate legal channels.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7.1 NIL Engagement Contracts</h3>
+            <p className="text-base leading-relaxed">
+              For athlete bookings, the Platform generates NIL (Name, Image, and Likeness) Engagement Contracts — professional 10-section contracts covering: identification of parties, engagement details, compensation and payment terms, travel and logistics, security requirements, equipment and facilities, media rights and usage, NIL compliance provisions, cancellation and force majeure, and signature blocks. These contracts include NCAA/conference compliance language and disclosure requirements.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>NIL Engagement Contracts are templates provided as a convenience tool and do not constitute legal advice.</strong> Ologywood is not a law firm, sports agent, or compliance advisor. The Platform's contract templates are designed to facilitate common NIL transaction structures but may not address all legal requirements applicable to your specific situation, state, institution, or athletic conference. Both parties are strongly encouraged to consult with qualified legal counsel before executing any NIL agreement.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              Athletes may use the inline clause editing feature to modify contract terms (including compensation, travel provisions, and custom terms) before signing. Any modifications made through the inline editing feature become part of the final contract upon execution by both parties.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7.2 Contract Status and Execution</h3>
+            <p className="text-base leading-relaxed">
+              Contracts on the Platform progress through the following statuses: Pending (generated but not yet signed), Partially Signed (signed by one party), and Fully Executed (signed by both parties). A contract is not binding until both parties have applied their electronic signatures. The Platform provides visual status indicators on the booking dashboard to track contract progress.
+            </p>
+          </section>
+
+          {/* 7A. NIL Compliance and NCAA Provisions */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">7A. NIL Compliance and NCAA Provisions</h2>
+            <p className="text-base leading-relaxed">
+              <strong>Ologywood is not an NCAA compliance office, athletic department representative, sports agent, or legal advisor.</strong> The Platform provides tools to facilitate NIL transactions between athletes and brands, venues, or event organizers, but does not provide compliance advice, monitor NCAA eligibility, or guarantee that any transaction complies with applicable NCAA rules, conference regulations, state NIL laws, or institutional policies.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.1 Athlete Representations</h3>
+            <p className="text-base leading-relaxed">
+              By using the Platform as an athlete, you represent and warrant that:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
+              <li>You are eligible to enter into NIL agreements under applicable NCAA rules, conference regulations, and your institution's NIL policies</li>
+              <li>You have disclosed (or will disclose) all NIL activities conducted through the Platform to your institution's compliance office as required by your school's policies</li>
+              <li>You will not use the Platform to arrange any activity that would violate NCAA rules regarding pay-for-play, recruiting inducements, or academic fraud</li>
+              <li>All information provided in your athlete profile (sport, position, team, statistics, achievements) is accurate and current</li>
+              <li>You have the authority to license your name, image, and likeness for the purposes described in any booking or contract you accept through the Platform</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.2 Platform Limitations</h3>
+            <p className="text-base leading-relaxed">
+              Ologywood does not: (a) verify an athlete's NCAA eligibility status; (b) confirm whether a specific NIL deal complies with an athlete's conference or institutional rules; (c) file disclosure forms on behalf of athletes; (d) monitor changes to NCAA, state, or institutional NIL regulations; or (e) guarantee that contract templates reflect the most current legal requirements. <strong>Athletes are solely responsible for ensuring their NIL activities comply with all applicable rules and regulations.</strong>
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.3 Prohibited NIL Activities</h3>
+            <p className="text-base leading-relaxed">
+              The following activities are prohibited on the Platform and may result in immediate account suspension or termination:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
+              <li>Using NIL deals as inducements for prospective student-athletes to attend a particular institution</li>
+              <li>Arranging pay-for-play compensation tied to athletic performance or participation</li>
+              <li>Facilitating NIL deals that require athletes to miss classes, practices, or team activities in violation of institutional policies</li>
+              <li>Misrepresenting athletic credentials, team affiliation, or eligibility status</li>
+              <li>Using the Platform to circumvent institutional or conference NIL disclosure requirements</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.4 Indemnification for NIL Activities</h3>
+            <p className="text-base leading-relaxed">
+              You agree to indemnify and hold harmless Ologywood from any claims, damages, penalties, or losses arising from: (a) your failure to comply with NCAA rules, conference regulations, or institutional policies regarding NIL activities; (b) your failure to make required disclosures to your compliance office; (c) any loss of eligibility resulting from NIL activities conducted through the Platform; or (d) any regulatory action taken against you in connection with NIL transactions facilitated through the Platform.
             </p>
           </section>
 
@@ -405,6 +479,9 @@ export default function TermsOfService() {
               <li>Create multiple accounts to circumvent account restrictions or bans</li>
               <li>Create Fan Club tiers with deceptive or misleading benefit descriptions</li>
               <li>Use Fan Club exclusive content features to distribute illegal, harmful, or infringing material</li>
+              <li>Misrepresent athletic credentials, team affiliation, eligibility status, or NIL deal history</li>
+              <li>Use the Platform to arrange NIL deals that serve as recruiting inducements or pay-for-play compensation</li>
+              <li>Upload video content (highlight clips) that infringes on broadcast rights, league media policies, or institutional media agreements</li>
             </ul>
           </section>
 

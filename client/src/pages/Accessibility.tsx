@@ -18,7 +18,7 @@ const Accessibility = () => {
         <div className="prose prose-lg max-w-none">
           <h2>Our Commitment</h2>
           <p>
-            Ologywood is committed to making our artist booking platform accessible to everyone, including people with disabilities. We aim to conform with the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA standards across all areas of our Platform, including artist and venue profiles, the booking flow, rider contract builder, messaging, and payment checkout.
+            Ologywood is committed to making our talent booking and fan engagement platform accessible to everyone, including people with disabilities. We aim to conform with the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA standards across all areas of our Platform, including talent and venue profiles, the booking flow, rider and NIL contract builder, video portfolio, Fan Club, messaging, and payment checkout.
           </p>
 
           <h2>Conformance Status</h2>

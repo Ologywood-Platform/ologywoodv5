@@ -22,8 +22,8 @@ describe('Platform Content Audit', () => {
       expect(content).toContain('name: "Professional"');
     });
 
-    it('should NOT show Enterprise tier', () => {
-      expect(content).not.toContain('name: "Enterprise"');
+    it('should show Enterprise tier', () => {
+      expect(content).toContain('name: "Enterprise"');
     });
 
     it('should show correct prices: $0, $9, $29', () => {

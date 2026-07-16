@@ -485,6 +485,62 @@ const faqItems: FAQItem[] = [
     answer: 'Yes. Sponsor Analytics breaks down impressions and clicks by source: "profile" (from your artist profile page) and "event" (from your event detail pages). This helps you understand where fans interact with your sponsors most and optimize placement accordingly.',
   },
 
+  // Athletes & NIL
+  {
+    id: 'athlete-1',
+    category: 'Athletes & NIL',
+    question: 'How does Ologywood work for athletes?',
+    answer: 'Ologywood is purpose-built for athletes alongside artists and creators. When you sign up and select "Athlete" as your talent type, you get a profile tailored to your sport with fields for position, team, stats, achievements, and highlight reels. You can accept bookings for appearances, autograph signings, speaking engagements, camps/clinics, and brand endorsements — each with its own professional rider template.',
+  },
+  {
+    id: 'athlete-2',
+    category: 'Athletes & NIL',
+    question: 'What is the NIL Engagement Contract?',
+    answer: 'The NIL (Name, Image, Likeness) Engagement Contract is a professional, auto-generated document that covers all aspects of an athlete booking. It includes 10 sections: Parties, Engagement Details, Compensation Terms, Travel & Logistics, Security Requirements, Equipment & Facilities, Content & Media Rights, NIL Compliance (NCAA/conference language), Cancellation Terms, and Signatures. Both parties sign electronically with drawn or typed signatures. You can also edit clauses before finalizing and download the contract as a PDF.',
+  },
+  {
+    id: 'athlete-3',
+    category: 'Athletes & NIL',
+    question: 'How do I set up my athlete profile?',
+    answer: 'After selecting "Athlete" during onboarding (or changing your talent type in Edit Profile), you\'ll see sport-specific fields: select your sport, enter your position, team, key stats, and achievements. Upload highlight clips (up to 10 short videos categorized by type: Highlights, Training, Game Day, Behind-the-Scenes). Set your availability calendar so brands and venues can see when you\'re open for bookings.',
+  },
+  {
+    id: 'athlete-4',
+    category: 'Athletes & NIL',
+    question: 'What types of bookings can athletes accept?',
+    answer: 'Athletes can accept 5 booking types: (1) Appearances — meet & greets, event appearances, public events. (2) Autograph Signings — dedicated signing sessions. (3) Speaking Engagements — keynotes, panels, motivational talks. (4) Camps/Clinics — sports camps, training clinics, youth programs. (5) Brand Endorsements/NIL Deals — sponsored content, brand partnerships. Each type has its own rider template with relevant sections.',
+  },
+  {
+    id: 'athlete-5',
+    category: 'Athletes & NIL',
+    question: 'How does the Video Portfolio work?',
+    answer: 'Athletes (and artists) can upload up to 10 short video clips (1-2 minutes each) to their portfolio. Each clip gets a title, category tag (Highlights, Training, Game Day, Behind-the-Scenes, Live Performance, Studio, Music Video), and is displayed on your public profile as a "Highlight Clips" grid. Fans can click any clip to watch in a full-screen modal player with social sharing buttons.',
+  },
+  {
+    id: 'athlete-6',
+    category: 'Athletes & NIL',
+    question: 'Is the NIL contract NCAA compliant?',
+    answer: 'Yes. The NIL Engagement Contract includes built-in compliance language covering: disclosure requirements, school/conference approval workflows, prohibited activities under NCAA rules, and athlete representation warranties. However, athletes should always verify specific requirements with their school\'s compliance office, as rules vary by conference and institution.',
+  },
+  {
+    id: 'athlete-7',
+    category: 'Athletes & NIL',
+    question: 'How does the athlete booking dashboard work?',
+    answer: 'Your dashboard shows "Incoming Requests" with the venue/brand name, date, booking type, proposed budget, and event details. You can Accept, Decline, or Counter any offer. Counter offers let you propose a different amount with a message. Once accepted, you can generate the NIL Engagement Contract directly from the dashboard. A visual status indicator tracks whether the contract is pending, signed by one party, or fully executed.',
+  },
+  {
+    id: 'athlete-8',
+    category: 'Athletes & NIL',
+    question: 'Can athletes sell merchandise on the platform?',
+    answer: 'Yes! Athletes have full access to the Merch feature. Upload product images, set prices, and offer pre-pay merchandise — fans order and pay upfront, you produce and ship. This is perfect for custom jerseys, signed memorabilia, training gear, or branded apparel. You keep 100% of merch revenue with zero platform commission.',
+  },
+  {
+    id: 'athlete-9',
+    category: 'Athletes & NIL',
+    question: 'How does the Fan Club work for athletes?',
+    answer: 'Athletes can create Fan Club membership tiers just like artists. Post exclusive content categorized by type: Training Clips, Game Day footage, Behind-the-Scenes content, and Q&A Sessions. Fans subscribe monthly through Stripe. Non-members see a blurred paywall preview with a "Subscribe to Unlock" button. Members can like posts and leave comments, and athletes can reply directly to fan questions.',
+  },
+
   // Support & Contact
   {
     id: 'support-1',

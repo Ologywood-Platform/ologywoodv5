@@ -94,9 +94,11 @@ export function AIChatWidget() {
   };
 
   const suggestedQuestions = [
-    "How do I book an artist?",
-    "What are the fees?",
+    "How do I book an athlete?",
+    "What is the NIL contract?",
     "How do fan clubs work?",
+    "How do I upload highlight clips?",
+    "What are the fees?",
     "How do I sell tickets?",
   ];
 

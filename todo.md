@@ -3657,3 +3657,89 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Digital signature pad on NIL contract (draw or type signature directly on platform)
 - [x] Inline editing of contract clauses (athletes can modify terms before finalizing)
 - [x] Visual contract status indicator on booking dashboard (pending, signed by one party, fully executed)
+
+## COMPREHENSIVE CONTENT UPDATE (Jul 16, 2026)
+- [ ] Update Homepage with athlete features, NIL contract blueprint, video portfolio, fan clubs
+- [ ] Update Help section / FAQ with athlete-specific guidance and NIL contract info
+- [ ] Update LLM Chatbot knowledge base with all new athlete/NIL features
+- [ ] Update Terms of Service with NIL provisions, athlete terms, content licensing
+- [ ] Update any remaining content pages (About, Pricing, etc.) that reference "artists only"
+
+---
+
+## Comprehensive Content Update (Athlete/NIL Positioning)
+
+### AI Chatbot
+- [x] Updated system prompt with full athlete/NIL features (sections 15 and 16)
+- [x] Added NIL contract details, video portfolio, athlete booking types to knowledge base
+- [x] Updated common Q&A with athlete-specific questions
+- [x] Updated suggested questions in AIChatWidget to include athlete/NIL topics
+
+### Terms of Service
+- [x] Updated date to July 16, 2026
+- [x] Added Section 4.1: Athlete Profiles and Data (credentials, team references)
+- [x] Added Section 5.1: Video Portfolio and Highlight Clips (rights, broadcast, consent)
+- [x] Updated Section 7: Added athlete-specific rider templates mention
+- [x] Added Section 7.1: NIL Engagement Contracts (template disclaimer, inline editing)
+- [x] Added Section 7.2: Contract Status and Execution (pending/partial/executed)
+- [x] Added Section 7A: NIL Compliance and NCAA Provisions (full section)
+- [x] Added Section 7A.1: Athlete Representations (eligibility, disclosure, accuracy)
+- [x] Added Section 7A.2: Platform Limitations (not compliance office, not legal advisor)
+- [x] Added Section 7A.3: Prohibited NIL Activities (inducements, pay-for-play)
+- [x] Added Section 7A.4: Indemnification for NIL Activities
+- [x] Added 3 new prohibited conduct items (athlete misrepresentation, NIL inducements, broadcast rights)
+- [x] Updated talent type list to include all 5 types (Artist, Athlete, Creator, Entertainer, Influencer)
+
+### Privacy Policy
+- [x] Updated intro from "artist booking platform" to "talent booking and fan engagement platform"
+- [x] Added Athletes data collection (sport, position, team, stats, achievements, NIL deals, highlight clips)
+- [x] Added Creators/Entertainers/Influencers data collection category
+- [x] Updated communication data to mention all talent types
+- [x] Updated search/discovery to say "talent" instead of "artist"
+- [x] Updated sharing section with athlete-specific public data and NIL contracts
+
+### FAQ Page
+- [x] Updated Getting Started questions for all talent types
+- [x] Added NIL Engagement Contract FAQ
+- [x] Added Athletes & NIL section (4 new FAQs: athlete profile, video portfolio, booking types, NCAA compliance)
+- [x] Updated Roles FAQ to include all 5 talent types
+- [x] Updated Merch FAQ with pre-pay model for athletes
+- [x] Updated Riders & Contracts FAQs with athlete templates
+
+### Pricing Page
+- [x] Updated tier descriptions from "artists" to "talent"
+- [x] Updated Free tier features from "Artist or venue profile" to "Talent or venue profile"
+- [x] Updated Rider Builder FAQ with athlete templates
+- [x] Updated fan email FAQ to include all talent types
+- [x] Added new FAQ: "Do athletes need a paid plan for NIL contracts?"
+
+### How It Works Page
+- [x] Updated tab label from "For Artists" to "For Talent"
+- [x] Updated venue flow: "Browse & Discover Talent" with sport/type filters
+- [x] Updated booking request description to say "talent" not "artist"
+- [x] Updated communicate section to say "talent"
+- [x] Updated fan flow: "Book Talent & Attend Events"
+- [x] Updated CTA section with athletes/creators
+
+### Accessibility Page
+- [x] Updated intro from "artist booking platform" to "talent booking and fan engagement platform"
+- [x] Added NIL contract builder, video portfolio, Fan Club to accessibility scope
+
+### Footer Component
+- [x] Updated "Browse Artists" to "Browse Talent" (both Platform and Venues sections)
+- [x] Updated "For Artists" section title to "For Talent"
+- [x] Updated newsletter copy to say "talent" instead of "artists"
+- [x] Updated trust badge from "24/7 Support" to "Dedicated Support"
+- [x] Updated trust copy from "artists and venues" to "artists, athletes, and venues"
+
+### TrustBadges Component
+- [x] Fixed "24/7 Instant Support" to "Dedicated Support" (accurate to actual hours)
+- [x] Updated stat badge from "24/7" to "M-F"
+- [x] Updated description to reflect actual support hours
+
+### Tests
+- [x] Fixed content audit test: Enterprise tier assertion updated to match reality
+- [x] Fixed ticket enhancement test: Added "Sell Tickets" to homepage hero
+- [x] Trust badge tests now passing (Dedicated Support)
+- [x] 0 TypeScript errors
+- [x] 2355 tests passing (9 pre-existing failures unrelated to content update)

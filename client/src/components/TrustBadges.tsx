@@ -33,8 +33,8 @@ export function TrustBadges() {
     },
     {
       icon: CheckCircle,
-    title: '24/7 Instant Support',
-    description: 'AI-powered support available around the clock, plus our team Mon-Fri for complex questions.',
+    title: 'Dedicated Support',
+    description: 'AI-powered chat support plus our team Mon-Fri, 9 AM - 6 PM EST for complex questions.',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
     },
@@ -53,7 +53,7 @@ export function TrustBadges() {
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Why Trust Ologywood?</h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-            We're committed to providing a safe, secure, and reliable platform for artists and venues.
+            We're committed to providing a safe, secure, and reliable platform for artists, athletes, and venues.
           </p>
         </div>
 
@@ -83,8 +83,8 @@ export function TrustBadges() {
               <p className="text-xs sm:text-sm text-muted-foreground">Secure Transactions</p>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">24/7</div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Instant Support</p>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">M-F</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">Dedicated Support</p>
             </div>
             <div>
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2">SSL</div>

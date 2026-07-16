@@ -150,11 +150,11 @@ const venueSteps: Step[] = [
   },
   {
     number: 2,
-    title: 'Browse & Discover Artists',
-    description: 'Search through our artist directory by genre, location, availability, and pricing to find the right fit for your event.',
+    title: 'Browse & Discover Talent',
+    description: 'Search through our talent directory by type, genre, sport, location, availability, and pricing to find the right fit for your event.',
     items: [
-      'Filter by genre, location, and availability',
-      'View artist profiles, media, and reviews',
+      'Filter by talent type, genre, sport, and location',
+      'View profiles, highlight clips, and reviews',
       'Check real-time availability calendars',
       'See verification badges and ratings',
     ],
@@ -162,7 +162,7 @@ const venueSteps: Step[] = [
   {
     number: 3,
     title: 'Send Booking Requests',
-    description: 'Found the right artist? Send a booking request with your event date, time, venue address, offered fee, and event details.',
+    description: 'Found the right talent? Send a booking request with your event date, time, venue address, offered fee, and event details.',
     items: [
       'Fill in event date and time',
       'Enter venue address (street, city, state, zip)',
@@ -173,9 +173,9 @@ const venueSteps: Step[] = [
   {
     number: 4,
     title: 'Communicate & Finalize',
-    description: 'Message artists directly to discuss details, review their rider requirements, and finalize all arrangements.',
+    description: 'Message talent directly to discuss details, review their rider requirements, and finalize all arrangements.',
     items: [
-      'In-platform messaging with artists',
+      'In-platform messaging with talent',
       'Review and acknowledge rider requirements',
       'Negotiate terms and finalize details',
     ],
@@ -253,11 +253,11 @@ const fanSteps: Step[] = [
   },
   {
     number: 4,
-    title: 'Book Artists & Attend Events',
-    description: 'Book an artist for your private event, party, or gathering. Browse upcoming events and purchase tickets directly on the platform.',
+    title: 'Book Talent & Attend Events',
+    description: 'Book an artist, athlete, or creator for your event, appearance, or brand deal. Browse upcoming events and purchase tickets directly on the platform.',
     items: [
       'Fill in event date, time, and venue details',
-      'Set your offered fee and communicate with artists',
+      'Set your offered fee and communicate with talent',
       'Pay a 50% deposit to secure your booking',
       'Pay the remaining 50% balance before the event',
       'Browse and buy tickets to upcoming events',
@@ -361,7 +361,7 @@ export default function HowItWorks() {
             }`}
           >
             <Music className="inline mr-2" size={20} />
-            For Artists
+            For Talent
           </button>
           <button
             onClick={() => setActiveTab('venues')}
@@ -647,7 +647,7 @@ export default function HowItWorks() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-xl text-purple-100 mb-8">
-            Join thousands of artists, venues, and fans already using Ologywood.
+            Join thousands of artists, athletes, creators, venues, and fans already using Ologywood.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a
@@ -660,7 +660,7 @@ export default function HowItWorks() {
               href="/browse"
               className="px-8 py-3 bg-purple-700 text-white font-bold rounded-lg hover:bg-purple-800 transition border border-white"
             >
-              Browse Artists
+              Browse Talent
             </a>
             <a
               href="/pricing"

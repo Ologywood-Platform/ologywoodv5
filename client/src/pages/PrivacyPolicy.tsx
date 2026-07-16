@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">1. Introduction</h2>
             <p className="text-base leading-relaxed">
-              Ologywood ("we," "us," "our," or "Company") operates an artist booking platform that connects performing artists with venues and event organizers. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
+              Ologywood ("we," "us," "our," or "Company") operates a talent booking and fan engagement platform that connects artists, athletes, creators, entertainers, and influencers with venues, event organizers, brands, and fans. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
             </p>
           </section>
 
@@ -54,6 +54,8 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
               <li><strong>Artists:</strong> Bio, genre, location, profile photos, social media links (Instagram, Facebook, YouTube, Spotify, SoundCloud, TikTok), experience level, equipment needs, availability calendar, and performance rates</li>
+              <li><strong>Athletes:</strong> Sport, position, team affiliation, athletic statistics, achievements, NIL deal history, highlight video clips, and booking availability</li>
+              <li><strong>Creators/Entertainers/Influencers:</strong> Bio, category, location, profile photos, social media links, content type, and rates</li>
               <li><strong>Venues:</strong> Venue name, type, capacity, location, photos, amenities, and event history</li>
               <li><strong>Event Organizers:</strong> Organization name, event details, and contact information</li>
             </ul>
@@ -70,7 +72,7 @@ export default function PrivacyPolicy() {
 
             <h3 className="text-lg font-semibold mt-6 mb-3">2.5 Communication Data</h3>
             <p className="text-base leading-relaxed">
-              Messages sent through our in-platform messaging system are stored to facilitate communication between artists, venues, and organizers. We also store email update blasts that artists send to their followers through our platform.
+              Messages sent through our in-platform messaging system are stored to facilitate communication between talent (artists, athletes, creators, entertainers, influencers), venues, and organizers. We also store email update blasts that talent send to their followers through our platform.
             </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-3">2.6 Information Collected Automatically</h3>
@@ -94,7 +96,7 @@ export default function PrivacyPolicy() {
               <li><strong>Platform Operation:</strong> Creating and maintaining your account, processing bookings, generating rider contracts, and managing e-signatures</li>
               <li><strong>Payment Processing:</strong> Creating Stripe checkout sessions, processing deposits, and managing subscription billing</li>
               <li><strong>Communication:</strong> Sending booking confirmations, contract notifications, countersigning requests, and update blasts via SendGrid email</li>
-              <li><strong>Search and Discovery:</strong> Displaying artist and venue profiles in search results, browse pages, and "similar artists" recommendations</li>
+              <li><strong>Search and Discovery:</strong> Displaying talent and venue profiles in search results, browse pages, and recommendations</li>
               <li><strong>Maps and Location:</strong> Showing venue and event locations on Google Maps within the Platform</li>
               <li><strong>Offline Support:</strong> Caching pages and assets via our service worker so the Platform works when you lose internet connectivity</li>
               <li><strong>Safety and Security:</strong> Detecting fraud, verifying contract signatures, and protecting user safety</li>
@@ -168,7 +170,7 @@ export default function PrivacyPolicy() {
             
             <h3 className="text-lg font-semibold mt-6 mb-3">6.1 With Other Users</h3>
             <p className="text-base leading-relaxed">
-              Your public profile information (name, photo, bio, genre, location, ratings) is visible to other Platform users to facilitate bookings. When you accept a booking, your contact information and rider requirements are shared with the other party to the booking. Signed contracts are accessible to both the artist and the venue or organizer involved.
+              Your public profile information (name, photo, bio, genre/sport, location, ratings) is visible to other Platform users to facilitate bookings. For athletes, this includes sport, position, team, statistics, and achievements. When you accept a booking, your contact information and rider requirements are shared with the other party to the booking. Signed contracts (including NIL Engagement Contracts) are accessible to both the talent and the venue, organizer, or brand involved.
             </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-3">6.2 With Service Providers</h3>
