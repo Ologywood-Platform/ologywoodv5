@@ -971,6 +971,37 @@ function BookingRequestCard({ booking }: { booking: any }) {
         </div>
       )}
 
+      {/* Contract Status Indicator */}
+      <div className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-slate-50 border border-slate-100">
+        <span className="text-[10px] font-medium text-slate-500">Contract:</span>
+        {booking.riderStatus === 'signed' || booking.riderStatus === 'fully_executed' ? (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-green-700">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            Fully Executed
+          </span>
+        ) : booking.riderStatus === 'artist_signed' ? (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-blue-700">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            Signed by Talent — Awaiting Booker
+          </span>
+        ) : booking.riderStatus === 'venue_signed' ? (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-blue-700">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            Signed by Booker — Awaiting Talent
+          </span>
+        ) : booking.riderStatus === 'sent' ? (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-amber-700">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            Sent — Awaiting Signatures
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-slate-300" />
+            Not Generated
+          </span>
+        )}
+      </div>
+
       {/* Action Buttons */}
       {!showCounter ? (
         <div className="flex gap-2">

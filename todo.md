@@ -3652,3 +3652,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Generate Contract" button on booking detail page + dashboard
 - [x] Add contract status tracking (uses existing rider contract status system)
 - [x] Add PDF download option for contracts
+
+## NIL CONTRACT ENHANCEMENTS (Jul 16, 2026)
+- [x] Digital signature pad on NIL contract (draw or type signature directly on platform)
+- [x] Inline editing of contract clauses (athletes can modify terms before finalizing)
+- [x] Visual contract status indicator on booking dashboard (pending, signed by one party, fully executed)
