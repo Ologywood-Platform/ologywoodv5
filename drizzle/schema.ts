@@ -2254,3 +2254,29 @@ export const ologyLiveEarnings = mysqlTable("ology_live_earnings", {
 }));
 export type OlogyLiveEarning = typeof ologyLiveEarnings.$inferSelect;
 export type InsertOlogyLiveEarning = typeof ologyLiveEarnings.$inferInsert;
+
+/**
+ * Ology Live Questions — fans submit questions in advance for upcoming sessions
+ */
+export const ologyLiveQuestions = mysqlTable("ology_live_questions", {
+  id: int("id").primaryKey().autoincrement(),
+  bookingId: int("bookingId").notNull(),
+  experienceId: int("experienceId").notNull(),
+  fanId: int("fanId").notNull(),
+  talentId: int("talentId").notNull(),
+  // Question content
+  questionText: text("questionText").notNull(),
+  // Status tracking
+  status: varchar("status", { length: 30 }).default("pending").notNull(), // pending, answered, skipped
+  answeredAt: timestamp("answeredAt"),
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  bookingIdx: index("idx_ology_live_questions_booking").on(table.bookingId),
+  experienceIdx: index("idx_ology_live_questions_experience").on(table.experienceId),
+  fanIdx: index("idx_ology_live_questions_fan").on(table.fanId),
+  talentIdx: index("idx_ology_live_questions_talent").on(table.talentId),
+  statusIdx: index("idx_ology_live_questions_status").on(table.status),
+}));
+export type OlogyLiveQuestion = typeof ologyLiveQuestions.$inferSelect;
+export type InsertOlogyLiveQuestion = typeof ologyLiveQuestions.$inferInsert;

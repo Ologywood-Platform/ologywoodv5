@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { trpc } from "../lib/trpc";
-import { Calendar, Clock, Video, Star, MessageSquare, ExternalLink, CheckCircle, Timer } from "lucide-react";
+import { Calendar, Clock, Video, Star, MessageSquare, ExternalLink, CheckCircle, Timer, Send, Trash2, HelpCircle } from "lucide-react";
 
 type TabType = "upcoming" | "past" | "all";
 
@@ -98,6 +98,7 @@ function CountdownTimer({ scheduledAt }: { scheduledAt: string | Date | null }) 
 export default function OlogyLiveMySessions() {
   const [activeTab, setActiveTab] = useState<TabType>("upcoming");
   const [reviewingBooking, setReviewingBooking] = useState<number | null>(null);
+  const [askingQuestion, setAskingQuestion] = useState<number | null>(null);
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
 
@@ -194,6 +195,8 @@ export default function OlogyLiveMySessions() {
               getPlatformIcon={getPlatformIcon}
               reviewingBooking={reviewingBooking}
               setReviewingBooking={setReviewingBooking}
+              askingQuestion={askingQuestion}
+              setAskingQuestion={setAskingQuestion}
               rating={rating}
               setRating={setRating}
               reviewText={reviewText}
@@ -214,6 +217,8 @@ function SessionCard({
   getPlatformIcon,
   reviewingBooking,
   setReviewingBooking,
+  askingQuestion,
+  setAskingQuestion,
   rating,
   setRating,
   reviewText,
@@ -297,6 +302,17 @@ function SessionCard({
           )
         )}
 
+        {/* Submit a Question button for upcoming confirmed sessions */}
+        {(session.status === "confirmed" || session.status === "pending") && (
+          <button
+            onClick={() => setAskingQuestion(askingQuestion === session.id ? null : session.id)}
+            className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-sm hover:bg-blue-100 transition-colors"
+          >
+            <HelpCircle className="w-4 h-4" />
+            Submit a Question
+          </button>
+        )}
+
         {session.status === "completed" && !session.reviewedAt && (
           <button
             onClick={() => setReviewingBooking(session.id)}
@@ -314,6 +330,11 @@ function SessionCard({
           </span>
         )}
       </div>
+
+      {/* Submit a Question Panel */}
+      {askingQuestion === session.id && (
+        <QuestionPanel bookingId={session.id} />
+      )}
 
       {/* Review Form */}
       {reviewingBooking === session.id && (
@@ -368,6 +389,112 @@ function SessionCard({
             </button>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function QuestionPanel({ bookingId }: { bookingId: number }) {
+  const [questionText, setQuestionText] = useState("");
+  const utils = trpc.useUtils();
+
+  const questions = trpc.ologyLivePhase2.getQuestions.useQuery({ bookingId });
+
+  const submitQuestion = trpc.ologyLivePhase2.submitQuestion.useMutation({
+    onSuccess: () => {
+      setQuestionText("");
+      utils.ologyLivePhase2.getQuestions.invalidate({ bookingId });
+    },
+  });
+
+  const deleteQuestion = trpc.ologyLivePhase2.deleteQuestion.useMutation({
+    onSuccess: () => {
+      utils.ologyLivePhase2.getQuestions.invalidate({ bookingId });
+    },
+  });
+
+  const questionCount = questions.data?.length || 0;
+  const canSubmitMore = questionCount < 5;
+
+  const handleSubmit = () => {
+    if (!questionText.trim() || questionText.length < 5) return;
+    submitQuestion.mutate({ bookingId, questionText: questionText.trim() });
+  };
+
+  return (
+    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="flex items-center gap-2 mb-3">
+        <HelpCircle className="w-4 h-4 text-blue-600" />
+        <h4 className="font-medium text-blue-900">Submit a Question</h4>
+        <span className="text-xs text-blue-600 ml-auto">{questionCount}/5 questions</span>
+      </div>
+
+      {/* Existing Questions */}
+      {questions.data && questions.data.length > 0 && (
+        <div className="space-y-2 mb-4">
+          {questions.data.map((q: any) => (
+            <div key={q.id} className="flex items-start gap-2 p-2 bg-white rounded border border-blue-100">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-gray-800 break-words">{q.questionText}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    q.status === "answered"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {q.status === "answered" ? "Answered" : "Pending"}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(q.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              {q.status === "pending" && (
+                <button
+                  onClick={() => deleteQuestion.mutate({ questionId: q.id })}
+                  disabled={deleteQuestion.isPending}
+                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                  title="Delete question"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Submit New Question */}
+      {canSubmitMore ? (
+        <div>
+          <textarea
+            value={questionText}
+            onChange={(e) => setQuestionText(e.target.value)}
+            placeholder="Type your question for the host (5-500 characters)..."
+            className="w-full p-3 border border-blue-200 rounded-lg text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            maxLength={500}
+          />
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-gray-400">{questionText.length}/500</span>
+            <button
+              onClick={handleSubmit}
+              disabled={submitQuestion.isPending || questionText.length < 5}
+              className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Send className="w-3.5 h-3.5" />
+              {submitQuestion.isPending ? "Sending..." : "Submit"}
+            </button>
+          </div>
+          {submitQuestion.isError && (
+            <p className="text-xs text-red-600 mt-1">
+              {(submitQuestion.error as any)?.message || "Failed to submit question"}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-blue-700 italic">
+          You&apos;ve reached the maximum of 5 questions for this session.
+        </p>
       )}
     </div>
   );

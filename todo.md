@@ -3907,3 +3907,38 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### Testing
 - [x] Write tests for all three new features (36 tests passing)
 - [x] Verify zero TypeScript errors
+
+---
+
+## Ology Live — Earnings Chart & Fan Questions (July 16, 2026)
+
+### Monthly Earnings Bar Chart
+- [ ] Add Chart.js bar chart to OlogyLiveEarnings page showing monthly earnings over time
+- [ ] Display gross, net, and platform fee as stacked/grouped bars
+- [ ] Support year filtering (chart updates when year changes)
+- [ ] Responsive chart that works on mobile and desktop
+- [ ] Color-coded legend for gross vs net vs fees
+
+### Submit a Question (Fan Pre-Session Feature)
+- [ ] Create ology_live_questions table (bookingId, fanId, question, createdAt, answeredAt)
+- [ ] Add server routes for submitting, listing, and managing questions
+- [ ] Add question submission UI on the fan My Sessions page for upcoming sessions
+- [ ] Show submitted questions to talent on their dashboard before the session
+- [ ] Limit questions per session (max 3 per fan)
+- [ ] Show question count on session card
+
+### Testing
+- [ ] Write tests for both new features
+- [ ] Verify zero TypeScript errors
+
+## OLOGY LIVE: SUBMIT A QUESTION FEATURE (Jul 16, 2026)
+- [x] Database: ology_live_questions table created in production
+- [x] Schema: ologyLiveQuestions table added to drizzle/schema.ts
+- [x] Server: submitQuestion, getQuestions, getTalentQuestions, markQuestionAnswered, deleteQuestion endpoints
+- [x] UI: QuestionPanel component with textarea, character count, question list, delete, status badges
+- [x] UI: Submit a Question button on SessionCard for confirmed/pending sessions
+- [x] UI: askingQuestion state and toggle behavior
+- [x] Validation: 5 questions per booking limit, 5-500 char text, fan-only submission
+- [x] Tests: 41 tests passing (ologyLiveQuestions.test.ts)
+- [x] TypeScript: 0 errors
+- [x] Earnings bar chart (Chart.js) added to OlogyLiveEarnings page

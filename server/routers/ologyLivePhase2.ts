@@ -8,6 +8,7 @@ import {
   ologyLiveExperiences,
   ologyLiveReviews,
   ologyLiveEarnings,
+  ologyLiveQuestions,
   users,
 } from "../../drizzle/schema";
 import {
@@ -445,6 +446,152 @@ export const ologyLivePhase2Router = router({
         .limit(50);
 
       return bookings;
+    }),
+  // ============= QUESTIONS (Submit in Advance) =============
+
+  /** Fan submits a question for an upcoming session */
+  submitQuestion: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+      questionText: z.string().min(5, "Question must be at least 5 characters").max(500, "Question must be under 500 characters"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = (await getDb())!;
+      // Verify booking exists and belongs to this fan
+      const booking = (await db.select().from(ologyLiveBookings)
+        .where(eq(ologyLiveBookings.id, input.bookingId)).limit(1))[0];
+
+      if (!booking) throw new Error("Booking not found");
+      if (booking.fanId !== ctx.user.id) throw new Error("Only the booked fan can submit questions");
+      if (booking.status === "cancelled") throw new Error("Cannot submit questions for cancelled sessions");
+
+      // Limit to 5 questions per booking
+      const existingQuestions = await db.select({ id: ologyLiveQuestions.id })
+        .from(ologyLiveQuestions)
+        .where(and(
+          eq(ologyLiveQuestions.bookingId, input.bookingId),
+          eq(ologyLiveQuestions.fanId, ctx.user.id)
+        ));
+
+      if (existingQuestions.length >= 5) {
+        throw new Error("Maximum 5 questions per session");
+      }
+
+      const result = await db.insert(ologyLiveQuestions).values({
+        bookingId: input.bookingId,
+        experienceId: booking.experienceId,
+        fanId: ctx.user.id,
+        talentId: booking.talentId,
+        questionText: input.questionText,
+        status: "pending",
+      });
+
+      return { questionId: result[0].insertId };
+    }),
+
+  /** Get questions for a booking (fan sees their own, talent sees all for their session) */
+  getQuestions: protectedProcedure
+    .input(z.object({
+      bookingId: z.number(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const db = (await getDb())!;
+      const booking = (await db.select().from(ologyLiveBookings)
+        .where(eq(ologyLiveBookings.id, input.bookingId)).limit(1))[0];
+
+      if (!booking) throw new Error("Booking not found");
+      if (booking.fanId !== ctx.user.id && booking.talentId !== ctx.user.id) {
+        throw new Error("Unauthorized");
+      }
+
+      const questions = await db.select({
+        id: ologyLiveQuestions.id,
+        questionText: ologyLiveQuestions.questionText,
+        status: ologyLiveQuestions.status,
+        answeredAt: ologyLiveQuestions.answeredAt,
+        createdAt: ologyLiveQuestions.createdAt,
+        fanName: users.name,
+      })
+        .from(ologyLiveQuestions)
+        .leftJoin(users, eq(ologyLiveQuestions.fanId, users.id))
+        .where(eq(ologyLiveQuestions.bookingId, input.bookingId))
+        .orderBy(desc(ologyLiveQuestions.createdAt));
+
+      return questions;
+    }),
+
+  /** Get all questions for a talent's upcoming sessions */
+  getTalentQuestions: protectedProcedure
+    .input(z.object({
+      experienceId: z.number().optional(),
+    }).optional())
+    .query(async ({ input, ctx }) => {
+      const db = (await getDb())!;
+      const conditions = [
+        eq(ologyLiveQuestions.talentId, ctx.user.id),
+        eq(ologyLiveQuestions.status, "pending"),
+      ];
+
+      if (input?.experienceId) {
+        conditions.push(eq(ologyLiveQuestions.experienceId, input.experienceId));
+      }
+
+      const questions = await db.select({
+        id: ologyLiveQuestions.id,
+        questionText: ologyLiveQuestions.questionText,
+        status: ologyLiveQuestions.status,
+        createdAt: ologyLiveQuestions.createdAt,
+        fanName: users.name,
+        experienceTitle: ologyLiveExperiences.title,
+        bookingId: ologyLiveQuestions.bookingId,
+      })
+        .from(ologyLiveQuestions)
+        .leftJoin(users, eq(ologyLiveQuestions.fanId, users.id))
+        .leftJoin(ologyLiveExperiences, eq(ologyLiveQuestions.experienceId, ologyLiveExperiences.id))
+        .where(and(...conditions))
+        .orderBy(desc(ologyLiveQuestions.createdAt))
+        .limit(50);
+
+      return questions;
+    }),
+
+  /** Talent marks a question as answered */
+  markQuestionAnswered: protectedProcedure
+    .input(z.object({
+      questionId: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = (await getDb())!;
+      const question = (await db.select().from(ologyLiveQuestions)
+        .where(eq(ologyLiveQuestions.id, input.questionId)).limit(1))[0];
+
+      if (!question) throw new Error("Question not found");
+      if (question.talentId !== ctx.user.id) throw new Error("Only the talent can mark questions");
+
+      await db.update(ologyLiveQuestions)
+        .set({ status: "answered", answeredAt: new Date() })
+        .where(eq(ologyLiveQuestions.id, input.questionId));
+
+      return { success: true };
+    }),
+
+  /** Fan deletes their own question */
+  deleteQuestion: protectedProcedure
+    .input(z.object({
+      questionId: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = (await getDb())!;
+      const question = (await db.select().from(ologyLiveQuestions)
+        .where(eq(ologyLiveQuestions.id, input.questionId)).limit(1))[0];
+
+      if (!question) throw new Error("Question not found");
+      if (question.fanId !== ctx.user.id) throw new Error("Only the question author can delete it");
+
+      await db.delete(ologyLiveQuestions)
+        .where(eq(ologyLiveQuestions.id, input.questionId));
+
+      return { success: true };
     }),
 });
 

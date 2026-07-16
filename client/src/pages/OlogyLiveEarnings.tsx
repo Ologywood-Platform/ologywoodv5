@@ -1,6 +1,110 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { trpc } from "../lib/trpc";
-import { DollarSign, TrendingUp, Calendar, Download, AlertTriangle, FileText, FileSpreadsheet } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Download, AlertTriangle, FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
+
+/**
+ * EarningsChart — renders a grouped bar chart showing monthly gross, net, and fees
+ */
+function EarningsChart({ monthlyData }: { monthlyData: any[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !monthlyData || monthlyData.length === 0) return;
+
+    const loadChart = async () => {
+      const { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } = await import("chart.js");
+      Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+
+      const labels = monthlyData.map((m: any) => m.month);
+      const grossData = monthlyData.map((m: any) => parseFloat(m.totalGross || "0"));
+      const netData = monthlyData.map((m: any) => parseFloat(m.totalNet || "0"));
+      const feeData = monthlyData.map((m: any) => {
+        const gross = parseFloat(m.totalGross || "0");
+        const net = parseFloat(m.totalNet || "0");
+        return Math.max(0, gross - net);
+      });
+
+      chartRef.current = new Chart(canvasRef.current!, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Gross Revenue",
+              data: grossData,
+              backgroundColor: "rgba(124, 58, 237, 0.7)",
+              borderColor: "rgba(124, 58, 237, 1)",
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: "Net Earnings",
+              data: netData,
+              backgroundColor: "rgba(22, 163, 74, 0.7)",
+              borderColor: "rgba(22, 163, 74, 1)",
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: "Platform Fees",
+              data: feeData,
+              backgroundColor: "rgba(156, 163, 175, 0.5)",
+              borderColor: "rgba(156, 163, 175, 1)",
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                usePointStyle: true,
+                padding: 16,
+                font: { size: 12 },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx: any) => `${ctx.dataset.label}: $${ctx.parsed.y.toFixed(2)}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value: any) => `$${value}`,
+              },
+            },
+          },
+        },
+      });
+    };
+
+    loadChart();
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [monthlyData]);
+
+  return <canvas ref={canvasRef} />;
+}
 
 export default function OlogyLiveEarnings() {
   const currentYear = new Date().getFullYear();
@@ -305,6 +409,19 @@ export default function OlogyLiveEarnings() {
             <p className="text-2xl font-bold text-purple-600">
               {earnings.data.totals.totalSessions}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Earnings Bar Chart */}
+      {nilReport.data?.monthlyBreakdown && nilReport.data.monthlyBreakdown.length > 0 && (
+        <div className="bg-white border rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-semibold">Monthly Earnings Trend ({selectedYear})</h2>
+          </div>
+          <div style={{ height: "300px" }}>
+            <EarningsChart monthlyData={nilReport.data.monthlyBreakdown} />
           </div>
         </div>
       )}
