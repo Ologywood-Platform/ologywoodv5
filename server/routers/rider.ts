@@ -119,7 +119,8 @@ export const riderRouter = router({
       // Validate required fields if templateData is being updated
       if (input.templateData) {
         const formData = input.templateData?.formData || input.templateData || {};
-        const validation = validateTemplate("simple_booking", formData);
+        const templateType = input.templateData?.baseTemplate || "simple_booking";
+        const validation = validateTemplate(templateType, formData);
         if (!validation.valid) {
           throw new Error(`Missing required fields: ${validation.errors.join(', ')}`);
         }

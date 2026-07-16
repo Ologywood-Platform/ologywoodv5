@@ -3520,3 +3520,60 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## UI IMPROVEMENTS BATCH 3 (Jul 13)
 - [x] Add confirmation modal when canceling a pending team invitation
 - [x] Add Edit Request button in promo details modal (only when status is pending/submitted)
+
+## ATHLETE FEATURES - FULL BUILD (Jul 14, 2026)
+
+### 1. Athlete-Specific Onboarding
+- [ ] Add sport, position, team, achievements fields to onboarding when talentType=athlete
+- [ ] Add sportCategory selector (Basketball, Football, Soccer, Baseball, Track, Tennis, MMA, Boxing, Golf, Swimming, Other)
+- [ ] Add highlight reel upload option during onboarding
+- [ ] Conditional language throughout onboarding for athletes
+
+### 2. Athlete Profile Enhancements
+- [ ] Add athlete stats section to public profile (career stats, records)
+- [ ] Add career highlights/achievements display
+- [ ] Add NIL availability badge and categories
+- [ ] Add highlight reel player on profile
+- [ ] Add training videos section
+
+### 3. Athlete Booking Use Cases
+- [ ] Add athlete-specific booking types (Appearances, Autograph Signings, Speaking Engagements, Camps/Clinics, Brand Endorsements)
+- [ ] Update booking creation flow to show athlete-relevant options
+- [ ] Add appearance-specific fields (duration, type of appearance, meet & greet included)
+
+### 4. Athlete-Specific Rider Templates
+- [ ] Create pre-built rider templates for athletes (Travel, Security, Equipment, Appearance)
+- [ ] Add athlete rider categories in Rider Builder
+- [ ] Include athlete-specific items (training equipment, dietary requirements, security detail)
+
+### 5. NIL Marketplace
+- [ ] Create nil_opportunities table (brand posts deal opportunities)
+- [ ] Create nil_applications table (athlete applies to opportunities)
+- [ ] Build NIL Marketplace browse page for athletes
+- [ ] Build NIL opportunity creation for brands/venues
+- [ ] Build NIL application flow and status tracking
+
+### 6. Athlete Fan Club Content Types
+- [ ] Add athlete-specific content type options (Training Clips, Behind-the-Scenes, Game Day, Q&A Sessions)
+- [ ] Update Fan Club post creation with content type selector
+- [ ] Add content type badges/filters on Fan Club feed
+
+### 7. Schema & Production Sync
+- [ ] Add all new columns to artist_profiles schema
+- [ ] Create all new tables in schema
+- [ ] Sync all changes to production database
+- [ ] Add missing columns that already exist in code but not in prod
+
+
+## ATHLETE RIDER TEMPLATES (Jul 15, 2026)
+
+- [x] Add 4 athlete-specific rider template definitions (Appearance, Autograph Signing, Speaking Engagement, Camp/Clinic)
+- [x] Each template includes travel, security, compensation, and event-specific sections
+- [x] Register all athlete templates in ALL_TEMPLATES and getAllRiderTemplates
+- [x] Update RiderBuilder UI with template picker mode (athlete vs artist categories)
+- [x] Sort templates based on user's talentType (athletes see athlete templates first)
+- [x] Fix rider router updateTemplate validation to use correct template type from templateData
+- [x] Add talentType and sportCategory columns to artist_profiles schema
+- [x] Verify talentType and sportCategory columns exist in production database
+- [x] Fix git conflict in drizzle/meta/_journal.json
+- [x] Write and pass vitest tests for athlete rider templates (18 tests passing)

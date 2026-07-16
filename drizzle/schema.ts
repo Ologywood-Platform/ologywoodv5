@@ -97,6 +97,8 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
   artistName: varchar("artistName", { length: 255 }).notNull(),
+  talentType: varchar("talentType", { length: 20 }).default("artist"), // 'artist' | 'athlete' | 'creator'
+  sportCategory: varchar("sportCategory", { length: 100 }), // e.g., Basketball, Football, Soccer
   genre: json("genre").$type<string[]>(),
   bio: text("bio"),
   location: varchar("location", { length: 255 }),
