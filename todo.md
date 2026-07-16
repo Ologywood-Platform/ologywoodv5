@@ -3771,3 +3771,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate required fields: parties, compensation, media rights, compliance
 - [x] Add progress indicator showing completion percentage
 - [x] Prevent submission until all required fields pass validation
+
+---
+
+## Auto-Save Draft Feature (Rider Builder)
+
+- [x] Create useAutoSaveDraft hook with debounced localStorage persistence
+- [x] Integrate hook into RiderBuilder form (save formData, templateType, riderName)
+- [x] Show subtle "Draft saved" indicator in the UI
+- [x] Prompt user to restore draft on page load if one exists
+- [x] Provide option to discard saved draft
+- [x] Clear draft on successful form submission
+- [x] Write tests for auto-save functionality

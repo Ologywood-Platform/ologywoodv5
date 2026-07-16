@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -48,6 +48,7 @@ import { HelperNote } from '@/components/HelperNote';
 import { HelperNotesToggle } from '@/components/HelperNotesToggle';
 import { ContractFormProgress, FieldValidationMessage, NILComplianceChecklist } from '@/components/ContractFormValidation';
 import { useContractValidation } from '@/hooks/useContractValidation';
+import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 
 // ============= TYPE DEFINITIONS =============
 
@@ -151,6 +152,24 @@ export default function RiderBuilder() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [attempted, setAttempted] = useState(false);
   const contractValidation = useContractValidation(selectedTemplateType);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+
+  // Auto-save draft hook
+  const autoSave = useAutoSaveDraft(user?.id);
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    if (user?.id && mode === 'list' && autoSave.hasDraft()) {
+      setShowDraftBanner(true);
+    }
+  }, [user?.id, mode]);
+
+  // Auto-save on form changes (only in edit mode)
+  useEffect(() => {
+    if (mode === 'edit' && !editingTemplateId) {
+      autoSave.saveDraft(formData, riderName, selectedTemplateType);
+    }
+  }, [formData, riderName, selectedTemplateType, mode, editingTemplateId]);
 
   // Fetch artist profile to determine talent type
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
@@ -169,6 +188,7 @@ export default function RiderBuilder() {
   const createMutation = trpc.rider.createTemplate.useMutation({
     onSuccess: () => {
       toast.success("Rider saved!");
+      autoSave.clearDraft();
       refetchTemplates();
       resetForm();
     },
@@ -266,6 +286,26 @@ export default function RiderBuilder() {
     setShowPreview(false);
     setFieldErrors({});
     setAttempted(false);
+  };
+
+  // Restore a saved draft
+  const restoreDraft = () => {
+    const draft = autoSave.loadDraft();
+    if (draft) {
+      setSelectedTemplateType(draft.templateType);
+      setFormData(draft.formData);
+      setRiderName(draft.riderName);
+      setMode('edit');
+      setShowDraftBanner(false);
+      toast.success('Draft restored! Continue where you left off.');
+    }
+  };
+
+  // Discard saved draft
+  const handleDiscardDraft = () => {
+    autoSave.discardDraft();
+    setShowDraftBanner(false);
+    toast('Draft discarded');
   };
 
   // Handle field changes
@@ -624,6 +664,12 @@ export default function RiderBuilder() {
                     {templateStructure.category}
                   </Badge>
                 )}
+                {autoSave.showSavedIndicator && !editingTemplateId && (
+                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5">
+                    <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Draft saved
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -750,13 +796,35 @@ export default function RiderBuilder() {
       </header>
 
       <div className="container mx-auto px-4 py-6 max-w-3xl">
-        <PageBreadcrumb
+                <PageBreadcrumb
           className="mb-4"
           segments={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'My Riders' },
           ]}
         />
+
+        {/* Draft Restore Banner */}
+        {showDraftBanner && (
+          <Card className="mb-4 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+            <CardContent className="py-3 px-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="h-4 w-4 text-amber-600 shrink-0" />
+                <p className="text-sm text-amber-800 dark:text-amber-200 truncate">
+                  You have an unsaved draft. Would you like to continue?
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button variant="ghost" size="sm" onClick={handleDiscardDraft} className="text-xs h-7">
+                  Discard
+                </Button>
+                <Button size="sm" onClick={restoreDraft} className="text-xs h-7 bg-amber-600 hover:bg-amber-700 text-white">
+                  Restore Draft
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Empty State */}
         {templatesLoading ? (
