@@ -58,6 +58,7 @@ export default function ArtistEditProfile() {
   });
 
   // Form state
+  const [talentType, setTalentType] = useState<string>("artist");
   const [artistName, setArtistName] = useState("");
   const [bio, setBio] = useState("");
   const [genres, setGenres] = useState<string[]>([]);
@@ -88,6 +89,7 @@ export default function ArtistEditProfile() {
   // Populate form when profile loads
   useEffect(() => {
     if (profile) {
+      setTalentType((profile as any).talentType || "artist");
       setArtistName(profile.artistName || "");
       setBio(profile.bio || "");
       setGenres(Array.isArray(profile.genre) ? profile.genre : []);
@@ -225,6 +227,7 @@ export default function ArtistEditProfile() {
 
     updateProfile.mutate({
       artistName: artistName.trim(),
+      talentType: talentType as any,
       bio: bio.trim() || undefined,
       genre: genres.length > 0 ? genres : undefined,
       location: location.trim() || undefined,
@@ -355,16 +358,45 @@ export default function ArtistEditProfile() {
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Your public artist details</CardDescription>
+              <CardDescription>Your public profile details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Talent Type Selector */}
               <div>
-                <Label htmlFor="artistName">Artist / Band Name *</Label>
+                <Label>Profile Type</Label>
+                <p className="text-xs text-muted-foreground mb-2">Select what best describes you. This determines how your profile appears to fans and bookers.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { value: 'artist', label: 'Artist', desc: 'Musicians & Bands' },
+                    { value: 'athlete', label: 'Athlete', desc: 'Sports & NIL' },
+                    { value: 'creator', label: 'Creator', desc: 'Content & Digital' },
+                    { value: 'entertainer', label: 'Entertainer', desc: 'Comedy, DJ, MC' },
+                    { value: 'influencer', label: 'Influencer', desc: 'Social & Brand' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setTalentType(opt.value)}
+                      className={`p-3 rounded-lg border-2 text-left transition-all ${
+                        talentType === opt.value
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                          : 'border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <span className="font-medium text-sm block">{opt.label}</span>
+                      <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="artistName">{talentType === 'athlete' ? 'Name' : 'Artist / Band Name'} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder="Your stage name"
+                  placeholder={talentType === 'athlete' ? 'Your name' : 'Your stage name'}
                   autoCapitalize="words"
                 />
               </div>

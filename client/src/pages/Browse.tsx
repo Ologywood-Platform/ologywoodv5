@@ -66,6 +66,9 @@ export default function Browse() {
   const initialTab = new URLSearchParams(searchParams).get('tab') as 'artists' | 'events' | 'venues' | null;
   const [activeTab, setActiveTab] = useState<'artists' | 'events' | 'venues'>(initialTab && ['artists', 'events', 'venues'].includes(initialTab) ? initialTab : 'artists');
 
+  // Talent type filter for Browse
+  const [talentTypeFilter, setTalentTypeFilter] = useState<string>('all');
+
   // Venue filter state
   const [venueLocation, setVenueLocation] = useState('');
   const [venueType, setVenueType] = useState('');
@@ -266,6 +269,12 @@ export default function Browse() {
         g.toLowerCase().includes(searchQuery.toLowerCase())
       ));
     
+    // Apply talent type filter
+    if (talentTypeFilter !== 'all') {
+      const artistTalentType = (artist as any).talentType || 'artist';
+      if (artistTalentType !== talentTypeFilter) return false;
+    }
+    
     // Apply touring filter client-side
     if (filters.touringOnly && touringStatus) {
       if (!touringStatus[artist.id]) return false;
@@ -383,7 +392,7 @@ export default function Browse() {
         {/* Tabs for Artists/Events/Venues */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'artists' | 'events' | 'venues')} className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-sm mb-4 sm:mb-6">
-            <TabsTrigger value="artists">Artists</TabsTrigger>
+            <TabsTrigger value="artists">Talent</TabsTrigger>
             <TabsTrigger value="venues">Venues</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
@@ -405,8 +414,28 @@ export default function Browse() {
               }} />
             )}
 
-            {/* Quick Filter Badges */}
+            {/* Talent Type Filter Chips */}
             <div className="flex flex-wrap gap-2 mb-4">
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'artist', label: 'Artists' },
+                { value: 'athlete', label: 'Athletes' },
+                { value: 'creator', label: 'Creators' },
+                { value: 'entertainer', label: 'Entertainers' },
+                { value: 'influencer', label: 'Influencers' },
+              ].map((chip) => (
+                <button
+                  key={chip.value}
+                  onClick={() => setTalentTypeFilter(chip.value)}
+                  className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    talentTypeFilter === chip.value
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
               <button
                 onClick={() => setFilters(f => ({ ...f, crmOnly: !f.crmOnly }))}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
