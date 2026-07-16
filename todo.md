@@ -3637,3 +3637,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Calendar availability picker in athlete booking form (show available dates from artist's availability)
 - [x] Social sharing buttons + title overlay in video modal player
 - [x] Fan Club section on athlete profile with content categories (BTS, Q&A, Training, Game Day)
+- [x] Subscription paywall overlay on locked Fan Club content (blurred preview + subscribe CTA)
+- [x] Comments and likes on Fan Club posts for subscribed fans (schema + endpoints + UI)
+- [x] Budget field and dynamic price summary on booking form based on appearance type

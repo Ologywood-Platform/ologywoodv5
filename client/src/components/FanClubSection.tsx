@@ -4,7 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Lock, Globe, Users, Check, Loader2, ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
+import { Crown, Lock, Globe, Users, Check, Loader2, ArrowUpDown, ChevronDown, ChevronUp, Heart, MessageCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 
 interface FanClubSectionProps {
@@ -35,6 +35,9 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
     { key: 'qa_session', label: 'Q&A' },
   ];
   const categories = talentType === 'athlete' ? athleteCategories : artistCategories;
+
+  const [commentingPostId, setCommentingPostId] = useState<number | null>(null);
+  const [commentText, setCommentText] = useState('');
 
   const tiersQuery = trpc.fanClub.getTalentTiers.useQuery({ talentUserId: artistUserId });
   const postsQuery = trpc.fanClub.getTalentFeed.useQuery({ talentUserId: artistUserId });
@@ -71,6 +74,26 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
   });
   const posts = postsQuery.data || [];
   const membership = membershipQuery.data;
+
+  const postIds = posts.map((p: any) => p.id).filter(Boolean);
+  const likesQuery = trpc.fanClub.getPostLikes.useQuery(
+    { postIds },
+    { enabled: postIds.length > 0 }
+  );
+  const likesData = likesQuery.data as Record<number, { count: number; liked: boolean }> | undefined;
+
+  const likePost = trpc.fanClub.likePost.useMutation({
+    onSuccess: () => { likesQuery.refetch(); },
+    onError: (err: any) => toast.error(err.message || 'Failed to like'),
+  });
+
+  const addComment = trpc.fanClub.addComment.useMutation({
+    onSuccess: () => {
+      setCommentText('');
+      toast.success('Comment added');
+    },
+    onError: (err: any) => toast.error(err.message || 'Failed to comment'),
+  });
 
   // Don't show section if talent has no fan club set up
   if (rawTiers.length === 0 && posts.length === 0) return null;
@@ -229,7 +252,7 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
               .map((post: any) => {
               const isLocked = post.visibility === "members_only" && (!membership || membership.status !== "active");
               return (
-                <Card key={post.id} className={isLocked ? "opacity-75" : ""}>
+                <Card key={post.id} className={isLocked ? "relative overflow-hidden" : ""}>
                   <CardContent className="py-4">
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
@@ -249,9 +272,46 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
                           </Badge>
                         </div>
                         {isLocked ? (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Lock className="h-4 w-4" />
-                            <span>Join the fan club to unlock this content</span>
+                          <div className="relative">
+                            {/* Blurred preview of content */}
+                            <div className="blur-sm select-none pointer-events-none">
+                              <p className="text-sm text-muted-foreground">
+                                {(post.content || '').slice(0, 120)}...
+                              </p>
+                              {post.mediaUrl && post.mediaType === 'video' && (
+                                <div className="mt-2 rounded-lg overflow-hidden bg-muted aspect-video max-w-md flex items-center justify-center">
+                                  <svg className="w-12 h-12 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                              )}
+                              {post.mediaUrl && post.mediaType === 'image' && (
+                                <div className="mt-2 rounded-lg bg-muted max-w-md h-32" />
+                              )}
+                            </div>
+                            {/* Paywall overlay */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px] rounded-md">
+                              <Lock className="h-6 w-6 text-primary mb-2" />
+                              <p className="text-sm font-medium text-center mb-1">Exclusive Content</p>
+                              <p className="text-xs text-muted-foreground text-center mb-3 px-4">
+                                Subscribe to {artistName}'s Fan Club to unlock
+                              </p>
+                              {tiers.length > 0 && (
+                                <Button
+                                  size="sm"
+                                  className="gap-1.5"
+                                  onClick={() => {
+                                    const lowestTier = tiers[0];
+                                    if (lowestTier) handleJoin(lowestTier.id);
+                                  }}
+                                  disabled={joinTier.isPending}
+                                >
+                                  <Crown className="h-3.5 w-3.5" />
+                                  Subscribe from ${((tiers[0] as any)?.priceCents || (tiers[0] as any)?.priceMonthly || 0) / 100}/mo
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <>
@@ -265,6 +325,65 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
                               <img src={post.mediaUrl} alt={post.title} className="mt-2 rounded-lg max-w-md max-h-64 object-contain" />
                             )}
                           </>
+                        )}
+                        {/* Like & Comment section for unlocked posts */}
+                        {!isLocked && (
+                          <div className="mt-3 pt-2 border-t">
+                            <div className="flex items-center gap-4">
+                              <button
+                                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-red-500 transition-colors"
+                                onClick={() => {
+                                  if (!user) { toast.error('Please sign in to like posts'); return; }
+                                  likePost.mutate({ postId: post.id });
+                                }}
+                                disabled={likePost.isPending}
+                              >
+                                <Heart className={`h-4 w-4 ${likesData?.[post.id]?.liked ? 'fill-red-500 text-red-500' : ''}`} />
+                                <span>{likesData?.[post.id]?.count || 0}</span>
+                              </button>
+                              <button
+                                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                onClick={() => setCommentingPostId(commentingPostId === post.id ? null : post.id)}
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                <span>Comment</span>
+                              </button>
+                            </div>
+                            {/* Comment input */}
+                            {commentingPostId === post.id && (
+                              <div className="mt-2">
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={commentText}
+                                    onChange={(e) => setCommentText(e.target.value)}
+                                    placeholder="Write a comment..."
+                                    className="flex-1 text-sm border rounded-md px-3 py-1.5 bg-background"
+                                    maxLength={500}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && commentText.trim()) {
+                                        addComment.mutate({ postId: post.id, content: commentText.trim() });
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    disabled={!commentText.trim() || addComment.isPending}
+                                    onClick={() => {
+                                      if (commentText.trim()) {
+                                        addComment.mutate({ postId: post.id, content: commentText.trim() });
+                                      }
+                                    }}
+                                  >
+                                    <Send className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                {/* Comments list */}
+                                <CommentsSection postId={post.id} />
+                              </div>
+                            )}
+                          </div>
                         )}
                         <p className="text-xs text-muted-foreground mt-2">
                           {new Date(post.createdAt).toLocaleDateString()}
@@ -289,6 +408,28 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
           <span>Join {artistName}'s exclusive community</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// Sub-component for comments list
+function CommentsSection({ postId }: { postId: number }) {
+  const commentsQuery = trpc.fanClub.getPostComments.useQuery({ postId });
+  const comments = commentsQuery.data || [];
+
+  if (comments.length === 0) return <p className="text-xs text-muted-foreground mt-2">No comments yet. Be the first!</p>;
+
+  return (
+    <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+      {comments.map((c: any) => (
+        <div key={c.id} className="flex gap-2 text-sm">
+          <span className="font-medium text-xs">{c.userName}</span>
+          <span className="text-xs text-muted-foreground flex-1">{c.content}</span>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+            {new Date(c.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

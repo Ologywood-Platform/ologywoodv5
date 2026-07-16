@@ -620,16 +620,75 @@ export default function ArtistProfile() {
                     </div>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="totalFee" className="text-sm font-medium">Offered Fee ($)</Label>
-                    <Input
-                      id="totalFee"
-                      type="number"
-                      value={totalFee}
-                      onChange={(e) => setTotalFee(e.target.value)}
-                      placeholder="Enter your offer"
-                      className="h-11 sm:h-10 text-base sm:text-sm"
-                    />
+                  {/* Budget & Dynamic Price Summary */}
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="totalFee" className="text-sm font-medium">Your Budget ($) *</Label>
+                      <Input
+                        id="totalFee"
+                        type="number"
+                        value={totalFee}
+                        onChange={(e) => setTotalFee(e.target.value)}
+                        placeholder="Enter your estimated budget"
+                        className="h-11 sm:h-10 text-base sm:text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        This is your starting offer. The talent may negotiate.
+                      </p>
+                    </div>
+                    {/* Dynamic Price Summary */}
+                    {totalFee && bookingType && (artist as any).talentType === 'athlete' && (
+                      <div className="rounded-md border p-3 bg-muted/30 space-y-1.5">
+                        <p className="text-xs font-medium">Estimated Price Breakdown</p>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">
+                            {bookingType === 'appearance' && 'Appearance Fee'}
+                            {bookingType === 'autograph_signing' && 'Signing Session Fee'}
+                            {bookingType === 'speaking' && 'Speaking Fee'}
+                            {bookingType === 'camp_clinic' && 'Camp/Clinic Fee'}
+                            {bookingType === 'brand_endorsement' && 'NIL Deal Fee'}
+                            {!['appearance','autograph_signing','speaking','camp_clinic','brand_endorsement'].includes(bookingType) && 'Base Fee'}
+                          </span>
+                          <span>${Number(totalFee).toLocaleString()}</span>
+                        </div>
+                        {bookingType !== 'brand_endorsement' && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Travel & Logistics (est.)</span>
+                            <span className="italic text-muted-foreground">TBD by talent</span>
+                          </div>
+                        )}
+                        {bookingType === 'camp_clinic' && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Equipment & Staffing (est.)</span>
+                            <span className="italic text-muted-foreground">TBD by talent</span>
+                          </div>
+                        )}
+                        <div className="border-t pt-1.5 mt-1.5 flex justify-between text-xs font-medium">
+                          <span>Your Offer Total</span>
+                          <span className="text-primary">${Number(totalFee).toLocaleString()}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">
+                          Final price will be confirmed by the talent. Travel and additional costs may apply.
+                        </p>
+                      </div>
+                    )}
+                    {totalFee && !(bookingType && (artist as any).talentType === 'athlete') && (
+                      <div className="rounded-md border p-3 bg-muted/30 space-y-1.5">
+                        <p className="text-xs font-medium">Price Summary</p>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Performance / Booking Fee</span>
+                          <span>${Number(totalFee).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Travel & Rider (est.)</span>
+                          <span className="italic text-muted-foreground">Per rider terms</span>
+                        </div>
+                        <div className="border-t pt-1.5 mt-1.5 flex justify-between text-xs font-medium">
+                          <span>Your Offer</span>
+                          <span className="text-primary">${Number(totalFee).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div>

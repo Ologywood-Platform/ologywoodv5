@@ -3,7 +3,7 @@ import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { getDb } from "../db";
-import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles, stripeConnectAccounts } from "../../drizzle/schema";
+import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles, stripeConnectAccounts, fanClubPostLikes, fanClubPostComments } from "../../drizzle/schema";
 import { stripe } from "../stripe";
 import { ENV } from "../_core/env";
 
@@ -392,5 +392,80 @@ export const fanClubRouter = router({
           isLocked: !canView,
         };
       });
+    }),
+
+  // Like a post
+  likePost: protectedProcedure
+    .input(z.object({ postId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = (await getDb())!;
+      // Check if already liked
+      const existing = await db.select().from(fanClubPostLikes)
+        .where(and(eq(fanClubPostLikes.postId, input.postId), eq(fanClubPostLikes.userId, ctx.user.id)))
+        .limit(1);
+      if (existing.length > 0) {
+        // Unlike
+        await db.delete(fanClubPostLikes)
+          .where(and(eq(fanClubPostLikes.postId, input.postId), eq(fanClubPostLikes.userId, ctx.user.id)));
+        return { liked: false };
+      }
+      await db.insert(fanClubPostLikes).values({ postId: input.postId, userId: ctx.user.id });
+      return { liked: true };
+    }),
+
+  // Get likes for posts
+  getPostLikes: publicProcedure
+    .input(z.object({ postIds: z.array(z.number()) }))
+    .query(async ({ ctx, input }) => {
+      if (input.postIds.length === 0) return {};
+      const db = (await getDb())!;
+      const likes = await db.select({
+        postId: fanClubPostLikes.postId,
+        count: sql<number>`COUNT(*)`,
+      }).from(fanClubPostLikes)
+        .where(sql`${fanClubPostLikes.postId} IN (${sql.raw(input.postIds.join(','))})`)
+        .groupBy(fanClubPostLikes.postId);
+
+      const userLikes = ctx.user ? await db.select({ postId: fanClubPostLikes.postId })
+        .from(fanClubPostLikes)
+        .where(and(
+          sql`${fanClubPostLikes.postId} IN (${sql.raw(input.postIds.join(','))})`,
+          eq(fanClubPostLikes.userId, ctx.user.id)
+        )) : [];
+
+      const result: Record<number, { count: number; liked: boolean }> = {};
+      for (const id of input.postIds) {
+        const likeEntry = likes.find((l: any) => l.postId === id);
+        result[id] = {
+          count: likeEntry ? Number(likeEntry.count) : 0,
+          liked: userLikes.some((l: any) => l.postId === id),
+        };
+      }
+      return result;
+    }),
+
+  // Add comment to a post
+  addComment: protectedProcedure
+    .input(z.object({ postId: z.number(), content: z.string().min(1).max(500) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = (await getDb())!;
+      const [result] = await db.insert(fanClubPostComments).values({
+        postId: input.postId,
+        userId: ctx.user.id,
+        userName: ctx.user.name || ctx.user.email || 'Anonymous',
+        content: input.content,
+      });
+      return { id: result.insertId };
+    }),
+
+  // Get comments for a post
+  getPostComments: publicProcedure
+    .input(z.object({ postId: z.number() }))
+    .query(async ({ input }) => {
+      const db = (await getDb())!;
+      return await db.select().from(fanClubPostComments)
+        .where(eq(fanClubPostComments.postId, input.postId))
+        .orderBy(desc(fanClubPostComments.createdAt))
+        .limit(50);
     }),
 });

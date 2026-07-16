@@ -2005,3 +2005,26 @@ export const videoPortfolio = mysqlTable("video_portfolio", {
 }));
 export type VideoPortfolioItem = typeof videoPortfolio.$inferSelect;
 export type InsertVideoPortfolioItem = typeof videoPortfolio.$inferInsert;
+
+
+// Fan Club Post Likes
+export const fanClubPostLikes = mysqlTable("fan_club_post_likes", {
+  id: int("id").primaryKey().autoincrement(),
+  postId: int("postId").notNull(),
+  userId: int("userId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  postUserIdx: index("idx_fc_likes_post_user").on(table.postId, table.userId),
+}));
+
+// Fan Club Post Comments
+export const fanClubPostComments = mysqlTable("fan_club_post_comments", {
+  id: int("id").primaryKey().autoincrement(),
+  postId: int("postId").notNull(),
+  userId: int("userId").notNull(),
+  userName: varchar("userName", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index("idx_fc_comments_post").on(table.postId),
+}));
