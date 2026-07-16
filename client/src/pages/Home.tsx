@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2, Award, BarChart3, Users, Crown, Lock } from "lucide-react";
+import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2, Award, BarChart3, Users, Crown, Lock, Video, MessageCircle, DollarSign } from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -449,6 +449,41 @@ export default function Home() {
                 <h3 className="font-semibold text-sm sm:text-base mb-1">You Keep 85%</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">Competitive 85/15 revenue split. You keep 85% of every subscription &mdash; better than most platforms.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ology Live Feature Highlight */}
+      <section className="py-8 sm:py-12 bg-gradient-to-r from-emerald-50 to-teal-50">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">OLOGY LIVE</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Virtual Sessions That Change the Game</h2>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
+              Ology Live lets talent host paid virtual experiences &mdash; gaming sessions, Q&amp;A/AMAs, music listening parties, fitness workouts, workshops, and more. Fans book, join live, and interact directly with the people they admire.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <Video className="h-6 w-6 text-emerald-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">10 Session Categories</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Gaming, Music, Fitness, Q&amp;A, Workshops, Photography, Film, Creative, Brand Building &mdash; host on Twitch, Discord, Zoom, FaceTime, or YouTube Live.</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <MessageCircle className="h-6 w-6 text-emerald-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">Live Fan Q&amp;A</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Fans submit questions before and during sessions. Talent answers live &mdash; creating unforgettable, personal connections at scale.</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                <DollarSign className="h-6 w-6 text-emerald-600 mb-2" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1">Earn on Your Terms</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Set your own price per session. One-on-one, small group, or broadcast &mdash; you control capacity, scheduling, and earnings.</p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <a href="/ology-live" className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline">
+                Explore Ology Live →
+              </a>
             </div>
           </div>
         </div>

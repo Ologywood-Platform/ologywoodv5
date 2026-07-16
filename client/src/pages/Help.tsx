@@ -541,6 +541,44 @@ const faqItems: FAQItem[] = [
     answer: 'Athletes can create Fan Club membership tiers just like artists. Post exclusive content categorized by type: Training Clips, Game Day footage, Behind-the-Scenes content, and Q&A Sessions. Fans subscribe monthly through Stripe. Non-members see a blurred paywall preview with a "Subscribe to Unlock" button. Members can like posts and leave comments, and athletes can reply directly to fan questions.',
   },
 
+  // Ology Live
+  {
+    id: 'ology-live-1',
+    category: 'Ology Live',
+    question: 'What is Ology Live?',
+    answer: 'Ology Live is a virtual experience marketplace built into Ologywood. Talent (artists, athletes, creators) can host paid live sessions — gaming, Q&A/AMA, music listening parties, fitness workouts, workshops, photography, film breakdowns, creative sessions, and brand building — on platforms like Twitch, Discord, Zoom, FaceTime, Google Meet, or YouTube Live. Fans browse, book, and join sessions in real time.',
+  },
+  {
+    id: 'ology-live-2',
+    category: 'Ology Live',
+    question: 'How do I host an Ology Live session as talent?',
+    answer: 'Go to your Dashboard and click "Ology Live." Create an experience by choosing a category, setting a title, description, duration (15-120 min), price, capacity type (one-on-one, small group, or broadcast), and your preferred platform. Add available time slots so fans can book. Once a fan books, you receive a notification and can share the session link.',
+  },
+  {
+    id: 'ology-live-3',
+    category: 'Ology Live',
+    question: 'How do I book and join an Ology Live session as a fan?',
+    answer: 'Browse Ology Live from the navigation menu to discover available sessions by category, price, and talent. Select an experience, pick an available time slot, add optional notes, and confirm your booking. Before the session starts, you can submit questions for the talent to answer live. A countdown timer shows when the session begins, and a Join button activates 5 minutes before start time.',
+  },
+  {
+    id: 'ology-live-4',
+    category: 'Ology Live',
+    question: 'What is the Submit a Question feature?',
+    answer: 'Fans who have booked a session can submit up to 5 questions (5-500 characters each) before or during the session. Talent sees all submitted questions in their dashboard and can mark them as answered during the live session. This creates a structured, interactive Q&A experience that makes every session personal and engaging.',
+  },
+  {
+    id: 'ology-live-5',
+    category: 'Ology Live',
+    question: 'How much can I earn with Ology Live?',
+    answer: 'You set your own price per session — from $5 to $500+. Choose one-on-one for premium pricing, small group for moderate pricing with multiple attendees, or broadcast for lower per-person pricing at scale. Track your Ology Live earnings separately in the Earnings tab of your Ology Live dashboard, with charts showing revenue over time.',
+  },
+  {
+    id: 'ology-live-6',
+    category: 'Ology Live',
+    question: 'What session categories are available?',
+    answer: 'Ology Live supports 10 categories: Gaming, Music/Listening Party, Fitness/Workout, Q&A/AMA, Workshop/Tutorial, Photography, Film/Content Review, Creative Session, Brand Building, and Other. Each category helps fans discover the type of experience they want.',
+  },
+
   // Support & Contact
   {
     id: 'support-1',

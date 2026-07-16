@@ -102,6 +102,17 @@ const artistSteps: Step[] = [
   },
   {
     number: 9,
+    title: 'Go Live with Ology Live',
+    description: 'Host paid virtual sessions — gaming, Q&A/AMA, music listening parties, fitness workouts, workshops, and more. Fans book, submit questions, and join you live on Twitch, Discord, Zoom, or FaceTime.',
+    items: [
+      'Create experiences across 10 categories',
+      'Set your price, duration, and capacity (1-on-1, small group, or broadcast)',
+      'Fans submit questions before and during sessions',
+      'Track Ology Live earnings separately in your dashboard',
+    ],
+  },
+  {
+    number: 10,
     title: 'Promote Your Brand',
     description: 'Use the AI Ad Assistant to generate professional ad copy and targeting suggestions for your events, releases, or profile. Or submit a Boost request for hands-off promotion.',
     items: [
@@ -112,7 +123,7 @@ const artistSteps: Step[] = [
     ],
   },
   {
-    number: 10,
+    number: 11,
     title: 'Grow Your Fan Base',
     description: 'Build a following on Ologywood. Fans can follow you, tip you, and buy your music. Refer friends and earn credits.',
     items: [
@@ -124,7 +135,7 @@ const artistSteps: Step[] = [
     ],
   },
   {
-    number: 11,
+    number: 12,
     title: 'Track Your Analytics',
     description: 'Monitor your growth with a comprehensive analytics dashboard. Track bookings, earnings, fan engagement, and music sales.',
     items: [
@@ -276,6 +287,17 @@ const fanSteps: Step[] = [
   },
   {
     number: 6,
+    title: 'Join Ology Live Sessions',
+    description: 'Book paid virtual experiences with your favorite talent — gaming sessions, Q&A/AMAs, music listening parties, fitness workouts, workshops, and more. Interact live and ask questions directly.',
+    items: [
+      'Browse sessions by category: Gaming, Music, Fitness, Q&A, and more',
+      'Book a time slot and submit up to 5 questions in advance',
+      'Join live on Twitch, Discord, Zoom, FaceTime, or YouTube Live',
+      'Countdown timer and Join button activate 5 minutes before start',
+    ],
+  },
+  {
+    number: 7,
     title: 'Support with Tips',
     description: 'Show your appreciation by tipping talent directly through their preferred payment apps. Zero platform fees on tips.',
     items: [
@@ -285,7 +307,7 @@ const fanSteps: Step[] = [
     ],
   },
   {
-    number: 7,
+    number: 8,
     title: 'Leave Reviews & Refer Friends',
     description: 'Share your experience by leaving reviews. Refer friends to earn credits and get them 50% off their first month.',
     items: [
