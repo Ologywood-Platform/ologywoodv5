@@ -3623,3 +3623,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Ensure merch store link is prominent on athlete dashboard (already in quick actions grid)
 - [x] Verify pre-order/made-to-order flow works for athletes (same merch system, updated tooltip)
 - [x] Confirm image upload for merch items works end-to-end (existing S3 upload system)
+
+## BUGS
+- [x] FIX: Existing artist profiles blocked from dashboard — forced to "Complete Profile" due to new athlete fields being null (root cause: columns missing from production DB + genre requirement too strict)

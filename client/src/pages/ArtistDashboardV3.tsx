@@ -122,14 +122,14 @@ export function ArtistDashboardV3() {
     );
   }
 
-  // Check if profile is complete
-  if (!artistProfile || !artistProfile.artistName || !artistProfile.genre) {
+  // Check if profile is complete - only require artistName (athletes don't need genre)
+  if (!artistProfile || !artistProfile.artistName) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Complete Your Profile</CardTitle>
-            <CardDescription>You need to complete your artist profile before accessing the dashboard.</CardDescription>
+            <CardDescription>You need to complete your profile before accessing the dashboard.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => navigate('/onboarding/artist')} className="w-full">
