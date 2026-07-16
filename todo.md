@@ -3949,3 +3949,5 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update FAQ page with Ology Live questions (full concept)
 - [x] Update How It Works page with Ology Live engagement steps
 - [x] Write and publish blog post about the full Ology Live experience
+- [x] Add prominent 'Start Hosting' CTA button to Ology Live section on Homepage
+- [x] Add prominent 'Start Hosting' CTA button to Ology Live step on How It Works page

@@ -480,9 +480,13 @@ export default function Home() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Set your own price per session. One-on-one, small group, or broadcast &mdash; you control capacity, scheduling, and earnings.</p>
               </div>
             </div>
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a href="/ology-live/dashboard" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg text-sm sm:text-base transition-colors shadow-md">
+                <Video className="h-4 w-4" />
+                Start Hosting
+              </a>
               <a href="/ology-live" className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline">
-                Explore Ology Live →
+                Browse Sessions →
               </a>
             </div>
           </div>

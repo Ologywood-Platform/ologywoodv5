@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users, Shield, Award, BarChart3, Calendar, Gift, Ticket, FileText, Lock } from 'lucide-react';
+import { Music, Briefcase, Heart, CheckCircle, MessageSquare, CreditCard, Star, Bell, DollarSign, Download, Users, Shield, Award, BarChart3, Calendar, Gift, Ticket, FileText, Lock, Video } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 
@@ -419,6 +419,16 @@ export default function HowItWorks() {
             {artistSteps.map((step) => (
               <StepCard key={step.number} step={step} color="purple" />
             ))}
+
+            {/* Ology Live CTA */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 sm:p-8 text-center border border-emerald-200">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Ready to Go Live?</h3>
+              <p className="text-gray-600 mb-4 max-w-xl mx-auto">Create your first Ology Live experience and start earning from virtual sessions with your fans.</p>
+              <a href="/ology-live/dashboard" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors shadow-md">
+                <Video className="h-4 w-4" />
+                Start Hosting
+              </a>
+            </div>
 
             {/* Key Features */}
             <div className="mt-12 pt-12 border-t-2 border-gray-200">
