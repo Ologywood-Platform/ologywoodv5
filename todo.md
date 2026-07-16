@@ -3631,3 +3631,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Edit Profile: Show athlete-specific fields (sport, position, team, stats) when talentType=athlete
 - [x] Browse cards: Show sport/team badge instead of genre for athlete profiles
 - [x] Video portfolio: Implement functional S3 upload for multiple 1-2 min highlight clips + public profile display
+- [x] Connect merch display to athlete public profile (pre-pay merchandise with image uploads)
+- [x] Enhance booking form with athlete-specific options (appearances, autograph signings, sports camps)
+- [x] Add modal video player to Highlight Clips grid for seamless viewing

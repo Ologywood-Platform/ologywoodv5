@@ -6,12 +6,15 @@ import { ExternalLink, ShoppingBag, ImageIcon } from 'lucide-react';
 
 interface MerchDisplayProps {
   userId: number;
-  userType: 'artist' | 'venue';
+  userType: 'artist' | 'venue' | 'athlete';
+  talentType?: string;
 }
 
-export function MerchDisplay({ userId, userType }: MerchDisplayProps) {
+export function MerchDisplay({ userId, userType, talentType }: MerchDisplayProps) {
+  // For athletes, still query as 'artist' userType since they share the same merch system
+  const queryUserType = userType === 'athlete' ? 'artist' : userType;
   const { data: items, isLoading } = trpc.merch.getPublicItems.useQuery(
-    { userId, userType },
+    { userId, userType: queryUserType as 'artist' | 'venue' },
     { enabled: !!userId }
   );
 
@@ -29,7 +32,8 @@ export function MerchDisplay({ userId, userType }: MerchDisplayProps) {
     return null; // Don't show section if no items
   }
 
-  const label = userType === 'venue' ? 'Shop & Offers' : 'Merch';
+  const isAthlete = userType === 'athlete' || talentType === 'athlete';
+  const label = userType === 'venue' ? 'Shop & Offers' : isAthlete ? 'Official Merch' : 'Merch';
 
   return (
     <div className="space-y-4">
@@ -66,7 +70,7 @@ export function MerchDisplay({ userId, userType }: MerchDisplayProps) {
                   className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-black hover:bg-white/90 gap-1.5 text-xs"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  Buy
+                  {isAthlete ? 'Pre-Order' : 'Buy'}
                 </Button>
               </div>
             </div>

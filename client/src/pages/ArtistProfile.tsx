@@ -157,6 +157,7 @@ export default function ArtistProfile() {
   const [bookingType, setBookingType] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<{url: string; title: string; category: string} | null>(null);
 
   const heroRef = useRef<HTMLDivElement>(null);
   
@@ -465,33 +466,43 @@ export default function ArtistProfile() {
                   
                   {/* Booking Type - shows athlete types for athletes, artist types for artists */}
                   <div>
-                    <Label htmlFor="bookingType" className="text-sm font-medium">Booking Type</Label>
+                    <Label htmlFor="bookingType" className="text-sm font-medium">Booking Type *</Label>
                     <select
                       id="bookingType"
                       className="flex h-11 sm:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base sm:text-sm"
                       value={bookingType}
                       onChange={(e) => setBookingType(e.target.value)}
+                      required
                     >
                       <option value="">Select type...</option>
                       {(artist as any).talentType === 'athlete' ? (
                         <>
-                          <option value="appearance">Appearance / Meet & Greet</option>
-                          <option value="autograph_signing">Autograph Signing</option>
-                          <option value="speaking">Speaking Engagement</option>
-                          <option value="camp_clinic">Camp / Clinic</option>
-                          <option value="brand_endorsement">Brand Endorsement</option>
+                          <option value="appearance">🤝 Appearance / Meet & Greet</option>
+                          <option value="autograph_signing">✍️ Autograph Signing</option>
+                          <option value="speaking">🎤 Speaking Engagement</option>
+                          <option value="camp_clinic">🏕️ Camp / Clinic</option>
+                          <option value="brand_endorsement">💼 Brand Endorsement / NIL Deal</option>
                         </>
                       ) : (
                         <>
-                          <option value="performance">Live Performance</option>
-                          <option value="dj_set">DJ Set</option>
-                          <option value="private_event">Private Event</option>
-                          <option value="festival">Festival</option>
-                          <option value="corporate">Corporate Event</option>
-                          <option value="appearance">Appearance / Meet & Greet</option>
+                          <option value="performance">🎵 Live Performance</option>
+                          <option value="dj_set">🎧 DJ Set</option>
+                          <option value="private_event">🎉 Private Event</option>
+                          <option value="festival">🎪 Festival</option>
+                          <option value="corporate">🏢 Corporate Event</option>
+                          <option value="appearance">🤝 Appearance / Meet & Greet</option>
                         </>
                       )}
                     </select>
+                    {bookingType && (artist as any).talentType === 'athlete' && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {bookingType === 'appearance' && 'Public events, meet & greets, store openings, charity events'}
+                        {bookingType === 'autograph_signing' && 'Dedicated signing sessions — include expected item count in details'}
+                        {bookingType === 'speaking' && 'Keynotes, panels, motivational talks, school visits'}
+                        {bookingType === 'camp_clinic' && 'Sports camps, training clinics, youth programs — include age group & skill level'}
+                        {bookingType === 'brand_endorsement' && 'NIL deals, social media posts, product endorsements, brand partnerships'}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -586,7 +597,15 @@ export default function ArtistProfile() {
                       id="eventDetails"
                       value={eventDetails}
                       onChange={(e) => setEventDetails(e.target.value)}
-                      placeholder="Tell the artist about your event..."
+                      placeholder={
+                        (artist as any).talentType === 'athlete'
+                          ? bookingType === 'autograph_signing' ? 'Describe the event, expected attendance, items to sign (jerseys, photos, etc.)...'
+                          : bookingType === 'camp_clinic' ? 'Describe the camp: age group, skill level, number of participants, equipment available...'
+                          : bookingType === 'brand_endorsement' ? 'Describe the brand deal: deliverables, timeline, usage rights, platforms...'
+                          : bookingType === 'speaking' ? 'Describe the event: topic, audience size, format (keynote/panel/Q&A)...'
+                          : 'Tell us about your event, expected attendance, and any special requirements...'
+                        : 'Tell the artist about your event...'
+                      }
                       rows={4}
                     />
                   </div>
@@ -771,24 +790,45 @@ export default function ArtistProfile() {
                   <div className="flex items-center gap-2">
                     <Video className="h-5 w-5 text-primary" />
                     <CardTitle>{(artist as any).talentType === 'athlete' ? 'Highlight Clips' : 'Video Portfolio'}</CardTitle>
+                    <span className="text-xs text-muted-foreground">({(videoPortfolio as any[]).length} clips)</span>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {(videoPortfolio as any[]).map((video: any) => (
-                      <div key={video.id} className="rounded-lg overflow-hidden border">
+                      <div
+                        key={video.id}
+                        className="rounded-lg overflow-hidden border cursor-pointer group hover:ring-2 hover:ring-primary/50 transition-all"
+                        onClick={() => setActiveVideo({ url: video.videoUrl, title: video.title, category: video.category })}
+                      >
                         <div className="relative bg-black aspect-video">
-                          <video
-                            src={video.videoUrl}
-                            controls
-                            preload="metadata"
-                            className="w-full h-full object-contain"
-                            poster={video.thumbnailUrl || undefined}
-                          />
+                          {video.thumbnailUrl ? (
+                            <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <video
+                              src={video.videoUrl}
+                              preload="metadata"
+                              className="w-full h-full object-cover pointer-events-none"
+                            />
+                          )}
+                          {/* Play button overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                              <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                          </div>
+                          {/* Duration badge */}
+                          {video.duration && (
+                            <span className="absolute bottom-1 right-1 text-[10px] bg-black/70 text-white px-1 py-0.5 rounded">
+                              {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}
+                            </span>
+                          )}
                         </div>
-                        <div className="p-2 flex items-center gap-2">
-                          <span className="text-sm font-medium truncate flex-1">{video.title}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">
+                        <div className="p-2">
+                          <p className="text-xs font-medium truncate">{video.title}</p>
+                          <span className="text-[10px] text-muted-foreground capitalize">
                             {(video.category || '').replace('_', ' ')}
                           </span>
                         </div>
@@ -797,6 +837,45 @@ export default function ArtistProfile() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Video Modal Player */}
+            {activeVideo && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                onClick={() => setActiveVideo(null)}
+              >
+                <div
+                  className="relative w-full max-w-4xl mx-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={() => setActiveVideo(null)}
+                    className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+                  >
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  {/* Video player */}
+                  <div className="rounded-lg overflow-hidden bg-black aspect-video">
+                    <video
+                      src={activeVideo.url}
+                      controls
+                      autoPlay
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  {/* Video info */}
+                  <div className="mt-3 flex items-center gap-2">
+                    <h3 className="text-white font-medium text-lg">{activeVideo.title}</h3>
+                    <span className="text-xs px-2 py-0.5 rounded bg-white/20 text-white/80 capitalize">
+                      {(activeVideo.category || '').replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Media Gallery */}
@@ -1052,7 +1131,7 @@ export default function ArtistProfile() {
 
             {/* Merch Section */}
             {artist && (
-              <MerchDisplay userId={artist.userId} userType="artist" />
+              <MerchDisplay userId={artist.userId} userType={(artist as any).talentType === 'athlete' ? 'athlete' : 'artist'} talentType={(artist as any).talentType} />
             )}
 
             {/* Reviews Section */}
