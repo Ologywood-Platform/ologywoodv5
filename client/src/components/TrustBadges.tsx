@@ -33,8 +33,8 @@ export function TrustBadges() {
     },
     {
       icon: CheckCircle,
-    title: 'Dedicated Support',
-    description: 'AI-powered chat support plus our team Mon-Fri, 9 AM - 6 PM EST for complex questions.',
+      title: 'Dedicated Support',
+      description: 'AI-powered chat support plus our team Mon-Fri, 9 AM - 6 PM EST for complex questions.',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
     },

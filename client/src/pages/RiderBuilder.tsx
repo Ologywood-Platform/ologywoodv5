@@ -46,6 +46,8 @@ import {
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { HelperNote } from '@/components/HelperNote';
 import { HelperNotesToggle } from '@/components/HelperNotesToggle';
+import { ContractFormProgress, FieldValidationMessage, NILComplianceChecklist } from '@/components/ContractFormValidation';
+import { useContractValidation } from '@/hooks/useContractValidation';
 
 // ============= TYPE DEFINITIONS =============
 
@@ -148,6 +150,7 @@ export default function RiderBuilder() {
   const [templateToDelete, setTemplateToDelete] = useState<number | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [attempted, setAttempted] = useState(false);
+  const contractValidation = useContractValidation(selectedTemplateType);
 
   // Fetch artist profile to determine talent type
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
@@ -268,6 +271,9 @@ export default function RiderBuilder() {
   // Handle field changes
   const handleFieldChange = (fieldId: string, value: any) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    // Update contract validation state
+    contractValidation.updateField(fieldId, value);
+    contractValidation.touchField(fieldId);
     // Clear error for this field when user types
     if (fieldErrors[fieldId]) {
       setFieldErrors((prev) => {
@@ -480,12 +486,15 @@ export default function RiderBuilder() {
           placeholder={field.placeholder}
           className={error ? 'border-red-500' : ''}
         />
-        {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
+                {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
         {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
+        <FieldValidationMessage
+          error={!error ? contractValidation.getFieldError(field.id) : undefined}
+          warning={contractValidation.getFieldWarning(field.id)}
+        />
       </div>
     );
   };
-
   // ============= LOADING =============
 
   if (authLoading) {
@@ -657,6 +666,12 @@ export default function RiderBuilder() {
           <HelperNote size="sm" className="-mt-2">
             {templateStructure.description}
           </HelperNote>
+
+          {/* Form Progress & NIL Compliance */}
+          <ContractFormProgress validationState={contractValidation.validationState} />
+          {selectedTemplateType.startsWith('athlete_') && (
+            <NILComplianceChecklist formData={formData} />
+          )}
 
           {/* All sections in one flow */}
           {templateStructure.sections.map((section) => (

@@ -47,6 +47,7 @@ import { tipRouter } from "./routers/tip";
 import { promoteRouter } from "./routers/promote";
 import { fanClubRouter } from "./routers/fanClub";
 import { aiChatRouter } from "./routers/aiChat";
+import { contractAnalyzerRouter } from "./routers/contractAnalyzer";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -3648,5 +3649,6 @@ export const appRouter = router({
   promote: promoteRouter,
   fanClub: fanClubRouter,
   aiChat: aiChatRouter,
+  contractAnalyzer: contractAnalyzerRouter,
 });
 export type AppRouter = typeof appRouter;

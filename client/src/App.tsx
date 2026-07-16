@@ -10,6 +10,7 @@ import { RobotsMetaTag } from "./components/RobotsMetaTag";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { HelperNotesProvider } from "./contexts/HelperNotesContext";
 import { AIChatWidget } from "./components/AIChatWidget";
+import { OnboardingTour } from "./components/OnboardingTour";
 import OfflineBanner from "./components/OfflineBanner";
 import Footer from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -257,6 +258,7 @@ function App() {
           <RobotsMetaTag />
           <Router />
           <AIChatWidget />
+          <OnboardingTour />
           <CookieConsent />
         </TooltipProvider>
         </HelperNotesProvider>

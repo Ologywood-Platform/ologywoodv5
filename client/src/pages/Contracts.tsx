@@ -20,6 +20,7 @@ import {
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ContractAnalyzer } from "@/components/ContractAnalyzer";
 
 type ContractStatus = "pending" | "signed_by_artist" | "signed_by_venue" | "fully_signed";
 
@@ -358,7 +359,7 @@ export function Contracts() {
 
         {/* Filter Tabs */}
         <Tabs value={activeFilter} onValueChange={setActiveFilter} className="mb-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="all" className="text-xs sm:text-sm">
               All ({totalCount})
             </TabsTrigger>
@@ -368,11 +369,21 @@ export function Contracts() {
             <TabsTrigger value="pending" className="text-xs sm:text-sm">
               Pending ({pendingCount})
             </TabsTrigger>
+            <TabsTrigger value="analyzer" className="text-xs sm:text-sm">
+              AI Analyzer
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
+        {/* AI Contract Analyzer */}
+        {activeFilter === 'analyzer' && (
+          <div className="mb-6">
+            <ContractAnalyzer />
+          </div>
+        )}
+
         {/* Contract List */}
-        <div className="space-y-4">
+        {activeFilter !== 'analyzer' && <div className="space-y-4">
           {isLoading ? (
             <>
               <ContractSkeleton />
@@ -415,11 +426,10 @@ export function Contracts() {
                 onViewBooking={handleViewBooking}
               />
             ))
-          )}
-        </div>
+                    )}
+        </div>}
       </div>
     </div>
   );
 }
-
 export default Contracts;
