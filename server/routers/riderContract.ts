@@ -8,6 +8,7 @@ import { sendContractSigned, sendContractForSignature, sendRiderRevisionProposed
 import * as notif from "../services/notificationService";
 import crypto from "crypto";
 import { generateRiderPdf } from "../services/riderPdfService";
+import { buildContractDataFromBooking, generateNILContractHTML, NILContractData } from "../services/nilContractGenerator";
 
 export const riderContractRouter = router({
   /**
@@ -915,9 +916,126 @@ export const riderContractRouter = router({
         }
       }
 
-      // Also update the booking's totalFee field
+            // Also update the booking's totalFee field
       await db.updateBooking(input.bookingId, { totalFee: input.performanceFee.toString() });
-
       return { success: true, performanceFee: input.performanceFee };
+    }),
+
+  /**
+   * Generate a full NIL Engagement Contract from booking + rider data
+   */
+  generateNILContract: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Verify user is involved
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      // Get rider template data if available
+      let riderData: Record<string, any> = {};
+      if (booking.riderTemplateId) {
+        const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+        if (riderTemplate) {
+          riderData = typeof riderTemplate.templateData === "string"
+            ? JSON.parse(riderTemplate.templateData)
+            : riderTemplate.templateData || {};
+        }
+      }
+
+      // Get the artist profile for the booking (may be different from current user)
+      let bookingArtistProfile = artistProfile;
+      if (!isArtist && booking.artistId) {
+        // Current user is venue, get the artist's profile
+        bookingArtistProfile = await db.getArtistProfileById(booking.artistId);
+      }
+
+      // Build contract data
+      const contractData = buildContractDataFromBooking({
+        booking,
+        riderData,
+        artistProfile: bookingArtistProfile,
+        venueProfile,
+        bookingType: booking.bookingType || undefined,
+      });
+
+      // Generate HTML
+      const html = generateNILContractHTML(contractData);
+
+      return {
+        html,
+        contractData,
+        contractId: contractData.contractId,
+      };
+    }),
+
+  /**
+   * Download NIL contract as PDF
+   */
+  downloadNILContractPdf: protectedProcedure
+    .input(z.object({ bookingId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+
+      // Verify user is involved
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+      if (!isArtist && !isVenue) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+      }
+
+      // Get rider template data
+      let riderData: Record<string, any> = {};
+      if (booking.riderTemplateId) {
+        const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
+        if (riderTemplate) {
+          riderData = typeof riderTemplate.templateData === "string"
+            ? JSON.parse(riderTemplate.templateData)
+            : riderTemplate.templateData || {};
+        }
+      }
+
+      let bookingArtistProfile = artistProfile;
+      if (!isArtist && booking.artistId) {
+        bookingArtistProfile = await db.getArtistProfileById(booking.artistId);
+      }
+
+      const contractData = buildContractDataFromBooking({
+        booking,
+        riderData,
+        artistProfile: bookingArtistProfile,
+        venueProfile,
+        bookingType: booking.bookingType || undefined,
+      });
+
+      const html = generateNILContractHTML(contractData);
+
+      // Generate PDF using existing service
+      const pdfBuffer = await generateRiderPdf({
+        templateId: 'nil_contract',
+        data: { ...riderData, _nilContractHtml: html },
+        signatures: [],
+        contractStatus: 'pending',
+        customHtml: html,
+      });
+
+      const base64 = pdfBuffer.toString('base64');
+      const filename = `nil-contract-${contractData.parties.athlete.name}-${contractData.engagement.title}.pdf`
+        .toLowerCase().replace(/[^a-z0-9.-]/g, '-');
+      return { pdf: base64, filename };
     }),
 });

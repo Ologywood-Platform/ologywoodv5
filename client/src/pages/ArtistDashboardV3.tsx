@@ -1051,13 +1051,21 @@ function BookingRequestCard({ booking }: { booking: any }) {
         </div>
       )}
 
-      {/* View Details Link */}
-      <button
-        className="text-[10px] text-primary hover:underline"
-        onClick={() => navigate(`/booking/${booking.id}`)}
-      >
-        View Full Details →
-      </button>
+      {/* View Details / Contract Links */}
+      <div className="flex items-center gap-3">
+        <button
+          className="text-[10px] text-primary hover:underline"
+          onClick={() => navigate(`/booking/${booking.id}`)}
+        >
+          View Full Details →
+        </button>
+        <button
+          className="text-[10px] text-purple-600 hover:underline"
+          onClick={() => navigate(`/booking/${booking.id}`)}
+        >
+          📜 Generate Contract
+        </button>
+      </div>
     </div>
   );
 }

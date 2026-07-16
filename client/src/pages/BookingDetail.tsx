@@ -15,6 +15,7 @@ import TestModeBadge from '@/components/TestModeBadge';
 import { RiderContractSigning } from '@/components/RiderContractSigning';
 import { RiderAttach } from '@/components/RiderAttach';
 import { RiderRevisionPanel } from '@/components/RiderRevisionPanel';
+import { NILContractViewer } from '@/components/NILContractViewer';
 import { VenueContractSection } from '@/components/VenueContractSection';
 import { Star } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -358,6 +359,12 @@ export default function BookingDetail() {
               contractStatus={booking.riderStatus === 'signed' ? 'fully_signed' : undefined}
             />
           )}
+
+          {/* NIL Engagement Contract */}
+          <NILContractViewer
+            bookingId={bookingId}
+            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+          />
 
           {/* Venue Agreement / Contract */}
           <VenueContractSection

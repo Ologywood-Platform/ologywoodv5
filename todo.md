@@ -3643,3 +3643,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Connect paywall "Subscribe to Unlock" button to tier checkout modal (Stripe)
 - [x] Add reply functionality to Fan Club comments (athlete can respond to individual comments)
 - [x] Update athlete booking dashboard: review requests, see budget, accept/decline/counter offers
+
+## RIDER CONTRACT DOCUMENT GENERATOR (Jul 16, 2026)
+- [x] Build server-side contract HTML template with all sections (athlete info, appearance details, compensation, travel, security, equipment, media rights, NIL compliance, cancellation, signatures)
+- [x] Create contract generation API endpoint that auto-fills from booking + rider template data
+- [x] Build contract preview UI component (full-page professional document view)
+- [x] Integrate with existing e-signature system (both parties sign via existing RiderContractSigning)
+- [x] Add "Generate Contract" button on booking detail page + dashboard
+- [x] Add contract status tracking (uses existing rider contract status system)
+- [x] Add PDF download option for contracts
