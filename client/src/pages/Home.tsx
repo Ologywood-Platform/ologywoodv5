@@ -5,6 +5,7 @@ import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Tick
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
