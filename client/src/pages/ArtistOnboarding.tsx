@@ -535,6 +535,12 @@ export default function ArtistOnboarding() {
                 <p className="text-sm text-muted-foreground mb-6">
                   Tell us about your sport and accomplishments. This helps brands and event organizers find you.
                 </p>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-amber-800">
+                    <strong>NIL Compliance Notice:</strong> You are responsible for ensuring your use of OlogyWood complies with applicable NCAA, NAIA, conference, institutional, and state-level NIL regulations. Consult your compliance office or a qualified attorney before entering into NIL agreements.{' '}
+                    <a href="/disclaimer" className="text-purple-600 hover:underline">Learn more</a>
+                  </p>
+                </div>
               </div>
 
               <div>

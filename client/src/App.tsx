@@ -84,6 +84,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const Accessibility = lazy(() => import("./pages/Accessibility"));
 const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
+const Disclaimer = lazy(() => import("./pages/Disclaimer"));
 const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
@@ -240,6 +241,7 @@ function Router() {
           <Route path="/cookies" component={Cookies} />
           <Route path="/accessibility" component={Accessibility} />
           <Route path="/dmca" component={DMCAPolicy} />
+          <Route path="/disclaimer" component={Disclaimer} />
           <Route path="/sell-music" component={SellMusic} />
           <Route path="/promote" component={Promote} />
           <Route path="/blog" component={Blog} />

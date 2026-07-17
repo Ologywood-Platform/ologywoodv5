@@ -336,6 +336,10 @@ export default function OlogyLiveExperience() {
                 ? "Book Free Session"
                 : `Book & Pay $${exp.price}`}
           </Button>
+          <p className="text-xs text-muted-foreground text-center mt-3">
+            Session content is provided by the host and does not constitute professional advice. OlogyWood is not responsible for session content or outcomes.{' '}
+            <a href="/disclaimer" className="text-purple-600 hover:underline">View Disclaimer</a>
+          </p>
         </CardContent>
       </Card>
     </div>

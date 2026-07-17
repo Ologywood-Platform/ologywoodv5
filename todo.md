@@ -4013,3 +4013,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Implement share options (copy link, Twitter/X, Facebook)
 - [x] Fix Featured Artists section: filter out users whose talentType is not 'artist' (Amare showing as Athlete in artist section)
 - [x] Add "Explore All Talent" link/button below Featured Artists carousel on Homepage linking to /browse
+
+## PLATFORM DISCLAIMER & LEGAL COVERAGE (Jul 17, 2026)
+- [x] Create /disclaimer page with full platform disclaimer copy
+- [x] Create /terms page with Terms of Use copy (already existed, kept existing comprehensive version)
+- [x] Add Disclaimer and Terms links to footer
+- [x] Add age requirement (18+) notice to sign-up flow
+- [x] Add booking disclaimer notice before confirming a booking
+- [x] Add Ology Live session disclaimer before joining
+- [x] Add NIL compliance notice for athletes

@@ -63,6 +63,7 @@ const Footer = () => {
       links: [
         { label: 'Terms of Service', path: '/terms-of-service' },
         { label: 'Privacy Policy', path: '/privacy-policy' },
+        { label: 'Disclaimer', path: '/disclaimer' },
         { label: 'Cookie Policy', path: '/cookies' },
         { label: 'DMCA Policy', path: '/dmca' },
       ],
@@ -243,12 +244,15 @@ const Footer = () => {
             <p>&copy; {currentYear} Ologywood™. All rights reserved.</p>
           </div>
           
-          <div className="flex gap-6 text-sm">
+          <div className="flex flex-wrap gap-4 sm:gap-6 text-sm">
             <Link to="/terms-of-service" className="text-gray-400 hover:text-white transition">
               Terms
             </Link>
             <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition">
               Privacy
+            </Link>
+            <Link to="/disclaimer" className="text-gray-400 hover:text-white transition">
+              Disclaimer
             </Link>
             <Link to="/cookies" className="text-gray-400 hover:text-white transition">
               Cookies

@@ -607,6 +607,10 @@ export default function ClientBooking() {
                   </>
                 )}
               </button>
+              <p className="text-xs text-gray-500 text-center mt-3">
+                By submitting this booking request, you acknowledge that OlogyWood facilitates but is not a party to agreements between you and the talent.{' '}
+                <a href="/disclaimer" className="text-purple-600 hover:underline">View Disclaimer</a>
+              </p>
             </div>
           </div>
         )}

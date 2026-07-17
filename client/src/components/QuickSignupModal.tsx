@@ -522,10 +522,11 @@ export function QuickSignupModal({
                 </Button>
 
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                  By signing up, you agree to our{' '}
-                  <a href="/terms" className="text-purple-600 hover:underline dark:text-purple-400">Terms of Service</a>
-                  {' '}and{' '}
-                  <a href="/privacy" className="text-purple-600 hover:underline dark:text-purple-400">Privacy Policy</a>
+                  By signing up, you confirm you are at least 18 years old and agree to our{' '}
+                  <a href="/terms" className="text-purple-600 hover:underline dark:text-purple-400">Terms of Service</a>,{' '}
+                  <a href="/privacy" className="text-purple-600 hover:underline dark:text-purple-400">Privacy Policy</a>,{' '}
+                  and{' '}
+                  <a href="/disclaimer" className="text-purple-600 hover:underline dark:text-purple-400">Disclaimer</a>.
                 </p>
               </form>
             </TabsContent>
