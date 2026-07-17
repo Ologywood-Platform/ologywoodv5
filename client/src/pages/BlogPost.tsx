@@ -117,9 +117,12 @@ export default function BlogPost() {
 
       <article className="max-w-3xl mx-auto px-4 py-10 w-full">
         {/* Back Link */}
-        <Link href="/blog" className="inline-flex items-center gap-1 text-sm text-purple-600 hover:underline mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back to Blog
-        </Link>
+        <button
+          onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/blog'}
+          className="inline-flex items-center gap-1 text-sm text-purple-600 hover:underline mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
 
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 mb-4">

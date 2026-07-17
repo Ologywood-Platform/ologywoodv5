@@ -3955,3 +3955,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Reorganize Browse page: move Talent/Venues/Events tabs to top, then category chips, then search bar
 - [x] Genre filter should only show when searching for music artists (not athletes, creators, etc.)
 - [x] Fix empty state text to be dynamic based on selected category (not always "Search for Artists")
+- [x] Add back button to Events page (history.back with Home fallback)
+- [x] Add back button to Ology Live page (history.back with Home fallback)
+- [x] Add back button to Blog listing page (history.back with Home fallback)
+- [x] Add back button to Blog single post page (history.back with /blog fallback)
+- [x] Add back button to Sponsors page (history.back with Home fallback)

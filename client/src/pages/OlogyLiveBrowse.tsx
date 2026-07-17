@@ -6,7 +6,7 @@ import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import {
   Video, Clock, DollarSign, Users, Calendar, Search, Zap,
-  Gamepad2, Music, Dumbbell, MessageCircle, Camera, Film, Palette, Briefcase, Star
+  Gamepad2, Music, Dumbbell, MessageCircle, Camera, Film, Palette, Briefcase, Star, ArrowLeft
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -64,6 +64,15 @@ export default function OlogyLiveBrowse() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
+      {/* Back Button */}
+      <button
+        onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </button>
+
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-4xl font-bold flex items-center justify-center gap-3">

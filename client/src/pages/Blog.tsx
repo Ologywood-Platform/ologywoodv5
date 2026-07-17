@@ -3,7 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Calendar, Tag, ChevronRight, BookOpen } from "lucide-react";
+import { Calendar, Tag, ChevronRight, BookOpen, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import SiteHeader from "@/components/SiteHeader";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
@@ -60,6 +60,17 @@ export default function Blog() {
   return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
+
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-4">
+        <button
+          onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+      </div>
 
       {/* Hero */}
       <section className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-14 px-4">

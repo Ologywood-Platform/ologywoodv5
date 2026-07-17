@@ -174,13 +174,11 @@ export default function EventDiscovery() {
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Back to Dashboard */}
-        {isAuthenticated && (
-          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2 mb-4">
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Button>
-        )}
+        {/* Back Button */}
+        <Button variant="ghost" size="sm" onClick={() => window.history.length > 1 ? window.history.back() : navigate('/')} className="gap-2 mb-4">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         {/* Search and Filters */}
         <Card className="mb-6">
           <CardHeader>

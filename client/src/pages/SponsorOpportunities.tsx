@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { DollarSign, MapPin, Package, Users, X, Send, Search, ArrowUpDown, Upload, Image, FileText, Loader2 } from 'lucide-react';
+import { DollarSign, MapPin, Package, Users, X, Send, Search, ArrowUpDown, Upload, Image, FileText, Loader2, ArrowLeft } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 
 type PackageType = "title_sponsor" | "stage_sponsor" | "bar_sponsor" | "digital_signage" | "event_mention" | "custom";
@@ -207,6 +207,15 @@ export default function SponsorOpportunities() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/'}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Sponsor Opportunities</h1>
