@@ -13,6 +13,7 @@ import { useParams, useLocation } from 'wouter';
 import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/SkeletonLoader';
 import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { MerchDisplay } from '@/components/MerchDisplay';
+import { FollowVenueButton } from '@/components/FollowVenueButton';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
@@ -246,9 +247,15 @@ export default function VenueProfile() {
               </div>
             )}
 
-            {/* Contact Venue Button */}
+            {/* Follow & Contact Venue */}
             {!isVenueOwner && (
-              <div className="mt-4 pt-4 border-t">
+              <div className="mt-4 pt-4 border-t space-y-3">
+                <FollowVenueButton
+                  venueUserId={venueProfile.userId}
+                  venueName={venueProfile.organizationName || 'Venue'}
+                  size="default"
+                  showCount={true}
+                />
                 {user ? (
                   <Button onClick={() => setContactModalOpen(true)} className="w-full sm:w-auto gap-2">
                     <MessageSquare className="h-4 w-4" />

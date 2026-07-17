@@ -3960,3 +3960,34 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add back button to Blog listing page (history.back with Home fallback)
 - [x] Add back button to Blog single post page (history.back with /blog fallback)
 - [x] Add back button to Sponsors page (history.back with Home fallback)
+
+## UX OBSERVATION PDF FIXES (Jul 17, 2026) — CPO/UX Architect Review
+
+### Tier 1: Responsive Modal & Overflow (Observp5)
+- [x] Fix "Report an Issue" screen not fully displayed on mobile (modal sizing/overflow)
+- [x] Fix "Describe the Issue" screen not fully displayed on mobile
+- [x] Fix "Issue Reported" confirmation modal text not fully visible
+- [x] Fix textarea in "What Happened?" expanding horizontally instead of wrapping
+- [x] Fix venue review "Overall Rating" stars cut off screen on mobile
+
+### Tier 2: Progressive Disclosure / Empty States (Observp3, Observp7, Observp8)
+- [x] Portfolio: hide "+ Add Performance" button when no items exist; show only "Add Your First Performance" CTA
+- [x] Merch: hide "+ Add Item" button when no items exist; show only "Add Your First Item" CTA
+- [x] Projects: hide "+ New Project" button when no items exist; show only "Create Your First Project" CTA
+
+### Tier 3: Modal Cancel/Reset Behavior (Observp4)
+- [x] Portfolio "Add Past Performance" modal: reset all fields when Cancel or X is clicked
+
+### Tier 4: Feature Parity — Follow Venue (Observp2)
+- [x] Add "Follow Venue" button on venue profile detail page (matching artist follow behavior)
+- [x] Wire venue follow to favorites/notifications system
+
+### Tier 5: Flow Completion (Observp6)
+- [x] After submitting venue review, show success state with rating confirmation inline
+
+### Tier 6: Copy/Grammar (Observp1)
+- [x] Fix grammar: add period at end of Featured Artists description sentence
+- [x] Add helper text showing photo upload limit in portfolio performance section ("X/5" counter + "Up to 5 photos per performance")
+
+### Tier 7: Notification Panel (Observp1)
+- [x] Fix notification panel not showing complete message on mobile (full-width + dvh-based height)

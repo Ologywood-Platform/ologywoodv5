@@ -88,8 +88,27 @@ export function AddPerformanceForm({ onSuccess, trigger, prefill }: AddPerforman
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const resetFields = () => {
+    setFormData({
+      eventName: prefill?.eventName || '',
+      eventDate: prefill?.eventDate || '',
+      venueName: prefill?.venueName || '',
+      location: prefill?.location || '',
+      attendeeCount: prefill?.attendeeCount?.toString() || '',
+      notes: '',
+    });
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      // Reset form when dialog closes (Cancel, X, or overlay click)
+      resetFields();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="gap-2">
@@ -103,7 +122,7 @@ export function AddPerformanceForm({ onSuccess, trigger, prefill }: AddPerforman
           <DialogHeader>
             <DialogTitle>Add Past Performance</DialogTitle>
             <DialogDescription>
-              Log a past event to build your portfolio. You can add photos after creating the entry.
+              Log a past event to build your portfolio. You can add up to 5 photos after creating the entry.
             </DialogDescription>
           </DialogHeader>
 
@@ -176,7 +195,7 @@ export function AddPerformanceForm({ onSuccess, trigger, prefill }: AddPerforman
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={createHistory.isPending}>

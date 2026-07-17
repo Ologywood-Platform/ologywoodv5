@@ -123,7 +123,8 @@ export default function ReportIssueDialog({ bookingId, onDisputeFiled }: ReportI
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Please describe the issue in detail. Include dates, specifics, and any relevant context..."
-                  className="mt-1.5 min-h-[120px]"
+                  className="mt-1.5 min-h-[120px] max-h-[200px] resize-none break-words overflow-wrap-anywhere"
+                  style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {description.length < 20

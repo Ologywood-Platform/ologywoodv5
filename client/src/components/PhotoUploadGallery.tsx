@@ -172,7 +172,7 @@ export function PhotoUploadGallery({ eventHistoryId, isOwner }: PhotoUploadGalle
               ) : (
                 <>
                   <ImagePlus className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Add Photo</span>
+                  <span className="text-xs text-muted-foreground">{photos.length}/5</span>
                 </>
               )}
             </div>
@@ -191,7 +191,7 @@ export function PhotoUploadGallery({ eventHistoryId, isOwner }: PhotoUploadGalle
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div className="text-center">
                 <p className="text-sm font-medium">Upload Performance Photos</p>
-                <p className="text-xs text-muted-foreground mt-1">JPG, PNG, or WebP up to 10 MB</p>
+                <p className="text-xs text-muted-foreground mt-1">JPG, PNG, or WebP up to 10 MB each. Up to 5 photos per performance.</p>
               </div>
             </>
           )}

@@ -202,22 +202,24 @@ export function MerchManager({ userType }: MerchManagerProps) {
               : 'Showcase your merchandise. Links open your external store — you keep 100%.'}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {limitInfo && (
-            <Badge variant="secondary" className="text-xs">
-              {limitInfo.currentCount}/{limitInfo.maxItems} items
-            </Badge>
-          )}
-          <Button
-            onClick={() => { resetForm(); setShowAddDialog(true); }}
-            disabled={limitInfo ? !limitInfo.canAdd : false}
-            className="gap-2 bg-purple-600 hover:bg-purple-700"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            Add Item
-          </Button>
-        </div>
+        {items && items.length > 0 && (
+          <div className="flex items-center gap-3">
+            {limitInfo && (
+              <Badge variant="secondary" className="text-xs">
+                {limitInfo.currentCount}/{limitInfo.maxItems} items
+              </Badge>
+            )}
+            <Button
+              onClick={() => { resetForm(); setShowAddDialog(true); }}
+              disabled={limitInfo ? !limitInfo.canAdd : false}
+              className="gap-2 bg-purple-600 hover:bg-purple-700"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              Add Item
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Limit warning */}

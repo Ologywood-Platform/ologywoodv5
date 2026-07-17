@@ -268,22 +268,24 @@ export function ProjectPreviewManager() {
             Showcase upcoming albums, EPs, and mixtapes with audio snippets.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {limitInfo && (
-            <Badge variant="secondary" className="text-xs">
-              {limitInfo.currentCount}/{limitInfo.maxProjects} projects
-            </Badge>
-          )}
-          <Button
-            onClick={() => { resetProjectForm(); setShowProjectDialog(true); }}
-            disabled={limitInfo ? !limitInfo.canAdd : false}
-            className="gap-2 bg-purple-600 hover:bg-purple-700"
-            size="sm"
-          >
-            <Plus className="h-4 w-4" />
-            New Project
-          </Button>
-        </div>
+        {projects && projects.length > 0 && (
+          <div className="flex items-center gap-3">
+            {limitInfo && (
+              <Badge variant="secondary" className="text-xs">
+                {limitInfo.currentCount}/{limitInfo.maxProjects} projects
+              </Badge>
+            )}
+            <Button
+              onClick={() => { resetProjectForm(); setShowProjectDialog(true); }}
+              disabled={limitInfo ? !limitInfo.canAdd : false}
+              className="gap-2 bg-purple-600 hover:bg-purple-700"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              New Project
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Limit warning */}

@@ -146,7 +146,7 @@ export default function ArtistHistory() {
                 : `Past events and performances by ${artist?.artistName || "this artist"}`}
             </p>
           </div>
-          {isOwner && (
+          {isOwner && history.length > 0 && (
             <AddPerformanceForm onSuccess={() => refetchHistory()} />
           )}
         </div>

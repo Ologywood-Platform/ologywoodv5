@@ -62,7 +62,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Featured Artists</h2>
             <p className="text-sm sm:text-base text-muted-foreground mt-2">
-              Discover talented performers ready to book for your events
+              Discover talented performers ready to book for your events.
             </p>
           </div>
           <Link href="/browse">

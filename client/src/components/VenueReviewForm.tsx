@@ -57,16 +57,39 @@ export function VenueReviewForm({ bookingId, venueId, venueName, onReviewSubmitt
     paymentTimeliness: 0,
   });
   const [reviewText, setReviewText] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
   const createReviewMutation = trpc.venueReview.create.useMutation({
     onSuccess: () => {
       toast.success('Venue review submitted successfully!');
+      setSubmitted(true);
       onReviewSubmitted();
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to submit review');
     },
   });
+
+  if (submitted) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={`w-6 h-6 ${
+                  star <= overallRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          <h3 className="font-semibold text-lg mb-1">Thank you for your review!</h3>
+          <p className="text-sm text-muted-foreground">Your feedback helps other artists make informed decisions.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleCategoryChange = (key: string, value: number) => {
     const updated = { ...categoryRatings, [key]: value };
@@ -110,28 +133,32 @@ export function VenueReviewForm({ bookingId, venueId, venueName, onReviewSubmitt
           {/* Category Ratings */}
           <div className="space-y-3">
             {CATEGORIES.map((cat) => (
-              <div key={cat.key} className="flex items-center justify-between gap-4">
+              <div key={cat.key} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{cat.label}</p>
                   <p className="text-xs text-muted-foreground">{cat.description}</p>
                 </div>
-                <StarRating
-                  value={categoryRatings[cat.key]}
-                  onChange={(v) => handleCategoryChange(cat.key, v)}
-                  size="sm"
-                />
+                <div className="shrink-0">
+                  <StarRating
+                    value={categoryRatings[cat.key]}
+                    onChange={(v) => handleCategoryChange(cat.key, v)}
+                    size="sm"
+                  />
+                </div>
               </div>
             ))}
           </div>
 
           {/* Divider */}
           <div className="border-t pt-4">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
               <div>
                 <p className="font-medium">Overall Rating</p>
                 <p className="text-xs text-muted-foreground">Auto-calculated or set manually</p>
               </div>
-              <StarRating value={overallRating} onChange={setOverallRating} />
+              <div className="shrink-0">
+                <StarRating value={overallRating} onChange={setOverallRating} />
+              </div>
             </div>
           </div>
 
@@ -146,6 +173,8 @@ export function VenueReviewForm({ bookingId, venueId, venueName, onReviewSubmitt
               placeholder="Share your experience working with this venue..."
               rows={3}
               maxLength={1000}
+              className="resize-none break-words"
+              style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
             />
             <p className="text-xs text-muted-foreground mt-1">
               {reviewText.length}/1000 characters
