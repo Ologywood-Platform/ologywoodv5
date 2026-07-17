@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Star } from 'lucide-react';
+import { Star, Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VenueReviewFormProps {
@@ -70,6 +70,26 @@ export function VenueReviewForm({ bookingId, venueId, venueName, onReviewSubmitt
     },
   });
 
+  const [copied, setCopied] = useState(false);
+
+  const shareText = `I just reviewed ${venueName} on Ologywood — ${overallRating}/5 stars!`;
+  const shareUrl = `${window.location.origin}/venue/${venueId}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handleShareX = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+  };
+
+  const handleShareFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
+  };
+
   if (submitted) {
     return (
       <Card>
@@ -85,7 +105,44 @@ export function VenueReviewForm({ bookingId, venueId, venueName, onReviewSubmitt
             ))}
           </div>
           <h3 className="font-semibold text-lg mb-1">Thank you for your review!</h3>
-          <p className="text-sm text-muted-foreground">Your feedback helps other artists make informed decisions.</p>
+          <p className="text-sm text-muted-foreground mb-4">Your feedback helps other artists make informed decisions.</p>
+
+          {/* Share Review */}
+          <div className="border-t pt-4 mt-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-center gap-1.5">
+              <Share2 className="w-4 h-4" />
+              Share your review
+            </p>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareX}
+                className="gap-1.5 min-h-[36px]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Post on X
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareFacebook}
+                className="gap-1.5 min-h-[36px]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Share on Facebook
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyLink}
+                className="gap-1.5 min-h-[36px]"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Copy Link'}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );

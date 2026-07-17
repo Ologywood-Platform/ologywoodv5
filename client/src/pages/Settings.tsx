@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User, DollarSign, CreditCard } from "lucide-react";
+import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User, DollarSign, CreditCard, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailPreferencesCenter } from "@/components/EmailPreferencesCenter";
+import { FollowsManagement } from "@/components/FollowsManagement";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { trpc } from "@/lib/trpc";
 
@@ -403,6 +404,26 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <NotificationPreferencesSection />
+            </CardContent>
+          </Card>
+
+          {/* Following Management */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center">
+                  <Heart className="h-5 w-5 text-pink-600" />
+                </div>
+                <div>
+                  <CardTitle>Following</CardTitle>
+                  <CardDescription>
+                    View, search, and manage the artists and venues you follow
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <FollowsManagement />
             </CardContent>
           </Card>
 

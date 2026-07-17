@@ -134,11 +134,11 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
   return (
     <>
       {/* Spacer to prevent content from being hidden behind nav */}
-      <div className="h-16 sm:hidden" />
+      <div className="h-20 sm:hidden" />
 
       {/* Bottom Navigation - Mobile Only */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t sm:hidden z-50 safe-area-bottom">
-        <div className="grid grid-cols-5 h-14">
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t sm:hidden z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="grid grid-cols-5 h-[56px] min-h-[56px]">
           {navItems.map((item) => {
             const active = isActive(item);
             return (
@@ -160,7 +160,7 @@ export function MobileBottomNav({ mode = 'public' }: { mode?: NavMode }) {
                     navigate(item.path);
                   }
                 }}
-                className={`flex flex-col items-center justify-center gap-0.5 transition-colors relative ${
+                className={`flex flex-col items-center justify-center gap-0.5 transition-colors relative min-h-[44px] min-w-[44px] ${
                   active
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'

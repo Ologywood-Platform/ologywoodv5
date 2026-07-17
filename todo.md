@@ -3991,3 +3991,23 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ### Tier 7: Notification Panel (Observp1)
 - [x] Fix notification panel not showing complete message on mobile (full-width + dvh-based height)
+
+## MOBILE UX + FOLLOWS MANAGEMENT + REVIEW SHARE (Jul 17, 2026)
+
+### Mobile Touch Targets, Padding & Safe Areas
+- [x] Audit and fix SiteHeader mobile nav touch targets (min 44px height/width)
+- [x] Audit and fix mobile bottom navigation padding and safe areas (env(safe-area-inset-bottom))
+- [x] Fix profile page action buttons touch targets on mobile (min 44px)
+- [x] Ensure consistent padding (16px minimum) on mobile profile pages
+- [x] Add safe-area-inset padding to fixed/sticky elements (header, bottom nav)
+
+### Unified Follows Management Tab (User Settings)
+- [x] Create FollowsManagement component with tabs for Artists and Venues
+- [x] Add search/filter functionality within follows list
+- [x] Add unfollow action with confirmation for each followed item
+- [x] Integrate FollowsManagement into user settings/account page
+- [x] Show follower count and last activity for each followed entity
+
+### VenueReviewForm Social Share Enhancement
+- [x] Add "Share Review" button to VenueReviewForm success state
+- [x] Implement share options (copy link, Twitter/X, Facebook)

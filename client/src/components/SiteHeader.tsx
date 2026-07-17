@@ -108,7 +108,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
   return (
     <>
-      <div className="sticky top-0 z-50">
+      <div className="sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <EarlyAccessBanner />
       <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 transition-colors duration-200" ref={menuRef}>
         <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
@@ -292,7 +292,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
             {isAuthenticated && <RealtimeNotifications />}
             <DarkModeToggle compact />
             <button
-              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
@@ -308,47 +308,47 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
 
         {/* Mobile Dropdown Menu */}
         {mobileOpen && (
-          <nav className="md:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-1 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors">
+          <nav className="md:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-0.5 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors max-h-[80dvh] overflow-y-auto">
             {extraNav}
 
             <Link href="/browse" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/browse' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/browse' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Browse
               </Button>
             </Link>
 
             <Link href="/events" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/events' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/events' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Events
               </Button>
             </Link>
 
             <Link href="/ology-live" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Ology Live
               </Button>
             </Link>
 
             <Link href="/blog" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/blog' || location.startsWith('/blog/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/blog' || location.startsWith('/blog/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Blog
               </Button>
             </Link>
 
             <Link href="/sponsor-opportunities" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/sponsor-opportunities' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/sponsor-opportunities' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Sponsors
               </Button>
             </Link>
 
             <Link href="/pricing" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/pricing' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/pricing' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 Pricing
               </Button>
             </Link>
 
             <Link href="/faq" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm ${location === '/faq' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/faq' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
                 FAQ
               </Button>
             </Link>
@@ -359,7 +359,7 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                   <Button
                     variant={isFollowingPage ? 'default' : 'ghost'}
                     size="sm"
-                    className={`w-full justify-start text-sm gap-2 ${
+                    className={`w-full justify-start text-sm gap-2 min-h-[44px] ${
                       isFollowingPage
                         ? 'bg-purple-600 hover:bg-purple-700 text-white'
                         : 'dark:text-gray-300 dark:hover:text-white'
@@ -371,35 +371,35 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                 </Link>
 
                 <Link href={getDashboardUrl(user)} onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
                     <LayoutDashboard className="h-4 w-4" />
                     {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
                   </Button>
                 </Link>
 
                 <Link href="/my-bookings" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
                     <CalendarCheck className="h-4 w-4" />
                     My Bookings
                   </Button>
                 </Link>
 
                 <Link href="/my-purchases" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
                     <ShoppingBag className="h-4 w-4" />
                     My Purchases
                   </Button>
                 </Link>
 
                 <Link href="/my-music" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
                     <Music className="h-4 w-4" />
                     My Music Player
                   </Button>
                 </Link>
 
                 <Link href="/disputes" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
                     <AlertTriangle className="h-4 w-4" />
                     My Disputes
                   </Button>
