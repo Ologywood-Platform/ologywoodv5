@@ -145,8 +145,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Artists Carousel - Show all artists, not filtered by search */}
-      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
+      {/* Featured Artists Carousel - Only show talent with type 'artist' (not athletes, creators, etc.) */}
+      <FeaturedArtistsCarousel artists={(artists || []).filter((a: any) => !a.talentType || a.talentType === 'artist')} isLoading={isLoading} />
 
       {/* Featured Venues Carousel */}
       <FeaturedVenuesCarousel venues={featuredVenues || []} isLoading={venuesLoading} />

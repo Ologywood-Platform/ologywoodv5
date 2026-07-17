@@ -4011,3 +4011,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ### VenueReviewForm Social Share Enhancement
 - [x] Add "Share Review" button to VenueReviewForm success state
 - [x] Implement share options (copy link, Twitter/X, Facebook)
+- [x] Fix Featured Artists section: filter out users whose talentType is not 'artist' (Amare showing as Athlete in artist section)
