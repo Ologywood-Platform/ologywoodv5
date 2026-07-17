@@ -3951,3 +3951,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Write and publish blog post about the full Ology Live experience
 - [x] Add prominent 'Start Hosting' CTA button to Ology Live section on Homepage
 - [x] Add prominent 'Start Hosting' CTA button to Ology Live step on How It Works page
+- [x] Fix search placeholder to dynamically change based on selected category tab (All→"Search talent...", Athletes→"Search athletes...", etc.)
