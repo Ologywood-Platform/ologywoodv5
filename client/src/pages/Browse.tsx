@@ -347,74 +347,16 @@ export default function Browse() {
       <PullIndicator />
 
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        {/* Search Bar + Filter Toggle */}
-        <div className="mb-4 sm:mb-6">
-          <div className="flex gap-2 sm:gap-3">
-            <ClearableInput
-              placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'athlete' ? 'Search athletes...' : talentTypeFilter === 'creator' ? 'Search creators...' : talentTypeFilter === 'entertainer' ? 'Search entertainers...' : talentTypeFilter === 'influencer' ? 'Search influencers...' : talentTypeFilter === 'artist' ? 'Search artists...' : 'Search talent...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClear={() => setSearchQuery("")}
-              leftIcon={<Search className="h-4 w-4" />}
-              className="text-xs sm:text-sm"
-              wrapperClassName="flex-1"
-            />
-            {activeTab !== 'venues' && (
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                size="sm"
-                className="gap-1.5 shrink-0"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="hidden sm:inline">Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="bg-primary-foreground text-primary text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-            )}
-            {(searchQuery || activeFilterCount > 0) && activeTab !== 'venues' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 shrink-0 text-muted-foreground"
-                onClick={handleResetAll}
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className="hidden sm:inline">Reset</span>
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Tabs for Artists/Events/Venues */}
+        {/* Tabs for Artists/Events/Venues - at the top */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'artists' | 'events' | 'venues')} className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-sm mb-4 sm:mb-6">
             <TabsTrigger value="artists">Talent</TabsTrigger>
             <TabsTrigger value="venues">Venues</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
-          
-          {/* Artists Tab */}
-          <TabsContent value="artists" className="mt-0">
-            {/* Collapsible Filters */}
-            {showFilters && (
-              <SearchFilters filterType="artists" onFilterChange={(newFilters) => {
-                setFilters(newFilters);
-                setHasAppliedFilters(true);
-                // Keep filter panel open so user can refine (UX consistency)
-                // Scroll to results count so user sees "X artists found" first
-                setTimeout(() => {
-                  if (resultsRef.current) {
-                    resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }, 100);
-              }} />
-            )}
 
-            {/* Talent Type Filter Chips */}
+          {/* Talent Type Filter Chips - below tabs, above search (only on Talent tab) */}
+          {activeTab === 'artists' && (
             <div className="flex flex-wrap gap-2 mb-4">
               {[
                 { value: 'all', label: 'All' },
@@ -448,6 +390,66 @@ export default function Browse() {
                 CRM Supporters
               </button>
             </div>
+          )}
+
+          {/* Search Bar + Filter Toggle */}
+          <div className="mb-4 sm:mb-6">
+            <div className="flex gap-2 sm:gap-3">
+              <ClearableInput
+                placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'athlete' ? 'Search athletes...' : talentTypeFilter === 'creator' ? 'Search creators...' : talentTypeFilter === 'entertainer' ? 'Search entertainers...' : talentTypeFilter === 'influencer' ? 'Search influencers...' : talentTypeFilter === 'artist' ? 'Search artists...' : 'Search talent...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery("")}
+                leftIcon={<Search className="h-4 w-4" />}
+                className="text-xs sm:text-sm"
+                wrapperClassName="flex-1"
+              />
+              {activeTab !== 'venues' && (
+                <Button
+                  variant={showFilters ? "default" : "outline"}
+                  size="sm"
+                  className="gap-1.5 shrink-0"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span className="hidden sm:inline">Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="bg-primary-foreground text-primary text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              )}
+              {(searchQuery || activeFilterCount > 0) && activeTab !== 'venues' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 shrink-0 text-muted-foreground"
+                  onClick={handleResetAll}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Reset</span>
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {/* Artists Tab */}
+          <TabsContent value="artists" className="mt-0">
+            {/* Collapsible Filters */}
+            {showFilters && (
+              <SearchFilters filterType="artists" talentType={talentTypeFilter} onFilterChange={(newFilters) => {
+                setFilters(newFilters);
+                setHasAppliedFilters(true);
+                // Keep filter panel open so user can refine (UX consistency)
+                // Scroll to results count so user sees "X artists found" first
+                setTimeout(() => {
+                  if (resultsRef.current) {
+                    resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              }} />
+            )}
 
             {/* Results Count */}
             {(hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
@@ -580,9 +582,16 @@ export default function Browse() {
             {!hasAppliedFilters && searchQuery.length === 0 && (
               <div className="text-center py-16">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Search for Artists</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {talentTypeFilter === 'athlete' ? 'Search for Athletes' : talentTypeFilter === 'creator' ? 'Search for Creators' : talentTypeFilter === 'entertainer' ? 'Search for Entertainers' : talentTypeFilter === 'influencer' ? 'Search for Influencers' : talentTypeFilter === 'artist' ? 'Search for Artists' : 'Search for Talent'}
+                </h3>
                 <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                  Use the search bar above or open Filters to find artists by genre, location, availability, and more.
+                  {talentTypeFilter === 'artist' || talentTypeFilter === 'all'
+                    ? 'Use the search bar above or open Filters to find talent by genre, location, availability, and more.'
+                    : talentTypeFilter === 'athlete'
+                    ? 'Use the search bar above or open Filters to find athletes by sport, location, and availability.'
+                    : `Use the search bar above or open Filters to find ${talentTypeFilter}s by location, availability, and more.`
+                  }
                 </p>
               </div>
             )}

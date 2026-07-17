@@ -3952,3 +3952,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add prominent 'Start Hosting' CTA button to Ology Live section on Homepage
 - [x] Add prominent 'Start Hosting' CTA button to Ology Live step on How It Works page
 - [x] Fix search placeholder to dynamically change based on selected category tab (All→"Search talent...", Athletes→"Search athletes...", etc.)
+- [x] Reorganize Browse page: move Talent/Venues/Events tabs to top, then category chips, then search bar
+- [x] Genre filter should only show when searching for music artists (not athletes, creators, etc.)
+- [x] Fix empty state text to be dynamic based on selected category (not always "Search for Artists")

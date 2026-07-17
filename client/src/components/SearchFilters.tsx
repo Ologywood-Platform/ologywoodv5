@@ -9,6 +9,7 @@ import { ClearableInput } from '@/components/ui/clearable-input';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
+  talentType?: string;
   onFilterChange: (filters: {
     genre?: string[];
     location?: string;
@@ -38,8 +39,9 @@ const EVENT_TYPES = [
 ];
 
 
-export function SearchFilters({ filterType = 'artists', onFilterChange }: SearchFiltersProps) {
+export function SearchFilters({ filterType = 'artists', talentType = 'all', onFilterChange }: SearchFiltersProps) {
   const isArtistFilter = filterType === 'artists';
+  const showGenreFilter = isArtistFilter && (talentType === 'all' || talentType === 'artist');
   
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
@@ -295,8 +297,8 @@ export function SearchFilters({ filterType = 'artists', onFilterChange }: Search
         </div>
         )}
 
-        {/* Genre Filter (Artists Only) */}
-        {isArtistFilter && (
+        {/* Genre Filter (Music Artists Only) */}
+        {showGenreFilter && (
         <div className="space-y-3">
           <Label>Genres</Label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
