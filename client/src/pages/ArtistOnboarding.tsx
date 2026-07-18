@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
@@ -372,21 +373,50 @@ export default function ArtistOnboarding() {
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-fade-in">
-              {/* Creator Bill of Rights Summary */}
-              <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground">Our Creator-First Promise</h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      At OlogyWood®, you own your work, control your brand, earn fairly, and build your community — on your terms.
-                    </p>
-                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-1 inline-block">
-                      Read our Creator Bill of Rights →
+              {/* Creator Bill of Rights Accordion */}
+              <Collapsible>
+                <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-4">
+                  <CollapsibleTrigger className="w-full">
+                    <div className="flex items-center gap-3">
+                      <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                      <div className="flex-1 text-left">
+                        <h4 className="font-semibold text-sm text-foreground">Our Creator-First Promise</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          You own your work, control your brand, earn fairly, and build your community — on your terms.
+                        </p>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3 pt-3 border-t border-primary/10">
+                    <ul className="space-y-2 text-xs text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <span><strong className="text-foreground">Ownership:</strong> Your content, your IP — always.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <span><strong className="text-foreground">Fair Earnings:</strong> Transparent pricing, no hidden fees.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <span><strong className="text-foreground">Brand Control:</strong> You decide how you're represented.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <span><strong className="text-foreground">Community:</strong> Direct fan relationships you own.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <span><strong className="text-foreground">Safety:</strong> Verified community with zero tolerance for abuse.</span>
+                      </li>
+                    </ul>
+                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-3 inline-block">
+                      Read the full Creator Bill of Rights →
                     </Link>
-                  </div>
+                  </CollapsibleContent>
                 </div>
-              </div>
+              </Collapsible>
 
               <div>
                 <h3 className="text-lg font-semibold mb-4">Basic Information</h3>

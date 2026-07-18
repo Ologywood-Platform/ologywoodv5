@@ -25,6 +25,7 @@ import { MerchDisplay } from "@/components/MerchDisplay";
 import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2, Flag } from "lucide-react";
+import { ReportContentModal } from "@/components/ReportContentModal";
 import { TipQRSection } from "@/components/TipQRCode";
 import { FanClubSection } from "@/components/FanClubSection";
 
@@ -158,6 +159,7 @@ export default function ArtistProfile() {
   const [bookingType, setBookingType] = useState("");
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState<{url: string; title: string; category: string} | null>(null);
 
   const heroRef = useRef<HTMLDivElement>(null);
@@ -754,12 +756,15 @@ export default function ArtistProfile() {
                 </span>
 
                 {user?.id !== artist.userId && (
-                  <Link href="/community-guidelines#reporting">
-                    <Button variant="ghost" size="lg" className="gap-2 text-muted-foreground hover:text-destructive">
-                      <Flag className="w-4 h-4" />
-                      <span className="hidden sm:inline">Report</span>
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="gap-2 text-muted-foreground hover:text-destructive"
+                    onClick={() => setReportOpen(true)}
+                  >
+                    <Flag className="w-4 h-4" />
+                    <span className="hidden sm:inline">Report</span>
+                  </Button>
                 )}
               </div>
             </div>
@@ -1624,6 +1629,16 @@ export default function ArtistProfile() {
         defaultTab="signup"
         actionType="general"
       />
+
+      {/* Report Content Modal */}
+      {artist && (
+        <ReportContentModal
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          contentType="profile"
+          contentName={artist.artistName}
+        />
+      )}
 
     </div>
   );

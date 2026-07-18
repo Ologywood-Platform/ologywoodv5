@@ -4038,3 +4038,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Report Content" button to artist profile pages linking to Community Guidelines
 - [x] Add "Report Content" button to venue profile pages linking to Community Guidelines
 - [x] Create Terms update consent banner/modal for returning users to acknowledge updated Terms
+
+## UX REFINEMENTS: REPORT MODAL, ACCORDION, REMIND LATER (Jul 18, 2026)
+- [x] Convert Report Content button to open a modal form with reason selection (not just a link)
+- [x] Convert Creator Bill of Rights summary card to expandable accordion in onboarding
+- [x] Add "Remind me later" option to Terms consent banner (24-hour dismiss via localStorage)

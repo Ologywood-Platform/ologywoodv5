@@ -14,6 +14,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/Skel
 import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { MerchDisplay } from '@/components/MerchDisplay';
 import { FollowVenueButton } from '@/components/FollowVenueButton';
+import { ReportContentModal } from '@/components/ReportContentModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
@@ -52,6 +53,7 @@ export default function VenueProfile() {
   const [galleryLightbox, setGalleryLightbox] = useState<number | null>(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
     inquiryType: 'booking' as 'booking' | 'general' | 'availability' | 'pricing',
     subject: '',
@@ -267,12 +269,15 @@ export default function VenueProfile() {
                     Log in to Contact Venue
                   </Button>
                 )}
-                <a href="/community-guidelines#reporting">
-                  <Button variant="ghost" size="sm" className="w-full sm:w-auto gap-2 text-muted-foreground hover:text-destructive">
-                    <Flag className="h-4 w-4" />
-                    Report Content
-                  </Button>
-                </a>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full sm:w-auto gap-2 text-muted-foreground hover:text-destructive"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <Flag className="h-4 w-4" />
+                  Report Content
+                </Button>
               </div>
             )}
           </CardContent>
@@ -780,6 +785,15 @@ export default function VenueProfile() {
         </div>
       )}
 
+      {/* Report Content Modal */}
+      {venueProfile && (
+        <ReportContentModal
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          contentType="venue"
+          contentName={venueProfile.organizationName || 'Venue'}
+        />
+      )}
 
     </div>
   );
