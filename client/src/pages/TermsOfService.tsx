@@ -582,6 +582,31 @@ export default function TermsOfService() {
             </p>
           </section>
 
+          {/* 25A. Artificial Intelligence Policy */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">25A. Artificial Intelligence (AI) Policy</h2>
+            <p className="text-base leading-relaxed">
+              OlogyWood may use artificial intelligence to assist creators and users by generating biographies, event descriptions, marketing copy, SEO metadata, suggested tags, captions, and recommendations. AI-generated content is provided as a starting point and should be reviewed by the creator before publication.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              Users remain solely responsible for ensuring they have the rights to any AI-assisted content they publish on the Platform. OlogyWood does not guarantee the accuracy, originality, or legal compliance of AI-generated suggestions. AI features are tools to support creativity — not replacements for human judgment.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              OlogyWood does not use AI to make automated decisions regarding account suspension, payment holds, or content removal without human review.
+            </p>
+          </section>
+
+          {/* 25B. Creator Bill of Rights */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">25B. Creator Bill of Rights</h2>
+            <p className="text-base leading-relaxed">
+              OlogyWood is committed to empowering creators. Our <Link href="/creator-rights" className="text-primary hover:underline">Creator Bill of Rights</Link> outlines the fundamental rights every creator has on our platform, including the right to own your work, control your brand, earn fairly, build your community, know the rules, protect your privacy, and access opportunity.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              The Creator Bill of Rights is a core part of our platform identity and informs how we build features, write policies, and make decisions.
+            </p>
+          </section>
+
           {/* 26. Contact Information */}
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">26. Contact Information</h2>

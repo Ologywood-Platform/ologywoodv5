@@ -64,6 +64,8 @@ const Footer = () => {
         { label: 'Terms of Service', path: '/terms-of-service' },
         { label: 'Privacy Policy', path: '/privacy-policy' },
         { label: 'Disclaimer', path: '/disclaimer' },
+        { label: 'Creator Bill of Rights', path: '/creator-rights' },
+        { label: 'Community Guidelines', path: '/community-guidelines' },
         { label: 'Cookie Policy', path: '/cookies' },
         { label: 'DMCA Policy', path: '/dmca' },
       ],
@@ -241,7 +243,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-400 text-sm">
-            <p>&copy; {currentYear} Ologywood™. All rights reserved.</p>
+            <p>&copy; {currentYear} OlogyWood®. All rights reserved.</p>
           </div>
           
           <div className="flex flex-wrap gap-4 sm:gap-6 text-sm">
@@ -259,6 +261,12 @@ const Footer = () => {
             </Link>
             <Link to="/dmca" className="text-gray-400 hover:text-white transition">
               DMCA
+            </Link>
+            <Link to="/creator-rights" className="text-gray-400 hover:text-white transition">
+              Creator Rights
+            </Link>
+            <Link to="/community-guidelines" className="text-gray-400 hover:text-white transition">
+              Guidelines
             </Link>
           </div>
 

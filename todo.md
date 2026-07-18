@@ -4022,3 +4022,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add booking disclaimer notice before confirming a booking
 - [x] Add Ology Live session disclaimer before joining
 - [x] Add NIL compliance notice for athletes
+
+## BRAND & IP PROTECTION IMPLEMENTATION (Jul 17, 2026)
+- [x] Create /creator-rights page (Creator Bill of Rights) with beautiful branded design
+- [x] Create /community-guidelines page with prohibited activities and enforcement
+- [x] Update footer trademark: "Ologywood™" → "OlogyWood®"
+- [x] Add AI Policy section to Terms of Service
+- [x] Add Creator Bill of Rights link to footer
+- [x] Add Community Guidelines link to footer
+- [x] Add routes for /creator-rights and /community-guidelines in App.tsx
+- [x] Reference Creator Bill of Rights in Terms of Service (Section 25B)

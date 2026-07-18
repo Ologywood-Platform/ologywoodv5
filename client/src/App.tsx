@@ -85,6 +85,8 @@ const Cookies = lazy(() => import("./pages/Cookies"));
 const Accessibility = lazy(() => import("./pages/Accessibility"));
 const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
 const Disclaimer = lazy(() => import("./pages/Disclaimer"));
+const CreatorRights = lazy(() => import("./pages/CreatorRights"));
+const CommunityGuidelines = lazy(() => import("./pages/CommunityGuidelines"));
 const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
@@ -242,6 +244,8 @@ function Router() {
           <Route path="/accessibility" component={Accessibility} />
           <Route path="/dmca" component={DMCAPolicy} />
           <Route path="/disclaimer" component={Disclaimer} />
+          <Route path="/creator-rights" component={CreatorRights} />
+          <Route path="/community-guidelines" component={CommunityGuidelines} />
           <Route path="/sell-music" component={SellMusic} />
           <Route path="/promote" component={Promote} />
           <Route path="/blog" component={Blog} />
