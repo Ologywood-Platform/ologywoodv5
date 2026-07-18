@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Flag, CheckCircle2, Loader2 } from 'lucide-react';
+import { Flag, CheckCircle2, Loader2, Ban } from 'lucide-react';
 import { Link } from 'wouter';
+import { toast } from 'sonner';
 
 const REPORT_REASONS = [
   { value: 'spam', label: 'Spam or misleading content' },
@@ -29,6 +30,8 @@ export function ReportContentModal({ open, onOpenChange, contentType, contentNam
   const [details, setDetails] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [blocking, setBlocking] = useState(false);
 
   const handleSubmit = async () => {
     if (!reason) return;
@@ -37,6 +40,20 @@ export function ReportContentModal({ open, onOpenChange, contentType, contentNam
     await new Promise(resolve => setTimeout(resolve, 800));
     setSubmitting(false);
     setSubmitted(true);
+    toast.success('Report submitted successfully', {
+      description: 'Our team will review your report within 24–48 hours.',
+    });
+  };
+
+  const handleBlock = async () => {
+    setBlocking(true);
+    // Simulate blocking (in production, this would call an API endpoint)
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setBlocking(false);
+    setBlocked(true);
+    toast.success(`${contentType === 'venue' ? 'Venue' : 'Profile'} blocked`, {
+      description: `You will no longer see content from ${contentName || 'this ' + contentType}.`,
+    });
   };
 
   const handleClose = () => {
@@ -46,6 +63,7 @@ export function ReportContentModal({ open, onOpenChange, contentType, contentNam
       setReason('');
       setDetails('');
       setSubmitted(false);
+      setBlocked(false);
     }, 300);
   };
 
@@ -65,9 +83,37 @@ export function ReportContentModal({ open, onOpenChange, contentType, contentNam
                 Community Guidelines
               </Link>
             </p>
-            <Button onClick={handleClose} className="mt-4">
-              Done
-            </Button>
+            <div className="flex flex-col gap-2 mt-5">
+              {!blocked && (
+                <Button
+                  onClick={handleBlock}
+                  variant="outline"
+                  className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                  disabled={blocking}
+                >
+                  {blocking ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Blocking...
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="h-4 w-4" />
+                      Block {contentType === 'venue' ? 'Venue' : 'Profile'}
+                    </>
+                  )}
+                </Button>
+              )}
+              {blocked && (
+                <p className="text-xs text-muted-foreground bg-muted rounded-md px-3 py-2">
+                  <Ban className="h-3.5 w-3.5 inline mr-1.5" />
+                  {contentName || 'This ' + contentType} has been blocked. You won't see their content anymore.
+                </p>
+              )}
+              <Button onClick={handleClose}>
+                Done
+              </Button>
+            </div>
           </div>
         ) : (
           <>

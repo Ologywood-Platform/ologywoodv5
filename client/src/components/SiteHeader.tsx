@@ -4,7 +4,7 @@ import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, Layout
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DarkModeToggle } from './DarkModeToggle';
 import { QuickSignupModal } from './QuickSignupModal';
 import RealtimeNotifications from './RealtimeNotifications';
@@ -53,6 +53,20 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('login');
+
+  // Check if Terms banner was temporarily dismissed (remind later)
+  const termsRemindLaterActive = useMemo(() => {
+    if (!isAuthenticated) return false;
+    const TERMS_VERSION = '2026-07-18';
+    const accepted = localStorage.getItem('ologywood_terms_accepted_version');
+    if (accepted === TERMS_VERSION) return false;
+    const remindLater = localStorage.getItem('ologywood_terms_remind_later');
+    if (remindLater) {
+      const dismissedAt = parseInt(remindLater, 10);
+      if (Date.now() - dismissedAt < 24 * 60 * 60 * 1000) return true;
+    }
+    return false;
+  }, [isAuthenticated]);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -185,11 +199,16 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                     className="text-sm px-3 gap-1 dark:text-gray-300 dark:hover:text-white"
                     onClick={() => setUserMenuOpen((v) => !v)}
                   >
-                    {((user as any)?.customAvatarUrl || (user as any)?.avatarUrl) ? (
-                      <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
-                    ) : (
-                      <User className="h-4 w-4" />
-                    )}
+                    <span className="relative">
+                      {((user as any)?.customAvatarUrl || (user as any)?.avatarUrl) ? (
+                        <img src={(user as any).customAvatarUrl || (user as any).avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <User className="h-4 w-4" />
+                      )}
+                      {termsRemindLaterActive && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-gray-900" title="Terms of Service update pending" />
+                      )}
+                    </span>
                     <span className="hidden lg:inline max-w-[120px] truncate">{shortName}</span>
                     <ChevronDown className={`h-3 w-3 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                   </Button>
@@ -254,6 +273,15 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
                             Manage Preferences
                           </button>
                         </Link>
+
+                        {termsRemindLaterActive && (
+                          <Link href="/terms-of-service" onClick={() => setUserMenuOpen(false)} className="block">
+                            <button className="w-full text-left px-4 py-2 text-xs hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
+                              Review updated Terms of Service
+                            </button>
+                          </Link>
+                        )}
 
                         {isInstallable && !isInstalled && (
                           <button

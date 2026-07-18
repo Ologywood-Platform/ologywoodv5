@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ export default function ArtistOnboarding() {
   const [, navigate] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
+  const [creatorRightsAcknowledged, setCreatorRightsAcknowledged] = useState(false);
 
   // Block unverified users from creating a profile
   useEffect(() => {
@@ -234,6 +235,10 @@ export default function ArtistOnboarding() {
         toast.error("Please enter your location — this helps venues find local talent");
         return;
       }
+      if (!creatorRightsAcknowledged) {
+        toast.error("Please acknowledge the Creator Bill of Rights to continue");
+        return;
+      }
     }
     if (currentStep === 2) {
       if (talentType === 'athlete') {
@@ -389,29 +394,45 @@ export default function ArtistOnboarding() {
                     </div>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-3 pt-3 border-t border-primary/10">
-                    <ul className="space-y-2 text-xs text-muted-foreground">
+                    <ul className="space-y-2.5 text-xs text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <Copyright className="h-3.5 w-3.5 text-purple-500 mt-0.5 flex-shrink-0" />
                         <span><strong className="text-foreground">Ownership:</strong> Your content, your IP — always.</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <DollarSign className="h-3.5 w-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
                         <span><strong className="text-foreground">Fair Earnings:</strong> Transparent pricing, no hidden fees.</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <Palette className="h-3.5 w-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
                         <span><strong className="text-foreground">Brand Control:</strong> You decide how you're represented.</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <Users className="h-3.5 w-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
                         <span><strong className="text-foreground">Community:</strong> Direct fan relationships you own.</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-green-500 mt-0.5 flex-shrink-0" />
                         <span><strong className="text-foreground">Safety:</strong> Verified community with zero tolerance for abuse.</span>
                       </li>
                     </ul>
-                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-3 inline-block">
+                    <div className="mt-3 pt-3 border-t border-primary/10">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={creatorRightsAcknowledged}
+                          onChange={(e) => setCreatorRightsAcknowledged(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          I acknowledge and agree to OlogyWood's{' '}
+                          <Link href="/creator-rights" className="text-primary hover:underline">Creator Bill of Rights</Link>{' '}
+                          and{' '}
+                          <Link href="/terms-of-service" className="text-primary hover:underline">Terms of Service</Link>.
+                        </span>
+                      </label>
+                    </div>
+                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-2 inline-block">
                       Read the full Creator Bill of Rights →
                     </Link>
                   </CollapsibleContent>

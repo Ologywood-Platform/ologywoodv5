@@ -4043,3 +4043,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Convert Report Content button to open a modal form with reason selection (not just a link)
 - [x] Convert Creator Bill of Rights summary card to expandable accordion in onboarding
 - [x] Add "Remind me later" option to Terms consent banner (24-hour dismiss via localStorage)
+
+## UX ENHANCEMENTS: ICONS, BLOCK, BADGE (Jul 18, 2026)
+- [x] Add custom icons to each Creator Bill of Rights accordion item (replace generic checkmarks)
+- [x] Add mandatory acknowledgment checkbox at bottom of Creator Rights accordion in onboarding
+- [x] Add success toast notification after submitting a report in ReportContentModal
+- [x] Add "Block Profile" button in ReportContentModal after submission
+- [x] Add warning badge to profile dropdown menu when Terms banner is temporarily dismissed
