@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2 } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield } from "lucide-react";
+import { Link } from "wouter";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
@@ -371,6 +372,22 @@ export default function ArtistOnboarding() {
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-fade-in">
+              {/* Creator Bill of Rights Summary */}
+              <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-sm text-foreground">Our Creator-First Promise</h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      At OlogyWood®, you own your work, control your brand, earn fairly, and build your community — on your terms.
+                    </p>
+                    <Link href="/creator-rights" className="text-xs text-primary hover:underline mt-1 inline-block">
+                      Read our Creator Bill of Rights →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
                 <p className="text-sm text-muted-foreground mb-6">

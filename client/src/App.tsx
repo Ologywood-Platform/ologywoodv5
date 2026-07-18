@@ -14,6 +14,7 @@ import { OnboardingTour } from "./components/OnboardingTour";
 import OfflineBanner from "./components/OfflineBanner";
 import Footer from "./components/Footer";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { TermsConsentBanner } from "./components/TermsConsentBanner";
 
 // ============================================
 // EAGERLY LOADED — Critical path pages
@@ -278,6 +279,7 @@ function App() {
           <AIChatWidget />
           <OnboardingTour />
           <CookieConsent />
+          <TermsConsentBanner />
         </TooltipProvider>
         </HelperNotesProvider>
       </ThemeProvider>

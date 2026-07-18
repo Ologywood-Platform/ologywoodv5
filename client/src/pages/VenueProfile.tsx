@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Handshake, ExternalLink as ExtLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check, MessageSquare, Send, Loader2, CalendarDays } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Users, Star, Wifi, Zap, Accessibility, ParkingCircle, Volume2, Music, Share2, X, ChevronLeft, ChevronRight, ImageIcon, Clock, UtensilsCrossed, TreePine, Truck, Shirt, Lightbulb, Check, MessageSquare, Send, Loader2, CalendarDays, Flag } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
@@ -267,6 +267,12 @@ export default function VenueProfile() {
                     Log in to Contact Venue
                   </Button>
                 )}
+                <a href="/community-guidelines#reporting">
+                  <Button variant="ghost" size="sm" className="w-full sm:w-auto gap-2 text-muted-foreground hover:text-destructive">
+                    <Flag className="h-4 w-4" />
+                    Report Content
+                  </Button>
+                </a>
               </div>
             )}
           </CardContent>

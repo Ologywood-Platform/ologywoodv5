@@ -4032,3 +4032,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Community Guidelines link to footer
 - [x] Add routes for /creator-rights and /community-guidelines in App.tsx
 - [x] Reference Creator Bill of Rights in Terms of Service (Section 25B)
+
+## CREATOR RIGHTS, REPORT CONTENT, TERMS CONSENT (Jul 18, 2026)
+- [x] Add Creator Bill of Rights summary card to artist registration/onboarding flow
+- [x] Add "Report Content" button to artist profile pages linking to Community Guidelines
+- [x] Add "Report Content" button to venue profile pages linking to Community Guidelines
+- [x] Create Terms update consent banner/modal for returning users to acknowledge updated Terms

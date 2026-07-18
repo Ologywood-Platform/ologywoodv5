@@ -24,7 +24,7 @@ import { ReviewSystem } from "@/components/ReviewSystem";
 import { MerchDisplay } from "@/components/MerchDisplay";
 import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
-import { Share2 } from "lucide-react";
+import { Share2, Flag } from "lucide-react";
 import { TipQRSection } from "@/components/TipQRCode";
 import { FanClubSection } from "@/components/FanClubSection";
 
@@ -752,6 +752,15 @@ export default function ArtistProfile() {
                   <Users className="w-3.5 h-3.5" />
                   <FollowerCount artistUserId={artist.userId || artistId} />
                 </span>
+
+                {user?.id !== artist.userId && (
+                  <Link href="/community-guidelines#reporting">
+                    <Button variant="ghost" size="lg" className="gap-2 text-muted-foreground hover:text-destructive">
+                      <Flag className="w-4 h-4" />
+                      <span className="hidden sm:inline">Report</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
