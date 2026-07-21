@@ -88,6 +88,7 @@ const DMCAPolicy = lazy(() => import("./pages/DMCAPolicy"));
 const Disclaimer = lazy(() => import("./pages/Disclaimer"));
 const CreatorRights = lazy(() => import("./pages/CreatorRights"));
 const CommunityGuidelines = lazy(() => import("./pages/CommunityGuidelines"));
+const About = lazy(() => import("./pages/About"));
 const SellMusic = lazy(() => import("./pages/SellMusic"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
@@ -247,6 +248,7 @@ function Router() {
           <Route path="/disclaimer" component={Disclaimer} />
           <Route path="/creator-rights" component={CreatorRights} />
           <Route path="/community-guidelines" component={CommunityGuidelines} />
+          <Route path="/about" component={About} />
           <Route path="/sell-music" component={SellMusic} />
           <Route path="/promote" component={Promote} />
           <Route path="/blog" component={Blog} />

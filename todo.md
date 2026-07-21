@@ -4050,3 +4050,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add success toast notification after submitting a report in ReportContentModal
 - [x] Add "Block Profile" button in ReportContentModal after submission
 - [x] Add warning badge to profile dropdown menu when Terms banner is temporarily dismissed
+
+## FOUNDERS PRINCIPLES IMPLEMENTATION (Jul 21, 2026)
+- [x] Create /about page with Mission Statement, Five Principles, and Future We Believe In
+- [x] Update Creator Bill of Rights page to match Chapter 13 exact 8 principles
+- [x] Add Five Principles branded section to Homepage
+- [x] Update mission statement across the platform
+- [x] Add About page route and footer link

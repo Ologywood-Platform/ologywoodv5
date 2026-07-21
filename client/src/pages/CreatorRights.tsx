@@ -1,58 +1,65 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Shield, Palette, DollarSign, Users, BookOpen, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Shield, Heart, Eye, Cpu, Handshake, Fingerprint, Users, Scale, Sparkles } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import { setMetaTags } from "@/utils/seoMeta";
 
 const rights = [
   {
-    icon: Palette,
-    title: "Own Your Work",
-    description: "You retain full ownership of the content you create and upload. Your music, videos, photography, artwork, merchandise designs, and all creative works remain yours. OlogyWood never claims ownership of your intellectual property.",
+    icon: Heart,
+    title: "Inherent Dignity",
+    description: "Every creator possesses inherent dignity that technology must respect.",
     color: "text-purple-600",
     bg: "bg-purple-50",
   },
   {
-    icon: Shield,
-    title: "Control Your Brand",
-    description: "You decide how your name, image, and likeness are presented. Your profile, your story, your identity — you control it all. No algorithm will misrepresent who you are or what you stand for.",
+    icon: Eye,
+    title: "Ownership, Transparency & Fairness",
+    description: "Ownership, transparency, and fairness are foundational — not optional.",
     color: "text-blue-600",
     bg: "bg-blue-50",
   },
   {
-    icon: DollarSign,
-    title: "Earn Fairly",
-    description: "You receive transparent earnings with clear platform fees. No hidden charges, no surprise deductions. You see exactly what you earn from bookings, merchandise, fan clubs, tips, and Ology Live sessions.",
+    icon: Cpu,
+    title: "AI That Amplifies",
+    description: "AI should amplify human creativity while preserving authorship, attribution, and consent.",
     color: "text-emerald-600",
     bg: "bg-emerald-50",
   },
   {
-    icon: Users,
-    title: "Build Your Community",
-    description: "Your fan relationships belong to you, not to changing algorithms. The connections you build with your audience through Fan Clubs, Ology Live, and direct engagement are yours to nurture and grow.",
+    icon: Handshake,
+    title: "Trust Through Openness",
+    description: "Trust grows through openness, accountability, and consistent ethical behavior.",
     color: "text-amber-600",
     bg: "bg-amber-50",
   },
   {
-    icon: BookOpen,
-    title: "Know the Rules",
-    description: "Policies are written clearly, applied consistently, and enforced fairly. No surprises, no arbitrary decisions. You deserve to understand exactly how the platform works and what's expected.",
+    icon: Fingerprint,
+    title: "Identity Protection",
+    description: "Professional identity and reputation are valuable assets that deserve protection.",
     color: "text-rose-600",
     bg: "bg-rose-50",
   },
   {
-    icon: Lock,
-    title: "Protect Your Privacy",
-    description: "Your personal information is handled securely and responsibly. Private messages stay private. Payment information is encrypted. Your analytics and business data are yours alone.",
+    icon: Users,
+    title: "Empowered Communities",
+    description: "Communities thrive when creators are empowered rather than controlled.",
     color: "text-indigo-600",
     bg: "bg-indigo-50",
   },
   {
-    icon: Sparkles,
-    title: "Access Opportunity",
-    description: "Every creator has the chance to grow through bookings, education, networking, and fan engagement. OlogyWood is built to create opportunity — not gatekeep it.",
+    icon: Scale,
+    title: "Rights & Responsibilities",
+    description: "Rights and responsibilities are inseparable.",
     color: "text-teal-600",
     bg: "bg-teal-50",
+  },
+  {
+    icon: Sparkles,
+    title: "Protect Those Who Build",
+    description: "The strongest platforms are those that consistently protect the people who make them possible.",
+    color: "text-violet-600",
+    bg: "bg-violet-50",
   },
 ];
 
@@ -94,10 +101,10 @@ export default function CreatorRights() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
               <Shield className="w-4 h-4 text-purple-300" />
-              <span className="text-sm font-medium text-purple-200">Our Promise to Creators</span>
+              <span className="text-sm font-medium text-purple-200">From the Founder's Blueprint</span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              The OlogyWood<br />Creator Bill of Rights
+              The OlogyWood<sup>®</sup><br />Creator Bill of Rights
             </h1>
             <p className="text-lg sm:text-xl text-purple-200 max-w-2xl mx-auto leading-relaxed">
               We believe creators deserve a platform built to serve them — not exploit them. These rights are the foundation of everything we build.
@@ -110,7 +117,7 @@ export default function CreatorRights() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <div className="text-center mb-16">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-            Every Creator on OlogyWood Has the Right To:
+            The 8 Principles
           </h2>
           <p className="text-gray-600 max-w-xl mx-auto">
             These aren't just words — they're commitments backed by how our platform is built, how our policies are written, and how we operate every day.
@@ -164,18 +171,15 @@ export default function CreatorRights() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-8 sm:p-12 text-center text-white">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Our Mission</h2>
-          <p className="text-lg sm:text-xl text-purple-100 max-w-2xl mx-auto leading-relaxed">
-            Empowering Talent. Building Communities. Creating Opportunity.
-          </p>
-          <p className="text-purple-200 mt-4 max-w-2xl mx-auto">
-            OlogyWood exists to provide creators, athletes, entertainers, and industry professionals with the tools needed to develop sustainable careers while fostering meaningful relationships with their fans and business partners.
+          <p className="text-lg sm:text-xl text-purple-100 max-w-3xl mx-auto leading-relaxed">
+            OlogyWood<sup>®</sup> exists to become the world's most trusted operating system for talent — empowering artists, athletes, entertainers, creators, venues, organizations, and communities with the infrastructure, relationships, and opportunities they need to build meaningful, sustainable careers and lasting legacies.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/get-started" className="inline-flex items-center justify-center px-6 py-3 bg-white text-purple-700 font-semibold rounded-lg hover:bg-purple-50 transition">
               Join OlogyWood
             </Link>
-            <Link href="/how-it-works" className="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition">
-              How It Works
+            <Link href="/about" className="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 transition">
+              Our Story
             </Link>
           </div>
         </div>

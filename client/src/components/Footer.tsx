@@ -28,6 +28,7 @@ const Footer = () => {
         { label: 'Browse Talent', path: '/browse' },
         { label: 'Events', path: '/events' },
         { label: 'Pricing', path: '/pricing' },
+        { label: 'Our Story', path: '/about' },
         { label: 'How It Works', path: '/how-it-works' },
         { label: 'Help Center', path: '/help' },
         { label: 'FAQ', path: '/faq' },

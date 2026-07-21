@@ -534,6 +534,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* The Five Principles */}
+      <section className="py-12 sm:py-16 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <span className="inline-block bg-white/10 text-purple-200 text-xs font-semibold px-3 py-1 rounded-full mb-4">THE FOUNDER'S BLUEPRINT</span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3">The Five Principles</h2>
+              <p className="text-sm sm:text-base text-purple-200 max-w-xl mx-auto">The values that guide every decision we make.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              {[
+                { title: "Opportunity", subtitle: "Before Popularity" },
+                { title: "People", subtitle: "Before Platforms" },
+                { title: "Community", subtitle: "Before Competition" },
+                { title: "Ownership", subtitle: "Before Dependency" },
+                { title: "Legacy", subtitle: "Before Virality" },
+              ].map((p, i) => (
+                <div key={i} className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                  <h3 className="text-white font-bold text-base sm:text-lg">{p.title}</h3>
+                  <p className="text-purple-200 text-xs sm:text-sm font-medium">{p.subtitle}</p>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Link href="/about" className="text-purple-200 hover:text-white text-sm font-medium transition-colors">
+                Read Our Full Story &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
         <div className="container mx-auto px-3 sm:px-4 text-center">
