@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -425,7 +426,7 @@ export function NILContractViewer({ bookingId, currentUserRole, contractStatus: 
                 </div>
                 <div
                   className="bg-white max-h-[600px] overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: contractData.html }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contractData.html) }}
                 />
               </div>
             ) : (

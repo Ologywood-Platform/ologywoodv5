@@ -16,6 +16,12 @@ import { ENV } from "../_core/env";
  */
 export async function creditExpirationHandler(req: Request, res: Response) {
   try {
+    // Auth: trust platform gateway — /api/scheduled/* is restricted to cron callers
+    const taskUid = req.headers['x-manus-cron-task-uid'] as string | undefined;
+    if (!taskUid) {
+      return res.status(403).json({ error: 'cron-only', message: 'Missing x-manus-cron-task-uid header' });
+    }
+
     const database = await getDb();
     if (!database) {
       return res.status(500).json({ error: "Database not available" });

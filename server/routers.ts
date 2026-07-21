@@ -1456,10 +1456,16 @@ export const appRouter = router({
         id: z.number(),
         status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.id);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        
+        // Ownership check: verify the booking belongs to this artist
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!artistProfile || booking.artistId !== artistProfile.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to update this booking' });
         }
         
         // If confirming, mark date as booked
@@ -1496,49 +1502,49 @@ export const appRouter = router({
         }
         
         // Send email notifications based on status change
-        const artistProfile = await db.getArtistProfileById(booking.artistId);
-        const venueProfile = await db.getVenueProfileById(booking.venueId);
+        const bookingArtistProfile = await db.getArtistProfileById(booking.artistId);
+        const bookingVenueProfile = await db.getVenueProfileById(booking.venueId);
         
-        if (artistProfile && venueProfile) {
-          const artistUser = await db.getUserById(artistProfile.userId);
-          const venueUser = await db.getUserById(venueProfile.userId);
+        if (bookingArtistProfile && bookingVenueProfile) {
+          const artistUser = await db.getUserById(bookingArtistProfile.userId);
+          const venueUser = await db.getUserById(bookingVenueProfile.userId);
           const eventDateStr = booking.eventDate instanceof Date 
             ? booking.eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
             : new Date(booking.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           
           if (input.status === 'confirmed') {
             // In-app notifications for confirmation
-            if (artistProfile.userId) {
-              notif.notifyBookingConfirmed({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id }).catch(() => {});
+            if (bookingArtistProfile.userId) {
+              notif.notifyBookingConfirmed({ recipientUserId: bookingArtistProfile.userId, otherPartyName: bookingVenueProfile.organizationName, bookingId: booking.id }).catch(() => {});
             }
-            if (venueProfile.userId) {
-              notif.notifyBookingConfirmed({ recipientUserId: venueProfile.userId, otherPartyName: artistProfile.artistName, bookingId: booking.id }).catch(() => {});
+            if (bookingVenueProfile.userId) {
+              notif.notifyBookingConfirmed({ recipientUserId: bookingVenueProfile.userId, otherPartyName: bookingArtistProfile.artistName, bookingId: booking.id }).catch(() => {});
             }
             // Send confirmation emails using new email service with preference checking
-            if (artistUser?.email && artistProfile.userId) {
+            if (artistUser?.email && bookingArtistProfile.userId) {
               await emailService.sendBookingConfirmationEmail(
-                artistProfile.userId,
+                bookingArtistProfile.userId,
                 artistUser.email,
                 {
-                  artistName: artistProfile.artistName,
-                  venueName: venueProfile.organizationName,
+                  artistName: bookingArtistProfile.artistName,
+                  venueName: bookingVenueProfile.organizationName,
                   eventDate: eventDateStr,
                   eventTime: booking.eventTime || 'TBD',
-                  eventLocation: venueProfile.location || 'TBD',
+                  eventLocation: bookingVenueProfile.location || 'TBD',
                   bookingId: booking.id,
                 }
               );
             }
-            if (venueUser?.email && venueProfile.userId) {
+            if (venueUser?.email && bookingVenueProfile.userId) {
               await emailService.sendBookingConfirmationEmail(
-                venueProfile.userId,
+                bookingVenueProfile.userId,
                 venueUser.email,
                 {
-                  artistName: artistProfile.artistName,
-                  venueName: venueProfile.organizationName,
+                  artistName: bookingArtistProfile.artistName,
+                  venueName: bookingVenueProfile.organizationName,
                   eventDate: eventDateStr,
                   eventTime: booking.eventTime || 'TBD',
-                  eventLocation: venueProfile.location || 'TBD',
+                  eventLocation: bookingVenueProfile.location || 'TBD',
                   bookingId: booking.id,
                 }
               );
@@ -1549,8 +1555,8 @@ export const appRouter = router({
             if (paymentTermsType !== 'flat_guarantee' && venueUser?.email) {
               email.sendSettlementReminderEmail({
                 venueEmail: venueUser.email,
-                venueName: venueProfile.organizationName,
-                artistName: artistProfile.artistName,
+                venueName: bookingVenueProfile.organizationName,
+                artistName: bookingArtistProfile.artistName,
                 eventDate: booking.eventDate instanceof Date ? booking.eventDate.toISOString() : booking.eventDate,
                 bookingId: booking.id,
                 paymentTermsType,
@@ -1560,26 +1566,26 @@ export const appRouter = router({
             }
           } else if (input.status === 'cancelled') {
             // In-app notifications for cancellation
-            if (artistProfile.userId) {
-              notif.notifyBookingCancelled({ recipientUserId: artistProfile.userId, otherPartyName: venueProfile.organizationName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
+            if (bookingArtistProfile.userId) {
+              notif.notifyBookingCancelled({ recipientUserId: bookingArtistProfile.userId, otherPartyName: bookingVenueProfile.organizationName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
             }
-            if (venueProfile.userId) {
-              notif.notifyBookingCancelled({ recipientUserId: venueProfile.userId, otherPartyName: artistProfile.artistName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
+            if (bookingVenueProfile.userId) {
+              notif.notifyBookingCancelled({ recipientUserId: bookingVenueProfile.userId, otherPartyName: bookingArtistProfile.artistName, bookingId: booking.id, cancelledBy: 'Artist' }).catch(() => {});
             }
             // Send cancellation emails to both parties
             if (artistUser?.email) {
               await email.sendBookingCancellationEmail({
                 recipientEmail: artistUser.email,
-                recipientName: artistProfile.artistName,
-                otherPartyName: venueProfile.organizationName,
+                recipientName: bookingArtistProfile.artistName,
+                otherPartyName: bookingVenueProfile.organizationName,
                 eventDate: eventDateStr,
               });
             }
             if (venueUser?.email) {
               await email.sendBookingCancellationEmail({
                 recipientEmail: venueUser.email,
-                recipientName: venueProfile.organizationName,
-                otherPartyName: artistProfile.artistName,
+                recipientName: bookingVenueProfile.organizationName,
+                otherPartyName: bookingArtistProfile.artistName,
                 eventDate: eventDateStr,
               });
             }
@@ -1983,7 +1989,20 @@ export const appRouter = router({
     // Get messages for a booking
     getForBooking: protectedProcedure
       .input(z.object({ bookingId: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Ownership check: verify user is a party to this booking
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtistParty = artistProfile && booking.artistId === artistProfile.id;
+        const isVenueParty = venueProfile && booking.venueId === venueProfile.id;
+        const isAdmin = ctx.user.role === 'admin';
+        if (!isArtistParty && !isVenueParty && !isAdmin) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this booking\'s messages' });
+        }
         return await db.getMessagesByBookingId(input.bookingId);
       }),
     
@@ -1992,9 +2011,21 @@ export const appRouter = router({
       .input(z.object({
         bookingId: z.number(),
         receiverId: z.number(),
-        messageText: z.string().min(1),
+        messageText: z.string().min(1).max(5000),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Ownership check: verify user is a party to this booking
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtistParty = artistProfile && booking.artistId === artistProfile.id;
+        const isVenueParty = venueProfile && booking.venueId === venueProfile.id;
+        if (!isArtistParty && !isVenueParty) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
+        }
         await db.createMessage({
           bookingId: input.bookingId,
           senderId: ctx.user.id,
@@ -2023,6 +2054,18 @@ export const appRouter = router({
         riderTemplateData: z.record(z.string(), z.any()),
       }))
       .mutation(async ({ ctx, input }) => {
+        // Ownership check: verify user is a party to this booking
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtistParty = artistProfile && booking.artistId === artistProfile.id;
+        const isVenueParty = venueProfile && booking.venueId === venueProfile.id;
+        if (!isArtistParty && !isVenueParty) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
+        }
         await db.createMessage({
           bookingId: input.bookingId,
           senderId: ctx.user.id,

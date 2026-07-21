@@ -22,9 +22,18 @@ function getClientIp(ctx: any): string {
 }
 
 // Validation schemas
+// Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number
+const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number');
+
+const BCRYPT_ROUNDS = 12;
+
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: passwordSchema,
   name: z.string().min(2, 'Name must be at least 2 characters'),
 });
 
@@ -181,7 +190,7 @@ export const authRouter = router({
         let userToLink = oauthUserToLink.length > 0 ? oauthUserToLink[0] : null;
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(input.password, 10);
+        const hashedPassword = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
 
         let newUser: any[];
         let newUserId: number;
@@ -275,7 +284,6 @@ export const authRouter = router({
           },
           message: 'Account created successfully. Please check your email to confirm your address.',
           requiresEmailVerification: true,
-          sessionToken,
           trial: trialStatus,
         };
       } catch (error) {
@@ -363,7 +371,6 @@ export const authRouter = router({
             emailVerified: user?.emailVerified ?? false,
           },
           message: 'Logged in successfully',
-          sessionToken,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
@@ -383,7 +390,7 @@ export const authRouter = router({
   setPassword: publicProcedure
     .input(z.object({
       email: z.string().email('Invalid email address'),
-      password: z.string().min(8, 'Password must be at least 8 characters'),
+      password: passwordSchema,
     }))
     .mutation(async ({ input, ctx }) => {
       // Rate limit: same as login
@@ -415,7 +422,7 @@ export const authRouter = router({
         }
 
         // Hash and store the new password
-        const hashedPassword = await bcrypt.hash(input.password, 10);
+        const hashedPassword = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
         await db.update(users).set({
           passwordHash: hashedPassword,
           loginMethod: 'email',
@@ -442,7 +449,6 @@ export const authRouter = router({
             role: user.role,
           },
           message: 'Password set successfully! You are now logged in.',
-          sessionToken,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
@@ -458,7 +464,7 @@ export const authRouter = router({
   changePassword: protectedProcedure
     .input(z.object({
       currentPassword: z.string().min(1, 'Current password is required'),
-      newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+      newPassword: passwordSchema,
     }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -490,7 +496,7 @@ export const authRouter = router({
         }
 
         // Hash and store new password
-        const hashedPassword = await bcrypt.hash(input.newPassword, 10);
+        const hashedPassword = await bcrypt.hash(input.newPassword, BCRYPT_ROUNDS);
         await db.update(users).set({
           passwordHash: hashedPassword,
         }).where(eq(users.id, userId));
@@ -513,7 +519,7 @@ export const authRouter = router({
   linkEmailPassword: protectedProcedure
     .input(z.object({
       email: z.string().email('Invalid email address'),
-      password: z.string().min(8, 'Password must be at least 8 characters'),
+      password: passwordSchema,
     }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -543,7 +549,7 @@ export const authRouter = router({
         }
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash(input.password, 10);
+        const hashedPassword = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
 
         // Update the user's email and password
         await db.update(users).set({
@@ -670,7 +676,7 @@ export const authRouter = router({
   resetPassword: publicProcedure
     .input(z.object({
       token: z.string().min(1, 'Token is required'),
-      newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+      newPassword: passwordSchema,
     }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -709,7 +715,7 @@ export const authRouter = router({
         const user = userResult[0];
 
         // Hash and store new password
-        const hashedPassword = await bcrypt.hash(input.newPassword, 10);
+        const hashedPassword = await bcrypt.hash(input.newPassword, BCRYPT_ROUNDS);
         await db.update(users).set({
           passwordHash: hashedPassword,
           loginMethod: 'email',
@@ -735,7 +741,6 @@ export const authRouter = router({
         return {
           success: true,
           message: 'Password reset successfully! You are now logged in.',
-          sessionToken,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sql, inArray } from "drizzle-orm";
 import { getDb } from "../db";
 import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles, stripeConnectAccounts, fanClubPostLikes, fanClubPostComments } from "../../drizzle/schema";
 import { stripe } from "../stripe";
@@ -428,13 +428,13 @@ export const fanClubRouter = router({
         postId: fanClubPostLikes.postId,
         count: sql<number>`COUNT(*)`,
       }).from(fanClubPostLikes)
-        .where(sql`${fanClubPostLikes.postId} IN (${sql.raw(input.postIds.join(','))})`)
+        .where(inArray(fanClubPostLikes.postId, input.postIds))
         .groupBy(fanClubPostLikes.postId);
 
       const userLikes = ctx.user ? await db.select({ postId: fanClubPostLikes.postId })
         .from(fanClubPostLikes)
         .where(and(
-          sql`${fanClubPostLikes.postId} IN (${sql.raw(input.postIds.join(','))})`,
+          inArray(fanClubPostLikes.postId, input.postIds),
           eq(fanClubPostLikes.userId, ctx.user.id)
         )) : [];
 

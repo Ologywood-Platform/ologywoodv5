@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { trpc } from '@/lib/trpc';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -346,7 +347,7 @@ export function RiderContractSigning({
             <div
               ref={previewRef}
               className="border rounded-lg p-4 bg-white max-h-[500px] overflow-y-auto"
-              dangerouslySetInnerHTML={{ __html: previewData.html }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewData.html) }}
             />
           </CardContent>
         </Card>
