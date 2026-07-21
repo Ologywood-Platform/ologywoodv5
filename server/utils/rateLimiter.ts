@@ -128,9 +128,15 @@ export const signupLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000,
 });
 
-/** Auth login: 10 attempts per 15 minutes */
+/** Auth login: 10 attempts per 15 minutes per IP */
 export const loginLimiter = new RateLimiter({
-  maxRequests: 20,
+  maxRequests: 10,
+  windowMs: 15 * 60 * 1000,
+});
+
+/** Auth login per-email: 5 attempts per 15 minutes (prevents credential stuffing on single account) */
+export const loginEmailLimiter = new RateLimiter({
+  maxRequests: 5,
   windowMs: 15 * 60 * 1000,
 });
 

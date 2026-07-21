@@ -92,8 +92,21 @@ export function QuickSignupModal({
       return;
     }
 
+    // Validate password meets all requirements
     if (signupData.password.length < 8) {
       toast.error('Password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(signupData.password)) {
+      toast.error('Password must contain at least one uppercase letter');
+      return;
+    }
+    if (!/[a-z]/.test(signupData.password)) {
+      toast.error('Password must contain at least one lowercase letter');
+      return;
+    }
+    if (!/[0-9]/.test(signupData.password)) {
+      toast.error('Password must contain at least one number');
       return;
     }
 
@@ -498,7 +511,6 @@ export function QuickSignupModal({
                     autoComplete="new-password"
                   />
                   <PasswordStrengthIndicator password={signupData.password} />
-                  <p className="text-xs text-muted-foreground">Min. 8 characters, include uppercase, lowercase, and a number</p>
                 </div>
 
                 <div className="space-y-2">

@@ -108,7 +108,7 @@ describe('Contact Venue Feature', () => {
 
     it('should validate subject and message before submission', () => {
       expect(venueProfileContent).toContain("toast.error('Please enter a subject')");
-      expect(venueProfileContent).toContain("toast.error('Message must be at least 10 characters')");
+      expect(venueProfileContent).toContain("toast.error('Please enter a message')");
     });
 
     it('should show loading state during submission', () => {

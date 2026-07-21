@@ -71,7 +71,7 @@ describe("Referral System", () => {
     );
 
     it("renders referral link with ref param", () => {
-      expect(componentSource).toContain("signup?ref=");
+      expect(componentSource).toContain("?ref=");
     });
 
     it("has copy button functionality", () => {

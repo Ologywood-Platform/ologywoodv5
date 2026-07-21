@@ -126,7 +126,7 @@ describe('Venue Dashboard Mobile Bottom Navigation', () => {
     });
 
     it('should have safe-area-bottom for iOS notch devices', () => {
-      expect(mobileBottomNavContent).toContain('safe-area-bottom');
+      expect(mobileBottomNavContent).toContain('safe-area-inset-bottom');
     });
 
     it('should have 5 columns grid layout', () => {
@@ -134,7 +134,7 @@ describe('Venue Dashboard Mobile Bottom Navigation', () => {
     });
 
     it('should have spacer div to prevent content overlap', () => {
-      expect(mobileBottomNavContent).toContain('h-16 sm:hidden');
+      expect(mobileBottomNavContent).toContain('h-20 sm:hidden');
     });
 
     it('should support badge display on nav items', () => {

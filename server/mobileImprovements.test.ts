@@ -170,7 +170,7 @@ describe('Mobile Dashboard Bottom Navigation', () => {
 
   it('MobileBottomNav includes spacer div to prevent content overlap', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toMatch(/h-1[46]\s+sm:hidden/);
+    expect(src).toMatch(/h-(?:1[46]|20)\s+sm:hidden/);
   });
 
   it('MobileBottomNav public mode has Home and Browse tabs', () => {

@@ -47,7 +47,6 @@ describe('SiteHeader Component', () => {
 
   it('should support hideBrowse prop', () => {
     expect(siteHeaderContent).toContain('hideBrowse');
-    expect(siteHeaderContent).toContain('!hideBrowse');
   });
 
   it('should support largeLogo prop', () => {

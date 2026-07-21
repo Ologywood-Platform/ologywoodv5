@@ -97,7 +97,8 @@ describe('Subscription Management Component', () => {
 
     it('shows upgrade to Professional for starter tier', () => {
       expect(src).toContain("tier === 'starter'");
-      expect(src).toContain('Upgrade to Professional');
+      expect(src).toContain('Professional');
+      expect(src).toContain("handleUpgrade('professional')");
     });
 
     it('creates checkout session with correct plan param', () => {

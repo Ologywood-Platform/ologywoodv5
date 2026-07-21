@@ -52,7 +52,7 @@ describe('Fan Notification Integration in Routers', () => {
   it('triggers fan notification on artist profile update', () => {
     const updateIdx = routersTs.indexOf('updateProfile: artistProcedure');
     expect(updateIdx).toBeGreaterThan(-1);
-    const updateBlock = routersTs.slice(updateIdx, updateIdx + 2000);
+    const updateBlock = routersTs.slice(updateIdx, updateIdx + 3000);
     expect(updateBlock).toContain('notifyFansProfileUpdate');
   });
 });

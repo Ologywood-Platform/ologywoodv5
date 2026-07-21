@@ -204,7 +204,7 @@ describe('Progressive Web App (PWA)', () => {
     const swContent = fs.readFileSync(swPath, 'utf-8');
 
     it('should have a versioned cache name', () => {
-      expect(swContent).toMatch(/CACHE_NAME\s*=\s*'ologywood-v\d+'/);
+      expect(swContent).toMatch(/CACHE_(?:NAME|VERSION)\s*=\s*'ologywood-v\d+'/);
     });
 
     it('should cache static assets on install', () => {

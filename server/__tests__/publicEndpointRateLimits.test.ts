@@ -45,10 +45,10 @@ describe('Rate Limiting on Public Endpoints', () => {
       expect(section).toContain('maxRequests: 5');
     });
 
-    it('loginLimiter allows 20 requests', () => {
+    it('loginLimiter allows 10 requests', () => {
       const content = readFileSync(join(serverDir, 'utils', 'rateLimiter.ts'), 'utf-8');
       const section = content.split('loginLimiter')[1].split('});')[0];
-      expect(section).toContain('maxRequests: 20');
+      expect(section).toContain('maxRequests: 10');
     });
 
     it('resendEmailLimiter allows 3 requests', () => {

@@ -1,7 +1,9 @@
 import React from 'react';
+import { Check, X } from 'lucide-react';
 
 interface PasswordStrengthProps {
   password: string;
+  showChecklist?: boolean;
 }
 
 export interface StrengthResult {
@@ -9,6 +11,20 @@ export interface StrengthResult {
   label: string;
   color: string;
   bgColor: string;
+}
+
+export interface PasswordRequirement {
+  label: string;
+  met: boolean;
+}
+
+export function getPasswordRequirements(password: string): PasswordRequirement[] {
+  return [
+    { label: 'At least 8 characters', met: password.length >= 8 },
+    { label: 'One uppercase letter (A-Z)', met: /[A-Z]/.test(password) },
+    { label: 'One lowercase letter (a-z)', met: /[a-z]/.test(password) },
+    { label: 'One number (0-9)', met: /[0-9]/.test(password) },
+  ];
 }
 
 export function getPasswordStrength(password: string): StrengthResult {
@@ -41,26 +57,53 @@ export function getPasswordStrength(password: string): StrengthResult {
   return levels[score];
 }
 
-export function PasswordStrengthIndicator({ password }: PasswordStrengthProps) {
+export function PasswordStrengthIndicator({ password, showChecklist = true }: PasswordStrengthProps) {
   const strength = getPasswordStrength(password);
+  const requirements = getPasswordRequirements(password);
 
   if (!password) return null;
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex gap-1">
-        {[1, 2, 3, 4].map((level) => (
-          <div
-            key={level}
-            className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
-              level <= strength.score ? strength.bgColor : 'bg-gray-200 dark:bg-gray-700'
-            }`}
-          />
-        ))}
+    <div className="space-y-2">
+      {/* Strength bar */}
+      <div className="space-y-1.5">
+        <div className="flex gap-1">
+          {[1, 2, 3, 4].map((level) => (
+            <div
+              key={level}
+              className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
+                level <= strength.score ? strength.bgColor : 'bg-gray-200 dark:bg-gray-700'
+              }`}
+            />
+          ))}
+        </div>
+        <p className={`text-xs font-medium ${strength.color}`}>
+          {strength.label}
+        </p>
       </div>
-      <p className={`text-xs font-medium ${strength.color}`}>
-        {strength.label}
-      </p>
+
+      {/* Requirement checklist */}
+      {showChecklist && (
+        <ul className="space-y-1" aria-label="Password requirements">
+          {requirements.map((req) => (
+            <li
+              key={req.label}
+              className={`flex items-center gap-1.5 text-xs transition-colors duration-150 ${
+                req.met
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {req.met ? (
+                <Check className="h-3 w-3 shrink-0" />
+              ) : (
+                <X className="h-3 w-3 shrink-0 text-gray-400" />
+              )}
+              {req.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

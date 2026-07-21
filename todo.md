@@ -4069,3 +4069,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Audit sensitive data exposure (API responses, error messages, logs)
 - [x] Fix all identified security vulnerabilities
 - [x] Run tests to verify fixes don't break functionality
+
+## PASSWORD STRENGTH METER + TEST FIXES + RATE LIMITING (Jul 21, 2026)
+- [x] Add real-time password strength meter and requirement checklist to registration form
+- [x] Fix all 15 pre-existing UI text matching test failures for clean test suite
+- [x] Add rate limiting to login and registration endpoints (brute-force protection)

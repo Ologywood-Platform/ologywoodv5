@@ -158,7 +158,7 @@ describe('Subscription Router (plan parameter)', () => {
   const content = readFile('server/routers.ts');
 
   it('should accept plan enum in createCheckoutSession input', () => {
-    expect(content).toContain("plan: z.enum(['starter', 'professional'])");
+    expect(content).toContain("plan: z.enum(['starter', 'professional', 'enterprise'])");
   });
 
   it('should pass plan to createSubscriptionCheckoutSession', () => {

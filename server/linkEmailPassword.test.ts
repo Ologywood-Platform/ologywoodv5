@@ -135,7 +135,7 @@ describe('linkEmailPassword endpoint', () => {
     const { authRouter } = await import('./routers/auth');
     const procedure = (authRouter as any)._def.procedures.linkEmailPassword;
     const inputSchema = procedure._def.inputs[0];
-    const result = inputSchema.safeParse({ email: 'gary@test.com', password: 'securepass123' });
+    const result = inputSchema.safeParse({ email: 'gary@test.com', password: 'SecurePass1' });
     expect(result.success).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('linkEmailPassword endpoint', () => {
     const { authRouter } = await import('./routers/auth');
     const procedure = (authRouter as any)._def.procedures.linkEmailPassword;
     const inputSchema = procedure._def.inputs[0];
-    const result = inputSchema.safeParse({ email: 'Gary@Test.COM', password: 'securepass123' });
+    const result = inputSchema.safeParse({ email: 'Gary@Test.COM', password: 'SecurePass1' });
     expect(result.success).toBe(true);
     // The endpoint normalizes internally, but the schema accepts it
     expect(result.data.email).toBe('Gary@Test.COM');

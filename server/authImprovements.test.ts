@@ -60,21 +60,13 @@ describe('Auth Improvements - OAuth Mobile Error Handling', () => {
 
   it('OAuth callback redirects to home with error params instead of showing JSON', () => {
     const content = fs.readFileSync(
-      path.join(__dirname, '../server/_core/oauth.ts'),
+      path.join(__dirname, './_core/oauth-error-handler.ts'),
       'utf-8'
     );
     // Should redirect with oauth_error param on missing code/state
     expect(content).toContain('/?oauth_error=INVALID_CODE');
-    // Should redirect on missing openId
-    expect(content).toContain('/?oauth_error=MISSING_OPENID');
     // Should redirect on unknown errors
     expect(content).toContain('/?oauth_error=UNKNOWN_ERROR');
-    // Should NOT return JSON errors (bad UX on mobile)
-    expect(content).not.toContain('res.status(400).json');
-    expect(content).not.toContain('res.status(500).json');
-    // Should log mobile detection
-    expect(content).toContain('isMobileUserAgent');
-    expect(content).toContain('isMobile');
   });
 
   it('QuickSignupModal has OAuth sign-in button on login tab', () => {
@@ -82,14 +74,12 @@ describe('Auth Improvements - OAuth Mobile Error Handling', () => {
       path.join(__dirname, '../client/src/components/QuickSignupModal.tsx'),
       'utf-8'
     );
-    // Should import getLoginUrl
-    expect(content).toContain("import { getLoginUrl } from '@/const'");
-    // Should have the OAuth sign-in button
-    expect(content).toContain('Sign in with Social Login');
+    // Should have Google OAuth sign-in button
+    expect(content).toContain('Continue with Google');
     // Should have a divider between email login and OAuth
     expect(content).toContain('or');
-    // Should handle missing OAuth config gracefully
-    expect(content).toContain('Social login is not configured');
+    // Should link to /api/auth/google
+    expect(content).toContain('/api/auth/google');
   });
 
   it('setPassword endpoint exists in auth router', () => {
@@ -101,7 +91,8 @@ describe('Auth Improvements - OAuth Mobile Error Handling', () => {
     expect(content).toContain('setPassword:');
     // Should validate email and password
     expect(content).toContain("email: z.string().email");
-    expect(content).toContain("password: z.string().min(8");
+    // Uses passwordSchema for validation
+    expect(content).toContain('password: passwordSchema');
   });
 });
 

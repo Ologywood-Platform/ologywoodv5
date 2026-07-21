@@ -12,7 +12,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription, setTrialForBetaUser } from '../services/pricingTierService';
 import { TRPCError } from '@trpc/server';
-import { signupLimiter, loginLimiter, resendEmailLimiter, forgotPasswordLimiter } from '../utils/rateLimiter';
+import { signupLimiter, loginLimiter, loginEmailLimiter, resendEmailLimiter, forgotPasswordLimiter } from '../utils/rateLimiter';
 import { sendEmail } from '../email';
 
 /** Extract client IP from tRPC context */
@@ -307,6 +307,15 @@ export const authRouter = router({
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message: `Too many login attempts. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        });
+      }
+      // Rate limit: 5 login attempts per 15 min per email (prevents credential stuffing)
+      const emailCheck = loginEmailLimiter.check(`email:${input.email.toLowerCase().trim()}`);
+      if (!emailCheck.allowed) {
+        const retryMinutes = Math.ceil(emailCheck.retryAfterMs / 60_000);
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many login attempts for this account. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
         });
       }
       try {
