@@ -21,10 +21,10 @@ describe('Location Data', () => {
   });
 
   it('formatLocation formats city and state correctly', () => {
-    expect(formatLocation('Atlanta', 'GA')).toBe('Atlanta, GA');
-    expect(formatLocation('Atlanta', 'GA', 'US')).toBe('Atlanta, GA');
+    expect(formatLocation('Atlanta', 'GA')).toBe('Atlanta, Georgia');
+    expect(formatLocation('Atlanta', 'GA', 'US')).toBe('Atlanta, Georgia');
     expect(formatLocation('Toronto', 'ON', 'CA')).toBe('Toronto, ON, CA');
-    expect(formatLocation(null, 'GA')).toBe('GA');
+    expect(formatLocation(null, 'GA')).toBe('Georgia');
     expect(formatLocation('Atlanta', null)).toBe('Atlanta');
     expect(formatLocation(null, null)).toBe('');
   });

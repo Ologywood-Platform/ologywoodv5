@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
+import { getStatesForRegion } from '../shared/locationData';
 
 
 import { 
@@ -393,6 +394,9 @@ export async function updateArtistProfile(id: number, data: Partial<InsertArtist
 export async function searchArtists(filters: {
   genre?: string[];
   location?: string;
+  city?: string;
+  state?: string;
+  region?: string;
   minFee?: number;
   maxFee?: number;
   availableFrom?: string;
@@ -427,6 +431,41 @@ export async function searchArtists(filters: {
     filtered = filtered.filter(a => 
       a.location?.toLowerCase().includes(filters.location!.toLowerCase())
     );
+  }
+  
+  // Filter by structured city
+  if (filters.city) {
+    const cityQ = filters.city.toLowerCase().trim();
+    filtered = filtered.filter(a => 
+      a.city?.toLowerCase().includes(cityQ) ||
+      a.location?.toLowerCase().includes(cityQ)
+    );
+  }
+  
+  // Filter by state (exact match on state code or name)
+  if (filters.state) {
+    const stateQ = filters.state.toLowerCase().trim();
+    filtered = filtered.filter(a => {
+      if (a.state) {
+        return a.state.toLowerCase() === stateQ;
+      }
+      // Fallback: check freeform location for state abbreviation or name
+      return a.location?.toLowerCase().includes(stateQ);
+    });
+  }
+  
+  // Filter by region (maps to multiple states)
+  if (filters.region) {
+    const regionStates = getStatesForRegion(filters.region);
+    if (regionStates.length > 0) {
+      const regionStatesLower = regionStates.map((s: string) => s.toLowerCase());
+      filtered = filtered.filter(a => {
+        if (a.state) {
+          return regionStatesLower.includes(a.state.toLowerCase());
+        }
+        return false;
+      });
+    }
   }
   
   if (filters.minFee !== undefined) {

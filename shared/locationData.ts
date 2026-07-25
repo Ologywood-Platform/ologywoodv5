@@ -59,12 +59,55 @@ export const US_STATES = [
 export type USStateCode = typeof US_STATES[number]['code'];
 
 /**
+ * US Regions - groups states into searchable regions for promoters.
+ */
+export const US_REGIONS = [
+  { code: 'southeast', name: 'Southeast', states: ['AL', 'AR', 'FL', 'GA', 'KY', 'LA', 'MS', 'NC', 'SC', 'TN', 'VA', 'WV'] },
+  { code: 'northeast', name: 'Northeast', states: ['CT', 'DE', 'DC', 'ME', 'MD', 'MA', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT'] },
+  { code: 'midwest', name: 'Midwest', states: ['IL', 'IN', 'IA', 'KS', 'MI', 'MN', 'MO', 'NE', 'ND', 'OH', 'SD', 'WI'] },
+  { code: 'southwest', name: 'Southwest', states: ['AZ', 'NM', 'OK', 'TX'] },
+  { code: 'west', name: 'West', states: ['AK', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'OR', 'UT', 'WA', 'WY'] },
+] as const;
+
+export type USRegionCode = typeof US_REGIONS[number]['code'];
+
+/**
+ * Get the region for a given state code.
+ */
+export function getRegionForState(stateCode: string): string | null {
+  for (const region of US_REGIONS) {
+    if ((region.states as readonly string[]).includes(stateCode)) return region.code;
+  }
+  return null;
+}
+
+/**
+ * Get all state codes for a given region.
+ */
+export function getStatesForRegion(regionCode: string): string[] {
+  const region = US_REGIONS.find(r => r.code === regionCode);
+  return region ? [...region.states] : [];
+}
+
+/**
+ * Get state name from code.
+ */
+export function getStateName(code: string): string {
+  const state = US_STATES.find(s => s.code === code);
+  return state ? state.name : code;
+}
+
+/**
  * Format a structured location into a display string.
  */
 export function formatLocation(city?: string | null, state?: string | null, country?: string | null): string {
   const parts: string[] = [];
   if (city) parts.push(city);
-  if (state) parts.push(state);
+  if (state) {
+    // Show state name if it's a code
+    const stateName = getStateName(state);
+    parts.push(stateName);
+  }
   if (country && country !== 'US') parts.push(country);
   return parts.join(', ');
 }

@@ -15,6 +15,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
+import { LocationInput } from '@/components/LocationInput';
 
 export default function ArtistOnboarding() {
   const { user } = useAuth();
@@ -49,6 +50,9 @@ export default function ArtistOnboarding() {
   // Step 1: Basic Info
   const [artistName, setArtistName] = useState("");
   const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("US");
   const [bio, setBio] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
@@ -231,8 +235,8 @@ export default function ArtistOnboarding() {
         toast.error("Please enter your artist name");
         return;
       }
-      if (!location.trim()) {
-        toast.error("Please enter your location — this helps venues find local talent");
+      if (!city.trim() || !state) {
+        toast.error("Please enter your city and state — this helps venues find local talent");
         return;
       }
       if (!creatorRightsAcknowledged) {
@@ -286,7 +290,7 @@ export default function ArtistOnboarding() {
       toast.error("Artist name is required");
       return;
     }
-    if (!location.trim()) {
+    if (!city.trim() || !state) {
       toast.error("Location is required");
       return;
     }
@@ -327,7 +331,10 @@ export default function ArtistOnboarding() {
     createProfile.mutate({
       artistName,
       talentType,
-      location: location || undefined,
+      location: city && state ? `${city.trim()}, ${state}` : location || undefined,
+      city: city.trim() || undefined,
+      state: state || undefined,
+      country: country || "US",
       bio: bio || undefined,
       genre: genres.length > 0 ? genres : undefined,
       feeRangeMin: feeRangeMin ? parseInt(feeRangeMin) : undefined,
@@ -507,17 +514,18 @@ export default function ArtistOnboarding() {
               </div>
 
               <div>
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, State or Region"
-                  autoCapitalize="words"
-                  className="mt-1"
+                <LocationInput
+                  city={city}
+                  state={state}
+                  country={country}
+                  onChange={({ city: c, state: s, country: co }) => {
+                    setCity(c);
+                    setState(s);
+                    setCountry(co);
+                  }}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Helps venues find local talent in their area
+                  Helps venues and promoters find local talent in their area
                 </p>
               </div>
 

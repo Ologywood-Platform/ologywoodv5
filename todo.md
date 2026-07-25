@@ -4082,3 +4082,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix Browse/Talent search: single letter "A" shows all artists instead of only matching ones
 - [x] Improve search to match on name start/word boundaries, not loose substring on all fields
 - [x] Ensure search respects the selected tab (Artists vs Athletes vs All)
+
+## STRUCTURED LOCATION FOR ARTISTS (Jul 25, 2026)
+- [x] Add city and state columns to artist_profiles schema
+- [x] Add US_REGIONS mapping to shared/locationData.ts
+- [x] Update ArtistEditProfile to use LocationInput component
+- [x] Update ArtistOnboarding to use LocationInput component
+- [x] Update artist search to support city, state, and region filtering
+- [x] Add region/state filter to Browse page search filters
+- [x] Migrate existing artist freeform location data to new city/state fields
+- [x] Run schema migration (pnpm db:push)

@@ -107,6 +107,9 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   genre: json("genre").$type<string[]>(),
   bio: text("bio"),
   location: varchar("location", { length: 255 }),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  country: varchar("country", { length: 100 }).default("US"),
   feeRangeMin: int("feeRangeMin"),
   feeRangeMax: int("feeRangeMax"),
   touringPartySize: int("touringPartySize").default(1),
@@ -128,6 +131,8 @@ export const artistProfiles = mysqlTable("artist_profiles", {
 }, (table) => ({
   artistNameIdx: index("idx_artist_profiles_name").on(table.artistName),
   locationIdx: index("idx_artist_profiles_location").on(table.location),
+  cityIdx: index("idx_artist_profiles_city").on(table.city),
+  stateIdx: index("idx_artist_profiles_state").on(table.state),
   feeRangeIdx: index("idx_artist_profiles_fee").on(table.feeRangeMin, table.feeRangeMax),
 }));
 

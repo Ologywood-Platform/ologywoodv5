@@ -39,6 +39,8 @@ export default function Browse() {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [filters, setFilters] = useState<{
     location?: string;
+    state?: string;
+    region?: string;
     minFee?: number;
     maxFee?: number;
     availableFrom?: string;

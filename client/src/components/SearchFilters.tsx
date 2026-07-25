@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { X, Search, CalendarCheck, ShieldCheck, Plane } from 'lucide-react';
 import { ClearableInput } from '@/components/ui/clearable-input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { US_STATES, US_REGIONS } from '../../../shared/locationData';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
@@ -13,6 +15,8 @@ interface SearchFiltersProps {
   onFilterChange: (filters: {
     genre?: string[];
     location?: string;
+    state?: string;
+    region?: string;
     minFee?: number;
     maxFee?: number;
     availableFrom?: string;
@@ -46,6 +50,8 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [location, setLocation] = useState('');
+  const [stateFilter, setStateFilter] = useState('');
+  const [regionFilter, setRegionFilter] = useState('');
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [capacityRange, setCapacityRange] = useState([1, 1000]);
   const [rateRange, setRateRange] = useState([0, 5000]);
@@ -87,6 +93,8 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
       genre: selectedGenres.length > 0 ? selectedGenres : undefined,
       eventType: selectedEventTypes.length > 0 ? selectedEventTypes : undefined,
       location: location || undefined,
+      state: stateFilter || undefined,
+      region: regionFilter || undefined,
       minFee: priceRange[0] > 0 ? priceRange[0] : undefined,
       maxFee: priceRange[1] < 10000 ? priceRange[1] : undefined,
       minCapacity: capacityRange[0] > 1 ? capacityRange[0] : undefined,
@@ -105,6 +113,8 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
     setSelectedGenres([]);
     setSelectedEventTypes([]);
     setLocation('');
+    setStateFilter('');
+    setRegionFilter('');
     setPriceRange([0, 10000]);
     setCapacityRange([1, 1000]);
     setRateRange([0, 5000]);
@@ -121,6 +131,8 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
     selectedGenres.length > 0,
     selectedEventTypes.length > 0,
     location,
+    stateFilter,
+    regionFilter,
     priceRange[0] > 0 || priceRange[1] < 10000,
     capacityRange[0] > 1 || capacityRange[1] < 1000,
     rateRange[0] > 0 || rateRange[1] < 5000,
@@ -375,15 +387,51 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
 
         {/* Location Filter */}
         <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
+          <Label htmlFor="location">City</Label>
           <ClearableInput
             id="location"
-            placeholder="Enter city or region..."
+            placeholder="Enter city name..."
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onClear={() => setLocation('')}
           />
         </div>
+
+        {/* State Filter */}
+        {isArtistFilter && (
+        <div className="space-y-2">
+          <Label>State</Label>
+          <Select value={stateFilter} onValueChange={(val) => { setStateFilter(val === '__all__' ? '' : val); setRegionFilter(''); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="All States" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All States</SelectItem>
+              {US_STATES.map(s => (
+                <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        )}
+
+        {/* Region Filter */}
+        {isArtistFilter && (
+        <div className="space-y-2">
+          <Label>Region</Label>
+          <Select value={regionFilter} onValueChange={(val) => { setRegionFilter(val === '__all__' ? '' : val); setStateFilter(''); }}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Regions" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Regions</SelectItem>
+              {US_REGIONS.map(r => (
+                <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        )}
 
         {/* Price Range Slider (Artists Only) */}
         {isArtistFilter && (

@@ -15,6 +15,7 @@ import SiteHeader from "@/components/SiteHeader";
 import ImageCropper from "@/components/ImageCropper";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import TouringSection from '@/components/TouringSection';
+import { LocationInput } from '@/components/LocationInput';
 
 const GENRE_OPTIONS = [
   "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
@@ -63,6 +64,9 @@ export default function ArtistEditProfile() {
   const [bio, setBio] = useState("");
   const [genres, setGenres] = useState<string[]>([]);
   const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("US");
   const [feeRangeMin, setFeeRangeMin] = useState("");
   const [feeRangeMax, setFeeRangeMax] = useState("");
   const [touringPartySize, setTouringPartySize] = useState("");
@@ -100,6 +104,9 @@ export default function ArtistEditProfile() {
       setBio(profile.bio || "");
       setGenres(Array.isArray(profile.genre) ? profile.genre : []);
       setLocation(profile.location || "");
+      setCity((profile as any).city || "");
+      setState((profile as any).state || "");
+      setCountry((profile as any).country || "US");
       setFeeRangeMin(profile.feeRangeMin?.toString() || "");
       setFeeRangeMax(profile.feeRangeMax?.toString() || "");
       setTouringPartySize(profile.touringPartySize?.toString() || "1");
@@ -242,7 +249,10 @@ export default function ArtistEditProfile() {
       talentType: talentType as any,
       bio: bio.trim() || undefined,
       genre: genres.length > 0 ? genres : undefined,
-      location: location.trim() || undefined,
+      location: city && state ? `${city.trim()}, ${state}` : location.trim() || undefined,
+      city: city.trim() || undefined,
+      state: state || undefined,
+      country: country || "US",
       feeRangeMin: feeRangeMin ? parseInt(feeRangeMin) : undefined,
       feeRangeMax: feeRangeMax ? parseInt(feeRangeMax) : undefined,
       touringPartySize: touringPartySize ? parseInt(touringPartySize) : undefined,
@@ -435,13 +445,15 @@ export default function ArtistEditProfile() {
               </div>
 
               <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, State"
-                  autoCapitalize="words"
+                <LocationInput
+                  city={city}
+                  state={state}
+                  country={country}
+                  onChange={({ city: c, state: s, country: co }) => {
+                    setCity(c);
+                    setState(s);
+                    setCountry(co);
+                  }}
                 />
               </div>
             </CardContent>
