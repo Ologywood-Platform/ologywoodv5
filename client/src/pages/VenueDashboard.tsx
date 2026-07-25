@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
+import SiteHeader from '../components/SiteHeader';
 import { formatEventTime } from '../lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
@@ -334,6 +335,8 @@ export function VenueDashboard() {
   }
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 px-3 py-4 sm:p-6 transition-colors duration-200">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -1561,6 +1564,7 @@ export function VenueDashboard() {
         />
       )}
     </div>
+    </>
   );
 }
 

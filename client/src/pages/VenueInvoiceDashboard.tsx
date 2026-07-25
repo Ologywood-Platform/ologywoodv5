@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SiteHeader from '@/components/SiteHeader';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, Clock, CheckCircle, FileText, Download, ExternalLink } from 'lucide-react';
@@ -149,6 +150,8 @@ export default function VenueInvoiceDashboard() {
   };
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-teal-50 py-12">
       <div className="container max-w-5xl">
         <PageBreadcrumb
@@ -341,5 +344,6 @@ export default function VenueInvoiceDashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

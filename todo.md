@@ -4097,3 +4097,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add "Clear Filters" button and visual tags for active search filters on Browse page
 - [x] Implement city autocomplete suggestion feature for consistent city names
 - [x] Display structured location prominently on artist profile cards in search results
+
+## VENUE PAGE FIXES (Jul 25, 2026)
+- [x] Fix amenities display showing index numbers (0,1,2,3...) before amenity names
+- [x] Add SiteHeader to all venue pages that are missing it (VenueDashboard, VenueProfileDetail, VenueInvoiceDashboard, VenueEventCreate)

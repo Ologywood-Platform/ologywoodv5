@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useLocation, useSearch } from 'wouter';
+import SiteHeader from '@/components/SiteHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -180,6 +181,8 @@ export default function VenueEventCreate() {
   const submitting = isUploading || createVenueEventMutation.isPending || uploadMediaMutation.isPending;
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
@@ -448,5 +451,6 @@ export default function VenueEventCreate() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

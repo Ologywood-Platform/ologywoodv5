@@ -1,4 +1,5 @@
 
+import SiteHeader from '@/components/SiteHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -157,6 +158,8 @@ export default function VenueProfileDetail() {
   const venue = mockVenueData[venueId] ? { ...defaultVenue, ...mockVenueData[venueId], mediaGallery: [mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl, mockVenueData[venueId].profilePhotoUrl] } : defaultVenue;
 
   return (
+    <>
+    <SiteHeader />
     <div className="min-h-screen bg-gray-50">
       <JsonLd data={[buildVenueJsonLd(venue), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venue.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />
       {/* Hero Section */}
@@ -363,5 +366,6 @@ export default function VenueProfileDetail() {
         </div>
       </div>
     </div>
+    </>
   );
 }

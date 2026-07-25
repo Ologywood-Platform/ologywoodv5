@@ -337,11 +337,27 @@ export default function VenueProfile() {
         {/* Amenities */}
         {(() => {
           const amenities = (venueProfile as any)?.amenities;
-          const amenityList = amenities
-            ? (typeof amenities === 'object' && !Array.isArray(amenities)
-                ? Object.keys(amenities).filter(k => amenities[k])
-                : Array.isArray(amenities) ? amenities : [])
-            : [];
+          let amenityList: string[] = [];
+          if (amenities) {
+            if (Array.isArray(amenities)) {
+              amenityList = amenities;
+            } else if (typeof amenities === 'object') {
+              // Handle mixed data: numeric keys have string values (amenity names),
+              // named keys (like "Bar") have boolean true values
+              const names: string[] = [];
+              for (const [key, value] of Object.entries(amenities)) {
+                if (/^\d+$/.test(key) && typeof value === 'string') {
+                  // Numeric key: the value IS the amenity name
+                  names.push(value);
+                } else if (value === true) {
+                  // Named key with boolean: the key IS the amenity name
+                  names.push(key);
+                }
+              }
+              // Deduplicate
+              amenityList = [...new Set(names)];
+            }
+          }
           if (amenityList.length === 0) return null;
 
           const amenityIcons: Record<string, any> = {
