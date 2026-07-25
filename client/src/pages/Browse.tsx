@@ -274,13 +274,13 @@ export default function Browse() {
       if (q.length <= 2) {
         // Short query: match if name starts with query, or any word in name starts with query
         const nameWords = name.split(/\s+/);
-        const nameMatch = name.startsWith(q) || nameWords.some(word => word.startsWith(q));
-        const genreMatch = genres.some(g => g.startsWith(q) || g.split(/\s+/).some(word => word.startsWith(q)));
+        const nameMatch = name.startsWith(q) || nameWords.some((word: string) => word.startsWith(q));
+        const genreMatch = genres.some((g: string) => g.startsWith(q) || g.split(/\s+/).some((word: string) => word.startsWith(q)));
         matchesSearch = nameMatch || genreMatch;
       } else {
         // Longer query: substring match on name or genre
         const nameMatch = name.includes(q);
-        const genreMatch = genres.some(g => g.includes(q));
+        const genreMatch = genres.some((g: string) => g.includes(q));
         matchesSearch = nameMatch || genreMatch;
       }
     }
