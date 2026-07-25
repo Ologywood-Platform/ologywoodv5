@@ -33,11 +33,11 @@ describe('UX Fix 1: Clear X icon on search inputs', () => {
     expect(content).toContain('onClear');
   });
 
-  it('SearchFilters uses ClearableInput for location', () => {
+  it('SearchFilters uses CityAutocomplete for location', () => {
     const filePath = join(clientSrc, 'components', 'SearchFilters.tsx');
     const content = readFileSync(filePath, 'utf-8');
-    expect(content).toContain('ClearableInput');
-    expect(content).toContain('onClear');
+    expect(content).toContain('CityAutocomplete');
+    expect(content).toContain('onChange={(city)');
   });
 
   it.skip('ArtistSearchFilters has clear button on search input (moved to _deprecated)', () => {

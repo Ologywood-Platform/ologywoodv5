@@ -8,6 +8,7 @@ import { X, Search, CalendarCheck, ShieldCheck, Plane } from 'lucide-react';
 import { ClearableInput } from '@/components/ui/clearable-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { US_STATES, US_REGIONS } from '../../../shared/locationData';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
@@ -388,12 +389,11 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
         {/* Location Filter */}
         <div className="space-y-2">
           <Label htmlFor="location">City</Label>
-          <ClearableInput
+          <CityAutocomplete
             id="location"
-            placeholder="Enter city name..."
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onClear={() => setLocation('')}
+            onChange={(city) => setLocation(city)}
+            placeholder="Enter city name..."
           />
         </div>
 

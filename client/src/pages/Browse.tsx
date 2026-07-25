@@ -24,6 +24,8 @@ import { JsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { TouringBadge } from '@/components/TouringDisplay';
 import { CrmBadge } from '@/components/CrmBadge';
+import { formatLocation } from '../../../shared/locationData';
+import { US_STATES, US_REGIONS } from '../../../shared/locationData';
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -469,6 +471,58 @@ export default function Browse() {
               }} />
             )}
 
+            {/* Active Filter Tags */}
+            {(hasAppliedFilters || searchQuery.length > 0) && activeFilterCount > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {filters.location && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    City: {filters.location}
+                    <button onClick={() => setFilters(f => ({ ...f, location: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {filters.state && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    State: {US_STATES.find(s => s.code === filters.state)?.name || filters.state}
+                    <button onClick={() => setFilters(f => ({ ...f, state: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {filters.region && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    Region: {US_REGIONS.find(r => r.code === filters.region)?.name || filters.region}
+                    <button onClick={() => setFilters(f => ({ ...f, region: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {(filters.minFee || filters.maxFee) && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    Fee: ${filters.minFee || 0} - ${filters.maxFee || '10,000+'}
+                    <button onClick={() => setFilters(f => ({ ...f, minFee: undefined, maxFee: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {(filters.availableFrom || filters.availableTo) && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    Dates: {filters.availableFrom || '...'} to {filters.availableTo || '...'}
+                    <button onClick={() => setFilters(f => ({ ...f, availableFrom: undefined, availableTo: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {filters.touringOnly && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    Touring Only
+                    <button onClick={() => setFilters(f => ({ ...f, touringOnly: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                {filters.crmOnly && (
+                  <Badge variant="secondary" className="gap-1 pl-2 pr-1 py-1">
+                    CRM Supporters
+                    <button onClick={() => setFilters(f => ({ ...f, crmOnly: undefined }))} className="ml-1 hover:bg-muted rounded-full p-0.5"><X className="h-3 w-3" /></button>
+                  </Badge>
+                )}
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={handleResetAll}>
+                  <X className="h-3 w-3 mr-1" />
+                  Clear All
+                </Button>
+              </div>
+            )}
+
             {/* Results Count */}
             {(hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div ref={resultsRef} className="mb-4 scroll-mt-4">
@@ -549,10 +603,14 @@ export default function Browse() {
                             <FavoriteButton artistId={artist.id} size="sm" />
                           </div>
                           
-                          {artist.location && (
-                            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3 flex-shrink-0" />
-                              <span className="truncate">{artist.location}</span>
+                          {((artist as any).city || (artist as any).state || artist.location) && (
+                            <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-foreground/80">
+                              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-purple-500" />
+                              <span className="truncate">
+                                {(artist as any).city || (artist as any).state
+                                  ? formatLocation((artist as any).city, (artist as any).state, (artist as any).country)
+                                  : artist.location}
+                              </span>
                             </div>
                           )}
                           

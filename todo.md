@@ -4092,3 +4092,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add region/state filter to Browse page search filters
 - [x] Migrate existing artist freeform location data to new city/state fields
 - [x] Run schema migration (pnpm db:push)
+
+## BROWSE PAGE UX IMPROVEMENTS (Jul 25, 2026)
+- [x] Add "Clear Filters" button and visual tags for active search filters on Browse page
+- [x] Implement city autocomplete suggestion feature for consistent city names
+- [x] Display structured location prominently on artist profile cards in search results

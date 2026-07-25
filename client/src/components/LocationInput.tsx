@@ -1,5 +1,6 @@
 import { MapPin } from 'lucide-react';
 import { US_STATES } from '../../../shared/locationData';
+import { CityAutocomplete } from './CityAutocomplete';
 
 interface LocationInputProps {
   city: string;
@@ -15,18 +16,16 @@ export function LocationInput({ city, state, country, onChange }: LocationInputP
         <MapPin className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium text-foreground">Location</span>
       </div>
-      <p className="text-xs text-muted-foreground">Help bookers find you by entering your venue's city and state.</p>
+      <p className="text-xs text-muted-foreground">Help bookers find you by entering your city and state.</p>
       
       <div className="grid grid-cols-2 gap-3">
-        {/* City */}
+        {/* City with autocomplete */}
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">City</label>
-          <input
-            type="text"
+          <CityAutocomplete
             value={city}
-            onChange={(e) => onChange({ city: e.target.value, state, country })}
+            onChange={(newCity) => onChange({ city: newCity, state, country })}
             placeholder="e.g. Atlanta"
-            className="w-full px-3 py-2 text-sm border rounded-lg bg-background text-foreground border-input focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
         </div>
 

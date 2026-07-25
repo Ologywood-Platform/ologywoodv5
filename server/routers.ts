@@ -573,6 +573,18 @@ export const appRouter = router({
         return await db.searchArtists(input || {});
       }),
     
+    // Get distinct cities for autocomplete suggestions
+    getCities: publicProcedure.query(async () => {
+      const artists = await db.getAllArtists();
+      const citySet = new Set<string>();
+      for (const artist of artists) {
+        if ((artist as any).city && (artist as any).city.trim()) {
+          citySet.add((artist as any).city.trim());
+        }
+      }
+      return Array.from(citySet).sort();
+    }),
+
     // Get all artists
     getAll: publicProcedure.query(async () => {
       return await db.getAllArtists();
