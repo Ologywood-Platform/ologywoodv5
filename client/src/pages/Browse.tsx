@@ -267,22 +267,21 @@ export default function Browse() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const filteredArtists = artists?.filter(artist => {
-    // Smart search: for short queries (1-2 chars), match word boundaries only
-    // For longer queries (3+ chars), use substring matching
+    // Smart search: strict matching for short queries, broader for longer ones
     let matchesSearch = true;
     if (searchQuery !== "") {
       const q = searchQuery.toLowerCase().trim();
       const name = artist.artistName.toLowerCase();
       const genres = Array.isArray(artist.genre) ? artist.genre.map((g: string) => g.toLowerCase()) : [];
       
-      if (q.length <= 2) {
-        // Short query: match if name starts with query, or any word in name starts with query
-        const nameWords = name.split(/\s+/);
-        const nameMatch = name.startsWith(q) || nameWords.some((word: string) => word.startsWith(q));
-        const genreMatch = genres.some((g: string) => g.startsWith(q) || g.split(/\s+/).some((word: string) => word.startsWith(q)));
-        matchesSearch = nameMatch || genreMatch;
+      if (q.length === 1) {
+        // Single letter: ONLY match if the artist's name starts with that letter
+        matchesSearch = name.startsWith(q);
+      } else if (q.length === 2) {
+        // Two chars: match if name starts with query
+        matchesSearch = name.startsWith(q);
       } else {
-        // Longer query: substring match on name or genre
+        // Longer query (3+ chars): substring match on name or genre
         const nameMatch = name.includes(q);
         const genreMatch = genres.some((g: string) => g.includes(q));
         matchesSearch = nameMatch || genreMatch;

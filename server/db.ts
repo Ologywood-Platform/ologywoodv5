@@ -650,10 +650,10 @@ export async function searchVenues(filters: {
     
     if (filters.query) {
       if (filters.query.trim().length <= 2) {
-        // Short query: match word boundaries (starts with) on name, location, city
+        // Short query: ONLY match if venue name starts with the query letter(s)
         const q = filters.query.trim();
-        sql_query += ' AND (organizationName LIKE ? OR organizationName LIKE ? OR city LIKE ? OR city LIKE ?)';
-        params.push(`${q}%`, `% ${q}%`, `${q}%`, `% ${q}%`);
+        sql_query += ' AND (organizationName LIKE ?)';
+        params.push(`${q}%`);
       } else {
         // Longer query: substring match
         sql_query += ' AND (organizationName LIKE ? OR location LIKE ? OR city LIKE ? OR bio LIKE ?)';
