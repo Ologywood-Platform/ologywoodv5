@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,12 +70,24 @@ const STORAGE_KEY = 'ologywood_nil_tour_completed';
 const STORAGE_DISMISSED_KEY = 'ologywood_nil_tour_dismissed';
 
 export function OnboardingTour() {
+  const { user } = useAuth();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const tooltipRef = useRef<HTMLDivElement>(null);
 
+  // Only fetch profile if user is an artist (to check talentType)
+  const { data: profile } = trpc.artist.getMyProfile.useQuery(undefined, {
+    enabled: !!user && user.role === 'artist',
+  });
+
+  // Determine if user is an athlete
+  const isAthlete = profile?.talentType === 'athlete';
+
   useEffect(() => {
+    // Only show NIL tour for athlete-type users
+    if (!isAthlete) return;
+
     const completed = localStorage.getItem(STORAGE_KEY);
     const dismissed = localStorage.getItem(STORAGE_DISMISSED_KEY);
     if (!completed && !dismissed) {
@@ -81,7 +95,7 @@ export function OnboardingTour() {
       const timer = setTimeout(() => setIsActive(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAthlete]);
 
   const positionTooltip = useCallback(() => {
     const step = TOUR_STEPS[currentStep];
