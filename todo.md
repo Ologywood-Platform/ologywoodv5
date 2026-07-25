@@ -4074,3 +4074,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add real-time password strength meter and requirement checklist to registration form
 - [x] Fix all 15 pre-existing UI text matching test failures for clean test suite
 - [x] Add rate limiting to login and registration endpoints (brute-force protection)
+
+## OLOGY LIVE HEADER FIX (Jul 25, 2026)
+- [x] Add SiteHeader to OlogyLiveBrowse page for consistency with rest of platform

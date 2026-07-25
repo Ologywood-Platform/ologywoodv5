@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../lib/trpc";
+import SiteHeader from "../components/SiteHeader";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -63,6 +64,8 @@ export default function OlogyLiveBrowse() {
   });
 
   return (
+    <>
+    <SiteHeader />
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Back Button */}
       <button
@@ -216,5 +219,6 @@ export default function OlogyLiveBrowse() {
         </div>
       )}
     </div>
+    </>
   );
 }
