@@ -57,10 +57,23 @@ export default function OlogyLiveBrowse() {
 
   const filteredExperiences = ((experiences.data || []) as LiveExperience[]).filter(exp => {
     if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return exp.title.toLowerCase().includes(q) ||
-      (exp.description || "").toLowerCase().includes(q) ||
-      exp.category.toLowerCase().includes(q);
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    const title = exp.title.toLowerCase();
+    const category = exp.category.toLowerCase();
+    
+    if (q.length <= 2) {
+      // Short query: match word boundaries only
+      const titleWords = title.split(/\s+/);
+      const categoryWords = category.split(/\s+/);
+      return title.startsWith(q) || titleWords.some(w => w.startsWith(q)) ||
+        category.startsWith(q) || categoryWords.some(w => w.startsWith(q));
+    } else {
+      // Longer query: substring match on title, description, or category
+      return title.includes(q) ||
+        (exp.description || "").toLowerCase().includes(q) ||
+        category.includes(q);
+    }
   });
 
   return (

@@ -4077,3 +4077,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## OLOGY LIVE HEADER FIX (Jul 25, 2026)
 - [x] Add SiteHeader to OlogyLiveBrowse page for consistency with rest of platform
+
+## SEARCH LOGIC FIX (Jul 25, 2026)
+- [x] Fix Browse/Talent search: single letter "A" shows all artists instead of only matching ones
+- [x] Improve search to match on name start/word boundaries, not loose substring on all fields
+- [x] Ensure search respects the selected tab (Artists vs Athletes vs All)

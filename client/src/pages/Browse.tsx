@@ -263,11 +263,27 @@ export default function Browse() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const filteredArtists = artists?.filter(artist => {
-    const matchesSearch = searchQuery === "" || 
-      artist.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (Array.isArray(artist.genre) && artist.genre.some((g: string) => 
-        g.toLowerCase().includes(searchQuery.toLowerCase())
-      ));
+    // Smart search: for short queries (1-2 chars), match word boundaries only
+    // For longer queries (3+ chars), use substring matching
+    let matchesSearch = true;
+    if (searchQuery !== "") {
+      const q = searchQuery.toLowerCase().trim();
+      const name = artist.artistName.toLowerCase();
+      const genres = Array.isArray(artist.genre) ? artist.genre.map((g: string) => g.toLowerCase()) : [];
+      
+      if (q.length <= 2) {
+        // Short query: match if name starts with query, or any word in name starts with query
+        const nameWords = name.split(/\s+/);
+        const nameMatch = name.startsWith(q) || nameWords.some(word => word.startsWith(q));
+        const genreMatch = genres.some(g => g.startsWith(q) || g.split(/\s+/).some(word => word.startsWith(q)));
+        matchesSearch = nameMatch || genreMatch;
+      } else {
+        // Longer query: substring match on name or genre
+        const nameMatch = name.includes(q);
+        const genreMatch = genres.some(g => g.includes(q));
+        matchesSearch = nameMatch || genreMatch;
+      }
+    }
     
     // Apply talent type filter
     if (talentTypeFilter !== 'all') {

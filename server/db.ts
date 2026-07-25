@@ -610,8 +610,16 @@ export async function searchVenues(filters: {
     const params: any[] = [];
     
     if (filters.query) {
-      sql_query += ' AND (organizationName LIKE ? OR location LIKE ? OR city LIKE ? OR bio LIKE ?)';
-      params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
+      if (filters.query.trim().length <= 2) {
+        // Short query: match word boundaries (starts with) on name, location, city
+        const q = filters.query.trim();
+        sql_query += ' AND (organizationName LIKE ? OR organizationName LIKE ? OR city LIKE ? OR city LIKE ?)';
+        params.push(`${q}%`, `% ${q}%`, `${q}%`, `% ${q}%`);
+      } else {
+        // Longer query: substring match
+        sql_query += ' AND (organizationName LIKE ? OR location LIKE ? OR city LIKE ? OR bio LIKE ?)';
+        params.push(`%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`, `%${filters.query}%`);
+      }
     }
     
     if (filters.location) {
