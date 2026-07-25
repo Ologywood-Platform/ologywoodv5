@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users, Music, Calendar, DollarSign, Star, MessageSquare, Mic, Building2, Search, Receipt, Heart } from 'lucide-react';
 
 interface TourStep {
   id: string;
@@ -16,7 +16,8 @@ interface TourStep {
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
 }
 
-const TOUR_STEPS: TourStep[] = [
+// ─── ATHLETE TOUR STEPS ───────────────────────────────────────────────────────
+const ATHLETE_TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to NIL Features',
@@ -51,7 +52,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'video-portfolio',
     title: 'Video Portfolio',
-    description: 'Showcase your talent with video highlights. Athletes can upload game footage, training clips, and media appearances to attract more bookings.',
+    description: 'Showcase your talent with video highlights. Upload game footage, training clips, and media appearances to attract more bookings.',
     icon: <Video className="h-5 w-5 text-red-500" />,
     targetSelector: '[data-tour="video-portfolio"]',
     position: 'bottom',
@@ -66,40 +67,206 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-const STORAGE_KEY = 'ologywood_nil_tour_completed';
-const STORAGE_DISMISSED_KEY = 'ologywood_nil_tour_dismissed';
+// ─── MUSIC ARTIST TOUR STEPS ──────────────────────────────────────────────────
+const ARTIST_TOUR_STEPS: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome to OlogyWood',
+    description: 'Your all-in-one platform for managing bookings, building your brand, and growing your fanbase. Here\'s a quick tour of what you can do.',
+    icon: <Music className="h-5 w-5 text-purple-500" />,
+    position: 'center',
+  },
+  {
+    id: 'dashboard',
+    title: 'Your Dashboard',
+    description: 'Your home base. View upcoming bookings, track earnings, manage your calendar, and see fan engagement — all in one place.',
+    icon: <Calendar className="h-5 w-5 text-blue-500" />,
+    targetSelector: '[data-tour="dashboard"]',
+    position: 'bottom',
+  },
+  {
+    id: 'rider-builder',
+    title: 'Rider Builder',
+    description: 'Create professional riders for your shows. Set your technical requirements, hospitality needs, stage setup, and payment terms — then attach them to any booking.',
+    icon: <FileText className="h-5 w-5 text-green-500" />,
+    targetSelector: '[data-tour="rider-builder"]',
+    position: 'bottom',
+  },
+  {
+    id: 'video-portfolio',
+    title: 'Video Portfolio',
+    description: 'Upload performance videos, music videos, and live clips to showcase your talent. Venues and promoters browse these when considering you for bookings.',
+    icon: <Video className="h-5 w-5 text-red-500" />,
+    targetSelector: '[data-tour="video-portfolio"]',
+    position: 'bottom',
+  },
+  {
+    id: 'fan-engagement',
+    title: 'Fan Club & Followers',
+    description: 'Build your community right here. Fans can follow you, join your fan club, and get notified about your upcoming shows and new content.',
+    icon: <Heart className="h-5 w-5 text-pink-500" />,
+    targetSelector: '[data-tour="fan-club"]',
+    position: 'bottom',
+  },
+  {
+    id: 'earnings',
+    title: 'Earnings & Payouts',
+    description: 'Track every dollar. View your booking earnings, pending payments, and payout history. Set up direct deposits so you get paid fast.',
+    icon: <DollarSign className="h-5 w-5 text-emerald-500" />,
+    targetSelector: '[data-tour="earnings"]',
+    position: 'bottom',
+  },
+];
+
+// ─── VENUE TOUR STEPS ─────────────────────────────────────────────────────────
+const VENUE_TOUR_STEPS: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome to OlogyWood',
+    description: 'Your platform for discovering talent, managing bookings, and promoting your events. Here\'s a quick tour of what you can do as a venue.',
+    icon: <Building2 className="h-5 w-5 text-purple-500" />,
+    position: 'center',
+  },
+  {
+    id: 'browse-talent',
+    title: 'Browse & Book Talent',
+    description: 'Search artists by genre, location, price range, and availability. Filter by region or state to find local talent perfect for your events.',
+    icon: <Search className="h-5 w-5 text-blue-500" />,
+    targetSelector: '[data-tour="browse-talent"]',
+    position: 'bottom',
+  },
+  {
+    id: 'post-events',
+    title: 'Post Events',
+    description: 'Create and promote events at your venue. Add details, upload flyers, set ticket info, and let artists and fans discover what\'s coming up.',
+    icon: <Calendar className="h-5 w-5 text-orange-500" />,
+    targetSelector: '[data-tour="post-events"]',
+    position: 'bottom',
+  },
+  {
+    id: 'booking-workflow',
+    title: 'Booking Workflow',
+    description: 'Send booking requests, negotiate terms, review riders, and manage the entire process from inquiry to confirmation — all through messaging.',
+    icon: <MessageSquare className="h-5 w-5 text-green-500" />,
+    targetSelector: '[data-tour="bookings"]',
+    position: 'bottom',
+  },
+  {
+    id: 'invoicing',
+    title: 'Invoicing & Payments',
+    description: 'Generate invoices, process payments securely through Stripe, and keep a complete financial history of all your bookings.',
+    icon: <Receipt className="h-5 w-5 text-emerald-500" />,
+    targetSelector: '[data-tour="invoicing"]',
+    position: 'bottom',
+  },
+  {
+    id: 'reviews',
+    title: 'Reviews & Reputation',
+    description: 'After events, leave reviews for artists and receive reviews from them. Build your venue\'s reputation to attract top talent.',
+    icon: <Star className="h-5 w-5 text-amber-500" />,
+    targetSelector: '[data-tour="reviews"]',
+    position: 'bottom',
+  },
+];
+
+// ─── STORAGE KEYS ─────────────────────────────────────────────────────────────
+const STORAGE_KEYS = {
+  athlete: { completed: 'ologywood_athlete_tour_completed', dismissed: 'ologywood_athlete_tour_dismissed' },
+  artist: { completed: 'ologywood_artist_tour_completed', dismissed: 'ologywood_artist_tour_dismissed' },
+  venue: { completed: 'ologywood_venue_tour_completed', dismissed: 'ologywood_venue_tour_dismissed' },
+};
+
+// Legacy keys (for backward compat — if user already dismissed the old NIL tour, don't re-show)
+const LEGACY_STORAGE_KEY = 'ologywood_nil_tour_completed';
+const LEGACY_DISMISSED_KEY = 'ologywood_nil_tour_dismissed';
+
+type TourRole = 'athlete' | 'artist' | 'venue';
+
+function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string; dismissedKey: string; accentColor: string } {
+  switch (role) {
+    case 'athlete':
+      return {
+        steps: ATHLETE_TOUR_STEPS,
+        storageKey: STORAGE_KEYS.athlete.completed,
+        dismissedKey: STORAGE_KEYS.athlete.dismissed,
+        accentColor: 'bg-purple-600 hover:bg-purple-700',
+      };
+    case 'artist':
+      return {
+        steps: ARTIST_TOUR_STEPS,
+        storageKey: STORAGE_KEYS.artist.completed,
+        dismissedKey: STORAGE_KEYS.artist.dismissed,
+        accentColor: 'bg-purple-600 hover:bg-purple-700',
+      };
+    case 'venue':
+      return {
+        steps: VENUE_TOUR_STEPS,
+        storageKey: STORAGE_KEYS.venue.completed,
+        dismissedKey: STORAGE_KEYS.venue.dismissed,
+        accentColor: 'bg-teal-600 hover:bg-teal-700',
+      };
+  }
+}
 
 export function OnboardingTour() {
   const { user } = useAuth();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [tourRole, setTourRole] = useState<TourRole | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // Only fetch profile if user is an artist (to check talentType)
+  // Only fetch artist profile if user is an artist (to check talentType)
   const { data: profile } = trpc.artist.getMyProfile.useQuery(undefined, {
     enabled: !!user && user.role === 'artist',
   });
 
-  // Determine if user is an athlete
-  const isAthlete = profile?.talentType === 'athlete';
-
+  // Determine the user's tour role
   useEffect(() => {
-    // Only show NIL tour for athlete-type users
-    if (!isAthlete) return;
+    if (!user) {
+      setTourRole(null);
+      return;
+    }
 
-    const completed = localStorage.getItem(STORAGE_KEY);
-    const dismissed = localStorage.getItem(STORAGE_DISMISSED_KEY);
+    if (user.role === 'venue') {
+      setTourRole('venue');
+    } else if (user.role === 'artist' && profile) {
+      if (profile.talentType === 'athlete') {
+        setTourRole('athlete');
+      } else {
+        setTourRole('artist');
+      }
+    }
+  }, [user, profile]);
+
+  // Show tour when role is determined
+  useEffect(() => {
+    if (!tourRole) return;
+
+    const config = getTourConfig(tourRole);
+
+    // Check legacy keys for athletes (backward compat)
+    if (tourRole === 'athlete') {
+      const legacyCompleted = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const legacyDismissed = localStorage.getItem(LEGACY_DISMISSED_KEY);
+      if (legacyCompleted || legacyDismissed) return;
+    }
+
+    const completed = localStorage.getItem(config.storageKey);
+    const dismissed = localStorage.getItem(config.dismissedKey);
     if (!completed && !dismissed) {
-      // Show tour after a brief delay to let the page render
       const timer = setTimeout(() => setIsActive(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, [isAthlete]);
+  }, [tourRole]);
+
+  const config = tourRole ? getTourConfig(tourRole) : null;
+  const steps = config?.steps ?? [];
 
   const positionTooltip = useCallback(() => {
-    const step = TOUR_STEPS[currentStep];
-    if (!step.targetSelector || step.position === 'center') {
+    if (!steps.length) return;
+    const step = steps[currentStep];
+    if (!step?.targetSelector || step.position === 'center') {
       setTooltipStyle({
         position: 'fixed',
         top: '50%',
@@ -112,7 +279,6 @@ export function OnboardingTour() {
 
     const target = document.querySelector(step.targetSelector);
     if (!target) {
-      // Fallback to center if target not found
       setTooltipStyle({
         position: 'fixed',
         top: '50%',
@@ -162,7 +328,7 @@ export function OnboardingTour() {
       left: `${left}px`,
       zIndex: 10001,
     });
-  }, [currentStep]);
+  }, [currentStep, steps]);
 
   useEffect(() => {
     if (isActive) {
@@ -173,7 +339,7 @@ export function OnboardingTour() {
   }, [isActive, currentStep, positionTooltip]);
 
   const handleNext = () => {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
       completeTour();
@@ -187,19 +353,23 @@ export function OnboardingTour() {
   };
 
   const completeTour = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    if (config) {
+      localStorage.setItem(config.storageKey, 'true');
+    }
     setIsActive(false);
   };
 
   const dismissTour = () => {
-    localStorage.setItem(STORAGE_DISMISSED_KEY, 'true');
+    if (config) {
+      localStorage.setItem(config.dismissedKey, 'true');
+    }
     setIsActive(false);
   };
 
-  if (!isActive) return null;
+  if (!isActive || !config || !steps.length) return null;
 
-  const step = TOUR_STEPS[currentStep];
-  const progress = ((currentStep + 1) / TOUR_STEPS.length) * 100;
+  const step = steps[currentStep];
+  const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
     <>
@@ -237,7 +407,7 @@ export function OnboardingTour() {
               <div className="flex items-center gap-2">
                 {step.icon}
                 <Badge variant="secondary" className="text-xs">
-                  {currentStep + 1} of {TOUR_STEPS.length}
+                  {currentStep + 1} of {steps.length}
                 </Badge>
               </div>
               <Button
@@ -277,9 +447,9 @@ export function OnboardingTour() {
                     Back
                   </Button>
                 )}
-                <Button size="sm" onClick={handleNext} className="bg-purple-600 hover:bg-purple-700">
-                  {currentStep === TOUR_STEPS.length - 1 ? 'Got it!' : 'Next'}
-                  {currentStep < TOUR_STEPS.length - 1 && <ChevronRight className="h-3.5 w-3.5 ml-1" />}
+                <Button size="sm" onClick={handleNext} className={config.accentColor}>
+                  {currentStep === steps.length - 1 ? 'Got it!' : 'Next'}
+                  {currentStep < steps.length - 1 && <ChevronRight className="h-3.5 w-3.5 ml-1" />}
                 </Button>
               </div>
             </div>
@@ -294,9 +464,20 @@ export function OnboardingTour() {
  * Hook to trigger the tour manually (e.g., from a "What's New" button)
  */
 export function useOnboardingTour() {
-  const resetTour = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_DISMISSED_KEY);
+  const resetTour = (role?: TourRole) => {
+    if (role) {
+      const keys = STORAGE_KEYS[role];
+      localStorage.removeItem(keys.completed);
+      localStorage.removeItem(keys.dismissed);
+    } else {
+      // Reset all tours
+      Object.values(STORAGE_KEYS).forEach(({ completed, dismissed }) => {
+        localStorage.removeItem(completed);
+        localStorage.removeItem(dismissed);
+      });
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_DISMISSED_KEY);
+    }
     window.dispatchEvent(new CustomEvent('ologywood-tour-reset'));
   };
 

@@ -4104,3 +4104,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## NIL FEATURE TOUR FIX (Jul 25, 2026)
 - [x] Restrict NIL feature welcome modal to only show for athlete-type users
+
+## ROLE-SPECIFIC ONBOARDING TOURS (Jul 25, 2026)
+- [x] Create music artist onboarding tour (booking mgmt, rider builder, video portfolio, fan engagement, earnings)
+- [x] Create venue onboarding tour (post events, browse talent, booking workflow, invoicing, reviews)
+- [x] Integrate tours into App.tsx with role-based rendering
