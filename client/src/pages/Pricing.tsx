@@ -21,11 +21,19 @@ const PRICING_FAQS = [
   },
   {
     question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe.',
+    answer: 'We accept Visa, Mastercard, American Express, Discover, Apple Pay, and Google Pay. All payments are processed securely through Stripe with industry-standard encryption.',
+  },
+  {
+    question: 'Is my payment information secure?',
+    answer: 'Absolutely. We use Stripe for payment processing, which is PCI DSS Level 1 certified — the highest level of security in the payments industry. Your card details are never stored on our servers. All transactions are encrypted with 256-bit SSL.',
+  },
+  {
+    question: 'What is your refund policy?',
+    answer: 'Subscription fees are refundable within 7 days of purchase if you have not used any premium features. For booking payments, refunds are handled between the parties involved per the terms of the booking agreement. Contact support for any billing disputes.',
   },
   {
     question: 'Can I cancel anytime?',
-    answer: 'Absolutely! Cancel your subscription anytime with no penalties or hidden fees.',
+    answer: 'Absolutely! Cancel your subscription anytime with no penalties or hidden fees. You will retain access to your paid features until the end of your current billing period.',
   },
   {
     question: 'How does the booking limit work on the Free plan?',
@@ -543,7 +551,7 @@ export default function Pricing() {
 
           {/* Accepted Payment Methods */}
           <div className="max-w-3xl mx-auto mb-8">
-            <AcceptedPaymentMethods size="md" labelText="Secure Payments — We Accept" />
+            <AcceptedPaymentMethods size="md" labelText="Secure Checkout — We Accept" showLockIcon />
           </div>
 
           {/* Test Mode Notice */}

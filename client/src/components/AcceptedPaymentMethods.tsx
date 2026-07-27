@@ -1,3 +1,4 @@
+import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AcceptedPaymentMethodsProps {
@@ -5,6 +6,7 @@ interface AcceptedPaymentMethodsProps {
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   labelText?: string;
+  showLockIcon?: boolean;
 }
 
 // SVG payment icons as inline components for reliability (no external dependencies)
@@ -84,13 +86,15 @@ export function AcceptedPaymentMethods({
   size = 'md',
   showLabel = true,
   labelText = 'We Accept',
+  showLockIcon = false,
 }: AcceptedPaymentMethodsProps) {
   const iconSize = sizeClasses[size];
 
   return (
     <div className={cn('flex flex-col items-center gap-2', className)}>
       {showLabel && (
-        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide flex items-center gap-1">
+          {showLockIcon && <Lock className="h-3 w-3 text-green-600" />}
           {labelText}
         </span>
       )}

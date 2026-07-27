@@ -379,7 +379,7 @@ export default function BookingCreate() {
               </div>
 
               <div className="mt-4">
-                <AcceptedPaymentMethods size="sm" labelText="Accepted Payment Methods" />
+                <AcceptedPaymentMethods size="sm" labelText="Secure Checkout — Accepted Payment Methods" showLockIcon />
               </div>
             </form>
           </CardContent>

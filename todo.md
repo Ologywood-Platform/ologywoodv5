@@ -4115,3 +4115,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add payment icons to site footer
 - [x] Add payment icons to pricing/subscription page
 - [x] Add payment icons to booking confirmation flow
+
+## SECURE CHECKOUT ICON + PAYMENT FAQ (Jul 27, 2026)
+- [x] Add lock icon next to "We Accept" labels on pricing and booking pages
+- [x] Add payment process/refund policy FAQ section below payment icons on pricing page
