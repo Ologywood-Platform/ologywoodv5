@@ -10,6 +10,7 @@ import { Calendar, DollarSign, Music, Building2, ArrowLeft, Loader2, CheckCircle
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { AcceptedPaymentMethods } from '@/components/AcceptedPaymentMethods';
 
 export default function BookingCreate() {
   const { user, isAuthenticated } = useAuth();
@@ -375,6 +376,10 @@ export default function BookingCreate() {
                 <p className="text-sm text-blue-900">
                   <strong>Next Steps:</strong> After sending your booking request, the artist will review it and respond through the messaging system. You can track the status in your bookings page.
                 </p>
+              </div>
+
+              <div className="mt-4">
+                <AcceptedPaymentMethods size="sm" labelText="Accepted Payment Methods" />
               </div>
             </form>
           </CardContent>

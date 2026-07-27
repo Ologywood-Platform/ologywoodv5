@@ -4109,3 +4109,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create music artist onboarding tour (booking mgmt, rider builder, video portfolio, fan engagement, earnings)
 - [x] Create venue onboarding tour (post events, browse talent, booking workflow, invoicing, reviews)
 - [x] Integrate tours into App.tsx with role-based rendering
+
+## PAYMENT METHOD ICONS (Jul 27, 2026)
+- [x] Create AcceptedPaymentMethods component with Visa, Mastercard, Amex, Discover, Apple Pay, Google Pay icons
+- [x] Add payment icons to site footer
+- [x] Add payment icons to pricing/subscription page
+- [x] Add payment icons to booking confirmation flow

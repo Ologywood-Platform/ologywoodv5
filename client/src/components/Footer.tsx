@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { Facebook, Instagram, Linkedin, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import TikTokIcon from './TikTokIcon';
 import { trpc } from '@/lib/trpc';
+import { AcceptedPaymentMethods } from './AcceptedPaymentMethods';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -239,6 +240,11 @@ const Footer = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Accepted Payment Methods */}
+        <div className="flex justify-center py-6 border-b border-gray-800 mb-6">
+          <AcceptedPaymentMethods size="sm" />
         </div>
 
         {/* Bottom Bar */}

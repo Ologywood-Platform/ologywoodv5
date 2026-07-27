@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, DollarSign, Music, X, Send, CheckCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { AcceptedPaymentMethods } from './AcceptedPaymentMethods';
 
 interface QuickBookingModalProps {
   venue: {
@@ -245,6 +246,10 @@ export function QuickBookingModal({ venue, onClose }: QuickBookingModalProps) {
                 </>
               )}
             </Button>
+
+            <div className="mt-3">
+              <AcceptedPaymentMethods size="sm" showLabel={false} />
+            </div>
           </form>
         </CardContent>
       </Card>

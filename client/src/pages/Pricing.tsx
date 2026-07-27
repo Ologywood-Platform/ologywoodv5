@@ -12,6 +12,7 @@ import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { StripeTestModeBanner } from '@/components/StripeTestModeBanner';
 import TestModeBadge from '@/components/TestModeBadge';
 import { UpgradeComparisonModal } from '@/components/UpgradeComparisonModal';
+import { AcceptedPaymentMethods } from '@/components/AcceptedPaymentMethods';
 
 const PRICING_FAQS = [
   {
@@ -538,6 +539,11 @@ export default function Pricing() {
 
             {/* Swipe hint */}
             <p className="text-center text-xs text-gray-400 mt-2">Swipe or tap tabs to compare plans</p>
+          </div>
+
+          {/* Accepted Payment Methods */}
+          <div className="max-w-3xl mx-auto mb-8">
+            <AcceptedPaymentMethods size="md" labelText="Secure Payments — We Accept" />
           </div>
 
           {/* Test Mode Notice */}
