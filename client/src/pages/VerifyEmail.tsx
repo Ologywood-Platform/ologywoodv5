@@ -20,11 +20,12 @@ export function VerifyEmail() {
   const verifyMutation = (trpc.auth as any).verifyEmail.useMutation();
   const resendMutation = (trpc.auth as any).resendConfirmationEmail.useMutation();
 
-  // Extract token and email from query params
+  // Extract token, email, and returnPath from query params
   useEffect(() => {
     const params = new URLSearchParams(search);
     const token = params.get('token');
     const emailParam = params.get('email');
+    const returnPathParam = params.get('returnPath');
 
     if (emailParam) {
       setEmail(decodeURIComponent(emailParam));
@@ -39,9 +40,10 @@ export function VerifyEmail() {
             setStatus('success');
             if (result.email) setEmail(result.email);
             toast.success('Email verified successfully!');
-            // Redirect to role selection / account setup after 3 seconds
+            // If there's a returnPath (e.g., team invite), redirect there instead of onboarding
+            const destination = returnPathParam ? decodeURIComponent(returnPathParam) : '/get-started';
             setTimeout(() => {
-              window.location.href = '/get-started';
+              window.location.href = destination;
             }, 3000);
           } else {
             setStatus('error');
@@ -135,9 +137,14 @@ export function VerifyEmail() {
             </div>
             <Button
               className="mt-2 bg-purple-600 hover:bg-purple-700"
-              onClick={() => window.location.href = '/get-started'}
+              onClick={() => {
+                const params = new URLSearchParams(search);
+                const returnPathParam = params.get('returnPath');
+                const destination = returnPathParam ? decodeURIComponent(returnPathParam) : '/get-started';
+                window.location.href = destination;
+              }}
             >
-              Continue to Account Setup
+              {new URLSearchParams(search).get('returnPath') ? 'Continue' : 'Continue to Account Setup'}
             </Button>
           </CardContent>
         </Card>

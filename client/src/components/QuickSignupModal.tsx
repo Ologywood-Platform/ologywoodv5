@@ -10,6 +10,7 @@ import { Mail, Lock, User, Loader2, ArrowLeft, CheckCircle } from 'lucide-react'
 
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
+import { getLoginUrl } from '@/const';
 
 interface QuickSignupModalProps {
   isOpen: boolean;
@@ -36,6 +37,9 @@ export function QuickSignupModal({
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [oauthEmail, setOauthEmail] = useState('');
   
+  // Read redirect param from URL (used by team invite flow and other redirect scenarios)
+  const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+
   // Reset form state when modal opens/closes and sync tab with defaultTab
   useEffect(() => {
     if (isOpen) {
@@ -132,7 +136,12 @@ export function QuickSignupModal({
       
       // Redirect to verify-email page so user knows to check their inbox
       if (result.requiresEmailVerification) {
-        window.location.href = `/verify-email?email=${encodeURIComponent(signupData.email)}`;
+        const verifyUrl = redirectParam
+          ? `/verify-email?email=${encodeURIComponent(signupData.email)}&returnPath=${encodeURIComponent(redirectParam)}`
+          : `/verify-email?email=${encodeURIComponent(signupData.email)}`;
+        window.location.href = verifyUrl;
+      } else if (redirectParam) {
+        window.location.href = redirectParam;
       } else {
         setTimeout(() => window.location.reload(), 500);
       }
@@ -167,7 +176,11 @@ export function QuickSignupModal({
         onSignupSuccess();
       }
       
-      setTimeout(() => window.location.reload(), 500);
+      if (redirectParam) {
+        window.location.href = redirectParam;
+      } else {
+        setTimeout(() => window.location.reload(), 500);
+      }
     } catch (error: any) {
       const errorMessage = error?.message || 'Login failed. Please try again.';
       
@@ -426,7 +439,7 @@ export function QuickSignupModal({
                   variant="outline"
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800 transition-all shadow-sm"
                   onClick={() => {
-                    const returnPath = window.location.pathname + window.location.search;
+                    const returnPath = redirectParam || (window.location.pathname + window.location.search);
                     window.location.href = `/api/auth/google?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
@@ -442,7 +455,8 @@ export function QuickSignupModal({
                 <Button
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium bg-[#1DB954] hover:bg-[#1ed760] text-white border-0 transition-all shadow-sm"
                   onClick={() => {
-                    window.location.href = '/api/auth/spotify?returnPath=/';
+                    const returnPath = redirectParam || '/';
+                    window.location.href = `/api/auth/spotify?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -613,7 +627,7 @@ export function QuickSignupModal({
                   variant="outline"
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800 transition-all shadow-sm"
                   onClick={() => {
-                    const returnPath = window.location.pathname + window.location.search;
+                    const returnPath = redirectParam || (window.location.pathname + window.location.search);
                     window.location.href = `/api/auth/google?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
@@ -629,7 +643,8 @@ export function QuickSignupModal({
                 <Button
                   className="w-full flex items-center justify-center gap-3 h-12 text-base font-medium bg-[#1DB954] hover:bg-[#1ed760] text-white border-0 transition-all shadow-sm"
                   onClick={() => {
-                    window.location.href = '/api/auth/spotify?returnPath=/';
+                    const returnPath = redirectParam || '/';
+                    window.location.href = `/api/auth/spotify?returnPath=${encodeURIComponent(returnPath)}`;
                   }}
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24">

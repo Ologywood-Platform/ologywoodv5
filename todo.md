@@ -4119,3 +4119,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## SECURE CHECKOUT ICON + PAYMENT FAQ (Jul 27, 2026)
 - [x] Add lock icon next to "We Accept" labels on pricing and booking pages
 - [x] Add payment process/refund policy FAQ section below payment icons on pricing page
+
+## TEAM INVITATION FLOW BUG (Jul 31, 2026)
+- [x] Fix: Invitee goes through normal signup instead of being linked as team member
+- [x] Fix: Invitee not showing up in Team Members section after accepting invitation
+- [x] Ensure invitation token is recognized during signup and properly assigns team role
+- [x] Fix: AcceptTeamInvite now uses getLoginUrl() with proper returnPath through OAuth state
+- [x] Fix: QuickSignupModal reads redirect URL param and preserves it through all auth flows
+- [x] Fix: VerifyEmail page preserves returnPath so invite acceptance survives email verification
+- [x] Fix: Home.tsx auto-opens login modal when redirect param is present (fallback)
+- [x] Added public team.getInvitationPreview endpoint showing invited email and inviter name
+- [x] AcceptTeamInvite UI shows which email the invitation was sent to
+- [x] Google/Spotify social auth buttons in QuickSignupModal preserve redirect param

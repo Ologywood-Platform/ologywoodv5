@@ -39,7 +39,13 @@ export default function Home() {
       // Remove the error parameter from URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+    // If there's a redirect param (e.g., from team invite), auto-open the login modal
+    const redirect = params.get('redirect');
+    if (redirect && !isAuthenticated) {
+      setAuthModalTab('login');
+      setAuthModalOpen(true);
+    }
+  }, [isAuthenticated]);
   
   const openSignUp = () => {
     setAuthModalTab('signup');

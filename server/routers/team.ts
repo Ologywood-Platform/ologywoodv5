@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../_core/trpc";
+import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users } from "../../drizzle/schema";
@@ -56,6 +56,46 @@ const teamAccessProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const teamRouter = router({
+  // Public: Get invitation preview (email, inviter name, role) without requiring login
+  getInvitationPreview: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+      const [invitation] = await database.select().from(artistTeamInvitations)
+        .where(eq(artistTeamInvitations.token, input.token))
+        .limit(1);
+
+      if (!invitation) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Invitation not found' });
+      }
+
+      // Check if expired
+      const expired = invitation.status === 'expired' || new Date() > invitation.expiresAt;
+
+      // Get inviter name
+      const inviter = await db.getUserById(invitation.invitedByUserId);
+
+      // Get artist profile name
+      const artistProfile = await db.getArtistProfileById(invitation.artistProfileId);
+
+      // Partially mask email for privacy (show first 2 chars + domain)
+      const emailParts = invitation.email.split('@');
+      const maskedLocal = emailParts[0].substring(0, 2) + '***';
+      const maskedEmail = `${maskedLocal}@${emailParts[1]}`;
+
+      return {
+        email: maskedEmail,
+        fullEmail: invitation.email, // Full email so user knows exactly what to use
+        inviterName: inviter?.name || 'A team owner',
+        artistName: artistProfile?.artistName || 'an artist',
+        role: invitation.role === 'manager' ? 'Manager' : 'Team Member',
+        expired,
+        status: invitation.status,
+      };
+    }),
+
   // Get team members for the current artist's profile
   getMembers: teamAccessProcedure.query(async ({ ctx }) => {
     const database = await getDb();
