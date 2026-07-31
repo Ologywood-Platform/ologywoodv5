@@ -274,7 +274,7 @@ export function ProjectPreviewManager() {
           <div className="flex items-center gap-3">
             {limitInfo && (
               <Badge variant="secondary" className="text-xs">
-                {limitInfo.currentCount}/{limitInfo.maxProjects} projects
+                {projects ? projects.length : limitInfo.currentCount}/{limitInfo.maxProjects} projects
               </Badge>
             )}
             <Button

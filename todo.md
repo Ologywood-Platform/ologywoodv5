@@ -4139,3 +4139,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 ## PROJECT PREVIEWS COUNT BUG (Jul 31, 2026)
 - [x] Fix: Project count does not update in real-time when adding or deleting projects
 - [x] Count should refresh immediately after add/delete without requiring screen exit and re-access
+
+## PROJECT PREVIEWS COUNT BUG - FOLLOW-UP (Jul 31, 2026)
+- [x] Verify/fix: Project count still not updating in real-time after add/delete (user re-reported)
+- [x] Changed badge to use projects.length for immediate display instead of stale limitInfo.currentCount
+
+## TEAM INVITE MODAL EMAIL FIELD NOT CLEARING (Jul 31, 2026)
+- [x] Fix: When entering an email in Invite Team Member modal and closing with X, the email field should be cleared
+- [x] Email Address field should be blank when re-opening the Invite Team Member modal
+- [x] Also added backdrop click-to-close with email field reset

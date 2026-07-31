@@ -351,11 +351,11 @@ export function TeamManagement() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setShowInviteModal(false); setInviteEmail(''); }}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Invite Team Member</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowInviteModal(false)}>
+              <Button variant="ghost" size="sm" onClick={() => { setShowInviteModal(false); setInviteEmail(''); }}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
