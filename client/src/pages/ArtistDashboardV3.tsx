@@ -200,7 +200,7 @@ export function ArtistDashboardV3() {
                     )}
                     <div className="min-w-0">
                       <CardTitle className="text-xl sm:text-2xl break-words">{artistProfile?.artistName || 'Artist'}</CardTitle>
-                      <CardDescription className="break-words">{artistProfile?.genre || 'Genre not specified'}</CardDescription>
+                      <CardDescription className="break-words">{artistProfile?.genre ? [...new Set(artistProfile.genre)].join(', ') : 'Genre not specified'}</CardDescription>
                       {artistProfile && (artistProfile as any)?.averageRating && (
                         <div className="flex items-center gap-1 mt-2">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />

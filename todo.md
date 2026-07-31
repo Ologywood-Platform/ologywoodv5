@@ -4148,3 +4148,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: When entering an email in Invite Team Member modal and closing with X, the email field should be cleared
 - [x] Email Address field should be blank when re-opening the Invite Team Member modal
 - [x] Also added backdrop click-to-close with email field reset
+
+## TEAM INVITE EMAIL TYPO (Jul 31, 2026)
+- [x] Fix: "onOlogywood" typo in team member invitation email should be "on Ologywood" (verified code already has correct spacing; user was seeing older deployed version)
+
+## ARTIST DASHBOARD GENRE DISPLAY (Jul 31, 2026)
+- [x] Fix: Genres under artist name not separated by commas (was rendering array directly without .join)
+- [x] Fix: Duplicate genres showing - added [...new Set()] deduplication
+- [x] Fixed in: ArtistDashboardV3, ArtistProfile, Browse, VenueDashboard, ClientBooking

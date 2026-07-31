@@ -748,7 +748,7 @@ export function VenueDashboard() {
                         <div>
                           <CardTitle className="text-lg">{artist.artistName || 'Artist'}</CardTitle>
                           <CardDescription>
-                            {artist.genre || 'Genre not specified'} • {artist.location || 'Location not specified'}
+                            {Array.isArray(artist.genre) ? [...new Set(artist.genre)].join(', ') : (artist.genre || 'Genre not specified')} • {artist.location || 'Location not specified'}
                           </CardDescription>
                         </div>
                       </div>
@@ -1753,7 +1753,7 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
                   )}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium truncate">{artist.artistName}</h4>
-                    <p className="text-sm text-gray-500 truncate">{artist.genre || 'No genre'}</p>
+                    <p className="text-sm text-gray-500 truncate">{Array.isArray(artist.genre) ? [...new Set(artist.genre)].join(', ') : (artist.genre || 'No genre')}</p>
                     <p className="text-sm text-gray-400 truncate">{artist.location || 'No location'}</p>
                     {item.source === 'followed' && (
                       <span className="inline-block text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">Following</span>

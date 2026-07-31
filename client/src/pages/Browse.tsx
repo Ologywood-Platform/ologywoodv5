@@ -595,7 +595,7 @@ export default function Browse() {
                                 </p>
                               ) : (
                                 Array.isArray(artist.genre) && artist.genre.length > 0 && (
-                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{artist.genre.join(", ")}</p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{[...new Set(artist.genre)].join(", ")}</p>
                                 )
                               )}
                             </div>

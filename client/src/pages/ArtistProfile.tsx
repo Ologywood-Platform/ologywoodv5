@@ -371,7 +371,7 @@ export default function ArtistProfile() {
               ) : (
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                   {Array.isArray(artist.genre) && artist.genre.length > 0 
-                    ? artist.genre.join(", ") 
+                    ? [...new Set(artist.genre)].join(", ") 
                     : "Various Genres"}
                 </p>
               )}

@@ -516,7 +516,7 @@ export default function ClientBooking() {
                 )}
                 <div>
                   <p className="font-bold text-gray-900 dark:text-white">{artist?.artistName || 'Artist'}</p>
-                  <p className="text-sm text-gray-500">{artist?.genre || ''} {artist?.location ? `· ${artist.location}` : ''}</p>
+                  <p className="text-sm text-gray-500">{Array.isArray(artist?.genre) ? [...new Set(artist.genre)].join(', ') : (artist?.genre || '')} {artist?.location ? `· ${artist.location}` : ''}</p>
                 </div>
               </div>
 
