@@ -4131,3 +4131,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added public team.getInvitationPreview endpoint showing invited email and inviter name
 - [x] AcceptTeamInvite UI shows which email the invitation was sent to
 - [x] Google/Spotify social auth buttons in QuickSignupModal preserve redirect param
+
+## MERCH PHOTO UPLOAD SPINNER BUG (Jul 31, 2026)
+- [x] Fix: Spinner on photo upload button continues spinning after file-too-large error (>2MB)
+- [x] Spinner should stop and allow user to try again with a smaller image without exiting the screen
+
+## PROJECT PREVIEWS COUNT BUG (Jul 31, 2026)
+- [x] Fix: Project count does not update in real-time when adding or deleting projects
+- [x] Count should refresh immediately after add/delete without requiring screen exit and re-access

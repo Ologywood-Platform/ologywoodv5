@@ -137,12 +137,14 @@ export function MerchManager({ userType }: MerchManagerProps) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast.error('Only JPEG, PNG, and WebP images are allowed.');
+      setUploadingItemId(null);
       return;
     }
 
     // Validate size (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Images must be under 2MB. Please compress or resize.');
+      setUploadingItemId(null);
       return;
     }
 
@@ -377,6 +379,9 @@ export function MerchManager({ userType }: MerchManagerProps) {
           const file = e.target.files?.[0];
           if (file && uploadingItemId) {
             handleImageUpload(uploadingItemId, file);
+          } else {
+            // User cancelled file selection — reset spinner
+            setUploadingItemId(null);
           }
           e.target.value = '';
         }}

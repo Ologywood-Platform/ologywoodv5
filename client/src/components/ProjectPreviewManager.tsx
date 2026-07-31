@@ -51,7 +51,7 @@ export function ProjectPreviewManager() {
 
   // Queries
   const { data: projects, refetch: refetchProjects } = trpc.projectPreviews.myProjects.useQuery();
-  const { data: limitInfo } = trpc.projectPreviews.getLimitInfo.useQuery();
+  const { data: limitInfo, refetch: refetchLimitInfo } = trpc.projectPreviews.getLimitInfo.useQuery();
 
   // Project mutations
   const createProjectMutation = trpc.projectPreviews.createProject.useMutation({
@@ -60,6 +60,7 @@ export function ProjectPreviewManager() {
       resetProjectForm();
       setShowProjectDialog(false);
       refetchProjects();
+      refetchLimitInfo();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -78,6 +79,7 @@ export function ProjectPreviewManager() {
     onSuccess: () => {
       toast.success('Project deleted');
       refetchProjects();
+      refetchLimitInfo();
     },
     onError: (err) => toast.error(err.message),
   });
