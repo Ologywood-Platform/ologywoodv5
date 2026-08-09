@@ -6,8 +6,8 @@ import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import {
 import { SiteHeader } from "@/components/SiteHeader";
+import {
   Video, Plus, Calendar, Users, DollarSign, Clock, Trash2, Edit2,
   ToggleLeft, ToggleRight, Zap, Gamepad2, Music, Dumbbell, MessageCircle,
   Camera, Film, Palette, Briefcase, Star

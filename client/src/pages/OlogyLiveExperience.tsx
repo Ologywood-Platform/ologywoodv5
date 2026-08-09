@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Badge } from "../components/ui/badge";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import {
 import { SiteHeader } from "@/components/SiteHeader";
+import {
   Video, Clock, DollarSign, Users, Calendar, ArrowLeft,
   Gamepad2, Music, Dumbbell, MessageCircle, Camera, Film, Palette, Briefcase, Star, Zap,
   CheckCircle2, AlertCircle
