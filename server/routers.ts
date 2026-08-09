@@ -4,6 +4,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import * as schema from "../drizzle/schema";
+import { eq, gte, and } from "drizzle-orm";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
@@ -298,6 +300,7 @@ export const appRouter = router({
   }),
 
   release: releaseRouter,
+  contentRelease: releasesRouter,
   blog: blogRouter,
   stripeConnect: stripeConnectRouter,
   contact: contactRouter,
@@ -1132,6 +1135,22 @@ export const appRouter = router({
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
+        }
+        
+        // Tier enforcement: check booking limit for free users
+        const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+        const userTier = subscription?.tier || 'free';
+        if (userTier === 'free') {
+          const database = await db.getDb();
+          if (database) {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthlyBookings = await database.select().from(schema.bookings)
+              .where(and(eq(schema.bookings.venueId, venueProfile.id), gte(schema.bookings.createdAt, startOfMonth)));
+            if (monthlyBookings.length >= 2) {
+              throw new TRPCError({ code: 'FORBIDDEN', message: 'Free plan is limited to 2 booking requests per month. Upgrade to Starter for unlimited bookings.' });
+            }
+          }
         }
         
         // Check if artist is available on this date
@@ -3720,3 +3739,4 @@ export const appRouter = router({
   ologyLivePhase2: ologyLivePhase2Router,
 });
 export type AppRouter = typeof appRouter;
+import { releasesRouter } from "./routers/releases";

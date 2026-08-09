@@ -52,7 +52,7 @@ export default function TermsOfService() {
               <strong>Ologywood is a technology platform that provides tools for talent to manage their careers and grow their fan communities.</strong> Ologywood is not a talent agency, booking agent, promoter, venue operator, employer, payment processor, escrow agent, financial institution, or party to any agreement between users. Ologywood does not employ, endorse, recommend, or guarantee any talent, venue, or event organizer on the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              The Platform provides tools including, but not limited to: talent profile hosting, booking request management, rider contract creation and e-signature, event ticketing, digital music release distribution, Fan Club membership tiers and exclusive content, fan engagement features, messaging, music library and streaming, and payment facilitation through third-party processors. All contractual relationships for performances, events, and services are solely between the contracting parties (talent, venues, and/or event organizers). Ologywood has no obligation to enforce, mediate, or adjudicate the terms of any agreement entered into between users.
+              The Platform provides tools including, but not limited to: talent profile hosting, booking request management, rider contract creation and e-signature, event ticketing, digital music release distribution, content release monetization (for externally-hosted content on platforms such as YouTube, Vimeo, Spotify, and others), Fan Club membership tiers and exclusive content, fan engagement features, messaging, music library and streaming, and payment facilitation through third-party processors. Ologywood serves as a monetization and commerce layer — creators choose where their content lives, and the Platform handles discovery, ticketing, access control, and revenue. All contractual relationships for performances, events, and services are solely between the contracting parties (talent, venues, and/or event organizers). Ologywood has no obligation to enforce, mediate, or adjudicate the terms of any agreement entered into between users.
             </p>
           </section>
 
@@ -353,6 +353,65 @@ export default function TermsOfService() {
             <p className="text-base leading-relaxed">
               Due to the nature of digital goods, purchases of music releases are generally non-refundable once the download has been accessed. If a download link is defective or the file is corrupted, the purchaser may contact the Talent or Ologywood support for a replacement or refund at the Talent's discretion.
             </p>
+          </section>
+
+
+          {/* 11A. Content Releases (External Distribution) */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">11A. Content Releases (Externally-Hosted Content)</h2>
+            <p className="text-base leading-relaxed">
+              The Platform allows Talent to create and sell access to content that is hosted on third-party platforms (such as YouTube, Vimeo, Spotify, Twitch, Apple Podcasts, or the Talent's personal website). <strong>Ologywood does not host, stream, store, or control the availability of externally-hosted content.</strong> Ologywood serves solely as the monetization and access-control layer — facilitating the sale of tickets, access passes, or memberships that grant purchasers access to the Talent's externally-hosted content.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11A.1 Platform Role and Limitations</h3>
+            <p className="text-base leading-relaxed">
+              When a fan purchases access to a Content Release, Ologywood processes the payment and grants the purchaser access to the content URL provided by the Talent. The actual content delivery (streaming, playback, bandwidth) is handled entirely by the third-party hosting platform. Ologywood is not responsible for:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2 mt-3">
+              <li>The availability, uptime, or performance of the third-party hosting platform</li>
+              <li>Content that is removed, restricted, or made unavailable by the hosting platform after purchase</li>
+              <li>Geographic restrictions or content blocking imposed by the hosting platform</li>
+              <li>Changes to the hosting platform's terms of service that affect content accessibility</li>
+              <li>The quality, accuracy, or completeness of the externally-hosted content</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11A.2 Creator Responsibilities</h3>
+            <p className="text-base leading-relaxed">
+              By creating a Content Release on the Platform, Talent represents and warrants that:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2 mt-3">
+              <li>They own or have obtained all necessary rights to distribute or sell access to the content</li>
+              <li>The content URL provided will remain accessible to purchasers for a reasonable period (minimum 90 days from the last purchase date)</li>
+              <li>They will not intentionally remove, restrict, or make the content unavailable to paying purchasers without providing a refund</li>
+              <li>The content does not violate the hosting platform's terms of service or any applicable law</li>
+              <li>Any premiere dates, scheduled availability, or access windows are accurately represented at the time of sale</li>
+            </ul>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Failure to maintain content accessibility:</strong> If Talent removes or restricts access to content that has been purchased by fans, Ologywood reserves the right to issue refunds to affected purchasers and deduct the refunded amounts from the Talent's earnings or connected Stripe account.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11A.3 Content Release Refunds</h3>
+            <p className="text-base leading-relaxed">
+              Content Release purchases are subject to the following refund policy:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2 mt-3">
+              <li><strong>Content available and accessible:</strong> No refund — the purchase grants access to the content URL as described.</li>
+              <li><strong>Content unavailable due to Talent action:</strong> Full refund if the Talent removes or restricts the content within 90 days of purchase.</li>
+              <li><strong>Content unavailable due to hosting platform:</strong> Ologywood will make reasonable efforts to facilitate a refund or alternative access, but is not obligated to provide a refund for third-party platform actions beyond its control.</li>
+              <li><strong>Scheduled premiere not delivered:</strong> Full refund if a scheduled premiere does not occur within 7 days of the advertised date without prior notice from the Talent.</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">11A.4 Access Models</h3>
+            <p className="text-base leading-relaxed">
+              Content Releases may be offered under the following access models, as selected by the Talent:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2 mt-3">
+              <li><strong>Free:</strong> Content is accessible to all users at no charge.</li>
+              <li><strong>Ticketed:</strong> A one-time purchase at a fixed price grants permanent access to the content.</li>
+              <li><strong>Fan Club Members Only:</strong> Access is restricted to active Fan Club members of the Talent.</li>
+              <li><strong>Pay What You Want:</strong> Fans choose their own price (subject to an optional minimum set by the Talent).</li>
+              <li><strong>Unlock After Purchase:</strong> Content is locked until the fan completes a purchase at the listed price.</li>
+            </ul>
           </section>
 
           {/* 12. Refunds and Cancellations */}

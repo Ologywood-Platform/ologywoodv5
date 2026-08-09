@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users } from "../../drizzle/schema";
+import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users, artistProfiles } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import * as db from "../db";
 import crypto from "crypto";
@@ -297,7 +297,6 @@ export const teamRouter = router({
         action: 'team_member_joined',
         details: { role: invitation.role },
       });
-
       return { success: true, artistProfileId: invitation.artistProfileId };
     }),
 

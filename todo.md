@@ -4171,3 +4171,63 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added SiteHeader to 40 pages that were missing it (About, Dashboard, Earnings, Bookings, Contracts, Messages, Settings, Merch, Riders, etc.)
 - [x] Excluded auth flows (VerifyEmail, ResetPassword, AcceptTeamInvite), onboarding (ArtistOnboarding, RoleSelection), and admin pages
 - [x] Users can now navigate from any page without getting stuck
+- [x] Add 'filmmaker' to talent type constants/enums (server validation + schema comment)
+- [x] Add Filmmaker option to sign-up/onboarding flow (ArtistOnboarding with Film icon)
+- [x] Add Filmmaker to Browse page talent type filter chips + search placeholder
+- [x] Add filmmaker-specific profile fields (specializations: Music Videos, Documentaries, Short Films, etc.)
+- [x] Add filmmaker-specific rider templates (Production Rider + Event Coverage Rider)
+- [x] Update search placeholder text to include filmmaker
+- [x] Ensure Filmmaker shows in all talent type displays consistently (ArtistEditProfile, RiderBuilder, Homepage)
+- [x] Updated RiderBuilder template picker to dynamically show "Recommended for You" based on talent type
+- [x] Updated athlete rider template tests to include filmmaker assertions
+
+## TEAM MEMBER VISIBILITY BUG (Aug 9, 2026)
+- [x] Fix: Team members should NOT appear as listed artists on the platform
+- [x] Exclude team members from Browse/search results (added isTeamMemberOnly column + filter in getAllArtists)
+- [x] Team members should only have access to the parent artist's profile, not their own public listing
+- [x] acceptInvitation now marks the user's profile as isTeamMemberOnly=true
+- [x] createProfile checks if user is already a team member and sets isTeamMemberOnly=true
+- [x] Migrated existing team members in DB to isTeamMemberOnly=true
+
+## CONTENT RELEASE SYSTEM (Aug 9, 2026)
+- [x] Create releases table (title, description, type, hosting platform, URL, thumbnail, monetization, price, premiere date, access rules)
+- [x] Build server-side release CRUD endpoints (create, update, delete, list, getById)
+- [x] Build access control logic (Free, Ticketed, Fan Club Only, Pay What You Want, Unlock After Purchase)
+- [x] Add "Create Release" flow on creator dashboard (/content-releases page)
+- [x] Support release types: Movie, Documentary, Short Film, Web Series, Concert, Livestream, Podcast Episode, Album, Course, Masterclass, Interview
+- [x] Support hosting platforms: YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, Personal Website, Other
+- [x] Display releases on creator's public profile (ContentReleasesDisplay component)
+- [x] Handle paywall/access control (paid users get URL, others see purchase option)
+- [ ] Integrate with Stripe for paid releases (future: Stripe checkout session for paid releases)
+
+## CONTENT RELEASE EMAILS & UX (Aug 9, 2026)
+- [x] Build purchase confirmation email sent to buyer after content release purchase
+- [x] Build premiere reminder email sent to ticket holders before premiere date (scheduled handler at /api/scheduled/premiere-reminders)
+- [x] Add help text and tooltips throughout the Content Release creation flow
+- [x] Add info banner/tips on the Content Releases list page for new users (3-step guide + pro tip)
+- [x] Code quality pass: clean up releases router, remove dead code, ensure consistent error handling
+
+## POSITIONING STATEMENT & TERMS UPDATE (Aug 9, 2026)
+- [x] Update Homepage with creator commerce positioning statement
+- [x] Update About page with positioning statement and mission clarity
+- [x] Add Content Releases (External Distribution) section to Terms of Service (Section 11A)
+- [x] Add disclaimer about external content availability (11A.1 Platform Role and Limitations)
+- [x] Add creator responsibility clause for externally-hosted content (11A.2 Creator Responsibilities)
+
+## SUBSCRIPTION TIER ENFORCEMENT (Aug 9, 2026)
+- [x] Create tier enforcement utility with plan limits constants (server/utils/tierLimits.ts)
+- [x] Enforce booking limits: Free = 2/month, Starter+ = unlimited
+- [x] Enforce release limits: Starter = 2 singles, Professional+ = unlimited
+- [x] Gate Rider Builder: Starter+ only (Free users see upgrade prompt)
+- [x] Gate Contracts & e-signatures: Professional+ only
+- [x] Gate Sponsor features: Enterprise only (already had requireEnterprise)
+- [x] Add client-side UpgradePrompt and UpgradeBanner components
+
+## AI ASSISTANT & HELP SYSTEM UPDATE (Aug 9, 2026)
+- [x] Update AI Chat system prompt with platform positioning (monetization layer)
+- [x] Add Content Releases section to AI knowledge base (5A)
+- [x] Update talent types: add Filmmaker, correct list
+- [x] Add tier enforcement explanations to AI prompt
+- [x] Add 7 new common user questions (Content Releases, Filmmaker, tier limits)
+- [x] Add 9 new FAQ items to Help page (Content Releases x6, Tier Limits x2, Filmmaker x1)
+- [x] Update subscription plan descriptions in AI prompt to match pricing page

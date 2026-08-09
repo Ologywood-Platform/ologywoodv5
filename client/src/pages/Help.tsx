@@ -191,6 +191,67 @@ const faqItems: FAQItem[] = [
     answer: 'Each purchase allows up to 5 downloads. You can download from the Purchase Success page immediately after buying, or return to My Purchases anytime to download again. The remaining download count is shown on each purchase card.',
   },
 
+
+  // Content Releases
+  {
+    id: 'content-release-1',
+    category: 'Content Releases',
+    question: 'What are Content Releases?',
+    answer: 'Content Releases let you sell access to content hosted anywhere — YouTube, Vimeo, Spotify, your own website, etc. You create a listing with title, description, trailer, and price. Fans purchase access on Ologywood, then get the link to watch or listen. You keep your content where it performs best; Ologywood handles the business side.',
+  },
+  {
+    id: 'content-release-2',
+    category: 'Content Releases',
+    question: 'How do I sell access to my movie or film?',
+    answer: 'Go to your Dashboard and click Releases. Click New Release, select Movie or Documentary as the type, fill in the title, description, and genre. Paste your YouTube or Vimeo URL (use an unlisted link for paid content). Set the access model to Ticketed and enter your price. When fans purchase, they get the Watch button that opens your video.',
+  },
+  {
+    id: 'content-release-3',
+    category: 'Content Releases',
+    question: 'What access models are available for Content Releases?',
+    answer: 'Five models: Free (anyone can watch), Ticketed (one-time purchase at a fixed price), Fan Club Members Only (restricted to your subscribers), Pay What You Want (fans choose their price), and Unlock After Purchase (content locked until payment). Choose the model that fits your content strategy.',
+  },
+  {
+    id: 'content-release-4',
+    category: 'Content Releases',
+    question: 'How do scheduled premieres work?',
+    answer: 'Set a future Premiere Date when creating your release. Fans can buy tickets in advance. 24 hours before the premiere, all ticket holders receive a reminder email with the Watch button. This is perfect for movie premieres, album drops, or live event recordings.',
+  },
+  {
+    id: 'content-release-5',
+    category: 'Content Releases',
+    question: 'Do I need to host my content on Ologywood?',
+    answer: 'No. Ologywood is a monetization layer, not a content host. Your content lives wherever you choose — YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, SoundCloud, or your personal website. Ologywood handles discovery, ticketing, access control, and revenue. This keeps your infrastructure costs near zero.',
+  },
+  {
+    id: 'content-release-6',
+    category: 'Content Releases',
+    question: 'What types of content can I release?',
+    answer: 'Movies, Documentaries, Short Films, Web Series, Concerts, Livestreams, Podcast Episodes, Albums, Courses, Masterclasses, Interviews, Music Videos, and Behind the Scenes content. The same system works for every creator type on the platform.',
+  },
+
+  // Subscription & Tier Limits
+  {
+    id: 'tier-1',
+    category: 'Payments & Billing',
+    question: 'Why am I seeing an upgrade message when I try to use a feature?',
+    answer: 'Some features are restricted by subscription tier to keep the platform sustainable. Free plan: 2 bookings/month. Rider Builder requires Starter ($9/mo). Contracts require Professional ($29/mo). Sponsor features require Enterprise ($79/mo). Content Releases require Starter or higher. Visit the Pricing page to upgrade instantly.',
+  },
+  {
+    id: 'tier-2',
+    category: 'Payments & Billing',
+    question: 'What is included in each subscription plan?',
+    answer: 'Free: Profile, browse, messaging, calendar, AI Ad Assistant, 2 bookings/month. Starter ($9/mo): Unlimited bookings, Rider Builder, Fan email updates, 2 content releases. Professional ($29/mo): Contracts and e-signatures, advanced analytics, unlimited releases, priority support. Enterprise ($79/mo): Sponsor Showcase, Sponsor Analytics, Media Kit, branded event pages.',
+  },
+
+  // Filmmaker
+  {
+    id: 'filmmaker-1',
+    category: 'Getting Started',
+    question: 'I am a filmmaker. What can I do on Ologywood?',
+    answer: 'As a Filmmaker, you can: create a professional profile with your biography and reel, list your films/documentaries with trailers and sell tickets to premieres, build a Fan Club for recurring revenue, sell merchandise, get booked for event coverage or music video production, and monetize your entire catalog through Content Releases. Select Filmmaker as your talent type during onboarding.',
+  },
+
   // Fan Club
   {
     id: 'fanclub-1',

@@ -64,6 +64,14 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
+      // Tier enforcement: Rider Builder requires Starter plan or higher
+      const { getSubscriptionByUserId } = await import("../db");
+      const subscription = await getSubscriptionByUserId(userId);
+      const userTier = subscription?.tier || "free";
+      if (userTier === "free") {
+        throw new Error("Rider Builder requires a Starter plan or higher. Please upgrade your subscription.");
+      }
+
       // Validate required fields before saving
       const templateType = input.templateType || "simple_booking";
       const formData = input.templateData?.formData || input.templateData || {};

@@ -30,6 +30,7 @@ import ogPageRoutes from '../routes/ogPage';
 import googleAuthRoutes from '../routes/googleAuth';
 import spotifyAuthRoutes from '../routes/spotifyAuth';
 import { contractExpiryRemindersHandler } from '../routes/scheduledContractReminders';
+import { premiereRemindersHandler } from '../routes/scheduledPremiereReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
 import { sessionRemindersHandler } from '../handlers/sessionReminders';
@@ -186,6 +187,7 @@ async function startServer() {
   app.post('/api/scheduled/credit-expiration', creditExpirationHandler);
   app.post('/api/scheduled/auto-complete-bookings', autoCompleteBookingsHandler);
   app.post('/api/scheduled/session-reminders', sessionRemindersHandler);
+  app.post('/api/scheduled/premiere-reminders', premiereRemindersHandler);
 
   // OG meta tags for social media crawlers - MUST be before Vite/static serving
   // This intercepts bot requests to /artist/:id, /venue/:id etc. and serves OG HTML

@@ -565,7 +565,6 @@ export async function getAllArtists() {
   if (!db) {
     return [];
   }
-  
   try {
     // Use Drizzle ORM to fetch all artists
     const artists = await db.select().from(artistProfiles);

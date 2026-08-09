@@ -32,6 +32,14 @@ export default function About() {
           <p className="text-xl md:text-2xl text-gray-700 leading-relaxed font-light">
             OlogyWood<sup>®</sup> exists to become the world's most trusted operating system for talent—empowering artists, athletes, entertainers, creators, venues, organizations, and communities with the infrastructure, relationships, and opportunities they need to build meaningful, sustainable careers and lasting legacies.
           </p>
+          <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-100">
+            <p className="text-lg md:text-xl text-purple-900 font-medium italic">
+              "Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable."
+            </p>
+            <p className="text-sm text-purple-700 mt-3">
+              We are the monetization layer for creators. Host your movie on YouTube. Stream your music on Spotify. Teach your course anywhere. OlogyWood handles discovery, ticketing, fan relationships, and revenue — so you can focus on creating.
+            </p>
+          </div>
         </div>
       </section>
 
