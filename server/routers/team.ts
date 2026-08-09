@@ -297,17 +297,6 @@ export const teamRouter = router({
         action: 'team_member_joined',
         details: { role: invitation.role },
       });
-
-      // Mark the user's own artist profile (if any) as team-member-only so it doesn't show in public listings
-      const userProfile = await database.select().from(artistProfiles)
-        .where(eq(artistProfiles.userId, ctx.user.id))
-        .limit(1);
-      if (userProfile.length > 0) {
-        await database.update(artistProfiles)
-          .set({ isTeamMemberOnly: true })
-          .where(eq(artistProfiles.userId, ctx.user.id));
-      }
-
       return { success: true, artistProfileId: invitation.artistProfileId };
     }),
 

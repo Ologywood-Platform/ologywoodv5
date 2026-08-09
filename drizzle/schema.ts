@@ -126,7 +126,6 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
   tipLinks: json("tipLinks").$type<{ cashapp?: string, venmo?: string, paypal?: string, zelle?: string }>(),
   crmSupporter: boolean("crmSupporter").default(false).notNull(),
-  isTeamMemberOnly: boolean("isTeamMemberOnly").default(false).notNull(), // true = team member account, not a public listing
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({

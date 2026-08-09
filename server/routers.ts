@@ -511,18 +511,9 @@ export const appRouter = router({
           // Return the existing profile instead of creating a duplicate
           return existing;
         }
-        // Check if this user is a team member (invited to another artist's team)
-        const database = await db.getDb();
-        let isTeamMember = false;
-        if (database) {
-          const teamMemberships = await database.select().from(schema.artistTeamMembers)
-            .where(eq(schema.artistTeamMembers.userId, ctx.user.id));
-          isTeamMember = teamMemberships.length > 0;
-        }
         const profile = await db.createArtistProfile({
           userId: ctx.user.id,
           ...input,
-          isTeamMemberOnly: isTeamMember,
         });
         return profile;
       }),
