@@ -4156,3 +4156,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Genres under artist name not separated by commas (was rendering array directly without .join)
 - [x] Fix: Duplicate genres showing - added [...new Set()] deduplication
 - [x] Fixed in: ArtistDashboardV3, ArtistProfile, Browse, VenueDashboard, ClientBooking
+
+## ADD FILMMAKER TALENT TYPE (Aug 1, 2026)
+- [x] Add 'filmmaker' to talent type constants/enums (server validation + schema comment)
+- [x] Add Filmmaker option to sign-up/onboarding flow (ArtistOnboarding with Film icon)
+- [x] Add Filmmaker to Browse page talent type filter chips + search placeholder
+- [x] Add filmmaker-specific profile fields (specializations: Music Videos, Documentaries, Short Films, etc.)
+- [x] Add filmmaker-specific rider templates (Production Rider + Event Coverage Rider)
+- [x] Update search placeholder text to include filmmaker
+- [x] Ensure Filmmaker shows in all talent type displays consistently (ArtistEditProfile, RiderBuilder, Homepage)
+- [x] Updated RiderBuilder template picker to dynamically show "Recommended for You" based on talent type
+- [x] Updated athlete rider template tests to include filmmaker assertions

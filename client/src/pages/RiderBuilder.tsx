@@ -42,6 +42,8 @@ import {
   Mic,
   PenTool,
   MapPin,
+  Film,
+  Video,
 } from "lucide-react";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { HelperNote } from '@/components/HelperNote';
@@ -120,6 +122,20 @@ const TEMPLATE_OPTIONS = [
     icon: 'trophy',
     category: 'Athlete',
   },
+  {
+    id: 'filmmaker_production',
+    title: 'Production Rider',
+    description: 'Film and video production bookings with deliverables',
+    icon: 'film',
+    category: 'Filmmaker',
+  },
+  {
+    id: 'filmmaker_event',
+    title: 'Event Coverage',
+    description: 'Live event videography and photography coverage',
+    icon: 'video',
+    category: 'Filmmaker',
+  },
 ];
 
 function getTemplateIcon(iconName: string) {
@@ -129,6 +145,8 @@ function getTemplateIcon(iconName: string) {
     case 'mic': return <Mic className="h-5 w-5" />;
     case 'trophy': return <Trophy className="h-5 w-5" />;
     case 'map-pin': return <MapPin className="h-5 w-5" />;
+    case 'film': return <Film className="h-5 w-5" />;
+    case 'video': return <Video className="h-5 w-5" />;
     default: return <FileText className="h-5 w-5" />;
   }
 }
@@ -552,18 +570,13 @@ export default function RiderBuilder() {
     const talentType = (artistProfile as any)?.talentType;
     const isAthlete = talentType === 'athlete';
     const isCreator = talentType === 'creator';
+    const isFilmmaker = talentType === 'filmmaker';
 
-    // Show all templates — athlete templates first for athletes, artist template first for artists
+    // Show all templates — prioritize the user's own category first
     const sortedTemplates = [...TEMPLATE_OPTIONS].sort((a, b) => {
-      if (isAthlete) {
-        // Athletes see athlete templates first
-        if (a.category === 'Athlete' && b.category !== 'Athlete') return -1;
-        if (a.category !== 'Athlete' && b.category === 'Athlete') return 1;
-      } else {
-        // Artists/Creators see artist template first
-        if (a.category === 'Artist' && b.category !== 'Artist') return -1;
-        if (a.category !== 'Artist' && b.category === 'Artist') return 1;
-      }
+      const myCategory = isAthlete ? 'Athlete' : isFilmmaker ? 'Filmmaker' : 'Artist';
+      if (a.category === myCategory && b.category !== myCategory) return -1;
+      if (a.category !== myCategory && b.category === myCategory) return 1;
       return 0;
     });
 
@@ -582,60 +595,62 @@ export default function RiderBuilder() {
         </header>
 
         <div className="container mx-auto px-4 py-6 max-w-3xl">
-          {/* Athlete templates section */}
-          {(isAthlete || !isAthlete) && (
-            <>
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {isAthlete ? 'Recommended for You' : 'Athlete Templates'}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                {sortedTemplates
-                  .filter(t => t.category === 'Athlete')
-                  .map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer hover:shadow-md hover:border-purple-300 transition-all"
-                      onClick={() => selectTemplate(template.id)}
-                    >
-                      <CardContent className="py-4 flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-                          {getTemplateIcon(template.icon)}
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm">{template.title}</h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">{template.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
+          {/* Recommended templates for user's talent type */}
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Recommended for You
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {sortedTemplates
+              .filter(t => t.category === (isAthlete ? 'Athlete' : isFilmmaker ? 'Filmmaker' : 'Artist'))
+              .map((template) => (
+                <Card
+                  key={template.id}
+                  className="cursor-pointer hover:shadow-md hover:border-purple-300 transition-all"
+                  onClick={() => selectTemplate(template.id)}
+                >
+                  <CardContent className="py-4 flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                      {getTemplateIcon(template.icon)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm">{template.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{template.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
 
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {isAthlete ? 'Other Templates' : 'Artist / Performance Templates'}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {sortedTemplates
-                  .filter(t => t.category === 'Artist')
-                  .map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer hover:shadow-md hover:border-purple-300 transition-all"
-                      onClick={() => selectTemplate(template.id)}
-                    >
-                      <CardContent className="py-4 flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                          {getTemplateIcon(template.icon)}
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm">{template.title}</h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">{template.description}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
-            </>
-          )}
+          {/* Other templates */}
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Other Templates
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {sortedTemplates
+              .filter(t => t.category !== (isAthlete ? 'Athlete' : isFilmmaker ? 'Filmmaker' : 'Artist'))
+              .map((template) => (
+                <Card
+                  key={template.id}
+                  className="cursor-pointer hover:shadow-md hover:border-purple-300 transition-all"
+                  onClick={() => selectTemplate(template.id)}
+                >
+                  <CardContent className="py-4 flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      template.category === 'Athlete' ? 'bg-purple-100 text-purple-600' :
+                      template.category === 'Filmmaker' ? 'bg-amber-100 text-amber-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      {getTemplateIcon(template.icon)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm">{template.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{template.description}</p>
+                      <span className="text-[10px] text-muted-foreground">{template.category}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
         </div>
       </div>
     );

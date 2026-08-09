@@ -408,6 +408,158 @@ export const ATHLETE_CAMP_RIDER: RiderContractTemplate = {
   requiredFields: ['athlete_name', 'event_name', 'event_date', 'event_time', 'venue_name', 'camp_duration', 'sport', 'camp_fee'],
 };
 
+// ============= FILMMAKER RIDER TEMPLATES =============
+
+/**
+ * Filmmaker Production Rider — for video/film production bookings
+ */
+export const FILMMAKER_PRODUCTION_RIDER: RiderContractTemplate = {
+  id: 'filmmaker_production',
+  title: 'Production Rider',
+  description: 'For film and video production bookings. Covers project scope, deliverables, equipment, crew, and compensation.',
+  icon: 'film',
+  category: 'Filmmaker',
+  sections: [
+    {
+      id: 'project_info',
+      title: 'Project Details',
+      icon: 'calendar',
+      fields: [
+        { id: 'filmmaker_name', label: 'Filmmaker / Production Company', type: 'text', required: true, placeholder: 'Your name or production company' },
+        { id: 'project_title', label: 'Project Title', type: 'text', required: true, placeholder: 'e.g., Summer Vibes Music Video' },
+        { id: 'project_type', label: 'Project Type', type: 'select', required: true, defaultValue: 'Music Video', options: ['Music Video', 'Documentary', 'Short Film', 'Commercial', 'Event Coverage', 'Corporate Video', 'Wedding Film', 'Social Media Content', 'Live Concert', 'Behind the Scenes', 'Other'] },
+        { id: 'shoot_date', label: 'Shoot Date', type: 'date', required: true },
+        { id: 'shoot_time', label: 'Call Time', type: 'time', required: true },
+        { id: 'shoot_duration', label: 'Estimated Shoot Duration', type: 'select', required: true, defaultValue: 'Full day (8-10 hrs)', options: ['Half day (4 hrs)', 'Full day (8-10 hrs)', 'Multi-day (specify in notes)', 'As needed'] },
+        { id: 'location', label: 'Shoot Location', type: 'text', required: true, placeholder: 'Address or location description' },
+      ],
+    },
+    {
+      id: 'compensation',
+      title: 'Compensation',
+      icon: 'dollar-sign',
+      fields: [
+        { id: 'production_fee', label: 'Production Fee', type: 'number', required: true, placeholder: '3000', unit: 'USD' },
+        { id: 'deposit_required', label: 'Deposit Required', type: 'select', defaultValue: '50% upon signing', options: ['No deposit', '25% upon signing', '50% upon signing', '100% upfront'] },
+        { id: 'payment_schedule', label: 'Final Payment Due', type: 'select', defaultValue: 'Upon delivery of final edit', options: ['Upon delivery of final edit', 'Net 15 after delivery', 'Net 30 after delivery', '50% on shoot day, 50% on delivery'] },
+        { id: 'payment_method', label: 'Payment Method', type: 'select', defaultValue: 'Stripe (via Ologywood)', options: ['Stripe (via Ologywood)', 'Wire transfer', 'Check', 'Other'] },
+      ],
+    },
+    {
+      id: 'deliverables',
+      title: 'Deliverables',
+      icon: 'package',
+      fields: [
+        { id: 'final_deliverable', label: 'Final Deliverable', type: 'select', required: true, defaultValue: 'Edited video (up to 5 min)', options: ['Raw footage only', 'Edited video (up to 3 min)', 'Edited video (up to 5 min)', 'Edited video (up to 10 min)', 'Full-length feature', 'Custom (see notes)'] },
+        { id: 'delivery_format', label: 'Delivery Format', type: 'select', defaultValue: '4K MP4 (H.264)', options: ['1080p MP4', '4K MP4 (H.264)', '4K ProRes', 'Multiple formats', 'Custom (see notes)'] },
+        { id: 'revision_rounds', label: 'Revision Rounds Included', type: 'select', defaultValue: '2 rounds', options: ['1 round', '2 rounds', '3 rounds', 'Unlimited'] },
+        { id: 'delivery_timeline', label: 'Delivery Timeline', type: 'select', required: true, defaultValue: '2-3 weeks', options: ['48 hours (rush)', '1 week', '2-3 weeks', '4-6 weeks', 'Custom (see notes)'] },
+        { id: 'social_cuts', label: 'Social Media Cuts Included', type: 'select', defaultValue: 'Yes (3 cuts)', options: ['Not included', 'Yes (1 cut)', 'Yes (3 cuts)', 'Yes (5+ cuts)'] },
+      ],
+    },
+    {
+      id: 'equipment_crew',
+      title: 'Equipment & Crew',
+      icon: 'settings',
+      fields: [
+        { id: 'camera_package', label: 'Camera Package', type: 'select', defaultValue: 'Filmmaker provides', options: ['Filmmaker provides', 'Client provides', 'Rental (billed to client)'] },
+        { id: 'lighting', label: 'Lighting', type: 'select', defaultValue: 'Filmmaker provides', options: ['Natural light only', 'Filmmaker provides', 'Rental (billed to client)', 'Venue provides'] },
+        { id: 'audio_recording', label: 'Audio Recording', type: 'select', defaultValue: 'Included', options: ['Not needed', 'Included', 'Separate audio engineer needed'] },
+        { id: 'crew_size', label: 'Crew Size', type: 'number', defaultValue: 2, description: 'Total crew members (including filmmaker)' },
+        { id: 'additional_equipment', label: 'Additional Equipment', type: 'textarea', placeholder: 'Drone, gimbal, teleprompter, green screen, etc.' },
+      ],
+    },
+    {
+      id: 'terms',
+      title: 'Terms & Rights',
+      icon: 'file-text',
+      fields: [
+        { id: 'usage_rights', label: 'Usage Rights', type: 'select', required: true, defaultValue: 'Client owns final product, filmmaker retains portfolio rights', options: ['Client owns all rights (full buyout)', 'Client owns final product, filmmaker retains portfolio rights', 'Shared rights (both can use)', 'Licensed for specific use only'] },
+        { id: 'credit_required', label: 'Credit Required', type: 'select', defaultValue: 'Yes — name in credits', options: ['No credit needed', 'Yes — name in credits', 'Yes — name + logo', 'Yes — name in credits + social tag'] },
+        { id: 'cancellation_policy', label: 'Cancellation Policy', type: 'select', defaultValue: 'Full refund 14+ days out, 50% within 14 days', options: ['Full refund 14+ days out, 50% within 14 days', 'Full refund 30+ days out, no refund within 30 days', 'Non-refundable', 'Custom (see notes)'] },
+        { id: 'additional_notes', label: 'Additional Notes', type: 'textarea', placeholder: 'Location requirements, wardrobe, props, talent needed, special requests, etc.' },
+      ],
+    },
+  ],
+  editableFields: ['production_fee', 'deposit_required', 'payment_schedule', 'final_deliverable', 'delivery_format', 'revision_rounds', 'delivery_timeline', 'camera_package', 'lighting', 'usage_rights', 'credit_required', 'cancellation_policy', 'additional_notes'],
+  requiredFields: ['filmmaker_name', 'project_title', 'project_type', 'shoot_date', 'shoot_time', 'shoot_duration', 'location', 'production_fee', 'final_deliverable', 'delivery_timeline', 'usage_rights'],
+};
+
+/**
+ * Filmmaker Event Coverage Rider — for live event videography
+ */
+export const FILMMAKER_EVENT_RIDER: RiderContractTemplate = {
+  id: 'filmmaker_event',
+  title: 'Event Coverage Rider',
+  description: 'For live event videography and photography. Covers coverage scope, hours, deliverables, and logistics.',
+  icon: 'video',
+  category: 'Filmmaker',
+  sections: [
+    {
+      id: 'event_info',
+      title: 'Event Details',
+      icon: 'calendar',
+      fields: [
+        { id: 'filmmaker_name', label: 'Filmmaker / Production Company', type: 'text', required: true, placeholder: 'Your name or production company' },
+        { id: 'event_name', label: 'Event Name', type: 'text', required: true, placeholder: 'e.g., Summer Music Festival 2026' },
+        { id: 'event_type', label: 'Event Type', type: 'select', required: true, defaultValue: 'Concert / Live Show', options: ['Concert / Live Show', 'Festival', 'Conference', 'Wedding', 'Corporate Event', 'Sports Event', 'Private Party', 'Other'] },
+        { id: 'event_date', label: 'Event Date', type: 'date', required: true },
+        { id: 'call_time', label: 'Call Time', type: 'time', required: true },
+        { id: 'coverage_hours', label: 'Coverage Hours', type: 'select', required: true, defaultValue: '6-8 hours', options: ['2-4 hours', '4-6 hours', '6-8 hours', '8-10 hours', '10+ hours', 'Full event'] },
+        { id: 'venue_name', label: 'Venue / Location', type: 'text', required: true, placeholder: 'Event venue and address' },
+      ],
+    },
+    {
+      id: 'compensation',
+      title: 'Compensation',
+      icon: 'dollar-sign',
+      fields: [
+        { id: 'coverage_fee', label: 'Coverage Fee', type: 'number', required: true, placeholder: '2000', unit: 'USD' },
+        { id: 'deposit_required', label: 'Deposit Required', type: 'select', defaultValue: '50% upon signing', options: ['No deposit', '25% upon signing', '50% upon signing', '100% upfront'] },
+        { id: 'overtime_rate', label: 'Overtime Rate (per hour)', type: 'number', placeholder: '250', unit: 'USD', description: 'Rate if coverage extends beyond agreed hours' },
+        { id: 'payment_method', label: 'Payment Method', type: 'select', defaultValue: 'Stripe (via Ologywood)', options: ['Stripe (via Ologywood)', 'Wire transfer', 'Check', 'Other'] },
+      ],
+    },
+    {
+      id: 'deliverables',
+      title: 'Deliverables',
+      icon: 'package',
+      fields: [
+        { id: 'highlight_reel', label: 'Highlight Reel', type: 'select', defaultValue: 'Yes (3-5 min)', options: ['Not included', 'Yes (1-2 min)', 'Yes (3-5 min)', 'Yes (5-10 min)'] },
+        { id: 'full_coverage', label: 'Full Event Edit', type: 'select', defaultValue: 'Not included', options: ['Not included', 'Yes (edited)', 'Yes (raw + edited)'] },
+        { id: 'social_clips', label: 'Social Media Clips', type: 'select', defaultValue: 'Yes (5 clips)', options: ['Not included', 'Yes (3 clips)', 'Yes (5 clips)', 'Yes (10+ clips)'] },
+        { id: 'photo_coverage', label: 'Photo Coverage', type: 'select', defaultValue: 'Not included', options: ['Not included', 'Yes (50 edited photos)', 'Yes (100+ edited photos)', 'Yes (all raw + edited)'] },
+        { id: 'delivery_timeline', label: 'Delivery Timeline', type: 'select', required: true, defaultValue: '1-2 weeks', options: ['24-48 hours (rush)', '3-5 days', '1-2 weeks', '2-4 weeks'] },
+      ],
+    },
+    {
+      id: 'logistics',
+      title: 'Logistics & Access',
+      icon: 'settings',
+      fields: [
+        { id: 'media_pass', label: 'Media / Press Pass', type: 'checkbox', defaultValue: true, description: 'Full access pass for all areas' },
+        { id: 'parking', label: 'Parking Provided', type: 'checkbox', defaultValue: true, description: 'Dedicated parking for crew vehicle' },
+        { id: 'meals_provided', label: 'Meals Provided', type: 'checkbox', defaultValue: true, description: 'Meals for crew during event' },
+        { id: 'power_access', label: 'Power Access', type: 'checkbox', defaultValue: true, description: 'Access to power outlets for charging' },
+        { id: 'crew_size', label: 'Crew Size', type: 'number', defaultValue: 2, description: 'Total crew members on-site' },
+      ],
+    },
+    {
+      id: 'terms',
+      title: 'Terms & Rights',
+      icon: 'file-text',
+      fields: [
+        { id: 'usage_rights', label: 'Usage Rights', type: 'select', required: true, defaultValue: 'Client owns final product, filmmaker retains portfolio rights', options: ['Client owns all rights (full buyout)', 'Client owns final product, filmmaker retains portfolio rights', 'Shared rights (both can use)', 'Licensed for specific use only'] },
+        { id: 'credit_required', label: 'Credit Required', type: 'select', defaultValue: 'Yes — name + social tag', options: ['No credit needed', 'Yes — name in credits', 'Yes — name + logo', 'Yes — name in credits + social tag'] },
+        { id: 'cancellation_policy', label: 'Cancellation Policy', type: 'select', defaultValue: 'Full refund 14+ days out, 50% within 14 days', options: ['Full refund 14+ days out, 50% within 14 days', 'Full refund 30+ days out, no refund within 30 days', 'Non-refundable', 'Custom (see notes)'] },
+        { id: 'additional_notes', label: 'Additional Notes', type: 'textarea', placeholder: 'Specific shots needed, branding guidelines, restricted areas, etc.' },
+      ],
+    },
+  ],
+  editableFields: ['coverage_fee', 'overtime_rate', 'highlight_reel', 'full_coverage', 'social_clips', 'photo_coverage', 'delivery_timeline', 'usage_rights', 'credit_required', 'cancellation_policy', 'additional_notes'],
+  requiredFields: ['filmmaker_name', 'event_name', 'event_type', 'event_date', 'call_time', 'coverage_hours', 'venue_name', 'coverage_fee', 'delivery_timeline', 'usage_rights'],
+};
+
 // ============= TEMPLATE REGISTRY =============
 // Keep backward compatibility: old template IDs map to the simplified template
 
@@ -418,6 +570,9 @@ export const ALL_TEMPLATES: Record<string, RiderContractTemplate> = {
   athlete_signing: ATHLETE_SIGNING_RIDER,
   athlete_speaking: ATHLETE_SPEAKING_RIDER,
   athlete_camp: ATHLETE_CAMP_RIDER,
+  // Filmmaker templates
+  filmmaker_production: FILMMAKER_PRODUCTION_RIDER,
+  filmmaker_event: FILMMAKER_EVENT_RIDER,
   // Legacy aliases — all point to the same simple template
   solo_artist: SIMPLE_BOOKING_RIDER,
   band: SIMPLE_BOOKING_RIDER,
@@ -432,6 +587,8 @@ export function getAllRiderTemplates(): Record<string, RiderContractTemplate> {
     athlete_signing: ATHLETE_SIGNING_RIDER,
     athlete_speaking: ATHLETE_SPEAKING_RIDER,
     athlete_camp: ATHLETE_CAMP_RIDER,
+    filmmaker_production: FILMMAKER_PRODUCTION_RIDER,
+    filmmaker_event: FILMMAKER_EVENT_RIDER,
   };
 }
 

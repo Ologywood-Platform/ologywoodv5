@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -45,7 +45,7 @@ export default function ArtistOnboarding() {
   }, [existingProfile.data, navigate]);
 
   // Talent type selection
-  const [talentType, setTalentType] = useState<'artist' | 'athlete' | 'creator'>('artist');
+  const [talentType, setTalentType] = useState<'artist' | 'athlete' | 'creator' | 'filmmaker'>('artist');
 
   // Step 1: Basic Info
   const [artistName, setArtistName] = useState("");
@@ -109,7 +109,13 @@ export default function ArtistOnboarding() {
     setAthleteAchievements(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const GENRE_OPTIONS = [
+  const FILMMAKER_SPECIALIZATIONS = [
+    "Music Videos", "Documentaries", "Short Films", "Commercials", "Event Coverage",
+    "Corporate Video", "Wedding Films", "Narrative Film", "Animation", "Drone / Aerial",
+    "Live Concert", "Behind the Scenes", "Social Media Content", "Trailers / Promos", "Other"
+  ];
+
+  const GENRE_OPTIONS = talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATIONS : [
     "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
     "Dancehall", "Electronic", "Experimental", "Folk", "Funk", "Gospel",
     "Hip-Hop", "House", "Indie", "Jazz", "Latin", "Lo-fi", "Metal", "Pop",
@@ -252,7 +258,7 @@ export default function ArtistOnboarding() {
         }
       } else {
         if (genres.length === 0) {
-          toast.error("Please select at least one genre");
+          toast.error(talentType === 'filmmaker' ? "Please select at least one specialization" : "Please select at least one genre");
           return;
         }
         const partySize = parseInt(touringPartySize);
@@ -493,21 +499,34 @@ export default function ArtistOnboarding() {
                     <Sparkles className={`h-6 w-6 ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
                     <span className={`text-sm font-medium ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`}>Creator</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setTalentType('filmmaker')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      talentType === 'filmmaker'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <Film className={`h-6 w-6 ${talentType === 'filmmaker' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-sm font-medium ${talentType === 'filmmaker' ? 'text-primary' : 'text-muted-foreground'}`}>Filmmaker</span>
+                  </button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   {talentType === 'artist' && 'Musicians, DJs, bands, comedians, actors, and entertainers'}
                   {talentType === 'athlete' && 'Professional and college athletes building their brand and fan community'}
                   {talentType === 'creator' && 'Content creators, influencers, coaches, and public speakers'}
+                  {talentType === 'filmmaker' && 'Directors, cinematographers, music video producers, and videographers'}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="artistName">{talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : 'Creator Name'} *</Label>
+                <Label htmlFor="artistName">{talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : 'Creator Name'} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder={talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : 'Your creator name'}
+                  placeholder={talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : talentType === 'filmmaker' ? 'Your name or production company' : 'Your creator name'}
                   autoCapitalize="words"
                   className="mt-1"
                 />
@@ -767,14 +786,14 @@ export default function ArtistOnboarding() {
           {currentStep === 2 && talentType !== 'athlete' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Performance Details</h3>
+                <h3 className="text-lg font-semibold mb-4">{talentType === 'filmmaker' ? 'Production Details' : 'Performance Details'}</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Help venues understand your style and requirements.
+                  {talentType === 'filmmaker' ? 'Help clients understand your specializations and production style.' : 'Help venues understand your style and requirements.'}
                 </p>
               </div>
 
               <div>
-                <Label>Genres * <span className="text-xs text-muted-foreground font-normal">(select all that apply)</span></Label>
+                <Label>{talentType === 'filmmaker' ? 'Specializations' : 'Genres'} * <span className="text-xs text-muted-foreground font-normal">(select all that apply)</span></Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {GENRE_OPTIONS.map((genre) => (
                     <Badge

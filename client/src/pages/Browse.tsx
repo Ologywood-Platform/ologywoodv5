@@ -383,6 +383,7 @@ export default function Browse() {
                 { value: 'athlete', label: 'Athletes' },
                 { value: 'creator', label: 'Creators' },
                 { value: 'entertainer', label: 'Entertainers' },
+                { value: 'filmmaker', label: 'Filmmakers' },
                 { value: 'influencer', label: 'Influencers' },
               ].map((chip) => (
                 <button
@@ -415,7 +416,7 @@ export default function Browse() {
           <div className="mb-4 sm:mb-6">
             <div className="flex gap-2 sm:gap-3">
               <ClearableInput
-                placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'athlete' ? 'Search athletes...' : talentTypeFilter === 'creator' ? 'Search creators...' : talentTypeFilter === 'entertainer' ? 'Search entertainers...' : talentTypeFilter === 'influencer' ? 'Search influencers...' : talentTypeFilter === 'artist' ? 'Search artists...' : 'Search talent...'}
+                placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'athlete' ? 'Search athletes...' : talentTypeFilter === 'creator' ? 'Search creators...' : talentTypeFilter === 'entertainer' ? 'Search entertainers...' : talentTypeFilter === 'filmmaker' ? 'Search filmmakers...' : talentTypeFilter === 'influencer' ? 'Search influencers...' : talentTypeFilter === 'artist' ? 'Search artists...' : 'Search talent...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onClear={() => setSearchQuery("")}
@@ -658,7 +659,7 @@ export default function Browse() {
               <div className="text-center py-16">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {talentTypeFilter === 'athlete' ? 'Search for Athletes' : talentTypeFilter === 'creator' ? 'Search for Creators' : talentTypeFilter === 'entertainer' ? 'Search for Entertainers' : talentTypeFilter === 'influencer' ? 'Search for Influencers' : talentTypeFilter === 'artist' ? 'Search for Artists' : 'Search for Talent'}
+                  {talentTypeFilter === 'athlete' ? 'Search for Athletes' : talentTypeFilter === 'creator' ? 'Search for Creators' : talentTypeFilter === 'entertainer' ? 'Search for Entertainers' : talentTypeFilter === 'filmmaker' ? 'Search for Filmmakers' : talentTypeFilter === 'influencer' ? 'Search for Influencers' : talentTypeFilter === 'artist' ? 'Search for Artists' : 'Search for Talent'}
                 </h3>
                 <p className="text-muted-foreground text-sm max-w-md mx-auto">
                   {talentTypeFilter === 'artist' || talentTypeFilter === 'all'

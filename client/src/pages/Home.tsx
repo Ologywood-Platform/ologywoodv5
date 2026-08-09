@@ -152,14 +152,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Artists Carousel - Only show talent with type 'artist' (not athletes, creators, etc.) */}
-      <FeaturedArtistsCarousel artists={(artists || []).filter((a: any) => !a.talentType || a.talentType === 'artist')} isLoading={isLoading} />
+      {/* Featured Artists Carousel - Show all talent types */}
+      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
 
       {/* Explore All Talent CTA */}
       <div className="text-center pb-6">
         <Link href="/browse">
           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
-            Explore All Talent — Artists, Athletes, Creators & More
+            Explore All Talent — Artists, Athletes, Filmmakers & More
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </span>
         </Link>

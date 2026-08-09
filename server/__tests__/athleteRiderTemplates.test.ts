@@ -75,9 +75,10 @@ describe('Athlete Rider Templates Feature', () => {
       expect(riderBuilder).toContain("id: 'athlete_camp'");
     });
 
-    it('shows template categories (Artist and Athlete)', () => {
+    it('shows template categories (Artist, Athlete, and Filmmaker)', () => {
       expect(riderBuilder).toContain("category: 'Artist'");
       expect(riderBuilder).toContain("category: 'Athlete'");
+      expect(riderBuilder).toContain("category: 'Filmmaker'");
     });
 
     it('fetches artist profile to determine talent type', () => {
@@ -93,6 +94,8 @@ describe('Athlete Rider Templates Feature', () => {
     it('sorts templates based on talent type', () => {
       expect(riderBuilder).toContain("isAthlete");
       expect(riderBuilder).toContain("talentType === 'athlete'");
+      expect(riderBuilder).toContain("isFilmmaker");
+      expect(riderBuilder).toContain("talentType === 'filmmaker'");
     });
   });
 
