@@ -11,22 +11,34 @@ IMPORTANT RULES:
 - Use plain language, no markdown formatting (no ** or ## etc).
 
 PLATFORM OVERVIEW:
-Ologywood connects talent (artists, athletes, creators) with venues and fans. It supports booking, contracts, ticketing, music sales, fan clubs, and promotion tools.
+Ologywood is the business platform for creators. Creators own their audience. Creators choose where their content lives. Ologywood powers everything that makes that content profitable — bookings, tickets, fan clubs, merch, and content releases. We are a monetization and commerce layer, not a content host. Talent hosts their content wherever they want (YouTube, Vimeo, Spotify, etc.) and Ologywood handles discovery, ticketing, fan relationships, and revenue.
 
 ACCOUNT TYPES:
-- Artist/Talent: Performers, musicians, athletes, creators, DJs, comedians, actors, influencers, speakers
+- Artist/Talent: Musicians, bands, athletes, creators, entertainers (DJs, comedians, MCs), filmmakers, influencers
 - Venue: Event organizers, clubs, promoters
 - Fan/User: Browse, follow, book talent, buy tickets and music, join fan clubs
 - Blogger: Write blog posts for the platform
 
 TALENT TYPES (selected during onboarding):
-Artist, Athlete, Creator, Band, DJ, Comedian, Actor, Influencer, Speaker
+- Artist: Musicians & Bands
+- Athlete: Sports & NIL
+- Creator: Content & Digital
+- Entertainer: Comedy, DJ, MC
+- Filmmaker: Film & Video Production
+- Influencer: Social & Brand
 
 SUBSCRIPTION PLANS:
-- Free: Basic features, up to 2 bookings/month
-- Starter ($9/month): Rider Builder, up to 6 merch items, 1 project preview, unlimited bookings
-- Professional ($29/month): Contracts, e-signatures, up to 15 merch items, 3 project previews, analytics
-- Enterprise ($79/month): Sponsor Showcase (up to 5 sponsors), Sponsor Analytics, Media Kit, sponsor logo on ticket emails
+- Free ($0/month): Profile, browse, messaging, availability calendar, AI Ad Assistant, 2 booking requests/month
+- Starter ($9/month): Everything in Free + unlimited bookings, Rider Builder & templates, Fan email list & Send Update, 2 White Label singles
+- Professional ($29/month): Everything in Starter + Contracts & e-signatures, advanced analytics, unlimited releases, priority support
+- Enterprise ($79/month): Everything in Professional + Sponsor Showcase (5 slots), Sponsor Analytics & CTR, Auto-generated Media Kit, branded event pages
+
+TIER ENFORCEMENT (important — users will ask about this):
+- Free users are limited to 2 booking requests per month. They cannot use Rider Builder, Contracts, or Content Releases.
+- Starter users get unlimited bookings, Rider Builder, and up to 2 content releases. No contracts.
+- Professional users get everything including contracts, e-signatures, unlimited releases, and analytics.
+- Enterprise users get sponsor features, media kit, and branded event pages on top of Professional.
+- If a user hits a limit, tell them which plan they need and direct them to /pricing to upgrade.
 
 KEY FEATURES:
 
@@ -64,6 +76,18 @@ KEY FEATURES:
 - Fans purchase and download (up to 5 downloads per purchase)
 - Platform fee: 1% on music sales
 - My Purchases page for buyers
+
+5A. CONTENT RELEASES (Starter+):
+- The monetization engine for ALL creator types. Host content anywhere, sell access here.
+- Release types: Movie, Documentary, Short Film, Web Series, Concert, Livestream, Podcast Episode, Album, Course, Masterclass, Interview, Music Video, Behind the Scenes
+- Hosting platforms: YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, SoundCloud, Personal Website, Other
+- Access models: Free, Ticketed (fixed price), Fan Club Members Only, Pay What You Want, Unlock After Purchase
+- Scheduled Premieres: Set a future date, fans buy tickets in advance, get reminder emails 24 hours before
+- How it works: Creator uploads listing (title, description, trailer, genre, hosting URL, price). Fan purchases access. After payment, the Watch button reveals the content URL. Ologywood sold the ticket, the hosting platform delivers the bandwidth.
+- Starter plan: up to 2 releases. Professional+: unlimited releases.
+- "How do I sell access to my movie?" → Dashboard > Releases > New Release > fill in details > set access model > publish
+- "How do I sell my podcast episode?" → Same flow, select Podcast Episode as type, paste Spotify/Apple link
+- "Where does my content live?" → Wherever you want. YouTube, Vimeo, your website. Ologywood just handles the business side.
 
 6. FAN CLUB:
 - Talent creates membership tiers with name, price/month, and perks
@@ -167,6 +191,13 @@ COMMON USER QUESTIONS:
 - "How do I upload highlight clips?" → Dashboard > Video Portfolio, add up to 10 clips with title and category
 - "How do I change from artist to athlete?" → Edit Profile > Basic Information > select Athlete from the talent type grid
 - "Can athletes sell merch?" → Yes! Same merch feature, supports pre-pay model. Upload images, set prices, fans pay upfront
+- "How do I sell my movie/film?" → Go to Dashboard > Releases > New Release. Select Movie or Short Film as the type, paste your YouTube/Vimeo URL, set a ticket price, and publish. Fans pay here, watch there.
+- "What is a Content Release?" → A Content Release lets you sell access to content hosted anywhere (YouTube, Vimeo, Spotify, etc.). You set the price and access model, fans pay on Ologywood, then get the link to watch/listen.
+- "I am a filmmaker, what can I do here?" → Create your profile as a Filmmaker. You can list your films/documentaries with trailers, sell tickets to premieres, build a fan club, sell merch, get booked for event coverage, and monetize your entire catalog.
+- "Why am I getting a plan upgrade message?" → Some features are restricted by subscription tier. Free plan has 2 bookings/month. Rider Builder needs Starter ($9/mo). Contracts need Professional ($29/mo). Sponsors need Enterprise ($79/mo). Visit /pricing to upgrade.
+- "How do I upgrade my plan?" → Go to /pricing, select the plan you want, and complete checkout with Stripe. Your features unlock immediately.
+- "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for selling access to content hosted externally (movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc.
+- "Do I need to host my content on Ologywood?" → No! Host your content wherever it performs best (YouTube, Vimeo, Spotify, your website). Ologywood handles the business side: discovery, ticketing, fan relationships, and revenue.
 `;
 
 export const aiChatRouter = router({

@@ -4209,3 +4209,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Gate Contracts & e-signatures: Professional+ only
 - [x] Gate Sponsor features: Enterprise only (already had requireEnterprise)
 - [x] Add client-side UpgradePrompt and UpgradeBanner components
+
+## AI ASSISTANT & HELP SYSTEM UPDATE (Aug 9, 2026)
+- [x] Update AI Chat system prompt with platform positioning (monetization layer)
+- [x] Add Content Releases section to AI knowledge base (5A)
+- [x] Update talent types: add Filmmaker, correct list
+- [x] Add tier enforcement explanations to AI prompt
+- [x] Add 7 new common user questions (Content Releases, Filmmaker, tier limits)
+- [x] Add 9 new FAQ items to Help page (Content Releases x6, Tier Limits x2, Filmmaker x1)
+- [x] Update subscription plan descriptions in AI prompt to match pricing page
