@@ -2046,3 +2046,134 @@ export async function sendRiderRevisionDecisionEmail(params: {
     html,
   });
 }
+
+// ============= CONTENT RELEASE EMAILS =============
+
+/**
+ * Send purchase confirmation email when a fan buys a content release
+ */
+export async function sendReleasePurchaseConfirmationEmail(params: {
+  buyerEmail: string;
+  buyerName: string;
+  releaseTitle: string;
+  releaseType: string;
+  creatorName: string;
+  amountPaid: number;
+  contentUrl: string;
+  hostingPlatform: string;
+  premiereDate?: Date | null;
+}) {
+  const { buyerEmail, buyerName, releaseTitle, releaseType, creatorName, amountPaid, contentUrl, hostingPlatform, premiereDate } = params;
+
+  const platformLabel: Record<string, string> = {
+    youtube: 'YouTube', vimeo: 'Vimeo', twitch: 'Twitch', spotify: 'Spotify',
+    apple_podcasts: 'Apple Podcasts', soundcloud: 'SoundCloud',
+    personal_website: 'Personal Website', other: 'the hosting platform',
+  };
+  const platform = platformLabel[hostingPlatform] || hostingPlatform;
+
+  const premiereInfo = premiereDate
+    ? `<p><strong>Premiere Date:</strong> ${new Date(premiereDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+       <p style="color: #6b7280; font-size: 13px;">We'll send you a reminder before the premiere.</p>`
+    : `<p><strong>Available:</strong> Now</p>`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">🎟 Purchase Confirmed!</h2>
+      <p>Hi ${buyerName || 'there'},</p>
+      <p>You've successfully purchased access to <strong>${releaseTitle}</strong> by <strong>${creatorName}</strong>.</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p><strong>Title:</strong> ${releaseTitle}</p>
+        <p><strong>Type:</strong> ${releaseType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+        <p><strong>Amount Paid:</strong> $${amountPaid.toFixed(2)}</p>
+        <p><strong>Hosted on:</strong> ${platform}</p>
+        ${premiereInfo}
+      </div>
+      
+      ${!premiereDate || new Date(premiereDate) <= new Date() ? `
+        <p>Your content is ready to watch now:</p>
+        <a href="${contentUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+          ▶ Watch Now
+        </a>
+      ` : `
+        <p>Your content will be available on the premiere date. We'll send you a reminder!</p>
+        <a href="${ENV.baseUrl}/my-purchases" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+          View My Purchases
+        </a>
+      `}
+      
+      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+        Thank you for supporting ${creatorName} on Ologywood!
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=release" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: buyerEmail,
+    subject: `🎟 Access Confirmed: "${releaseTitle}" by ${creatorName}`,
+    html,
+  });
+}
+
+/**
+ * Send premiere reminder email to ticket holders before a scheduled premiere
+ */
+export async function sendPremiereReminderEmail(params: {
+  buyerEmail: string;
+  buyerName: string;
+  releaseTitle: string;
+  creatorName: string;
+  premiereDate: Date;
+  contentUrl: string;
+  hostingPlatform: string;
+}) {
+  const { buyerEmail, buyerName, releaseTitle, creatorName, premiereDate, contentUrl, hostingPlatform } = params;
+
+  const platformLabel: Record<string, string> = {
+    youtube: 'YouTube', vimeo: 'Vimeo', twitch: 'Twitch', spotify: 'Spotify',
+    apple_podcasts: 'Apple Podcasts', soundcloud: 'SoundCloud',
+    personal_website: 'Personal Website', other: 'the hosting platform',
+  };
+  const platform = platformLabel[hostingPlatform] || hostingPlatform;
+  const formattedDate = new Date(premiereDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const formattedTime = new Date(premiereDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">🎬 Premiere Reminder!</h2>
+      <p>Hi ${buyerName || 'there'},</p>
+      <p><strong>"${releaseTitle}"</strong> by <strong>${creatorName}</strong> premieres soon!</p>
+      
+      <div style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd6fe;">
+        <p style="font-size: 18px; font-weight: bold; color: #6d28d9; margin: 0 0 8px 0;">📅 ${formattedDate}</p>
+        <p style="font-size: 14px; color: #7c3aed; margin: 0;">🕐 ${formattedTime}</p>
+        <p style="font-size: 13px; color: #6b7280; margin: 8px 0 0 0;">Streaming on ${platform}</p>
+      </div>
+      
+      <p>Don't miss it! Click below when it's time:</p>
+      
+      <a href="${contentUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-size: 16px;">
+        ▶ Watch "${releaseTitle}"
+      </a>
+      
+      <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+        Enjoy the show! — The Ologywood Team
+      </p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
+        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=release" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: buyerEmail,
+    subject: `🎬 Premiere Tomorrow: "${releaseTitle}" by ${creatorName}`,
+    html,
+  });
+}

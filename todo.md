@@ -4186,3 +4186,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Display releases on creator's public profile (ContentReleasesDisplay component)
 - [x] Handle paywall/access control (paid users get URL, others see purchase option)
 - [ ] Integrate with Stripe for paid releases (future: Stripe checkout session for paid releases)
+
+## CONTENT RELEASE EMAILS & UX (Aug 9, 2026)
+- [x] Build purchase confirmation email sent to buyer after content release purchase
+- [x] Build premiere reminder email sent to ticket holders before premiere date (scheduled handler at /api/scheduled/premiere-reminders)
+- [x] Add help text and tooltips throughout the Content Release creation flow
+- [x] Add info banner/tips on the Content Releases list page for new users (3-step guide + pro tip)
+- [x] Code quality pass: clean up releases router, remove dead code, ensure consistent error handling

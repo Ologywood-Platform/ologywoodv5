@@ -361,6 +361,28 @@ export default function ContentReleases() {
           </Button>
         </div>
 
+        {/* Help Tips Banner */}
+        {(!releases || releases.length < 3) && (
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-6">
+            <h4 className="font-semibold text-sm text-purple-900 dark:text-purple-100 mb-2">How Content Releases Work</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-purple-800 dark:text-purple-200">
+              <div className="flex items-start gap-2">
+                <span className="text-base">1&#xFE0F;&#x20E3;</span>
+                <span><strong>Host anywhere</strong> — Keep your content on YouTube, Vimeo, Spotify, or your own site.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-base">2&#xFE0F;&#x20E3;</span>
+                <span><strong>Set your price</strong> — Choose free, ticketed, fan-club-only, or pay-what-you-want.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-base">3&#xFE0F;&#x20E3;</span>
+                <span><strong>Fans pay here</strong> — OlogyWood handles ticketing, access, and payments. You keep the revenue.</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-purple-600 dark:text-purple-300 mt-2 italic">Tip: Use an unlisted YouTube link for ticketed releases — fans only get the link after purchase.</p>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />

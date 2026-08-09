@@ -5,6 +5,7 @@
  */
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
+import { sendReleasePurchaseConfirmationEmail } from "../email";
 import { z } from "zod";
 import { getDb } from "../db";
 import { contentReleases as releases, contentReleasePurchases as releasePurchases, artistProfiles, fanClubMemberships } from "../../drizzle/schema";
@@ -314,6 +315,26 @@ export const releasesRouter = router({
         purchaseCount: sql`${releases.purchaseCount} + 1`,
         revenue: sql`${releases.revenue} + ${input.amount.toFixed(2)}`,
       }).where(eq(releases.id, input.releaseId));
+
+      // Send purchase confirmation email
+      try {
+        const [artist] = await database.select().from(artistProfiles)
+          .where(eq(artistProfiles.id, release.artistProfileId)).limit(1);
+        const creatorName = artist?.artistName || 'Creator';
+        await sendReleasePurchaseConfirmationEmail({
+          buyerEmail: ctx.user.email || '' ,
+          buyerName: ctx.user.name || ''  ,
+          releaseTitle: release.title,
+          releaseType: release.releaseType,
+          creatorName,
+          amountPaid: input.amount,
+          contentUrl: release.contentUrl,
+          hostingPlatform: release.hostingPlatform,
+          premiereDate: release.premiereDate,
+        });
+      } catch (emailError) {
+        console.error('[ContentRelease] Failed to send purchase confirmation email:', emailError);
+      }
 
       return { success: true, alreadyPurchased: false };
     }),
