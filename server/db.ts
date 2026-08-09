@@ -567,8 +567,9 @@ export async function getAllArtists() {
   }
   
   try {
-    // Use Drizzle ORM to fetch all artists
-    const artists = await db.select().from(artistProfiles);
+    // Use Drizzle ORM to fetch all artists (exclude team-member-only accounts)
+    const artists = await db.select().from(artistProfiles)
+      .where(eq(artistProfiles.isTeamMemberOnly, false));
     
     // Ensure all JSON fields are properly parsed and serializable
     return artists.map(artist => parseArtistProfile(artist));

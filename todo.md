@@ -4167,3 +4167,22 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Ensure Filmmaker shows in all talent type displays consistently (ArtistEditProfile, RiderBuilder, Homepage)
 - [x] Updated RiderBuilder template picker to dynamically show "Recommended for You" based on talent type
 - [x] Updated athlete rider template tests to include filmmaker assertions
+
+## TEAM MEMBER VISIBILITY BUG (Aug 9, 2026)
+- [x] Fix: Team members should NOT appear as listed artists on the platform
+- [x] Exclude team members from Browse/search results (added isTeamMemberOnly column + filter in getAllArtists)
+- [x] Team members should only have access to the parent artist's profile, not their own public listing
+- [x] acceptInvitation now marks the user's profile as isTeamMemberOnly=true
+- [x] createProfile checks if user is already a team member and sets isTeamMemberOnly=true
+- [x] Migrated existing team members in DB to isTeamMemberOnly=true
+
+## CONTENT RELEASE SYSTEM (Aug 9, 2026)
+- [ ] Create releases table (title, description, type, hosting platform, URL, thumbnail, monetization, price, premiere date, access rules)
+- [ ] Build server-side release CRUD endpoints (create, update, delete, list, getById)
+- [ ] Build access control logic (Free, Ticketed, Fan Club Only, Pay What You Want, Unlock After Purchase)
+- [ ] Add "Create Release" flow on creator dashboard
+- [ ] Support release types: Movie, Documentary, Short Film, Web Series, Concert, Livestream, Podcast Episode, Album, Course, Masterclass, Interview
+- [ ] Support hosting platforms: YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, Personal Website, Other
+- [ ] Display releases on creator's public profile
+- [ ] Handle paywall/access control (paid users get URL, others see purchase option)
+- [ ] Integrate with Stripe for paid releases

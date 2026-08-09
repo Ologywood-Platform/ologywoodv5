@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users } from "../../drizzle/schema";
+import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users, artistProfiles } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import * as db from "../db";
 import crypto from "crypto";
@@ -297,6 +297,16 @@ export const teamRouter = router({
         action: 'team_member_joined',
         details: { role: invitation.role },
       });
+
+      // Mark the user's own artist profile (if any) as team-member-only so it doesn't show in public listings
+      const userProfile = await database.select().from(artistProfiles)
+        .where(eq(artistProfiles.userId, ctx.user.id))
+        .limit(1);
+      if (userProfile.length > 0) {
+        await database.update(artistProfiles)
+          .set({ isTeamMemberOnly: true })
+          .where(eq(artistProfiles.userId, ctx.user.id));
+      }
 
       return { success: true, artistProfileId: invitation.artistProfileId };
     }),

@@ -4,6 +4,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import * as schema from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
@@ -298,6 +300,7 @@ export const appRouter = router({
   }),
 
   release: releaseRouter,
+  contentRelease: releasesRouter,
   blog: blogRouter,
   stripeConnect: stripeConnectRouter,
   contact: contactRouter,
@@ -508,9 +511,18 @@ export const appRouter = router({
           // Return the existing profile instead of creating a duplicate
           return existing;
         }
+        // Check if this user is a team member (invited to another artist's team)
+        const database = await db.getDb();
+        let isTeamMember = false;
+        if (database) {
+          const teamMemberships = await database.select().from(schema.artistTeamMembers)
+            .where(eq(schema.artistTeamMembers.userId, ctx.user.id));
+          isTeamMember = teamMemberships.length > 0;
+        }
         const profile = await db.createArtistProfile({
           userId: ctx.user.id,
           ...input,
+          isTeamMemberOnly: isTeamMember,
         });
         return profile;
       }),
@@ -3720,3 +3732,4 @@ export const appRouter = router({
   ologyLivePhase2: ologyLivePhase2Router,
 });
 export type AppRouter = typeof appRouter;
+import { releasesRouter } from "./routers/releases";

@@ -126,6 +126,7 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   socialLinks: json("socialLinks").$type<{ instagram?: string, facebook?: string, youtube?: string, spotify?: string, twitter?: string }>(),
   tipLinks: json("tipLinks").$type<{ cashapp?: string, venmo?: string, paypal?: string, zelle?: string }>(),
   crmSupporter: boolean("crmSupporter").default(false).notNull(),
+  isTeamMemberOnly: boolean("isTeamMemberOnly").default(false).notNull(), // true = team member account, not a public listing
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
@@ -1841,6 +1842,72 @@ export const artistTeamMembers = mysqlTable("artist_team_members", {
 }));
 export type ArtistTeamMember = typeof artistTeamMembers.$inferSelect;
 export type InsertArtistTeamMember = typeof artistTeamMembers.$inferInsert;
+
+
+/**
+ * Content Releases - the core of the creator commerce system.
+ * A release represents any monetizable content a creator wants to sell/share.
+ * The content itself lives externally (YouTube, Vimeo, Spotify, etc.)
+ * OlogyWood handles the business model and access control.
+ * NOTE: This is separate from artistReleases (audio track sales hosted on S3).
+ */
+export const contentReleases = mysqlTable("releases", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  releaseType: varchar("releaseType", { length: 50 }).notNull(),
+  genre: varchar("genre", { length: 100 }),
+  duration: varchar("duration", { length: 50 }),
+  thumbnailUrl: text("thumbnailUrl"),
+  trailerUrl: text("trailerUrl"),
+  hostingPlatform: varchar("hostingPlatform", { length: 50 }).notNull(),
+  contentUrl: text("contentUrl").notNull(),
+  accessModel: varchar("accessModel", { length: 50 }).notNull().default("free"),
+  price: decimal("price", { precision: 10, scale: 2 }),
+  minPrice: decimal("minPrice", { precision: 10, scale: 2 }),
+  premiereDate: timestamp("premiereDate"),
+  isPublished: boolean("isPublished").default(false).notNull(),
+  includesLiveQA: boolean("includesLiveQA").default(false).notNull(),
+  includesBonusContent: boolean("includesBonusContent").default(false).notNull(),
+  bonusContentDescription: text("bonusContentDescription"),
+  stripeProductId: varchar("stripeProductId", { length: 255 }),
+  stripePriceId: varchar("stripePriceId", { length: 255 }),
+  viewCount: int("viewCount").default(0).notNull(),
+  purchaseCount: int("purchaseCount").default(0).notNull(),
+  revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0.00"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  artistIdx: index("idx_content_releases_artist").on(table.artistProfileId),
+  userIdx: index("idx_content_releases_user").on(table.userId),
+  typeIdx: index("idx_content_releases_type").on(table.releaseType),
+  publishedIdx: index("idx_content_releases_published").on(table.isPublished),
+}));
+
+export type ContentRelease = typeof contentReleases.$inferSelect;
+export type InsertContentRelease = typeof contentReleases.$inferInsert;
+
+/**
+ * Content Release Purchases - tracks who has purchased/unlocked a content release
+ */
+export const contentReleasePurchases = mysqlTable("content_release_purchases", {
+  id: int("id").autoincrement().primaryKey(),
+  releaseId: int("releaseId").notNull(),
+  userId: int("userId").notNull(),
+  amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).notNull(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  accessGrantedAt: timestamp("accessGrantedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  releaseIdx: index("idx_content_purchases_release").on(table.releaseId),
+  userIdx: index("idx_content_purchases_user").on(table.userId),
+  uniquePurchase: unique("uniq_content_release_purchase").on(table.releaseId, table.userId),
+}));
+
+export type ContentReleasePurchase = typeof contentReleasePurchases.$inferSelect;
+export type InsertContentReleasePurchase = typeof contentReleasePurchases.$inferInsert;
 
 /**
  * Artist Team Invitations - pending invitations sent by email.
