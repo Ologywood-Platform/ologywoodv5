@@ -4193,3 +4193,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add help text and tooltips throughout the Content Release creation flow
 - [x] Add info banner/tips on the Content Releases list page for new users (3-step guide + pro tip)
 - [x] Code quality pass: clean up releases router, remove dead code, ensure consistent error handling
+
+## POSITIONING STATEMENT & TERMS UPDATE (Aug 9, 2026)
+- [x] Update Homepage with creator commerce positioning statement
+- [x] Update About page with positioning statement and mission clarity
+- [x] Add Content Releases (External Distribution) section to Terms of Service (Section 11A)
+- [x] Add disclaimer about external content availability (11A.1 Platform Role and Limitations)
+- [x] Add creator responsibility clause for externally-hosted content (11A.2 Creator Responsibilities)

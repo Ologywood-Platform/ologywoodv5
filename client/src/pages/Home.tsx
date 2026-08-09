@@ -120,7 +120,7 @@ export default function Home() {
             Build Your Brand. Grow Your Fans. Create More Opportunities.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            OlogyWood connects artists, athletes, entertainers, and creators with the fans and opportunities that fuel lasting careers. Build your community, book events, Sell Tickets, share exclusive content, and turn followers into lifelong supporters.
+            Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.
           </p>
           
           {!isAuthenticated && (
@@ -577,7 +577,7 @@ export default function Home() {
         <div className="container mx-auto px-3 sm:px-4 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Build Your Brand?</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Join artists, athletes, entertainers, and creators who use OlogyWood to manage bookings, sign NIL deals, grow their fan base, and create lasting opportunities.
+            Host your content wherever you want. OlogyWood handles discovery, ticketing, fan relationships, and revenue. Join thousands of creators who monetize their craft.
           </p>
           {!isAuthenticated && (
             <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
