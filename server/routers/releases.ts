@@ -7,7 +7,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getDb } from "../db";
-import { contentReleases as releases, contentReleasePurchases as releasePurchases, artistProfiles, favorites } from "../../drizzle/schema";
+import { contentReleases as releases, contentReleasePurchases as releasePurchases, artistProfiles, fanClubMemberships } from "../../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 
 // Release type options
@@ -245,15 +245,18 @@ export const releasesRouter = router({
         ));
       if (purchase) return { hasAccess: true, reason: 'purchased' };
 
-      // Fan club only - check if user is a fan club member
+      // Fan club only - check if user is an active fan club member
       if (release.accessModel === 'fan_club_only') {
-        // Check favorites/follows as a proxy for fan club membership
-        const [fav] = await database.select().from(favorites)
-          .where(and(
-            eq(favorites.userId, ctx.user.id),
-            eq(favorites.artistId, release.artistProfileId)
-          ));
-        if (fav) return { hasAccess: true, reason: 'fan_club_member' };
+        const artistProfile = await database.select().from(artistProfiles)
+          .where(eq(artistProfiles.id, release.artistProfileId)).limit(1);
+        if (artistProfile.length > 0) {
+          const [membership] = await database.select().from(fanClubMemberships)
+            .where(and(
+              eq(fanClubMemberships.fanUserId, ctx.user.id),
+              eq(fanClubMemberships.talentUserId, artistProfile[0].userId)
+            ));
+          if (membership && membership.status === 'active') return { hasAccess: true, reason: 'fan_club_member' };
+        }
       }
 
       return { hasAccess: false, reason: 'payment_required' };

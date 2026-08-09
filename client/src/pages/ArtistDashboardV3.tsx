@@ -381,14 +381,14 @@ export function ArtistDashboardV3() {
                       <Button
                         variant="outline"
                         className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate('/releases')}
+                        onClick={() => navigate('/content-releases')}
                       >
                         <Download className="h-5 w-5" />
                         <span className="text-xs font-medium">Releases</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Sell your music</span>
+                        <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Monetize content</span>
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Upload and sell your music directly to fans</TooltipContent>
+                    <TooltipContent>Create and monetize content releases — movies, albums, courses, and more</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>

@@ -4177,12 +4177,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Migrated existing team members in DB to isTeamMemberOnly=true
 
 ## CONTENT RELEASE SYSTEM (Aug 9, 2026)
-- [ ] Create releases table (title, description, type, hosting platform, URL, thumbnail, monetization, price, premiere date, access rules)
-- [ ] Build server-side release CRUD endpoints (create, update, delete, list, getById)
-- [ ] Build access control logic (Free, Ticketed, Fan Club Only, Pay What You Want, Unlock After Purchase)
-- [ ] Add "Create Release" flow on creator dashboard
-- [ ] Support release types: Movie, Documentary, Short Film, Web Series, Concert, Livestream, Podcast Episode, Album, Course, Masterclass, Interview
-- [ ] Support hosting platforms: YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, Personal Website, Other
-- [ ] Display releases on creator's public profile
-- [ ] Handle paywall/access control (paid users get URL, others see purchase option)
-- [ ] Integrate with Stripe for paid releases
+- [x] Create releases table (title, description, type, hosting platform, URL, thumbnail, monetization, price, premiere date, access rules)
+- [x] Build server-side release CRUD endpoints (create, update, delete, list, getById)
+- [x] Build access control logic (Free, Ticketed, Fan Club Only, Pay What You Want, Unlock After Purchase)
+- [x] Add "Create Release" flow on creator dashboard (/content-releases page)
+- [x] Support release types: Movie, Documentary, Short Film, Web Series, Concert, Livestream, Podcast Episode, Album, Course, Masterclass, Interview
+- [x] Support hosting platforms: YouTube, Vimeo, Twitch, Spotify, Apple Podcasts, Personal Website, Other
+- [x] Display releases on creator's public profile (ContentReleasesDisplay component)
+- [x] Handle paywall/access control (paid users get URL, others see purchase option)
+- [ ] Integrate with Stripe for paid releases (future: Stripe checkout session for paid releases)

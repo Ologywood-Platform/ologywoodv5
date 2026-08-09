@@ -22,6 +22,7 @@ import { ReleaseCard } from "@/components/ReleaseCard";
 import { JsonLd, buildArtistJsonLd, buildBreadcrumbJsonLd, buildMusicRecordingJsonLd } from "../components/JsonLd";
 import { ReviewSystem } from "@/components/ReviewSystem";
 import { MerchDisplay } from "@/components/MerchDisplay";
+import { ContentReleasesDisplay } from "@/components/ContentReleasesDisplay";
 import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
 import { useState, useEffect, useRef } from "react";
 import { Share2, Flag } from "lucide-react";
@@ -1308,6 +1309,11 @@ export default function ArtistProfile() {
             {/* Merch Section */}
             {artist && (
               <MerchDisplay userId={artist.userId} userType={(artist as any).talentType === 'athlete' ? 'athlete' : 'artist'} talentType={(artist as any).talentType} />
+            )}
+
+            {/* Content Releases Section */}
+            {artist && (
+              <ContentReleasesDisplay artistProfileId={artist.id} />
             )}
 
             {/* Reviews Section */}
