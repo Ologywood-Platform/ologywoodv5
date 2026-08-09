@@ -4,6 +4,7 @@ import { trpc } from '../lib/trpc';
 import { formatEventTime } from '../lib/utils';
 import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, User, Mail, Phone, ArrowLeft, ArrowRight, Check, Music, ChevronLeft } from 'lucide-react';
+import { SiteHeader } from "@/components/SiteHeader";
 
 const EVENT_TYPES = [
   { value: 'wedding', label: 'Wedding', icon: '💒' },
@@ -89,6 +90,7 @@ export default function ClientBooking() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
       </div>
     );

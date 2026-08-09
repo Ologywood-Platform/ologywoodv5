@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type AdCopyResult = {
   headline: string;
@@ -161,6 +162,7 @@ export default function Promote() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950 p-4 md:p-8">
+      <SiteHeader />
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { trpc } from "../lib/trpc";
 import { DollarSign, TrendingUp, Calendar, Download, AlertTriangle, FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 /**
  * EarningsChart — renders a grouped bar chart showing monthly gross, net, and fees
@@ -344,6 +345,7 @@ export default function OlogyLiveEarnings() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      <SiteHeader />
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Ology Live Earnings</h1>

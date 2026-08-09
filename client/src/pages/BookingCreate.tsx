@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { AcceptedPaymentMethods } from '@/components/AcceptedPaymentMethods';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function BookingCreate() {
   const { user, isAuthenticated } = useAuth();
@@ -109,6 +110,7 @@ export default function BookingCreate() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteHeader />
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button

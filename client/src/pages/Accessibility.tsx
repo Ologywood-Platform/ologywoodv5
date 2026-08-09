@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'wouter';
+import { SiteHeader } from "@/components/SiteHeader";
 
 const Accessibility = () => {
   return (
     <div className="min-h-screen bg-white">
+      <SiteHeader />
       <div className="bg-gray-50 border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Link to="/" className="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">

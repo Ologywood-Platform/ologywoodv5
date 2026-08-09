@@ -4156,3 +4156,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Fix: Genres under artist name not separated by commas (was rendering array directly without .join)
 - [x] Fix: Duplicate genres showing - added [...new Set()] deduplication
 - [x] Fixed in: ArtistDashboardV3, ArtistProfile, Browse, VenueDashboard, ClientBooking
+
+## ADD FILMMAKER TALENT TYPE (Aug 1, 2026)
+- [ ] Add 'filmmaker' to talent type constants/enums
+- [ ] Add Filmmaker option to sign-up/onboarding flow (Get Started page)
+- [ ] Add Filmmaker to Browse page talent type filter
+- [ ] Add filmmaker-specific profile fields (specialization, equipment, portfolio/reel)
+- [ ] Add filmmaker-specific rider template
+- [ ] Update search placeholder text to include filmmaker
+- [ ] Ensure Filmmaker shows in all talent type displays consistently
+
+## SITEHEADER ON ALL PAGES (Aug 9, 2026)
+- [x] Audit all pages for missing SiteHeader navigation
+- [x] Added SiteHeader to 40 pages that were missing it (About, Dashboard, Earnings, Bookings, Contracts, Messages, Settings, Merch, Riders, etc.)
+- [x] Excluded auth flows (VerifyEmail, ResetPassword, AcceptTeamInvite), onboarding (ArtistOnboarding, RoleSelection), and admin pages
+- [x] Users can now navigate from any page without getting stuck

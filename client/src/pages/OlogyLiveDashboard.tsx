@@ -7,6 +7,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import {
+import { SiteHeader } from "@/components/SiteHeader";
   Video, Plus, Calendar, Users, DollarSign, Clock, Trash2, Edit2,
   ToggleLeft, ToggleRight, Zap, Gamepad2, Music, Dumbbell, MessageCircle,
   Camera, Film, Palette, Briefcase, Star
@@ -144,6 +145,7 @@ export default function OlogyLiveDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <SiteHeader />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

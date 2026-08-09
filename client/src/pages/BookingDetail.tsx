@@ -24,6 +24,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import ReportIssueDialog from '@/components/ReportIssueDialog';
 import { useParams, useLocation } from 'wouter';
 import { useEffect, useRef } from 'react';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -85,6 +86,7 @@ export default function BookingDetail() {
   if (!bookingId || bookingId === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">Invalid booking ID</p>
           <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>

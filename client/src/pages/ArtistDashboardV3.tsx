@@ -23,6 +23,7 @@ import { VideoPortfolioManager } from '@/components/VideoPortfolioManager';
 import { ReferralSection } from '@/components/ReferralSection';
 import BookingCalendar from '@/components/BookingCalendar';
 import DashboardAnalyticsCards from '@/components/DashboardAnalyticsCards';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export function ArtistDashboardV3() {
   const [, navigate] = useLocation();
@@ -97,6 +98,7 @@ export function ArtistDashboardV3() {
   if (!isArtist) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+      <SiteHeader />
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Header skeleton */}
           <div className="flex items-center gap-4">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, MapPin, DollarSign, ChevronRight, Filter } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface Booking {
   id: number;
@@ -100,6 +101,7 @@ export default function BookingsList() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <SiteHeader />
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

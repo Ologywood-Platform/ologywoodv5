@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, AlertTriangle, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import { Link } from "wouter";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   open: { label: "Open", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -35,6 +36,7 @@ export default function MyDisputes() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <SiteHeader />
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">

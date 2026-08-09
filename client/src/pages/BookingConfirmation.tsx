@@ -5,6 +5,7 @@ import { CheckCircle, Calendar, MapPin, DollarSign, MessageSquare, ArrowRight } 
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function BookingConfirmation() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ export default function BookingConfirmation() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <SiteHeader />
         <p className="text-gray-600">Loading booking details...</p>
       </div>
     );

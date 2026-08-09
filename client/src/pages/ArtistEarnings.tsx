@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+import { SiteHeader } from "@/components/SiteHeader";
   DollarSign,
   Clock,
   CheckCircle,
@@ -116,6 +117,7 @@ function IncomeBreakdownChart({ summary }: { summary: { bookings: number; releas
               const percent = ((segment.value / total) * 100).toFixed(1);
               return (
                 <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+      <SiteHeader />
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: segment.color }} />
                     <Icon className="h-4 w-4 text-gray-500" />

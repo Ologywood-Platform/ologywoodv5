@@ -22,6 +22,7 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface Conversation {
   id: number;
@@ -218,6 +219,7 @@ export default function Messages() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );

@@ -12,6 +12,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
+import { SiteHeader } from "@/components/SiteHeader";
   Play, Pause, SkipForward, SkipBack, Shuffle, Volume2, VolumeX,
   Download, Trash2, Music, Loader2, ArrowLeft, SortAsc, ChevronDown,
   Repeat, ListMusic, X
@@ -338,6 +339,7 @@ export default function MyMusic() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
+      <SiteHeader />
         <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
       </div>
     );

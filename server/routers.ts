@@ -384,7 +384,7 @@ export const appRouter = router({
     updateProfile: artistProcedure
       .input(z.object({
         artistName: z.string().min(1).optional(),
-        talentType: z.enum(['artist', 'athlete', 'creator', 'entertainer', 'influencer']).optional(),
+        talentType: z.enum(['artist', 'athlete', 'creator', 'entertainer', 'filmmaker', 'influencer']).optional(),
         bio: z.string().optional(),
         genre: z.array(z.string()).optional(),
         location: z.string().optional(),

@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { ArrowLeft, Compass, Users, Heart, Key, Landmark, Sparkles, Globe, Cpu, BookOpen, Crown, Lightbulb, Handshake } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function About() {
   const handleBack = () => {
@@ -12,6 +13,7 @@ export default function About() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SiteHeader />
       {/* Back Button */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <button

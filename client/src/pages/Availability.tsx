@@ -17,6 +17,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type AvailabilityStatus = 'available' | 'booked' | 'unavailable';
 
@@ -104,6 +105,7 @@ export default function Availability() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );

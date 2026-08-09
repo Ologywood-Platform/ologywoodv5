@@ -7,6 +7,7 @@ import { Badge } from "../components/ui/badge";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import {
+import { SiteHeader } from "@/components/SiteHeader";
   Video, Clock, DollarSign, Users, Calendar, ArrowLeft,
   Gamepad2, Music, Dumbbell, MessageCircle, Camera, Film, Palette, Briefcase, Star, Zap,
   CheckCircle2, AlertCircle
@@ -84,6 +85,7 @@ export default function OlogyLiveExperience() {
   if (!experienceId) {
     return (
       <div className="max-w-4xl mx-auto p-6 text-center py-20">
+      <SiteHeader />
         <p className="text-muted-foreground">Experience not found.</p>
         <Button variant="outline" className="mt-4" onClick={() => navigate("/ology-live")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Ology Live

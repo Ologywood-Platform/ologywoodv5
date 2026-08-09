@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import { SiteHeader } from "@/components/SiteHeader";
 
 // Redirect /favorites to /following (the working implementation)
 export default function Favorites() {

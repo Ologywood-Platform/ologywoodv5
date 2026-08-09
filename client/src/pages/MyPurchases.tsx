@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Music, Download, Loader2, ShoppingBag, ArrowLeft, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function MyPurchases() {
   const { user, loading: authLoading } = useAuth();
@@ -49,6 +50,7 @@ export default function MyPurchases() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
+      <SiteHeader />
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );

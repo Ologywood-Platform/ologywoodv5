@@ -9,6 +9,7 @@ import { Link, useLocation, useParams } from "wouter";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface Message {
   id: number;
@@ -155,6 +156,7 @@ export default function MessagesDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <SiteHeader />
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">Loading conversation...</p>
         </Card>

@@ -19,6 +19,7 @@ import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { SiteHeader } from "@/components/SiteHeader";
 
 type ReleaseStatus = "draft" | "published" | "archived";
 
@@ -68,6 +69,7 @@ export default function ReleaseManager() {
   if (canCreateQuery.isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <SiteHeader />
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>

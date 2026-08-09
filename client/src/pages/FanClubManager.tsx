@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus, Trash2, Edit2, Crown, Lock, Globe, Image, Loader2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const ATHLETE_CONTENT_CATEGORIES = [
   { value: 'training_clips', label: 'Training Clips' },
@@ -179,6 +180,7 @@ export default function FanClubManager() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteHeader />
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">

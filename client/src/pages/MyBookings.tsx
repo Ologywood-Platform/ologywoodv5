@@ -5,6 +5,7 @@ import { formatEventTime } from '../lib/utils';
 import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox, MessageCircle, CreditCard, Loader2 } from 'lucide-react';
 import TestModeBadge from '@/components/TestModeBadge';
+import { SiteHeader } from "@/components/SiteHeader";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', label: 'Pending' },
@@ -37,6 +38,7 @@ export default function MyBookings() {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
       </div>
     );

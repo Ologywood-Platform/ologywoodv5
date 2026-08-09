@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Shield, AlertTriangle, Mail, Clock, FileText, Scale } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function DMCAPolicy() {
   const [, navigate] = useLocation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <SiteHeader />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">

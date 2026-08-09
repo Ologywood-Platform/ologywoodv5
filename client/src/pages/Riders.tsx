@@ -41,6 +41,7 @@ import { toast } from 'sonner';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { generateRiderPDF } from "@/utils/pdfExport";
 import { RiderContractTemplate, RiderContractData } from "@/components/RiderContractTemplate";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface RiderTemplate {
   id: number;
@@ -151,6 +152,7 @@ export default function Riders() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SiteHeader />
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );

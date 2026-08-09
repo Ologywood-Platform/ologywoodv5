@@ -21,6 +21,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ContractAnalyzer } from "@/components/ContractAnalyzer";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type ContractStatus = "pending" | "signed_by_artist" | "signed_by_venue" | "fully_signed";
 
@@ -296,6 +297,7 @@ export function Contracts() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-200">
+      <SiteHeader />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm transition-colors duration-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

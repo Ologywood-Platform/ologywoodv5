@@ -2,10 +2,12 @@ import React from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-white">
+      <SiteHeader />
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">

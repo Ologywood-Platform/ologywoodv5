@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { MerchManager } from '@/components/MerchManager';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function MerchPage() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function MerchPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteHeader />
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>

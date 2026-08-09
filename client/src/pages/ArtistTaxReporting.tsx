@@ -1,6 +1,7 @@
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { SiteHeader } from "@/components/SiteHeader";
 
 /**
  * ArtistTaxReporting Page - DISABLED
@@ -11,6 +12,7 @@ export default function ArtistTaxReporting() {
   const [, navigate] = useLocation();
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-4">
+      <SiteHeader />
       <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
         <ArrowLeft className="h-4 w-4" />
         Dashboard

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export function TeamManagement() {
   const [, navigate] = useLocation();
@@ -127,6 +128,7 @@ export function TeamManagement() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-950">
+      <SiteHeader />
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

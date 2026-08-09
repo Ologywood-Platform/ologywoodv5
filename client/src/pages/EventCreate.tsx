@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft } from 'lucide-react';
 import { ArtistEventPostForm } from '@/components/ArtistEventPostForm';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function EventCreate() {
   const [, navigate] = useLocation();
@@ -13,6 +14,7 @@ export default function EventCreate() {
   if (user?.role !== 'artist') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <SiteHeader />
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>

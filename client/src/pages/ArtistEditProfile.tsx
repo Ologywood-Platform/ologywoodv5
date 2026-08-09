@@ -17,11 +17,17 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import TouringSection from '@/components/TouringSection';
 import { LocationInput } from '@/components/LocationInput';
 
-const GENRE_OPTIONS = [
+const MUSIC_GENRE_OPTIONS = [
   "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
   "Dancehall", "Electronic", "Experimental", "Folk", "Funk", "Gospel",
   "Hip-Hop", "House", "Indie", "Jazz", "Latin", "Lo-fi", "Metal", "Pop",
   "Punk", "R&B", "Reggae", "Rock", "Soul", "Techno", "Trap", "World", "Other"
+];
+
+const FILMMAKER_SPECIALIZATION_OPTIONS = [
+  "Music Videos", "Documentaries", "Short Films", "Commercials", "Event Coverage",
+  "Corporate Video", "Wedding Films", "Narrative Film", "Animation", "Drone / Aerial",
+  "Live Concert", "Behind the Scenes", "Social Media Content", "Trailers / Promos", "Other"
 ];
 
 export default function ArtistEditProfile() {
@@ -399,6 +405,7 @@ export default function ArtistEditProfile() {
                     { value: 'athlete', label: 'Athlete', desc: 'Sports & NIL' },
                     { value: 'creator', label: 'Creator', desc: 'Content & Digital' },
                     { value: 'entertainer', label: 'Entertainer', desc: 'Comedy, DJ, MC' },
+                    { value: 'filmmaker', label: 'Filmmaker', desc: 'Film & Video Production' },
                     { value: 'influencer', label: 'Influencer', desc: 'Social & Brand' },
                   ].map((opt) => (
                     <button
@@ -419,12 +426,12 @@ export default function ArtistEditProfile() {
               </div>
 
               <div>
-                <Label htmlFor="artistName">{talentType === 'athlete' ? 'Name' : 'Artist / Band Name'} *</Label>
+                <Label htmlFor="artistName">{talentType === 'athlete' ? 'Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : 'Artist / Band Name'} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder={talentType === 'athlete' ? 'Your name' : 'Your stage name'}
+                  placeholder={talentType === 'athlete' ? 'Your name' : talentType === 'filmmaker' ? 'Your name or production company' : 'Your stage name'}
                   autoCapitalize="words"
                 />
               </div>
@@ -580,12 +587,12 @@ export default function ArtistEditProfile() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Genres</CardTitle>
-                <CardDescription>Select the genres that best describe your music</CardDescription>
+                <CardTitle>{talentType === 'filmmaker' ? 'Specializations' : 'Genres'}</CardTitle>
+                <CardDescription>{talentType === 'filmmaker' ? 'Select the types of production you specialize in' : 'Select the genres that best describe your music'}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {GENRE_OPTIONS.map((genre) => (
+                  {(talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATION_OPTIONS : MUSIC_GENRE_OPTIONS).map((genre) => (
                     <Badge
                       key={genre}
                       variant={genres.includes(genre) ? "default" : "outline"}
@@ -602,7 +609,7 @@ export default function ArtistEditProfile() {
                   <Input
                     value={customGenre}
                     onChange={(e) => setCustomGenre(e.target.value)}
-                    placeholder="Add custom genre..."
+                    placeholder={talentType === 'filmmaker' ? 'Add custom specialization...' : 'Add custom genre...'}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
                   />
                   <Button variant="outline" size="icon" onClick={addCustomGenre} disabled={!customGenre.trim()}>

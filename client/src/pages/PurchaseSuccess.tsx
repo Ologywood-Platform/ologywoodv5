@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Download, Music, Loader2, ArrowRight, ShoppingBag, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function PurchaseSuccess() {
   const { user, loading: authLoading } = useAuth();
@@ -102,6 +103,7 @@ export default function PurchaseSuccess() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
+      <SiteHeader />
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );

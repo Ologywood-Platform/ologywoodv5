@@ -8,6 +8,7 @@ import { EmailPreferencesCenter } from "@/components/EmailPreferencesCenter";
 import { FollowsManagement } from "@/components/FollowsManagement";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
 import { trpc } from "@/lib/trpc";
+import { SiteHeader } from "@/components/SiteHeader";
 
 function NotificationPreferencesSection() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -72,6 +73,7 @@ function NotificationPreferencesSection() {
 
   return (
     <div className="space-y-4">
+      <SiteHeader />
       {saveStatus === 'success' && (
         <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
           <CheckCircle className="h-4 w-4 text-green-600" />
