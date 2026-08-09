@@ -4200,3 +4200,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add Content Releases (External Distribution) section to Terms of Service (Section 11A)
 - [x] Add disclaimer about external content availability (11A.1 Platform Role and Limitations)
 - [x] Add creator responsibility clause for externally-hosted content (11A.2 Creator Responsibilities)
+
+## SUBSCRIPTION TIER ENFORCEMENT (Aug 9, 2026)
+- [x] Create tier enforcement utility with plan limits constants (server/utils/tierLimits.ts)
+- [x] Enforce booking limits: Free = 2/month, Starter+ = unlimited
+- [x] Enforce release limits: Starter = 2 singles, Professional+ = unlimited
+- [x] Gate Rider Builder: Starter+ only (Free users see upgrade prompt)
+- [x] Gate Contracts & e-signatures: Professional+ only
+- [x] Gate Sponsor features: Enterprise only (already had requireEnterprise)
+- [x] Add client-side UpgradePrompt and UpgradeBanner components

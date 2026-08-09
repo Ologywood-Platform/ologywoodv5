@@ -97,6 +97,21 @@ export const releasesRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
       }
 
+      // Tier enforcement: check release limit
+      const { getSubscriptionByUserId } = await import("../db");
+      const subscription = await getSubscriptionByUserId(ctx.user.id);
+      const userTier = subscription?.tier || "free";
+      if (userTier === "free") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Content Releases require a Starter plan or higher. Please upgrade your subscription." });
+      }
+      if (userTier === "starter") {
+        const existingReleases = await database.select().from(releases)
+          .where(eq(releases.userId, ctx.user.id));
+        if (existingReleases.length >= 2) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Starter plan is limited to 2 releases. Upgrade to Professional for unlimited releases." });
+        }
+      }
+
       const result = await database.insert(releases).values({
         artistProfileId: profile.id,
         userId: ctx.user.id,

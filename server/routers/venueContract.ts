@@ -41,6 +41,13 @@ export const venueContractRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "You can only create contracts for your own bookings" });
       }
 
+      // Tier enforcement: Contracts require Professional plan or higher
+      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      const userTier = subscription?.tier || "free";
+      if (userTier === "free" || userTier === "starter") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Contracts \& e-signatures require a Professional plan or higher. Please upgrade your subscription." });
+      }
+
       const contract = await db.createVenueContract({
         bookingId: input.bookingId,
         venueId: venueProfile.id,
