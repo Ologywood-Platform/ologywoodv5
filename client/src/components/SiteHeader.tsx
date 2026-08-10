@@ -44,7 +44,7 @@ interface SiteHeaderProps {
   hideBrowse?: boolean;
 }
 
-export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: SiteHeaderProps) {
+export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: SiteHeaderProps) {
   const { user, isAuthenticated } = useAuth();
   const { isInstallable, isInstalled, isIOSSafari, promptInstall } = usePWAInstall();
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
@@ -548,3 +548,5 @@ export default function SiteHeader({ largeLogo = false, extraNav, hideBrowse = f
     </>
   );
 }
+
+export default SiteHeader;
