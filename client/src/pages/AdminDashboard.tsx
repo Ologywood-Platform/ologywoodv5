@@ -86,10 +86,10 @@ export function AdminDashboard() {
         {analytics && (
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <MetricCard
-              icon={<Users className="w-6 h-6" />}
+            icon={<Users className="w-6 h-6" />}
               label="Total Users"
               value={analytics.totalUsers}
-              subtext={`${analytics.artistCount} artists, ${analytics.venueCount} venues`}
+              subtext={`${analytics.artistCount} active artists, ${analytics.venueCount} active venues`}
             />
             <MetricCard
               icon={<Calendar className="w-6 h-6" />}

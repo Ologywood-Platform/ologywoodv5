@@ -801,8 +801,15 @@ return { success: true, payoutId: input.payoutId };
     const allBookings = await db.select().from(bookings);
     const allPayouts = await db.select().from(artistPayouts);
 
-    const artistCount = allUsers.filter((u: typeof users.$inferSelect) => u.role === "artist").length;
-    const venueCount = allUsers.filter((u: typeof users.$inferSelect) => u.role === "venue").length;
+    const artistRoleCount = allUsers.filter((u: typeof users.$inferSelect) => u.role === "artist").length;
+    const venueRoleCount = allUsers.filter((u: typeof users.$inferSelect) => u.role === "venue").length;
+    
+    // Count active profiles (users who completed their profile setup)
+    const allArtistProfiles = await db.select({ id: artistProfiles.id }).from(artistProfiles);
+    const allVenueProfiles = await db.select({ id: venueProfiles.id }).from(venueProfiles);
+    const activeArtistCount = allArtistProfiles.length;
+    const activeVenueCount = allVenueProfiles.length;
+    
     const totalPaid = allPayouts
       .filter((p: typeof artistPayouts.$inferSelect) => p.status === "completed")
       .reduce((sum: number, p: typeof artistPayouts.$inferSelect) => sum + (Number(p.amount) || 0), 0);
@@ -813,8 +820,10 @@ return { success: true, payoutId: input.payoutId };
 
     return {
       totalUsers: allUsers.length,
-      artistCount,
-      venueCount,
+      artistCount: activeArtistCount,
+      venueCount: activeVenueCount,
+      artistRoleCount: artistRoleCount,
+      venueRoleCount: venueRoleCount,
       totalBookings: allBookings.length,
       completedBookings,
       completionRate:
