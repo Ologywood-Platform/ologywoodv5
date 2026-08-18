@@ -112,6 +112,11 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                         <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                           {artist.artistName || 'Unknown Artist'}
                         </h3>
+                        {(artist as any).isVerified && (
+                          <span title="Verified" className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 rounded-full flex-shrink-0">
+                            <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                          </span>
+                        )}
                         {(artist as any).crmSupporter && <CrmBadge size="sm" />}
                       </div>
                       {artist.genre && (
