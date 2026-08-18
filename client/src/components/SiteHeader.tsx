@@ -239,7 +239,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                           </button>
                         </Link>
 
-                        {user?.role === 'admin' && (
+                        {(user as any)?.isAdmin && (
                           <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="block">
                             <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 dark:text-purple-400 flex items-center gap-2 font-medium">
                               <Shield className="h-4 w-4" />
@@ -414,7 +414,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                   </Button>
                 </Link>
 
-                {user?.role === 'admin' && (
+                {(user as any)?.isAdmin && (
                   <Link href="/admin" onClick={closeMobile} className="block">
                     <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] text-purple-600 dark:text-purple-400 font-medium">
                       <Shield className="h-4 w-4" />

@@ -323,11 +323,19 @@ export const appRouter = router({
         }
         // Add hasPassword flag and strip passwordHash for security
         const { passwordHash, ...safeUser } = userData as any;
-        return { ...safeUser, hasPassword: !!passwordHash };
+        // Check if user has admin access (role === 'admin' OR is site owner)
+        const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
+        const OWNER_NAME = process.env.OWNER_NAME || '';
+        const OWNER_EMAIL = 'garychisolm30@gmail.com';
+        const isAdmin = safeUser.role === 'admin' || 
+          (OWNER_OPEN_ID && safeUser.openId === OWNER_OPEN_ID) ||
+          (OWNER_NAME && safeUser.openId === OWNER_NAME) ||
+          (safeUser.email && safeUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+        return { ...safeUser, hasPassword: !!passwordHash, isAdmin: !!isAdmin };
       } catch (error) {
         console.error('[Auth.me] Error:', error);
         const { passwordHash, ...safeUser } = opts.ctx.user as any;
-        return { ...safeUser, hasPassword: !!passwordHash };
+        return { ...safeUser, hasPassword: !!passwordHash, isAdmin: false };
       }
     }),
     logout: protectedProcedure.mutation(({ ctx }) => {
