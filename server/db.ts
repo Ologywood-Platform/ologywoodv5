@@ -566,8 +566,20 @@ export async function getAllArtists() {
     return [];
   }
   try {
-    // Use Drizzle ORM to fetch all artists
-    const artists = await db.select().from(artistProfiles);
+    // Get userIds of team members (non-owners) to exclude from public listings
+    const teamMemberRows = await db.select({ userId: schema.artistTeamMembers.userId })
+      .from(schema.artistTeamMembers)
+      .where(ne(schema.artistTeamMembers.role, 'owner'));
+    const teamMemberUserIds = teamMemberRows.map(r => r.userId);
+    
+    // Fetch all artists, excluding team members who should not appear publicly
+    let artists;
+    if (teamMemberUserIds.length > 0) {
+      artists = await db.select().from(artistProfiles)
+        .where(sql`${artistProfiles.userId} NOT IN (${sql.join(teamMemberUserIds.map(id => sql`${id}`), sql`, `)})`);
+    } else {
+      artists = await db.select().from(artistProfiles);
+    }
     
     // Ensure all JSON fields are properly parsed and serializable
     return artists.map(artist => parseArtistProfile(artist));
@@ -3342,3 +3354,4 @@ export async function disconnectGoogleCalendar(artistId: number): Promise<void> 
     .set({ syncEnabled: false })
     .where(eq(schema.googleCalendarIntegrations.artistId, artistId));
 }
+import { notInArray } from "drizzle-orm";

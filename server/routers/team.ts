@@ -159,6 +159,11 @@ export const teamRouter = router({
       const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!artistProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
 
+      // Prevent self-invite - artists cannot add themselves as a team member
+      if (input.email.toLowerCase() === ctx.user.email?.toLowerCase()) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot invite yourself as a team member' });
+      }
+
       // Check if user has permission to manage team
       const membership = await database.select().from(artistTeamMembers)
         .where(and(

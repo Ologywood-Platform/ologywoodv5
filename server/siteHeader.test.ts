@@ -11,7 +11,7 @@ describe('SiteHeader Component', () => {
   });
 
   it('should export a default function component', () => {
-    expect(siteHeaderContent).toContain('export default function SiteHeader');
+    expect(siteHeaderContent).toContain('export function SiteHeader');
   });
 
   it('should import useAuth for authentication state', () => {
