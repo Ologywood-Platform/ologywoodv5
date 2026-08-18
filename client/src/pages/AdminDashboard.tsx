@@ -2260,7 +2260,8 @@ function VideoModerationTab({
 function VerificationTab() {
   const usersQuery = (trpc.admin as any).getUsers.useQuery({ limit: 200 });
   const verifyMutation = (trpc.admin as any).verifyArtist.useMutation({
-    onSuccess: () => usersQuery.refetch(),
+    onError: (err: any) => alert("Verification failed: " + err.message),
+    onSuccess: () => { alert("Verification updated successfully!"); usersQuery.refetch(); },
   });
   const [filter, setFilter] = useState<'unverified' | 'verified'>('unverified');
 
