@@ -601,6 +601,10 @@ export async function getAllArtists() {
       artists = await db.select().from(artistProfiles);
     }
     
+    // Secondary filter: also exclude any profile with "Team Member" in the name
+    // (handles cases where artist_team_members table is empty but test team members exist)
+    artists = artists.filter(a => !(a.artistName || '').toLowerCase().includes('team member'));
+    
     // Try to fetch isVerified status separately (column may not exist in production)
     let verifiedMap: Record<number, boolean> = {};
     try {
