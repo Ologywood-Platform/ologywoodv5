@@ -2258,18 +2258,19 @@ function VideoModerationTab({
 }
 
 function VerificationTab() {
-  const usersQuery = (trpc.admin as any).getUsers.useQuery({ limit: 200 });
+  const artistsQuery = (trpc.admin as any).getArtistsForVerification.useQuery();
   const verifyMutation = (trpc.admin as any).verifyArtist.useMutation({
     onError: (err: any) => alert("Verification failed: " + err.message),
-    onSuccess: () => { alert("Verification updated successfully!"); usersQuery.refetch(); },
+    onSuccess: () => { artistsQuery.refetch(); },
   });
   const [filter, setFilter] = useState<'unverified' | 'verified'>('unverified');
 
-  const allUsers = usersQuery.data?.users || [];
-  // Get artist users and check their verification status via profiles
-  const artistUsers = allUsers.filter((u: any) => u.role === 'artist');
+  const allArtists = artistsQuery.data?.artists || [];
+  const filteredArtists = allArtists.filter((a: any) => 
+    filter === 'verified' ? (a.isVerified === 1 || a.isVerified === true) : (!a.isVerified || a.isVerified === 0)
+  );
 
-  if (usersQuery.isLoading) {
+  if (artistsQuery.isLoading) {
     return <div className="p-8 text-center text-gray-500">Loading artists...</div>;
   }
 
@@ -2278,57 +2279,75 @@ function VerificationTab() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Artist Verification</h3>
-          <p className="text-sm text-gray-500">Review and verify artists on the platform</p>
+          <p className="text-sm text-gray-500">Review and verify artists on the platform ({allArtists.length} total)</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setFilter('unverified')}
             className={`px-3 py-1.5 text-sm rounded-lg ${filter === 'unverified' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >
-            Pending Review
+            Pending Review ({allArtists.filter((a: any) => !a.isVerified || a.isVerified === 0).length})
           </button>
           <button
             onClick={() => setFilter('verified')}
             className={`px-3 py-1.5 text-sm rounded-lg ${filter === 'verified' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >
-            Verified
+            Verified ({allArtists.filter((a: any) => a.isVerified === 1 || a.isVerified === true).length})
           </button>
         </div>
       </div>
 
-      {artistUsers.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">No artists found.</div>
+      {filteredArtists.length === 0 ? (
+        <div className="p-8 text-center text-gray-500">
+          {filter === 'verified' ? 'No verified artists yet.' : 'All artists have been reviewed.'}
+        </div>
       ) : (
         <div className="grid gap-3">
-          {artistUsers.map((user: any) => (
-            <div key={user.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+          {filteredArtists.map((artist: any) => (
+            <div key={artist.id} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-purple-600" />
-                </div>
+                {artist.profilePhotoUrl ? (
+                  <img src={artist.profilePhotoUrl} alt={artist.artistName} className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" />
+                ) : (
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-purple-600" />
+                  </div>
+                )}
                 <div>
-                  <p className="font-medium text-gray-900">{user.name || 'Unnamed'}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                  <p className="text-xs text-gray-400">Joined {new Date(user.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium text-gray-900">{artist.artistName || artist.name || 'Unnamed'}</p>
+                  <p className="text-xs text-gray-500">{artist.email}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-purple-600 font-medium capitalize">{artist.talentType || 'artist'}</span>
+                    {artist.city && <span className="text-xs text-gray-400">• {artist.city}{artist.state ? `, ${artist.state}` : ''}</span>}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => verifyMutation.mutate({ userId: user.id, verified: true })}
-                  disabled={verifyMutation.isPending}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium"
-                >
-                  <CheckCircle className="w-3 h-3" />
-                  Verify
-                </button>
-                <button
-                  onClick={() => verifyMutation.mutate({ userId: user.id, verified: false })}
-                  disabled={verifyMutation.isPending}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
-                >
-                  <XCircle className="w-3 h-3" />
-                  Revoke
-                </button>
+                {(artist.isVerified === 1 || artist.isVerified === true) ? (
+                  <>
+                    <span className="flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg font-medium">
+                      <CheckCircle className="w-3 h-3" />
+                      Verified
+                    </span>
+                    <button
+                      onClick={() => verifyMutation.mutate({ userId: artist.userId, verified: false })}
+                      disabled={verifyMutation.isPending}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                    >
+                      <XCircle className="w-3 h-3" />
+                      Revoke
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => verifyMutation.mutate({ userId: artist.userId, verified: true })}
+                    disabled={verifyMutation.isPending}
+                    className="flex items-center gap-1 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Verify
+                  </button>
+                )}
               </div>
             </div>
           ))}

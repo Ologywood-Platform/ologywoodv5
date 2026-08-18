@@ -220,6 +220,41 @@ export const adminRouter = router({
   /**
    * Verify an artist profile
    */
+  getArtistsForVerification: adminOnly
+    .query(async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      // Use raw SQL to get artists with verification status (handles missing column gracefully)
+      let artists: any[] = [];
+      try {
+        const [rows] = await db.execute(sql`
+          SELECT ap.id, ap.userId, ap.artistName, ap.talentType, ap.profilePhotoUrl, ap.genre, ap.city, ap.state,
+                 COALESCE(ap.isVerified, FALSE) as isVerified,
+                 u.email, u.name, u.createdAt as userCreatedAt
+          FROM artist_profiles ap
+          JOIN users u ON u.id = ap.userId
+          ORDER BY ap.artistName ASC
+        `);
+        artists = rows as any[];
+      } catch (e: any) {
+        // If isVerified column doesn't exist, query without it
+        if (e.message?.includes('isVerified')) {
+          const [rows] = await db.execute(sql`
+            SELECT ap.id, ap.userId, ap.artistName, ap.talentType, ap.profilePhotoUrl, ap.genre, ap.city, ap.state,
+                   FALSE as isVerified,
+                   u.email, u.name, u.createdAt as userCreatedAt
+            FROM artist_profiles ap
+            JOIN users u ON u.id = ap.userId
+            ORDER BY ap.artistName ASC
+          `);
+          artists = rows as any[];
+        } else {
+          throw e;
+        }
+      }
+      return { artists };
+    }),
+
   verifyArtist: adminOnly
     .input(
       z.object({
