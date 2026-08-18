@@ -235,13 +235,12 @@ export const adminRouter = router({
       try {
         await db.execute(sql`ALTER TABLE artist_profiles ADD COLUMN isVerified BOOLEAN NOT NULL DEFAULT FALSE`);
       } catch (e: any) {
-        // Column already exists - ignore the error
-        if (!e.message?.includes('Duplicate column')) throw e;
+        // Column already exists - ignore any ALTER TABLE error
       }
       try {
         await db.execute(sql`ALTER TABLE artist_profiles ADD COLUMN verifiedAt TIMESTAMP NULL`);
       } catch (e: any) {
-        if (!e.message?.includes('Duplicate column')) throw e;
+        // Column already exists - ignore any ALTER TABLE error
       }
       // Now update the verification status
       if (input.verified) {
