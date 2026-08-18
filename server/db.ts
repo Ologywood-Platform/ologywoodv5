@@ -341,14 +341,34 @@ export async function getArtistProfileByUserId(userId: number): Promise<ArtistPr
   const db = await getDb();
   if (!db) return null;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, userId)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : null;
+  if (!result[0]) return null;
+  const parsed = parseArtistProfile(result[0]);
+  // Add isVerified from users.emailVerified (not in Drizzle schema)
+  try {
+    const [userRows] = await db.execute(sql`SELECT emailVerified FROM users WHERE id = ${userId} LIMIT 1`);
+    const userRow = Array.isArray(userRows) ? userRows[0] : null;
+    (parsed as any).isVerified = userRow ? Boolean((userRow as any).emailVerified) : false;
+  } catch (e) {
+    (parsed as any).isVerified = false;
+  }
+  return parsed;
 }
 
 export async function getArtistProfileById(id: number): Promise<ArtistProfile | null> {
   const db = await getDb();
   if (!db) return null;
   const result = await db.select().from(artistProfiles).where(eq(artistProfiles.id, id)).limit(1);
-  return result[0] ? parseArtistProfile(result[0]) : null;
+  if (!result[0]) return null;
+  const parsed = parseArtistProfile(result[0]);
+  // Add isVerified from users.emailVerified (not in Drizzle schema)
+  try {
+    const [userRows] = await db.execute(sql`SELECT emailVerified FROM users WHERE id = ${result[0].userId} LIMIT 1`);
+    const userRow = Array.isArray(userRows) ? userRows[0] : null;
+    (parsed as any).isVerified = userRow ? Boolean((userRow as any).emailVerified) : false;
+  } catch (e) {
+    (parsed as any).isVerified = false;
+  }
+  return parsed;
 }
 
 export async function createArtistProfile(data: InsertArtistProfile): Promise<ArtistProfile> {
