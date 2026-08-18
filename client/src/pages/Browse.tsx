@@ -587,6 +587,11 @@ export default function Browse() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <h3 className="font-semibold text-sm sm:text-base truncate">{artist.artistName}</h3>
+                                {(artist as any).isVerified && (
+                                  <span title="Verified Artist" className="inline-flex items-center justify-center w-4 h-4 bg-blue-500 rounded-full flex-shrink-0">
+                                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                  </span>
+                                )}
                                 {(artist as any).crmSupporter && <CrmBadge size="md" />}
                                 {touringStatus?.[artist.id] && <TouringBadge />}
                               </div>

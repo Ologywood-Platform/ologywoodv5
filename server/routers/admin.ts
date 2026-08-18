@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistReleases, unsubscribeFeedback, roleChangeAuditLog, adminActivityLog, videoModerationQueue, userSubscriptions } from "../../drizzle/schema";
 import Stripe from 'stripe';
-import { desc, sql } from "drizzle-orm";
+import { desc, sql, eq } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 
 // Initialize SendGrid
@@ -228,7 +228,18 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      return { success: true, userId: input.userId };
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      // Find the artist profile for this user
+      const [profile] = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, input.userId));
+      if (!profile) throw new Error("Artist profile not found");
+      await db.update(artistProfiles)
+        .set({
+          isVerified: input.verified,
+          verifiedAt: input.verified ? new Date() : null,
+        })
+        .where(eq(artistProfiles.userId, input.userId));
+      return { success: true, userId: input.userId, verified: input.verified };
     }),
 
   /**
