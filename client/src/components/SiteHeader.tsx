@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle, Download, Music } from 'lucide-react';
+import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle, Download, Music, Shield } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -239,6 +239,15 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                           </button>
                         </Link>
 
+                        {user?.role === 'admin' && (
+                          <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="block">
+                            <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 dark:text-purple-400 flex items-center gap-2 font-medium">
+                              <Shield className="h-4 w-4" />
+                              Admin Dashboard
+                            </button>
+                          </Link>
+                        )}
+
                         <Link href="/my-bookings" onClick={() => setUserMenuOpen(false)} className="block">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
                             <CalendarCheck className="h-4 w-4" />
@@ -404,6 +413,15 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                     {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
                   </Button>
                 </Link>
+
+                {user?.role === 'admin' && (
+                  <Link href="/admin" onClick={closeMobile} className="block">
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] text-purple-600 dark:text-purple-400 font-medium">
+                      <Shield className="h-4 w-4" />
+                      Admin Dashboard
+                    </Button>
+                  </Link>
+                )}
 
                 <Link href="/my-bookings" onClick={closeMobile} className="block">
                   <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
