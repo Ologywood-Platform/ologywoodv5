@@ -269,6 +269,13 @@ function OverviewTab({
   analytics: any;
   financial: any;
 }) {
+  const growthQuery = (trpc.admin as any).getGrowthData.useQuery();
+  const incompleteQuery = (trpc.admin as any).getIncompleteProfiles.useQuery();
+  const sendReminderMutation = (trpc.admin as any).sendProfileReminder.useMutation({
+    onSuccess: (data: any) => alert(data.message),
+    onError: (err: any) => alert("Failed: " + err.message),
+  });
+
   return (
     <div className="p-3 sm:p-6">
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Platform Summary</h3>
@@ -292,6 +299,99 @@ function OverviewTab({
           </div>
         </div>
       </div>
+
+      {/* Growth Chart */}
+      {growthQuery.data?.chartData && growthQuery.data.chartData.length > 0 && (
+        <div className="mt-6">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Platform Growth</h4>
+          <div className="bg-gray-50 rounded p-4">
+            <div className="flex items-end gap-1 h-40">
+              {growthQuery.data.chartData.map((d: any, i: number) => {
+                const maxTotal = Math.max(...growthQuery.data.chartData.map((x: any) => x.totalArtists + x.totalVenues));
+                const height = maxTotal > 0 ? ((d.totalArtists + d.totalVenues) / maxTotal) * 100 : 0;
+                const artistHeight = maxTotal > 0 ? (d.totalArtists / maxTotal) * 100 : 0;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5" title={`${d.label}: ${d.totalArtists} artists, ${d.totalVenues} venues`}>
+                    <div className="w-full flex flex-col justify-end" style={{ height: '140px' }}>
+                      <div className="w-full bg-purple-200 rounded-t" style={{ height: `${height - artistHeight}%`, minHeight: d.totalVenues > 0 ? '2px' : '0' }}></div>
+                      <div className="w-full bg-purple-600 rounded-b" style={{ height: `${artistHeight}%`, minHeight: d.totalArtists > 0 ? '2px' : '0' }}></div>
+                    </div>
+                    <span className="text-[9px] text-gray-500 rotate-[-45deg] origin-top-left mt-1 whitespace-nowrap">{d.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-xs text-gray-600">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-600 rounded"></span> Artists</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-200 rounded"></span> Venues</span>
+              <span className="ml-auto font-medium">Total: {growthQuery.data.chartData[growthQuery.data.chartData.length - 1]?.totalArtists || 0} artists, {growthQuery.data.chartData[growthQuery.data.chartData.length - 1]?.totalVenues || 0} venues</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incomplete Profiles */}
+      {incompleteQuery.data && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-gray-900">
+              Incomplete Profiles ({incompleteQuery.data.count})
+            </h4>
+            {incompleteQuery.data.count > 0 && (
+              <button
+                onClick={() => {
+                  if (confirm(`Send profile completion reminder to ${incompleteQuery.data.count} users?`)) {
+                    sendReminderMutation.mutate({});
+                  }
+                }}
+                disabled={sendReminderMutation.isPending}
+                className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+              >
+                {sendReminderMutation.isPending ? 'Sending...' : `Send Reminder to All (${incompleteQuery.data.count})`}
+              </button>
+            )}
+          </div>
+          {incompleteQuery.data.count === 0 ? (
+            <p className="text-sm text-gray-500 bg-green-50 p-3 rounded">All users have completed their profiles!</p>
+          ) : (
+            <div className="bg-gray-50 rounded overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="text-left p-2 text-xs font-medium text-gray-600">Name</th>
+                    <th className="text-left p-2 text-xs font-medium text-gray-600">Email</th>
+                    <th className="text-left p-2 text-xs font-medium text-gray-600">Role</th>
+                    <th className="text-left p-2 text-xs font-medium text-gray-600">Joined</th>
+                    <th className="text-right p-2 text-xs font-medium text-gray-600">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incompleteQuery.data.users.slice(0, 20).map((user: any) => (
+                    <tr key={user.id} className="border-t border-gray-200">
+                      <td className="p-2 text-gray-900">{user.name || '—'}</td>
+                      <td className="p-2 text-gray-600 text-xs">{user.email}</td>
+                      <td className="p-2"><span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded">{user.role}</span></td>
+                      <td className="p-2 text-gray-500 text-xs">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td className="p-2 text-right">
+                        <button
+                          onClick={() => sendReminderMutation.mutate({ userIds: [user.id] })}
+                          disabled={sendReminderMutation.isPending}
+                          className="px-2 py-0.5 text-[10px] bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                        >
+                          Send Reminder
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {incompleteQuery.data.count > 20 && (
+                <p className="p-2 text-xs text-gray-500 text-center">Showing 20 of {incompleteQuery.data.count} users</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

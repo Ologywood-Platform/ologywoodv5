@@ -840,6 +840,146 @@ return { success: true, payoutId: input.payoutId };
 
   // ============ SYSTEM STATUS ============
 
+  // ============ INCOMPLETE PROFILES ============
+
+  /**
+   * Get users who signed up but never completed their profile
+   */
+  getIncompleteProfiles: adminOnly.query(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    // Find users with artist/venue role who don't have a corresponding profile
+    const allUsers = await db.select().from(users);
+    const artistProfileUserIds = (await db.select({ userId: artistProfiles.userId }).from(artistProfiles)).map(r => r.userId);
+    const venueProfileUserIds = (await db.select({ userId: venueProfiles.userId }).from(venueProfiles)).map(r => r.userId);
+    
+    const incompleteUsers = allUsers.filter(u => {
+      if (u.role === 'artist' && !artistProfileUserIds.includes(u.id)) return true;
+      if (u.role === 'venue' && !venueProfileUserIds.includes(u.id)) return true;
+      return false;
+    }).map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      emailVerified: u.emailVerified,
+      createdAt: u.createdAt,
+    }));
+    
+    return { users: incompleteUsers, count: incompleteUsers.length };
+  }),
+
+  /**
+   * Send a reminder email to users with incomplete profiles
+   */
+  sendProfileReminder: adminOnly
+    .input(z.object({ userIds: z.array(z.number()).optional() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      
+      // Get incomplete profile users (same logic as above)
+      const allUsers = await db.select().from(users);
+      const artistProfileUserIds = (await db.select({ userId: artistProfiles.userId }).from(artistProfiles)).map(r => r.userId);
+      const venueProfileUserIds = (await db.select({ userId: venueProfiles.userId }).from(venueProfiles)).map(r => r.userId);
+      
+      let targetUsers = allUsers.filter(u => {
+        if (u.role === 'artist' && !artistProfileUserIds.includes(u.id)) return true;
+        if (u.role === 'venue' && !venueProfileUserIds.includes(u.id)) return true;
+        return false;
+      });
+      
+      // If specific userIds provided, filter to those
+      if (input.userIds && input.userIds.length > 0) {
+        targetUsers = targetUsers.filter(u => input.userIds!.includes(u.id));
+      }
+      
+      let sentCount = 0;
+      if (process.env.SENDGRID_API_KEY) {
+        for (const user of targetUsers) {
+          if (!user.email) continue;
+          try {
+            await sgMail.send({
+              to: user.email,
+              from: SENDGRID_FROM,
+              subject: 'Complete Your OlogyWood Profile',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                  <h2 style="color: #7c3aed;">Complete Your Profile on OlogyWood</h2>
+                  <p>Hi ${user.name || 'there'},</p>
+                  <p>We noticed you signed up for OlogyWood but haven't finished setting up your ${user.role === 'venue' ? 'venue' : 'artist'} profile yet.</p>
+                  <p>Complete your profile to:</p>
+                  <ul>
+                    <li>Get discovered by ${user.role === 'venue' ? 'talented artists' : 'venues and promoters'}</li>
+                    <li>Start receiving booking requests</li>
+                    <li>Access all platform features</li>
+                  </ul>
+                  <a href="${BASE_URL}/onboarding" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 16px 0;">Complete My Profile</a>
+                  <p style="color: #666; font-size: 14px;">It only takes a few minutes to set up your profile and start connecting with the OlogyWood community.</p>
+                  <p style="color: #999; font-size: 12px;">— The OlogyWood Team</p>
+                </div>
+              `,
+            });
+            sentCount++;
+          } catch (e) {
+            console.error(`Failed to send reminder to ${user.email}:`, e);
+          }
+        }
+      }
+      
+      return { success: true, sentCount, totalTargeted: targetUsers.length, message: `Sent ${sentCount} reminder emails` };
+    }),
+
+  /**
+   * Get growth data for charts - active artists and venues over time
+   */
+  getGrowthData: adminOnly.query(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    
+    // Get artist profiles with creation dates
+    const artistData = await db.select({ createdAt: artistProfiles.createdAt }).from(artistProfiles);
+    const venueData = await db.select({ createdAt: venueProfiles.createdAt }).from(venueProfiles);
+    
+    // Group by month
+    const monthlyGrowth: Record<string, { artists: number; venues: number }> = {};
+    
+    for (const a of artistData) {
+      const month = new Date(a.createdAt).toISOString().slice(0, 7); // YYYY-MM
+      if (!monthlyGrowth[month]) monthlyGrowth[month] = { artists: 0, venues: 0 };
+      monthlyGrowth[month].artists++;
+    }
+    
+    for (const v of venueData) {
+      const month = new Date(v.createdAt).toISOString().slice(0, 7);
+      if (!monthlyGrowth[month]) monthlyGrowth[month] = { artists: 0, venues: 0 };
+      monthlyGrowth[month].venues++;
+    }
+    
+    // Sort by month and create cumulative totals
+    const sortedMonths = Object.keys(monthlyGrowth).sort();
+    let cumulativeArtists = 0;
+    let cumulativeVenues = 0;
+    
+    const chartData = sortedMonths.map(month => {
+      cumulativeArtists += monthlyGrowth[month].artists;
+      cumulativeVenues += monthlyGrowth[month].venues;
+      return {
+        month,
+        label: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        newArtists: monthlyGrowth[month].artists,
+        newVenues: monthlyGrowth[month].venues,
+        totalArtists: cumulativeArtists,
+        totalVenues: cumulativeVenues,
+      };
+    });
+    
+    return { chartData };
+  }),
+
+  // ============ SYSTEM STATUS (continued) ============
+
   /**
    * Get system health status
    */

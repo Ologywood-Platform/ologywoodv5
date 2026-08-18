@@ -4231,3 +4231,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add 7 new common user questions (Content Releases, Filmmaker, tier limits)
 - [x] Add 9 new FAQ items to Help page (Content Releases x6, Tier Limits x2, Filmmaker x1)
 - [x] Update subscription plan descriptions in AI prompt to match pricing page
+
+## ADMIN DASHBOARD ENHANCEMENTS (Aug 18, 2026)
+- [x] Add filter to view users with incomplete profiles (no artist_profiles or venue_profiles entry)
+- [x] Add button to send reminder notification to users with incomplete profiles
+- [x] Add growth chart showing active artists and venues over time
