@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
-import { Users, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
+import { Users, User, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
 
 export function AdminDashboard() {
   const { user } = useAuth();
