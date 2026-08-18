@@ -581,8 +581,22 @@ export async function getAllArtists() {
       artists = await db.select().from(artistProfiles);
     }
     
-    // Ensure all JSON fields are properly parsed and serializable
-    return artists.map(artist => parseArtistProfile(artist));
+    // Try to fetch isVerified status separately (column may not exist in production)
+    let verifiedMap: Record<number, boolean> = {};
+    try {
+      const verifiedRows = await db.execute(sql`SELECT userId, isVerified FROM artist_profiles WHERE isVerified = TRUE`);
+      if (Array.isArray(verifiedRows) && verifiedRows.length > 0) {
+        const rows = (verifiedRows as any)[0] || verifiedRows;
+        if (Array.isArray(rows)) {
+          rows.forEach((r: any) => { verifiedMap[r.userId] = true; });
+        }
+      }
+    } catch (e) {
+      // isVerified column doesn't exist yet - ignore
+    }
+    
+    // Ensure all JSON fields are properly parsed and serializable, add isVerified flag
+    return artists.map(artist => ({ ...parseArtistProfile(artist), isVerified: verifiedMap[artist.userId] || false }));
   } catch (error) {
     console.error("[getAllArtists] Error fetching artists:", error);
     return [];

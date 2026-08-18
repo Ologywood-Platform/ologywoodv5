@@ -230,15 +230,25 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
-      // Find the artist profile for this user
-      const [profile] = await db.select().from(artistProfiles).where(eq(artistProfiles.userId, input.userId));
-      if (!profile) throw new Error("Artist profile not found");
-      await db.update(artistProfiles)
-        .set({
-          isVerified: input.verified,
-          verifiedAt: input.verified ? new Date() : null,
-        })
-        .where(eq(artistProfiles.userId, input.userId));
+      // Use raw SQL to avoid Drizzle schema column mismatch with production DB
+      // First ensure the isVerified column exists (idempotent)
+      try {
+        await db.execute(sql`ALTER TABLE artist_profiles ADD COLUMN isVerified BOOLEAN NOT NULL DEFAULT FALSE`);
+      } catch (e: any) {
+        // Column already exists - ignore the error
+        if (!e.message?.includes('Duplicate column')) throw e;
+      }
+      try {
+        await db.execute(sql`ALTER TABLE artist_profiles ADD COLUMN verifiedAt TIMESTAMP NULL`);
+      } catch (e: any) {
+        if (!e.message?.includes('Duplicate column')) throw e;
+      }
+      // Now update the verification status
+      if (input.verified) {
+        await db.execute(sql`UPDATE artist_profiles SET isVerified = TRUE, verifiedAt = NOW() WHERE userId = ${input.userId}`);
+      } else {
+        await db.execute(sql`UPDATE artist_profiles SET isVerified = FALSE, verifiedAt = NULL WHERE userId = ${input.userId}`);
+      }
       return { success: true, userId: input.userId, verified: input.verified };
     }),
 
