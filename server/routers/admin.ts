@@ -289,6 +289,67 @@ export const adminRouter = router({
   /**
    * Suspend or unsuspend a user
    */
+  adminResendVerification: adminOnly
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const [user] = await db.select().from(users).where(eq(users.id, input.userId));
+      if (!user) throw new Error("User not found");
+      if (user.emailVerified) throw new Error("User is already verified");
+      if (!user.email) throw new Error("User has no email address");
+      
+      // Generate a new verification token and send email
+      const crypto = await import('crypto');
+      const token = crypto.randomBytes(32).toString('hex');
+      const verificationLink = `${BASE_URL}/verify-email?token=${token}`;
+      
+      // Store token in user record
+      await db.update(users).set({
+        emailVerificationToken: token,
+        emailVerificationSentAt: new Date(),
+      }).where(eq(users.id, input.userId));
+      
+      // Send verification email
+      if (process.env.SENDGRID_API_KEY) {
+        await sgMail.send({
+          to: user.email,
+          from: SENDGRID_FROM,
+          subject: 'Verify Your Email - OlogyWood',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #7c3aed;">Verify Your Email Address</h2>
+              <p>Hi ${user.name || 'there'},</p>
+              <p>Please verify your email address to complete your OlogyWood account setup and get your verified badge.</p>
+              <a href="${verificationLink}" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 16px 0;">Verify My Email</a>
+              <p style="color: #666; font-size: 14px;">If you didn't create an account on OlogyWood, you can safely ignore this email.</p>
+              <p style="color: #999; font-size: 12px;">— The OlogyWood Team</p>
+            </div>
+          `,
+        });
+      }
+      
+      return { success: true, message: `Verification email sent to ${user.email}` };
+    }),
+
+  adminManualVerify: adminOnly
+    .input(z.object({ userId: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const [user] = await db.select().from(users).where(eq(users.id, input.userId));
+      if (!user) throw new Error("User not found");
+      if (user.emailVerified) throw new Error("User is already verified");
+      
+      // Manually mark as verified
+      await db.update(users).set({
+        emailVerified: true,
+        emailVerificationToken: null,
+      }).where(eq(users.id, input.userId));
+      
+      return { success: true, message: `${user.name || user.email} has been manually verified` };
+    }),
+
   toggleUserStatus: adminOnly
     .input(
       z.object({

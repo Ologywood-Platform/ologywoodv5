@@ -340,6 +340,15 @@ function UsersTab({
     },
   });
 
+  const resendVerificationMutation = (trpc.admin as any).adminResendVerification.useMutation({
+    onSuccess: (data: any) => { setSuccessMessage(data.message); setTimeout(() => setSuccessMessage(null), 4000); utils.admin.getUsers.invalidate(); },
+    onError: (err: any) => alert("Resend failed: " + err.message),
+  });
+  const manualVerifyMutation = (trpc.admin as any).adminManualVerify.useMutation({
+    onSuccess: (data: any) => { setSuccessMessage(data.message); setTimeout(() => setSuccessMessage(null), 4000); utils.admin.getUsers.invalidate(); },
+    onError: (err: any) => alert("Manual verify failed: " + err.message),
+  });
+
   // Filter users by role
   const filteredUsers = roleFilter === 'all' ? users : users.filter((u: any) => u.role === roleFilter);
 
@@ -480,11 +489,29 @@ function UsersTab({
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        {user.emailVerified ? (
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">Verified</span>
-                        ) : (
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-700">Pending Verification</span>
-                        )}
+                      {user.emailVerified ? (
+                         <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">Verified</span>
+                       ) : (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-700">Pending</span>
+                            <button
+                              onClick={() => resendVerificationMutation.mutate({ userId: user.id })}
+                              disabled={resendVerificationMutation.isPending}
+                              className="px-2 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded hover:bg-blue-200 font-medium"
+                              title="Resend verification email"
+                            >
+                              Resend
+                            </button>
+                            <button
+                              onClick={() => manualVerifyMutation.mutate({ userId: user.id })}
+                              disabled={manualVerifyMutation.isPending}
+                              className="px-2 py-0.5 text-[10px] bg-green-100 text-green-700 rounded hover:bg-green-200 font-medium"
+                              title="Manually verify this user (bypass email)"
+                            >
+                              Verify
+                            </button>
+                          </div>
+                       )}
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-right">
