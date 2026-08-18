@@ -584,7 +584,12 @@ export async function getAllArtists() {
     // Try to fetch isVerified status separately (column may not exist in production)
     let verifiedMap: Record<number, boolean> = {};
     try {
-      const verifiedRows = await db.execute(sql`SELECT userId, isVerified FROM artist_profiles WHERE isVerified = TRUE`);
+      const verifiedRows = await db.execute(sql`
+        SELECT ap.userId, COALESCE(ap.isVerified, FALSE) as isVerified, u.emailVerified
+        FROM artist_profiles ap
+        JOIN users u ON u.id = ap.userId
+        WHERE ap.isVerified = TRUE OR u.emailVerified = TRUE
+      `);
       if (Array.isArray(verifiedRows) && verifiedRows.length > 0) {
         const rows = (verifiedRows as any)[0] || verifiedRows;
         if (Array.isArray(rows)) {
@@ -592,7 +597,22 @@ export async function getAllArtists() {
         }
       }
     } catch (e) {
-      // isVerified column doesn't exist yet - ignore
+      // isVerified column doesn't exist yet - fall back to emailVerified only
+      try {
+        const emailVerifiedRows = await db.execute(sql`
+          SELECT ap.userId FROM artist_profiles ap
+          JOIN users u ON u.id = ap.userId
+          WHERE u.emailVerified = TRUE
+        `);
+        if (Array.isArray(emailVerifiedRows) && emailVerifiedRows.length > 0) {
+          const rows = (emailVerifiedRows as any)[0] || emailVerifiedRows;
+          if (Array.isArray(rows)) {
+            rows.forEach((r: any) => { verifiedMap[r.userId] = true; });
+          }
+        }
+      } catch (e2) {
+        // Ignore - no verification data available
+      }
     }
     
     // Ensure all JSON fields are properly parsed and serializable, add isVerified flag
