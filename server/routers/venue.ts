@@ -112,6 +112,34 @@ export const venueRouter = router({
     }),
 
   /**
+   * Get venue profile by slug (public)
+   */
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        const database = await getDb();
+        if (!database) return null;
+        const { venueProfiles } = await import('../../drizzle/schema');
+        const allVenues = await database
+          .select()
+          .from(venueProfiles);
+        const slug = input.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const found = allVenues.find((v: any) => {
+          const vSlug = v.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return vSlug === slug;
+        });
+        return found || null;
+      } catch (error) {
+        console.error('[Venue] Get by slug error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch venue profile by slug',
+        });
+      }
+    }),
+
+  /**
    * Create venue profile (venue only)
    */
   createProfile: venueProcedure

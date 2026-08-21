@@ -232,9 +232,28 @@ export function ogTagMiddleware() {
       }
 
       // Match /venue/:id or /venues/:id
-      const venueMatch = pathname.match(/^\/venues?\/(\d+)$/);
+      const venueMatch = pathname.match(/^\/venues?\/(\d+)$/) || pathname.match(/^\/venues?\/(.+)$/);
       if (venueMatch) {
-        const venueId = parseInt(venueMatch[1], 10);
+        const param = venueMatch[1];
+        let venueId: number;
+        // Support both /venue/1 and /venue/ologist (name-based slug)
+        if (/^\d+$/.test(param)) {
+          venueId = parseInt(param, 10);
+        } else {
+          // Look up by slug (venue name lowercased)
+          const database = await getDb();
+          if (!database) return next();
+          const allVenues = await database
+            .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+            .from(venueProfiles);
+          const slug = param.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          const found = allVenues.find(v => {
+            const vSlug = v.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            return vSlug === slug;
+          });
+          if (!found) return next();
+          venueId = found.id;
+        }
         const database = await getDb();
         if (database) {
           const [venue] = await database

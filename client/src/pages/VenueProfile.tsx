@@ -25,25 +25,36 @@ export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { user } = useAuth();
-  const venueId = id ? parseInt(id, 10) : 0;
+  // Support both numeric IDs (/venue/1) and name slugs (/venue/ologist)
+  const isNumericId = !!(id && /^\d+$/.test(id));
+  const venueId = isNumericId ? parseInt(id!, 10) : 0;
+  const slugParam = !isNumericId ? id : null;
 
-  const { data: venueProfile, isLoading } = trpc.venue.getById.useQuery({ id: venueId }, { enabled: venueId > 0 });
-  const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId }, { enabled: venueId > 0 });
-  const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId }, { enabled: venueId > 0 });
+  // Fetch by numeric ID
+  const { data: venueById, isLoading: loadingById } = trpc.venue.getById.useQuery({ id: venueId }, { enabled: isNumericId && venueId > 0 });
+  // Fetch by slug
+  const { data: venueBySlug, isLoading: loadingBySlug } = (trpc.venue as any).getBySlug.useQuery({ slug: slugParam || '' }, { enabled: !!slugParam });
+
+  const venueProfile = isNumericId ? venueById : venueBySlug;
+  const isLoading = isNumericId ? loadingById : loadingBySlug;
+  const resolvedVenueId = venueProfile?.id || venueId;
+
+  const { data: venueReviews } = trpc.venueReview.getByVenue.useQuery({ venueId: resolvedVenueId }, { enabled: resolvedVenueId > 0 });
+  const { data: averageRating } = trpc.venueReview.getAverageRating.useQuery({ venueId: resolvedVenueId }, { enabled: resolvedVenueId > 0 });
 
   // Track venue profile view
   const trackViewMutation = trpc.venue.trackProfileView.useMutation();
   useEffect(() => {
-    if (venueId > 0) {
-      trackViewMutation.mutate({ venueId });
+    if (resolvedVenueId > 0) {
+      trackViewMutation.mutate({ venueId: resolvedVenueId });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId]);
+  }, [resolvedVenueId]);
 
   // Set SEO meta tags when venue data loads
   useEffect(() => {
     if (venueProfile) {
-      setMetaTags(pageMetaTags.venueProfile(venueProfile.organizationName || 'Venue', venueId));
+      setMetaTags(pageMetaTags.venueProfile(venueProfile.organizationName || 'Venue', resolvedVenueId));
     }
   }, [venueProfile, venueId]);
 
@@ -63,8 +74,8 @@ export default function VenueProfile() {
 
   // Fetch blocked dates for the next 3 months (public)
   const { data: blockedDatesPublic } = trpc.venue.getBlockedDatesPublic.useQuery(
-    { venueId, startDate: new Date().toISOString().split('T')[0] },
-    { enabled: venueId > 0, staleTime: 120_000 }
+    { venueId: resolvedVenueId, startDate: new Date().toISOString().split('T')[0] },
+    { enabled: resolvedVenueId > 0, staleTime: 120_000 }
   );
   const blockedDatesSet = new Set(blockedDatesPublic?.blockedDates || []);
   const recurringBlockedDays = new Set(blockedDatesPublic?.recurringBlockedDays || []);
@@ -101,7 +112,7 @@ export default function VenueProfile() {
       return;
     }
     contactVenueMutation.mutate({
-      venueId,
+      venueId: resolvedVenueId,
       inquiryType: contactForm.inquiryType,
       subject: contactForm.subject.trim(),
       message: contactForm.message.trim(),
@@ -143,7 +154,7 @@ export default function VenueProfile() {
     });
   };
 
-  if (!venueId || venueId === 0) {
+  if (!resolvedVenueId || resolvedVenueId === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
@@ -183,7 +194,7 @@ export default function VenueProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />}
+      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${resolvedVenueId}` }])]} id={`venue-${resolvedVenueId}`} />}
       {/* Shared Header with Following link */}
       <SiteHeader
         extraNav={
@@ -398,10 +409,10 @@ export default function VenueProfile() {
         })()}
 
         {/* Upcoming Events */}
-        <VenueUpcomingEvents venueId={venueId} />
+        <VenueUpcomingEvents venueId={resolvedVenueId} />
 
         {/* Venue Sponsors */}
-        <VenueSponsorsSection venueId={venueId} />
+        <VenueSponsorsSection venueId={resolvedVenueId} />
 
         {/* Photo Gallery */}
         {(() => {
@@ -655,7 +666,7 @@ export default function VenueProfile() {
         <ShareVenueModal
           isOpen={shareVenueOpen}
           onClose={() => setShareVenueOpen(false)}
-          venueId={venueId}
+          venueId={resolvedVenueId}
           venueName={(venueProfile as any)?.organizationName}
           venueDescription={(venueProfile as any)?.description}
           venueProfileImage={(venueProfile as any)?.profilePhotoUrl}
