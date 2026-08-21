@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -96,8 +97,8 @@ export default function VenueBrowse() {
     }
   };
 
-  const handleViewProfile = (venueId: number) => {
-    navigate(`/venue/${venueId}`);
+  const handleViewProfile = (venueId: number, venueName: string) => {
+    navigate(`/venue/${toSlug(venueName || '')}`);
   };
 
   const handleBookVenue = (venue: any) => {
@@ -337,7 +338,7 @@ export default function VenueBrowse() {
                     <div>
                       <CardTitle
                         className="cursor-pointer hover:text-purple-600 transition-colors text-lg"
-                        onClick={() => handleViewProfile(venue.id)}
+                        onClick={() => handleViewProfile(venue.id, venue.organizationName || '')}
                       >
                         {venue.venueName || venue.organizationName}
                       </CardTitle>
@@ -389,7 +390,7 @@ export default function VenueBrowse() {
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-3 border-t">
                     <Button
-                      onClick={() => handleViewProfile(venue.id)}
+                      onClick={() => handleViewProfile(venue.id, venue.organizationName || '')}
                       variant="outline"
                       size="sm"
                       className="flex-1"

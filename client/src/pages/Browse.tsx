@@ -988,7 +988,7 @@ function VenueCard({ venue, availabilityData, getVenueTypeIcon, formatVenueType,
   const availability = availabilityData?.[venue.id];
 
   return (
-    <Link href={`/venue/${venue.id}`}>
+    <Link href={`/venue/${toSlug(venue.organizationName || '')}`}>
       <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
         <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg relative">
           {venue.profilePhotoUrl ? (

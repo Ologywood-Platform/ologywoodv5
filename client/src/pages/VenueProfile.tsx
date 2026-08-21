@@ -194,7 +194,7 @@ export default function VenueProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${resolvedVenueId}` }])]} id={`venue-${resolvedVenueId}`} />}
+      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${venueProfile ? toSlug(venueProfile.organizationName) : String(resolvedVenueId)}` }])]} id={`venue-${resolvedVenueId}`} />}
       {/* Shared Header with Following link */}
       <SiteHeader
         extraNav={

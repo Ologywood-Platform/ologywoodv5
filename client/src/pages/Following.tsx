@@ -241,7 +241,7 @@ function FollowingList({ userId }: { userId: number }) {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate cursor-pointer hover:text-cyan-600 transition-colors" onClick={() => navigate(`/venue/${venue.profileId || venue.id}`)}>{venue.name}</h3>
+                        <h3 className="font-semibold text-gray-900 truncate cursor-pointer hover:text-cyan-600 transition-colors" onClick={() => navigate(`/venue/${toSlug(venue.name || '')}`)}>{venue.name}</h3>
                         <p className="text-sm text-gray-500">
                           Followed {new Date(venue.followedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
@@ -251,7 +251,7 @@ function FollowingList({ userId }: { userId: number }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/venue/${venue.profileId || venue.id}`)}
+                        onClick={() => navigate(`/venue/${toSlug(venue.name || '')}`)}
                         title="View Profile"
                       >
                         <ExternalLink className="w-4 h-4" />

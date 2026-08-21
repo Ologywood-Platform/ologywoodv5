@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { formatEventTime } from '@/lib/utils';
@@ -164,7 +165,7 @@ export default function BookingDetail() {
           <Card className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <a href={`/venue/${booking.venueId}`} className="hover:underline cursor-pointer">
+                <a href={`/venue/${toSlug((booking as any).venueName || '')}`} className="hover:underline cursor-pointer">
                   <h1 className="text-3xl font-bold mb-2">Event Booking</h1>
                 </a>
                 <Badge className={getStatusColor(booking.status)}>

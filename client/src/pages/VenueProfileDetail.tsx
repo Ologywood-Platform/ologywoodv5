@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 
 import SiteHeader from '@/components/SiteHeader';
 import { Button } from '@/components/ui/button';
@@ -161,7 +162,7 @@ export default function VenueProfileDetail() {
     <>
     <SiteHeader />
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={[buildVenueJsonLd(venue), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venue.organizationName, url: `/venue/${venueId}` }])]} id={`venue-${venueId}`} />
+      <JsonLd data={[buildVenueJsonLd(venue), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venue.organizationName, url: `/venue/${toSlug(venue.organizationName || '')}` }])]} id={`venue-${venueId}`} />
       {/* Hero Section */}
       <div className="relative h-64 sm:h-80 md:h-96 bg-gray-300 overflow-hidden">
         <img

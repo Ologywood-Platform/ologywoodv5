@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Building2, MapPin, Users, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ export function FeaturedVenuesCarousel({ venues, isLoading }: FeaturedVenuesCaro
                 ))
             ) : (
               visibleVenues.map((venue, index) => (
-                <Link key={`${venue.id}-${index}`} href={`/venue/${venue.id}`}>
+                <Link key={`${venue.id}-${index}`} href={`/venue/${toSlug(venue.organizationName || '')}`}>
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted aspect-[4/3] flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {venue.profilePhotoUrl ? (
@@ -161,7 +162,7 @@ export function FeaturedVenuesCarousel({ venues, isLoading }: FeaturedVenuesCaro
                         className="w-full mt-3 text-xs sm:text-sm"
                         onClick={(e) => {
                           e.preventDefault();
-                          window.location.href = `/venue/${venue.id}`;
+                          window.location.href = `/venue/${toSlug(venue.organizationName || '')}`;
                         }}
                       >
                         View Venue

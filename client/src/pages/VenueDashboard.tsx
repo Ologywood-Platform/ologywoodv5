@@ -1278,7 +1278,7 @@ export function VenueDashboard() {
                       <Button
                         variant="outline"
                         className="flex items-center gap-2"
-                        onClick={() => window.open(`/venue/${(profile as any)?.id}`, '_blank')}
+                        onClick={() => window.open(`/venue/${toSlug((profile as any)?.organizationName || '')}`, '_blank')}
                       >
                         <ExternalLink className="h-4 w-4" />
                         Preview
@@ -1372,7 +1372,7 @@ export function VenueDashboard() {
                       <Button
                         variant="outline"
                         className="flex-1 flex items-center justify-center gap-2"
-                        onClick={() => window.open(`/venue/${(profile as any)?.id}`, '_blank')}
+                        onClick={() => window.open(`/venue/${toSlug((profile as any)?.organizationName || '')}`, '_blank')}
                       >
                         <ExternalLink className="h-4 w-4" />
                         Preview Public Profile
