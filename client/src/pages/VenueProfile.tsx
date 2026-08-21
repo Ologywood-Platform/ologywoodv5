@@ -154,7 +154,7 @@ export default function VenueProfile() {
     });
   };
 
-  if (!resolvedVenueId || resolvedVenueId === 0) {
+  if (!isLoading && (!resolvedVenueId || resolvedVenueId === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
