@@ -164,9 +164,28 @@ export function ogTagMiddleware() {
       }
 
       // Match /artist/:id
-      const artistMatch = pathname.match(/^\/artist\/(\d+)$/);
+      const artistMatch = pathname.match(/^\/artist\/(\d+)$/) || pathname.match(/^\/artist\/(.+)$/);
       if (artistMatch) {
-        const artistId = parseInt(artistMatch[1], 10);
+        const param = artistMatch[1];
+        let artistId: number;
+        // Support both /artist/11 and /artist/adonis (name-based slug)
+        if (/^\d+$/.test(param)) {
+          artistId = parseInt(param, 10);
+        } else {
+          // Look up by slug (artist name lowercased)
+          const database = await getDb();
+          if (!database) return next();
+          const allArtists = await database
+            .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
+            .from(artistProfiles);
+          const slug = param.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          const found = allArtists.find(a => {
+            const aSlug = a.artistName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            return aSlug === slug;
+          });
+          if (!found) return next();
+          artistId = found.id;
+        }
         const database = await getDb();
         if (database) {
           const [artist] = await database

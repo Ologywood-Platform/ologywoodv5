@@ -368,6 +368,24 @@ export const appRouter = router({
         return (await db.getArtistProfileById(input.id)) ?? null;
       }),
     
+    getProfileBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const database = await db.getDb();
+        if (!database) return null;
+        const { artistProfiles } = await import('../drizzle/schema');
+        const allArtists = await database
+          .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
+          .from(artistProfiles);
+        const slug = input.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const found = allArtists.find(a => {
+          const aSlug = a.artistName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return aSlug === slug;
+        });
+        if (!found) return null;
+        return (await db.getArtistProfileById(found.id)) ?? null;
+      }),
+    
        // Upload and set profile photo
     uploadProfilePhoto: artistProcedure
       .input(z.object({

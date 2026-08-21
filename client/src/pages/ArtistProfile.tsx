@@ -45,30 +45,41 @@ import { CrmBadge } from "@/components/CrmBadge";
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
-  // Ensure idParam is a string and parse it safely
-  const artistId = idParam && typeof idParam === 'string' ? parseInt(idParam, 10) : 0;
-  
-  // Validate that artistId is a valid number
-  if (isNaN(artistId) || artistId <= 0) {
+  // Support both numeric IDs (/artist/11) and name slugs (/artist/adonis)
+  const isNumericId = !!(idParam && /^\d+$/.test(idParam));
+  const artistId = isNumericId ? parseInt(idParam!, 10) : 0;
+  const slugParam = !isNumericId ? idParam : null;
+
+  // Validate that we have either a valid numeric ID or a slug
+  if (!isNumericId && !slugParam) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <p className="text-muted-foreground mb-4">Invalid artist ID</p>
+        <p className="text-muted-foreground mb-4">Invalid artist profile</p>
         <Link href="/browse">
           <Button>Browse Artists</Button>
         </Link>
       </div>
     );
   }
+
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  
-  // Only query if we have a valid numeric artist ID
-  const isValidId = !isNaN(artistId) && artistId > 0;
-  
-  const { data: artist, isLoading } = trpc.artist.getProfile.useQuery(
+
+  // Fetch by numeric ID
+  const { data: artistById, isLoading: loadingById } = trpc.artist.getProfile.useQuery(
     { id: artistId },
-    { enabled: isValidId }
+    { enabled: isNumericId && artistId > 0 }
   );
+
+  // Fetch by slug if not numeric
+  const { data: artistBySlug, isLoading: loadingBySlug } = (trpc.artist as any).getProfileBySlug.useQuery(
+    { slug: slugParam || '' },
+    { enabled: !!slugParam }
+  );
+
+  const artist = isNumericId ? artistById : artistBySlug;
+  const isLoading = isNumericId ? loadingById : loadingBySlug;
+  const isValidId = isNumericId ? (artistId > 0) : !!slugParam;
 
 
 

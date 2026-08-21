@@ -3,6 +3,11 @@
  * e.g., "Adonis" -> "adonis", "KemistInTheLab" -> "kemistinthelab"
  * e.g., "Joe Watts" -> "joe-watts"
  */
+/**
+ * Convert a name to a URL-friendly slug.
+ * e.g., "Adonis" -> "adonis", "KemistInTheLab" -> "kemistinthelab"
+ * e.g., "Joe Watts" -> "joe-watts"
+ */
 export function toSlug(name: string): string {
   return name
     .toLowerCase()
@@ -15,11 +20,11 @@ export function toSlug(name: string): string {
  * Generate the OG share URL for social media sharing.
  * 
  * Generates clean, readable URLs like:
- *   https://www.ologywood.com/api/og-page/artist/adonis-11
- *   https://www.ologywood.com/api/og-page/venue/the-roxy-theatre-1
+ *   https://www.ologywood.com/artist/adonis
+ *   https://www.ologywood.com/venue/the-roxy-theatre
  * 
- * The /api/og-page/ endpoint serves proper OG meta tags for social
- * media crawlers and redirects regular users to the SPA page.
+ * Social media bots get proper OG tags via the ogTags middleware.
+ * Regular users see the normal SPA profile page.
  */
 export function toOgShareUrl(
   origin: string,
@@ -29,7 +34,7 @@ export function toOgShareUrl(
 ): string {
   const slug = toSlug(name);
   if (entityType === 'event') {
-    return `${origin}/api/og-page/event/${slug}-${id}`;
+    return `${origin}/events/${id}`;
   }
-  return `${origin}/api/og-page/${entityType}/${slug}-${id}`;
+  return `${origin}/${entityType}/${slug}`;
 }
