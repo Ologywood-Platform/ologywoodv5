@@ -1,12 +1,25 @@
 /**
+ * Convert a name to a URL-friendly slug.
+ * e.g., "Adonis" -> "adonis", "KemistInTheLab" -> "kemistinthelab"
+ * e.g., "Joe Watts" -> "joe-watts"
+ */
+export function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 60);
+}
+
+/**
  * Generate the OG share URL for social media sharing.
  * 
- * Uses /api/og-page/ endpoint which:
- * 1. Returns artist-specific OG meta tags (title, image, description)
- * 2. Redirects regular users to the SPA page via JavaScript
+ * Generates clean, readable URLs like:
+ *   https://www.ologywood.com/api/og-page/artist/adonis-11
+ *   https://www.ologywood.com/api/og-page/venue/the-roxy-theatre-1
  * 
- * This is required because the Manus CDN serves static HTML with generic
- * OG tags for /artist/:id routes. Only /api/* routes reach Node.js.
+ * The /api/og-page/ endpoint serves proper OG meta tags for social
+ * media crawlers and redirects regular users to the SPA page.
  */
 export function toOgShareUrl(
   origin: string,
@@ -14,9 +27,9 @@ export function toOgShareUrl(
   name: string,
   id: number
 ): string {
-  // Use numeric ID only - no slug to avoid 301 redirects that confuse social crawlers
+  const slug = toSlug(name);
   if (entityType === 'event') {
-    return `${origin}/api/og-page/event/${id}`;
+    return `${origin}/api/og-page/event/${slug}-${id}`;
   }
-  return `${origin}/api/og-page/${entityType}/${id}`;
+  return `${origin}/api/og-page/${entityType}/${slug}-${id}`;
 }
