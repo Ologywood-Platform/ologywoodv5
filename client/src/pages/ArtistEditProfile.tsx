@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -916,7 +917,7 @@ export default function ArtistEditProfile() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate(`/artist/${profile.id}`)}
+                onClick={() => navigate(`/artist/${toSlug(profile.artistName || '')}`)}
               >
                 View Public Profile
               </Button>

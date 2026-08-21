@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                 ))
             ) : (
               visibleArtists.map((artist, index) => (
-                <Link key={`${artist.id}-${index}`} href={`/artist/${artist.id}`}>
+                <Link key={`${artist.id}-${index}`} href={`/artist/${toSlug(artist.artistName || '')}`}>
                   <div className="group cursor-pointer">
                     <div className="relative overflow-hidden rounded-lg bg-muted aspect-[3/4] flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-105">
                       {artist.profilePhotoUrl ? (
@@ -134,7 +135,7 @@ export function FeaturedArtistsCarousel({ artists, isLoading }: FeaturedArtistsC
                         className="w-full mt-3 text-xs sm:text-sm"
                         onClick={(e) => {
                           e.preventDefault();
-                          window.location.href = `/artist/${artist.id}`;
+                          window.location.href = `/artist/${toSlug(artist.artistName || '')}`;
                         }}
                       >
                         View Profile

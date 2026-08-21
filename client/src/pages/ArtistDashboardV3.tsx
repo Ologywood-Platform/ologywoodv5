@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -227,7 +228,7 @@ export function ArtistDashboardV3() {
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => navigate(`/artist/${artistProfile?.id || ''}`)}
+                    onClick={() => navigate(`/artist/${toSlug(artistProfile?.artistName || '')}`)}
                     className="flex-1"
                   >
                     View Public Profile

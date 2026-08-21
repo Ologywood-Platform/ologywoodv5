@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 /**
  * SuggestedFollows Component
  * 
@@ -128,7 +129,7 @@ export const SuggestedFollows: React.FC = () => {
             >
               {/* Artist Image */}
               <div className="relative h-48 overflow-hidden bg-muted">
-                <Link href={`/artist/${artist.id}`}>
+                <Link href={`/artist/${toSlug(artist.name || '')}`}>
                   {artist.profilePhotoUrl ? (
                     <LazyImage
                       src={artist.profilePhotoUrl}
@@ -159,7 +160,7 @@ export const SuggestedFollows: React.FC = () => {
 
               {/* Artist Info */}
               <div className="p-4">
-                <Link href={`/artist/${artist.id}`}>
+                <Link href={`/artist/${toSlug(artist.name || '')}`}>
                   <h3 className="font-bold text-foreground text-sm truncate hover:text-primary cursor-pointer">
                     {artist.artistName}
                   </h3>

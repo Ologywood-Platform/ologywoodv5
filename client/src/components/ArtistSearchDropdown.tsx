@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Search, MapPin, Music, ArrowRight } from 'lucide-react';
@@ -62,10 +63,10 @@ export function ArtistSearchDropdown({
     navigate(`/browse?q=${encodeURIComponent(query.trim())}`);
   }, [navigate, query]);
 
-  const navigateToArtist = useCallback((artistId: number) => {
+  const navigateToArtist = useCallback((artistId: number, artistName: string) => {
     setIsOpen(false);
     setQuery('');
-    navigate(`/artist/${artistId}`);
+    navigate(`/artist/${toSlug(artistName)}`);
   }, [navigate]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -90,7 +91,7 @@ export function ArtistSearchDropdown({
       case 'Enter':
         e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
-          navigateToArtist(filtered[highlightedIndex].id);
+          navigateToArtist(filtered[highlightedIndex].id, filtered[highlightedIndex].artistName);
         } else {
           navigateToBrowse();
         }
@@ -147,7 +148,7 @@ export function ArtistSearchDropdown({
                       ? 'bg-primary/5'
                       : 'hover:bg-slate-50'
                   }`}
-                  onClick={() => navigateToArtist(artist.id)}
+                  onClick={() => navigateToArtist(artist.id, artist.artistName)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >
                   {/* Artist photo */}

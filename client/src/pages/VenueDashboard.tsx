@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../_core/hooks/useAuth';
@@ -282,7 +283,7 @@ export function VenueDashboard() {
   };
 
   const handleViewArtist = (artistId: number) => {
-    navigate(`/artist/${artistId}`);
+    navigate(`/artist/${toSlug(artistName || '')}`);
   };
 
   if (loading || profileLoading) {
@@ -1769,7 +1770,7 @@ function SavedArtistsTab({ navigate }: { navigate: (path: string) => void }) {
                     size="sm"
                     variant="outline"
                     className="flex-1 text-xs"
-                    onClick={() => navigate(`/artist/${artist.id}`)}
+                    onClick={() => navigate(`/artist/${toSlug(artist.artistName || '')}`)}
                   >
                     <Eye className="h-3.5 w-3.5 mr-1" />
                     View

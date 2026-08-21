@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -554,7 +555,7 @@ export default function Browse() {
             {!artistsLoading && (hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredArtists.map(artist => (
-                  <Link key={artist.id} href={`/artist/${artist.id}`}>
+                  <Link key={artist.id} href={`/artist/${toSlug(artist.artistName || '')}`}>
                     <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
                       {/* Always show image area — with photo or placeholder */}
                       <div className="aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg">

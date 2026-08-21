@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useLocation } from 'wouter';
@@ -170,7 +171,7 @@ export function FollowsManagement() {
                       variant="ghost"
                       size="sm"
                       className="h-9 w-9 p-0"
-                      onClick={() => navigate(item.followingType === 'venue' ? `/venue/${item.profileId || item.id}` : `/artist/${item.profileId || item.id}`)}
+                      onClick={() => navigate(item.followingType === 'venue' ? `/venue/${toSlug(item.name || '')}` : `/artist/${toSlug(item.name || '')}`)}
                       title="View Profile"
                     >
                       <ExternalLink className="w-4 h-4" />

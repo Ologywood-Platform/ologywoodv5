@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect } from 'react';
 import { useRoute, useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
@@ -196,7 +197,7 @@ export default function ClientBooking() {
               View My Bookings
             </button>
             <button
-              onClick={() => navigate(`/artist/${artistId}`)}
+              onClick={() => navigate(`/artist/${toSlug((artistProfile as any)?.artistName || '')}`)}
               className="flex-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
               Back to Artist
@@ -217,7 +218,7 @@ export default function ClientBooking() {
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
             <button
-              onClick={() => step > 1 ? setStep(step - 1) : navigate(`/artist/${artistId}`)}
+              onClick={() => step > 1 ? setStep(step - 1) : navigate(`/artist/${toSlug((artistProfile as any)?.artistName || '')}`)}
               className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             >
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />

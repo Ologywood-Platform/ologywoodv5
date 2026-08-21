@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatEventTime } from "@/lib/utils";
@@ -312,7 +313,7 @@ export default function ArtistProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artistId}` }])]} id={`artist-${artistId}`} />}
+      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artist ? toSlug(artist.artistName) : String(artistId)}` }])]} id={`artist-${artistId}`} />}
       {artist && releases && releases.length > 0 && (
         <JsonLd
           data={releases.map((r: any) => buildMusicRecordingJsonLd({

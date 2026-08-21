@@ -38,3 +38,20 @@ export function toOgShareUrl(
   }
   return `${origin}/${entityType}/${slug}`;
 }
+
+/**
+ * Generate a clean internal URL for an artist profile.
+ * e.g., artistUrl("Adonis", 11) -> "/artist/adonis"
+ * e.g., artistUrl("Joe Watts", 8) -> "/artist/joe-watts"
+ */
+export function artistUrl(name: string, _id?: number): string {
+  return `/artist/${toSlug(name)}`;
+}
+
+/**
+ * Generate a clean internal URL for a venue profile.
+ * e.g., venueUrl("The Velvet Room", 1) -> "/venue/the-velvet-room"
+ */
+export function venueUrl(name: string, _id?: number): string {
+  return `/venue/${toSlug(name)}`;
+}

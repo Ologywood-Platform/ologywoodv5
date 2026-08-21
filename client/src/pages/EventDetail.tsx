@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,7 +103,7 @@ export default function EventDetail() {
     if (!event) return;
     // Use artistProfileId if available, otherwise fall back to artistId
     const profileId = (event as any).artistProfileId || event.artistId;
-    navigate(`/artist/${String(profileId)}`);
+    navigate(`/artist/${toSlug((event as any).artistName || "")}`);
   };
 
   const handleShare = async () => {

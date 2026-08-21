@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useRoute, useLocation } from "wouter";
 import { trpc } from "../lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -128,7 +129,7 @@ export default function ArtistHistory() {
             { label: "Browse", href: "/browse" },
             {
               label: artist?.artistName || "Artist",
-              href: `/artist/${artistId}`,
+              href: `/artist/${toSlug(artistProfile?.artistName || '')}`,
             },
             { label: "Portfolio" },
           ]}
