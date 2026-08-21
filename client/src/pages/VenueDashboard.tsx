@@ -1874,7 +1874,7 @@ function MyEventsTab({ venueProfileId }: { venueProfileId?: number }) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>

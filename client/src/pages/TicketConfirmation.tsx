@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { useParams, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -160,7 +161,7 @@ export default function TicketConfirmation() {
             Back to Home
           </Button>
           {order.event && (
-            <Button onClick={() => navigate(`/events/${order.event!.id}`)} className="flex-1">
+            <Button onClick={() => navigate(`/events/${toSlug(order.event!.eventTitle || '')}`)} className="flex-1">
               View Event
             </Button>
           )}

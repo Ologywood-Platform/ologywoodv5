@@ -1489,7 +1489,7 @@ export default function ArtistProfile() {
                         <div
                           key={event.id}
                           className="flex gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg p-2 -mx-2 transition"
-                          onClick={() => navigate(`/events/${event.id}`)}
+                          onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                         >
                           {event.coverImageUrl ? (
                             <img

@@ -867,7 +867,7 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
                 <div
                   key={event.id}
                   className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                 >
                   <div className="text-center min-w-[50px]">
                     <p className="text-xs text-muted-foreground uppercase">

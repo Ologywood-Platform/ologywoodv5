@@ -21,7 +21,10 @@ import { EventSponsorShowcase } from '@/components/EventSponsorShowcase';
 
 export default function EventDetail() {
   const { id: idParam } = useParams();
-  const eventId = idParam ? parseInt(idParam) : 0;
+  // Support both numeric IDs (/events/1) and name slugs (/events/summer-jazz-night)
+  const isNumericId = !!(idParam && /^\d+$/.test(idParam));
+  const eventId = isNumericId ? parseInt(idParam!, 10) : 0;
+  const slugParam = !isNumericId ? idParam : null;
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
 
@@ -30,15 +33,23 @@ export default function EventDetail() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   // Fetch event from real API
-  const { data: event, isLoading, error } = trpc.events.getById.useQuery(
+  const { data: eventById, isLoading: loadingById, error: errorById } = trpc.events.getById.useQuery(
     { id: eventId },
-    { enabled: eventId > 0 }
+    { enabled: isNumericId && eventId > 0 }
   );
+  const { data: eventBySlug, isLoading: loadingBySlug, error: errorBySlug } = (trpc.events as any).getBySlug.useQuery(
+    { slug: slugParam || '' },
+    { enabled: !!slugParam }
+  );
+  const event = isNumericId ? eventById : eventBySlug;
+  const isLoading = isNumericId ? loadingById : loadingBySlug;
+  const error = isNumericId ? errorById : errorBySlug;
+  const resolvedEventId = event?.id || eventId;
 
   // Check if event is saved by current user
   const { data: isSavedData } = trpc.events.isEventSaved.useQuery(
-    { eventId },
-    { enabled: isAuthenticated && eventId > 0 }
+    { eventId: resolvedEventId },
+    { enabled: isAuthenticated && resolvedEventId > 0 }
   );
   const isSaved = isSavedData ?? false;
 
@@ -49,7 +60,7 @@ export default function EventDetail() {
   // Set SEO meta tags for the event
   useEffect(() => {
     if (event) {
-      setMetaTags(pageMetaTags.eventDetail(event.eventTitle, eventId, undefined, event.description || undefined));
+      setMetaTags(pageMetaTags.eventDetail(event.eventTitle, resolvedEventId, undefined, event.description || undefined));
     }
   }, [event, eventId]);
 
@@ -67,13 +78,13 @@ export default function EventDetail() {
 
     try {
       if (isSaved) {
-        await unsaveEventMutation.mutateAsync({ eventId });
+        await unsaveEventMutation.mutateAsync({ eventId: resolvedEventId });
         toast.success('Event removed from saved');
       } else {
-        await saveEventMutation.mutateAsync({ eventId });
+        await saveEventMutation.mutateAsync({ eventId: resolvedEventId });
         toast.success('Event saved!');
       }
-      utils.events.isEventSaved.invalidate({ eventId });
+      utils.events.isEventSaved.invalidate({ eventId: resolvedEventId });
     } catch (err) {
       toast.error('Failed to save event');
     }
@@ -192,7 +203,7 @@ export default function EventDetail() {
         ...event,
         eventDate: typeof event.eventDate === 'string' ? event.eventDate : (event.eventDate as any)?.toISOString?.()?.split('T')[0] || '',
         rate: event.rate ? String(event.rate) : undefined,
-      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${eventId}` }])]} id={`event-${eventId}`} />
+      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${toSlug(event.eventTitle)}` }])]} id={`event-${resolvedEventId}`} />
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -291,7 +302,7 @@ export default function EventDetail() {
             )}
 
             {/* Ticket Purchase - Platform Ticketing */}
-            <TicketPurchase eventId={eventId} eventTitle={event.eventTitle} />
+            <TicketPurchase eventId={resolvedEventId} eventTitle={event.eventTitle} />
 
             {/* External Ticket Link (fallback if no platform tickets) */}
             {(event as any).ticketLink && (
@@ -380,10 +391,10 @@ export default function EventDetail() {
         </Card>
 
         {/* Sponsor Showcase - branded event page integration */}
-        <EventSponsorShowcase artistProfileId={event.artistId} eventId={eventId} />
+        <EventSponsorShowcase artistProfileId={event.artistId} eventId={resolvedEventId} />
 
         {/* Similar Events */}
-        <SimilarEvents eventId={eventId} limit={6} />
+        <SimilarEvents eventId={resolvedEventId} limit={6} />
       </div>
 
 

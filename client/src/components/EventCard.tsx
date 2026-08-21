@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -110,7 +111,7 @@ export function EventCard({
   };
 
   const handleCardClick = () => {
-    navigate(`/events/${id}`);
+    navigate(`/events/${toSlug(title || '')}`);
   };
 
   return (

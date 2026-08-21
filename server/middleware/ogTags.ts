@@ -214,14 +214,14 @@ export function ogTagMiddleware() {
             const breadcrumb = generateBreadcrumbJsonLd([
               { name: 'Home', url: '/' },
               { name: 'Browse Artists', url: '/browse' },
-              { name: artist.artistName, url: `/artist/${artistId}` },
+              { name: artist.artistName, url: `/artist/${artist.artistName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}` },
             ], baseUrl);
 
             const html = generateOgHtml({
               title: `${artist.artistName} | Book on Ologywood`,
               description,
               image: ogImage,
-              url: `${baseUrl}/artist/${artistId}`,
+              url: `${baseUrl}/artist/${artist.artistName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
               type: 'profile',
               jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
             });
@@ -285,14 +285,14 @@ export function ogTagMiddleware() {
             const breadcrumb = generateBreadcrumbJsonLd([
               { name: 'Home', url: '/' },
               { name: 'Browse Venues', url: '/venues' },
-              { name: venue.organizationName, url: `/venue/${venueId}` },
+              { name: venue.organizationName, url: `/venue/${venue.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}` },
             ], baseUrl);
 
             const html = generateOgHtml({
               title: `${venue.organizationName} | Ologywood`,
               description,
               image: ogImage,
-              url: `${baseUrl}/venue/${venueId}`,
+              url: `${baseUrl}/venue/${venue.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
               type: 'business.business',
               jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
             });

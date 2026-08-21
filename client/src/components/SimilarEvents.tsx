@@ -1,3 +1,4 @@
+import { toSlug } from '@/lib/slugify';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Users, Sparkles } from 'lucide-react';
@@ -85,7 +86,7 @@ export function SimilarEvents({ eventId, limit = 6 }: SimilarEventsProps) {
         {similarEvents.map((event) => (
           <Link
             key={event.id}
-            href={`/events/${event.id}`}
+            href={`/events/${toSlug(event.eventTitle || '')}`}
             className="no-underline"
           >
             <Card className="h-full hover:shadow-md transition-shadow cursor-pointer border-slate-200 hover:border-slate-300">

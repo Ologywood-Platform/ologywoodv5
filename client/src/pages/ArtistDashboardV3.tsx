@@ -639,12 +639,12 @@ export function ArtistDashboardV3() {
                             src={(event as any).coverImageUrl}
                             alt={event.eventTitle}
                             className="w-14 h-14 rounded-lg object-cover flex-shrink-0 cursor-pointer"
-                            onClick={() => navigate(`/events/${event.id}`)}
+                            onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                           />
                         ) : (
                           <div
                             className="w-14 h-14 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 cursor-pointer"
-                            onClick={() => navigate(`/events/${event.id}`)}
+                            onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                           >
                             <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
@@ -652,7 +652,7 @@ export function ArtistDashboardV3() {
                         <div className="flex-1 min-w-0">
                           <h4
                             className="font-semibold text-sm truncate cursor-pointer hover:text-purple-600 transition"
-                            onClick={() => navigate(`/events/${event.id}`)}
+                            onClick={() => navigate(`/events/${toSlug(event.eventTitle || '')}`)}
                           >
                             {event.eventTitle}
                           </h4>

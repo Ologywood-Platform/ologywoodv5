@@ -284,6 +284,36 @@ export const eventsRouter = router({
       }
     }),
 
+  // Get event by slug (public)
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        const database = await db.getDb();
+        if (!database) return null;
+        const { events } = await import('../../drizzle/schema');
+        const allEvents = await database.select().from(events);
+        const slug = input.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const found = allEvents.find((e: any) => {
+          const eSlug = (e.eventTitle || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return eSlug === slug;
+        });
+        if (!found) return null;
+        // Enrich with artist profile data
+        const artistProfile = await db.getArtistProfileById(found.artistId);
+        return {
+          ...found,
+          artistName: artistProfile?.artistName || 'Unknown Artist',
+          artistPhoto: artistProfile?.profilePhotoUrl || undefined,
+          artistProfileId: artistProfile?.id || undefined,
+          artistGenre: Array.isArray(artistProfile?.genre) ? artistProfile.genre.join(', ') : '',
+          artistBio: artistProfile?.bio || undefined,
+        };
+      } catch (error) {
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch event by slug');
+      }
+    }),
+
   // Get all events for an artist
   getByArtistId: publicProcedure
     .input(z.object({ artistId: z.number().int().positive() }))

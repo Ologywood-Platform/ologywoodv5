@@ -158,7 +158,7 @@ function FollowingList({ userId }: { userId: number }) {
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate cursor-pointer hover:text-purple-600 transition-colors" onClick={() => navigate(`/artist/${toSlug(artist.name || '')}`)}>{artist.name}</h3>
                         {artist.nextEvent ? (
-                          <p className="text-sm text-purple-600 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate(`/events/${artist.nextEvent.id}`)}>
+                          <p className="text-sm text-purple-600 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate(`/events/${toSlug(artist.nextEvent.title || '')}`)}>
                             <Calendar className="w-3 h-3" />
                             {artist.nextEvent.title} — {new Date(artist.nextEvent.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
