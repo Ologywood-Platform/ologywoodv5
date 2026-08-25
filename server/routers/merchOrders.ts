@@ -43,6 +43,11 @@ const orderStatusSchema = z.enum([
   'cancelled',
 ]);
 
+function isLegacyMerchSchemaError(error: unknown): boolean {
+  const cause = (error as any)?.cause as { code?: string } | undefined;
+  return cause?.code === 'ER_NO_SUCH_TABLE' || cause?.code === 'ER_BAD_FIELD_ERROR';
+}
+
 async function getSellerPayoutAccount(sellerUserId: number) {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -253,8 +258,14 @@ export const merchOrdersRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
-      const [order] = await db.select().from(merchOrders)
-        .where(eq(merchOrders.stripeCheckoutSessionId, input.sessionId)).limit(1);
+      let order;
+      try {
+        [order] = await db.select().from(merchOrders)
+          .where(eq(merchOrders.stripeCheckoutSessionId, input.sessionId)).limit(1);
+      } catch (error) {
+        if (isLegacyMerchSchemaError(error)) return null;
+        throw error;
+      }
       if (!order) return null;
       const items = await db.select().from(merchOrderItems)
         .where(eq(merchOrderItems.orderId, order.id));
@@ -275,10 +286,16 @@ export const merchOrdersRouter = router({
 
   /** Authenticated buyer order history. */
   myOrders: protectedProcedure.query(async ({ ctx }) => {
-    const db = await getDb();
-    if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
-    const orders = await db.select().from(merchOrders)
-      .where(eq(merchOrders.buyerUserId, ctx.user.id)).orderBy(desc(merchOrders.createdAt));
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+    let orders;
+    try {
+      orders = await db.select().from(merchOrders)
+        .where(eq(merchOrders.buyerUserId, ctx.user.id)).orderBy(desc(merchOrders.createdAt));
+    } catch (error) {
+      if (isLegacyMerchSchemaError(error)) return [];
+      throw error;
+    }
     const result = [];
     for (const order of orders) {
       const items = await db.select().from(merchOrderItems).where(eq(merchOrderItems.orderId, order.id));
@@ -291,9 +308,15 @@ export const merchOrdersRouter = router({
   sellerOrders: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
-    const orders = await db.select().from(merchOrders)
-      .where(and(eq(merchOrders.sellerUserId, ctx.user.id), eq(merchOrders.paymentStatus, 'paid')))
-      .orderBy(desc(merchOrders.createdAt));
+    let orders;
+    try {
+      orders = await db.select().from(merchOrders)
+        .where(and(eq(merchOrders.sellerUserId, ctx.user.id), eq(merchOrders.paymentStatus, 'paid')))
+        .orderBy(desc(merchOrders.createdAt));
+    } catch (error) {
+      if (isLegacyMerchSchemaError(error)) return [];
+      throw error;
+    }
     const result = [];
     for (const order of orders) {
       const items = await db.select().from(merchOrderItems).where(eq(merchOrderItems.orderId, order.id));

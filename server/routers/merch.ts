@@ -11,7 +11,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { merchItems, stripeConnectAccounts } from "../../drizzle/schema";
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 
@@ -439,18 +439,47 @@ export const merchRouter = router({
       const db = await getDb();
       if (!db) return [];
 
-      const items = await db
-        .select()
-        .from(merchItems)
-        .where(
-          and(
-            eq(merchItems.userId, input.userId),
-            eq(merchItems.userType, input.userType),
-            eq(merchItems.isActive, true)
+      try {
+        return await db
+          .select()
+          .from(merchItems)
+          .where(
+            and(
+              eq(merchItems.userId, input.userId),
+              eq(merchItems.userType, input.userType),
+              eq(merchItems.isActive, true)
+            )
           )
-        )
-        .orderBy(asc(merchItems.sortOrder));
+          .orderBy(asc(merchItems.sortOrder));
+      } catch (error: any) {
+        const cause = error?.cause as { code?: string; message?: string } | undefined;
+        if (cause?.code !== 'ER_BAD_FIELD_ERROR') throw error;
 
-      return items;
+        // Backward-compatible read for legacy preview databases. Production uses
+        // the full hybrid schema, but old items should remain publicly visible
+        // while a preview environment is awaiting its managed schema refresh.
+        const [legacyRows] = await db.execute(sql`
+          SELECT id, userId, userType, title, description, priceDisplay,
+                 externalUrl, imageUrls, sortOrder, isActive, createdAt, updatedAt
+          FROM merch_items
+          WHERE userId = ${input.userId}
+            AND userType = ${input.userType}
+            AND isActive = TRUE
+          ORDER BY sortOrder ASC
+        `) as any;
+
+        return (legacyRows as any[]).map((item) => ({
+          ...item,
+          sellingMethod: 'external' as const,
+          priceInCents: null,
+          variants: [],
+          trackInventory: false,
+          inventoryQuantity: null,
+          shippingAvailable: false,
+          pickupAvailable: false,
+          shippingAmountCents: 0,
+          fulfillmentTime: null,
+        }));
+      }
     }),
 });
