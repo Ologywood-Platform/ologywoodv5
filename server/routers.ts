@@ -43,6 +43,7 @@ import { referralRouter } from "./routers/referral";
 import { sponsorRouter } from "./routers/sponsor";
 import { venueSponsorRouter } from "./routers/venueSponsor";
 import { merchRouter } from "./routers/merch";
+import { merchOrdersRouter } from "./routers/merchOrders";
 import { projectPreviewsRouter } from "./routers/projectPreviews";
 import { teamRouter } from "./routers/team";
 import { tipRouter } from "./routers/tip";
@@ -144,6 +145,8 @@ export const appRouter = router({
   referral: referralRouter,
   sponsor: sponsorRouter,
   venueSponsor: venueSponsorRouter,
+  merch: merchRouter,
+  merchOrders: merchOrdersRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({
@@ -3753,7 +3756,6 @@ export const appRouter = router({
   
   admin: adminRouter,
   dispute: disputeRouter,
-  merch: merchRouter,
   projectPreviews: projectPreviewsRouter,
   team: teamRouter,
   tip: tipRouter,

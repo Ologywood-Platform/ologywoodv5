@@ -111,7 +111,7 @@ export function EventCard({
   };
 
   const handleCardClick = () => {
-    navigate(`/events/${toSlug(title || '')}`);
+    navigate(`/events/${toSlug(eventTitle || '')}`);
   };
 
   return (

@@ -10,7 +10,7 @@ import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { merchItems } from "../../drizzle/schema";
+import { merchItems, stripeConnectAccounts } from "../../drizzle/schema";
 import { eq, and, asc, desc } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
@@ -18,6 +18,51 @@ import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../service
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 const MAX_IMAGES_PER_ITEM = 2;
+
+const variantsSchema = z.array(z.object({
+  name: z.string().min(1).max(50),
+  options: z.array(z.string().min(1).max(50)).min(1).max(20),
+})).max(3).default([]);
+
+const optionalUrlSchema = z.string().url().max(2048).optional().or(z.literal(""));
+
+async function assertNativeSellingReady(userId: number) {
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+  const [account] = await db.select().from(stripeConnectAccounts)
+    .where(eq(stripeConnectAccounts.artistId, userId)).limit(1);
+  if (!account || account.status !== "active" || !account.chargesEnabled || !account.payoutsEnabled) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "Connect and finish setting up payouts before publishing merch sold through OlogyWood.",
+    });
+  }
+}
+
+function validateSellingConfiguration(input: {
+  sellingMethod: "ologywood" | "external";
+  externalUrl?: string | null;
+  priceInCents?: number | null;
+  trackInventory: boolean;
+  inventoryQuantity?: number | null;
+  shippingAvailable: boolean;
+  pickupAvailable: boolean;
+}) {
+  if (input.sellingMethod === "external" && !input.externalUrl?.trim()) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Add your external store link, or choose Sell through OlogyWood." });
+  }
+  if (input.sellingMethod === "ologywood") {
+    if (!input.priceInCents || input.priceInCents < 50) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a price of at least $0.50 for OlogyWood checkout." });
+    }
+    if (!input.shippingAvailable && !input.pickupAvailable) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Choose shipping, local pickup, or both." });
+    }
+    if (input.trackInventory && input.inventoryQuantity == null) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Enter the available quantity when inventory tracking is enabled." });
+    }
+  }
+}
 
 export const merchRouter = router({
   /**
@@ -69,8 +114,18 @@ export const merchRouter = router({
       z.object({
         title: z.string().min(1).max(200),
         description: z.string().max(500).optional(),
-        priceDisplay: z.string().min(1).max(50),
-        externalUrl: z.string().url().max(2048),
+        sellingMethod: z.enum(["ologywood", "external"]).default("external"),
+        priceDisplay: z.string().max(50).optional(),
+        priceInCents: z.number().int().min(50).max(10_000_000).optional(),
+        externalUrl: optionalUrlSchema,
+        variants: variantsSchema,
+        trackInventory: z.boolean().default(false),
+        inventoryQuantity: z.number().int().min(0).max(1_000_000).optional(),
+        shippingAvailable: z.boolean().default(true),
+        pickupAvailable: z.boolean().default(false),
+        shippingAmountCents: z.number().int().min(0).max(1_000_000).default(0),
+        fulfillmentTime: z.string().max(100).optional(),
+        isActive: z.boolean().default(true),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -81,6 +136,11 @@ export const merchRouter = router({
       const subscription = await getUserSubscription(ctx.user.id);
       const tier = PRICING_TIERS[subscription.tier as PricingTier];
       const userType = ctx.user.role === "venue" ? "venue" : "artist";
+
+      validateSellingConfiguration(input);
+      if (input.sellingMethod === "ologywood" && input.isActive) {
+        await assertNativeSellingReady(ctx.user.id);
+      }
 
       const existing = await db
         .select()
@@ -104,10 +164,22 @@ export const merchRouter = router({
         userType,
         title: input.title,
         description: input.description || null,
-        priceDisplay: input.priceDisplay,
-        externalUrl: input.externalUrl,
+        sellingMethod: input.sellingMethod,
+        priceDisplay: input.sellingMethod === "ologywood"
+          ? `$${((input.priceInCents || 0) / 100).toFixed(2)}`
+          : input.priceDisplay?.trim() || "See store",
+        priceInCents: input.sellingMethod === "ologywood" ? input.priceInCents : null,
+        externalUrl: input.sellingMethod === "external" ? input.externalUrl?.trim() || null : null,
         imageUrls: [],
+        variants: input.sellingMethod === "ologywood" ? input.variants : [],
+        trackInventory: input.sellingMethod === "ologywood" ? input.trackInventory : false,
+        inventoryQuantity: input.sellingMethod === "ologywood" && input.trackInventory ? input.inventoryQuantity : null,
+        shippingAvailable: input.sellingMethod === "ologywood" ? input.shippingAvailable : false,
+        pickupAvailable: input.sellingMethod === "ologywood" ? input.pickupAvailable : false,
+        shippingAmountCents: input.sellingMethod === "ologywood" && input.shippingAvailable ? input.shippingAmountCents : 0,
+        fulfillmentTime: input.sellingMethod === "ologywood" ? input.fulfillmentTime?.trim() || null : null,
         sortOrder: maxSort + 1,
+        isActive: input.isActive,
       });
 
       return { success: true, id: (result as any)[0]?.insertId || (result as any).insertId };
@@ -122,8 +194,17 @@ export const merchRouter = router({
         id: z.number().int().positive(),
         title: z.string().min(1).max(200).optional(),
         description: z.string().max(500).optional(),
+        sellingMethod: z.enum(["ologywood", "external"]).optional(),
         priceDisplay: z.string().min(1).max(50).optional(),
-        externalUrl: z.string().url().max(2048).optional(),
+        priceInCents: z.number().int().min(50).max(10_000_000).optional().nullable(),
+        externalUrl: optionalUrlSchema,
+        variants: variantsSchema.optional(),
+        trackInventory: z.boolean().optional(),
+        inventoryQuantity: z.number().int().min(0).max(1_000_000).optional().nullable(),
+        shippingAvailable: z.boolean().optional(),
+        pickupAvailable: z.boolean().optional(),
+        shippingAmountCents: z.number().int().min(0).max(1_000_000).optional(),
+        fulfillmentTime: z.string().max(100).optional().nullable(),
         isActive: z.boolean().optional(),
       })
     )
@@ -142,12 +223,50 @@ export const merchRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Item not found" });
       }
 
+      const merged = {
+        sellingMethod: input.sellingMethod ?? item.sellingMethod,
+        externalUrl: input.externalUrl !== undefined ? input.externalUrl : item.externalUrl,
+        priceInCents: input.priceInCents !== undefined ? input.priceInCents : item.priceInCents,
+        trackInventory: input.trackInventory ?? item.trackInventory,
+        inventoryQuantity: input.inventoryQuantity !== undefined ? input.inventoryQuantity : item.inventoryQuantity,
+        shippingAvailable: input.shippingAvailable ?? item.shippingAvailable,
+        pickupAvailable: input.pickupAvailable ?? item.pickupAvailable,
+      };
+      validateSellingConfiguration(merged);
+      const willBeActive = input.isActive ?? item.isActive;
+      if (merged.sellingMethod === "ologywood" && willBeActive) {
+        await assertNativeSellingReady(ctx.user.id);
+      }
+
       const updates: any = {};
       if (input.title !== undefined) updates.title = input.title;
       if (input.description !== undefined) updates.description = input.description;
+      if (input.sellingMethod !== undefined) updates.sellingMethod = input.sellingMethod;
       if (input.priceDisplay !== undefined) updates.priceDisplay = input.priceDisplay;
-      if (input.externalUrl !== undefined) updates.externalUrl = input.externalUrl;
+      if (input.priceInCents !== undefined) updates.priceInCents = input.priceInCents;
+      if (input.externalUrl !== undefined) updates.externalUrl = input.externalUrl.trim() || null;
+      if (input.variants !== undefined) updates.variants = input.variants;
+      if (input.trackInventory !== undefined) updates.trackInventory = input.trackInventory;
+      if (input.inventoryQuantity !== undefined) updates.inventoryQuantity = input.inventoryQuantity;
+      if (input.shippingAvailable !== undefined) updates.shippingAvailable = input.shippingAvailable;
+      if (input.pickupAvailable !== undefined) updates.pickupAvailable = input.pickupAvailable;
+      if (input.shippingAmountCents !== undefined) updates.shippingAmountCents = input.shippingAmountCents;
+      if (input.fulfillmentTime !== undefined) updates.fulfillmentTime = input.fulfillmentTime?.trim() || null;
       if (input.isActive !== undefined) updates.isActive = input.isActive;
+
+      if (merged.sellingMethod === "ologywood") {
+        updates.priceDisplay = `$${((merged.priceInCents || 0) / 100).toFixed(2)}`;
+        updates.externalUrl = null;
+      } else if (input.sellingMethod === "external") {
+        updates.priceInCents = null;
+        updates.variants = [];
+        updates.trackInventory = false;
+        updates.inventoryQuantity = null;
+        updates.shippingAvailable = false;
+        updates.pickupAvailable = false;
+        updates.shippingAmountCents = 0;
+        updates.fulfillmentTime = null;
+      }
 
       await db.update(merchItems).set(updates).where(eq(merchItems.id, input.id));
 

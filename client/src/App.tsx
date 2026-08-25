@@ -106,6 +106,8 @@ const EventTickets = lazy(() => import("./pages/EventTickets"));
 const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
 const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
 const MerchPage = lazy(() => import("./pages/MerchPage"));
+const MerchOrders = lazy(() => import("./pages/MerchOrders"));
+const MerchOrderSuccess = lazy(() => import("./pages/MerchOrderSuccess"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const Promote = lazy(() => import("./pages/Promote"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
@@ -152,6 +154,8 @@ function Router() {
           <Route path="/earnings" component={ArtistEarnings} />
           <Route path="/earnings/breakdown" component={EarningsBreakdown} />
           <Route path="/merch" component={MerchPage} />
+          <Route path="/merch-orders/success" component={MerchOrderSuccess} />
+          <Route path="/merch-orders" component={MerchOrders} />
           <Route path="/projects" component={ProjectsPage} />
           <Route path="/earnings-dashboard">{() => <Redirect to="/earnings" />}</Route>
           <Route path="/venue-invoices" component={VenueInvoiceDashboard} />

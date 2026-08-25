@@ -129,7 +129,7 @@ export const SuggestedFollows: React.FC = () => {
             >
               {/* Artist Image */}
               <div className="relative h-48 overflow-hidden bg-muted">
-                <Link href={`/artist/${toSlug(artist.name || '')}`}>
+                <Link href={`/artist/${toSlug(artist.artistName || '')}`}>
                   {artist.profilePhotoUrl ? (
                     <LazyImage
                       src={artist.profilePhotoUrl}
@@ -160,7 +160,7 @@ export const SuggestedFollows: React.FC = () => {
 
               {/* Artist Info */}
               <div className="p-4">
-                <Link href={`/artist/${toSlug(artist.name || '')}`}>
+                <Link href={`/artist/${toSlug(artist.artistName || '')}`}>
                   <h3 className="font-bold text-foreground text-sm truncate hover:text-primary cursor-pointer">
                     {artist.artistName}
                   </h3>

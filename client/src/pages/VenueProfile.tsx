@@ -20,6 +20,7 @@ import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/Js
 import SiteHeader from '@/components/SiteHeader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import { toSlug } from '@/lib/slugify';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();

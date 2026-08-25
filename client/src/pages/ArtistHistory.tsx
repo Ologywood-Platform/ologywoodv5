@@ -129,7 +129,7 @@ export default function ArtistHistory() {
             { label: "Browse", href: "/browse" },
             {
               label: artist?.artistName || "Artist",
-              href: `/artist/${toSlug(artistProfile?.artistName || '')}`,
+              href: `/artist/${toSlug(artist?.artistName || '')}`,
             },
             { label: "Portfolio" },
           ]}

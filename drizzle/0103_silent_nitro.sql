@@ -1,0 +1,1 @@
+ALTER TABLE `merch_orders` ADD `paymentStatus` enum('pending','paid','failed','refunded') DEFAULT 'pending' NOT NULL;

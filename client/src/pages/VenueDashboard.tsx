@@ -282,8 +282,8 @@ export function VenueDashboard() {
     await venueRespondMutation.mutateAsync({ id: bookingId, status });
   };
 
-  const handleViewArtist = (artistId: number) => {
-    navigate(`/artist/${toSlug(artistName || '')}`);
+  const handleViewArtist = (artistId: number, artistName?: string) => {
+    navigate(`/artist/${artistName ? toSlug(artistName) : artistId}`);
   };
 
   if (loading || profileLoading) {

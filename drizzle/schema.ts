@@ -1574,7 +1574,7 @@ export type InsertVenueProfileView = typeof venueProfileViews.$inferInsert;
 
 /**
  * Merch Items - artists sell merch, venues sell shop items/offers.
- * Images stored in S3, external purchase link for checkout.
+ * Images stored in S3. Items can use native OlogyWood checkout or an optional external store link.
  * Tier-gated: Pro = 6 items, Premium = 15 items, Free = 0.
  */
 export const merchItems = mysqlTable("merch_items", {
@@ -1583,9 +1583,18 @@ export const merchItems = mysqlTable("merch_items", {
   userType: mysqlEnum("userType", ["artist", "venue"]).notNull(),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
-  priceDisplay: varchar("priceDisplay", { length: 50 }).notNull(), // e.g. "$25.00", "From $15"
-  externalUrl: varchar("externalUrl", { length: 2048 }).notNull(),
+  sellingMethod: mysqlEnum("sellingMethod", ["ologywood", "external"]).default("external").notNull(),
+  priceDisplay: varchar("priceDisplay", { length: 50 }).notNull(), // Public display label; generated from price for native items
+  priceInCents: int("priceInCents"), // Required for OlogyWood checkout items
+  externalUrl: varchar("externalUrl", { length: 2048 }), // Optional; required only for external items
   imageUrls: json("imageUrls").$type<string[]>().default([]),
+  variants: json("variants").$type<Array<{ name: string; options: string[] }>>().default([]),
+  trackInventory: boolean("trackInventory").default(false).notNull(),
+  inventoryQuantity: int("inventoryQuantity"),
+  shippingAvailable: boolean("shippingAvailable").default(true).notNull(),
+  pickupAvailable: boolean("pickupAvailable").default(false).notNull(),
+  shippingAmountCents: int("shippingAmountCents").default(0).notNull(),
+  fulfillmentTime: varchar("fulfillmentTime", { length: 100 }),
   sortOrder: int("sortOrder").default(0).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -1597,6 +1606,81 @@ export const merchItems = mysqlTable("merch_items", {
 
 export type MerchItem = typeof merchItems.$inferSelect;
 export type InsertMerchItem = typeof merchItems.$inferInsert;
+
+/**
+ * Merch Orders - native OlogyWood merch checkout orders.
+ * The creator handles fulfillment; OlogyWood handles payment, records, and status communication.
+ */
+export const merchOrders = mysqlTable("merch_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  orderNumber: varchar("orderNumber", { length: 24 }).unique().notNull(),
+  sellerUserId: int("sellerUserId").notNull(),
+  sellerType: mysqlEnum("sellerType", ["artist", "venue"]).notNull(),
+  buyerUserId: int("buyerUserId"), // Nullable for guest checkout
+  buyerEmail: varchar("buyerEmail", { length: 320 }).notNull(),
+  buyerName: varchar("buyerName", { length: 255 }).notNull(),
+  buyerPhone: varchar("buyerPhone", { length: 30 }),
+  fulfillmentMethod: mysqlEnum("fulfillmentMethod", ["shipping", "pickup"]).notNull(),
+  shippingAddress: json("shippingAddress").$type<{
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  }>(),
+  paymentStatus: mysqlEnum("paymentStatus", ["pending", "paid", "failed", "refunded"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["new", "confirmed", "preparing", "shipped", "ready_for_pickup", "completed", "cancelled", "refunded"]).default("new").notNull(),
+  subtotalCents: int("subtotalCents").notNull(),
+  shippingCents: int("shippingCents").default(0).notNull(),
+  totalCents: int("totalCents").notNull(),
+  platformFeeCents: int("platformFeeCents").notNull(),
+  sellerNetCents: int("sellerNetCents").notNull(),
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }).unique(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  trackingNumber: varchar("trackingNumber", { length: 255 }),
+  trackingCarrier: varchar("trackingCarrier", { length: 100 }),
+  trackingUrl: varchar("trackingUrl", { length: 2048 }),
+  pickupNotes: text("pickupNotes"),
+  fulfillmentNotes: text("fulfillmentNotes"),
+  customerNote: text("customerNote"),
+  paidAt: timestamp("paidAt"),
+  fulfilledAt: timestamp("fulfilledAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  sellerIdx: index("idx_merch_orders_seller").on(table.sellerUserId, table.status),
+  buyerIdx: index("idx_merch_orders_buyer").on(table.buyerUserId),
+  buyerEmailIdx: index("idx_merch_orders_buyer_email").on(table.buyerEmail),
+  statusIdx: index("idx_merch_orders_status").on(table.status),
+  stripeSessionIdx: index("idx_merch_orders_stripe_session").on(table.stripeCheckoutSessionId),
+  orderNumberIdx: index("idx_merch_orders_number").on(table.orderNumber),
+}));
+
+export type MerchOrder = typeof merchOrders.$inferSelect;
+export type InsertMerchOrder = typeof merchOrders.$inferInsert;
+
+/**
+ * Merch Order Items - immutable product/variant/price snapshots for each order.
+ */
+export const merchOrderItems = mysqlTable("merch_order_items", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  merchItemId: int("merchItemId").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  imageUrl: varchar("imageUrl", { length: 2048 }),
+  selectedVariants: json("selectedVariants").$type<Record<string, string>>().default({}),
+  quantity: int("quantity").notNull(),
+  unitPriceCents: int("unitPriceCents").notNull(),
+  lineTotalCents: int("lineTotalCents").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("idx_merch_order_items_order").on(table.orderId),
+  merchItemIdx: index("idx_merch_order_items_item").on(table.merchItemId),
+}));
+
+export type MerchOrderItem = typeof merchOrderItems.$inferSelect;
+export type InsertMerchOrderItem = typeof merchOrderItems.$inferInsert;
 
 
 // ============= PROJECT PREVIEWS =============

@@ -4236,3 +4236,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add filter to view users with incomplete profiles (no artist_profiles or venue_profiles entry)
 - [x] Add button to send reminder notification to users with incomplete profiles
 - [x] Add growth chart showing active artists and venues over time
+
+## HYBRID MERCH CHECKOUT & ORDER TRACKING (Aug 25, 2026)
+- [x] Audit existing merch products, Stripe Connect payouts, checkout, webhook, email, and order infrastructure
+- [x] Make external merch purchase links optional
+- [x] Add per-product selling method: OlogyWood checkout or external store link
+- [x] Require connected payouts before publishing products sold through OlogyWood
+- [x] Add native merch product fields for price, variants, optional inventory, shipping, pickup, and fulfillment time
+- [x] Add secure native merch checkout with buyer contact and shipping information
+- [x] Record Stripe payment and merch order details in the database
+- [x] Add buyer order confirmation and order history
+- [x] Add creator Merch Orders dashboard with fulfillment status management
+- [x] Support statuses: New, Confirmed, Preparing, Shipped, Ready for Pickup, Completed, Cancelled, Refunded
+- [x] Add tracking number, carrier, pickup notes, and fulfillment notes
+- [x] Add buyer and creator confirmation/status emails
+- [x] Add clear helper notes explaining creator-managed fulfillment
+- [x] Add permission, ownership, inventory, payment, and duplicate-order safeguards
+- [x] Add and update Vitest coverage for hybrid merch checkout and order tracking
+- [x] Verify responsive UX and save a checkpoint

@@ -123,7 +123,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   // Release purchases and ticket purchases use different metadata patterns
   const isReleasePurchase = !!session.metadata?.releaseId;
   const isTicketPurchase = session.metadata?.type === 'ticket_purchase';
-  if (!userId && !isReleasePurchase && !isTicketPurchase) {
+  const isMerchPurchase = session.metadata?.type === 'merch_purchase';
+  if (!userId && !isReleasePurchase && !isTicketPurchase && !isMerchPurchase) {
     console.error('[Stripe Webhook] No userId in session metadata');
     return;
   }
@@ -283,6 +284,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   } else if (isTicketPurchase) {
     // Handle ticket purchase checkout
     await handleTicketPurchaseCompleted(session);
+  } else if (isMerchPurchase) {
+    await handleMerchPurchaseCompleted(session);
   } else if (subscriptionId && userId) {
     // Handle subscription checkout
     // Determine tier from session metadata
@@ -559,6 +562,19 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 }
 
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+  if (paymentIntent.metadata?.type === 'merch_purchase' && paymentIntent.metadata?.orderId) {
+    const database = await db.getDb();
+    if (!database) return;
+    const { merchOrders } = await import('../../drizzle/schema');
+    const { eq } = await import('drizzle-orm');
+    await database.update(merchOrders).set({
+      paymentStatus: 'failed',
+      status: 'cancelled',
+      stripePaymentIntentId: paymentIntent.id,
+    }).where(eq(merchOrders.id, parseInt(paymentIntent.metadata.orderId)));
+    return;
+  }
+
   const bookingId = paymentIntent.metadata?.bookingId;
   if (!bookingId) return;
 
@@ -582,9 +598,20 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   console.log(`[Stripe Webhook] Charge refunded: ${charge.id}`);
   const database = await db.getDb();
   if (!database) return;
+
+  const { merchOrders } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
+  const [merchOrder] = await database.select().from(merchOrders)
+    .where(eq(merchOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
+  if (merchOrder) {
+    await database.update(merchOrders).set({
+      paymentStatus: 'refunded',
+      status: 'refunded',
+    }).where(eq(merchOrders.id, merchOrder.id));
+    return;
+  }
   
   const { bookings } = await import('../../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
   
   const bookingResults = await database
     .select()
@@ -692,6 +719,106 @@ function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 'active' | '
     case 'paused':
     default:
       return 'inactive';
+  }
+}
+
+// ==================== NATIVE MERCH PURCHASE WEBHOOK HANDLER ====================
+
+async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
+  const orderId = Number(session.metadata?.orderId || 0);
+  if (!orderId) {
+    console.error('[Stripe Webhook] Missing orderId for merch purchase');
+    return;
+  }
+
+  const database = await db.getDb();
+  if (!database) return;
+  const { merchItems, merchOrderItems, merchOrders } = await import('../../drizzle/schema');
+  const { and, eq, sql } = await import('drizzle-orm');
+
+  const [order] = await database.select().from(merchOrders)
+    .where(eq(merchOrders.id, orderId)).limit(1);
+  if (!order) {
+    console.error(`[Stripe Webhook] Merch order ${orderId} not found`);
+    return;
+  }
+  if (order.paymentStatus === 'paid') {
+    console.log(`[Stripe Webhook] Merch order ${order.orderNumber} already processed, skipping`);
+    return;
+  }
+
+  let purchasedItems: Array<{ title: string; quantity: number; selectedVariants: Record<string, string> | null }> = [];
+  await database.transaction(async (tx) => {
+    await tx.update(merchOrders).set({
+      paymentStatus: 'paid',
+      status: 'new',
+      stripePaymentIntentId: session.payment_intent as string || null,
+      paidAt: new Date(),
+    }).where(eq(merchOrders.id, orderId));
+
+    const orderItems = await tx.select().from(merchOrderItems)
+      .where(eq(merchOrderItems.orderId, orderId));
+    purchasedItems = orderItems.map((item) => ({
+      title: item.title,
+      quantity: item.quantity,
+      selectedVariants: item.selectedVariants as Record<string, string> | null,
+    }));
+    for (const orderItem of orderItems) {
+      await tx.update(merchItems).set({
+        inventoryQuantity: sql`GREATEST(COALESCE(${merchItems.inventoryQuantity}, 0) - ${orderItem.quantity}, 0)`,
+      }).where(and(
+        eq(merchItems.id, orderItem.merchItemId),
+        eq(merchItems.trackInventory, true),
+      ));
+    }
+  });
+
+  console.log(`[Stripe Webhook] Merch order paid: ${order.orderNumber}`);
+
+  try {
+    const sellerUser = await db.getUserById(order.sellerUserId);
+    let sellerName = sellerUser?.name || 'Creator';
+    if (order.sellerType === 'venue') {
+      const venue = await db.getVenueProfileByUserId(order.sellerUserId);
+      sellerName = venue?.organizationName || sellerName;
+    } else {
+      const artist = await db.getArtistProfileByUserId(order.sellerUserId);
+      sellerName = artist?.artistName || sellerName;
+    }
+
+    const [firstOrderItem] = await database.select().from(merchOrderItems)
+      .where(eq(merchOrderItems.orderId, orderId)).limit(1);
+    let fulfillmentTime: string | null = null;
+    if (firstOrderItem) {
+      const [sourceItem] = await database.select().from(merchItems)
+        .where(eq(merchItems.id, firstOrderItem.merchItemId)).limit(1);
+      fulfillmentTime = sourceItem?.fulfillmentTime || null;
+    }
+
+    await email.sendMerchOrderConfirmationEmail({
+      buyerEmail: order.buyerEmail,
+      buyerName: order.buyerName,
+      sellerName,
+      orderNumber: order.orderNumber,
+      totalCents: order.totalCents,
+      fulfillmentMethod: order.fulfillmentMethod,
+      fulfillmentTime,
+      items: purchasedItems,
+    });
+
+    if (sellerUser?.email) {
+      await email.sendMerchNewOrderEmail({
+        sellerEmail: sellerUser.email,
+        sellerName,
+        buyerName: order.buyerName,
+        orderNumber: order.orderNumber,
+        totalCents: order.totalCents,
+        fulfillmentMethod: order.fulfillmentMethod,
+        items: purchasedItems,
+      });
+    }
+  } catch (emailError) {
+    console.error('[Stripe Webhook] Failed to send merch order emails:', emailError);
   }
 }
 

@@ -161,7 +161,7 @@ export default function TicketConfirmation() {
             Back to Home
           </Button>
           {order.event && (
-            <Button onClick={() => navigate(`/events/${toSlug(order.event!.eventTitle || '')}`)} className="flex-1">
+            <Button onClick={() => navigate(`/events/${toSlug(order.event!.title || '')}`)} className="flex-1">
               View Event
             </Button>
           )}

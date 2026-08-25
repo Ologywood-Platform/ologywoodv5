@@ -235,7 +235,7 @@ export const adminRouter = router({
           JOIN users u ON u.id = ap.userId
           ORDER BY ap.artistName ASC
         `);
-        artists = rows as any[];
+        artists = rows as unknown as any[];
       } catch (e: any) {
         // If isVerified column doesn't exist, query without it
         if (e.message?.includes('isVerified')) {
@@ -247,7 +247,7 @@ export const adminRouter = router({
             JOIN users u ON u.id = ap.userId
             ORDER BY ap.artistName ASC
           `);
-          artists = rows as any[];
+          artists = rows as unknown as any[];
         } else {
           throw e;
         }

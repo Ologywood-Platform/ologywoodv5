@@ -2177,3 +2177,143 @@ export async function sendPremiereReminderEmail(params: {
     html,
   });
 }
+
+// ============= MERCH ORDER EMAILS =============
+
+function escapeMerchEmailHtml(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function merchEmailItemsHtml(items: Array<{ title: string; quantity: number; selectedVariants?: Record<string, string> | null }>) {
+  return items.map((item) => {
+    const variants = Object.entries(item.selectedVariants || {})
+      .map(([name, value]) => `${escapeMerchEmailHtml(name)}: ${escapeMerchEmailHtml(value)}`)
+      .join(' · ');
+    return `<li style="margin-bottom:8px;"><strong>${item.quantity} × ${escapeMerchEmailHtml(item.title)}</strong>${variants ? `<br><span style="color:#6b7280;font-size:12px;">${variants}</span>` : ''}</li>`;
+  }).join('');
+}
+
+function merchEmailFooter(recipientEmail: string) {
+  return `<div style="margin-top:28px;padding-top:18px;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#9ca3af;">
+    <a href="${ENV.baseUrl}/merch-orders" style="color:#7c3aed;">View merch orders</a> ·
+    <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(recipientEmail)}&type=merch" style="color:#6b7280;">Unsubscribe</a> ·
+    <a href="${ENV.baseUrl}/privacy" style="color:#6b7280;">Privacy</a>
+  </div>`;
+}
+
+export async function sendMerchOrderConfirmationEmail(params: {
+  buyerEmail: string;
+  buyerName: string;
+  sellerName: string;
+  orderNumber: string;
+  totalCents: number;
+  fulfillmentMethod: 'shipping' | 'pickup';
+  fulfillmentTime?: string | null;
+  items: Array<{ title: string; quantity: number; selectedVariants?: Record<string, string> | null }>;
+}) {
+  const buyerName = escapeMerchEmailHtml(params.buyerName || 'there');
+  const sellerName = escapeMerchEmailHtml(params.sellerName);
+  const orderNumber = escapeMerchEmailHtml(params.orderNumber);
+  const methodText = params.fulfillmentMethod === 'shipping'
+    ? 'The creator will prepare and ship your order.'
+    : 'The creator will contact you with pickup or delivery details.';
+  const timing = params.fulfillmentTime ? `<p><strong>Estimated fulfillment:</strong> ${escapeMerchEmailHtml(params.fulfillmentTime)}</p>` : '';
+
+  return sendEmail({
+    to: params.buyerEmail,
+    subject: `Merch order confirmed — ${params.orderNumber}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;padding:28px;border-radius:10px 10px 0 0;text-align:center;">
+        <h1 style="margin:0;font-size:24px;">Order confirmed</h1>
+        <p style="margin:8px 0 0;opacity:.9;">${orderNumber}</p>
+      </div>
+      <div style="border:1px solid #e5e7eb;border-top:0;padding:28px;border-radius:0 0 10px 10px;">
+        <p>Hi ${buyerName},</p>
+        <p>Your payment was received and your order was sent to <strong>${sellerName}</strong> for fulfillment.</p>
+        <div style="background:#f9fafb;padding:18px;border-radius:8px;margin:20px 0;">
+          <ul style="padding-left:20px;margin:0 0 16px;">${merchEmailItemsHtml(params.items)}</ul>
+          <p style="margin:0;font-size:18px;"><strong>Total paid:</strong> $${(params.totalCents / 100).toFixed(2)}</p>
+          ${timing}
+        </div>
+        <p>${methodText}</p>
+        <p style="color:#6b7280;font-size:13px;">OlogyWood processed the payment and tracks the order. The creator prepares, ships, delivers, or arranges pickup.</p>
+        <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">Track my order</a>
+        ${merchEmailFooter(params.buyerEmail)}
+      </div>
+    </div>`,
+  });
+}
+
+export async function sendMerchNewOrderEmail(params: {
+  sellerEmail: string;
+  sellerName: string;
+  buyerName: string;
+  orderNumber: string;
+  totalCents: number;
+  fulfillmentMethod: 'shipping' | 'pickup';
+  items: Array<{ title: string; quantity: number; selectedVariants?: Record<string, string> | null }>;
+}) {
+  return sendEmail({
+    to: params.sellerEmail,
+    subject: `New paid merch order — ${params.orderNumber}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <h1 style="color:#6d28d9;">New paid merch order</h1>
+      <p>Hi ${escapeMerchEmailHtml(params.sellerName)},</p>
+      <p><strong>${escapeMerchEmailHtml(params.buyerName)}</strong> placed a paid order that needs your attention.</p>
+      <div style="background:#f5f3ff;padding:18px;border-radius:8px;border-left:4px solid #7c3aed;">
+        <p><strong>Order:</strong> ${escapeMerchEmailHtml(params.orderNumber)}</p>
+        <p><strong>Fulfillment:</strong> ${params.fulfillmentMethod === 'shipping' ? 'Ship to buyer' : 'Local pickup/manual delivery'}</p>
+        <p><strong>Order total:</strong> $${(params.totalCents / 100).toFixed(2)}</p>
+        <ul style="padding-left:20px;">${merchEmailItemsHtml(params.items)}</ul>
+      </div>
+      <p style="color:#6b7280;font-size:13px;">You are responsible for preparing and fulfilling this order. Update its status so the buyer knows what is happening.</p>
+      <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">Open merch orders</a>
+      ${merchEmailFooter(params.sellerEmail)}
+    </div>`,
+  });
+}
+
+export async function sendMerchOrderStatusEmail(params: {
+  buyerEmail: string;
+  buyerName: string;
+  orderNumber: string;
+  status: string;
+  trackingNumber?: string | null;
+  trackingCarrier?: string | null;
+  trackingUrl?: string | null;
+  pickupNotes?: string | null;
+  fulfillmentNotes?: string | null;
+}) {
+  const labels: Record<string, string> = {
+    confirmed: 'Order confirmed',
+    preparing: 'Your order is being prepared',
+    shipped: 'Your order has shipped',
+    ready_for_pickup: 'Your order is ready for pickup',
+    completed: 'Your order is complete',
+    cancelled: 'Your order was cancelled',
+    refunded: 'Your order was refunded',
+  };
+  const statusLabel = labels[params.status] || params.status;
+  const tracking = params.trackingNumber ? `<div style="background:#eff6ff;padding:16px;border-radius:8px;margin:16px 0;"><p><strong>${escapeMerchEmailHtml(params.trackingCarrier || 'Tracking')}:</strong> ${escapeMerchEmailHtml(params.trackingNumber)}</p>${params.trackingUrl ? `<a href="${escapeMerchEmailHtml(params.trackingUrl)}" style="color:#1d4ed8;">Track shipment</a>` : ''}</div>` : '';
+  const pickup = params.pickupNotes ? `<div style="background:#fffbeb;padding:16px;border-radius:8px;margin:16px 0;"><strong>Pickup details:</strong><br>${escapeMerchEmailHtml(params.pickupNotes)}</div>` : '';
+  const note = params.fulfillmentNotes ? `<p><strong>Creator message:</strong> ${escapeMerchEmailHtml(params.fulfillmentNotes)}</p>` : '';
+
+  return sendEmail({
+    to: params.buyerEmail,
+    subject: `${statusLabel} — ${params.orderNumber}`,
+    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <h1 style="color:#6d28d9;">${escapeMerchEmailHtml(statusLabel)}</h1>
+      <p>Hi ${escapeMerchEmailHtml(params.buyerName || 'there')},</p>
+      <p>Order <strong>${escapeMerchEmailHtml(params.orderNumber)}</strong> has been updated.</p>
+      ${tracking}${pickup}${note}
+      ${params.status === 'cancelled' ? '<p style="color:#92400e;font-size:13px;">A cancellation does not always mean the payment has been refunded. You will receive a separate update if Stripe processes a refund.</p>' : ''}
+      <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">View order</a>
+      ${merchEmailFooter(params.buyerEmail)}
+    </div>`,
+  });
+}
