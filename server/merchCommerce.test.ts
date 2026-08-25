@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildMerchOrderNotification,
   calculateMerchOrderAmounts,
   canTransitionMerchOrder,
   createMerchOrderNumber,
@@ -50,5 +51,32 @@ describe('hybrid merch commerce rules', () => {
 
   it('creates a stable human-readable order number format', () => {
     expect(createMerchOrderNumber(new Date('2026-08-25T12:00:00Z'), 'ABC123')).toBe('OWM-20260825-ABC123');
+  });
+
+  it('builds an actionable creator notification for a paid merch order', () => {
+    expect(buildMerchOrderNotification({
+      orderNumber: 'OWM-20260825-ABC123',
+      buyerName: 'Jamie Fan',
+      totalCents: 4799,
+      fulfillmentMethod: 'shipping',
+      itemCount: 2,
+    })).toEqual({
+      type: 'payment',
+      title: 'New merch order OWM-20260825-ABC123',
+      message: 'Jamie Fan placed a shipping order for $47.99 (2 items). Review and begin fulfillment.',
+      actionUrl: '/merch-orders',
+    });
+  });
+
+  it('uses pickup wording and singular item grammar in creator notifications', () => {
+    const notification = buildMerchOrderNotification({
+      orderNumber: 'OWM-20260825-DEF456',
+      buyerName: 'Alex Fan',
+      totalCents: 2000,
+      fulfillmentMethod: 'pickup',
+      itemCount: 1,
+    });
+    expect(notification.message).toContain('pickup order for $20.00 (1 item)');
+    expect(notification.actionUrl).toBe('/merch-orders');
   });
 });

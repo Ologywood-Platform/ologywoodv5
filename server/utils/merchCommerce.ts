@@ -59,3 +59,25 @@ export function createMerchOrderNumber(now = new Date(), randomHex?: string) {
   const suffix = randomHex || randomBytes(3).toString('hex').toUpperCase();
   return `OWM-${date}-${suffix}`;
 }
+
+export function buildMerchOrderNotification(params: {
+  orderNumber: string;
+  buyerName: string;
+  totalCents: number;
+  fulfillmentMethod: MerchFulfillmentMethod;
+  itemCount: number;
+}) {
+  const amount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(params.totalCents / 100);
+  const fulfillment = params.fulfillmentMethod === 'pickup' ? 'pickup' : 'shipping';
+  const itemLabel = `${params.itemCount} item${params.itemCount === 1 ? '' : 's'}`;
+
+  return {
+    type: 'payment' as const,
+    title: `New merch order ${params.orderNumber}`,
+    message: `${params.buyerName} placed a ${fulfillment} order for ${amount} (${itemLabel}). Review and begin fulfillment.`,
+    actionUrl: '/merch-orders',
+  };
+}

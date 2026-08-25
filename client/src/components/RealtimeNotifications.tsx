@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star } from 'lucide-react';
+import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star, ShoppingBag } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import { useLocation } from 'wouter';
 import { useNotificationWatcher } from '../hooks/useBrowserNotifications';
@@ -39,6 +39,11 @@ const typeConfig: Record<string, { icon: React.ReactNode; accent: string }> = {
     icon: <Star className="h-4 w-4 text-yellow-500" />,
     accent: 'bg-yellow-50 dark:bg-yellow-900/20',
   },
+};
+
+const merchOrderConfig = {
+  icon: <ShoppingBag className="h-4 w-4 text-emerald-600" />,
+  accent: 'bg-emerald-50 dark:bg-emerald-900/20',
 };
 
 export default function RealtimeNotifications() {
@@ -153,7 +158,9 @@ export default function RealtimeNotifications() {
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
             {notifications.length > 0 ? (
               notifications.map((n: any) => {
-                const cfg = typeConfig[n.type] || typeConfig.booking;
+                const cfg = n.title?.startsWith('New merch order')
+                  ? merchOrderConfig
+                  : typeConfig[n.type] || typeConfig.booking;
                 return (
                   <div
                     key={n.id}

@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import Stripe from 'stripe';
 import * as db from '../db';
 import * as email from '../email';
+import { buildMerchOrderNotification } from '../utils/merchCommerce';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -733,8 +734,8 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
   const database = await db.getDb();
   if (!database) return;
-  const { merchItems, merchOrderItems, merchOrders } = await import('../../drizzle/schema');
-  const { and, eq, sql } = await import('drizzle-orm');
+  const { merchItems, merchOrderItems, merchOrders, notifications } = await import('../../drizzle/schema');
+  const { and, eq, ne, sql } = await import('drizzle-orm');
 
   const [order] = await database.select().from(merchOrders)
     .where(eq(merchOrders.id, orderId)).limit(1);
@@ -748,13 +749,21 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
   }
 
   let purchasedItems: Array<{ title: string; quantity: number; selectedVariants: Record<string, string> | null }> = [];
+  let processed = false;
   await database.transaction(async (tx) => {
-    await tx.update(merchOrders).set({
+    const updateResult = await tx.update(merchOrders).set({
       paymentStatus: 'paid',
       status: 'new',
       stripePaymentIntentId: session.payment_intent as string || null,
       paidAt: new Date(),
-    }).where(eq(merchOrders.id, orderId));
+    }).where(and(
+      eq(merchOrders.id, orderId),
+      ne(merchOrders.paymentStatus, 'paid'),
+    ));
+
+    const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+    if (affectedRows === 0) return;
+    processed = true;
 
     const orderItems = await tx.select().from(merchOrderItems)
       .where(eq(merchOrderItems.orderId, orderId));
@@ -771,7 +780,24 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
         eq(merchItems.trackInventory, true),
       ));
     }
+
+    const notification = buildMerchOrderNotification({
+      orderNumber: order.orderNumber,
+      buyerName: order.buyerName,
+      totalCents: order.totalCents,
+      fulfillmentMethod: order.fulfillmentMethod,
+      itemCount: orderItems.reduce((total, item) => total + item.quantity, 0),
+    });
+    await tx.insert(notifications).values({
+      userId: order.sellerUserId,
+      ...notification,
+    });
   });
+
+  if (!processed) {
+    console.log(`[Stripe Webhook] Merch order ${order.orderNumber} already processed concurrently, skipping`);
+    return;
+  }
 
   console.log(`[Stripe Webhook] Merch order paid: ${order.orderNumber}`);
 

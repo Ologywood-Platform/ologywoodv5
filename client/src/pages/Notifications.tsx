@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star, Trash2, CheckCheck } from 'lucide-react';
+import { Bell, X, MessageSquare, CreditCard, CheckCircle2, FileText, Star, Trash2, CheckCheck, ShoppingBag } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import { useLocation } from 'wouter';
 import SiteHeader from '@/components/SiteHeader';
@@ -44,6 +44,12 @@ const typeConfig: Record<string, { icon: React.ReactNode; accent: string; label:
     accent: 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-l-yellow-400',
     label: 'Review',
   },
+};
+
+const merchOrderConfig = {
+  icon: <ShoppingBag className="h-5 w-5 text-emerald-600" />,
+  accent: 'bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-l-emerald-500',
+  label: 'Merch Order',
 };
 
 export default function Notifications() {
@@ -154,7 +160,9 @@ export default function Notifications() {
           ) : filteredNotifications.length > 0 ? (
             <div className="space-y-2">
               {filteredNotifications.map((n: any) => {
-                const cfg = typeConfig[n.type] || typeConfig.booking;
+                const cfg = n.title?.startsWith('New merch order')
+                  ? merchOrderConfig
+                  : typeConfig[n.type] || typeConfig.booking;
                 return (
                   <div
                     key={n.id}

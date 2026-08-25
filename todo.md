@@ -4254,3 +4254,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permission, ownership, inventory, payment, and duplicate-order safeguards
 - [x] Add and update Vitest coverage for hybrid merch checkout and order tracking
 - [x] Verify responsive UX and save a checkpoint
+
+## CREATOR MERCH ORDER IN-APP NOTIFICATIONS (Aug 25, 2026)
+- [x] Audit existing notification storage, API, header badge, notification page, and merch payment webhook
+- [x] Create one creator notification only after a merch order payment is verified
+- [x] Include order number, buyer name, amount, fulfillment method, and actionable message
+- [x] Link the notification directly to /merch-orders
+- [x] Prevent duplicate notifications during Stripe webhook retries
+- [x] Verify unread counts, read state, and notification navigation
+- [x] Add Vitest coverage and save a checkpoint
