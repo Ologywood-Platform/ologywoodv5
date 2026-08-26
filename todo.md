@@ -4290,4 +4290,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression tests for artist, venue, and merch crawler responses
 - [x] Accept valid CloudFront profile/product images served as application/octet-stream while enforcing a 15 MB source limit
 - [x] Run TypeScript, focused tests, full regression suite, production build, and desktop/mobile visual validation
-- [ ] Save a checkpoint for the completed dynamic profile and merch social preview work
+- [x] Save checkpoint b256cdce for the completed dynamic profile and merch social preview work
