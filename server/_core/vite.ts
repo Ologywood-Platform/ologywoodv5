@@ -22,9 +22,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Optimized 114KB JPEG (was 953KB PNG) for faster social media crawler fetching
-// Must be an absolute public URL - social crawlers don't follow relative paths or redirects
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
+// Cache-busted branded preview. The project asset route resolves publicly for social crawlers.
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
 
 function isSocialBot(userAgent: string): boolean {
   const botPatterns = [

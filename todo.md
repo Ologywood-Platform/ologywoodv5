@@ -4271,3 +4271,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Update Open Graph and X/Twitter title, description, image, dimensions, and canonical URL
 - [x] Verify generated metadata and production build
 - [x] Save a checkpoint
+
+## LIVE SOCIAL PREVIEW CRAWLER FIX (Aug 26, 2026)
+- [x] Inspect www.ologywood.com HTML using Facebook, X/Twitter, LinkedIn, and standard browser user agents
+- [x] Verify the live og:image response, content type, dimensions, cache headers, and accessibility
+- [x] Identify whether crawler middleware, production HTML, service worker, CDN, or metadata overrides are serving stale tags
+- [x] Correct the live crawler metadata and use a cache-busted permanent preview URL
+- [x] Verify homepage crawler responses end to end after the fix
+- [x] Run TypeScript/build validation and save a checkpoint

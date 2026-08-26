@@ -4,7 +4,7 @@
  * to improve social media link previews and search engine visibility.
  */
 
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
 const BASE_URL = 'https://www.ologywood.com';
 const SITE_NAME = 'Ologywood';
 
@@ -131,8 +131,8 @@ function updateCanonicalTag(url: string) {
  */
 export const pageMetaTags = {
   home: {
-    title: 'Ologywood - Book Talented Artists for Your Events',
-    description: 'Connect with performing artists, manage bookings, and streamline your event planning all in one place. Find the perfect artist for your venue or event.',
+    title: 'Build Your Brand. Grow Your Fans. Create More Opportunities.',
+    description: 'Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.',
     keywords: 'artist booking, event planning, performers, venues, entertainment booking',
     ogImage: DEFAULT_OG_IMAGE,
     ogUrl: BASE_URL,

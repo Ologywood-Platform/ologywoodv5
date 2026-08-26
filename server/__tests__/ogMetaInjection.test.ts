@@ -6,6 +6,34 @@ describe('OG Meta Tags Middleware (ogTags.ts)', () => {
   const middlewarePath = path.join(__dirname, '..', 'middleware', 'ogTags.ts');
   const middlewareSrc = fs.readFileSync(middlewarePath, 'utf-8');
 
+  describe('Homepage Social Preview', () => {
+    const expectedTitle = 'Build Your Brand. Grow Your Fans. Create More Opportunities.';
+    const expectedDescription = 'Creators own their audience. Creators choose where their content lives.';
+    const expectedImage = 'ologywood-social-preview-2026_af1c0d6d.png';
+    const clientIndexPath = path.join(__dirname, '..', '..', 'client', 'index.html');
+    const clientIndexSrc = fs.readFileSync(clientIndexPath, 'utf-8');
+
+    it('serves the current hero title and creator-commerce message to crawlers', () => {
+      expect(middlewareSrc).toContain(`const HOME_TITLE = '${expectedTitle}'`);
+      expect(middlewareSrc).toContain(expectedDescription);
+    });
+
+    it('uses the same cache-busted 1200x630 preview image for crawlers and browsers', () => {
+      expect(middlewareSrc).toContain(expectedImage);
+      expect(clientIndexSrc).toContain(expectedImage);
+      expect(clientIndexSrc).toContain('og:image:width" content="1200');
+      expect(clientIndexSrc).toContain('og:image:height" content="630');
+    });
+
+    it('includes secure image, alt text, Twitter URL, and canonical metadata', () => {
+      expect(middlewareSrc).toContain('og:image:secure_url');
+      expect(middlewareSrc).toContain('og:image:alt');
+      expect(middlewareSrc).toContain('twitter:image:alt');
+      expect(middlewareSrc).toContain('twitter:url');
+      expect(middlewareSrc).toContain('rel="canonical"');
+    });
+  });
+
   describe('Crawler Detection', () => {
     it('should detect Facebook crawler', () => {
       expect(middlewareSrc).toContain('facebookexternalhit');

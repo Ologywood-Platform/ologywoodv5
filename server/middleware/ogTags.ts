@@ -13,9 +13,11 @@ import {
   jsonLdToScriptTag,
 } from '../utils/jsonLd';
 
-// Optimized 114KB JPEG (was 953KB PNG) for faster social media crawler fetching
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
+// Cache-busted 1200x630 branded social preview used by the homepage and entity fallbacks.
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
 const SITE_NAME = 'Ologywood';
+const HOME_TITLE = 'Build Your Brand. Grow Your Fans. Create More Opportunities.';
+const HOME_DESCRIPTION = 'Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.';
 
 /**
  * Detect if the request is from a social media crawler / bot
@@ -81,10 +83,19 @@ function generateOgHtml(opts: {
   description: string;
   image: string;
   url: string;
+  imageAlt?: string;
   type?: string;
   jsonLd?: object | object[];
 }): string {
-  const { title, description, image, url, type = 'website', jsonLd } = opts;
+  const {
+    title,
+    description,
+    image,
+    url,
+    imageAlt = `${title} on ${SITE_NAME}`,
+    type = 'website',
+    jsonLd,
+  } = opts;
   const jsonLdTags = jsonLd ? `\n  ${jsonLdToScriptTag(jsonLd)}` : '';
   
   // Determine image type based on URL
@@ -104,19 +115,24 @@ function generateOgHtml(opts: {
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${escapeHtml(image)}" />
+  <meta property="og:image:secure_url" content="${escapeHtml(image)}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:type" content="${imageType}" />
+  <meta property="og:image:alt" content="${escapeHtml(imageAlt)}" />
   <meta property="og:url" content="${escapeHtml(url)}" />
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="en_US" />
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="${escapeHtml(url)}" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(image)}" />
+  <meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}" />
   <meta name="twitter:site" content="@ologywood" />
+  <link rel="canonical" href="${escapeHtml(url)}" />
   ${jsonLdTags}
 </head>
 <body>
@@ -150,9 +166,10 @@ export function ogTagMiddleware() {
       // Match homepage /
       if (pathname === '/') {
         const html = generateOgHtml({
-          title: 'Ologywood — Book Talented Artists for Your Events',
-          description: 'Connect with performing artists, manage bookings, and streamline your event planning all in one place.',
+          title: HOME_TITLE,
+          description: HOME_DESCRIPTION,
           image: DEFAULT_OG_IMAGE,
+          imageAlt: 'OlogyWood logo with the message Build Your Brand. Grow Your Fans. Create More Opportunities.',
           url: baseUrl,
           type: 'website',
           jsonLd: [

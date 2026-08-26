@@ -14,9 +14,9 @@ interface MetaTagsConfig {
   imageHeight?: string;
 }
 
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
 const DEFAULT_SITE_NAME = 'Ologywood';
-const DEFAULT_DESCRIPTION = 'Connect with performing artists, manage bookings, and streamline your event planning all in one place.';
+const DEFAULT_DESCRIPTION = 'Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.';
 const BASE_URL = 'https://www.ologywood.com';
 
 /**
@@ -48,7 +48,7 @@ export function useMetaTags(config: MetaTagsConfig) {
 
     const fullTitle = config.title
       ? `${config.title} | ${config.siteName || DEFAULT_SITE_NAME}`
-      : `${DEFAULT_SITE_NAME} - Book Talented Artists for Your Events`;
+      : 'Build Your Brand. Grow Your Fans. Create More Opportunities.';
 
     const description = config.description || DEFAULT_DESCRIPTION;
     const image = config.image || DEFAULT_OG_IMAGE;

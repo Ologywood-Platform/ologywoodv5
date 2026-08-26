@@ -58,7 +58,7 @@ function isCrawler(userAgent: string): boolean {
   return CRAWLER_PATTERNS.some(pattern => ua.includes(pattern.toLowerCase()));
 }
 
-const DEFAULT_OG_IMAGE = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/yZNBAlaBsVCCLvfC.jpg';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
 const SITE_NAME = 'Ologywood';
 const BASE_URL = 'https://www.ologywood.com';
 
