@@ -4263,3 +4263,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Prevent duplicate notifications during Stripe webhook retries
 - [x] Verify unread counts, read state, and notification navigation
 - [x] Add Vitest coverage and save a checkpoint
+
+## SOCIAL-SHARING PREVIEW UPDATE (Aug 25, 2026)
+- [x] Confirm the current homepage hero call to action and existing Open Graph metadata
+- [x] Create a 1200x630 social-sharing image using the supplied OlogyWood logo and hero CTA
+- [x] Upload the preview image as a permanent web asset
+- [x] Update Open Graph and X/Twitter title, description, image, dimensions, and canonical URL
+- [x] Verify generated metadata and production build
+- [x] Save a checkpoint
