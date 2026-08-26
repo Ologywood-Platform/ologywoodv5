@@ -8,18 +8,20 @@
  * Routes:
  *   GET /api/og-image/artist/:id
  *   GET /api/og-image/venue/:id
+ *   GET /api/og-image/merch/:id
  */
 
 import { Router, Request, Response } from 'express';
 import sharp from 'sharp';
 import { getDb } from '../db';
-import { artistProfiles, venueProfiles } from '../../drizzle/schema';
+import { artistProfiles, merchItems, venueProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 const router = Router();
 
 // Cache converted images for 1 hour to avoid repeated conversions
 const IMAGE_CACHE_SECONDS = 3600;
+const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024;
 
 // Default fallback image URL
 const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
@@ -70,7 +72,16 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
     }
 
     const contentType = response.headers.get('content-type') || '';
-    if (!contentType.startsWith('image/')) {
+    const contentLength = Number(response.headers.get('content-length') || 0);
+    if (contentLength > MAX_SOURCE_IMAGE_BYTES) {
+      console.error(`[OG Image Proxy] Source image too large (${contentLength} bytes): ${imageUrl}`);
+      return null;
+    }
+
+    const hasImageContentType = contentType.startsWith('image/');
+    const hasSupportedImageExtension = /\.(?:jpe?g|png|webp|gif|avif)(?:[?#].*)?$/i.test(imageUrl);
+    const isGenericBinaryImage = contentType.startsWith('application/octet-stream') && hasSupportedImageExtension;
+    if (!hasImageContentType && !isGenericBinaryImage) {
       console.error(`[OG Image Proxy] Non-image content-type: ${contentType} from ${imageUrl}`);
       return null;
     }
@@ -80,6 +91,10 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
 
     if (buffer.length < 100) {
       console.error(`[OG Image Proxy] Image too small (${buffer.length} bytes), likely invalid: ${imageUrl}`);
+      return null;
+    }
+    if (buffer.length > MAX_SOURCE_IMAGE_BYTES) {
+      console.error(`[OG Image Proxy] Source image exceeded limit after download (${buffer.length} bytes): ${imageUrl}`);
       return null;
     }
 
@@ -237,6 +252,40 @@ router.get('/venue/:id', async (req: Request, res: Response) => {
     console.log(`[OG Image Proxy] Served JPEG for venue ${venueId}`);
   } catch (error) {
     console.error(`[OG Image Proxy] Error for venue ${venueId}:`, error);
+    return serveFallbackImage(res, cacheKey);
+  }
+});
+
+router.get('/merch/:id', async (req: Request, res: Response) => {
+  const itemId = parseInt(req.params.id, 10);
+  if (isNaN(itemId) || itemId <= 0) return res.status(404).send('Not found');
+
+  const cacheKey = `merch-${itemId}`;
+  const cached = getCachedImage(cacheKey);
+  if (cached) {
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+    return res.send(cached);
+  }
+
+  try {
+    const database = await getDb();
+    if (!database) return serveFallbackImage(res, cacheKey);
+    const [item] = await database
+      .select({ imageUrls: merchItems.imageUrls, isActive: merchItems.isActive })
+      .from(merchItems)
+      .where(eq(merchItems.id, itemId))
+      .limit(1);
+    const imageUrl = item?.isActive && Array.isArray(item.imageUrls) ? item.imageUrls[0] : null;
+    if (!imageUrl) return serveFallbackImage(res, cacheKey);
+    const jpegBuffer = await fetchAndConvertToJpeg(imageUrl);
+    if (!jpegBuffer) return serveFallbackImage(res, cacheKey);
+    setCachedImage(cacheKey, jpegBuffer);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+    return res.send(jpegBuffer);
+  } catch (error) {
+    console.error(`[OG Image Proxy] Error for merch item ${itemId}:`, error);
     return serveFallbackImage(res, cacheKey);
   }
 });

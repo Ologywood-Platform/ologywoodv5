@@ -1,0 +1,86 @@
+import { useMemo, useState } from 'react';
+import { Link, useParams } from 'wouter';
+import { ArrowLeft, ExternalLink, ImageIcon, MapPin, Package, Share2, ShoppingCart, Truck } from 'lucide-react';
+import SiteHeader from '@/components/SiteHeader';
+import { MerchCheckoutDialog } from '@/components/MerchCheckoutDialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
+
+export default function MerchItem() {
+  const { slug = '' } = useParams<{ slug: string }>();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const itemId = useMemo(() => {
+    const match = slug.match(/(?:^|-)(\d+)$/);
+    return match ? Number(match[1]) : 0;
+  }, [slug]);
+
+  const { data: item, isLoading } = trpc.merch.getPublicItem.useQuery(
+    { itemId },
+    { enabled: itemId > 0 },
+  );
+
+  if (isLoading) {
+    return <><SiteHeader /><main className="min-h-[620px] flex items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-2 border-purple-200 border-t-purple-700" /></main></>;
+  }
+
+  if (!item || itemId <= 0) {
+    return <><SiteHeader /><main className="min-h-[620px] flex items-center justify-center px-4"><Card className="max-w-lg w-full"><CardContent className="pt-8 text-center space-y-4"><Package className="h-12 w-12 text-muted-foreground mx-auto" /><h1 className="text-2xl font-bold">Merch item not found</h1><p className="text-muted-foreground">This item may be unavailable or the link may be incorrect.</p><Button asChild><Link href="/browse">Browse creators</Link></Button></CardContent></Card></main></>;
+  }
+
+  const image = item.imageUrls?.[0] || null;
+  const soldOut = item.sellingMethod === 'ologywood' && item.trackInventory && (item.inventoryQuantity ?? 0) <= 0;
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  async function shareItem() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: item.title, text: `${item.title} from ${item.sellerName} — ${item.priceDisplay}`, url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Product link copied');
+      }
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') toast.error('Could not share this item.');
+    }
+  }
+
+  function buyItem() {
+    if (item.sellingMethod === 'external') {
+      if (item.externalUrl) window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (!soldOut) setCheckoutOpen(true);
+  }
+
+  return (
+    <>
+      <SiteHeader />
+      <main className="min-h-[720px] bg-gradient-to-br from-purple-50 via-white to-cyan-50 dark:from-gray-950 dark:via-gray-950 dark:to-purple-950/30 px-4 py-10">
+        <div className="max-w-6xl mx-auto">
+          <Link href={item.sellerProfileUrl} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-purple-700 mb-6"><ArrowLeft className="h-4 w-4" />Back to {item.sellerName}</Link>
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border shadow-sm">
+              {image ? <img src={image} alt={item.title} className="w-full h-full object-contain" /> : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-20 w-20 text-gray-300" /></div>}
+            </div>
+            <div className="space-y-6 pt-1">
+              <div className="flex items-start justify-between gap-4">
+                <div><Badge className={item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-800'}>{item.sellingMethod === 'ologywood' ? 'Buy on OlogyWood' : 'External store'}</Badge><h1 className="text-4xl font-bold tracking-tight mt-3">{item.title}</h1><Link href={item.sellerProfileUrl} className="text-purple-700 hover:underline font-medium">by {item.sellerName}</Link></div>
+                <Button variant="outline" size="icon" aria-label="Share this product" onClick={shareItem}><Share2 className="h-4 w-4" /></Button>
+              </div>
+              <p className="text-3xl font-bold text-purple-700">{item.priceDisplay}</p>
+              {item.description && <p className="text-base leading-7 text-muted-foreground whitespace-pre-line">{item.description}</p>}
+              {item.sellingMethod === 'ologywood' && <div className="grid sm:grid-cols-2 gap-3">{item.shippingAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><Truck className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Shipping available</p><p className="text-xs text-muted-foreground">Creator-managed fulfillment</p></div></div>}{item.pickupAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><MapPin className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Local pickup</p><p className="text-xs text-muted-foreground">Details provided after purchase</p></div></div>}</div>}
+              {item.fulfillmentTime && <p className="text-sm text-muted-foreground">Estimated fulfillment: {item.fulfillmentTime}</p>}
+              <Button size="lg" className="w-full sm:w-auto gap-2 bg-purple-700 hover:bg-purple-800" disabled={soldOut || (item.sellingMethod === 'external' && !item.externalUrl)} onClick={buyItem}>{item.sellingMethod === 'ologywood' ? <ShoppingCart className="h-5 w-5" /> : <ExternalLink className="h-5 w-5" />}{soldOut ? 'Sold out' : item.sellingMethod === 'ologywood' ? 'Order securely' : 'Buy from external store'}</Button>
+              <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? 'OlogyWood processes payment and tracks the order. The creator fulfills it directly.' : 'This purchase is completed on the creator’s external store.'}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+      <MerchCheckoutDialog item={item} open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+    </>
+  );
+}

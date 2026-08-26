@@ -10,7 +10,7 @@ import { z } from "zod";
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
-import { merchItems, stripeConnectAccounts } from "../../drizzle/schema";
+import { artistProfiles, merchItems, stripeConnectAccounts, venueProfiles } from "../../drizzle/schema";
 import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
@@ -25,6 +25,14 @@ const variantsSchema = z.array(z.object({
 })).max(3).default([]);
 
 const optionalUrlSchema = z.string().url().max(2048).optional().or(z.literal(""));
+
+function toPublicSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .substring(0, 80);
+}
 
 async function assertNativeSellingReady(userId: number) {
   const db = await getDb();
@@ -65,6 +73,87 @@ function validateSellingConfiguration(input: {
 }
 
 export const merchRouter = router({
+  /**
+   * Public: Get one active merch item with seller context for its shareable page.
+   */
+  getPublicItem: publicProcedure
+    .input(z.object({ itemId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return null;
+
+      let item: any = null;
+      try {
+        [item] = await db
+          .select()
+          .from(merchItems)
+          .where(and(eq(merchItems.id, input.itemId), eq(merchItems.isActive, true)))
+          .limit(1);
+      } catch (error: any) {
+        const cause = error?.cause as { code?: string } | undefined;
+        if (cause?.code !== "ER_BAD_FIELD_ERROR") throw error;
+
+        const [legacyRows] = await db.execute(sql`
+          SELECT id, userId, userType, title, description, priceDisplay,
+                 externalUrl, imageUrls, sortOrder, isActive, createdAt, updatedAt
+          FROM merch_items
+          WHERE id = ${input.itemId} AND isActive = TRUE
+          LIMIT 1
+        `) as any;
+        const legacyItem = (legacyRows as any[])[0];
+        if (legacyItem) {
+          item = {
+            ...legacyItem,
+            sellingMethod: "external" as const,
+            priceInCents: null,
+            variants: [],
+            trackInventory: false,
+            inventoryQuantity: null,
+            shippingAvailable: false,
+            pickupAvailable: false,
+            shippingAmountCents: 0,
+            fulfillmentTime: null,
+          };
+        }
+      }
+
+      if (!item) return null;
+
+      if (item.userType === "venue") {
+        const [venue] = await db
+          .select({
+            name: venueProfiles.organizationName,
+            profilePhotoUrl: venueProfiles.profilePhotoUrl,
+          })
+          .from(venueProfiles)
+          .where(eq(venueProfiles.userId, item.userId))
+          .limit(1);
+        const sellerName = venue?.name || "OlogyWood Venue";
+        return {
+          ...item,
+          sellerName,
+          sellerProfilePhotoUrl: venue?.profilePhotoUrl || null,
+          sellerProfileUrl: `/venue/${toPublicSlug(sellerName)}`,
+        };
+      }
+
+      const [artist] = await db
+        .select({
+          name: artistProfiles.artistName,
+          profilePhotoUrl: artistProfiles.profilePhotoUrl,
+        })
+        .from(artistProfiles)
+        .where(eq(artistProfiles.userId, item.userId))
+        .limit(1);
+      const sellerName = artist?.name || "OlogyWood Creator";
+      return {
+        ...item,
+        sellerName,
+        sellerProfilePhotoUrl: artist?.profilePhotoUrl || null,
+        sellerProfileUrl: `/artist/${toPublicSlug(sellerName)}`,
+      };
+    }),
+
   /**
    * List current user's merch items (for management)
    */

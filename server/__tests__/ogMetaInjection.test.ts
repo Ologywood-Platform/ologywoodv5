@@ -119,6 +119,12 @@ describe('OG Meta Tags Middleware (ogTags.ts)', () => {
       expect(middlewareSrc).toContain('&lt;');
       expect(middlewareSrc).toContain('&gt;');
     });
+
+    it('should resolve clean artist slugs and provide entity-specific image alt text', () => {
+      expect(middlewareSrc).toContain('const artistMatch = pathname.match');
+      expect(middlewareSrc).toContain('Support both /artist/11 and /artist/adonis');
+      expect(middlewareSrc).toContain('artist profile on OlogyWood');
+    });
   });
 
   describe('Venue Profile OG Tags', () => {
@@ -134,6 +140,50 @@ describe('OG Meta Tags Middleware (ogTags.ts)', () => {
     it('should use OG image proxy for venue profile photos', () => {
       expect(middlewareSrc).toContain("'venue'");
       expect(middlewareSrc).toContain('getOgImageUrl');
+    });
+
+    it('should resolve clean venue slugs and provide entity-specific image alt text', () => {
+      expect(middlewareSrc).toContain('const venueMatch = pathname.match');
+      expect(middlewareSrc).toContain('Support both /venue/1 and /venue/ologist');
+      expect(middlewareSrc).toContain('venue profile on OlogyWood');
+    });
+  });
+
+  describe('Merch Product OG Tags', () => {
+    const appPath = path.join(__dirname, '..', '..', 'client', 'src', 'App.tsx');
+    const appSrc = fs.readFileSync(appPath, 'utf-8');
+    const slugifyPath = path.join(__dirname, '..', '..', 'client', 'src', 'lib', 'slugify.ts');
+    const slugifySrc = fs.readFileSync(slugifyPath, 'utf-8');
+
+    it('should match clean product-title-and-id merch URLs', () => {
+      expect(middlewareSrc).toContain('merchMatch');
+      expect(middlewareSrc).toContain('/merch/${cleanSlug}-${item.id}');
+      expect(slugifySrc).toContain('export function merchUrl');
+    });
+
+    it('should expose the standalone merch item route before the merch management route', () => {
+      const detailIndex = appSrc.indexOf('<Route path="/merch/:slug"');
+      const managementIndex = appSrc.indexOf('<Route path="/merch"');
+      expect(detailIndex).toBeGreaterThan(-1);
+      expect(managementIndex).toBeGreaterThan(-1);
+      expect(detailIndex).toBeLessThan(managementIndex);
+    });
+
+    it('should set product type, creator attribution, and product-specific image alt text', () => {
+      expect(middlewareSrc).toContain("type: 'product'");
+      expect(middlewareSrc).toContain('sellerName');
+      expect(middlewareSrc).toContain('from ${sellerName}');
+    });
+
+    it('should include standard USD product price metadata for native priced items', () => {
+      expect(middlewareSrc).toContain('product:price:amount');
+      expect(middlewareSrc).toContain('product:price:currency');
+      expect(middlewareSrc).toContain('priceInCents / 100');
+    });
+
+    it('should use a merch image proxy and keep inactive items private', () => {
+      expect(middlewareSrc).toContain("getOgImageUrl(firstImage, 'merch'");
+      expect(middlewareSrc).toContain('eq(merchItems.isActive, true)');
     });
   });
 
@@ -214,6 +264,12 @@ describe('OG Image Proxy (ogImageProxy.ts)', () => {
     expect(proxySrc).toContain("'/venue/:id'");
   });
 
+  it('should have an active-only merch endpoint', () => {
+    expect(proxySrc).toContain("'/merch/:id'");
+    expect(proxySrc).toContain('item?.isActive');
+    expect(proxySrc).toContain('item.imageUrls[0]');
+  });
+
   it('should convert images to JPEG using sharp', () => {
     expect(proxySrc).toContain('sharp');
     expect(proxySrc).toContain('.jpeg(');
@@ -244,6 +300,17 @@ describe('OG Image Proxy (ogImageProxy.ts)', () => {
   it('should validate content type is an image', () => {
     expect(proxySrc).toContain("content-type");
     expect(proxySrc).toContain("image/");
+  });
+
+  it('should accept supported CloudFront images served as generic binary content', () => {
+    expect(proxySrc).toContain('application/octet-stream');
+    expect(proxySrc).toContain('hasSupportedImageExtension');
+  });
+
+  it('should enforce a source image size limit before and after download', () => {
+    expect(proxySrc).toContain('MAX_SOURCE_IMAGE_BYTES');
+    expect(proxySrc).toContain('content-length');
+    expect(proxySrc).toContain('buffer.length > MAX_SOURCE_IMAGE_BYTES');
   });
 
   it('should use database to look up profile photos', () => {

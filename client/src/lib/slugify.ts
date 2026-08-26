@@ -55,3 +55,11 @@ export function artistUrl(name: string, _id?: number): string {
 export function venueUrl(name: string, _id?: number): string {
   return `/venue/${toSlug(name)}`;
 }
+
+/**
+ * Generate a clean, collision-safe URL for an individual merch item.
+ * The title keeps the link readable while the trailing ID guarantees lookup accuracy.
+ */
+export function merchUrl(title: string, id: number): string {
+  return `/merch/${toSlug(title)}-${id}`;
+}

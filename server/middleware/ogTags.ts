@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getDb } from '../db';
-import { artistProfiles, venueProfiles, events, blogPosts } from '../../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { artistProfiles, venueProfiles, events, blogPosts, merchItems } from '../../drizzle/schema';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -67,7 +67,7 @@ function escapeHtml(str: string): string {
  * Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/* proxy.
  * Falls back to the default OG image if no profile photo exists.
  */
-function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue', entityId: number, baseUrl: string): string {
+function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue' | 'merch', entityId: number, baseUrl: string): string {
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
@@ -86,6 +86,7 @@ function generateOgHtml(opts: {
   imageAlt?: string;
   type?: string;
   jsonLd?: object | object[];
+  productPriceAmount?: string;
 }): string {
   const {
     title,
@@ -95,8 +96,12 @@ function generateOgHtml(opts: {
     imageAlt = `${title} on ${SITE_NAME}`,
     type = 'website',
     jsonLd,
+    productPriceAmount,
   } = opts;
   const jsonLdTags = jsonLd ? `\n  ${jsonLdToScriptTag(jsonLd)}` : '';
+  const productTags = productPriceAmount ? `
+  <meta property="product:price:amount" content="${escapeHtml(productPriceAmount)}" />
+  <meta property="product:price:currency" content="USD" />` : '';
   
   // Determine image type based on URL
   const imageType = image.includes('/api/og-image/') ? 'image/jpeg' : 
@@ -123,6 +128,7 @@ function generateOgHtml(opts: {
   <meta property="og:url" content="${escapeHtml(url)}" />
   <meta property="og:site_name" content="${SITE_NAME}" />
   <meta property="og:locale" content="en_US" />
+  ${productTags}
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -238,6 +244,7 @@ export function ogTagMiddleware() {
               title: `${artist.artistName} | Book on Ologywood`,
               description,
               image: ogImage,
+              imageAlt: `${artist.artistName} artist profile on OlogyWood`,
               url: `${baseUrl}/artist/${artist.artistName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
               type: 'profile',
               jsonLd: [generateArtistJsonLd(artist, baseUrl), breadcrumb],
@@ -309,11 +316,72 @@ export function ogTagMiddleware() {
               title: `${venue.organizationName} | Ologywood`,
               description,
               image: ogImage,
+              imageAlt: `${venue.organizationName} venue profile on OlogyWood`,
               url: `${baseUrl}/venue/${venue.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`,
               type: 'business.business',
               jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
             });
             console.log(`[OG Tags] Served venue OG for bot: id=${venueId}, name=${venue.organizationName}, image=${ogImage}`);
+            return res.status(200).set('Content-Type', 'text/html').send(html);
+          }
+        }
+      }
+
+      // Match a clean individual merch product URL: /merch/product-title-123
+      const merchMatch = pathname.match(/^\/merch\/(.+)-(\d+)$/) || pathname.match(/^\/merch\/(\d+)$/);
+      if (merchMatch) {
+        const itemId = Number(merchMatch[2] || merchMatch[1]);
+        const database = await getDb();
+        if (database && Number.isInteger(itemId) && itemId > 0) {
+          let item: any = null;
+          try {
+            [item] = await database
+              .select()
+              .from(merchItems)
+              .where(and(eq(merchItems.id, itemId), eq(merchItems.isActive, true)))
+              .limit(1);
+          } catch (error: any) {
+            const cause = error?.cause as { code?: string } | undefined;
+            if (cause?.code !== 'ER_BAD_FIELD_ERROR') throw error;
+            const [legacyRows] = await database.execute(sql`
+              SELECT id, userId, userType, title, description, priceDisplay,
+                     externalUrl, imageUrls, isActive
+              FROM merch_items
+              WHERE id = ${itemId} AND isActive = TRUE
+              LIMIT 1
+            `) as any;
+            const legacyItem = (legacyRows as any[])[0];
+            if (legacyItem) {
+              item = {
+                ...legacyItem,
+                sellingMethod: 'external',
+                priceInCents: null,
+              };
+            }
+          }
+
+          if (item) {
+            const seller = item.userType === 'venue'
+              ? (await database.select({ name: venueProfiles.organizationName }).from(venueProfiles).where(eq(venueProfiles.userId, item.userId)).limit(1))[0]
+              : (await database.select({ name: artistProfiles.artistName }).from(artistProfiles).where(eq(artistProfiles.userId, item.userId)).limit(1))[0];
+            const sellerName = seller?.name || 'OlogyWood Creator';
+            const priceLabel = item.priceInCents != null
+              ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceInCents / 100)
+              : item.priceDisplay || 'Available now';
+            const cleanSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 80);
+            const canonicalUrl = `${baseUrl}/merch/${cleanSlug}-${item.id}`;
+            const firstImage = Array.isArray(item.imageUrls) ? item.imageUrls[0] : null;
+            const image = getOgImageUrl(firstImage, 'merch', item.id, baseUrl);
+            const description = `${item.title} by ${sellerName} — ${priceLabel}. ${item.description || 'Shop this creator product on OlogyWood.'}`.substring(0, 240);
+            const html = generateOgHtml({
+              title: `${item.title} — ${priceLabel} | ${sellerName}`,
+              description,
+              image,
+              imageAlt: `${item.title} from ${sellerName}`,
+              url: canonicalUrl,
+              type: 'product',
+              productPriceAmount: item.priceInCents != null ? (item.priceInCents / 100).toFixed(2) : undefined,
+            });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }

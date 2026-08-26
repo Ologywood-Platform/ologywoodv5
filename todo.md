@@ -4279,3 +4279,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Correct the live crawler metadata and use a cache-busted permanent preview URL
 - [x] Verify homepage crawler responses end to end after the fix
 - [x] Run TypeScript/build validation and save a checkpoint
+
+## DYNAMIC PROFILE & MERCH SOCIAL PREVIEWS (Aug 26, 2026)
+- [x] Audit artist and venue slug URLs through every crawler middleware and OG route
+- [x] Verify artist previews use the artist name, bio, clean canonical URL, and profile image proxy
+- [x] Verify venue previews use the venue name, details, clean canonical URL, and profile image proxy
+- [x] Add a clean public route for individual merch items
+- [x] Add product-specific Open Graph and X/Twitter title, image, creator, and formatted price metadata
+- [x] Ensure regular users see the merch item page while crawlers receive server-rendered metadata
+- [x] Add regression tests for artist, venue, and merch crawler responses
+- [x] Accept valid CloudFront profile/product images served as application/octet-stream while enforcing a 15 MB source limit
+- [x] Run TypeScript, focused tests, full regression suite, production build, and desktop/mobile visual validation
+- [ ] Save a checkpoint for the completed dynamic profile and merch social preview work
