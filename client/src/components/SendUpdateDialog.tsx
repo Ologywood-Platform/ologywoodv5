@@ -4,7 +4,7 @@
  * Includes compose form, character count, preview, send confirmation, and update history.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,18 +36,35 @@ interface SendUpdateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   followerCount: number;
+  initialSubject?: string;
+  initialBody?: string;
+  prefillKey?: string;
 }
 
 export function SendUpdateDialog({
   open,
   onOpenChange,
   followerCount,
+  initialSubject,
+  initialBody,
+  prefillKey,
 }: SendUpdateDialogProps) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const appliedPrefillKey = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !prefillKey || appliedPrefillKey.current === prefillKey) return;
+    setSubject(initialSubject || "");
+    setBody(initialBody || "");
+    setShowPreview(false);
+    setShowConfirm(false);
+    setShowHistory(false);
+    appliedPrefillKey.current = prefillKey;
+  }, [initialBody, initialSubject, open, prefillKey]);
 
   const utils = trpc.useUtils();
 
@@ -71,6 +88,7 @@ export function SendUpdateDialog({
       );
       setSubject("");
       setBody("");
+      appliedPrefillKey.current = null;
       setShowConfirm(false);
       utils.artistUpdates.canSend.invalidate();
       utils.artistUpdates.getHistory.invalidate();

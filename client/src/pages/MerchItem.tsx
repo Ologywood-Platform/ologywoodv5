@@ -3,15 +3,16 @@ import { Link, useParams } from 'wouter';
 import { ArrowLeft, ExternalLink, ImageIcon, MapPin, Package, Share2, ShoppingCart, Truck } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { MerchCheckoutDialog } from '@/components/MerchCheckoutDialog';
+import { MerchShareDialog } from '@/components/MerchShareDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc';
-import { toast } from 'sonner';
 
 export default function MerchItem() {
   const { slug = '' } = useParams<{ slug: string }>();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const itemId = useMemo(() => {
     const match = slug.match(/(?:^|-)(\d+)$/);
     return match ? Number(match[1]) : 0;
@@ -32,21 +33,6 @@ export default function MerchItem() {
 
   const image = item.imageUrls?.[0] || null;
   const soldOut = item.sellingMethod === 'ologywood' && item.trackInventory && (item.inventoryQuantity ?? 0) <= 0;
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-
-  async function shareItem() {
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: item.title, text: `${item.title} from ${item.sellerName} — ${item.priceDisplay}`, url: shareUrl });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('Product link copied');
-      }
-    } catch (error: any) {
-      if (error?.name !== 'AbortError') toast.error('Could not share this item.');
-    }
-  }
-
   function buyItem() {
     if (item.sellingMethod === 'external') {
       if (item.externalUrl) window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
@@ -68,7 +54,7 @@ export default function MerchItem() {
             <div className="space-y-6 pt-1">
               <div className="flex items-start justify-between gap-4">
                 <div><Badge className={item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-800'}>{item.sellingMethod === 'ologywood' ? 'Buy on OlogyWood' : 'External store'}</Badge><h1 className="text-4xl font-bold tracking-tight mt-3">{item.title}</h1><Link href={item.sellerProfileUrl} className="text-purple-700 hover:underline font-medium">by {item.sellerName}</Link></div>
-                <Button variant="outline" size="icon" aria-label="Share this product" onClick={shareItem}><Share2 className="h-4 w-4" /></Button>
+                <Button variant="outline" aria-label="Share this product" className="shrink-0 gap-2" onClick={() => setShareOpen(true)}><Share2 className="h-4 w-4" />Share Product</Button>
               </div>
               <p className="text-3xl font-bold text-purple-700">{item.priceDisplay}</p>
               {item.description && <p className="text-base leading-7 text-muted-foreground whitespace-pre-line">{item.description}</p>}
@@ -81,6 +67,7 @@ export default function MerchItem() {
         </div>
       </main>
       <MerchCheckoutDialog item={item} open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      <MerchShareDialog item={item} open={shareOpen} onOpenChange={setShareOpen} />
     </>
   );
 }

@@ -4308,3 +4308,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add behavioral and source-level regression coverage for the schema mismatch and first-item flow
 - [x] Run TypeScript, focused tests, full regression suite, production build, and runtime validation
 - [x] Save checkpoint b99419a6 for the merch schema repair
+
+## CUSTOM MERCH SHARE PANEL (Aug 27, 2026)
+- [x] Audit the current merch share button, product metadata, and fan-update workflow
+- [x] Build a labeled Share Product panel with a real product preview card
+- [x] Add Facebook, X, LinkedIn, WhatsApp, email, text, copy-link, and device share actions
+- [x] Connect Send to Fans to the creator’s existing fan-update composer without sending automatically
+- [x] Confirm shared URLs preserve product image, title, creator, price, and canonical link metadata
+- [x] Add regression coverage for share destinations, owner-only fan sharing, and safe URL construction
+- [x] Verify T-Shirt Testing share panel and product preview on desktop and mobile
+- [x] Run TypeScript, 59 focused tests, 2,648 full-suite tests, and production build validation
+- [ ] Save a checkpoint for the custom merch share panel
