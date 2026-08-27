@@ -15,6 +15,7 @@ import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 import { ensureMerchItemsSchema } from "../services/merchSchemaService";
+import { normalizeExternalStoreUrl } from "../../shared/externalStore";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -26,6 +27,18 @@ const variantsSchema = z.array(z.object({
 })).max(3).default([]);
 
 const optionalUrlSchema = z.string().url().max(2048).optional().or(z.literal(""));
+
+function normalizeExternalStoreUrlOrThrow(value: string | null | undefined): string | null {
+  if (!value?.trim()) return null;
+  try {
+    return normalizeExternalStoreUrl(value);
+  } catch (error) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: error instanceof Error ? error.message : "Enter a valid public product or store link.",
+    });
+  }
+}
 
 function toPublicSlug(value: string): string {
   return value
@@ -248,7 +261,10 @@ export const merchRouter = router({
       const tier = PRICING_TIERS[subscription.tier as PricingTier];
       const userType = ctx.user.role === "venue" ? "venue" : "artist";
 
-      validateSellingConfiguration(input);
+      const normalizedExternalUrl = input.sellingMethod === "external"
+        ? normalizeExternalStoreUrlOrThrow(input.externalUrl)
+        : null;
+      validateSellingConfiguration({ ...input, externalUrl: normalizedExternalUrl });
       if (input.sellingMethod === "ologywood" && input.isActive) {
         await assertNativeSellingReady(ctx.user.id);
       }
@@ -286,7 +302,7 @@ export const merchRouter = router({
           ? `$${((input.priceInCents || 0) / 100).toFixed(2)}`
           : input.priceDisplay?.trim() || "See store",
         priceInCents: input.sellingMethod === "ologywood" ? input.priceInCents : null,
-        externalUrl: input.sellingMethod === "external" ? input.externalUrl?.trim() || null : null,
+        externalUrl: normalizedExternalUrl,
         imageUrls: [],
         variants: input.sellingMethod === "ologywood" ? input.variants : [],
         trackInventory: input.sellingMethod === "ologywood" ? input.trackInventory : false,
@@ -340,9 +356,12 @@ export const merchRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Item not found" });
       }
 
+      const normalizedInputExternalUrl = input.externalUrl !== undefined
+        ? normalizeExternalStoreUrlOrThrow(input.externalUrl)
+        : undefined;
       const merged = {
         sellingMethod: input.sellingMethod ?? item.sellingMethod,
-        externalUrl: input.externalUrl !== undefined ? input.externalUrl : item.externalUrl,
+        externalUrl: normalizedInputExternalUrl !== undefined ? normalizedInputExternalUrl : item.externalUrl,
         priceInCents: input.priceInCents !== undefined ? input.priceInCents : item.priceInCents,
         trackInventory: input.trackInventory ?? item.trackInventory,
         inventoryQuantity: input.inventoryQuantity !== undefined ? input.inventoryQuantity : item.inventoryQuantity,
@@ -361,7 +380,7 @@ export const merchRouter = router({
       if (input.sellingMethod !== undefined) updates.sellingMethod = input.sellingMethod;
       if (input.priceDisplay !== undefined) updates.priceDisplay = input.priceDisplay;
       if (input.priceInCents !== undefined) updates.priceInCents = input.priceInCents;
-      if (input.externalUrl !== undefined) updates.externalUrl = input.externalUrl.trim() || null;
+      if (input.externalUrl !== undefined) updates.externalUrl = normalizedInputExternalUrl;
       if (input.variants !== undefined) updates.variants = input.variants;
       if (input.trackInventory !== undefined) updates.trackInventory = input.trackInventory;
       if (input.inventoryQuantity !== undefined) updates.inventoryQuantity = input.inventoryQuantity;

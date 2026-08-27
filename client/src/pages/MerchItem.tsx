@@ -4,6 +4,7 @@ import { ArrowLeft, ExternalLink, ImageIcon, MapPin, Package, Share2, ShoppingCa
 import SiteHeader from '@/components/SiteHeader';
 import { MerchCheckoutDialog } from '@/components/MerchCheckoutDialog';
 import { MerchShareDialog } from '@/components/MerchShareDialog';
+import { ExternalStoreDialog } from '@/components/ExternalStoreDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +14,7 @@ export default function MerchItem() {
   const { slug = '' } = useParams<{ slug: string }>();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [externalStoreOpen, setExternalStoreOpen] = useState(false);
   const itemId = useMemo(() => {
     const match = slug.match(/(?:^|-)(\d+)$/);
     return match ? Number(match[1]) : 0;
@@ -35,7 +37,7 @@ export default function MerchItem() {
   const soldOut = item.sellingMethod === 'ologywood' && item.trackInventory && (item.inventoryQuantity ?? 0) <= 0;
   function buyItem() {
     if (item.sellingMethod === 'external') {
-      if (item.externalUrl) window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+      if (item.externalUrl) setExternalStoreOpen(true);
       return;
     }
     if (!soldOut) setCheckoutOpen(true);
@@ -61,13 +63,14 @@ export default function MerchItem() {
               {item.sellingMethod === 'ologywood' && <div className="grid sm:grid-cols-2 gap-3">{item.shippingAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><Truck className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Shipping available</p><p className="text-xs text-muted-foreground">Creator-managed fulfillment</p></div></div>}{item.pickupAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><MapPin className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Local pickup</p><p className="text-xs text-muted-foreground">Details provided after purchase</p></div></div>}</div>}
               {item.fulfillmentTime && <p className="text-sm text-muted-foreground">Estimated fulfillment: {item.fulfillmentTime}</p>}
               <Button size="lg" className="w-full sm:w-auto gap-2 bg-purple-700 hover:bg-purple-800" disabled={soldOut || (item.sellingMethod === 'external' && !item.externalUrl)} onClick={buyItem}>{item.sellingMethod === 'ologywood' ? <ShoppingCart className="h-5 w-5" /> : <ExternalLink className="h-5 w-5" />}{soldOut ? 'Sold out' : item.sellingMethod === 'ologywood' ? 'Order securely' : 'Buy from external store'}</Button>
-              <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? 'OlogyWood processes payment and tracks the order. The creator fulfills it directly.' : 'This purchase is completed on the creator’s external store.'}</p>
+              <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? 'OlogyWood processes payment and tracks the order. The creator fulfills it directly.' : 'You’ll review the destination before leaving OlogyWood. Checkout and store access are handled by the creator’s external provider.'}</p>
             </div>
           </div>
         </div>
       </main>
       <MerchCheckoutDialog item={item} open={checkoutOpen} onOpenChange={setCheckoutOpen} />
       <MerchShareDialog item={item} open={shareOpen} onOpenChange={setShareOpen} />
+      {item.externalUrl && <ExternalStoreDialog open={externalStoreOpen} onOpenChange={setExternalStoreOpen} externalUrl={item.externalUrl} productTitle={item.title} sellerName={item.sellerName} />}
     </>
   );
 }
