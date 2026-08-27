@@ -736,6 +736,13 @@
       "when": 1787652352764,
       "tag": "0103_silent_nitro",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "5",
+      "when": 1787854995946,
+      "tag": "0104_merch_schema_repair",
+      "breakpoints": true
     }
   ]
 }

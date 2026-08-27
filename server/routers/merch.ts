@@ -14,6 +14,7 @@ import { artistProfiles, merchItems, stripeConnectAccounts, venueProfiles } from
 import { eq, and, asc, desc, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
+import { ensureMerchItemsSchema } from "../services/merchSchemaService";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -72,6 +73,21 @@ function validateSellingConfiguration(input: {
   }
 }
 
+function normalizeLegacyMerchItem(item: any) {
+  return {
+    ...item,
+    sellingMethod: "external" as const,
+    priceInCents: null,
+    variants: [],
+    trackInventory: false,
+    inventoryQuantity: null,
+    shippingAvailable: false,
+    pickupAvailable: false,
+    shippingAmountCents: 0,
+    fulfillmentTime: null,
+  };
+}
+
 export const merchRouter = router({
   /**
    * Public: Get one active merch item with seller context for its shareable page.
@@ -102,18 +118,7 @@ export const merchRouter = router({
         `) as any;
         const legacyItem = (legacyRows as any[])[0];
         if (legacyItem) {
-          item = {
-            ...legacyItem,
-            sellingMethod: "external" as const,
-            priceInCents: null,
-            variants: [],
-            trackInventory: false,
-            inventoryQuantity: null,
-            shippingAvailable: false,
-            pickupAvailable: false,
-            shippingAmountCents: 0,
-            fulfillmentTime: null,
-          };
+          item = normalizeLegacyMerchItem(legacyItem);
         }
       }
 
@@ -160,15 +165,29 @@ export const merchRouter = router({
   myItems: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+    await ensureMerchItemsSchema(db);
 
     const userType = ctx.user.role === "venue" ? "venue" : "artist";
-    const items = await db
-      .select()
-      .from(merchItems)
-      .where(and(eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
-      .orderBy(asc(merchItems.sortOrder));
+    try {
+      return await db
+        .select()
+        .from(merchItems)
+        .where(and(eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
+        .orderBy(asc(merchItems.sortOrder));
+    } catch (error: any) {
+      const cause = error?.cause as { code?: string } | undefined;
+      if (cause?.code !== "ER_BAD_FIELD_ERROR") throw error;
 
-    return items;
+      const [legacyRows] = await db.execute(sql`
+        SELECT id, userId, userType, title, description, priceDisplay,
+               externalUrl, imageUrls, sortOrder, isActive, createdAt, updatedAt
+        FROM merch_items
+        WHERE userId = ${ctx.user.id} AND userType = ${userType}
+        ORDER BY sortOrder ASC
+      `) as any;
+
+      return (legacyRows as any[]).map(normalizeLegacyMerchItem);
+    }
   }),
 
   /**
@@ -182,16 +201,18 @@ export const merchRouter = router({
     const tier = PRICING_TIERS[subscription.tier as PricingTier];
     const userType = ctx.user.role === "venue" ? "venue" : "artist";
 
-    const items = await db
-      .select()
+    const [catalog] = await db
+      .select({ currentCount: sql<number>`COUNT(*)` })
       .from(merchItems)
       .where(and(eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)));
 
+    const currentCount = Number(catalog?.currentCount ?? 0);
+
     return {
-      currentCount: items.length,
+      currentCount,
       maxItems: tier.maxMerchItems,
       tierName: tier.name,
-      canAdd: items.length < tier.maxMerchItems,
+      canAdd: currentCount < tier.maxMerchItems,
     };
   }),
 
@@ -220,6 +241,7 @@ export const merchRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      await ensureMerchItemsSchema(db);
 
       // Check tier limit
       const subscription = await getUserSubscription(ctx.user.id);
@@ -231,12 +253,19 @@ export const merchRouter = router({
         await assertNativeSellingReady(ctx.user.id);
       }
 
-      const existing = await db
-        .select()
+      // First-item creation only needs the current count and highest sort value.
+      // Avoid coupling this check to every merchandise column in the schema.
+      const [catalog] = await db
+        .select({
+          currentCount: sql<number>`COUNT(*)`,
+          maxSortOrder: sql<number>`COALESCE(MAX(${merchItems.sortOrder}), 0)`,
+        })
         .from(merchItems)
         .where(and(eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)));
 
-      if (existing.length >= tier.maxMerchItems) {
+      const currentCount = Number(catalog?.currentCount ?? 0);
+
+      if (currentCount >= tier.maxMerchItems) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: tier.maxMerchItems === 0
@@ -245,8 +274,7 @@ export const merchRouter = router({
         });
       }
 
-      // Get next sort order
-      const maxSort = existing.length > 0 ? Math.max(...existing.map((i) => i.sortOrder)) : 0;
+      const nextSortOrder = Number(catalog?.maxSortOrder ?? 0) + 1;
 
       const result = await db.insert(merchItems).values({
         userId: ctx.user.id,
@@ -267,7 +295,7 @@ export const merchRouter = router({
         pickupAvailable: input.sellingMethod === "ologywood" ? input.pickupAvailable : false,
         shippingAmountCents: input.sellingMethod === "ologywood" && input.shippingAvailable ? input.shippingAmountCents : 0,
         fulfillmentTime: input.sellingMethod === "ologywood" ? input.fulfillmentTime?.trim() || null : null,
-        sortOrder: maxSort + 1,
+        sortOrder: nextSortOrder,
         isActive: input.isActive,
       });
 
@@ -557,18 +585,7 @@ export const merchRouter = router({
           ORDER BY sortOrder ASC
         `) as any;
 
-        return (legacyRows as any[]).map((item) => ({
-          ...item,
-          sellingMethod: 'external' as const,
-          priceInCents: null,
-          variants: [],
-          trackInventory: false,
-          inventoryQuantity: null,
-          shippingAvailable: false,
-          pickupAvailable: false,
-          shippingAmountCents: 0,
-          fulfillmentTime: null,
-        }));
+        return (legacyRows as any[]).map(normalizeLegacyMerchItem);
       }
     }),
 });

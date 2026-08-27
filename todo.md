@@ -4299,3 +4299,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Dawud Anyabwile’s public profile and full portfolio presentation on desktop and mobile
 - [x] Run TypeScript, focused tests, full regression suite, and production build validation
 - [x] Save checkpoint 51117805 for the creator-neutral portfolio wording update
+
+## FIRST MERCH OFFER SCHEMA MISMATCH (Aug 27, 2026)
+- [x] Audit the runtime merch_items columns against the Drizzle schema and prior migrations
+- [x] Identify every merch list/create path that can fail against the connected database
+- [x] Apply an idempotent schema migration and runtime repair without modifying customer merch data
+- [x] Verify user 7 can load the merch manager and create, list, edit, and delete a disposable first offer
+- [x] Add behavioral and source-level regression coverage for the schema mismatch and first-item flow
+- [x] Run TypeScript, focused tests, full regression suite, production build, and runtime validation
+- [ ] Save a checkpoint for the merch schema repair
