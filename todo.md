@@ -4362,4 +4362,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for canonical external URLs, unsafe destinations, safe new-tab behavior, copied links, and native checkout separation
 - [x] Verify Dawud’s real merch flow on desktop and mobile without purchasing or modifying his product
 - [x] Run TypeScript, 15 focused merch tests, 2,670 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the external merch access-restriction improvement
+- [x] Save checkpoint 98baf02b for the external merch access-restriction improvement
