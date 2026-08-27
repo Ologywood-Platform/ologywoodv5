@@ -4298,4 +4298,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for the shared wording
 - [x] Verify Dawud Anyabwile’s public profile and full portfolio presentation on desktop and mobile
 - [x] Run TypeScript, focused tests, full regression suite, and production build validation
-- [ ] Save a checkpoint for the creator-neutral portfolio wording update
+- [x] Save checkpoint 51117805 for the creator-neutral portfolio wording update
