@@ -4351,4 +4351,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Dawud’s public profile displays both upcoming art shows through `/artist/dawud-anyabwile`
 - [x] Add regression and runtime coverage for full-name, partial-name, case-insensitive, and combined-filter searches
 - [x] Run TypeScript, 4 focused tests, 2,665 full-suite tests, production build, responsive screenshots, and read-only runtime validation
-- [ ] Save a checkpoint for the Events artist-name search repair
+- [x] Save checkpoint 13ba18cb for the Events artist-name search repair
