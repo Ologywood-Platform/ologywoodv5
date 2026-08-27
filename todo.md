@@ -4318,4 +4318,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for share destinations, owner-only fan sharing, and safe URL construction
 - [x] Verify T-Shirt Testing share panel and product preview on desktop and mobile
 - [x] Run TypeScript, 59 focused tests, 2,648 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the custom merch share panel
+- [x] Save checkpoint 8b81975b for the custom merch share panel
