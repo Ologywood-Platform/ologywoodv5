@@ -83,6 +83,7 @@ export default function ArtistProfile() {
   const artist = isNumericId ? artistById : artistBySlug;
   const isLoading = isNumericId ? loadingById : loadingBySlug;
   const isValidId = isNumericId ? (artistId > 0) : !!slugParam;
+  const resolvedArtistId = Number(artist?.id || artistId);
 
 
 
@@ -93,51 +94,51 @@ export default function ArtistProfile() {
     }
   }, [artist]);
   const { data: availability } = trpc.availability.getForArtist.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   // Note: getForArtist endpoint not available in new rider router
   // For now, we'll skip loading rider templates on artist profile
   const riderTemplates: any[] = [];
   const { data: reviews } = trpc.review.getByArtist.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   const { data: avgRating } = trpc.review.getAverageRating.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   const { data: artistReviews } = trpc.artistReview.getByArtist.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   const { data: artistAvgRating } = trpc.artistReview.getAverageRating.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   const { data: recentPhotos = [] } = trpc.events.getRecentPhotos.useQuery(
-    { artistId, limit: 4 },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId, limit: 4 },
+    { enabled: resolvedArtistId > 0 }
   );
 
   const { data: portfolioStats } = trpc.events.getPortfolioStats.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
 
   const { data: upcomingEvents = [] } = trpc.events.getUpcomingEvents.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
 
   const { data: releases } = trpc.release.getByArtist.useQuery(
-    { artistId },
-    { enabled: isValidId }
+    { artistId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
 
   const { data: videoPortfolio = [] } = trpc.artist.getVideoPortfolio.useQuery(
-    { artistProfileId: Number(artist?.id || artistId) },
-    { enabled: Number(artist?.id || artistId) > 0 }
+    { artistProfileId: resolvedArtistId },
+    { enabled: resolvedArtistId > 0 }
   );
   
   // Show error if no valid ID
@@ -266,7 +267,7 @@ export default function ArtistProfile() {
     const fullAddress = [venueStreet, venueCity, venueState, venueZip].filter(Boolean).join(', ');
     
     createBooking.mutate({
-      artistId,
+      artistId: resolvedArtistId,
       eventDate,
       eventTime,
       venueName,
@@ -315,14 +316,14 @@ export default function ArtistProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artist ? toSlug(artist.artistName) : String(artistId)}` }])]} id={`artist-${artistId}`} />}
+      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artist ? toSlug(artist.artistName) : String(resolvedArtistId)}` }])]} id={`artist-${resolvedArtistId}`} />}
       {artist && releases && releases.length > 0 && (
         <JsonLd
           data={releases.map((r: any) => buildMusicRecordingJsonLd({
             id: r.id,
             title: r.title,
             artistName: artist.artistName,
-            artistId: artistId,
+            artistId: resolvedArtistId,
             genre: r.genre,
             description: r.description,
             coverArtUrl: r.coverArtUrl,
@@ -331,7 +332,7 @@ export default function ArtistProfile() {
             durationSeconds: r.durationSeconds,
             publishedAt: r.publishedAt,
           }))}
-          id={`releases-${artistId}`}
+          id={`releases-${resolvedArtistId}`}
         />
       )}
       {/* Shared Header with Following link */}

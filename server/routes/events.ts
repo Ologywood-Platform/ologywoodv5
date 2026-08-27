@@ -148,9 +148,10 @@ router.get('/api/events/artist/:artistId/upcoming', async (req: Request, res: Re
  */
 router.get('/api/events/search', async (req: Request, res: Response) => {
   try {
-    const { eventType, location, minRate, maxRate, startDate, endDate, limit, offset } = req.query;
+    const { search, query, eventType, location, minRate, maxRate, startDate, endDate, limit, offset } = req.query;
 
     const events = await searchPublicEvents({
+      query: (search || query) as string | undefined,
       category: eventType as string | undefined,
       city: location as string | undefined,
       startDate: startDate as string | undefined,

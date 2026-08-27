@@ -50,6 +50,7 @@ import {
   venueRecurringBlocks, InsertVenueRecurringBlock, VenueRecurringBlock
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { eventSearchPattern } from '../shared/eventSearch';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
 
 // Re-export User type for use in other modules
@@ -1915,12 +1916,18 @@ export async function searchPublicEvents(filters: {
   const conditions: any[] = [eq(events.isPublic, true)];
   
   if (filters.query) {
-    conditions.push(
-      or(
-        like(events.eventTitle, `%${filters.query}%`),
-        like(events.description, `%${filters.query}%`)
-      )
-    );
+    const pattern = eventSearchPattern(filters.query);
+    if (pattern) {
+      conditions.push(
+        or(
+          sql`LOWER(COALESCE(${events.eventTitle}, '')) LIKE ${pattern}`,
+          sql`LOWER(COALESCE(${events.description}, '')) LIKE ${pattern}`,
+          sql`LOWER(COALESCE(${events.location}, '')) LIKE ${pattern}`,
+          sql`LOWER(COALESCE(${artistProfiles.artistName}, '')) LIKE ${pattern}`,
+          sql`LOWER(COALESCE(${venueProfiles.organizationName}, '')) LIKE ${pattern}`
+        )
+      );
+    }
   }
   if (filters.city) {
     conditions.push(like(events.location, `%${filters.city}%`));
@@ -1938,7 +1945,14 @@ export async function searchPublicEvents(filters: {
     conditions.push(sql`${events.eventDate} <= ${filters.endDate}`);
   }
   
-  return await db.select().from(events).where(and(...conditions));
+  const rows = await db
+    .select({ event: events })
+    .from(events)
+    .leftJoin(artistProfiles, eq(events.artistId, artistProfiles.id))
+    .leftJoin(venueProfiles, eq(events.venueId, venueProfiles.id))
+    .where(and(...conditions));
+
+  return rows.map((row) => row.event);
 }
 
 /**

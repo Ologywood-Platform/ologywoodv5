@@ -4340,3 +4340,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify the shared creator workflow on desktop and mobile and confirm Dawud has no partial records from failed attempts
 - [x] Run TypeScript, 8 focused tests, 2,661 full-suite tests, production build, migration, and runtime URL-save validation
 - [x] Save checkpoint 2fbfdee9 for the portfolio video repair
+
+## EVENTS SEARCH BY ARTIST NAME FAILURE (Aug 27, 2026)
+- [x] Reproduce searching Events for “Dawud Anyabwile” and inspect the submitted filter payload
+- [x] Audit client and server search logic for event title, description, venue, location, and artist-name matching
+- [x] Add artist-name-aware event search without weakening public visibility or date/category filters
+- [x] Ensure search copy clearly states that event, artist, venue, and location names are supported
+- [x] Fix clean artist slug profiles so all profile data waits for and uses the resolved artist profile ID instead of 0
+- [x] Verify Dawud’s two Arts & Culture events appear on desktop and mobile after Apply Filters
+- [x] Verify Dawud’s public profile displays both upcoming art shows through `/artist/dawud-anyabwile`
+- [x] Add regression and runtime coverage for full-name, partial-name, case-insensitive, and combined-filter searches
+- [x] Run TypeScript, 4 focused tests, 2,665 full-suite tests, production build, responsive screenshots, and read-only runtime validation
+- [ ] Save a checkpoint for the Events artist-name search repair

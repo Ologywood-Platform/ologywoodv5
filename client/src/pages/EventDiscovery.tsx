@@ -34,7 +34,6 @@ export default function EventDiscovery() {
 
   // Applied filters — only sent to API when user clicks "Apply Filters"
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({});
-  const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
 
   // Set SEO meta tags
   useEffect(() => {
@@ -67,6 +66,7 @@ export default function EventDiscovery() {
       return;
     }
     const input: Record<string, any> = {};
+    if (searchQuery.trim()) input.search = searchQuery.trim();
     if (filters.eventType) input.eventType = filters.eventType;
     if (filters.location) input.location = filters.location;
     if (filters.minRate) input.minRate = parseFloat(filters.minRate);
@@ -74,7 +74,6 @@ export default function EventDiscovery() {
     if (filters.startDate) input.startDate = dateOnlyToUtcDate(filters.startDate);
     if (filters.endDate) input.endDate = dateOnlyToUtcDate(filters.endDate);
     setAppliedFilters(input);
-    setAppliedSearchQuery(searchQuery);
     setHasSearched(true);
     // Scroll to results
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -101,16 +100,8 @@ export default function EventDiscovery() {
   const bookEventMutation = trpc.booking.clientCreate.useMutation();
   const utils = trpc.useUtils();
 
-  // Client-side text search filter on top of API results
-  const filteredEvents = useMemo(() => {
-    if (!appliedSearchQuery) return apiEvents;
-    const q = appliedSearchQuery.toLowerCase();
-    return apiEvents.filter((event: any) =>
-      (event.eventTitle?.toLowerCase().includes(q)) ||
-      (event.artistName?.toLowerCase().includes(q)) ||
-      (event.location?.toLowerCase().includes(q))
-    );
-  }, [apiEvents, appliedSearchQuery]);
+  // Text matching is handled by the API across event, artist, venue, and location fields.
+  const filteredEvents = apiEvents;
 
   const handleSaveEvent = async (eventId: number) => {
     if (!isAuthenticated) {
@@ -168,7 +159,6 @@ export default function EventDiscovery() {
     setDateError('');
     setHasSearched(false);
     setAppliedFilters({});
-    setAppliedSearchQuery('');
   };
 
   return (
@@ -185,13 +175,13 @@ export default function EventDiscovery() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Search Events</CardTitle>
-            <CardDescription>Enter your criteria and click "Apply Filters" to find events</CardDescription>
+            <CardDescription>Search by event, artist, venue, or location, then click "Apply Filters"</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {/* Search Bar */}
             <ClearableInput
-              placeholder="Search by event name, artist, or location..."
+              placeholder="Search by event, artist, venue, or location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClear={() => setSearchQuery('')}

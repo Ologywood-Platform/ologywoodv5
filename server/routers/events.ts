@@ -25,6 +25,7 @@ const updateEventSchema = createEventSchema.partial().extend({
 });
 
 const searchEventsSchema = z.object({
+  search: z.string().trim().max(200).optional(),
   eventType: z.string().optional(),
   location: z.string().optional(),
   minRate: z.number().optional(),
@@ -378,7 +379,7 @@ export const eventsRouter = router({
     .query(async ({ input }) => {
       try {
         const events = await db.searchPublicEvents({
-          query: input.eventType || input.location,
+          query: input.search,
           city: input.location,
           category: input.eventType,
           startDate: input.startDate?.toISOString().split('T')[0],
@@ -387,7 +388,7 @@ export const eventsRouter = router({
         // Enrich events with artist profile data for display
         const enriched = await Promise.all(
           events.map(async (event) => {
-            const artistProfile = await db.getArtistProfileByUserId(event.artistId);
+            const artistProfile = await db.getArtistProfileById(event.artistId);
             return {
               ...event,
               artistName: artistProfile?.artistName || 'Unknown Artist',
