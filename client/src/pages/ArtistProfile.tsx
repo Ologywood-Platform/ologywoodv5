@@ -2,6 +2,7 @@ import { toSlug } from '@/lib/slugify';
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { formatEventTime } from "@/lib/utils";
+import { formatDateOnly } from '@shared/dateOnly';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
 import { Button } from "@/components/ui/button";
@@ -1505,7 +1506,7 @@ export default function ArtistProfile() {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-sm truncate">{event.eventTitle}</h4>
                             <p className="text-xs text-slate-500 dark:text-gray-400">
-                              {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                              {formatDateOnly(event.eventDate, { weekday: 'short', month: 'short', day: 'numeric' })}
                               {event.eventTime && ` at ${formatEventTime(event.eventTime)}`}
                             </p>
                             {event.location && (

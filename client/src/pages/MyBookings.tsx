@@ -6,23 +6,14 @@ import { useAuth } from '../_core/hooks/useAuth';
 import { Calendar, MapPin, DollarSign, Clock, Music, ChevronRight, Inbox, MessageCircle, CreditCard, Loader2 } from 'lucide-react';
 import TestModeBadge from '@/components/TestModeBadge';
 import { SiteHeader } from "@/components/SiteHeader";
+import { dateOnlyTimestamp, formatDateOnly } from '@shared/dateOnly';
+import { formatEventTypeLabel } from '@shared/eventTypes';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', label: 'Pending' },
   confirmed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Confirmed' },
   cancelled: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400', label: 'Cancelled' },
   completed: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Completed' },
-};
-
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  wedding: 'Wedding',
-  corporate: 'Corporate Event',
-  birthday: 'Birthday Party',
-  church: 'Church / Religious',
-  festival: 'Festival',
-  house_party: 'House Party',
-  restaurant: 'Restaurant / Bar',
-  other: 'Other',
 };
 
 export default function MyBookings() {
@@ -63,25 +54,19 @@ export default function MyBookings() {
   }
 
   const sortedBookings = [...(bookings || [])].sort((a, b) => {
-    const dateA = new Date(a.eventDate).getTime();
-    const dateB = new Date(b.eventDate).getTime();
+    const dateA = dateOnlyTimestamp(a.eventDate);
+    const dateB = dateOnlyTimestamp(b.eventDate);
     return dateB - dateA;
   });
 
+  const today = dateOnlyTimestamp(new Date());
   const upcomingBookings = sortedBookings.filter(b => {
-    const eventDate = new Date(b.eventDate);
-    return eventDate >= new Date() && b.status !== 'cancelled';
+    return dateOnlyTimestamp(b.eventDate) >= today && b.status !== 'cancelled';
   });
 
   const pastBookings = sortedBookings.filter(b => {
-    const eventDate = new Date(b.eventDate);
-    return eventDate < new Date() || b.status === 'cancelled';
+    return dateOnlyTimestamp(b.eventDate) < today || b.status === 'cancelled';
   });
-
-  const formatDate = (date: string | Date) => {
-    const d = date instanceof Date ? date : new Date(date);
-    return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-  };
 
   const handlePayDeposit = async (bookingId: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -135,7 +120,7 @@ export default function MyBookings() {
 
   const BookingCard = ({ booking }: { booking: any }) => {
     const status = STATUS_STYLES[booking.status] || STATUS_STYLES.pending;
-    const eventType = EVENT_TYPE_LABELS[booking.eventType] || booking.eventType || 'Booking';
+    const eventType = formatEventTypeLabel(booking.eventType);
     const hasFee = booking.totalFee && parseFloat(booking.totalFee) > 0;
     const isConfirmed = booking.status === 'confirmed';
     const isPending = booking.status === 'pending';
@@ -195,7 +180,7 @@ export default function MyBookings() {
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
-                {formatDate(booking.eventDate)}
+                {formatDateOnly(booking.eventDate, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
               {booking.eventTime && (
                 <span className="flex items-center gap-1">

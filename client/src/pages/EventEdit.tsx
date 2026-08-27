@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Upload, X, Image, Calendar, MapPin, Ticket, FileText, ArrowLeft } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -11,6 +12,8 @@ import { useParams, useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import SiteHeader from '@/components/SiteHeader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { dateOnlyToUtcDate, getDateOnlyKey } from '@shared/dateOnly';
+import { EVENT_TYPE_OPTIONS } from '@shared/eventTypes';
 
 export default function EventEdit() {
   const { id } = useParams();
@@ -25,6 +28,7 @@ export default function EventEdit() {
 
   const [formData, setFormData] = useState({
     eventTitle: '',
+    eventType: '',
     eventDate: '',
     eventTime: '',
     eventEndTime: '',
@@ -46,10 +50,10 @@ export default function EventEdit() {
   // Populate form when event data loads
   useEffect(() => {
     if (event && !initialized) {
-      const eventDate = event.eventDate ? new Date(event.eventDate) : null;
       setFormData({
         eventTitle: event.eventTitle || '',
-        eventDate: eventDate ? eventDate.toISOString().split('T')[0] : '',
+        eventType: event.eventType || '',
+        eventDate: getDateOnlyKey(event.eventDate) || '',
         eventTime: (event as any).eventTime || '',
         eventEndTime: (event as any).eventEndTime || '',
         location: event.location || '',
@@ -67,6 +71,7 @@ export default function EventEdit() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.eventTitle.trim()) newErrors.eventTitle = 'Event name is required';
+    if (!formData.eventType) newErrors.eventType = 'Event type is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
 
@@ -141,7 +146,8 @@ export default function EventEdit() {
       await updateMutation.mutateAsync({
         id: eventId,
         eventTitle: formData.eventTitle,
-        eventDate: new Date(formData.eventDate),
+        eventType: formData.eventType as (typeof EVENT_TYPE_OPTIONS)[number]['value'],
+        eventDate: dateOnlyToUtcDate(formData.eventDate),
         eventTime: formData.eventTime || undefined,
         eventEndTime: formData.eventEndTime || undefined,
         location: formData.location,
@@ -273,6 +279,31 @@ export default function EventEdit() {
                   className={errors.eventTitle ? 'border-red-500' : ''}
                 />
                 {errors.eventTitle && <p className="text-sm text-red-500">{errors.eventTitle}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="eventType">Event Type *</Label>
+                <Select
+                  value={formData.eventType}
+                  onValueChange={(value) => {
+                    setFormData((previous) => ({ ...previous, eventType: value }));
+                    setErrors((previous) => {
+                      const next = { ...previous };
+                      delete next.eventType;
+                      return next;
+                    });
+                  }}
+                >
+                  <SelectTrigger id="eventType" className={errors.eventType ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select event type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVENT_TYPE_OPTIONS.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.eventType && <p className="text-sm text-red-500">{errors.eventType}</p>}
               </div>
 
               {/* Date and Time */}

@@ -18,6 +18,8 @@ import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { EventSponsorShowcase } from '@/components/EventSponsorShowcase';
+import { formatDateOnly } from '@shared/dateOnly';
+import { formatEventTypeLabel } from '@shared/eventTypes';
 
 export default function EventDetail() {
   const { id: idParam } = useParams();
@@ -63,12 +65,6 @@ export default function EventDetail() {
       setMetaTags(pageMetaTags.eventDetail(event.eventTitle, resolvedEventId, undefined, event.description || undefined));
     }
   }, [event, eventId]);
-
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return 'TBD';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  };
 
   const handleSaveEvent = async () => {
     if (!isAuthenticated) {
@@ -149,19 +145,6 @@ export default function EventDetail() {
     }
   };
 
-  const getEventTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      wedding: 'Wedding',
-      corporate: 'Corporate Event',
-      festival: 'Festival',
-      bar_gig: 'Bar Gig',
-      private_party: 'Private Party',
-      concert: 'Concert',
-      other: 'Other',
-    };
-    return labels[type] || type;
-  };
-
   // Loading state
   if (isLoading) {
     return (
@@ -238,9 +221,7 @@ export default function EventDetail() {
               <div className="flex-1">
                 <CardTitle className="text-3xl mb-2">{event.eventTitle}</CardTitle>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {(event as any).eventSource !== 'artist_post' && (
-                    <Badge variant="outline">{getEventTypeLabel(event.eventType)}</Badge>
-                  )}
+                  <Badge variant="outline">{formatEventTypeLabel(event.eventType)}</Badge>
                   <Badge className={getStatusColor(event.status)}>
                     {event.status}
                   </Badge>
@@ -257,7 +238,7 @@ export default function EventDetail() {
                 <div>
                   <p className="text-sm font-medium text-slate-600">Date & Time</p>
                   <p className="text-base font-semibold">
-                    {formatDate(event.eventDate)}
+                    {formatDateOnly(event.eventDate, { month: 'long', day: 'numeric', year: 'numeric' })}
                     {event.eventTime && ` at ${formatEventTime(event.eventTime)}`}
                     {event.eventEndTime && ` - ${formatEventTime(event.eventEndTime)}`}
                   </p>

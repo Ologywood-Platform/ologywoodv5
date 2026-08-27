@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
 import { getStatesForRegion } from '../shared/locationData';
+import { dateOnlyTimestamp, dateOnlyToUtcDate, getDateOnlyKey } from '../shared/dateOnly';
 
 
 import { 
@@ -1828,11 +1829,11 @@ export async function getArtistPublicEvents(artistId: number): Promise<Event[]> 
 export async function getArtistUpcomingEvents(artistId: number): Promise<Event[]> {
   const db = await getDb();
   if (!db) return [];
-  const today = new Date().toISOString().split('T')[0];
+  const today = getDateOnlyKey(new Date())!;
   return await db.select().from(events)
     .where(and(
       eq(events.artistId, artistId),
-      gte(events.eventDate, new Date(today))
+      gte(events.eventDate, dateOnlyToUtcDate(today))
     ));
 }
 
@@ -2166,10 +2167,8 @@ export async function getSimilarEvents(
 
     // Date proximity: +2 for within 30 days, +1 for within 90 days
     if (sourceEvent.eventDate && candidate.eventDate) {
-      const srcDate = new Date(sourceEvent.eventDate);
-      const candDate = new Date(candidate.eventDate);
       const diffDays = Math.abs(
-        (candDate.getTime() - srcDate.getTime()) / (1000 * 60 * 60 * 24)
+        (dateOnlyTimestamp(candidate.eventDate) - dateOnlyTimestamp(sourceEvent.eventDate)) / (1000 * 60 * 60 * 24)
       );
       if (diffDays <= 30) {
         score += 2;
@@ -2192,8 +2191,8 @@ export async function getSimilarEvents(
       return b.similarityScore - a.similarityScore;
     }
     // Tie-break: upcoming events first
-    const dateA = a.eventDate ? new Date(a.eventDate).getTime() : 0;
-    const dateB = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+    const dateA = dateOnlyTimestamp(a.eventDate);
+    const dateB = dateOnlyTimestamp(b.eventDate);
     return dateA - dateB;
   });
 

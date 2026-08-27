@@ -809,7 +809,7 @@ export const events = mysqlTable("events", {
   artistId: int("artistId").notNull(), // indexed below
   venueId: int("venueId"), // Venue that created/owns this event (null for artist-posted events)
   eventTitle: varchar("eventTitle", { length: 255 }).notNull(),
-  eventType: mysqlEnum("eventType", ["wedding", "corporate", "festival", "bar_gig", "private_party", "concert", "other"]).notNull(),
+  eventType: mysqlEnum("eventType", ["arts_culture", "bar_gig", "concert", "corporate", "festival", "other", "private_party", "wedding"]).notNull(),
   eventDate: date("eventDate").notNull(),
   eventTime: varchar("eventTime", { length: 5 }), // HH:MM format
   eventEndTime: varchar("eventEndTime", { length: 5 }), // HH:MM format

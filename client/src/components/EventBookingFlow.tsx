@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, MapPin, Users, DollarSign, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatDate, formatEventTime } from '@/lib/utils';
+import { formatEventTime } from '@/lib/utils';
+import { formatDateOnly } from '@shared/dateOnly';
 
 interface EventBookingFlowProps {
   eventData: {
@@ -34,11 +35,6 @@ export function EventBookingFlow({
     venueNotes: '',
     specialRequests: '',
   });
-
-  const formatDate = (date: string | Date) => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   const handleConfirm = () => {
     setStep('details');
@@ -74,7 +70,7 @@ export function EventBookingFlow({
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
                 <Calendar className="h-4 w-4" />
-                <span>{formatDate(eventData.eventDate)} {eventData.eventTime && `at ${formatEventTime(eventData.eventTime)}`}</span>
+                <span>{formatDateOnly(eventData.eventDate)} {eventData.eventTime && `at ${formatEventTime(eventData.eventTime)}`}</span>
               </div>
               
               <div className="flex items-center gap-2 text-slate-600">

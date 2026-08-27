@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import * as db from '../db';
 import * as email from '../email';
 import { buildMerchOrderNotification } from '../utils/merchCommerce';
+import { formatDateOnly } from '../../shared/dateOnly';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -1000,7 +1001,7 @@ async function sendTicketConfirmationEmail(params: {
     if (tier) tiers[tierId] = tier.name;
   }
 
-  const eventDate = event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
+  const eventDate = formatDateOnly(event.eventDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const confirmationUrl = `${ENV.baseUrl}/tickets/confirmation/${params.orderNumber}`;
 
   const ticketRows = tickets.map(t => `

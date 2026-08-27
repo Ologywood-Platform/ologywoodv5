@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { Loader2, Upload, X, Image, Calendar, MapPin, Ticket, FileText, ArrowLeft, Music, Users } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { dateOnlyToUtcDate, formatDateOnly } from '@shared/dateOnly';
+import { EVENT_TYPE_OPTIONS, type EventTypeValue } from '@shared/eventTypes';
 
 export default function VenueEventCreate() {
   const [, navigate] = useLocation();
@@ -34,7 +36,7 @@ export default function VenueEventCreate() {
     ticketLink: '',
     ticketPrice: '',
     capacity: '',
-    eventType: 'concert' as const,
+    eventType: 'concert' as EventTypeValue,
   });
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -146,7 +148,7 @@ export default function VenueEventCreate() {
 
       const result = await createVenueEventMutation.mutateAsync({
         eventTitle: formData.eventTitle,
-        eventDate: new Date(formData.eventDate),
+        eventDate: dateOnlyToUtcDate(formData.eventDate),
         eventTime: formData.eventTime || undefined,
         eventEndTime: formData.eventEndTime || undefined,
         location: formData.location,
@@ -224,7 +226,7 @@ export default function VenueEventCreate() {
                 <Music className="h-5 w-5 text-purple-600 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-purple-900">Artist: {prefillArtistName}</p>
-                  {prefillDate && <p className="text-xs text-purple-700">Date: {new Date(prefillDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>}
+                  {prefillDate && <p className="text-xs text-purple-700">Date: {formatDateOnly(prefillDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>}
                 </div>
               </div>
             )}
@@ -308,12 +310,9 @@ export default function VenueEventCreate() {
                   onChange={handleChange}
                   className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                 >
-                  <option value="concert">Concert / Live Music</option>
-                  <option value="bar_gig">Bar Gig</option>
-                  <option value="festival">Festival</option>
-                  <option value="private_party">Private Party</option>
-                  <option value="corporate">Corporate Event</option>
-                  <option value="other">Other</option>
+                  {EVENT_TYPE_OPTIONS.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
                 </select>
               </div>
 

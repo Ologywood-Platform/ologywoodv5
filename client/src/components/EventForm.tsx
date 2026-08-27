@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { dateOnlyToUtcDate, getDateOnlyKey } from '@shared/dateOnly';
+import { EVENT_TYPE_OPTIONS } from '@shared/eventTypes';
 
 interface EventFormProps {
   initialData?: {
@@ -29,16 +31,6 @@ interface EventFormProps {
   isEditing?: boolean;
 }
 
-const EVENT_TYPES = [
-  { value: 'bar_gig', label: 'Bar / Club Gig' },
-  { value: 'concert', label: 'Concert' },
-  { value: 'corporate', label: 'Corporate Event' },
-  { value: 'festival', label: 'Festival' },
-  { value: 'private_party', label: 'Private Party' },
-  { value: 'wedding', label: 'Wedding' },
-  { value: 'other', label: 'Other' },
-];
-
 const AUDIENCE_TYPES = [
   { value: 'general_public', label: 'General Public' },
   { value: 'adults_only', label: 'Adults Only' },
@@ -56,7 +48,7 @@ export function EventForm({
   const [formData, setFormData] = useState({
     eventTitle: initialData?.eventTitle || '',
     eventType: initialData?.eventType || '',
-    eventDate: initialData?.eventDate ? new Date(initialData.eventDate).toISOString().split('T')[0] : '',
+    eventDate: getDateOnlyKey(initialData?.eventDate) || '',
     eventTime: initialData?.eventTime || '',
     eventEndTime: initialData?.eventEndTime || '',
     location: initialData?.location || '',
@@ -112,7 +104,7 @@ export function EventForm({
       await onSubmit({
         ...formData,
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
-        eventDate: new Date(formData.eventDate),
+        eventDate: dateOnlyToUtcDate(formData.eventDate),
       });
       toast.success(isEditing ? 'Event updated successfully' : 'Event created successfully');
     } catch (error) {
@@ -189,7 +181,7 @@ export function EventForm({
                 <SelectValue placeholder="Select event type" />
               </SelectTrigger>
               <SelectContent>
-                {EVENT_TYPES.map(type => (
+                {EVENT_TYPE_OPTIONS.map(type => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>

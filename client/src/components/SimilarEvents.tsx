@@ -5,33 +5,17 @@ import { Calendar, MapPin, Users, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { formatEventTime } from '@/lib/utils';
+import { formatDateOnly } from '@shared/dateOnly';
+import { formatEventTypeLabel } from '@shared/eventTypes';
 
 interface SimilarEventsProps {
   eventId: number;
   limit?: number;
 }
 
-function formatEventDate(date: string | Date | null): string {
-  if (!date) return 'TBD';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function getEventTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    wedding: 'Wedding',
-    corporate: 'Corporate',
-    festival: 'Festival',
-    bar_gig: 'Bar Gig',
-    private_party: 'Private Party',
-    concert: 'Concert',
-    other: 'Other',
-  };
-  return labels[type] || type;
-}
-
 function getEventTypeColor(type: string): string {
   const colors: Record<string, string> = {
+    arts_culture: 'bg-rose-100 text-rose-800',
     wedding: 'bg-pink-100 text-pink-800',
     corporate: 'bg-blue-100 text-blue-800',
     festival: 'bg-purple-100 text-purple-800',
@@ -97,7 +81,7 @@ export function SimilarEvents({ eventId, limit = 6 }: SimilarEventsProps) {
                     variant="secondary"
                     className={`text-xs ${getEventTypeColor(event.eventType)}`}
                   >
-                    {getEventTypeLabel(event.eventType)}
+                    {formatEventTypeLabel(event.eventType)}
                   </Badge>
                   {event.status === 'available' && (
                     <Badge variant="outline" className="text-xs text-green-700 border-green-300 bg-green-50">
@@ -121,7 +105,7 @@ export function SimilarEvents({ eventId, limit = 6 }: SimilarEventsProps) {
                 {/* Date */}
                 <div className="flex items-center gap-1.5 text-sm text-slate-600">
                   <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-                  <span>{formatEventDate(event.eventDate)}</span>
+                  <span>{formatDateOnly(event.eventDate)}</span>
                   {event.eventTime && (
                     <span className="text-slate-400">at {formatEventTime(event.eventTime)}</span>
                   )}

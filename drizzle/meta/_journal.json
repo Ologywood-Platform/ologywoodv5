@@ -743,6 +743,13 @@
       "when": 1787854995946,
       "tag": "0104_merch_schema_repair",
       "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "5",
+      "when": 1787867901344,
+      "tag": "0105_furry_colonel_america",
+      "breakpoints": true
     }
   ]
 }

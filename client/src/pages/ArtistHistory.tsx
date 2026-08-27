@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { setMetaTags } from "../utils/seoMeta";
 import PageBreadcrumb from "@/components/PageBreadcrumb";
+import { formatDateOnly, getDateOnlyKey } from '@shared/dateOnly';
 import { AddPerformanceForm } from "@/components/AddPerformanceForm";
 import { PhotoUploadGallery } from "@/components/PhotoUploadGallery";
 import { useEffect, useState } from "react";
@@ -176,13 +177,11 @@ export default function ArtistHistory() {
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-slate-200 dark:border-gray-700 col-span-2 sm:col-span-1">
               <div className="text-2xl font-bold text-slate-900 dark:text-white">
                 {history[0]?.eventDate
-                  ? new Date(history[0].eventDate).getFullYear()
+                  ? getDateOnlyKey(history[0].eventDate)?.slice(0, 4)
                   : "—"}
                 {" – "}
                 {history[history.length - 1]?.eventDate
-                  ? new Date(
-                      history[history.length - 1].eventDate
-                    ).getFullYear()
+                  ? getDateOnlyKey(history[history.length - 1].eventDate)?.slice(0, 4)
                   : "Present"}
               </div>
               <div className="text-sm text-slate-500 dark:text-gray-400">
@@ -254,14 +253,11 @@ export default function ArtistHistory() {
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5" />
                             {event.eventDate
-                              ? new Date(event.eventDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                  }
-                                )
+                              ? formatDateOnly(event.eventDate, {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })
                               : "Date not specified"}
                           </span>
                           {event.attendeeCount && event.attendeeCount > 0 && (

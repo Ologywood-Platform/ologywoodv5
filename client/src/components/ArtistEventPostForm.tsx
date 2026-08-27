@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Upload, X, Image, Calendar, MapPin, Ticket, FileText } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { dateOnlyToUtcDate } from '@shared/dateOnly';
+import { EVENT_TYPE_OPTIONS } from '@shared/eventTypes';
 
 interface ArtistEventPostFormProps {
   onSuccess?: (eventId: number) => void;
@@ -16,6 +19,7 @@ interface ArtistEventPostFormProps {
 export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEventPostFormProps) {
   const [formData, setFormData] = useState({
     eventTitle: '',
+    eventType: '',
     eventDate: '',
     eventTime: '',
     eventEndTime: '',
@@ -36,6 +40,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.eventTitle.trim()) newErrors.eventTitle = 'Event name is required';
+    if (!formData.eventType) newErrors.eventType = 'Event type is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
 
@@ -116,7 +121,8 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
 
       const result = await createPostMutation.mutateAsync({
         eventTitle: formData.eventTitle,
-        eventDate: new Date(formData.eventDate),
+        eventType: formData.eventType as (typeof EVENT_TYPE_OPTIONS)[number]['value'],
+        eventDate: dateOnlyToUtcDate(formData.eventDate),
         eventTime: formData.eventTime || undefined,
         eventEndTime: formData.eventEndTime || undefined,
         location: formData.location,
@@ -153,7 +159,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
           Post an Event
         </CardTitle>
         <CardDescription>
-          Let your fans know about your upcoming performance. Keep it simple — just the essentials.
+          Let your fans know about your upcoming event. Keep it simple — just the essentials.
         </CardDescription>
       </CardHeader>
 
@@ -219,6 +225,32 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
               className={errors.eventTitle ? 'border-red-500' : ''}
             />
             {errors.eventTitle && <p className="text-sm text-red-500">{errors.eventTitle}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="eventType">Event Type *</Label>
+            <Select
+              value={formData.eventType}
+              onValueChange={(value) => {
+                setFormData((previous) => ({ ...previous, eventType: value }));
+                setErrors((previous) => {
+                  const next = { ...previous };
+                  delete next.eventType;
+                  return next;
+                });
+              }}
+            >
+              <SelectTrigger id="eventType" className={errors.eventType ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPE_OPTIONS.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.eventType && <p className="text-sm text-red-500">{errors.eventType}</p>}
+            <p className="text-xs text-muted-foreground">Choose the category fans should see on event cards and in search.</p>
           </div>
 
           {/* Date and Time */}

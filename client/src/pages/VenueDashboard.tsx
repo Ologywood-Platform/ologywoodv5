@@ -5,6 +5,7 @@ import { useAuth } from '../_core/hooks/useAuth';
 import { trpc } from '../lib/trpc';
 import SiteHeader from '../components/SiteHeader';
 import { formatEventTime } from '../lib/utils';
+import { formatDateOnly } from '@shared/dateOnly';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import ProfileCompletenessCard from '../components/ProfileCompletenessCard';
 import { Button } from '../components/ui/button';
@@ -1847,7 +1848,7 @@ function MyEventsTab({ venueProfileId }: { venueProfileId?: number }) {
                 <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {formatDateOnly(event.eventDate, { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
                   {event.eventTime && (
                     <span>{formatEventTime(event.eventTime)}</span>

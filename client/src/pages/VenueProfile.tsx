@@ -21,6 +21,7 @@ import SiteHeader from '@/components/SiteHeader';
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { toSlug } from '@/lib/slugify';
+import { dateOnlyTimestamp, formatDateOnly } from '@shared/dateOnly';
 
 export default function VenueProfile() {
   const { id } = useParams<{ id: string }>();
@@ -838,16 +839,14 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
   if (isLoading) return null;
 
   // Filter to only upcoming events
-  const now = new Date();
+  const today = dateOnlyTimestamp(new Date());
   const upcomingEvents = (events || []).filter((e: any) => {
-    const eventDate = new Date(e.eventDate);
-    return eventDate >= now;
-  }).sort((a: any, b: any) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+    return dateOnlyTimestamp(e.eventDate) >= today;
+  }).sort((a: any, b: any) => dateOnlyTimestamp(a.eventDate) - dateOnlyTimestamp(b.eventDate));
 
   const pastEvents = (events || []).filter((e: any) => {
-    const eventDate = new Date(e.eventDate);
-    return eventDate < now;
-  }).sort((a: any, b: any) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()).slice(0, 5);
+    return dateOnlyTimestamp(e.eventDate) < today;
+  }).sort((a: any, b: any) => dateOnlyTimestamp(b.eventDate) - dateOnlyTimestamp(a.eventDate)).slice(0, 5);
 
   if (upcomingEvents.length === 0 && pastEvents.length === 0) return null;
 
@@ -872,14 +871,14 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
                 >
                   <div className="text-center min-w-[50px]">
                     <p className="text-xs text-muted-foreground uppercase">
-                      {new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short' })}
+                      {formatDateOnly(event.eventDate, { month: 'short' })}
                     </p>
                     <p className="text-xl font-bold">
-                      {new Date(event.eventDate).getDate()}
+                      {formatDateOnly(event.eventDate, { day: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{event.title}</p>
+                    <p className="font-medium truncate">{event.eventTitle}</p>
                     <p className="text-sm text-muted-foreground">
                       {event.eventTime ? formatEventTime(event.eventTime) : 'Time TBD'}
                       {event.ticketPrice ? ` · $${event.ticketPrice}` : ' · Free'}
@@ -902,11 +901,11 @@ function VenueUpcomingEvents({ venueId }: { venueId: number }) {
                 >
                   <div className="text-center min-w-[50px]">
                     <p className="text-xs text-muted-foreground">
-                      {new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {formatDateOnly(event.eventDate, { month: 'short', day: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">{event.title}</p>
+                    <p className="text-sm truncate">{event.eventTitle}</p>
                   </div>
                 </div>
               ))}

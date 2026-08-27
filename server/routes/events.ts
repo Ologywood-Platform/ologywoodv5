@@ -22,6 +22,8 @@ import {
   isEventSaved,
   removeSavedEvent,
 } from '../db';
+import { dateOnlyToUtcDate } from '../../shared/dateOnly';
+import { EVENT_TYPE_VALUES, type EventTypeValue } from '../../shared/eventTypes';
 
 // Middleware to check if user is authenticated
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -52,12 +54,15 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
     if (!eventTitle || !eventType || !eventDate) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+    if (!EVENT_TYPE_VALUES.includes(eventType as EventTypeValue)) {
+      return res.status(400).json({ error: 'Invalid event type' });
+    }
 
     const event = await createEvent({
       artistId: user.id,
       eventTitle,
       eventType,
-      eventDate: new Date(eventDate),
+      eventDate: dateOnlyToUtcDate(eventDate),
       eventTime,
       eventEndTime,
       location,
@@ -173,7 +178,13 @@ router.put('/api/events/:id', requireAuth, async (req: Request, res: Response) =
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const updatedEvent = await updateEvent(parseInt(id), req.body);
+    if (req.body.eventType && !EVENT_TYPE_VALUES.includes(req.body.eventType as EventTypeValue)) {
+      return res.status(400).json({ error: 'Invalid event type' });
+    }
+    const updatedEvent = await updateEvent(parseInt(id), {
+      ...req.body,
+      ...(req.body.eventDate ? { eventDate: dateOnlyToUtcDate(req.body.eventDate) } : {}),
+    });
     res.json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error);
@@ -296,7 +307,7 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
       bookingId,
       artistId: user.id,
       venueId,
-      eventDate: new Date(eventDate),
+      eventDate: dateOnlyToUtcDate(eventDate),
       attendeeCount,
       notes,
     });

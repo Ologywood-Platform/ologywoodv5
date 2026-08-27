@@ -13,6 +13,8 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
+import { dateOnlyToUtcDate } from '@shared/dateOnly';
+import { EVENT_TYPE_OPTIONS } from '@shared/eventTypes';
 
 export default function EventDiscovery() {
   const [, navigate] = useLocation();
@@ -69,8 +71,8 @@ export default function EventDiscovery() {
     if (filters.location) input.location = filters.location;
     if (filters.minRate) input.minRate = parseFloat(filters.minRate);
     if (filters.maxRate) input.maxRate = parseFloat(filters.maxRate);
-    if (filters.startDate) input.startDate = new Date(filters.startDate);
-    if (filters.endDate) input.endDate = new Date(filters.endDate);
+    if (filters.startDate) input.startDate = dateOnlyToUtcDate(filters.startDate);
+    if (filters.endDate) input.endDate = dateOnlyToUtcDate(filters.endDate);
     setAppliedFilters(input);
     setAppliedSearchQuery(searchQuery);
     setHasSearched(true);
@@ -206,13 +208,9 @@ export default function EventDiscovery() {
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="concert">Concert</SelectItem>
-                    <SelectItem value="wedding">Wedding</SelectItem>
-                    <SelectItem value="corporate">Corporate Event</SelectItem>
-                    <SelectItem value="festival">Festival</SelectItem>
-                    <SelectItem value="bar_gig">Bar Gig</SelectItem>
-                    <SelectItem value="private_party">Private Party</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {EVENT_TYPE_OPTIONS.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

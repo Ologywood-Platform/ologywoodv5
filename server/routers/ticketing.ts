@@ -7,6 +7,7 @@ import { eq, and, sql, desc, asc } from 'drizzle-orm';
 import { stripe } from '../stripe';
 import { TRPCError } from '@trpc/server';
 import { randomUUID } from 'crypto';
+import { formatDateOnly } from '../../shared/dateOnly';
 
 async function getDatabase() {
   const instance = await getDb();
@@ -792,7 +793,7 @@ export const ticketingRouter = router({
         const acceptUrl = `${ENV.baseUrl}/tickets/accept/${transferCode}`;
         const senderName = order.buyerName || order.buyerEmail;
         const eventTitle = event?.eventTitle || 'an event';
-        const eventDate = event?.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD';
+        const eventDate = formatDateOnly(event?.eventDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
         const html = `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

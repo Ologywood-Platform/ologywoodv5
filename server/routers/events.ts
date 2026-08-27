@@ -2,12 +2,13 @@ import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import * as db from '../db';
 import { notifyFansNewEvent } from '../services/fanNotificationService';
+import { EVENT_TYPE_VALUES } from '../../shared/eventTypes';
 
 // Input validation schemas
 const createEventSchema = z.object({
   eventTitle: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  eventType: z.enum(['concert', 'wedding', 'corporate', 'festival', 'other', 'bar_gig', 'private_party']),
+  eventType: z.enum(EVENT_TYPE_VALUES),
   location: z.string().optional(),
   eventDate: z.date(),
   eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
@@ -38,6 +39,7 @@ const searchEventsSchema = z.object({
 // Simplified schema for artist event posts (fan-facing)
 const artistPostSchema = z.object({
   eventTitle: z.string().min(1, 'Event name is required'),
+  eventType: z.enum(EVENT_TYPE_VALUES),
   eventDate: z.date(),
   eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
@@ -57,7 +59,7 @@ const venueEventSchema = z.object({
   description: z.string().optional(),
   ticketLink: z.string().url().optional().or(z.literal('')),
   coverImageUrl: z.string().optional(),
-  eventType: z.enum(['concert', 'wedding', 'corporate', 'festival', 'other', 'bar_gig', 'private_party']).default('concert'),
+  eventType: z.enum(EVENT_TYPE_VALUES).default('concert'),
   artistId: z.number().int().positive(),
   bookingId: z.number().int().positive().optional(),
   ticketPrice: z.string().optional(),
@@ -144,7 +146,7 @@ export const eventsRouter = router({
           description: input.description,
           ticketLink: input.ticketLink || undefined,
           coverImageUrl: input.coverImageUrl || undefined,
-          eventType: 'concert', // Default for artist posts
+          eventType: input.eventType,
           eventSource: 'artist_post',
           isPublic: true, // Artist posts are always public
           status: 'available',
@@ -182,6 +184,7 @@ export const eventsRouter = router({
         if (existing.artistId !== artistProfile.id) throw new Error('Not authorized to edit this event');
         const event = await db.updateEvent(input.id, {
           eventTitle: input.eventTitle,
+          eventType: input.eventType,
           eventDate: input.eventDate,
           eventTime: input.eventTime,
           eventEndTime: input.eventEndTime,

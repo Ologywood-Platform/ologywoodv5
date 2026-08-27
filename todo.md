@@ -4319,3 +4319,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify T-Shirt Testing share panel and product preview on desktop and mobile
 - [x] Run TypeScript, 59 focused tests, 2,648 full-suite tests, and production build validation
 - [x] Save checkpoint 8b81975b for the custom merch share panel
+
+## ART EVENT CATEGORY & DATE CORRECTION (Aug 27, 2026)
+- [x] Inspect Dawud Anyabwile’s two upcoming events and identify the stored event type and date values
+- [x] Trace why art exhibitions defaulted to Concert in creation, editing, cards, and detail views
+- [x] Add a clear Arts & Culture event category and preserve the creator’s selected category end to end
+- [x] Eliminate timezone-driven one-day shifts for date-only event values across public event, profile, dashboard, booking, ticket, venue, and email surfaces
+- [x] Verify only Dawud’s two identified art exhibitions show Arts & Culture with September 3 and October 17 preserved
+- [x] Add regression coverage for category selection and date-only parsing/formatting
+- [x] Run TypeScript, 68 focused tests, 2,653 full-suite tests, database migration, runtime checks, and production build
+- [ ] Save a checkpoint for the art event category and date correction

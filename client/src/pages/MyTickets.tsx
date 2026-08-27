@@ -7,18 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Ticket, QrCode, ArrowLeft, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import SiteHeader from '@/components/SiteHeader';
+import { formatDateOnly } from '@shared/dateOnly';
 
 export default function MyTickets() {
   const [, navigate] = useLocation();
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
 
   const { data: tickets, isLoading } = trpc.ticketing.getMyTickets.useQuery({ status: tab });
-
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return 'TBD';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -89,7 +84,7 @@ export default function MyTickets() {
                               <div className="flex flex-col gap-0.5 mt-1 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3.5 w-3.5" />
-                                  {formatDate(order.event?.date)}
+                                  {formatDateOnly(order.event?.date, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                   {order.event?.time && ` at ${order.event.time}`}
                                 </span>
                                 {order.event?.location && (

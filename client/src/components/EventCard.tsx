@@ -9,6 +9,8 @@ import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 import { EventBookingFlow } from '@/components/EventBookingFlow';
 import { formatEventTime } from '@/lib/utils';
+import { formatDateOnly } from '@shared/dateOnly';
+import { formatEventTypeLabel } from '@shared/eventTypes';
 
 interface EventCardProps {
   id: number;
@@ -53,11 +55,6 @@ export function EventCard({
   const [, navigate] = useLocation();
   const [saved, setSaved] = useState(isSaved);
   const [showBookingFlow, setShowBookingFlow] = useState(false);
-
-  const formatDate = (date: Date | string) => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -123,7 +120,7 @@ export function EventCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <CardTitle className="text-lg line-clamp-2">{eventTitle}</CardTitle>
-            <CardDescription className="text-sm mt-1">{eventType}</CardDescription>
+            <CardDescription className="text-sm mt-1">{formatEventTypeLabel(eventType)}</CardDescription>
           </div>
           <Badge className={getStatusColor(status)} variant="outline">
             {status}
@@ -151,7 +148,7 @@ export function EventCard({
           <div className="flex items-center gap-2 text-slate-600">
             <Calendar className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">
-              {formatDate(eventDate)} {eventTime && `at ${formatEventTime(eventTime)}`}
+              {formatDateOnly(eventDate)} {eventTime && `at ${formatEventTime(eventTime)}`}
             </span>
           </div>
 

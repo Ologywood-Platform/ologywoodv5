@@ -10,6 +10,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { formatEventTime } from '@/lib/utils';
+import { formatDateOnly } from '@shared/dateOnly';
 import { AccountSettings } from '@/components/AccountSettings';
 import { EventStatusManager } from '@/components/EventStatusManager';
 import { FansSection } from '@/components/FansSection';
@@ -657,7 +658,7 @@ export function ArtistDashboardV3() {
                             {event.eventTitle}
                           </h4>
                           <p className="text-xs text-slate-500 dark:text-gray-400">
-                            {new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            {formatDateOnly(event.eventDate, { weekday: 'short', month: 'short', day: 'numeric' })}
                             {event.eventTime && ` at ${formatEventTime(event.eventTime)}`}
                           </p>
                           {event.location && (
