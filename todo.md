@@ -4328,4 +4328,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify only Dawud’s two identified art exhibitions show Arts & Culture with September 3 and October 17 preserved
 - [x] Add regression coverage for category selection and date-only parsing/formatting
 - [x] Run TypeScript, 68 focused tests, 2,653 full-suite tests, database migration, runtime checks, and production build
-- [ ] Save a checkpoint for the art event category and date correction
+- [x] Save checkpoint 6101b1b4 for the art event category and date correction
