@@ -4291,3 +4291,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Accept valid CloudFront profile/product images served as application/octet-stream while enforcing a 15 MB source limit
 - [x] Run TypeScript, focused tests, full regression suite, production build, and desktop/mobile visual validation
 - [x] Save checkpoint b256cdce for the completed dynamic profile and merch social preview work
+
+## CREATOR-NEUTRAL PORTFOLIO WORDING (Aug 27, 2026)
+- [x] Locate performance-specific portfolio labels and descriptions across public profiles
+- [x] Replace them with creator-neutral Portfolio wording suitable for illustrators and all talent types
+- [x] Add regression coverage for the shared wording
+- [x] Verify Dawud Anyabwile’s public profile and full portfolio presentation on desktop and mobile
+- [x] Run TypeScript, focused tests, full regression suite, and production build validation
+- [ ] Save a checkpoint for the creator-neutral portfolio wording update

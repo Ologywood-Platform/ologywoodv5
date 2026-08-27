@@ -1548,14 +1548,14 @@ export default function ArtistProfile() {
                 </CardContent>
               </Card>
 
-              {/* Event History/Portfolio */}
+              {/* Portfolio */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Performance Portfolio</CardTitle>
+                  <CardTitle>Portfolio</CardTitle>
                   <CardDescription>
                     {portfolioStats
-                      ? `${portfolioStats.historyCount} performances · ${portfolioStats.photoCount} photos`
-                      : 'Past events and performance photos'}
+                      ? `${portfolioStats.historyCount} portfolio entries · ${portfolioStats.photoCount} photos`
+                      : 'Selected work, projects, appearances, and creative highlights'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1566,7 +1566,7 @@ export default function ArtistProfile() {
                         <div key={photo.id} className="aspect-square rounded-md overflow-hidden bg-muted">
                           <img
                             src={photo.photoUrl}
-                            alt={photo.caption || 'Performance photo'}
+                            alt={photo.caption || 'Portfolio image'}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -1574,7 +1574,7 @@ export default function ArtistProfile() {
                     </div>
                   ) : (
                     <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">
-                      See details from previous events this artist has performed at.
+                      Explore previous work and professional experience from this creator.
                     </p>
                   )}
                   <Button

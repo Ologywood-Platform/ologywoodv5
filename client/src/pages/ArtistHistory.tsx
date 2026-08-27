@@ -19,7 +19,6 @@ import {
 import {
   Calendar,
   MapPin,
-  Music,
   Users,
   Trash2,
   ImageIcon,
@@ -78,17 +77,17 @@ export default function ArtistHistory() {
   useEffect(() => {
     const artistName = artist?.artistName || "Artist";
     setMetaTags({
-      title: `${artistName} - Performance Portfolio | Ologywood`,
-      description: `View past performances and event photos for ${artistName} on Ologywood.`,
+      title: `${artistName} - Portfolio | Ologywood`,
+      description: `Explore selected work, projects, appearances, and creative highlights from ${artistName} on Ologywood.`,
     });
   }, [artist]);
 
   // Parse the notes field to extract event name, venue, location, and body
   const parseNotes = (notes: string | null) => {
-    if (!notes) return { eventName: "Performance", venueName: "", location: "", body: "" };
+    if (!notes) return { eventName: "Portfolio Entry", venueName: "", location: "", body: "" };
     // Format: **EventName** at VenueName — Location\n\nBody
     const nameMatch = notes.match(/^\*\*(.+?)\*\*/);
-    const eventName = nameMatch ? nameMatch[1] : notes.split("\n")[0] || "Performance";
+    const eventName = nameMatch ? nameMatch[1] : notes.split("\n")[0] || "Portfolio Entry";
     const afterName = notes.replace(/^\*\*(.+?)\*\*/, "").trim();
     const venueMatch = afterName.match(/^at\s+(.+?)(?:\s+—\s+|$|\n)/);
     const venueName = venueMatch ? venueMatch[1] : "";
@@ -139,12 +138,12 @@ export default function ArtistHistory() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-              Performance Portfolio
+              Portfolio
             </h1>
             <p className="text-slate-600 dark:text-gray-400 mt-1">
               {isOwner
-                ? "Showcase your past performances and build your portfolio"
-                : `Past events and performances by ${artist?.artistName || "this artist"}`}
+                ? "Showcase your work, projects, appearances, and creative highlights"
+                : `Selected work and professional highlights from ${artist?.artistName || "this creator"}`}
             </p>
           </div>
           {isOwner && history.length > 0 && (
@@ -160,7 +159,7 @@ export default function ArtistHistory() {
                 {history.length}
               </div>
               <div className="text-sm text-slate-500 dark:text-gray-400">
-                Performances
+                Portfolio Entries
               </div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-slate-200 dark:border-gray-700">
@@ -197,24 +196,24 @@ export default function ArtistHistory() {
         {history.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
-              <Music className="h-14 w-14 mx-auto text-slate-300 dark:text-gray-600 mb-4" />
+              <ImageIcon className="h-14 w-14 mx-auto text-slate-300 dark:text-gray-600 mb-4" />
               <h3 className="text-xl font-semibold text-slate-700 dark:text-gray-300 mb-2">
                 {isOwner
                   ? "Start Building Your Portfolio"
-                  : "No Performance History Yet"}
+                  : "Portfolio Coming Soon"}
               </h3>
               <p className="text-slate-500 dark:text-gray-400 max-w-md mx-auto mb-6">
                 {isOwner
-                  ? "Add your past performances to showcase your experience to venues and event organizers."
-                  : "This artist hasn't logged any past performances yet. Check back later for their event portfolio."}
+                  ? "Add past work, projects, appearances, or creative highlights to show what you do."
+                  : "This creator hasn't added portfolio entries yet. Check back later to explore their work."}
               </p>
               {isOwner && (
                 <AddPerformanceForm
                   onSuccess={() => refetchHistory()}
                   trigger={
                     <Button size="lg" className="gap-2">
-                      <Music className="h-4 w-4" />
-                      Add Your First Performance
+                      <ImageIcon className="h-4 w-4" />
+                      Add Your First Portfolio Entry
                     </Button>
                   }
                 />
@@ -299,7 +298,7 @@ export default function ArtistHistory() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete Performance
+                                  Delete Portfolio Entry
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Are you sure you want to remove "
