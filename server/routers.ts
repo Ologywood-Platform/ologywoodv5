@@ -30,6 +30,8 @@ import { adminRouter } from "./routers/admin";
 import { payoutRouter } from "./routers/payout";
 import { venueRouter } from "./routers/venue";
 import { notifyFansProfileUpdate } from "./services/fanNotificationService";
+import { ensureVideoPortfolioSchema } from './services/videoPortfolioSchemaService';
+import { parsePortfolioVideoUrl, PORTFOLIO_VIDEO_URL_HELP } from '../shared/videoPortfolio';
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
@@ -837,6 +839,7 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) return [];
+        await ensureVideoPortfolioSchema(pool as any);
         const [rows] = await pool.execute(
           'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status = ? ORDER BY sortOrder ASC, createdAt DESC',
           [input.artistProfileId, 'active']
@@ -851,6 +854,7 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) return [];
+        await ensureVideoPortfolioSchema(pool as any);
         const [rows] = await pool.execute(
           'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status != ? ORDER BY sortOrder ASC, createdAt DESC',
           [profile.id, 'removed']
@@ -861,7 +865,7 @@ export const appRouter = router({
     addPortfolioVideo: artistProcedure
       .input(z.object({
         title: z.string().min(1).max(255),
-        videoUrl: z.string().url(),
+        videoUrl: z.string().trim().min(1).max(2048),
         thumbnailUrl: z.string().optional(),
         category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']),
         duration: z.number().optional(),
@@ -874,6 +878,11 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        await ensureVideoPortfolioSchema(pool as any);
+        const source = parsePortfolioVideoUrl(input.videoUrl);
+        if (!source) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: PORTFOLIO_VIDEO_URL_HELP });
+        }
         // Check limit (max 10)
         const [existing] = await pool.execute(
           'SELECT COUNT(*) as cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',
@@ -885,7 +894,7 @@ export const appRouter = router({
         }
         const [result] = await pool.execute(
           'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, thumbnailUrl, category, duration, sortOrder) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [profile.id, input.title, input.videoUrl, input.thumbnailUrl || null, input.category, input.duration || null, count]
+          [profile.id, input.title, source.normalizedUrl, input.thumbnailUrl || source.thumbnailUrl, input.category, input.duration || null, count]
         );
         return { success: true, id: (result as any).insertId };
       }),
@@ -905,6 +914,7 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        await ensureVideoPortfolioSchema(pool as any);
         // Verify ownership
         const [rows] = await pool.execute(
           'SELECT id FROM video_portfolio WHERE id = ? AND artistProfileId = ?',
@@ -935,6 +945,7 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        await ensureVideoPortfolioSchema(pool as any);
         // Verify ownership
         const [rows] = await pool.execute(
           'SELECT id FROM video_portfolio WHERE id = ? AND artistProfileId = ?',
@@ -964,6 +975,7 @@ export const appRouter = router({
         const { getPool } = await import('./db');
         const pool = getPool();
         if (!pool) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        await ensureVideoPortfolioSchema(pool as any);
         // Check limit
         const [existing] = await pool.execute(
           'SELECT COUNT(*) as cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',

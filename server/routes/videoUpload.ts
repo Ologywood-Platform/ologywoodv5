@@ -9,6 +9,8 @@ import multer from 'multer';
 import { storagePut } from '../storage';
 import * as db from '../db';
 import { sdk } from '../_core/sdk';
+import { ensureVideoPortfolioSchema } from '../services/videoPortfolioSchemaService';
+import { VIDEO_PORTFOLIO_CATEGORIES, type VideoPortfolioCategory } from '../../shared/videoPortfolio';
 
 const router = Router();
 
@@ -25,6 +27,17 @@ const upload = multer({
     } else {
       cb(new Error('Only MP4, MOV, and WebM videos are allowed'));
     }
+  },
+});
+
+const portfolioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+    allowedTypes.includes(file.mimetype)
+      ? cb(null, true)
+      : cb(new Error('Only MP4, MOV, and WebM videos are allowed'));
   },
 });
 
@@ -86,6 +99,69 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
       return res.status(413).json({ error: 'Video file must be under 500MB' });
     }
     return res.status(500).json({ error: err.message || 'Upload failed' });
+  }
+});
+
+// POST /api/video/portfolio — multipart upload for short portfolio clips
+router.post('/portfolio', portfolioUpload.single('video'), async (req: Request, res: Response) => {
+  try {
+    let user;
+    try {
+      user = await sdk.authenticateRequest(req as any);
+    } catch {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const profile = await db.getArtistProfileByUserId(user.id);
+    if (!profile) return res.status(404).json({ error: 'Artist profile not found' });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'Select a video file to upload' });
+
+    const title = String(req.body.title || '').trim();
+    const category = String(req.body.category || '') as VideoPortfolioCategory;
+    const duration = Number(req.body.durationSeconds || 0);
+    if (!title || title.length > 255) {
+      return res.status(400).json({ error: 'Enter a video title between 1 and 255 characters' });
+    }
+    if (!VIDEO_PORTFOLIO_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: 'Select a valid video category' });
+    }
+    if (!Number.isFinite(duration) || duration < 0 || duration > 120) {
+      return res.status(400).json({ error: 'Portfolio videos must be 2 minutes or less' });
+    }
+
+    const pool = db.getPool();
+    if (!pool) return res.status(503).json({ error: 'Database unavailable' });
+    await ensureVideoPortfolioSchema(pool as any);
+
+    const [existing] = await pool.execute(
+      'SELECT COUNT(*) AS cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',
+      [profile.id, 'active'],
+    );
+    const count = Number((existing as any[])[0]?.cnt || 0);
+    if (count >= 10) {
+      return res.status(400).json({ error: 'Maximum 10 videos allowed. Remove one to add another.' });
+    }
+
+    const safeExtension = file.mimetype === 'video/quicktime'
+      ? 'mov'
+      : file.mimetype === 'video/webm' ? 'webm' : 'mp4';
+    const fileKey = `video-portfolio/${user.id}/${Date.now()}.${safeExtension}`;
+    const { url } = await storagePut(fileKey, file.buffer, file.mimetype);
+
+    const [result] = await pool.execute(
+      'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, category, duration, sortOrder, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [profile.id, title, url, category, duration || null, count, 'active'],
+    );
+
+    return res.json({ success: true, id: (result as any).insertId, url });
+  } catch (err: any) {
+    console.error('[Portfolio Video Upload Error]', err);
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Portfolio video must be under 100MB' });
+    }
+    return res.status(500).json({ error: err.message || 'Portfolio video upload failed' });
   }
 });
 

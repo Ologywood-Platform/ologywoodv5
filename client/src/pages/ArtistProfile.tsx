@@ -44,6 +44,7 @@ import { SponsorShowcase } from '@/components/SponsorShowcase';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
 import { OlogyLiveProfileSection } from "@/components/OlogyLiveProfileSection";
 import { CrmBadge } from "@/components/CrmBadge";
+import { parsePortfolioVideoUrl, type PortfolioVideoKind } from '@shared/videoPortfolio';
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -135,8 +136,8 @@ export default function ArtistProfile() {
   );
 
   const { data: videoPortfolio = [] } = trpc.artist.getVideoPortfolio.useQuery(
-    { artistProfileId: artistId },
-    { enabled: isValidId }
+    { artistProfileId: Number(artist?.id || artistId) },
+    { enabled: Number(artist?.id || artistId) > 0 }
   );
   
   // Show error if no valid ID
@@ -174,7 +175,7 @@ export default function ArtistProfile() {
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [activeVideo, setActiveVideo] = useState<{url: string; title: string; category: string} | null>(null);
+  const [activeVideo, setActiveVideo] = useState<{url: string; title: string; category: string; kind: PortfolioVideoKind; embedUrl: string | null} | null>(null);
 
   const heroRef = useRef<HTMLDivElement>(null);
   
@@ -933,17 +934,30 @@ export default function ArtistProfile() {
                       <div
                         key={video.id}
                         className="rounded-lg overflow-hidden border cursor-pointer group hover:ring-2 hover:ring-primary/50 transition-all"
-                        onClick={() => setActiveVideo({ url: video.videoUrl, title: video.title, category: video.category })}
+                        onClick={() => {
+                          const source = parsePortfolioVideoUrl(video.videoUrl);
+                          setActiveVideo({
+                            url: video.videoUrl,
+                            title: video.title,
+                            category: video.category,
+                            kind: source?.kind || 'direct',
+                            embedUrl: source?.embedUrl || null,
+                          });
+                        }}
                       >
                         <div className="relative bg-black aspect-video">
                           {video.thumbnailUrl ? (
                             <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
                           ) : (
-                            <video
-                              src={video.videoUrl}
-                              preload="metadata"
-                              className="w-full h-full object-cover pointer-events-none"
-                            />
+                            parsePortfolioVideoUrl(video.videoUrl)?.kind === 'direct' ? (
+                              <video
+                                src={video.videoUrl}
+                                preload="metadata"
+                                className="w-full h-full object-cover pointer-events-none"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-slate-900 to-black" />
+                            )
                           )}
                           {/* Play button overlay */}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
@@ -994,12 +1008,22 @@ export default function ArtistProfile() {
                   </button>
                   {/* Video player with title overlay */}
                   <div className="rounded-lg overflow-hidden bg-black aspect-video relative group">
-                    <video
-                      src={activeVideo.url}
-                      controls
-                      autoPlay
-                      className="w-full h-full object-contain"
-                    />
+                    {activeVideo.embedUrl ? (
+                      <iframe
+                        src={`${activeVideo.embedUrl}?autoplay=1`}
+                        title={activeVideo.title}
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full border-0"
+                      />
+                    ) : (
+                      <video
+                        src={activeVideo.url}
+                        controls
+                        autoPlay
+                        className="w-full h-full object-contain"
+                      />
+                    )}
                     {/* Title overlay - shows on hover */}
                     <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       <h3 className="text-white font-semibold text-lg drop-shadow-md">{activeVideo.title}</h3>

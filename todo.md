@@ -4329,3 +4329,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for category selection and date-only parsing/formatting
 - [x] Run TypeScript, 68 focused tests, 2,653 full-suite tests, database migration, runtime checks, and production build
 - [x] Save checkpoint 6101b1b4 for the art event category and date correction
+
+## PORTFOLIO VIDEO UPLOAD & URL SAVE FAILURE (Aug 27, 2026)
+- [x] Reproduce the video-upload control not opening and URL submissions not saving
+- [x] Audit the portfolio video form state, validation, upload path, mutation, S3 storage, public playback, and runtime database schema
+- [x] Repair direct video upload with multipart S3 storage instead of database, project-directory, or base64 persistence
+- [x] Repair URL saving with YouTube, Vimeo, and direct-video normalization plus actionable validation errors
+- [x] Preserve existing portfolio videos and enforce artist-profile ownership on every mutation
+- [x] Add regression coverage for upload, URL save, schema repair, loading reset, failure recovery, and hosted playback
+- [x] Verify the shared creator workflow on desktop and mobile and confirm Dawud has no partial records from failed attempts
+- [x] Run TypeScript, 8 focused tests, 2,661 full-suite tests, production build, migration, and runtime URL-save validation
+- [ ] Save a checkpoint for the portfolio video repair

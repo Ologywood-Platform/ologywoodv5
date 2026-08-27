@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Video, Plus, Trash2, Link, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PORTFOLIO_VIDEO_URL_HELP } from '@shared/videoPortfolio';
 
 const VIDEO_CATEGORIES = [
   { value: 'highlights', label: 'Highlights', color: 'bg-amber-100 text-amber-800' },
@@ -28,6 +29,9 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const [videoUrl, setVideoUrl] = useState("");
   const [category, setCategory] = useState<VideoCategory>('highlights');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
   const { data: videos = [], isLoading } = trpc.artist.getMyVideoPortfolio.useQuery();
@@ -35,15 +39,6 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const addVideo = trpc.artist.addPortfolioVideo.useMutation({
     onSuccess: () => {
       toast.success("Video added to portfolio!");
-      resetForm();
-      utils.artist.getMyVideoPortfolio.invalidate();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const uploadVideo = trpc.artist.uploadPortfolioVideo.useMutation({
-    onSuccess: () => {
-      toast.success("Video uploaded and added to portfolio!");
       resetForm();
       utils.artist.getMyVideoPortfolio.invalidate();
     },
@@ -63,6 +58,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     setVideoUrl("");
     setCategory('highlights');
     setUploadFile(null);
+    setUploadProgress(0);
     setShowAddForm(false);
     setAddMode('url');
   };
@@ -78,18 +74,65 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     if (!uploadFile) { toast.error("Please select a video file"); return; }
     if (uploadFile.size > 100 * 1024 * 1024) { toast.error("File must be under 100MB"); return; }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      uploadVideo.mutate({
-        title: title.trim(),
-        category,
-        fileName: uploadFile.name,
-        mimeType: uploadFile.type,
-        fileData: reader.result as string,
+    setUploading(true);
+    setUploadProgress(0);
+    try {
+      const duration = await getVideoDuration(uploadFile);
+      if (duration > 120) throw new Error('Portfolio videos must be 2 minutes or less');
+
+      const formData = new FormData();
+      formData.append('video', uploadFile);
+      formData.append('title', title.trim());
+      formData.append('category', category);
+      formData.append('durationSeconds', String(Math.round(duration)));
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) setUploadProgress(Math.round((event.loaded / event.total) * 90));
+        });
+        xhr.addEventListener('load', () => {
+          let response: { error?: string } = {};
+          try { response = JSON.parse(xhr.responseText); } catch { /* handled below */ }
+          if (xhr.status >= 200 && xhr.status < 300) {
+            setUploadProgress(100);
+            resolve();
+          } else {
+            reject(new Error(response.error || 'Portfolio video upload failed'));
+          }
+        });
+        xhr.addEventListener('error', () => reject(new Error('Network error during video upload')));
+        xhr.addEventListener('abort', () => reject(new Error('Video upload was cancelled')));
+        xhr.open('POST', '/api/video/portfolio');
+        xhr.send(formData);
       });
-    };
-    reader.readAsDataURL(uploadFile);
+
+      toast.success('Video uploaded and added to your portfolio');
+      resetForm();
+      await utils.artist.getMyVideoPortfolio.invalidate();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Portfolio video upload failed');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
+
+  const getVideoDuration = (file: File): Promise<number> => new Promise((resolve, reject) => {
+    const element = document.createElement('video');
+    const objectUrl = URL.createObjectURL(file);
+    element.preload = 'metadata';
+    element.onloadedmetadata = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(element.duration);
+    };
+    element.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('We could not read this video. Try an MP4, MOV, or WebM file.'));
+    };
+    element.src = objectUrl;
+  });
 
   const getCategoryInfo = (cat: string) => {
     return VIDEO_CATEGORIES.find(c => c.value === cat) || VIDEO_CATEGORIES[VIDEO_CATEGORIES.length - 1];
@@ -99,10 +142,10 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const relevantCategories = talentType === 'athlete'
     ? VIDEO_CATEGORIES.filter(c => ['highlights', 'training', 'game_day', 'behind_the_scenes', 'other'].includes(c.value))
     : talentType === 'artist'
-    ? VIDEO_CATEGORIES.filter(c => ['live_performance', 'studio', 'music_video', 'behind_the_scenes', 'other'].includes(c.value))
+    ? VIDEO_CATEGORIES.filter(c => ['highlights', 'live_performance', 'studio', 'music_video', 'behind_the_scenes', 'other'].includes(c.value))
     : VIDEO_CATEGORIES;
 
-  const isPending = addVideo.isPending || uploadVideo.isPending;
+  const isPending = addVideo.isPending || uploading;
 
   return (
     <Card>
@@ -120,13 +163,21 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Add up to 10 short clips (1-2 min each) to showcase your talent. {talentType === 'athlete' ? 'Highlight reels, training clips, and game day footage work great.' : 'Live performances, studio sessions, and music videos work great.'}
+          Add up to 10 short clips (2 minutes or less) to showcase your work. Paste a YouTube or Vimeo link, or upload an MP4, MOV, or WebM file.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Add Form */}
         {showAddForm && (
           <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+            <input
+              ref={fileInputRef}
+              id="videoFile"
+              type="file"
+              accept="video/mp4,video/quicktime,video/webm"
+              onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              className="sr-only"
+            />
             <div className="flex gap-2 mb-3">
               <Button
                 size="sm"
@@ -139,7 +190,10 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
               <Button
                 size="sm"
                 variant={addMode === 'upload' ? 'default' : 'outline'}
-                onClick={() => setAddMode('upload')}
+                onClick={() => {
+                  setAddMode('upload');
+                  fileInputRef.current?.click();
+                }}
                 className="gap-1"
               >
                 <Upload className="h-3 w-3" /> Upload File
@@ -164,22 +218,29 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
                   id="videoUrl"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="Paste a YouTube, Vimeo, or direct video link"
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Direct video link (MP4, WebM) or hosted URL</p>
+                <p className="text-xs text-muted-foreground mt-1">{PORTFOLIO_VIDEO_URL_HELP}</p>
               </div>
             ) : (
               <div>
                 <Label htmlFor="videoFile">Video File * (max 100MB)</Label>
-                <Input
-                  id="videoFile"
-                  type="file"
-                  accept="video/mp4,video/quicktime,video/webm"
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  className="mt-1"
-                />
-                <p className="text-xs text-muted-foreground mt-1">MP4, MOV, or WebM — keep clips under 2 minutes for best engagement</p>
+                <Button type="button" variant="outline" className="mt-1 w-full justify-start gap-2" onClick={() => fileInputRef.current?.click()} disabled={isPending}>
+                  <Upload className="h-4 w-4" />
+                  {uploadFile ? 'Choose a different video' : 'Choose video file'}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {uploadFile ? `${uploadFile.name} · ${(uploadFile.size / 1024 / 1024).toFixed(1)} MB` : 'MP4, MOV, or WebM · 2 minutes or less · 100 MB maximum'}
+                </p>
+                {uploading && (
+                  <div className="mt-2 space-y-1" aria-live="polite">
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-primary transition-[width]" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">Uploading {uploadProgress}%</p>
+                  </div>
+                )}
               </div>
             )}
 
