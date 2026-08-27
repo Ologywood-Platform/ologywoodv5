@@ -4339,4 +4339,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for upload, URL save, schema repair, loading reset, failure recovery, and hosted playback
 - [x] Verify the shared creator workflow on desktop and mobile and confirm Dawud has no partial records from failed attempts
 - [x] Run TypeScript, 8 focused tests, 2,661 full-suite tests, production build, migration, and runtime URL-save validation
-- [ ] Save a checkpoint for the portfolio video repair
+- [x] Save checkpoint 2fbfdee9 for the portfolio video repair
