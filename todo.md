@@ -4307,4 +4307,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify user 7 can load the merch manager and create, list, edit, and delete a disposable first offer
 - [x] Add behavioral and source-level regression coverage for the schema mismatch and first-item flow
 - [x] Run TypeScript, focused tests, full regression suite, production build, and runtime validation
-- [ ] Save a checkpoint for the merch schema repair
+- [x] Save checkpoint b99419a6 for the merch schema repair
