@@ -44,7 +44,7 @@ export default function Disclaimer() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">General Disclaimer</h2>
             <p className="text-gray-700 leading-relaxed">
-              OlogyWood ("the Platform") is an online marketplace that connects talent — including music artists, athletes, creators, entertainers, and influencers — with venues, event organizers, brands, and fans. The Platform serves as a facilitator and intermediary for bookings, communications, and transactions between independent parties. OlogyWood does not employ, manage, or represent any talent listed on the Platform.
+              OlogyWood ("the Platform") is an online marketplace that connects talent — including music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers — with venues, event organizers, brands, and fans. The Platform serves as a facilitator and intermediary for bookings, communications, and transactions between independent parties. OlogyWood does not employ, manage, or represent any talent listed on the Platform.
             </p>
           </section>
 

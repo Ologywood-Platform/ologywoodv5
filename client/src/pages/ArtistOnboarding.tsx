@@ -16,6 +16,17 @@ import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
 import { LocationInput } from '@/components/LocationInput';
+import { TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES, getTalentTypeOption, type TalentType } from '@shared/talentTypes';
+
+const TALENT_TYPE_ICONS: Record<TalentType, typeof Mic2> = {
+  artist: Mic2,
+  visual_artist: Palette,
+  athlete: Trophy,
+  creator: Sparkles,
+  entertainer: Mic2,
+  filmmaker: Film,
+  influencer: Sparkles,
+};
 
 export default function ArtistOnboarding() {
   const { user } = useAuth();
@@ -45,7 +56,7 @@ export default function ArtistOnboarding() {
   }, [existingProfile.data, navigate]);
 
   // Talent type selection
-  const [talentType, setTalentType] = useState<'artist' | 'athlete' | 'creator' | 'filmmaker'>('artist');
+  const [talentType, setTalentType] = useState<TalentType>('artist');
 
   // Step 1: Basic Info
   const [artistName, setArtistName] = useState("");
@@ -115,12 +126,19 @@ export default function ArtistOnboarding() {
     "Live Concert", "Behind the Scenes", "Social Media Content", "Trailers / Promos", "Other"
   ];
 
-  const GENRE_OPTIONS = talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATIONS : [
+  const GENRE_OPTIONS = talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATIONS : talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : [
     "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
     "Dancehall", "Electronic", "Experimental", "Folk", "Funk", "Gospel",
     "Hip-Hop", "House", "Indie", "Jazz", "Latin", "Lo-fi", "Metal", "Pop",
     "Punk", "R&B", "Reggae", "Rock", "Soul", "Techno", "Trap", "World", "Other"
   ];
+
+  const isVisualArtist = talentType === 'visual_artist';
+  const detailNoun = talentType === 'filmmaker' ? 'specialization' : isVisualArtist ? 'discipline' : 'genre';
+  const detailHeading = talentType === 'filmmaker' ? 'Production Details' : isVisualArtist ? 'Creative Practice' : 'Performance Details';
+  const detailLabel = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : 'Genres';
+  const profileNameLabel = talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : 'Creator Name';
+  const profileNamePlaceholder = talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : 'Your creator name';
 
   const toggleGenre = (genre: string) => {
     setGenres((prev) =>
@@ -258,7 +276,7 @@ export default function ArtistOnboarding() {
         }
       } else {
         if (genres.length === 0) {
-          toast.error(talentType === 'filmmaker' ? "Please select at least one specialization" : "Please select at least one genre");
+          toast.error(`Please select at least one ${detailNoun}`);
           return;
         }
         const partySize = parseInt(touringPartySize);
@@ -293,7 +311,7 @@ export default function ArtistOnboarding() {
 
   const handleSubmit = async () => {
     if (!artistName.trim()) {
-      toast.error("Artist name is required");
+      toast.error("Profile name is required");
       return;
     }
     if (!city.trim() || !state) {
@@ -301,7 +319,7 @@ export default function ArtistOnboarding() {
       return;
     }
     if (talentType !== 'athlete' && genres.length === 0) {
-      toast.error("Please select at least one genre");
+      toast.error(`Please select at least one ${detailNoun}`);
       return;
     }
 
@@ -462,71 +480,37 @@ export default function ArtistOnboarding() {
               {/* Talent Type Selector */}
               <div>
                 <Label className="mb-2 block">I am a... *</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setTalentType('artist')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      talentType === 'artist'
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                  >
-                    <Mic2 className={`h-6 w-6 ${talentType === 'artist' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${talentType === 'artist' ? 'text-primary' : 'text-muted-foreground'}`}>Artist</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTalentType('athlete')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      talentType === 'athlete'
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                  >
-                    <Trophy className={`h-6 w-6 ${talentType === 'athlete' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${talentType === 'athlete' ? 'text-primary' : 'text-muted-foreground'}`}>Athlete</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTalentType('creator')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      talentType === 'creator'
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                  >
-                    <Sparkles className={`h-6 w-6 ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${talentType === 'creator' ? 'text-primary' : 'text-muted-foreground'}`}>Creator</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTalentType('filmmaker')}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      talentType === 'filmmaker'
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                  >
-                    <Film className={`h-6 w-6 ${talentType === 'filmmaker' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`text-sm font-medium ${talentType === 'filmmaker' ? 'text-primary' : 'text-muted-foreground'}`}>Filmmaker</span>
-                  </button>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {TALENT_TYPE_OPTIONS.map((option) => {
+                    const TalentIcon = TALENT_TYPE_ICONS[option.value];
+                    const selected = talentType === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setTalentType(option.value)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                          selected ? 'border-primary bg-primary/5 shadow-sm' : 'border-muted hover:border-primary/50'
+                        }`}
+                      >
+                        <TalentIcon className={`h-6 w-6 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className={`text-sm font-medium text-center ${selected ? 'text-primary' : 'text-muted-foreground'}`}>{option.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {talentType === 'artist' && 'Musicians, DJs, bands, comedians, actors, and entertainers'}
-                  {talentType === 'athlete' && 'Professional and college athletes building their brand and fan community'}
-                  {talentType === 'creator' && 'Content creators, influencers, coaches, and public speakers'}
-                  {talentType === 'filmmaker' && 'Directors, cinematographers, music video producers, and videographers'}
+                  {getTalentTypeOption(talentType).description}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="artistName">{talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : 'Creator Name'} *</Label>
+                <Label htmlFor="artistName">{profileNameLabel} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder={talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : talentType === 'filmmaker' ? 'Your name or production company' : 'Your creator name'}
+                  placeholder={profileNamePlaceholder}
                   autoCapitalize="words"
                   className="mt-1"
                 />
@@ -554,7 +538,7 @@ export default function ArtistOnboarding() {
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell venues about your music, experience, and what makes you unique..."
+                  placeholder={isVisualArtist ? 'Tell fans and bookers about your work, creative practice, and what makes it distinctive...' : 'Tell fans and bookers about your experience and what makes you unique...'}
                   rows={5}
                   className="mt-1"
                 />
@@ -786,14 +770,14 @@ export default function ArtistOnboarding() {
           {currentStep === 2 && talentType !== 'athlete' && (
             <div className="space-y-4 animate-fade-in">
               <div>
-                <h3 className="text-lg font-semibold mb-4">{talentType === 'filmmaker' ? 'Production Details' : 'Performance Details'}</h3>
+                <h3 className="text-lg font-semibold mb-4">{detailHeading}</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  {talentType === 'filmmaker' ? 'Help clients understand your specializations and production style.' : 'Help venues understand your style and requirements.'}
+                  {talentType === 'filmmaker' ? 'Help clients understand your specializations and production style.' : isVisualArtist ? 'Help fans, collectors, and bookers understand your mediums and creative focus.' : 'Help venues understand your style and requirements.'}
                 </p>
               </div>
 
               <div>
-                <Label>{talentType === 'filmmaker' ? 'Specializations' : 'Genres'} * <span className="text-xs text-muted-foreground font-normal">(select all that apply)</span></Label>
+                <Label>{detailLabel} * <span className="text-xs text-muted-foreground font-normal">(select all that apply)</span></Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {GENRE_OPTIONS.map((genre) => (
                     <Badge
@@ -812,7 +796,7 @@ export default function ArtistOnboarding() {
                   <Input
                     value={customGenre}
                     onChange={(e) => setCustomGenre(e.target.value)}
-                    placeholder="Add custom genre..."
+                    placeholder={`Add custom ${detailNoun}...`}
                     autoCapitalize="words"
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
                   />
@@ -851,10 +835,10 @@ export default function ArtistOnboarding() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground -mt-2">Venues see this when deciding whether to book you. A wider range shows flexibility for different event sizes.</p>
+              <p className="text-xs text-muted-foreground -mt-2">Bookers see this when deciding whether to hire you. A wider range shows flexibility for different project and event sizes.</p>
 
               <div>
-                <Label htmlFor="partySize">Touring Party Size</Label>
+                <Label htmlFor="partySize">{isVisualArtist ? 'Team Size' : 'Touring Party Size'}</Label>
                 <Input
                   id="partySize"
                   type="number"
@@ -864,7 +848,7 @@ export default function ArtistOnboarding() {
                   className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  How many people travel with you (including yourself). Venues use this for hospitality planning (green room, meals, parking).
+                  {isVisualArtist ? 'How many people usually work with you on installations, appearances, or commissioned projects, including yourself.' : 'How many people travel with you (including yourself). Venues use this for hospitality planning (green room, meals, parking).'}
                 </p>
               </div>
             </div>
@@ -876,7 +860,7 @@ export default function ArtistOnboarding() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Connect Your Socials</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Add your social media and music platform links so venues can learn more about you.
+                  Add your website and social channels so fans and bookers can learn more about your work.
                 </p>
               </div>
 

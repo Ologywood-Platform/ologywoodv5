@@ -3,6 +3,7 @@ import { trpc } from '../lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { Users, User, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
+import { getTalentTypeLabel } from '@shared/talentTypes';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -2444,7 +2445,7 @@ function VerificationTab() {
                   <p className="font-medium text-gray-900">{artist.artistName || artist.name || 'Unnamed'}</p>
                   <p className="text-xs text-gray-500">{artist.email}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-purple-600 font-medium capitalize">{artist.talentType || 'artist'}</span>
+                    <span className="text-xs text-purple-600 font-medium">{getTalentTypeLabel(artist.talentType)}</span>
                     {artist.city && <span className="text-xs text-gray-400">• {artist.city}{artist.state ? `, ${artist.state}` : ''}</span>}
                   </div>
                 </div>

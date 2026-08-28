@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { ClearableInput } from '@/components/ui/clearable-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { US_STATES, US_REGIONS } from '../../../shared/locationData';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
+import { VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
@@ -46,7 +47,9 @@ const EVENT_TYPES = [
 
 export function SearchFilters({ filterType = 'artists', talentType = 'all', onFilterChange }: SearchFiltersProps) {
   const isArtistFilter = filterType === 'artists';
-  const showGenreFilter = isArtistFilter && (talentType === 'all' || talentType === 'artist');
+  const showGenreFilter = isArtistFilter && (talentType === 'all' || talentType === 'artist' || talentType === 'visual_artist');
+  const specialtyOptions = talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : GENRES;
+  const specialtyLabel = talentType === 'visual_artist' ? 'Disciplines' : 'Genres';
   
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
@@ -62,6 +65,10 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [touringOnly, setTouringOnly] = useState(false);
   const [dateError, setDateError] = useState('');
+
+  useEffect(() => {
+    setSelectedGenres([]);
+  }, [talentType]);
 
   // Validate date range
   const validateDates = (from: string, to: string) => {
@@ -313,9 +320,9 @@ export function SearchFilters({ filterType = 'artists', talentType = 'all', onFi
         {/* Genre Filter (Music Artists Only) */}
         {showGenreFilter && (
         <div className="space-y-3">
-          <Label>Genres</Label>
+          <Label>{specialtyLabel}</Label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {GENRES.map(genre => (
+            {specialtyOptions.map(genre => (
               <label key={genre} className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"

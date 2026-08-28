@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users, Music, Calendar, DollarSign, Star, MessageSquare, Mic, Building2, Search, Receipt, Heart } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users, Music, Palette, Calendar, DollarSign, Star, MessageSquare, Mic, Building2, Search, Receipt, Heart, ShoppingBag } from 'lucide-react';
 
 interface TourStep {
   id: string;
@@ -60,7 +60,7 @@ const ATHLETE_TOUR_STEPS: TourStep[] = [
   {
     id: 'talent-types',
     title: 'Expanded Talent Types',
-    description: 'The platform now supports Artists, Athletes, Creators, Bands, DJs, Comedians, Actors, Influencers, and Speakers — all with tailored booking flows.',
+    description: 'The platform supports Music Artists, Visual Artists, Athletes, Creators, Entertainers, Filmmakers, and Influencers — all with relevant profile and booking tools.',
     icon: <Users className="h-5 w-5 text-indigo-500" />,
     targetSelector: '[data-tour="talent-types"]',
     position: 'bottom',
@@ -118,6 +118,56 @@ const ARTIST_TOUR_STEPS: TourStep[] = [
   },
 ];
 
+// ─── VISUAL ARTIST TOUR STEPS ─────────────────────────────────────────────────
+const VISUAL_ARTIST_TOUR_STEPS: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome, Visual Artist',
+    description: 'Build a professional home for your artwork, exhibitions, merchandise, fan relationships, bookings, and revenue.',
+    icon: <Palette className="h-5 w-5 text-purple-500" />,
+    position: 'center',
+  },
+  {
+    id: 'dashboard',
+    title: 'Your Creative Business Dashboard',
+    description: 'Manage exhibitions, booking requests, portfolio updates, fan engagement, merchandise, and earnings from one place.',
+    icon: <Calendar className="h-5 w-5 text-blue-500" />,
+    targetSelector: '[data-tour="dashboard"]',
+    position: 'bottom',
+  },
+  {
+    id: 'video-portfolio',
+    title: 'Show Your Work',
+    description: 'Add exhibition highlights, studio-process videos, and behind-the-scenes clips so fans, collectors, and bookers can understand your practice.',
+    icon: <Video className="h-5 w-5 text-red-500" />,
+    targetSelector: '[data-tour="video-portfolio"]',
+    position: 'bottom',
+  },
+  {
+    id: 'arts-events',
+    title: 'Promote Arts & Culture Events',
+    description: 'Post exhibitions, gallery openings, art fairs, workshops, and appearances using Arts & Culture as the event category.',
+    icon: <Calendar className="h-5 w-5 text-orange-500" />,
+    position: 'center',
+  },
+  {
+    id: 'merch-and-fans',
+    title: 'Sell and Share',
+    description: 'Sell artwork or merchandise through OlogyWood or an external store, then share products and updates directly with your fans.',
+    icon: <ShoppingBag className="h-5 w-5 text-pink-500" />,
+    targetSelector: '[data-tour="fan-club"]',
+    position: 'bottom',
+  },
+  {
+    id: 'earnings',
+    title: 'Bookings & Earnings',
+    description: 'Accept relevant booking opportunities, set your rates, connect payouts, and track income from one dashboard.',
+    icon: <DollarSign className="h-5 w-5 text-emerald-500" />,
+    targetSelector: '[data-tour="earnings"]',
+    position: 'bottom',
+  },
+];
+
 // ─── VENUE TOUR STEPS ─────────────────────────────────────────────────────────
 const VENUE_TOUR_STEPS: TourStep[] = [
   {
@@ -130,7 +180,7 @@ const VENUE_TOUR_STEPS: TourStep[] = [
   {
     id: 'browse-talent',
     title: 'Browse & Book Talent',
-    description: 'Search artists by genre, location, price range, and availability. Filter by region or state to find local talent perfect for your events.',
+    description: 'Search talent by genre or discipline, location, price range, and availability. Filter by region or state to find the right local creator for your events.',
     icon: <Search className="h-5 w-5 text-blue-500" />,
     targetSelector: '[data-tour="browse-talent"]',
     position: 'bottom',
@@ -173,6 +223,7 @@ const VENUE_TOUR_STEPS: TourStep[] = [
 const STORAGE_KEYS = {
   athlete: { completed: 'ologywood_athlete_tour_completed', dismissed: 'ologywood_athlete_tour_dismissed' },
   artist: { completed: 'ologywood_artist_tour_completed', dismissed: 'ologywood_artist_tour_dismissed' },
+  visualArtist: { completed: 'ologywood_visual_artist_tour_completed', dismissed: 'ologywood_visual_artist_tour_dismissed' },
   venue: { completed: 'ologywood_venue_tour_completed', dismissed: 'ologywood_venue_tour_dismissed' },
 };
 
@@ -180,7 +231,7 @@ const STORAGE_KEYS = {
 const LEGACY_STORAGE_KEY = 'ologywood_nil_tour_completed';
 const LEGACY_DISMISSED_KEY = 'ologywood_nil_tour_dismissed';
 
-type TourRole = 'athlete' | 'artist' | 'venue';
+type TourRole = 'athlete' | 'artist' | 'visualArtist' | 'venue';
 
 function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string; dismissedKey: string; accentColor: string } {
   switch (role) {
@@ -196,6 +247,13 @@ function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string;
         steps: ARTIST_TOUR_STEPS,
         storageKey: STORAGE_KEYS.artist.completed,
         dismissedKey: STORAGE_KEYS.artist.dismissed,
+        accentColor: 'bg-purple-600 hover:bg-purple-700',
+      };
+    case 'visualArtist':
+      return {
+        steps: VISUAL_ARTIST_TOUR_STEPS,
+        storageKey: STORAGE_KEYS.visualArtist.completed,
+        dismissedKey: STORAGE_KEYS.visualArtist.dismissed,
         accentColor: 'bg-purple-600 hover:bg-purple-700',
       };
     case 'venue':
@@ -233,6 +291,8 @@ export function OnboardingTour() {
     } else if (user.role === 'artist' && profile) {
       if (profile.talentType === 'athlete') {
         setTourRole('athlete');
+      } else if (profile.talentType === 'visual_artist') {
+        setTourRole('visualArtist');
       } else {
         setTourRole('artist');
       }

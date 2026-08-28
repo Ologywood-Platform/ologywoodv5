@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown, Send, Loader2 } from "lucide-react";
+import { Music, Palette, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown, Send, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ import { TouringBadge } from '@/components/TouringDisplay';
 import { CrmBadge } from '@/components/CrmBadge';
 import { formatLocation } from '../../../shared/locationData';
 import { US_STATES, US_REGIONS } from '../../../shared/locationData';
+import { TALENT_TYPE_OPTIONS, getTalentTypeLabel, getTalentTypePluralLabel } from '@shared/talentTypes';
 
 export default function Browse() {
   const { user, isAuthenticated } = useAuth();
@@ -378,15 +379,7 @@ export default function Browse() {
           {/* Talent Type Filter Chips - below tabs, above search (only on Talent tab) */}
           {activeTab === 'artists' && (
             <div className="flex flex-wrap gap-2 mb-4">
-              {[
-                { value: 'all', label: 'All' },
-                { value: 'artist', label: 'Artists' },
-                { value: 'athlete', label: 'Athletes' },
-                { value: 'creator', label: 'Creators' },
-                { value: 'entertainer', label: 'Entertainers' },
-                { value: 'filmmaker', label: 'Filmmakers' },
-                { value: 'influencer', label: 'Influencers' },
-              ].map((chip) => (
+              {[{ value: 'all', label: 'All' }, ...TALENT_TYPE_OPTIONS.map((option) => ({ value: option.value, label: option.pluralLabel }))].map((chip) => (
                 <button
                   key={chip.value}
                   onClick={() => setTalentTypeFilter(chip.value)}
@@ -417,7 +410,7 @@ export default function Browse() {
           <div className="mb-4 sm:mb-6">
             <div className="flex gap-2 sm:gap-3">
               <ClearableInput
-                placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'athlete' ? 'Search athletes...' : talentTypeFilter === 'creator' ? 'Search creators...' : talentTypeFilter === 'entertainer' ? 'Search entertainers...' : talentTypeFilter === 'filmmaker' ? 'Search filmmakers...' : talentTypeFilter === 'influencer' ? 'Search influencers...' : talentTypeFilter === 'artist' ? 'Search artists...' : 'Search talent...'}
+                placeholder={activeTab === 'venues' ? 'Search venues by name or location...' : activeTab === 'events' ? 'Search events...' : talentTypeFilter === 'all' ? 'Search talent...' : `Search ${getTalentTypePluralLabel(talentTypeFilter).toLowerCase()}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onClear={() => setSearchQuery("")}
@@ -528,7 +521,7 @@ export default function Browse() {
             {(hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div ref={resultsRef} className="mb-4 scroll-mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Showing <strong>{filteredArtists.length}</strong> artist{filteredArtists.length !== 1 ? "s" : ""}
+                  Showing <strong>{filteredArtists.length}</strong> profile{filteredArtists.length !== 1 ? "s" : ""}
                 </p>
               </div>
             )}
@@ -573,6 +566,11 @@ export default function Browse() {
                                 <svg className="h-10 w-10 text-primary/30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 <span className="text-xs text-muted-foreground/60">Athlete</span>
                               </>
+                            ) : (artist as any).talentType === 'visual_artist' ? (
+                              <>
+                                <Palette className="h-10 w-10 text-primary/30" />
+                                <span className="text-xs text-muted-foreground/60">Visual Artist</span>
+                              </>
                             ) : (
                               <>
                                 <Music className="h-10 w-10 text-primary/30" />
@@ -596,6 +594,9 @@ export default function Browse() {
                                 {(artist as any).crmSupporter && <CrmBadge size="md" />}
                                 {touringStatus?.[artist.id] && <TouringBadge />}
                               </div>
+                              <p className="text-[11px] font-medium text-primary/80 truncate">
+                                {getTalentTypeLabel((artist as any).talentType)}
+                              </p>
                               {(artist as any).talentType === 'athlete' ? (
                                 <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                   {[(artist as any).sportCategory, (artist as any).sportPosition, (artist as any).sportTeam].filter(Boolean).join(' · ') || 'Athlete'}
@@ -665,14 +666,16 @@ export default function Browse() {
               <div className="text-center py-16">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {talentTypeFilter === 'athlete' ? 'Search for Athletes' : talentTypeFilter === 'creator' ? 'Search for Creators' : talentTypeFilter === 'entertainer' ? 'Search for Entertainers' : talentTypeFilter === 'filmmaker' ? 'Search for Filmmakers' : talentTypeFilter === 'influencer' ? 'Search for Influencers' : talentTypeFilter === 'artist' ? 'Search for Artists' : 'Search for Talent'}
+                  {talentTypeFilter === 'all' ? 'Search for Talent' : `Search for ${getTalentTypePluralLabel(talentTypeFilter)}`}
                 </h3>
                 <p className="text-muted-foreground text-sm max-w-md mx-auto">
                   {talentTypeFilter === 'artist' || talentTypeFilter === 'all'
                     ? 'Use the search bar above or open Filters to find talent by genre, location, availability, and more.'
+                    : talentTypeFilter === 'visual_artist'
+                    ? 'Use the search bar above or open Filters to find visual artists by discipline, location, availability, and more.'
                     : talentTypeFilter === 'athlete'
                     ? 'Use the search bar above or open Filters to find athletes by sport, location, and availability.'
-                    : `Use the search bar above or open Filters to find ${talentTypeFilter}s by location, availability, and more.`
+                    : `Use the search bar above or open Filters to find ${getTalentTypePluralLabel(talentTypeFilter).toLowerCase()} by location, availability, and more.`
                   }
                 </p>
               </div>

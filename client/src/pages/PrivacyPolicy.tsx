@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">1. Introduction</h2>
             <p className="text-base leading-relaxed">
-              Ologywood ("we," "us," "our," or "Company") operates a talent booking and fan engagement platform that connects artists, athletes, creators, entertainers, and influencers with venues, event organizers, brands, and fans. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
+              Ologywood ("we," "us," "our," or "Company") operates a talent booking and fan engagement platform that connects music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers with venues, event organizers, brands, and fans. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
             </p>
           </section>
 
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
               Depending on your role, you may provide additional information to complete your profile:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li><strong>Artists:</strong> Bio, genre, location, profile photos, social media links (Instagram, Facebook, YouTube, Spotify, SoundCloud, TikTok), experience level, equipment needs, availability calendar, and performance rates</li>
+              <li><strong>Music and Visual Artists:</strong> Bio, genres or creative disciplines, location, portfolio media, social links, availability calendar, and booking rates</li>
               <li><strong>Athletes:</strong> Sport, position, team affiliation, athletic statistics, achievements, NIL deal history, highlight video clips, and booking availability</li>
               <li><strong>Creators/Entertainers/Influencers:</strong> Bio, category, location, profile photos, social media links, content type, and rates</li>
               <li><strong>Venues:</strong> Venue name, type, capacity, location, photos, amenities, and event history</li>
@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
 
             <h3 className="text-lg font-semibold mt-6 mb-3">2.5 Communication Data</h3>
             <p className="text-base leading-relaxed">
-              Messages sent through our in-platform messaging system are stored to facilitate communication between talent (artists, athletes, creators, entertainers, influencers), venues, and organizers. We also store email update blasts that talent send to their followers through our platform.
+              Messages sent through our in-platform messaging system are stored to facilitate communication between talent (music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers), venues, and organizers. We also store email update blasts that talent send to their followers through our platform.
             </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-3">2.6 Information Collected Automatically</h3>

@@ -32,6 +32,7 @@ import { venueRouter } from "./routers/venue";
 import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 import { ensureVideoPortfolioSchema } from './services/videoPortfolioSchemaService';
 import { parsePortfolioVideoUrl, PORTFOLIO_VIDEO_URL_HELP } from '../shared/videoPortfolio';
+import { TALENT_TYPE_VALUES } from '../shared/talentTypes';
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
 import { blogRouter } from "./routers/blog";
@@ -418,7 +419,7 @@ export const appRouter = router({
     updateProfile: artistProcedure
       .input(z.object({
         artistName: z.string().min(1).optional(),
-        talentType: z.enum(['artist', 'athlete', 'creator', 'entertainer', 'filmmaker', 'influencer']).optional(),
+        talentType: z.enum(TALENT_TYPE_VALUES).optional(),
         bio: z.string().optional(),
         genre: z.array(z.string()).optional(),
         location: z.string().optional(),
@@ -464,7 +465,7 @@ export const appRouter = router({
 
         // Notify fans about profile update (fire-and-forget)
         const updateSummary = input.bio ? 'Updated their bio and profile info' 
-          : input.genre ? 'Updated their music genres'
+          : input.genre ? 'Updated their creative specialties'
           : input.profilePhotoUrl ? 'Updated their profile photo'
           : 'Updated their profile';
         notifyFansProfileUpdate(ctx.user.id, {
@@ -499,7 +500,7 @@ export const appRouter = router({
     createProfile: artistProcedure
       .input(z.object({
         artistName: z.string(),
-        talentType: z.string().optional(),
+        talentType: z.enum(TALENT_TYPE_VALUES).optional(),
         sportCategory: z.string().optional(),
         sportPosition: z.string().optional(),
         sportTeam: z.string().optional(),

@@ -4363,3 +4363,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Dawud’s real merch flow on desktop and mobile without purchasing or modifying his product
 - [x] Run TypeScript, 15 focused merch tests, 2,670 full-suite tests, and production build validation
 - [x] Save checkpoint 98baf02b for the external merch access-restriction improvement
+
+## VISUAL ARTIST PROFILE TYPE (Aug 27, 2026)
+- [x] Audit the authoritative talent-type schema and every onboarding, editing, filtering, display, and guidance surface
+- [x] Add Visual Artist with the description “Illustration, Fine Art & Design” as a distinct profile choice
+- [x] Keep Music Artist identity and Arts & Culture event categorization clearly separated from Visual Artist identity
+- [x] Make Visual Artist profiles searchable and filterable without excluding existing creators
+- [x] Apply creator-neutral portfolio, merch, events, fan, booking, and tailored onboarding guidance to Visual Artist profiles
+- [x] Add regression coverage for accepted values, labels, disciplines, selection, filtering, public display, and role-specific guidance
+- [x] Verify Visual Artist profile editing and Browse filters on desktop and mobile without modifying an existing profile
+- [x] Run TypeScript, 6 focused tests, 2,676 full-suite tests, no-migration schema verification, and production build
+- [ ] Save a checkpoint for the Visual Artist profile-type expansion

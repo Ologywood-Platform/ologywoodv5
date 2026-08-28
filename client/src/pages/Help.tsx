@@ -251,6 +251,12 @@ const faqItems: FAQItem[] = [
     question: 'I am a filmmaker. What can I do on Ologywood?',
     answer: 'As a Filmmaker, you can: create a professional profile with your biography and reel, list your films/documentaries with trailers and sell tickets to premieres, build a Fan Club for recurring revenue, sell merchandise, get booked for event coverage or music video production, and monetize your entire catalog through Content Releases. Select Filmmaker as your talent type during onboarding.',
   },
+  {
+    id: 'visual-artist-1',
+    category: 'Getting Started',
+    question: 'I am an illustrator or visual artist. Which profile type and event category should I choose?',
+    answer: 'Choose Visual Artist as your profile type for illustration, fine art, graphic design, photography, sculpture, digital art, and related creative work. When posting an exhibition, gallery opening, art fair, or similar event, choose Arts & Culture as the event category. Your profile type describes who you are; the event category describes the event.',
+  },
 
   // Fan Club
   {

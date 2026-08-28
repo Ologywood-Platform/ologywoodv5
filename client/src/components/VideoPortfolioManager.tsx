@@ -20,6 +20,13 @@ const VIDEO_CATEGORIES = [
   { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-800' },
 ] as const;
 
+const VISUAL_ART_VIDEO_CATEGORIES = [
+  { value: 'highlights', label: 'Exhibition Highlights', color: 'bg-amber-100 text-amber-800' },
+  { value: 'behind_the_scenes', label: 'Creative Process', color: 'bg-purple-100 text-purple-800' },
+  { value: 'studio', label: 'Studio Practice', color: 'bg-indigo-100 text-indigo-800' },
+  { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-800' },
+] as const;
+
 type VideoCategory = typeof VIDEO_CATEGORIES[number]['value'];
 
 export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
@@ -134,16 +141,18 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     element.src = objectUrl;
   });
 
-  const getCategoryInfo = (cat: string) => {
-    return VIDEO_CATEGORIES.find(c => c.value === cat) || VIDEO_CATEGORIES[VIDEO_CATEGORIES.length - 1];
-  };
-
   // Filter categories based on talent type
   const relevantCategories = talentType === 'athlete'
     ? VIDEO_CATEGORIES.filter(c => ['highlights', 'training', 'game_day', 'behind_the_scenes', 'other'].includes(c.value))
     : talentType === 'artist'
     ? VIDEO_CATEGORIES.filter(c => ['highlights', 'live_performance', 'studio', 'music_video', 'behind_the_scenes', 'other'].includes(c.value))
+    : talentType === 'visual_artist'
+    ? [...VISUAL_ART_VIDEO_CATEGORIES]
     : VIDEO_CATEGORIES;
+
+  const getCategoryInfo = (cat: string) => {
+    return relevantCategories.find(c => c.value === cat) || VIDEO_CATEGORIES[VIDEO_CATEGORIES.length - 1];
+  };
 
   const isPending = addVideo.isPending || uploading;
 

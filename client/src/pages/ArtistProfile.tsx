@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink, Plane } from "lucide-react";
+import { Music, Palette, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink, Plane } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
 import { ShareVideoButton } from '@/components/ShareVideoButton';
 import { ReportVideoButton } from '@/components/ReportVideoButton';
 import { FollowButton } from "@/components/FollowButton";
@@ -45,6 +46,7 @@ import { StickyBookingBar } from "@/components/StickyBookingBar";
 import { OlogyLiveProfileSection } from "@/components/OlogyLiveProfileSection";
 import { CrmBadge } from "@/components/CrmBadge";
 import { parsePortfolioVideoUrl, type PortfolioVideoKind } from '@shared/videoPortfolio';
+import { getTalentTypeLabel } from '@shared/talentTypes';
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -358,7 +360,9 @@ export default function ArtistProfile() {
             </div>
           ) : (
             <div className="w-full h-[200px] sm:h-[240px] bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
-              <Music className="h-24 w-24 text-primary/40" />
+              {(artist as any).talentType === 'visual_artist'
+                ? <Palette className="h-24 w-24 text-primary/40" />
+                : <Music className="h-24 w-24 text-primary/40" />}
             </div>
           )}
           
@@ -384,7 +388,10 @@ export default function ArtistProfile() {
                   </Button>
                 )}
               </div>
-              {/* Subtitle: genre for artists, sport/position/team for athletes */}
+              <Badge variant="secondary" className="mb-3">
+                {getTalentTypeLabel((artist as any).talentType)}
+              </Badge>
+              {/* Subtitle: specialties for creators, sport/position/team for athletes */}
               {(artist as any).talentType === 'athlete' ? (
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                   {[(artist as any).sportCategory, (artist as any).sportPosition, (artist as any).sportTeam].filter(Boolean).join(' · ') || 'Athlete'}
@@ -393,7 +400,7 @@ export default function ArtistProfile() {
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                   {Array.isArray(artist.genre) && artist.genre.length > 0 
                     ? [...new Set(artist.genre)].join(", ") 
-                    : "Various Genres"}
+                    : (artist as any).talentType === 'visual_artist' ? 'Creative disciplines coming soon' : 'Specialties coming soon'}
                 </p>
               )}
               

@@ -17,6 +17,7 @@ import ImageCropper from "@/components/ImageCropper";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import TouringSection from '@/components/TouringSection';
 import { LocationInput } from '@/components/LocationInput';
+import { TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
 
 const MUSIC_GENRE_OPTIONS = [
   "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
@@ -102,6 +103,22 @@ export default function ArtistEditProfile() {
   const [sportTeam, setSportTeam] = useState("");
   const [athleteStats, setAthleteStats] = useState<{label: string; value: string}[]>([]);
   const [athleteAchievements, setAthleteAchievements] = useState<{title: string; year?: string; description?: string}[]>([]);
+
+  const isVisualArtist = talentType === 'visual_artist';
+  const specialtyOptions = talentType === 'filmmaker'
+    ? FILMMAKER_SPECIALIZATION_OPTIONS
+    : isVisualArtist
+      ? [...VISUAL_ART_DISCIPLINES]
+      : MUSIC_GENRE_OPTIONS;
+  const specialtyTitle = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : 'Genres';
+  const specialtyDescription = talentType === 'filmmaker'
+    ? 'Select the types of production you specialize in'
+    : isVisualArtist
+      ? 'Select the mediums and creative disciplines that best describe your work'
+      : 'Select the genres that best describe your music';
+  const specialtyNoun = talentType === 'filmmaker' ? 'specialization' : isVisualArtist ? 'discipline' : 'genre';
+  const profileNameLabel = talentType === 'athlete' ? 'Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : talentType === 'artist' ? 'Artist / Band Name' : 'Profile Name';
+  const profileNamePlaceholder = talentType === 'athlete' ? 'Your name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : talentType === 'artist' ? 'Your stage name or band name' : 'Your public name';
 
   // Populate form when profile loads
   useEffect(() => {
@@ -401,14 +418,7 @@ export default function ArtistEditProfile() {
                 <Label>Profile Type</Label>
                 <p className="text-xs text-muted-foreground mb-2">Select what best describes you. This determines how your profile appears to fans and bookers.</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { value: 'artist', label: 'Artist', desc: 'Musicians & Bands' },
-                    { value: 'athlete', label: 'Athlete', desc: 'Sports & NIL' },
-                    { value: 'creator', label: 'Creator', desc: 'Content & Digital' },
-                    { value: 'entertainer', label: 'Entertainer', desc: 'Comedy, DJ, MC' },
-                    { value: 'filmmaker', label: 'Filmmaker', desc: 'Film & Video Production' },
-                    { value: 'influencer', label: 'Influencer', desc: 'Social & Brand' },
-                  ].map((opt) => (
+                  {TALENT_TYPE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
@@ -420,19 +430,19 @@ export default function ArtistEditProfile() {
                       }`}
                     >
                       <span className="font-medium text-sm block">{opt.label}</span>
-                      <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                      <span className="text-xs text-muted-foreground">{opt.description}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="artistName">{talentType === 'athlete' ? 'Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : 'Artist / Band Name'} *</Label>
+                <Label htmlFor="artistName">{profileNameLabel} *</Label>
                 <Input
                   id="artistName"
                   value={artistName}
                   onChange={(e) => setArtistName(e.target.value)}
-                  placeholder={talentType === 'athlete' ? 'Your name' : talentType === 'filmmaker' ? 'Your name or production company' : 'Your stage name'}
+                  placeholder={profileNamePlaceholder}
                   autoCapitalize="words"
                 />
               </div>
@@ -448,7 +458,7 @@ export default function ArtistEditProfile() {
                   autoCapitalize="sentences"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {bio.length}/1000 characters — Keep it short and engaging. Venues scan this in seconds. Mention your style, experience, and what makes your show unique.
+                  {bio.length}/1000 characters — Keep it short and engaging. Mention your style, experience, and what makes your work distinctive.
                 </p>
               </div>
 
@@ -588,12 +598,12 @@ export default function ArtistEditProfile() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>{talentType === 'filmmaker' ? 'Specializations' : 'Genres'}</CardTitle>
-                <CardDescription>{talentType === 'filmmaker' ? 'Select the types of production you specialize in' : 'Select the genres that best describe your music'}</CardDescription>
+                <CardTitle>{specialtyTitle}</CardTitle>
+                <CardDescription>{specialtyDescription}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {(talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATION_OPTIONS : MUSIC_GENRE_OPTIONS).map((genre) => (
+                  {specialtyOptions.map((genre) => (
                     <Badge
                       key={genre}
                       variant={genres.includes(genre) ? "default" : "outline"}
@@ -610,7 +620,7 @@ export default function ArtistEditProfile() {
                   <Input
                     value={customGenre}
                     onChange={(e) => setCustomGenre(e.target.value)}
-                    placeholder={talentType === 'filmmaker' ? 'Add custom specialization...' : 'Add custom genre...'}
+                    placeholder={`Add custom ${specialtyNoun}...`}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomGenre())}
                   />
                   <Button variant="outline" size="icon" onClick={addCustomGenre} disabled={!customGenre.trim()}>

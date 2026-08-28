@@ -97,7 +97,7 @@ export const artistProfiles = mysqlTable("artist_profiles", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
   artistName: varchar("artistName", { length: 255 }).notNull(),
-  talentType: varchar("talentType", { length: 20 }).default("artist"), // 'artist' | 'athlete' | 'creator' | 'entertainer' | 'filmmaker' | 'influencer'
+  talentType: varchar("talentType", { length: 20 }).default("artist"), // 'artist' | 'visual_artist' | 'athlete' | 'creator' | 'entertainer' | 'filmmaker' | 'influencer'
   sportCategory: varchar("sportCategory", { length: 100 }), // e.g., Basketball, Football, Soccer
   sportPosition: varchar("sportPosition", { length: 100 }), // e.g., Point Guard, Quarterback
   sportTeam: varchar("sportTeam", { length: 255 }), // e.g., Duke Blue Devils, LA Lakers
