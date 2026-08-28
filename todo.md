@@ -4410,3 +4410,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Adonis’s real uploaded clip returns the selected frame in live-compatible crawler metadata, a 1200×630 JPEG proxy, and responsive desktop/mobile UI
 - [x] Run TypeScript, 70 focused tests, 2,691 full-suite tests, and production build validation
 - [x] Save checkpoint c592809e for the portfolio video thumbnail social preview
+
+## MAIN LONG-FORM VIDEO BUFFERING (Aug 28, 2026)
+- [x] Reproduce Adonis’s main long-form profile video buffering on live and development sites
+- [x] Measure initial response, byte-range support, content length, content type, cache headers, container layout, bitrate, and browser playback behavior
+- [x] Compare the main-video player and delivery path with the working short-form portfolio video path
+- [x] Confirm the recent portfolio-video sharing changes did not modify the main-video source or player
+- [x] Replace only Adonis’s 82 MB end-indexed MOV with a verified 15 MB fast-start MP4 while preserving the original asset for rollback
+- [x] Preload only the public main performance video and keep the short-form upload, thumbnail, sharing, and player flow unchanged
+- [x] Verify 16 ms long-form startup with no playback stalls, responsive presentation, and uninterrupted short-form playback
+- [x] Add regression coverage for main-video preloading, inline mobile playback, and separation from the portfolio-video system
+- [x] Run TypeScript, 19 focused tests, 2,693 full-suite tests, and production build validation
+- [ ] Save a checkpoint for the long-form video buffering repair

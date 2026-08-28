@@ -921,7 +921,8 @@ export default function ArtistProfile() {
                     <video
                       src={(artist as any).performanceVideoUrl}
                       controls
-                      preload="metadata"
+                      preload="auto"
+                      playsInline
                       className="w-full h-full object-contain"
                       poster={(artist as any).performanceVideoThumbnail || undefined}
                     />
