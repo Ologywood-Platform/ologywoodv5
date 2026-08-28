@@ -4373,4 +4373,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for accepted values, labels, disciplines, selection, filtering, public display, and role-specific guidance
 - [x] Verify Visual Artist profile editing and Browse filters on desktop and mobile without modifying an existing profile
 - [x] Run TypeScript, 6 focused tests, 2,676 full-suite tests, no-migration schema verification, and production build
-- [ ] Save a checkpoint for the Visual Artist profile-type expansion
+- [x] Save checkpoint e6276cec for the Visual Artist profile-type expansion
