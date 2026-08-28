@@ -4384,3 +4384,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify the creation interface visibly preselects Arts & Culture and the edit interface initializes from its saved event
 - [x] Run TypeScript, 7 focused tests, 2,678 full-suite tests, and production build validation
 - [x] Save checkpoint 84a3b164 for the Visual Artist event-category default
+
+## EMAIL LOGO BRANDING REPLACEMENT (Aug 27, 2026)
+- [x] Audit every transactional, invitation, booking, ticket, merch, password, reminder, and fan-update email for legacy logo references
+- [x] Publish the supplied neon OW OlogyWood image as a permanent email-safe HTTPS asset
+- [x] Centralize the approved logo URL, explicit dimensions, accessible alt text, and reusable email markup
+- [x] Replace every direct legacy hosted, site-logo, CID, and local-file email reference without changing delivery behavior
+- [x] Preserve unsubscribe controls on subscription, referral, fan-update, event-notification, and release-purchase emails
+- [x] Add regression coverage proving all email implementations use the approved asset and no retired logo remains
+- [x] Render and inspect representative desktop and mobile email previews
+- [x] Run TypeScript, 84 focused tests, 2,682 full-suite tests, and production build validation
+- [ ] Save a checkpoint for the email logo branding replacement

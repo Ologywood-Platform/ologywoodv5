@@ -5,6 +5,7 @@ import { users, artistProfiles, venueProfiles, bookings, artistPayouts, artistRe
 import Stripe from 'stripe';
 import { desc, sql, eq } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
+import { getEmailLogoImage } from "../../shared/emailBranding";
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -53,7 +54,7 @@ async function sendRoleChangeEmail(params: {
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
       <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
         <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
       </div>
       <div style="padding: 30px 20px;">

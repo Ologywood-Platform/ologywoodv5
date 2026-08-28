@@ -13,6 +13,7 @@ import { hasFeatureAccess, canCreateRelease, getUserSubscription, PRICING_TIERS,
 import { sendArtistUpdate } from "../services/artistUpdateService";
 import { storageGet } from "../storage";
 import Stripe from "stripe";
+import { getEmailLogoImage } from "../../shared/emailBranding";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -670,7 +671,7 @@ export const releaseRouter = router({
               subject: `Purchase Confirmed — "${release.title}" by ${artistProfile.artistName}`,
               html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
                 <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-                  <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+                  ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
                   <h1 style="color: white; margin: 0; font-size: 24px;">Purchase Confirmed!</h1>
                 </div>
                 <div style="padding: 30px 24px;">

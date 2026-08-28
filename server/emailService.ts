@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
+import { EMAIL_LOGO_URL, getEmailLogoImage } from '../shared/emailBranding';
 
 interface BookingEmailData {
   artistName: string;
@@ -69,16 +70,7 @@ class EmailService {
         const placeholder = new RegExp(`{{${key}}}`, 'g');
         htmlContent = htmlContent.replace(placeholder, String(value));
       });
-
-      // Read logo image
-      const logoPath = path.join(
-        __dirname,
-        '..',
-        'client',
-        'public',
-        'logo-icon.png'
-      );
-      const logoBuffer = fs.readFileSync(logoPath);
+      htmlContent = htmlContent.replace(/{{logoUrl}}/g, EMAIL_LOGO_URL);
 
       // Send email to artist
       await this.transporter.sendMail({
@@ -86,13 +78,6 @@ class EmailService {
         to: artistEmail,
         subject: '✨ Your Booking is Confirmed - Ologywood',
         html: htmlContent,
-        attachments: [
-          {
-            filename: 'logo-icon.png',
-            content: logoBuffer,
-            cid: 'ologywood-logo',
-          },
-        ],
       });
 
 
@@ -107,13 +92,6 @@ class EmailService {
         to: venueEmail,
         subject: '✨ New Booking Confirmed - Ologywood',
         html: venueHtmlContent,
-        attachments: [
-          {
-            filename: 'logo-icon.png',
-            content: logoBuffer,
-            cid: 'ologywood-logo',
-          },
-        ],
       });
 
 
@@ -147,6 +125,7 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
+              ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
               <h1>Welcome to Ologywood!</h1>
               <p>Your artist booking journey starts here</p>
             </div>
@@ -213,6 +192,7 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
+              ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
               <h1>Booking Cancelled</h1>
             </div>
             <div class="content">

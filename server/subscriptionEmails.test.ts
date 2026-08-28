@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { EMAIL_LOGO_URL } from '../shared/emailBranding';
 
 function readFile(relativePath: string): string {
   return readFileSync(resolve(__dirname, '..', relativePath), 'utf-8');
@@ -19,7 +20,9 @@ describe('Subscription Email Templates (email.ts)', () => {
     });
 
     it('includes the Ologywood logo image', () => {
-      expect(src).toContain('ymRJKMwaOWmPOCjV.png');
+      expect(src).toContain('getEmailLogoImage');
+      expect(EMAIL_LOGO_URL).toContain('ologywood-email-logo-2026_0b47af54.png');
+      expect(src).not.toContain('ymRJKMwaOWmPOCjV.png');
     });
 
     it('includes tagline in header', () => {

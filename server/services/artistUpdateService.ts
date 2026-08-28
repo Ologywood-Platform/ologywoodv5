@@ -8,6 +8,7 @@ import { sendEmail } from '../email';
 import { getDb } from '../db';
 import { follows, users, artistProfiles, artistUpdates } from '../../drizzle/schema';
 import { eq, desc, and, gte } from 'drizzle-orm';
+import { getEmailLogoImage } from '../../shared/emailBranding';
 
 const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
 
@@ -142,7 +143,7 @@ function buildUpdateEmail(
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663275372790/ymRJKMwaOWmPOCjV.png" alt="Ologywood" style="height: 40px; width: auto; margin-bottom: 10px;">
+        ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
         <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
       </div>
       <div style="padding: 30px 24px;">

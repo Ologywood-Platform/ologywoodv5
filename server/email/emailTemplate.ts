@@ -3,6 +3,8 @@
  * Consistent branding across all email communications
  */
 
+import { EMAIL_LOGO_ALT, EMAIL_LOGO_URL } from '../../shared/emailBranding';
+
 export interface EmailTemplateData {
   recipientName: string;
   recipientEmail: string;
@@ -203,7 +205,7 @@ export function generateEmailHTML(data: EmailTemplateData): string {
     <div class="email-container">
         <!-- Header -->
         <div class="email-header">
-            <img src="https://www.ologywood.com/logo-lg.png" alt="Ologywood" class="logo">
+            <img src="${EMAIL_LOGO_URL}" alt="${EMAIL_LOGO_ALT}" class="logo">
             <div class="header-title">Ologywood</div>
             <div class="header-tagline">BOOK • CONNECT • PERFORM</div>
         </div>
@@ -223,7 +225,7 @@ export function generateEmailHTML(data: EmailTemplateData): string {
 
         <!-- Footer -->
         <div class="email-footer">
-            <img src="https://www.ologywood.com/logo-sm.png" alt="Ologywood" class="footer-logo">
+            <img src="${EMAIL_LOGO_URL}" alt="${EMAIL_LOGO_ALT}" class="footer-logo">
             
             <div class="footer-links">
                 <a href="https://www.ologywood.com">Home</a>

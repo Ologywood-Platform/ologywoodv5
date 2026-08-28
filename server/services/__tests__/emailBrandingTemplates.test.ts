@@ -7,6 +7,7 @@ import {
   getPaymentConfirmationTemplate,
   getSupportTicketResponseTemplate,
 } from '../emailBrandingTemplates';
+import { EMAIL_LOGO_ALT, EMAIL_LOGO_URL } from '../../../shared/emailBranding';
 
 describe('Email Branding Templates', () => {
   describe('getBookingConfirmationTemplate', () => {
@@ -30,7 +31,7 @@ describe('Email Branding Templates', () => {
       expect(template.html).toContain('#12345');
     });
 
-    it('should include OL◀GYWOOD branding', () => {
+    it('should include the approved neon OW branding', () => {
       const template = getBookingConfirmationTemplate({
         recipientName: 'John Doe',
         artistName: 'Artist',
@@ -42,7 +43,9 @@ describe('Email Branding Templates', () => {
       });
 
       expect(template.html).toContain('Ologywood');
-      expect(template.html).toContain('ymRJKMwaOWmPOCjV.png');
+      expect(template.html).toContain(EMAIL_LOGO_URL);
+      expect(template.html).toContain(EMAIL_LOGO_ALT);
+      expect(template.html).not.toContain('ymRJKMwaOWmPOCjV.png');
     });
 
     it('should include gradient colors', () => {
