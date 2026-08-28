@@ -34,10 +34,15 @@ const portfolioUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
-    allowedTypes.includes(file.mimetype)
-      ? cb(null, true)
-      : cb(new Error('Only MP4, MOV, and WebM videos are allowed'));
+    const allowedVideoTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+    const allowedThumbnailTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (file.fieldname === 'video' && allowedVideoTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else if (file.fieldname === 'thumbnail' && allowedThumbnailTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only MP4, MOV, and WebM videos with JPEG, PNG, or WebP thumbnails are allowed'));
+    }
   },
 });
 
@@ -103,7 +108,10 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
 });
 
 // POST /api/video/portfolio — multipart upload for short portfolio clips
-router.post('/portfolio', portfolioUpload.single('video'), async (req: Request, res: Response) => {
+router.post('/portfolio', portfolioUpload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 },
+]), async (req: Request, res: Response) => {
   try {
     let user;
     try {
@@ -115,8 +123,14 @@ router.post('/portfolio', portfolioUpload.single('video'), async (req: Request, 
     const profile = await db.getArtistProfileByUserId(user.id);
     if (!profile) return res.status(404).json({ error: 'Artist profile not found' });
 
-    const file = req.file;
+    const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+    const file = files?.video?.[0];
+    const thumbnail = files?.thumbnail?.[0];
     if (!file) return res.status(400).json({ error: 'Select a video file to upload' });
+    if (!thumbnail) return res.status(400).json({ error: 'We could not create the video thumbnail. Please try the upload again.' });
+    if (thumbnail.size > 3 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Video thumbnail must be under 3MB' });
+    }
 
     const title = String(req.body.title || '').trim();
     const category = String(req.body.category || '') as VideoPortfolioCategory;
@@ -147,15 +161,18 @@ router.post('/portfolio', portfolioUpload.single('video'), async (req: Request, 
     const safeExtension = file.mimetype === 'video/quicktime'
       ? 'mov'
       : file.mimetype === 'video/webm' ? 'webm' : 'mp4';
-    const fileKey = `video-portfolio/${user.id}/${Date.now()}.${safeExtension}`;
+    const timestamp = Date.now();
+    const fileKey = `video-portfolio/${user.id}/${timestamp}.${safeExtension}`;
     const { url } = await storagePut(fileKey, file.buffer, file.mimetype);
+    const thumbnailKey = `video-portfolio/${user.id}/thumbnails/${timestamp}.jpg`;
+    const { url: thumbnailUrl } = await storagePut(thumbnailKey, thumbnail.buffer, thumbnail.mimetype);
 
     const [result] = await pool.execute(
-      'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, category, duration, sortOrder, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [profile.id, title, url, category, duration || null, count, 'active'],
+      'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, thumbnailUrl, category, duration, sortOrder, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [profile.id, title, url, thumbnailUrl, category, duration || null, count, 'active'],
     );
 
-    return res.json({ success: true, id: (result as any).insertId, url });
+    return res.json({ success: true, id: (result as any).insertId, url, thumbnailUrl });
   } catch (err: any) {
     console.error('[Portfolio Video Upload Error]', err);
     if (err.code === 'LIMIT_FILE_SIZE') {

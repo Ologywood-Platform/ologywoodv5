@@ -107,6 +107,7 @@ const EventCheckIn = lazy(() => import("./pages/EventCheckIn"));
 const AcceptTransfer = lazy(() => import("./pages/AcceptTransfer"));
 const MerchPage = lazy(() => import("./pages/MerchPage"));
 const MerchItem = lazy(() => import("./pages/MerchItem"));
+const PortfolioVideo = lazy(() => import("./pages/PortfolioVideo"));
 const MerchOrders = lazy(() => import("./pages/MerchOrders"));
 const MerchOrderSuccess = lazy(() => import("./pages/MerchOrderSuccess"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
@@ -155,6 +156,7 @@ function Router() {
           <Route path="/earnings" component={ArtistEarnings} />
           <Route path="/earnings/breakdown" component={EarningsBreakdown} />
           <Route path="/merch/:slug" component={MerchItem} />
+          <Route path="/portfolio-video/:slug" component={PortfolioVideo} />
           <Route path="/merch" component={MerchPage} />
           <Route path="/merch-orders/success" component={MerchOrderSuccess} />
           <Route path="/merch-orders" component={MerchOrders} />

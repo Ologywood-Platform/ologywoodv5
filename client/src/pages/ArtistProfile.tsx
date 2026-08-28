@@ -47,6 +47,7 @@ import { OlogyLiveProfileSection } from "@/components/OlogyLiveProfileSection";
 import { CrmBadge } from "@/components/CrmBadge";
 import { parsePortfolioVideoUrl, type PortfolioVideoKind } from '@shared/videoPortfolio';
 import { getTalentTypeLabel } from '@shared/talentTypes';
+import { portfolioVideoUrl } from '@shared/portfolioVideoShare';
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -178,7 +179,10 @@ export default function ArtistProfile() {
   const [expandedRiders, setExpandedRiders] = useState<Set<number>>(new Set());
   const [shareProfileOpen, setShareProfileOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const [activeVideo, setActiveVideo] = useState<{url: string; title: string; category: string; kind: PortfolioVideoKind; embedUrl: string | null} | null>(null);
+  const [activeVideo, setActiveVideo] = useState<{id: number; url: string; thumbnailUrl: string | null; title: string; category: string; kind: PortfolioVideoKind; embedUrl: string | null} | null>(null);
+  const activeVideoShareUrl = activeVideo
+    ? portfolioVideoUrl(window.location.origin, activeVideo.title, activeVideo.id)
+    : '';
 
   const heroRef = useRef<HTMLDivElement>(null);
   
@@ -945,7 +949,9 @@ export default function ArtistProfile() {
                         onClick={() => {
                           const source = parsePortfolioVideoUrl(video.videoUrl);
                           setActiveVideo({
+                            id: video.id,
                             url: video.videoUrl,
+                            thumbnailUrl: video.thumbnailUrl || null,
                             title: video.title,
                             category: video.category,
                             kind: source?.kind || 'direct',
@@ -1050,8 +1056,7 @@ export default function ArtistProfile() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => {
-                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
-                          navigator.clipboard.writeText(shareUrl);
+                          navigator.clipboard.writeText(activeVideoShareUrl);
                           alert('Link copied!');
                         }}
                         className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -1064,8 +1069,7 @@ export default function ArtistProfile() {
                       </button>
                       <button
                         onClick={() => {
-                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
-                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out this clip: ${activeVideo.title}`)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Watch “${activeVideo.title}” by ${artist.artistName} on OlogyWood.`)}&url=${encodeURIComponent(activeVideoShareUrl)}`, '_blank');
                         }}
                         className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                         title="Share on X"
@@ -1076,8 +1080,7 @@ export default function ArtistProfile() {
                       </button>
                       <button
                         onClick={() => {
-                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
-                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+                          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeVideoShareUrl)}`, '_blank');
                         }}
                         className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                         title="Share on Facebook"
@@ -1088,8 +1091,7 @@ export default function ArtistProfile() {
                       </button>
                       <button
                         onClick={() => {
-                          const shareUrl = `${window.location.origin}/artist/${artistId}?clip=${encodeURIComponent(activeVideo.title)}`;
-                          window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this clip: ${activeVideo.title} ${shareUrl}`)}`, '_blank');
+                          window.open(`https://wa.me/?text=${encodeURIComponent(`Watch “${activeVideo.title}” by ${artist.artistName} on OlogyWood. ${activeVideoShareUrl}`)}`, '_blank');
                         }}
                         className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                         title="Share on WhatsApp"

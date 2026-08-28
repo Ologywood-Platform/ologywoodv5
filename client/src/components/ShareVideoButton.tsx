@@ -1,25 +1,32 @@
 import { useState, useRef, useEffect } from 'react';
-import { Share2, Copy, Check, Facebook, Twitter, Linkedin, MessageCircle, X } from 'lucide-react';
+import { Share2, Copy, Check, Facebook, Twitter, Linkedin, MessageCircle, X, Mail, Smartphone, MoreHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { toOgShareUrl } from '@/lib/slugify';
+import { portfolioVideoUrl } from '@shared/portfolioVideoShare';
 
 
 interface ShareVideoButtonProps {
   artistId: number;
   artistName: string;
+  videoId?: number;
+  videoTitle?: string;
 }
 
-export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps) {
+export function ShareVideoButton({ artistId, artistName, videoId, videoTitle }: ShareVideoButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // OG share URL for social media (bypasses Cloudflare WAF)
-  const ogShareUrl = toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
+  const ogShareUrl = videoId && videoTitle
+    ? portfolioVideoUrl(window.location.origin, videoTitle, videoId)
+    : toOgShareUrl(window.location.origin, 'artist', artistName, artistId);
 
-  const shareText = `Watch ${artistName} perform on Ologywood!`;
+  const shareText = videoTitle
+    ? `Watch “${videoTitle}” by ${artistName} on OlogyWood.`
+    : `Watch ${artistName} perform on Ologywood!`;
 
   // Close popover on outside click
   useEffect(() => {
@@ -62,11 +69,34 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
       case 'whatsapp':
         url = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
         break;
+      case 'email':
+        url = `mailto:?subject=${encodeURIComponent(videoTitle ? `${videoTitle} by ${artistName}` : artistName)}&body=${encodedText}%0A%0A${encodedUrl}`;
+        break;
+      case 'text':
+        url = `sms:?&body=${encodedText}%20${encodedUrl}`;
+        break;
     }
 
     if (url) {
       window.open(url, '_blank', 'width=600,height=400');
       setOpen(false);
+    }
+  };
+
+  const shareMore = async () => {
+    if (!navigator.share) {
+      await handleCopy();
+      return;
+    }
+    try {
+      await navigator.share({
+        title: videoTitle ? `${videoTitle} by ${artistName}` : artistName,
+        text: shareText,
+        url: ogShareUrl,
+      });
+      setOpen(false);
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') toast.error('Unable to open device sharing');
     }
   };
 
@@ -132,6 +162,30 @@ export function ShareVideoButton({ artistId, artistName }: ShareVideoButtonProps
           >
             <MessageCircle className="h-4 w-4 text-[#25D366]" />
             <span>WhatsApp</span>
+          </button>
+
+          <button
+            onClick={() => share('email')}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Mail className="h-4 w-4 text-slate-600" />
+            <span>Email</span>
+          </button>
+
+          <button
+            onClick={() => share('text')}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Smartphone className="h-4 w-4 text-slate-600" />
+            <span>Text Message</span>
+          </button>
+
+          <button
+            onClick={shareMore}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <MoreHorizontal className="h-4 w-4 text-slate-600" />
+            <span>More Options</span>
           </button>
         </div>
       )}

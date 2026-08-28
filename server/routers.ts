@@ -848,6 +848,32 @@ export const appRouter = router({
         return (rows as any[]) || [];
       }),
 
+    getPortfolioVideo: publicProcedure
+      .input(z.object({ videoId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        const { getPool } = await import('./db');
+        const pool = getPool();
+        if (!pool) return null;
+        await ensureVideoPortfolioSchema(pool as any);
+        const [rows] = await pool.execute(
+          `SELECT vp.id, vp.artistProfileId, vp.title, vp.videoUrl, vp.thumbnailUrl,
+                  vp.category, vp.duration, vp.createdAt, ap.artistName, ap.bio
+           FROM video_portfolio vp
+           INNER JOIN artist_profiles ap ON ap.id = vp.artistProfileId
+           WHERE vp.id = ? AND vp.status = ?
+           LIMIT 1`,
+          [input.videoId, 'active'],
+        );
+        const video = (rows as any[])[0];
+        if (!video) return null;
+        const source = parsePortfolioVideoUrl(video.videoUrl);
+        return {
+          ...video,
+          kind: source?.kind || 'direct',
+          embedUrl: source?.embedUrl || null,
+        };
+      }),
+
     getMyVideoPortfolio: artistProcedure
       .query(async ({ ctx }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);

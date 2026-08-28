@@ -73,13 +73,17 @@ describe('legacy video portfolio schema repair', () => {
 describe('portfolio upload and playback integration', () => {
   it('uses a multipart S3 endpoint with ownership, size, duration, category, and catalog-limit checks', () => {
     const route = projectFile('server/routes/videoUpload.ts');
-    expect(route).toContain("router.post('/portfolio', portfolioUpload.single('video')");
+    expect(route).toContain("router.post('/portfolio', portfolioUpload.fields([");
+    expect(route).toContain("{ name: 'video', maxCount: 1 }");
+    expect(route).toContain("{ name: 'thumbnail', maxCount: 1 }");
     expect(route).toContain('sdk.authenticateRequest');
     expect(route).toContain('getArtistProfileByUserId(user.id)');
     expect(route).toContain('100 * 1024 * 1024');
     expect(route).toContain('duration > 120');
     expect(route).toContain('VIDEO_PORTFOLIO_CATEGORIES.includes(category)');
     expect(route).toContain('storagePut(fileKey, file.buffer, file.mimetype)');
+    expect(route).toContain('storagePut(thumbnailKey, thumbnail.buffer, thumbnail.mimetype)');
+    expect(route).toContain('thumbnailUrl, category, duration');
     expect(route).toContain('ensureVideoPortfolioSchema');
   });
 
@@ -87,6 +91,10 @@ describe('portfolio upload and playback integration', () => {
     const manager = projectFile('client/src/components/VideoPortfolioManager.tsx');
     expect(manager).toContain("fileInputRef.current?.click()");
     expect(manager).toContain("xhr.open('POST', '/api/video/portfolio')");
+    expect(manager).toContain("formData.append('thumbnail', thumbnail");
+    expect(manager).toContain("canvas.width = 1200");
+    expect(manager).toContain("canvas.height = 630");
+    expect(manager).toContain('Math.min(Math.max(duration * 0.25, 1), 15)');
     expect(manager).toContain('finally {');
     expect(manager).toContain('setUploading(false)');
     expect(manager).toContain("fileInputRef.current.value = ''");

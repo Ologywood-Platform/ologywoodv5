@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { getDb } from '../db';
-import { artistProfiles, venueProfiles, events, blogPosts, merchItems } from '../../drizzle/schema';
+import { artistProfiles, venueProfiles, events, blogPosts, merchItems, videoPortfolio } from '../../drizzle/schema';
 import { and, eq, sql } from 'drizzle-orm';
+import { portfolioVideoDescription, portfolioVideoPath } from '../../shared/portfolioVideoShare';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -67,7 +68,7 @@ function escapeHtml(str: string): string {
  * Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/* proxy.
  * Falls back to the default OG image if no profile photo exists.
  */
-function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue' | 'merch', entityId: number, baseUrl: string): string {
+function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue' | 'merch' | 'portfolio-video', entityId: number, baseUrl: string): string {
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
@@ -322,6 +323,43 @@ export function ogTagMiddleware() {
               jsonLd: [generateVenueJsonLd(venue, baseUrl), breadcrumb],
             });
             console.log(`[OG Tags] Served venue OG for bot: id=${venueId}, name=${venue.organizationName}, image=${ogImage}`);
+            return res.status(200).set('Content-Type', 'text/html').send(html);
+          }
+        }
+      }
+
+      // Match a clean individual portfolio video URL: /portfolio-video/video-title-123
+      const portfolioVideoMatch = pathname.match(/^\/portfolio-video\/(.+)-(\d+)$/) || pathname.match(/^\/portfolio-video\/(\d+)$/);
+      if (portfolioVideoMatch) {
+        const videoId = Number(portfolioVideoMatch[2] || portfolioVideoMatch[1]);
+        const database = await getDb();
+        if (database && Number.isInteger(videoId) && videoId > 0) {
+          const [video] = await database
+            .select({
+              id: videoPortfolio.id,
+              title: videoPortfolio.title,
+              thumbnailUrl: videoPortfolio.thumbnailUrl,
+              category: videoPortfolio.category,
+              status: videoPortfolio.status,
+              artistName: artistProfiles.artistName,
+            })
+            .from(videoPortfolio)
+            .innerJoin(artistProfiles, eq(artistProfiles.id, videoPortfolio.artistProfileId))
+            .where(and(eq(videoPortfolio.id, videoId), eq(videoPortfolio.status, 'active')))
+            .limit(1);
+
+          if (video) {
+            const canonicalUrl = `${baseUrl}${portfolioVideoPath(video.title, video.id)}`;
+            const image = getOgImageUrl(video.thumbnailUrl, 'portfolio-video', video.id, baseUrl);
+            const description = portfolioVideoDescription(video.title, video.artistName, video.category);
+            const html = generateOgHtml({
+              title: `${video.title} | ${video.artistName} on OlogyWood`,
+              description,
+              image,
+              imageAlt: `Thumbnail for ${video.title} by ${video.artistName}`,
+              url: canonicalUrl,
+              type: 'video.other',
+            });
             return res.status(200).set('Content-Type', 'text/html').send(html);
           }
         }

@@ -63,3 +63,5 @@ export function venueUrl(name: string, _id?: number): string {
 export function merchUrl(title: string, id: number): string {
   return `/merch/${toSlug(title)}-${id}`;
 }
+
+export { portfolioVideoPath } from '@shared/portfolioVideoShare';

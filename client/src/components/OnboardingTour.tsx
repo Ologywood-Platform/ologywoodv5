@@ -268,6 +268,7 @@ function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string;
 
 export function OnboardingTour() {
   const { user } = useAuth();
+  const isPublicPortfolioVideo = typeof window !== 'undefined' && window.location.pathname.startsWith('/portfolio-video/');
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
@@ -276,7 +277,7 @@ export function OnboardingTour() {
 
   // Only fetch artist profile if user is an artist (to check talentType)
   const { data: profile } = trpc.artist.getMyProfile.useQuery(undefined, {
-    enabled: !!user && user.role === 'artist',
+    enabled: !!user && user.role === 'artist' && !isPublicPortfolioVideo,
   });
 
   // Determine the user's tour role
@@ -301,7 +302,10 @@ export function OnboardingTour() {
 
   // Show tour when role is determined
   useEffect(() => {
-    if (!tourRole) return;
+    if (!tourRole || isPublicPortfolioVideo) {
+      setIsActive(false);
+      return;
+    }
 
     const config = getTourConfig(tourRole);
 
@@ -318,7 +322,7 @@ export function OnboardingTour() {
       const timer = setTimeout(() => setIsActive(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, [tourRole]);
+  }, [tourRole, isPublicPortfolioVideo]);
 
   const config = tourRole ? getTourConfig(tourRole) : null;
   const steps = config?.steps ?? [];
@@ -426,7 +430,7 @@ export function OnboardingTour() {
     setIsActive(false);
   };
 
-  if (!isActive || !config || !steps.length) return null;
+  if (isPublicPortfolioVideo || !isActive || !config || !steps.length) return null;
 
   const step = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;

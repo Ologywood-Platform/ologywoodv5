@@ -4395,3 +4395,18 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Render and inspect representative desktop and mobile email previews
 - [x] Run TypeScript, 84 focused tests, 2,682 full-suite tests, and production build validation
 - [x] Save checkpoint d29e76f8 for the email logo branding replacement
+
+## PORTFOLIO VIDEO THUMBNAIL SOCIAL PREVIEWS (Aug 28, 2026)
+- [x] Inspect Adonis’s uploaded short video record, thumbnail URL, public playback, and current share destination on live and development sites
+- [x] Trace why the portfolio video share action resolved to the generic artist profile and platform Open Graph preview
+- [x] Generate and persist a representative quarter-point JPEG thumbnail for future direct video uploads instead of relying on browser-only video rendering
+- [x] Backfill only Adonis’s existing active “Video test” clip with the verified 15-second frame without altering the video file
+- [x] Add a clean public URL for each active portfolio video without exposing removed or unauthorized records
+- [x] Keep public portfolio-video pages unobstructed by creator onboarding tours so shared links open directly to the clip
+- [x] Generate video-specific Open Graph and X metadata using the saved thumbnail, video title, creator name, category description, and canonical URL
+- [x] Add a secure thumbnail-aware JPEG social-image proxy with the branded preview only as a true fallback
+- [x] Update both profile video share entry points to use the video-specific URL with Facebook, X, LinkedIn, WhatsApp, copy-link, email, text, and device share options
+- [x] Add behavioral and source-level regression coverage for thumbnail metadata, clean URLs, inactive visibility, image conversion, cache refresh, and share destinations
+- [x] Verify Adonis’s real uploaded clip returns the selected frame in live-compatible crawler metadata, a 1200×630 JPEG proxy, and responsive desktop/mobile UI
+- [x] Run TypeScript, 70 focused tests, 2,691 full-suite tests, and production build validation
+- [ ] Save a checkpoint for the portfolio video thumbnail social preview

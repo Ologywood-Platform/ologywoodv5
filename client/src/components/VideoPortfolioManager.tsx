@@ -86,9 +86,11 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     try {
       const duration = await getVideoDuration(uploadFile);
       if (duration > 120) throw new Error('Portfolio videos must be 2 minutes or less');
+      const thumbnail = await createVideoThumbnail(uploadFile, duration);
 
       const formData = new FormData();
       formData.append('video', uploadFile);
+      formData.append('thumbnail', thumbnail, `${uploadFile.name.replace(/\.[^.]+$/, '') || 'portfolio-video'}-thumbnail.jpg`);
       formData.append('title', title.trim());
       formData.append('category', category);
       formData.append('durationSeconds', String(Math.round(duration)));
@@ -137,6 +139,47 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     element.onerror = () => {
       URL.revokeObjectURL(objectUrl);
       reject(new Error('We could not read this video. Try an MP4, MOV, or WebM file.'));
+    };
+    element.src = objectUrl;
+  });
+
+  const createVideoThumbnail = (file: File, duration: number): Promise<Blob> => new Promise((resolve, reject) => {
+    const element = document.createElement('video');
+    const objectUrl = URL.createObjectURL(file);
+    element.preload = 'auto';
+    element.muted = true;
+    element.playsInline = true;
+
+    const cleanup = () => URL.revokeObjectURL(objectUrl);
+    element.onerror = () => {
+      cleanup();
+      reject(new Error('We could not create a thumbnail from this video. Try another MP4, MOV, or WebM file.'));
+    };
+    element.onloadedmetadata = () => {
+      element.currentTime = Math.min(Math.max(duration * 0.25, 1), 15);
+    };
+    element.onseeked = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 630;
+      const context = canvas.getContext('2d');
+      if (!context || !element.videoWidth || !element.videoHeight) {
+        cleanup();
+        reject(new Error('We could not create a thumbnail from this video.'));
+        return;
+      }
+
+      context.fillStyle = '#000000';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      const scale = Math.min(canvas.width / element.videoWidth, canvas.height / element.videoHeight);
+      const width = element.videoWidth * scale;
+      const height = element.videoHeight * scale;
+      context.drawImage(element, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+      canvas.toBlob((blob) => {
+        cleanup();
+        if (blob) resolve(blob);
+        else reject(new Error('We could not create a thumbnail from this video.'));
+      }, 'image/jpeg', 0.88);
     };
     element.src = objectUrl;
   });
