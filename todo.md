@@ -4383,4 +4383,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for Visual Artist creation defaults, non-Visual-Artist defaults, manual category changes, and edit preservation
 - [x] Verify the creation interface visibly preselects Arts & Culture and the edit interface initializes from its saved event
 - [x] Run TypeScript, 7 focused tests, 2,678 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the Visual Artist event-category default
+- [x] Save checkpoint 84a3b164 for the Visual Artist event-category default
