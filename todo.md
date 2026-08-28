@@ -4394,4 +4394,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage proving all email implementations use the approved asset and no retired logo remains
 - [x] Render and inspect representative desktop and mobile email previews
 - [x] Run TypeScript, 84 focused tests, 2,682 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the email logo branding replacement
+- [x] Save checkpoint d29e76f8 for the email logo branding replacement
