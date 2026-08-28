@@ -4421,4 +4421,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify 16 ms long-form startup with no playback stalls, responsive presentation, and uninterrupted short-form playback
 - [x] Add regression coverage for main-video preloading, inline mobile playback, and separation from the portfolio-video system
 - [x] Run TypeScript, 19 focused tests, 2,693 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the long-form video buffering repair
+- [x] Save checkpoint 50ed446e for the long-form video buffering repair
