@@ -8,7 +8,12 @@ import {
   getDateOnlyKey,
   parseDateOnly,
 } from '../shared/dateOnly';
-import { EVENT_TYPE_OPTIONS, EVENT_TYPE_VALUES, formatEventTypeLabel } from '../shared/eventTypes';
+import {
+  EVENT_TYPE_OPTIONS,
+  EVENT_TYPE_VALUES,
+  formatEventTypeLabel,
+  getDefaultArtistEventType,
+} from '../shared/eventTypes';
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -29,9 +34,28 @@ describe('Arts & Culture event category', () => {
     expect(routerSource).toContain('eventType: input.eventType');
     expect(routerSource).not.toContain("eventType: 'concert', // Default for artist posts");
     expect(createFormSource).toContain('EVENT_TYPE_OPTIONS.map');
-    expect(createFormSource).toContain('eventType: formData.eventType');
+    expect(createFormSource).toContain('eventType: selectedEventType');
     expect(editFormSource).toContain('EVENT_TYPE_OPTIONS.map');
     expect(editFormSource).toContain('eventType: formData.eventType');
+  });
+
+  it('defaults only new Visual Artist events to Arts & Culture', () => {
+    const createFormSource = fs.readFileSync(path.join(projectRoot, 'client/src/components/ArtistEventPostForm.tsx'), 'utf8');
+
+    expect(getDefaultArtistEventType('visual_artist')).toBe('arts_culture');
+    expect(getDefaultArtistEventType('artist')).toBe('');
+    expect(getDefaultArtistEventType('creator')).toBe('');
+    expect(getDefaultArtistEventType(undefined)).toBe('');
+    expect(createFormSource).toContain('formData.eventType || getDefaultArtistEventType');
+    expect(createFormSource).toContain('eventType: selectedEventType');
+    expect(createFormSource).toContain('Arts & Culture is suggested for Visual Artist profiles');
+  });
+
+  it('preserves the saved category when editing an existing event', () => {
+    const editFormSource = fs.readFileSync(path.join(projectRoot, 'client/src/pages/EventEdit.tsx'), 'utf8');
+
+    expect(editFormSource).toContain("eventType: event.eventType || ''");
+    expect(editFormSource).not.toContain('getDefaultArtistEventType');
   });
 });
 

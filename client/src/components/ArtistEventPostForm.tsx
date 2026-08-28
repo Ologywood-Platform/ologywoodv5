@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Loader2, Upload, X, Image, Calendar, MapPin, Ticket, FileText } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { dateOnlyToUtcDate } from '@shared/dateOnly';
-import { EVENT_TYPE_OPTIONS } from '@shared/eventTypes';
+import { EVENT_TYPE_OPTIONS, getDefaultArtistEventType } from '@shared/eventTypes';
 
 interface ArtistEventPostFormProps {
   onSuccess?: (eventId: number) => void;
@@ -36,11 +36,13 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
 
   const createPostMutation = trpc.events.createArtistPost.useMutation();
   const uploadMediaMutation = trpc.artist.uploadMedia.useMutation();
+  const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
+  const selectedEventType = formData.eventType || getDefaultArtistEventType(artistProfile?.talentType);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.eventTitle.trim()) newErrors.eventTitle = 'Event name is required';
-    if (!formData.eventType) newErrors.eventType = 'Event type is required';
+    if (!selectedEventType) newErrors.eventType = 'Event type is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
 
@@ -121,7 +123,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
 
       const result = await createPostMutation.mutateAsync({
         eventTitle: formData.eventTitle,
-        eventType: formData.eventType as (typeof EVENT_TYPE_OPTIONS)[number]['value'],
+        eventType: selectedEventType as (typeof EVENT_TYPE_OPTIONS)[number]['value'],
         eventDate: dateOnlyToUtcDate(formData.eventDate),
         eventTime: formData.eventTime || undefined,
         eventEndTime: formData.eventEndTime || undefined,
@@ -230,7 +232,7 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
           <div className="space-y-2">
             <Label htmlFor="eventType">Event Type *</Label>
             <Select
-              value={formData.eventType}
+              value={selectedEventType}
               onValueChange={(value) => {
                 setFormData((previous) => ({ ...previous, eventType: value }));
                 setErrors((previous) => {
@@ -250,7 +252,11 @@ export function ArtistEventPostForm({ onSuccess, isLoading = false }: ArtistEven
               </SelectContent>
             </Select>
             {errors.eventType && <p className="text-sm text-red-500">{errors.eventType}</p>}
-            <p className="text-xs text-muted-foreground">Choose the category fans should see on event cards and in search.</p>
+            <p className="text-xs text-muted-foreground">
+              {artistProfile?.talentType === 'visual_artist'
+                ? 'Arts & Culture is suggested for Visual Artist profiles. You can change it for any event.'
+                : 'Choose the category fans should see on event cards and in search.'}
+            </p>
           </div>
 
           {/* Date and Time */}

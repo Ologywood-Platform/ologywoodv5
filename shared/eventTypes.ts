@@ -22,6 +22,15 @@ export const EVENT_TYPE_VALUES = EVENT_TYPE_OPTIONS.map((option) => option.value
 
 export type EventTypeValue = (typeof EVENT_TYPE_OPTIONS)[number]['value'];
 
+/**
+ * Suggest an event category only when a new artist event is still untouched.
+ * Other talent types keep the existing no-selection default so the creator
+ * must choose the category that best describes the event.
+ */
+export function getDefaultArtistEventType(talentType: string | null | undefined): EventTypeValue | '' {
+  return talentType === 'visual_artist' ? 'arts_culture' : '';
+}
+
 const EVENT_TYPE_LABELS = Object.fromEntries(
   EVENT_TYPE_OPTIONS.map((option) => [option.value, option.label]),
 ) as Record<EventTypeValue, string>;

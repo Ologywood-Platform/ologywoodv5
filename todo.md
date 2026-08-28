@@ -4374,3 +4374,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Visual Artist profile editing and Browse filters on desktop and mobile without modifying an existing profile
 - [x] Run TypeScript, 6 focused tests, 2,676 full-suite tests, no-migration schema verification, and production build
 - [x] Save checkpoint e6276cec for the Visual Artist profile-type expansion
+
+## VISUAL ARTIST EVENT CATEGORY DEFAULT (Aug 27, 2026)
+- [x] Audit every artist event creation entry point and its current category initialization
+- [x] Default new Visual Artist events to Arts & Culture after the creator profile loads
+- [x] Preserve the existing unselected category behavior for Music Artists and other profile types
+- [x] Ensure event editing always keeps the event’s saved category instead of applying a profile default
+- [x] Add regression coverage for Visual Artist creation defaults, non-Visual-Artist defaults, manual category changes, and edit preservation
+- [x] Verify the creation interface visibly preselects Arts & Culture and the edit interface initializes from its saved event
+- [x] Run TypeScript, 7 focused tests, 2,678 full-suite tests, and production build validation
+- [ ] Save a checkpoint for the Visual Artist event-category default
