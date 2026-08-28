@@ -4409,4 +4409,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add behavioral and source-level regression coverage for thumbnail metadata, clean URLs, inactive visibility, image conversion, cache refresh, and share destinations
 - [x] Verify Adonis’s real uploaded clip returns the selected frame in live-compatible crawler metadata, a 1200×630 JPEG proxy, and responsive desktop/mobile UI
 - [x] Run TypeScript, 70 focused tests, 2,691 full-suite tests, and production build validation
-- [ ] Save a checkpoint for the portfolio video thumbnail social preview
+- [x] Save checkpoint c592809e for the portfolio video thumbnail social preview
