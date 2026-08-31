@@ -4442,4 +4442,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate the real creator router with disposable inactive physical-book and eBook drafts, automatic cleanup, and no payment or public product creation
 - [x] Confirm the runtime database has merch order tables, digital fulfillment, Books metadata, and protected eBook access after idempotent legacy repair
 - [x] Add behavioral HTTP tests for authentication, seller ownership, rights affirmation, private randomized storage keys, buyer authorization, refund revocation, download limits, and signed delivery
-- [ ] Save a checkpoint for the Author / Writer and Books Creator Shop expansion
+- [x] Save checkpoint 501df99c for the Author / Writer and Books Creator Shop expansion
