@@ -126,6 +126,14 @@ describe('Secure Creator Shop book commerce', () => {
     expect(stripe).toContain('await tx.insert(bookDownloadAccess).values');
     expect(stripe).toContain("await tx.update(bookDownloadAccess).set({ status: 'refunded' })");
     expect(stripe).toContain("fulfillmentMethod === 'digital' ? 'completed'");
+    expect(stripe).toContain('if (!charge.refunded)');
+    expect(stripe).toContain("ne(merchOrders.paymentStatus, 'refunded')");
+    expect(stripe).toContain('inventoryQuantity: sql`COALESCE(${merchItems.inventoryQuantity}, 0) + ${orderItem.quantity}`');
+  });
+
+  it('keeps paid and refunded orders visible to creators', () => {
+    const orders = read('server/routers/merchOrders.ts');
+    expect(orders).toContain("inArray(merchOrders.paymentStatus, ['paid', 'refunded'])");
   });
 
   it('shows books as a first-class Creator Shop category and buyer download', () => {

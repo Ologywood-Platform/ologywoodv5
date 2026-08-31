@@ -597,21 +597,41 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 async function handleChargeRefunded(charge: Stripe.Charge) {
   const paymentIntentId = charge.payment_intent as string | null;
   if (!paymentIntentId) return;
+  if (!charge.refunded) {
+    console.log(`[Stripe Webhook] Partial refund recorded for charge ${charge.id}; merch order remains paid until fully refunded`);
+    return;
+  }
 
   console.log(`[Stripe Webhook] Charge refunded: ${charge.id}`);
   const database = await db.getDb();
   if (!database) return;
 
-  const { bookDownloadAccess, merchOrders } = await import('../../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
+  const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders } = await import('../../drizzle/schema');
+  const { and, eq, ne, sql } = await import('drizzle-orm');
   const [merchOrder] = await database.select().from(merchOrders)
     .where(eq(merchOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
   if (merchOrder) {
     await database.transaction(async (tx) => {
-      await tx.update(merchOrders).set({
+      const updateResult = await tx.update(merchOrders).set({
         paymentStatus: 'refunded',
         status: 'refunded',
-      }).where(eq(merchOrders.id, merchOrder.id));
+      }).where(and(
+        eq(merchOrders.id, merchOrder.id),
+        ne(merchOrders.paymentStatus, 'refunded'),
+      ));
+      const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+      if (affectedRows > 0) {
+        const orderItems = await tx.select().from(merchOrderItems)
+          .where(eq(merchOrderItems.orderId, merchOrder.id));
+        for (const orderItem of orderItems) {
+          await tx.update(merchItems).set({
+            inventoryQuantity: sql`COALESCE(${merchItems.inventoryQuantity}, 0) + ${orderItem.quantity}`,
+          }).where(and(
+            eq(merchItems.id, orderItem.merchItemId),
+            eq(merchItems.trackInventory, true),
+          ));
+        }
+      }
       await tx.update(bookDownloadAccess).set({ status: 'refunded' })
         .where(eq(bookDownloadAccess.orderId, merchOrder.id));
     });

@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { publicProcedure, protectedProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
 import * as email from '../email';
@@ -347,7 +347,10 @@ export const merchOrdersRouter = router({
     let orders;
     try {
       orders = await db.select().from(merchOrders)
-        .where(and(eq(merchOrders.sellerUserId, ctx.user.id), eq(merchOrders.paymentStatus, 'paid')))
+        .where(and(
+          eq(merchOrders.sellerUserId, ctx.user.id),
+          inArray(merchOrders.paymentStatus, ['paid', 'refunded']),
+        ))
         .orderBy(desc(merchOrders.createdAt));
     } catch (error) {
       if (isLegacyMerchSchemaError(error)) return [];

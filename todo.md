@@ -4443,3 +4443,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Confirm the runtime database has merch order tables, digital fulfillment, Books metadata, and protected eBook access after idempotent legacy repair
 - [x] Add behavioral HTTP tests for authentication, seller ownership, rights affirmation, private randomized storage keys, buyer authorization, refund revocation, download limits, and signed delivery
 - [x] Save checkpoint 501df99c for the Author / Writer and Books Creator Shop expansion
+
+## CONTROLLED STRIPE TEST-MODE BOOK PURCHASE & REFUND (Aug 30, 2026)
+- [x] Confirm the active Stripe credentials and Adonis seller Connect account are enabled locally and remotely under Stripe test mode, with no real-charge path
+- [x] Create disposable test-mode physical-book and eBook offers without modifying existing creator products
+- [x] Upload a disposable private eBook file with explicit rights affirmation and activate both offers only for controlled testing
+- [x] Complete one physical-book and one eBook Stripe test checkout with test payment credentials
+- [x] Verify actual checkout completion events pass signed webhook validation, create paid orders, preserve the one-percent platform fee, and apply physical versus digital fulfillment correctly
+- [x] Verify the paid eBook produces purchase-authorized order controls and a working signed download without exposing its private storage key
+- [x] Refund both test payments and verify Stripe/database order states, paid-order notifications, transfer and fee reversal, and eBook access revocation
+- [x] Restore tracked physical-book inventory exactly once when a paid merch charge is fully refunded, including duplicate-webhook idempotency
+- [x] Keep refunded physical-book and eBook orders visible in creator order management for audit and customer service
+- [x] Remove all disposable buyer, product, order-item, order, download-access, notification, storage-key reference, state-file, and temporary-script artifacts without affecting existing records; retain only Stripe test audit objects
+- [x] Run TypeScript, 39 focused payment/order/eBook regressions, 2,712 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save a checkpoint and report exact Stripe test-mode session, payment, refund, webhook, and cleanup results
