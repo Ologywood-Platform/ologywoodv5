@@ -17,7 +17,7 @@ import ImageCropper from "@/components/ImageCropper";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import TouringSection from '@/components/TouringSection';
 import { LocationInput } from '@/components/LocationInput';
-import { TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
+import { AUTHOR_GENRES, TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
 
 const MUSIC_GENRE_OPTIONS = [
   "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
@@ -105,20 +105,25 @@ export default function ArtistEditProfile() {
   const [athleteAchievements, setAthleteAchievements] = useState<{title: string; year?: string; description?: string}[]>([]);
 
   const isVisualArtist = talentType === 'visual_artist';
+  const isAuthorWriter = talentType === 'author_writer';
   const specialtyOptions = talentType === 'filmmaker'
     ? FILMMAKER_SPECIALIZATION_OPTIONS
     : isVisualArtist
       ? [...VISUAL_ART_DISCIPLINES]
+      : isAuthorWriter
+        ? [...AUTHOR_GENRES]
       : MUSIC_GENRE_OPTIONS;
-  const specialtyTitle = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : 'Genres';
+  const specialtyTitle = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : isAuthorWriter ? 'Writing Genres' : 'Genres';
   const specialtyDescription = talentType === 'filmmaker'
     ? 'Select the types of production you specialize in'
     : isVisualArtist
       ? 'Select the mediums and creative disciplines that best describe your work'
+      : isAuthorWriter
+        ? 'Select the genres that help readers and event organizers discover your writing'
       : 'Select the genres that best describe your music';
   const specialtyNoun = talentType === 'filmmaker' ? 'specialization' : isVisualArtist ? 'discipline' : 'genre';
-  const profileNameLabel = talentType === 'athlete' ? 'Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : talentType === 'artist' ? 'Artist / Band Name' : 'Profile Name';
-  const profileNamePlaceholder = talentType === 'athlete' ? 'Your name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : talentType === 'artist' ? 'Your stage name or band name' : 'Your public name';
+  const profileNameLabel = talentType === 'athlete' ? 'Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : isAuthorWriter ? 'Author Name / Pen Name' : talentType === 'artist' ? 'Artist / Band Name' : 'Profile Name';
+  const profileNamePlaceholder = talentType === 'athlete' ? 'Your name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : isAuthorWriter ? 'Your name or published pen name' : talentType === 'artist' ? 'Your stage name or band name' : 'Your public name';
 
   // Populate form when profile loads
   useEffect(() => {
@@ -448,17 +453,17 @@ export default function ArtistEditProfile() {
               </div>
 
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{isAuthorWriter ? 'Author Bio' : 'Bio'}</Label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell venues and fans about yourself..."
+                  placeholder={isAuthorWriter ? 'Tell readers and bookers about your writing, published work, perspective, and voice...' : 'Tell venues and fans about yourself...'}
                   rows={5}
                   autoCapitalize="sentences"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {bio.length}/1000 characters — Keep it short and engaging. Mention your style, experience, and what makes your work distinctive.
+                  {bio.length}/1000 characters — {isAuthorWriter ? 'Share your writing background, themes, publications, and the audiences you write for.' : 'Keep it short and engaging. Mention your style, experience, and what makes your work distinctive.'}
                 </p>
               </div>
 
@@ -639,16 +644,16 @@ export default function ArtistEditProfile() {
           {/* Pricing & Touring */}
           <Card>
             <CardHeader>
-              <CardTitle>Pricing & Touring</CardTitle>
-              <CardDescription>Set your fee range and touring party size</CardDescription>
+              <CardTitle>{isAuthorWriter ? 'Appearance Pricing' : 'Pricing & Touring'}</CardTitle>
+              <CardDescription>{isAuthorWriter ? 'Set an optional range for readings, signings, workshops, school visits, panels, and speaking engagements' : 'Set your fee range and touring party size'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground mb-3">
-                This is what venues see when deciding whether to book you. Set a range that reflects your flexibility.
+                {isAuthorWriter ? 'Bookstores, schools, libraries, festivals, and event organizers can use this range when considering an appearance.' : 'This is what venues see when deciding whether to book you. Set a range that reflects your flexibility.'}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="feeMin">Minimum Fee ($)</Label>
+                  <Label htmlFor="feeMin">{isAuthorWriter ? 'Minimum Appearance Fee ($)' : 'Minimum Fee ($)'}</Label>
                   <Input
                     id="feeMin"
                     type="number"
@@ -659,7 +664,7 @@ export default function ArtistEditProfile() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="feeMax">Maximum Fee ($)</Label>
+                  <Label htmlFor="feeMax">{isAuthorWriter ? 'Maximum Appearance Fee ($)' : 'Maximum Fee ($)'}</Label>
                   <Input
                     id="feeMax"
                     type="number"
@@ -671,7 +676,7 @@ export default function ArtistEditProfile() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="partySize">Touring Party Size</Label>
+                <Label htmlFor="partySize">{isAuthorWriter ? 'Appearance Team Size' : 'Touring Party Size'}</Label>
                 <Input
                   id="partySize"
                   type="number"
@@ -680,7 +685,7 @@ export default function ArtistEditProfile() {
                   placeholder="1"
                   min="1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Total number of people in your touring group</p>
+                <p className="text-xs text-muted-foreground mt-1">{isAuthorWriter ? 'Total people who usually attend author appearances with you, including yourself' : 'Total number of people in your touring group'}</p>
               </div>
             </CardContent>
           </Card>

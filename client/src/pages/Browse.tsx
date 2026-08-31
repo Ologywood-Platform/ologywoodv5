@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Palette, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown, Send, Loader2 } from "lucide-react";
+import { Music, Palette, BookOpen, Search, MapPin, DollarSign, MessageSquare, Calendar, Heart, SlidersHorizontal, X, RotateCcw, Plane, Building2, Users, Filter, Wine, Disc3, Mic2, Theater, Trophy, TreePine, UtensilsCrossed, Sofa, Tent, Lock, HelpCircle, ArrowUpDown, Send, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -571,6 +571,11 @@ export default function Browse() {
                                 <Palette className="h-10 w-10 text-primary/30" />
                                 <span className="text-xs text-muted-foreground/60">Visual Artist</span>
                               </>
+                            ) : (artist as any).talentType === 'author_writer' ? (
+                              <>
+                                <BookOpen className="h-10 w-10 text-primary/30" />
+                                <span className="text-xs text-muted-foreground/60">Author / Writer</span>
+                              </>
                             ) : (
                               <>
                                 <Music className="h-10 w-10 text-primary/30" />
@@ -673,6 +678,8 @@ export default function Browse() {
                     ? 'Use the search bar above or open Filters to find talent by genre, location, availability, and more.'
                     : talentTypeFilter === 'visual_artist'
                     ? 'Use the search bar above or open Filters to find visual artists by discipline, location, availability, and more.'
+                    : talentTypeFilter === 'author_writer'
+                    ? 'Use the search bar above or open Filters to find authors and writers by genre, location, availability, and more.'
                     : talentTypeFilter === 'athlete'
                     ? 'Use the search bar above or open Filters to find athletes by sport, location, and availability.'
                     : `Use the search bar above or open Filters to find ${getTalentTypePluralLabel(talentTypeFilter).toLowerCase()} by location, availability, and more.`

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, Palette, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink, Plane } from "lucide-react";
+import { Music, Palette, BookOpen, MapPin, DollarSign, Users, Globe, Instagram, Facebook, Youtube, Music2, FileText, ChevronDown, Star, Heart, Settings, Video, Calendar, Ticket, ExternalLink, Plane } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { ShareVideoButton } from '@/components/ShareVideoButton';
 import { ReportVideoButton } from '@/components/ReportVideoButton';
@@ -366,6 +366,8 @@ export default function ArtistProfile() {
             <div className="w-full h-[200px] sm:h-[240px] bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-6">
               {(artist as any).talentType === 'visual_artist'
                 ? <Palette className="h-24 w-24 text-primary/40" />
+                : (artist as any).talentType === 'author_writer'
+                  ? <BookOpen className="h-24 w-24 text-primary/40" />
                 : <Music className="h-24 w-24 text-primary/40" />}
             </div>
           )}
@@ -404,7 +406,7 @@ export default function ArtistProfile() {
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3">
                   {Array.isArray(artist.genre) && artist.genre.length > 0 
                     ? [...new Set(artist.genre)].join(", ") 
-                    : (artist as any).talentType === 'visual_artist' ? 'Creative disciplines coming soon' : 'Specialties coming soon'}
+                    : (artist as any).talentType === 'visual_artist' ? 'Creative disciplines coming soon' : (artist as any).talentType === 'author_writer' ? 'Writing genres coming soon' : 'Specialties coming soon'}
                 </p>
               )}
               

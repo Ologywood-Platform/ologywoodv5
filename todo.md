@@ -4422,3 +4422,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for main-video preloading, inline mobile playback, and separation from the portfolio-video system
 - [x] Run TypeScript, 19 focused tests, 2,693 full-suite tests, and production build validation
 - [x] Save checkpoint 50ed446e for the long-form video buffering repair
+
+## AUTHOR / WRITER PROFILES & BOOKS CREATOR SHOP (Aug 28, 2026)
+- [x] Audit talent taxonomy, onboarding, profile editing, Browse filters, merch schema, native checkout, orders, S3 storage, and paid-access patterns
+- [x] Document the backward-compatible schema for physical books and eBooks under merch_items without duplicating checkout or order tables
+- [x] Define Author / Writer onboarding fields, public profile labels, booking language, and author-specific guidance
+- [x] Define a curated author genre taxonomy that works for discovery and profile specialties
+- [ ] Add Author / Writer as a complete profile choice across onboarding, editing, Browse, search, public profiles, admin, Help, and tours
+- [ ] Add Books as a Creator Shop product category while preserving existing merchandise items
+- [ ] Add physical-book fields for format, ISBN-10/13, publisher/imprint, publication date, edition, page count, language, signed copies, inventory, shipping, and pickup
+- [ ] Add eBook fields for EPUB/PDF format, rights affirmation, protected S3 object metadata, and post-purchase download access
+- [ ] Keep Stripe Connect checkout, one-percent platform fee, order notifications, refunds, and creator order management shared with native merch
+- [ ] Ensure eBook file URLs are never exposed publicly or in product metadata before verified purchase access
+- [ ] Add book-specific creation, editing, detail, profile display, discovery filters, and social-sharing metadata
+- [ ] Add rights, copyright, fulfillment, refund, and digital-access disclosures without presenting OlogyWood as the publisher
+- [ ] Add migration and regression coverage for existing merch compatibility, physical books, eBooks, authorization, and downloads
+- [ ] Verify Author onboarding, book creation, checkout-compatible product display, secure access states, and responsive layouts
+- [ ] Run TypeScript, focused tests, full regression suite, and production build
+- [ ] Save a checkpoint for the Author / Writer and Books Creator Shop expansion

@@ -9,7 +9,7 @@ import { ClearableInput } from '@/components/ui/clearable-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { US_STATES, US_REGIONS } from '../../../shared/locationData';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
-import { VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
+import { AUTHOR_GENRES, VISUAL_ART_DISCIPLINES } from '@shared/talentTypes';
 
 interface SearchFiltersProps {
   filterType?: 'artists' | 'events';
@@ -47,9 +47,9 @@ const EVENT_TYPES = [
 
 export function SearchFilters({ filterType = 'artists', talentType = 'all', onFilterChange }: SearchFiltersProps) {
   const isArtistFilter = filterType === 'artists';
-  const showGenreFilter = isArtistFilter && (talentType === 'all' || talentType === 'artist' || talentType === 'visual_artist');
-  const specialtyOptions = talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : GENRES;
-  const specialtyLabel = talentType === 'visual_artist' ? 'Disciplines' : 'Genres';
+  const showGenreFilter = isArtistFilter && (talentType === 'all' || talentType === 'artist' || talentType === 'visual_artist' || talentType === 'author_writer');
+  const specialtyOptions = talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : talentType === 'author_writer' ? [...AUTHOR_GENRES] : GENRES;
+  const specialtyLabel = talentType === 'visual_artist' ? 'Disciplines' : talentType === 'author_writer' ? 'Writing Genres' : 'Genres';
   
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);

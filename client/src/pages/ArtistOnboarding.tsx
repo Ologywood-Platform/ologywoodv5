@@ -9,18 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film } from "lucide-react";
+import { Music, ArrowRight, ArrowLeft, Check, Loader2, X, Mic2, Trophy, Sparkles, Plus, Trash2, Shield, ChevronDown, Copyright, DollarSign, Palette, Users, ShieldCheck, Film, BookOpen } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
 import { LocationInput } from '@/components/LocationInput';
-import { TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES, getTalentTypeOption, type TalentType } from '@shared/talentTypes';
+import { AUTHOR_GENRES, TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES, getTalentTypeOption, type TalentType } from '@shared/talentTypes';
 
 const TALENT_TYPE_ICONS: Record<TalentType, typeof Mic2> = {
   artist: Mic2,
   visual_artist: Palette,
+  author_writer: BookOpen,
   athlete: Trophy,
   creator: Sparkles,
   entertainer: Mic2,
@@ -126,7 +127,7 @@ export default function ArtistOnboarding() {
     "Live Concert", "Behind the Scenes", "Social Media Content", "Trailers / Promos", "Other"
   ];
 
-  const GENRE_OPTIONS = talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATIONS : talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : [
+  const GENRE_OPTIONS = talentType === 'filmmaker' ? FILMMAKER_SPECIALIZATIONS : talentType === 'visual_artist' ? [...VISUAL_ART_DISCIPLINES] : talentType === 'author_writer' ? [...AUTHOR_GENRES] : [
     "Afrobeats", "Alternative", "Ambient", "Blues", "Classical", "Country",
     "Dancehall", "Electronic", "Experimental", "Folk", "Funk", "Gospel",
     "Hip-Hop", "House", "Indie", "Jazz", "Latin", "Lo-fi", "Metal", "Pop",
@@ -134,11 +135,12 @@ export default function ArtistOnboarding() {
   ];
 
   const isVisualArtist = talentType === 'visual_artist';
+  const isAuthorWriter = talentType === 'author_writer';
   const detailNoun = talentType === 'filmmaker' ? 'specialization' : isVisualArtist ? 'discipline' : 'genre';
-  const detailHeading = talentType === 'filmmaker' ? 'Production Details' : isVisualArtist ? 'Creative Practice' : 'Performance Details';
-  const detailLabel = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : 'Genres';
-  const profileNameLabel = talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : 'Creator Name';
-  const profileNamePlaceholder = talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : 'Your creator name';
+  const detailHeading = talentType === 'filmmaker' ? 'Production Details' : isVisualArtist ? 'Creative Practice' : isAuthorWriter ? 'Author Details' : 'Performance Details';
+  const detailLabel = talentType === 'filmmaker' ? 'Specializations' : isVisualArtist ? 'Disciplines' : isAuthorWriter ? 'Writing Genres' : 'Genres';
+  const profileNameLabel = talentType === 'artist' ? 'Artist / Stage Name' : talentType === 'athlete' ? 'Name / Brand Name' : talentType === 'filmmaker' ? 'Filmmaker Name' : isVisualArtist ? 'Artist / Studio Name' : isAuthorWriter ? 'Author Name / Pen Name' : 'Creator Name';
+  const profileNamePlaceholder = talentType === 'artist' ? 'Your stage name or band name' : talentType === 'athlete' ? 'Your name or brand name' : talentType === 'filmmaker' ? 'Your name or production company' : isVisualArtist ? 'Your name or studio name' : isAuthorWriter ? 'Your name or published pen name' : 'Your creator name';
 
   const toggleGenre = (genre: string) => {
     setGenres((prev) =>
@@ -528,17 +530,17 @@ export default function ArtistOnboarding() {
                   }}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Helps venues and promoters find local talent in their area
+                  {isAuthorWriter ? 'Helps readers, bookstores, schools, and event organizers find authors in their area' : 'Helps venues and promoters find local talent in their area'}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{isAuthorWriter ? 'Author Bio' : 'Bio'}</Label>
                 <Textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder={isVisualArtist ? 'Tell fans and bookers about your work, creative practice, and what makes it distinctive...' : 'Tell fans and bookers about your experience and what makes you unique...'}
+                  placeholder={isVisualArtist ? 'Tell fans and bookers about your work, creative practice, and what makes it distinctive...' : isAuthorWriter ? 'Tell readers and bookers about your writing, published work, perspective, and what makes your voice distinctive...' : 'Tell fans and bookers about your experience and what makes you unique...'}
                   rows={5}
                   className="mt-1"
                 />
@@ -571,7 +573,7 @@ export default function ArtistOnboarding() {
                     </div>
                   ) : (
                     <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
-                      <Music className="h-8 w-8 text-muted-foreground" />
+                      {isAuthorWriter ? <BookOpen className="h-8 w-8 text-muted-foreground" /> : <Music className="h-8 w-8 text-muted-foreground" />}
                     </div>
                   )}
                   <div className="flex-1">
@@ -772,7 +774,7 @@ export default function ArtistOnboarding() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">{detailHeading}</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  {talentType === 'filmmaker' ? 'Help clients understand your specializations and production style.' : isVisualArtist ? 'Help fans, collectors, and bookers understand your mediums and creative focus.' : 'Help venues understand your style and requirements.'}
+                  {talentType === 'filmmaker' ? 'Help clients understand your specializations and production style.' : isVisualArtist ? 'Help fans, collectors, and bookers understand your mediums and creative focus.' : isAuthorWriter ? 'Help readers, bookstores, schools, and event organizers discover your writing.' : 'Help venues understand your style and requirements.'}
                 </p>
               </div>
 
@@ -811,7 +813,7 @@ export default function ArtistOnboarding() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="feeMin">Fee Range Min ($)</Label>
+                  <Label htmlFor="feeMin">{isAuthorWriter ? 'Speaking / Appearance Fee Min ($)' : 'Fee Range Min ($)'}</Label>
                   <Input
                     id="feeMin"
                     type="number"
@@ -823,7 +825,7 @@ export default function ArtistOnboarding() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="feeMax">Fee Range Max ($)</Label>
+                  <Label htmlFor="feeMax">{isAuthorWriter ? 'Speaking / Appearance Fee Max ($)' : 'Fee Range Max ($)'}</Label>
                   <Input
                     id="feeMax"
                     type="number"
@@ -835,10 +837,10 @@ export default function ArtistOnboarding() {
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground -mt-2">Bookers see this when deciding whether to hire you. A wider range shows flexibility for different project and event sizes.</p>
+              <p className="text-xs text-muted-foreground -mt-2">{isAuthorWriter ? 'Optional fee range for readings, signings, panels, workshops, school visits, and speaking appearances.' : 'Bookers see this when deciding whether to hire you. A wider range shows flexibility for different project and event sizes.'}</p>
 
               <div>
-                <Label htmlFor="partySize">{isVisualArtist ? 'Team Size' : 'Touring Party Size'}</Label>
+                <Label htmlFor="partySize">{isVisualArtist ? 'Team Size' : isAuthorWriter ? 'Appearance Team Size' : 'Touring Party Size'}</Label>
                 <Input
                   id="partySize"
                   type="number"
@@ -848,7 +850,7 @@ export default function ArtistOnboarding() {
                   className="mt-1"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {isVisualArtist ? 'How many people usually work with you on installations, appearances, or commissioned projects, including yourself.' : 'How many people travel with you (including yourself). Venues use this for hospitality planning (green room, meals, parking).'}
+                  {isVisualArtist ? 'How many people usually work with you on installations, appearances, or commissioned projects, including yourself.' : isAuthorWriter ? 'How many people usually attend readings, signings, workshops, or speaking engagements with you, including yourself.' : 'How many people travel with you (including yourself). Venues use this for hospitality planning (green room, meals, parking).'}
                 </p>
               </div>
             </div>
@@ -913,7 +915,7 @@ export default function ArtistOnboarding() {
               </div>
 
               <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-3">Streaming Services</h4>
+                <h4 className="text-sm font-medium mb-3">{isAuthorWriter ? 'Optional Media & Retail Links' : 'Streaming Services'}</h4>
               </div>
 
               <div>

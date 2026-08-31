@@ -1,6 +1,7 @@
 export const TALENT_TYPE_VALUES = [
   'artist',
   'visual_artist',
+  'author_writer',
   'athlete',
   'creator',
   'entertainer',
@@ -18,6 +19,7 @@ export const TALENT_TYPE_OPTIONS: ReadonlyArray<{
 }> = [
   { value: 'artist', label: 'Music Artist', pluralLabel: 'Music Artists', description: 'Musicians & Bands' },
   { value: 'visual_artist', label: 'Visual Artist', pluralLabel: 'Visual Artists', description: 'Illustration, Fine Art & Design' },
+  { value: 'author_writer', label: 'Author / Writer', pluralLabel: 'Authors & Writers', description: 'Books, Poetry & Publishing' },
   { value: 'athlete', label: 'Athlete', pluralLabel: 'Athletes', description: 'Sports & NIL' },
   { value: 'creator', label: 'Creator', pluralLabel: 'Creators', description: 'Content & Digital' },
   { value: 'entertainer', label: 'Entertainer', pluralLabel: 'Entertainers', description: 'Comedy, DJ & MC' },
@@ -39,6 +41,36 @@ export const VISUAL_ART_DISCIPLINES = [
   'Mural Art',
   'Printmaking',
   'Fashion Design',
+  'Other',
+] as const;
+
+export const AUTHOR_GENRES = [
+  'Fiction',
+  'Literary Fiction',
+  'Mystery & Thriller',
+  'Romance',
+  'Science Fiction',
+  'Fantasy',
+  'Historical Fiction',
+  'Horror',
+  'Young Adult',
+  "Children's",
+  'Comics & Graphic Novels',
+  'Poetry',
+  'Drama & Plays',
+  'Biography & Memoir',
+  'History',
+  'Business & Entrepreneurship',
+  'Self-Help & Personal Development',
+  'Health & Wellness',
+  'Faith & Spirituality',
+  'Education',
+  'Art & Photography',
+  'Cookbooks & Food',
+  'Essays & Journalism',
+  'Politics & Social Issues',
+  'Travel',
+  'True Crime',
   'Other',
 ] as const;
 
