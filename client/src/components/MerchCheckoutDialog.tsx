@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, LockKeyhole, MapPin, Package, Truck } from 'lucide-react';
+import { Download, Loader2, LockKeyhole, MapPin, Package, Truck } from 'lucide-react';
 
 interface MerchCheckoutDialogProps {
   item: any;
@@ -22,7 +22,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
-  const [fulfillmentMethod, setFulfillmentMethod] = useState<'shipping' | 'pickup'>('shipping');
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<'shipping' | 'pickup' | 'digital'>('shipping');
   const [line1, setLine1] = useState('');
   const [line2, setLine2] = useState('');
   const [city, setCity] = useState('');
@@ -32,7 +32,8 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   const [customerNote, setCustomerNote] = useState('');
 
   const variants = (item?.variants || []) as Array<{ name: string; options: string[] }>;
-  const maxQuantity = item?.trackInventory ? Math.min(10, Math.max(1, item.inventoryQuantity || 1)) : 10;
+  const isDigitalBook = item?.productCategory === 'book' && item?.bookFormat === 'ebook';
+  const maxQuantity = isDigitalBook ? 1 : item?.trackInventory ? Math.min(10, Math.max(1, item.inventoryQuantity || 1)) : 10;
   const subtotal = (item?.priceInCents || 0) * quantity;
   const shipping = fulfillmentMethod === 'shipping' ? item?.shippingAmountCents || 0 : 0;
   const total = subtotal + shipping;
@@ -40,17 +41,17 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   useEffect(() => {
     if (!open || !item) return;
     setQuantity(1);
-    setSelectedVariants(Object.fromEntries(variants.map((variant) => [variant.name, variant.options[0] || ''])));
+    setSelectedVariants(isDigitalBook ? {} : Object.fromEntries(variants.map((variant) => [variant.name, variant.options[0] || ''])));
     setBuyerName(user?.name || '');
     setBuyerEmail(user?.email || '');
     setBuyerPhone('');
-    setFulfillmentMethod(item.shippingAvailable ? 'shipping' : 'pickup');
+    setFulfillmentMethod(isDigitalBook ? 'digital' : item.shippingAvailable ? 'shipping' : 'pickup');
     setCustomerNote('');
   }, [open, item?.id, user?.name, user?.email]);
 
   const missingVariant = useMemo(
-    () => variants.find((variant) => !selectedVariants[variant.name]),
-    [variants, selectedVariants],
+    () => isDigitalBook ? undefined : variants.find((variant) => !selectedVariants[variant.name]),
+    [isDigitalBook, variants, selectedVariants],
   );
 
   const checkoutMutation = trpc.merchOrders.createCheckout.useMutation({
@@ -101,7 +102,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Order {item.title}</DialogTitle>
+          <DialogTitle>{isDigitalBook ? 'Buy' : 'Order'} {item.title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
@@ -112,11 +113,11 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
             <div className="min-w-0">
               <p className="font-semibold">{item.title}</p>
               <p className="text-purple-700 font-bold">${(item.priceInCents / 100).toFixed(2)}</p>
-              {item.fulfillmentTime && <p className="text-xs text-muted-foreground mt-1">Usually fulfilled in {item.fulfillmentTime}</p>}
+              {isDigitalBook ? <p className="text-xs text-muted-foreground mt-1">Secure PDF or EPUB access after verified payment</p> : item.fulfillmentTime && <p className="text-xs text-muted-foreground mt-1">Usually fulfilled in {item.fulfillmentTime}</p>}
             </div>
           </div>
 
-          {variants.length > 0 && (
+          {!isDigitalBook && variants.length > 0 && (
             <div className="grid sm:grid-cols-2 gap-4">
               {variants.map((variant) => (
                 <div className="space-y-2" key={variant.name}>
@@ -129,18 +130,25 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
             </div>
           )}
 
-          <div className="space-y-2 max-w-32">
+          {!isDigitalBook && <div className="space-y-2 max-w-32">
             <Label htmlFor="merch-quantity">Quantity</Label>
             <Input id="merch-quantity" type="number" min="1" max={maxQuantity} value={quantity} onChange={(event) => setQuantity(Math.min(maxQuantity, Math.max(1, Number(event.target.value) || 1)))} />
-          </div>
+          </div>}
 
-          <div className="space-y-2">
-            <Label>How do you want to receive it?</Label>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {item.shippingAvailable && <button type="button" onClick={() => setFulfillmentMethod('shipping')} className={`p-3 rounded-lg border text-left ${fulfillmentMethod === 'shipping' ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' : ''}`}><Truck className="h-4 w-4 text-purple-700 mb-1" /><p className="font-medium text-sm">Shipping</p><p className="text-xs text-muted-foreground">{item.shippingAmountCents ? `$${(item.shippingAmountCents / 100).toFixed(2)} flat shipping` : 'Free shipping'}</p></button>}
-              {item.pickupAvailable && <button type="button" onClick={() => setFulfillmentMethod('pickup')} className={`p-3 rounded-lg border text-left ${fulfillmentMethod === 'pickup' ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' : ''}`}><MapPin className="h-4 w-4 text-purple-700 mb-1" /><p className="font-medium text-sm">Local pickup</p><p className="text-xs text-muted-foreground">The creator will send pickup details.</p></button>}
+          {isDigitalBook ? (
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 flex gap-3">
+              <Download className="h-5 w-5 text-purple-700 shrink-0" />
+              <div><p className="font-medium text-sm">Secure digital delivery</p><p className="text-xs text-muted-foreground mt-1">Sign in with this purchase email to access the author-supplied eBook from your OlogyWood orders. Five downloads are included.</p></div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>How do you want to receive it?</Label>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {item.shippingAvailable && <button type="button" onClick={() => setFulfillmentMethod('shipping')} className={`p-3 rounded-lg border text-left ${fulfillmentMethod === 'shipping' ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' : ''}`}><Truck className="h-4 w-4 text-purple-700 mb-1" /><p className="font-medium text-sm">Shipping</p><p className="text-xs text-muted-foreground">{item.shippingAmountCents ? `$${(item.shippingAmountCents / 100).toFixed(2)} flat shipping` : 'Free shipping'}</p></button>}
+                {item.pickupAvailable && <button type="button" onClick={() => setFulfillmentMethod('pickup')} className={`p-3 rounded-lg border text-left ${fulfillmentMethod === 'pickup' ? 'border-purple-600 bg-purple-50 ring-1 ring-purple-600' : ''}`}><MapPin className="h-4 w-4 text-purple-700 mb-1" /><p className="font-medium text-sm">Local pickup</p><p className="text-xs text-muted-foreground">The creator will send pickup details.</p></button>}
+              </div>
+            </div>
+          )}
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2"><Label htmlFor="buyer-name">Name *</Label><Input id="buyer-name" value={buyerName} onChange={(event) => setBuyerName(event.target.value)} autoComplete="name" /></div>
@@ -165,12 +173,12 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           <div className="space-y-2"><Label htmlFor="customer-note">Note for the creator (optional)</Label><Textarea id="customer-note" value={customerNote} onChange={(event) => setCustomerNote(event.target.value)} maxLength={500} placeholder="Special instructions or a question about the order..." /></div>
 
           <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span>Merch</span><span>${(subtotal / 100).toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>{fulfillmentMethod === 'shipping' ? 'Shipping' : 'Pickup'}</span><span>{shipping ? `$${(shipping / 100).toFixed(2)}` : '$0.00'}</span></div>
+            <div className="flex justify-between"><span>{item.productCategory === 'book' ? 'Book' : 'Merch'}</span><span>${(subtotal / 100).toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>{fulfillmentMethod === 'shipping' ? 'Shipping' : fulfillmentMethod === 'digital' ? 'Digital access' : 'Pickup'}</span><span>{shipping ? `$${(shipping / 100).toFixed(2)}` : '$0.00'}</span></div>
             <div className="flex justify-between font-bold border-t pt-2"><span>Total</span><span>${(total / 100).toFixed(2)}</span></div>
           </div>
 
-          <p className="text-xs text-muted-foreground flex gap-2"><LockKeyhole className="h-4 w-4 shrink-0" />Secure payment is processed by Stripe. The creator—not OlogyWood—prepares and fulfills this order.</p>
+          <p className="text-xs text-muted-foreground flex gap-2"><LockKeyhole className="h-4 w-4 shrink-0" />{isDigitalBook ? 'Secure payment is processed by Stripe. OlogyWood provides purchase-authorized access; the author owns and supplies the eBook and OlogyWood is not the publisher.' : 'Secure payment is processed by Stripe. The creator—not OlogyWood—prepares and fulfills this order.'}</p>
         </div>
 
         <DialogFooter>

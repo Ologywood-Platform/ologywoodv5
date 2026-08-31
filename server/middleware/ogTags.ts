@@ -410,12 +410,17 @@ export function ogTagMiddleware() {
             const canonicalUrl = `${baseUrl}/merch/${cleanSlug}-${item.id}`;
             const firstImage = Array.isArray(item.imageUrls) ? item.imageUrls[0] : null;
             const image = getOgImageUrl(firstImage, 'merch', item.id, baseUrl);
-            const description = `${item.title} by ${sellerName} — ${priceLabel}. ${item.description || 'Shop this creator product on OlogyWood.'}`.substring(0, 240);
+            const isBook = item.productCategory === 'book';
+            const formatLabel = item.bookFormat === 'ebook' ? 'eBook' : item.bookFormat === 'hardcover' ? 'Hardcover' : 'Paperback';
+            const bookDetails = isBook
+              ? `${formatLabel}${item.isSigned ? ', signed copy' : ''}${item.bookFormat === 'ebook' ? ', secure digital access' : ''}. `
+              : '';
+            const description = `${item.title} by ${sellerName} — ${priceLabel}. ${bookDetails}${item.description || (isBook ? 'Discover this book in the OlogyWood Creator Shop.' : 'Shop this creator product on OlogyWood.')}`.substring(0, 240);
             const html = generateOgHtml({
               title: `${item.title} — ${priceLabel} | ${sellerName}`,
               description,
               image,
-              imageAlt: `${item.title} from ${sellerName}`,
+              imageAlt: isBook ? `Cover of ${item.title} by ${sellerName}` : `${item.title} from ${sellerName}`,
               url: canonicalUrl,
               type: 'product',
               productPriceAmount: item.priceInCents != null ? (item.priceInCents / 100).toFixed(2) : undefined,

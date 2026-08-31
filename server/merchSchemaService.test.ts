@@ -14,6 +14,22 @@ const hybridColumns = [
   'pickupAvailable',
   'shippingAmountCents',
   'fulfillmentTime',
+  'productCategory',
+  'bookFormat',
+  'isbn',
+  'publisher',
+  'publicationDate',
+  'edition',
+  'pageCount',
+  'language',
+  'isSigned',
+  'ebookFileKey',
+  'ebookFileName',
+  'ebookFileSize',
+  'ebookMimeType',
+  'ebookFileFormat',
+  'ebookRightsConfirmed',
+  'ebookRightsConfirmedAt',
 ];
 
 function column(Field: string, Type = 'int', Null = 'YES') {
@@ -33,20 +49,24 @@ describe('merch runtime schema repair', () => {
 
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(1 + hybridColumns.length);
+    expect(execute).toHaveBeenCalledTimes(1 + hybridColumns.length + 6);
   });
 
   it('does not run ALTER statements when the hybrid schema is already complete', async () => {
-    const execute = vi.fn().mockResolvedValueOnce([[
-      column('id'),
-      column('externalUrl', 'varchar(2048)', 'YES'),
-      ...hybridColumns.map((name) => column(name)),
-    ]]);
+    const execute = vi.fn()
+      .mockResolvedValueOnce([[
+        column('id'),
+        column('externalUrl', 'varchar(2048)', 'YES'),
+        ...hybridColumns.map((name) => column(name)),
+      ]])
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[column('status')]])
+      .mockResolvedValueOnce([[column('fulfillmentMethod', "enum('shipping','pickup','digital')", 'NO')]]);
 
     await ensureMerchItemsSchema({ execute });
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledTimes(7);
   });
 
   it('makes a legacy required externalUrl column optional', async () => {
@@ -56,10 +76,13 @@ describe('merch runtime schema repair', () => {
         column('externalUrl', 'varchar(2048)', 'NO'),
         ...hybridColumns.map((name) => column(name)),
       ]])
-      .mockResolvedValueOnce([[]]);
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[column('status')]])
+      .mockResolvedValueOnce([[column('fulfillmentMethod', "enum('shipping','pickup','digital')", 'NO')]]);
 
     await ensureMerchItemsSchema({ execute });
 
-    expect(execute).toHaveBeenCalledTimes(2);
+    expect(execute).toHaveBeenCalledTimes(8);
   });
 });

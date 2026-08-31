@@ -602,15 +602,19 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   const database = await db.getDb();
   if (!database) return;
 
-  const { merchOrders } = await import('../../drizzle/schema');
+  const { bookDownloadAccess, merchOrders } = await import('../../drizzle/schema');
   const { eq } = await import('drizzle-orm');
   const [merchOrder] = await database.select().from(merchOrders)
     .where(eq(merchOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
   if (merchOrder) {
-    await database.update(merchOrders).set({
-      paymentStatus: 'refunded',
-      status: 'refunded',
-    }).where(eq(merchOrders.id, merchOrder.id));
+    await database.transaction(async (tx) => {
+      await tx.update(merchOrders).set({
+        paymentStatus: 'refunded',
+        status: 'refunded',
+      }).where(eq(merchOrders.id, merchOrder.id));
+      await tx.update(bookDownloadAccess).set({ status: 'refunded' })
+        .where(eq(bookDownloadAccess.orderId, merchOrder.id));
+    });
     return;
   }
   
@@ -736,8 +740,10 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
   const database = await db.getDb();
   if (!database) return;
-  const { merchItems, merchOrderItems, merchOrders, notifications } = await import('../../drizzle/schema');
+  const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders, notifications } = await import('../../drizzle/schema');
+  const { ensureMerchItemsSchema } = await import('../services/merchSchemaService');
   const { and, eq, ne, sql } = await import('drizzle-orm');
+  await ensureMerchItemsSchema(database);
 
   const [order] = await database.select().from(merchOrders)
     .where(eq(merchOrders.id, orderId)).limit(1);
@@ -755,7 +761,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
   await database.transaction(async (tx) => {
     const updateResult = await tx.update(merchOrders).set({
       paymentStatus: 'paid',
-      status: 'new',
+      status: order.fulfillmentMethod === 'digital' ? 'completed' : 'new',
       stripePaymentIntentId: session.payment_intent as string || null,
       paidAt: new Date(),
     }).where(and(
@@ -775,6 +781,29 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
       selectedVariants: item.selectedVariants as Record<string, string> | null,
     }));
     for (const orderItem of orderItems) {
+      const [sourceItem] = await tx.select().from(merchItems)
+        .where(eq(merchItems.id, orderItem.merchItemId)).limit(1);
+      const isDigitalBook = sourceItem?.productCategory === 'book'
+        && sourceItem.bookFormat === 'ebook'
+        && Boolean(sourceItem.ebookFileKey)
+        && Boolean(sourceItem.ebookRightsConfirmed);
+
+      if (isDigitalBook) {
+        await tx.insert(bookDownloadAccess).values({
+          orderId,
+          orderItemId: orderItem.id,
+          merchItemId: orderItem.merchItemId,
+          buyerUserId: order.buyerUserId,
+          buyerEmail: order.buyerEmail.toLowerCase(),
+          maxDownloads: 5,
+        }).onDuplicateKeyUpdate({
+          set: {
+            buyerUserId: order.buyerUserId,
+            buyerEmail: order.buyerEmail.toLowerCase(),
+          },
+        });
+      }
+
       await tx.update(merchItems).set({
         inventoryQuantity: sql`GREATEST(COALESCE(${merchItems.inventoryQuantity}, 0) - ${orderItem.quantity}, 0)`,
       }).where(and(

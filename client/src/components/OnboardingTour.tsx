@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users, Music, Palette, Calendar, DollarSign, Star, MessageSquare, Mic, Building2, Search, Receipt, Heart, ShoppingBag } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Sparkles, FileText, Shield, Video, Users, Music, Palette, BookOpen, Calendar, DollarSign, Star, MessageSquare, Mic, Building2, Search, Receipt, Heart, ShoppingBag } from 'lucide-react';
 
 interface TourStep {
   id: string;
@@ -60,7 +60,7 @@ const ATHLETE_TOUR_STEPS: TourStep[] = [
   {
     id: 'talent-types',
     title: 'Expanded Talent Types',
-    description: 'The platform supports Music Artists, Visual Artists, Athletes, Creators, Entertainers, Filmmakers, and Influencers — all with relevant profile and booking tools.',
+    description: 'The platform supports Music Artists, Visual Artists, Authors & Writers, Athletes, Creators, Entertainers, Filmmakers, and Influencers — all with relevant profile and booking tools.',
     icon: <Users className="h-5 w-5 text-indigo-500" />,
     targetSelector: '[data-tour="talent-types"]',
     position: 'bottom',
@@ -168,6 +168,56 @@ const VISUAL_ARTIST_TOUR_STEPS: TourStep[] = [
   },
 ];
 
+// ─── AUTHOR / WRITER TOUR STEPS ──────────────────────────────────────────────
+const AUTHOR_WRITER_TOUR_STEPS: TourStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome, Author / Writer',
+    description: 'Build a professional home for your books, writing, reader community, appearances, and creator business.',
+    icon: <BookOpen className="h-5 w-5 text-purple-500" />,
+    position: 'center',
+  },
+  {
+    id: 'dashboard',
+    title: 'Your Author Business Dashboard',
+    description: 'Manage books, readings, signings, workshops, fan updates, orders, booking requests, and earnings from one place.',
+    icon: <Calendar className="h-5 w-5 text-blue-500" />,
+    targetSelector: '[data-tour="dashboard"]',
+    position: 'bottom',
+  },
+  {
+    id: 'portfolio',
+    title: 'Share Your Work',
+    description: 'Use your portfolio for readings, interviews, book trailers, event highlights, and behind-the-scenes writing content.',
+    icon: <Video className="h-5 w-5 text-red-500" />,
+    targetSelector: '[data-tour="video-portfolio"]',
+    position: 'bottom',
+  },
+  {
+    id: 'books-and-appearances',
+    title: 'Sell Books and Book Appearances',
+    description: 'Add physical books or eBooks to Creator Shop, and accept requests for readings, signings, panels, workshops, school visits, and speaking engagements.',
+    icon: <BookOpen className="h-5 w-5 text-orange-500" />,
+    position: 'center',
+  },
+  {
+    id: 'readers',
+    title: 'Build Reader Relationships',
+    description: 'Fans can follow you, join your fan club, receive updates, discover events, and support each new release.',
+    icon: <Heart className="h-5 w-5 text-pink-500" />,
+    targetSelector: '[data-tour="fan-club"]',
+    position: 'bottom',
+  },
+  {
+    id: 'earnings',
+    title: 'Orders, Bookings & Earnings',
+    description: 'Connect payouts, fulfill physical orders, deliver purchased eBooks securely, and track income from one dashboard.',
+    icon: <DollarSign className="h-5 w-5 text-emerald-500" />,
+    targetSelector: '[data-tour="earnings"]',
+    position: 'bottom',
+  },
+];
+
 // ─── VENUE TOUR STEPS ─────────────────────────────────────────────────────────
 const VENUE_TOUR_STEPS: TourStep[] = [
   {
@@ -224,6 +274,7 @@ const STORAGE_KEYS = {
   athlete: { completed: 'ologywood_athlete_tour_completed', dismissed: 'ologywood_athlete_tour_dismissed' },
   artist: { completed: 'ologywood_artist_tour_completed', dismissed: 'ologywood_artist_tour_dismissed' },
   visualArtist: { completed: 'ologywood_visual_artist_tour_completed', dismissed: 'ologywood_visual_artist_tour_dismissed' },
+  authorWriter: { completed: 'ologywood_author_writer_tour_completed', dismissed: 'ologywood_author_writer_tour_dismissed' },
   venue: { completed: 'ologywood_venue_tour_completed', dismissed: 'ologywood_venue_tour_dismissed' },
 };
 
@@ -231,7 +282,7 @@ const STORAGE_KEYS = {
 const LEGACY_STORAGE_KEY = 'ologywood_nil_tour_completed';
 const LEGACY_DISMISSED_KEY = 'ologywood_nil_tour_dismissed';
 
-type TourRole = 'athlete' | 'artist' | 'visualArtist' | 'venue';
+type TourRole = 'athlete' | 'artist' | 'visualArtist' | 'authorWriter' | 'venue';
 
 function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string; dismissedKey: string; accentColor: string } {
   switch (role) {
@@ -254,6 +305,13 @@ function getTourConfig(role: TourRole): { steps: TourStep[]; storageKey: string;
         steps: VISUAL_ARTIST_TOUR_STEPS,
         storageKey: STORAGE_KEYS.visualArtist.completed,
         dismissedKey: STORAGE_KEYS.visualArtist.dismissed,
+        accentColor: 'bg-purple-600 hover:bg-purple-700',
+      };
+    case 'authorWriter':
+      return {
+        steps: AUTHOR_WRITER_TOUR_STEPS,
+        storageKey: STORAGE_KEYS.authorWriter.completed,
+        dismissedKey: STORAGE_KEYS.authorWriter.dismissed,
         accentColor: 'bg-purple-600 hover:bg-purple-700',
       };
     case 'venue':
@@ -294,6 +352,8 @@ export function OnboardingTour() {
         setTourRole('athlete');
       } else if (profile.talentType === 'visual_artist') {
         setTourRole('visualArtist');
+      } else if (profile.talentType === 'author_writer') {
+        setTourRole('authorWriter');
       } else {
         setTourRole('artist');
       }

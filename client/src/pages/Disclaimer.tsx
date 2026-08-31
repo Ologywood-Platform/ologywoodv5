@@ -37,14 +37,14 @@ export default function Disclaimer() {
           <h1 className="text-3xl font-bold text-gray-900">Platform Disclaimer</h1>
         </div>
 
-        <p className="text-sm text-gray-500 mb-8">Last updated: July 17, 2026</p>
+        <p className="text-sm text-gray-500 mb-8">Last updated: August 30, 2026</p>
 
         <div className="prose prose-gray max-w-none space-y-8">
           {/* General Disclaimer */}
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">General Disclaimer</h2>
             <p className="text-gray-700 leading-relaxed">
-              OlogyWood ("the Platform") is an online marketplace that connects talent — including music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers — with venues, event organizers, brands, and fans. The Platform serves as a facilitator and intermediary for bookings, communications, and transactions between independent parties. OlogyWood does not employ, manage, or represent any talent listed on the Platform.
+              OlogyWood ("the Platform") is an online marketplace that connects talent — including music artists, visual artists, authors and writers, athletes, creators, entertainers, filmmakers, and influencers — with venues, event organizers, brands, readers, and fans. The Platform serves as a facilitator and intermediary for bookings, communications, products, and transactions between independent parties. OlogyWood does not employ, manage, represent, or publish talent listed on the Platform.
             </p>
           </section>
 
@@ -52,7 +52,7 @@ export default function Disclaimer() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">No Endorsement of Users or Content</h2>
             <p className="text-gray-700 leading-relaxed">
-              OlogyWood does not endorse, guarantee, or verify the accuracy, completeness, or reliability of any user-generated content, including but not limited to: profiles, biographies, photos, videos, reviews, ratings, event listings, or promotional materials. Users are solely responsible for the content they publish on the Platform. OlogyWood reserves the right to remove content that violates our community guidelines but assumes no obligation to monitor all user activity.
+              OlogyWood does not endorse, guarantee, or verify the accuracy, completeness, or reliability of user-generated content, including profiles, biographies, books, eBooks, cover art, product details, photos, videos, reviews, ratings, event listings, or promotional materials. Users are solely responsible for the content and product information they publish. OlogyWood may remove content that violates Platform policies but assumes no obligation to pre-screen every listing.
             </p>
           </section>
 
@@ -69,6 +69,14 @@ export default function Disclaimer() {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">Payment Processing</h2>
             <p className="text-gray-700 leading-relaxed">
               Payment processing on OlogyWood is handled by Stripe, a third-party payment processor. OlogyWood does not store credit card information directly. All financial transactions are subject to Stripe's terms of service and privacy policy. OlogyWood is not responsible for payment processing errors, delays, or failures caused by third-party services. Refund policies are outlined in our Terms of Use.
+            </p>
+          </section>
+
+          {/* NIL Compliance */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">Creator Shop, Books, and eBooks</h2>
+            <p className="text-gray-700 leading-relaxed">
+              Physical books and other goods are sold and fulfilled by the listing creator, who is responsible for inventory, condition, shipping, pickup, signed-copy claims, returns, and product accuracy. OlogyWood facilitates checkout and order records but is not the publisher, printer, distributor, or fulfillment provider. eBook files are supplied by the seller and released only after verified purchase access. Sellers are responsible for confirming all copyright, publishing, cover-art, contributor, and distribution rights. Buyers receive a limited personal-use license, not ownership of copyright or redistribution rights.
             </p>
           </section>
 
@@ -100,7 +108,7 @@ export default function Disclaimer() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">Intellectual Property & Copyright</h2>
             <p className="text-gray-700 leading-relaxed">
-              Users retain ownership of their original content uploaded to OlogyWood. By uploading content, users grant OlogyWood a non-exclusive, royalty-free license to display and distribute that content within the Platform for the purpose of providing our services. Users are solely responsible for ensuring they have the rights to any content they upload, including music, images, and videos. OlogyWood will respond to valid DMCA takedown notices in accordance with applicable law.
+              Users retain ownership of their original content uploaded to OlogyWood. By uploading content, users grant OlogyWood a non-exclusive, royalty-free license to store, display, and deliver that content within the Platform for the purpose of providing requested services. Users are solely responsible for ensuring they have the rights to all uploaded content, including books, manuscripts, cover art, music, images, and videos. OlogyWood will respond to valid DMCA takedown notices in accordance with applicable law.
             </p>
           </section>
 

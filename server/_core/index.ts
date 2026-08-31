@@ -17,6 +17,7 @@ import releaseCheckoutRoutes from "../routes/releaseCheckout";
 import bookingCheckoutRoutes from '../routes/bookingCheckout';
 import contractPdfRoutes from '../routes/contractPdf';
 import videoUploadRoutes from '../routes/videoUpload';
+import bookFileRoutes from '../routes/bookFiles';
 import calendarFeedRoutes from '../routes/calendarFeed';
 import googleCalendarSyncRoutes from '../routes/googleCalendarSync';
 import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "../middleware/rateLimiter";
@@ -143,6 +144,9 @@ async function startServer() {
 
   // Video upload routes (multipart, BEFORE Vite setup)
   app.use('/api/video', videoUploadRoutes);
+
+  // Private eBook upload and purchase-authorized download routes
+  app.use('/api/books', bookFileRoutes);
 
   // Calendar feed routes (iCal subscription for artist bookings)
   app.use('/api/calendar', calendarFeedRoutes);

@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, ImageIcon, ShoppingBag } from 'lucide-react';
+import { BookOpen, Download, Eye, ImageIcon, ShoppingBag } from 'lucide-react';
 import { merchUrl } from '@/lib/slugify';
 import { useLocation } from 'wouter';
 
@@ -25,7 +25,7 @@ export function MerchDisplay({ userId, userType, talentType }: MerchDisplayProps
   if (!items?.length) return null;
 
   const isAthlete = userType === 'athlete' || talentType === 'athlete';
-  const label = userType === 'venue' ? 'Shop & Offers' : isAthlete ? 'Official Merch' : 'Merch';
+  const label = userType === 'venue' ? 'Shop & Offers' : isAthlete ? 'Official Merch' : talentType === 'author_writer' ? 'Books & Creator Shop' : 'Creator Shop';
 
   return (
     <div className="space-y-4">
@@ -33,19 +33,22 @@ export function MerchDisplay({ userId, userType, talentType }: MerchDisplayProps
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {items.map((item: any) => {
           const soldOut = item.sellingMethod === 'ologywood' && item.trackInventory && (item.inventoryQuantity ?? 0) <= 0;
+          const isBook = item.productCategory === 'book';
+          const isDigitalBook = isBook && item.bookFormat === 'ebook';
           return (
             <Card key={item.id} className="overflow-hidden group transition-shadow cursor-pointer hover:shadow-md" onClick={() => navigate(merchUrl(item.title, item.id))}>
               <div className="relative aspect-square bg-gray-100 dark:bg-gray-800">
                 {item.imageUrls?.[0] ? <img src={item.imageUrls[0]} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /> : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-10 w-10 text-gray-300" /></div>}
                 <Badge className={`absolute top-2 left-2 text-[10px] ${item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-800'}`}>{item.sellingMethod === 'ologywood' ? 'Buy on OlogyWood' : 'External store'}</Badge>
+                {isBook && <Badge className="absolute bottom-2 left-2 text-[10px] bg-amber-700 gap-1">{isDigitalBook ? <Download className="h-3 w-3" /> : <BookOpen className="h-3 w-3" />}{isDigitalBook ? 'eBook' : item.bookFormat === 'hardcover' ? 'Hardcover' : 'Paperback'}{item.isSigned ? ' · Signed' : ''}</Badge>}
                 {soldOut && <div className="absolute inset-0 bg-black/55 flex items-center justify-center"><Badge className="bg-white text-black">Sold out</Badge></div>}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center"><Button size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-black hover:bg-white/90 gap-1.5 text-xs"><Eye className="h-3 w-3" />View item</Button></div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center"><Button size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-black hover:bg-white/90 gap-1.5 text-xs"><Eye className="h-3 w-3" />{isBook ? 'View book' : 'View item'}</Button></div>
               </div>
               <CardContent className="p-3">
                 <h3 className="font-medium text-sm truncate">{item.title}</h3>
                 <p className="text-purple-600 font-bold text-sm mt-0.5">{item.priceDisplay}</p>
                 {item.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
-                {item.sellingMethod === 'ologywood' && <p className="text-[11px] text-muted-foreground mt-2">{item.shippingAvailable && item.pickupAvailable ? 'Shipping or pickup' : item.shippingAvailable ? 'Shipping available' : 'Local pickup'}</p>}
+                {item.sellingMethod === 'ologywood' && <p className="text-[11px] text-muted-foreground mt-2">{isDigitalBook ? 'Secure digital delivery' : item.shippingAvailable && item.pickupAvailable ? 'Shipping or pickup' : item.shippingAvailable ? 'Shipping available' : 'Local pickup'}</p>}
               </CardContent>
             </Card>
           );

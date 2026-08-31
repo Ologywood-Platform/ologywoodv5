@@ -15,7 +15,7 @@ export default function MerchPage() {
   }
 
   const isVenue = user.role === 'venue';
-  const label = isVenue ? 'Shop & Offers' : 'My Merch';
+  const label = isVenue ? 'Shop & Offers' : 'Creator Shop';
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +29,7 @@ export default function MerchPage() {
           <div>
             <h1 className="text-lg font-bold">{label}</h1>
             <p className="text-xs text-muted-foreground hidden sm:block">
-              {isVenue ? 'Branded items, gift cards, and offers' : 'Your products — linked to your store'}
+              {isVenue ? 'Branded items, gift cards, and offers' : 'Books, eBooks, merchandise, orders, and optional external stores'}
             </p>
           </div>
         </div>

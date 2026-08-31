@@ -16,6 +16,12 @@ import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 import { ensureMerchItemsSchema } from "../services/merchSchemaService";
 import { normalizeExternalStoreUrl } from "../../shared/externalStore";
+import {
+  BOOK_FORMAT_VALUES,
+  PRODUCT_CATEGORY_VALUES,
+  isEbook,
+  normalizeIsbn,
+} from "../../shared/bookCommerce";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
@@ -69,6 +75,7 @@ function validateSellingConfiguration(input: {
   inventoryQuantity?: number | null;
   shippingAvailable: boolean;
   pickupAvailable: boolean;
+  digitalDelivery?: boolean;
 }) {
   if (input.sellingMethod === "external" && !input.externalUrl?.trim()) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Add your external store link, or choose Sell through OlogyWood." });
@@ -77,13 +84,51 @@ function validateSellingConfiguration(input: {
     if (!input.priceInCents || input.priceInCents < 50) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Enter a price of at least $0.50 for OlogyWood checkout." });
     }
-    if (!input.shippingAvailable && !input.pickupAvailable) {
+    if (!input.digitalDelivery && !input.shippingAvailable && !input.pickupAvailable) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Choose shipping, local pickup, or both." });
     }
     if (input.trackInventory && input.inventoryQuantity == null) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Enter the available quantity when inventory tracking is enabled." });
     }
   }
+}
+
+function validateBookConfiguration(input: {
+  productCategory: "merch" | "book";
+  bookFormat?: "paperback" | "hardcover" | "ebook" | null;
+  sellingMethod: "ologywood" | "external";
+  isActive: boolean;
+  ebookFileKey?: string | null;
+  ebookRightsConfirmed?: boolean;
+}) {
+  if (input.productCategory !== "book") return;
+  if (!input.bookFormat) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Choose Paperback, Hardcover, or eBook." });
+  }
+  if (isEbook(input.bookFormat) && input.sellingMethod === "ologywood" && input.isActive) {
+    if (!input.ebookRightsConfirmed) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Confirm that you have the rights to sell this eBook before publishing." });
+    }
+    if (!input.ebookFileKey) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Upload the eBook file before publishing this item." });
+    }
+  }
+}
+
+function toPublicMerchItem(item: any) {
+  const {
+    ebookFileKey: _ebookFileKey,
+    ebookFileName: _ebookFileName,
+    ebookFileSize: _ebookFileSize,
+    ebookMimeType: _ebookMimeType,
+    ebookRightsConfirmed: _ebookRightsConfirmed,
+    ebookRightsConfirmedAt: _ebookRightsConfirmedAt,
+    ...publicItem
+  } = item;
+  return {
+    ...publicItem,
+    ebookAvailable: item.productCategory === "book" && item.bookFormat === "ebook" && Boolean(item.ebookFileKey),
+  };
 }
 
 function normalizeLegacyMerchItem(item: any) {
@@ -98,6 +143,22 @@ function normalizeLegacyMerchItem(item: any) {
     pickupAvailable: false,
     shippingAmountCents: 0,
     fulfillmentTime: null,
+    productCategory: "merch" as const,
+    bookFormat: null,
+    isbn: null,
+    publisher: null,
+    publicationDate: null,
+    edition: null,
+    pageCount: null,
+    language: null,
+    isSigned: false,
+    ebookFileKey: null,
+    ebookFileName: null,
+    ebookFileSize: null,
+    ebookMimeType: null,
+    ebookFileFormat: null,
+    ebookRightsConfirmed: false,
+    ebookRightsConfirmedAt: null,
   };
 }
 
@@ -110,6 +171,7 @@ export const merchRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
+      await ensureMerchItemsSchema(db);
 
       let item: any = null;
       try {
@@ -148,7 +210,7 @@ export const merchRouter = router({
           .limit(1);
         const sellerName = venue?.name || "OlogyWood Venue";
         return {
-          ...item,
+          ...toPublicMerchItem(item),
           sellerName,
           sellerProfilePhotoUrl: venue?.profilePhotoUrl || null,
           sellerProfileUrl: `/venue/${toPublicSlug(sellerName)}`,
@@ -165,7 +227,7 @@ export const merchRouter = router({
         .limit(1);
       const sellerName = artist?.name || "OlogyWood Creator";
       return {
-        ...item,
+        ...toPublicMerchItem(item),
         sellerName,
         sellerProfilePhotoUrl: artist?.profilePhotoUrl || null,
         sellerProfileUrl: `/artist/${toPublicSlug(sellerName)}`,
@@ -249,6 +311,16 @@ export const merchRouter = router({
         shippingAmountCents: z.number().int().min(0).max(1_000_000).default(0),
         fulfillmentTime: z.string().max(100).optional(),
         isActive: z.boolean().default(true),
+        productCategory: z.enum(PRODUCT_CATEGORY_VALUES).default("merch"),
+        bookFormat: z.enum(BOOK_FORMAT_VALUES).optional(),
+        isbn: z.string().max(32).optional(),
+        publisher: z.string().max(255).optional(),
+        publicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        edition: z.string().max(100).optional(),
+        pageCount: z.number().int().min(1).max(100_000).optional(),
+        language: z.string().max(100).optional(),
+        isSigned: z.boolean().default(false),
+        ebookRightsConfirmed: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -264,7 +336,16 @@ export const merchRouter = router({
       const normalizedExternalUrl = input.sellingMethod === "external"
         ? normalizeExternalStoreUrlOrThrow(input.externalUrl)
         : null;
-      validateSellingConfiguration({ ...input, externalUrl: normalizedExternalUrl });
+      const digitalDelivery = input.productCategory === "book" && isEbook(input.bookFormat);
+      validateSellingConfiguration({ ...input, externalUrl: normalizedExternalUrl, digitalDelivery });
+      validateBookConfiguration({
+        productCategory: input.productCategory,
+        bookFormat: input.bookFormat,
+        sellingMethod: input.sellingMethod,
+        isActive: input.isActive,
+        ebookFileKey: null,
+        ebookRightsConfirmed: input.ebookRightsConfirmed,
+      });
       if (input.sellingMethod === "ologywood" && input.isActive) {
         await assertNativeSellingReady(ctx.user.id);
       }
@@ -303,13 +384,24 @@ export const merchRouter = router({
           : input.priceDisplay?.trim() || "See store",
         priceInCents: input.sellingMethod === "ologywood" ? input.priceInCents : null,
         externalUrl: normalizedExternalUrl,
+        productCategory: input.productCategory,
+        bookFormat: input.productCategory === "book" ? input.bookFormat || null : null,
+        isbn: input.productCategory === "book" ? normalizeIsbn(input.isbn) : null,
+        publisher: input.productCategory === "book" ? input.publisher?.trim() || null : null,
+        publicationDate: input.productCategory === "book" ? input.publicationDate || null : null,
+        edition: input.productCategory === "book" ? input.edition?.trim() || null : null,
+        pageCount: input.productCategory === "book" ? input.pageCount || null : null,
+        language: input.productCategory === "book" ? input.language?.trim() || null : null,
+        isSigned: input.productCategory === "book" && !digitalDelivery ? input.isSigned : false,
+        ebookRightsConfirmed: digitalDelivery ? input.ebookRightsConfirmed : false,
+        ebookRightsConfirmedAt: digitalDelivery && input.ebookRightsConfirmed ? new Date() : null,
         imageUrls: [],
-        variants: input.sellingMethod === "ologywood" ? input.variants : [],
-        trackInventory: input.sellingMethod === "ologywood" ? input.trackInventory : false,
-        inventoryQuantity: input.sellingMethod === "ologywood" && input.trackInventory ? input.inventoryQuantity : null,
-        shippingAvailable: input.sellingMethod === "ologywood" ? input.shippingAvailable : false,
-        pickupAvailable: input.sellingMethod === "ologywood" ? input.pickupAvailable : false,
-        shippingAmountCents: input.sellingMethod === "ologywood" && input.shippingAvailable ? input.shippingAmountCents : 0,
+        variants: input.sellingMethod === "ologywood" && !digitalDelivery ? input.variants : [],
+        trackInventory: input.sellingMethod === "ologywood" && !digitalDelivery ? input.trackInventory : false,
+        inventoryQuantity: input.sellingMethod === "ologywood" && !digitalDelivery && input.trackInventory ? input.inventoryQuantity : null,
+        shippingAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.shippingAvailable : false,
+        pickupAvailable: input.sellingMethod === "ologywood" && !digitalDelivery ? input.pickupAvailable : false,
+        shippingAmountCents: input.sellingMethod === "ologywood" && !digitalDelivery && input.shippingAvailable ? input.shippingAmountCents : 0,
         fulfillmentTime: input.sellingMethod === "ologywood" ? input.fulfillmentTime?.trim() || null : null,
         sortOrder: nextSortOrder,
         isActive: input.isActive,
@@ -339,11 +431,22 @@ export const merchRouter = router({
         shippingAmountCents: z.number().int().min(0).max(1_000_000).optional(),
         fulfillmentTime: z.string().max(100).optional().nullable(),
         isActive: z.boolean().optional(),
+        productCategory: z.enum(PRODUCT_CATEGORY_VALUES).optional(),
+        bookFormat: z.enum(BOOK_FORMAT_VALUES).optional().nullable(),
+        isbn: z.string().max(32).optional().nullable(),
+        publisher: z.string().max(255).optional().nullable(),
+        publicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+        edition: z.string().max(100).optional().nullable(),
+        pageCount: z.number().int().min(1).max(100_000).optional().nullable(),
+        language: z.string().max(100).optional().nullable(),
+        isSigned: z.boolean().optional(),
+        ebookRightsConfirmed: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+      await ensureMerchItemsSchema(db);
 
       // Verify ownership
       const [item] = await db
@@ -360,6 +463,8 @@ export const merchRouter = router({
         ? normalizeExternalStoreUrlOrThrow(input.externalUrl)
         : undefined;
       const merged = {
+        productCategory: input.productCategory ?? item.productCategory,
+        bookFormat: input.bookFormat !== undefined ? input.bookFormat : item.bookFormat,
         sellingMethod: input.sellingMethod ?? item.sellingMethod,
         externalUrl: normalizedInputExternalUrl !== undefined ? normalizedInputExternalUrl : item.externalUrl,
         priceInCents: input.priceInCents !== undefined ? input.priceInCents : item.priceInCents,
@@ -367,9 +472,14 @@ export const merchRouter = router({
         inventoryQuantity: input.inventoryQuantity !== undefined ? input.inventoryQuantity : item.inventoryQuantity,
         shippingAvailable: input.shippingAvailable ?? item.shippingAvailable,
         pickupAvailable: input.pickupAvailable ?? item.pickupAvailable,
+        isActive: input.isActive ?? item.isActive,
+        ebookFileKey: item.ebookFileKey,
+        ebookRightsConfirmed: input.ebookRightsConfirmed ?? item.ebookRightsConfirmed,
       };
-      validateSellingConfiguration(merged);
-      const willBeActive = input.isActive ?? item.isActive;
+      const digitalDelivery = merged.productCategory === "book" && isEbook(merged.bookFormat);
+      validateSellingConfiguration({ ...merged, digitalDelivery });
+      validateBookConfiguration(merged);
+      const willBeActive = merged.isActive;
       if (merged.sellingMethod === "ologywood" && willBeActive) {
         await assertNativeSellingReady(ctx.user.id);
       }
@@ -389,6 +499,19 @@ export const merchRouter = router({
       if (input.shippingAmountCents !== undefined) updates.shippingAmountCents = input.shippingAmountCents;
       if (input.fulfillmentTime !== undefined) updates.fulfillmentTime = input.fulfillmentTime?.trim() || null;
       if (input.isActive !== undefined) updates.isActive = input.isActive;
+      if (input.productCategory !== undefined) updates.productCategory = input.productCategory;
+      if (input.bookFormat !== undefined) updates.bookFormat = input.bookFormat;
+      if (input.isbn !== undefined) updates.isbn = normalizeIsbn(input.isbn);
+      if (input.publisher !== undefined) updates.publisher = input.publisher?.trim() || null;
+      if (input.publicationDate !== undefined) updates.publicationDate = input.publicationDate;
+      if (input.edition !== undefined) updates.edition = input.edition?.trim() || null;
+      if (input.pageCount !== undefined) updates.pageCount = input.pageCount;
+      if (input.language !== undefined) updates.language = input.language?.trim() || null;
+      if (input.isSigned !== undefined) updates.isSigned = input.isSigned;
+      if (input.ebookRightsConfirmed !== undefined) {
+        updates.ebookRightsConfirmed = input.ebookRightsConfirmed;
+        updates.ebookRightsConfirmedAt = input.ebookRightsConfirmed ? new Date() : null;
+      }
 
       if (merged.sellingMethod === "ologywood") {
         updates.priceDisplay = `$${((merged.priceInCents || 0) / 100).toFixed(2)}`;
@@ -402,6 +525,28 @@ export const merchRouter = router({
         updates.pickupAvailable = false;
         updates.shippingAmountCents = 0;
         updates.fulfillmentTime = null;
+      }
+
+      if (digitalDelivery) {
+        updates.variants = [];
+        updates.trackInventory = false;
+        updates.inventoryQuantity = null;
+        updates.shippingAvailable = false;
+        updates.pickupAvailable = false;
+        updates.shippingAmountCents = 0;
+        updates.fulfillmentTime = null;
+        updates.isSigned = false;
+      }
+
+      if (merged.productCategory !== "book") {
+        updates.bookFormat = null;
+        updates.isbn = null;
+        updates.publisher = null;
+        updates.publicationDate = null;
+        updates.edition = null;
+        updates.pageCount = null;
+        updates.language = null;
+        updates.isSigned = false;
       }
 
       await db.update(merchItems).set(updates).where(eq(merchItems.id, input.id));
@@ -576,7 +721,7 @@ export const merchRouter = router({
       if (!db) return [];
 
       try {
-        return await db
+        const items = await db
           .select()
           .from(merchItems)
           .where(
@@ -587,6 +732,7 @@ export const merchRouter = router({
             )
           )
           .orderBy(asc(merchItems.sortOrder));
+        return items.map(toPublicMerchItem);
       } catch (error: any) {
         const cause = error?.cause as { code?: string; message?: string } | undefined;
         if (cause?.code !== 'ER_BAD_FIELD_ERROR') throw error;
@@ -604,7 +750,7 @@ export const merchRouter = router({
           ORDER BY sortOrder ASC
         `) as any;
 
-        return (legacyRows as any[]).map(normalizeLegacyMerchItem);
+        return (legacyRows as any[]).map((item) => toPublicMerchItem(normalizeLegacyMerchItem(item)));
       }
     }),
 });

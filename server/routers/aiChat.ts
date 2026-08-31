@@ -14,7 +14,7 @@ PLATFORM OVERVIEW:
 Ologywood is the business platform for creators. Creators own their audience. Creators choose where their content lives. Ologywood powers everything that makes that content profitable — bookings, tickets, fan clubs, merch, and content releases. We are a monetization and commerce layer, not a content host. Talent hosts their content wherever they want (YouTube, Vimeo, Spotify, etc.) and Ologywood handles discovery, ticketing, fan relationships, and revenue.
 
 ACCOUNT TYPES:
-- Artist/Talent: Music artists, visual artists, athletes, creators, entertainers (DJs, comedians, MCs), filmmakers, influencers
+- Artist/Talent: Music artists, visual artists, authors and writers, athletes, creators, entertainers (DJs, comedians, MCs), filmmakers, influencers
 - Venue: Event organizers, clubs, promoters
 - Fan/User: Browse, follow, book talent, buy tickets and music, join fan clubs
 - Blogger: Write blog posts for the platform
@@ -22,6 +22,7 @@ ACCOUNT TYPES:
 TALENT TYPES (selected during onboarding):
 - Music Artist: Musicians & Bands
 - Visual Artist: Illustration, Fine Art & Design
+- Author / Writer: Books, Poetry & Publishing
 - Athlete: Sports & NIL
 - Creator: Content & Digital
 - Entertainer: Comedy, DJ, MC
@@ -106,12 +107,12 @@ KEY FEATURES:
 - Budget Calculator: Estimate reach based on spend
 - Boost My Event: Submit managed promotion request with budget ($50 min), goals, target audience. Team handles the campaign.
 
-8. MERCH & SHOP:
-- Artists and athletes showcase merchandise with external purchase links
+8. CREATOR SHOP:
+- Creators can sell merchandise, physical books, and securely delivered eBooks through OlogyWood or use public external purchase links
 - Athletes: Pre-pay merchandise model (fans order and pay upfront, athlete produces and ships)
 - Venues showcase branded items and offers
 - Limits: Starter = 6 items, Professional = 15 items
-- Zero platform commission on merch
+- Native checkout uses Stripe Connect and a 1% platform fee; external-store links remain optional
 - Image uploads for product photos via S3
 
 9. PROJECT PREVIEWS:
@@ -196,6 +197,7 @@ COMMON USER QUESTIONS:
 - "What is a Content Release?" → A Content Release lets you sell access to content hosted anywhere (YouTube, Vimeo, Spotify, etc.). You set the price and access model, fans pay on Ologywood, then get the link to watch/listen.
 - "I am a filmmaker, what can I do here?" → Create your profile as a Filmmaker. You can list your films/documentaries with trailers, sell tickets to premieres, build a fan club, sell merch, get booked for event coverage, and monetize your entire catalog.
 - "I am a visual artist or illustrator, what can I do here?" → Create your profile as a Visual Artist. Showcase your portfolio, promote Arts & Culture events, sell artwork or merch through OlogyWood or an external store, build a fan community, and accept relevant booking requests.
+- "I am an author or writer, what can I do here?" → Create an Author / Writer profile, choose writing genres, sell physical books or securely delivered eBooks through Creator Shop, grow a reader community, promote readings and signings, and accept requests for workshops, school visits, panels, and speaking engagements. OlogyWood supports commerce and access but does not become the publisher.
 - "Why am I getting a plan upgrade message?" → Some features are restricted by subscription tier. Free plan has 2 bookings/month. Rider Builder needs Starter ($9/mo). Contracts need Professional ($29/mo). Sponsors need Enterprise ($79/mo). Visit /pricing to upgrade.
 - "How do I upgrade my plan?" → Go to /pricing, select the plan you want, and complete checkout with Stripe. Your features unlock immediately.
 - "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for selling access to content hosted externally (movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc.

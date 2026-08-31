@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 
-export type MerchFulfillmentMethod = 'shipping' | 'pickup';
+export type MerchFulfillmentMethod = 'shipping' | 'pickup' | 'digital';
 
 const allowedTransitions: Record<string, string[]> = {
   new: ['confirmed', 'cancelled'],
@@ -71,13 +71,17 @@ export function buildMerchOrderNotification(params: {
     style: 'currency',
     currency: 'USD',
   }).format(params.totalCents / 100);
-  const fulfillment = params.fulfillmentMethod === 'pickup' ? 'pickup' : 'shipping';
+  const fulfillment = params.fulfillmentMethod === 'pickup'
+    ? 'pickup'
+    : params.fulfillmentMethod === 'digital' ? 'digital' : 'shipping';
   const itemLabel = `${params.itemCount} item${params.itemCount === 1 ? '' : 's'}`;
 
   return {
     type: 'payment' as const,
     title: `New merch order ${params.orderNumber}`,
-    message: `${params.buyerName} placed a ${fulfillment} order for ${amount} (${itemLabel}). Review and begin fulfillment.`,
+    message: params.fulfillmentMethod === 'digital'
+      ? `${params.buyerName} purchased a digital book for ${amount} (${itemLabel}). Access is available after verified payment.`
+      : `${params.buyerName} placed a ${fulfillment} order for ${amount} (${itemLabel}). Review and begin fulfillment.`,
     actionUrl: '/merch-orders',
   };
 }

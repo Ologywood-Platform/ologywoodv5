@@ -4423,20 +4423,23 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Run TypeScript, 19 focused tests, 2,693 full-suite tests, and production build validation
 - [x] Save checkpoint 50ed446e for the long-form video buffering repair
 
-## AUTHOR / WRITER PROFILES & BOOKS CREATOR SHOP (Aug 28, 2026)
+## AUTHOR / WRITER PROFILES & BOOKS CREATOR SHOP (Aug 30, 2026)
 - [x] Audit talent taxonomy, onboarding, profile editing, Browse filters, merch schema, native checkout, orders, S3 storage, and paid-access patterns
 - [x] Document the backward-compatible schema for physical books and eBooks under merch_items without duplicating checkout or order tables
 - [x] Define Author / Writer onboarding fields, public profile labels, booking language, and author-specific guidance
 - [x] Define a curated author genre taxonomy that works for discovery and profile specialties
-- [ ] Add Author / Writer as a complete profile choice across onboarding, editing, Browse, search, public profiles, admin, Help, and tours
-- [ ] Add Books as a Creator Shop product category while preserving existing merchandise items
-- [ ] Add physical-book fields for format, ISBN-10/13, publisher/imprint, publication date, edition, page count, language, signed copies, inventory, shipping, and pickup
-- [ ] Add eBook fields for EPUB/PDF format, rights affirmation, protected S3 object metadata, and post-purchase download access
-- [ ] Keep Stripe Connect checkout, one-percent platform fee, order notifications, refunds, and creator order management shared with native merch
-- [ ] Ensure eBook file URLs are never exposed publicly or in product metadata before verified purchase access
-- [ ] Add book-specific creation, editing, detail, profile display, discovery filters, and social-sharing metadata
-- [ ] Add rights, copyright, fulfillment, refund, and digital-access disclosures without presenting OlogyWood as the publisher
-- [ ] Add migration and regression coverage for existing merch compatibility, physical books, eBooks, authorization, and downloads
-- [ ] Verify Author onboarding, book creation, checkout-compatible product display, secure access states, and responsive layouts
-- [ ] Run TypeScript, focused tests, full regression suite, and production build
+- [x] Add Author / Writer as a complete profile choice across onboarding, editing, Browse, search, public profiles, admin, Help, and tours
+- [x] Add Books as a Creator Shop product category while preserving existing merchandise items
+- [x] Add physical-book fields for format, ISBN-10/13, publisher/imprint, publication date, edition, page count, language, signed copies, inventory, shipping, and pickup
+- [x] Add eBook fields for EPUB/PDF format, rights affirmation, protected S3 object metadata, and post-purchase download access
+- [x] Keep Stripe Connect checkout, one-percent platform fee, order notifications, refunds, and creator order management shared with native merch
+- [x] Ensure eBook file URLs are never exposed publicly or in product metadata before verified purchase access
+- [x] Add book-specific creation, editing, detail, profile display, discovery filters, and social-sharing metadata
+- [x] Add rights, copyright, fulfillment, refund, and digital-access disclosures without presenting OlogyWood as the publisher
+- [x] Add migration and regression coverage for existing merch compatibility, physical books, eBooks, authorization, and downloads
+- [x] Verify Author onboarding, book creation, checkout-compatible product display, secure access states, and responsive layouts
+- [x] Run TypeScript, 38 focused tests, 2,711 full-suite tests with 23 skipped, and a successful production build
+- [x] Validate the real creator router with disposable inactive physical-book and eBook drafts, automatic cleanup, and no payment or public product creation
+- [x] Confirm the runtime database has merch order tables, digital fulfillment, Books metadata, and protected eBook access after idempotent legacy repair
+- [x] Add behavioral HTTP tests for authentication, seller ownership, rights affirmation, private randomized storage keys, buyer authorization, refund revocation, download limits, and signed delivery
 - [ ] Save a checkpoint for the Author / Writer and Books Creator Shop expansion

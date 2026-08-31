@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: February 28, 2026
+          Last updated: August 30, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -37,7 +37,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">1. Introduction</h2>
             <p className="text-base leading-relaxed">
-              Ologywood ("we," "us," "our," or "Company") operates a talent booking and fan engagement platform that connects music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers with venues, event organizers, brands, and fans. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
+              Ologywood ("we," "us," "our," or "Company") operates a talent booking, fan engagement, and creator-commerce platform that connects music artists, visual artists, authors and writers, athletes, creators, entertainers, filmmakers, and influencers with venues, event organizers, brands, readers, and fans. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website at www.ologywood.com and our progressive web application (collectively, the "Platform"). Please read this privacy policy carefully. If you do not agree with our policies and practices, please do not use our services.
             </p>
           </section>
 
@@ -56,6 +56,7 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
               <li><strong>Music and Visual Artists:</strong> Bio, genres or creative disciplines, location, portfolio media, social links, availability calendar, and booking rates</li>
+              <li><strong>Authors and Writers:</strong> Author or pen name, writing genres, biography, location, portfolio media, social links, availability, and appearance rates</li>
               <li><strong>Athletes:</strong> Sport, position, team affiliation, athletic statistics, achievements, NIL deal history, highlight video clips, and booking availability</li>
               <li><strong>Creators/Entertainers/Influencers:</strong> Bio, category, location, profile photos, social media links, content type, and rates</li>
               <li><strong>Venues:</strong> Venue name, type, capacity, location, photos, amenities, and event history</li>
@@ -77,7 +78,12 @@ export default function PrivacyPolicy() {
               Messages sent through our in-platform messaging system are stored to facilitate communication between talent (music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers), venues, and organizers. We also store email update blasts that talent send to their followers through our platform.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.6 Information Collected Automatically</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">2.6 Creator Shop and eBook Data</h3>
+            <p className="text-base leading-relaxed">
+              For Creator Shop orders, we store product and order details, buyer contact information, fulfillment status, payment identifiers, and tracking information where applicable. eBook files are stored as private objects. We store protected object identifiers, file metadata, purchase-access records, download counts, and access timestamps so authorized buyers can retrieve purchased files. Public product responses do not include private eBook storage keys.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">2.7 Information Collected Automatically</h3>
             <p className="text-base leading-relaxed">
               When you access our Platform, we automatically collect:
             </p>
@@ -96,7 +102,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold mt-8 mb-4">3. How We Use Your Information</h2>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
               <li><strong>Platform Operation:</strong> Creating and maintaining your account, processing bookings, generating rider contracts, and managing e-signatures</li>
-              <li><strong>Payment Processing:</strong> Creating Stripe checkout sessions, processing deposits, and managing subscription billing</li>
+              <li><strong>Payment and Commerce:</strong> Creating Stripe checkout sessions, processing bookings and Creator Shop orders, managing subscriptions, and granting paid digital access</li>
               <li><strong>Communication:</strong> Sending booking confirmations, contract notifications, countersigning requests, and update blasts via SendGrid email</li>
               <li><strong>Search and Discovery:</strong> Displaying talent and venue profiles in search results, browse pages, and recommendations</li>
               <li><strong>Maps and Location:</strong> Showing venue and event locations on Google Maps within the Platform</li>
@@ -140,7 +146,7 @@ export default function PrivacyPolicy() {
                   <tr>
                     <td className="px-4 py-2 border-b font-semibold">AWS S3</td>
                     <td className="px-4 py-2 border-b">File storage</td>
-                    <td className="px-4 py-2 border-b">Profile images and contract PDFs you upload or generate</td>
+                    <td className="px-4 py-2 border-b">Profile media, contract PDFs, and protected eBook files you upload or generate</td>
                   </tr>
                 </tbody>
               </table>
@@ -160,6 +166,7 @@ export default function PrivacyPolicy() {
               <li><strong>Database Security:</strong> Our database is hosted on AWS RDS with encryption at rest and restricted network access</li>
               <li><strong>Contract Integrity:</strong> E-signatures are verified with IP address logging and timestamp recording</li>
               <li><strong>Access Controls:</strong> Administrative access is restricted and audited</li>
+              <li><strong>Digital Purchase Controls:</strong> Private eBook files are released through authenticated, purchase-authorized, time-limited download links with reasonable download limits</li>
             </ul>
             <p className="text-base leading-relaxed mt-4">
               No method of transmission over the internet is 100% secure. While we implement industry-standard protections, we cannot guarantee absolute security.

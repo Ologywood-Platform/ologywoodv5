@@ -123,8 +123,8 @@ const faqItems: FAQItem[] = [
   {
     id: 'merch-1',
     category: 'Merch & Shop',
-    question: 'How does the Merch feature work for artists?',
-    answer: 'Artists on Starter and Professional plans can showcase merchandise on their public profile. Go to your Dashboard and click the Merch quick action (or navigate to /merch). Add items with a title, description, display price, and an external purchase link to your own store (Shopify, Big Cartel, Printful, etc.). Upload up to 2 images per item (JPEG, PNG, or WebP, max 2MB each). Fans see your merch on your artist profile and click \"Buy\" to be taken directly to your store. You keep 100% of merch revenue \u2014 Ologywood takes zero commission.',
+    question: 'How does Creator Shop work for talent?',
+    answer: 'Eligible creators can add merchandise, physical books, or eBooks to Creator Shop from their Dashboard. Native OlogyWood checkout uses Stripe Connect, secure order tracking, and the current 1% platform fee; physical products are fulfilled by the creator and paid eBooks unlock through protected downloads. Creators may also use an optional external-store link. Upload up to 2 product images per listing (JPEG, PNG, or WebP, max 2MB each).',
   },
   {
     id: 'merch-2',
@@ -256,6 +256,18 @@ const faqItems: FAQItem[] = [
     category: 'Getting Started',
     question: 'I am an illustrator or visual artist. Which profile type and event category should I choose?',
     answer: 'Choose Visual Artist as your profile type for illustration, fine art, graphic design, photography, sculpture, digital art, and related creative work. When posting an exhibition, gallery opening, art fair, or similar event, choose Arts & Culture as the event category. Your profile type describes who you are; the event category describes the event.',
+  },
+  {
+    id: 'author-writer-1',
+    category: 'Getting Started',
+    question: 'I am an author or writer. What can I do on OlogyWood?',
+    answer: 'Choose Author / Writer as your profile type, add your writing genres and author bio, sell physical books or eBooks through Creator Shop, build reader relationships through followers and Fan Club, share book updates, promote readings and signings, and accept booking requests for panels, workshops, school visits, and speaking engagements. You remain the author, publisher, or rights holder; OlogyWood provides the commerce, access, discovery, and fan-relationship tools.',
+  },
+  {
+    id: 'author-writer-2',
+    category: 'Getting Started',
+    question: 'How are physical books and eBooks handled?',
+    answer: 'Physical books use the existing OlogyWood order system with inventory, shipping, pickup, tracking, refunds, and creator fulfillment. eBooks use the same secure checkout, but the file stays private and becomes downloadable only after a verified purchase. Authors must confirm they have the rights to sell every uploaded book.',
   },
 
   // Fan Club

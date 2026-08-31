@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'wouter';
-import { ArrowLeft, ExternalLink, ImageIcon, MapPin, Package, Share2, ShoppingCart, Truck } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, ExternalLink, FileText, ImageIcon, MapPin, Package, Share2, ShoppingCart, Truck } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 import { MerchCheckoutDialog } from '@/components/MerchCheckoutDialog';
 import { MerchShareDialog } from '@/components/MerchShareDialog';
@@ -30,10 +30,12 @@ export default function MerchItem() {
   }
 
   if (!item || itemId <= 0) {
-    return <><SiteHeader /><main className="min-h-[620px] flex items-center justify-center px-4"><Card className="max-w-lg w-full"><CardContent className="pt-8 text-center space-y-4"><Package className="h-12 w-12 text-muted-foreground mx-auto" /><h1 className="text-2xl font-bold">Merch item not found</h1><p className="text-muted-foreground">This item may be unavailable or the link may be incorrect.</p><Button asChild><Link href="/browse">Browse creators</Link></Button></CardContent></Card></main></>;
+    return <><SiteHeader /><main className="min-h-[620px] flex items-center justify-center px-4"><Card className="max-w-lg w-full"><CardContent className="pt-8 text-center space-y-4"><Package className="h-12 w-12 text-muted-foreground mx-auto" /><h1 className="text-2xl font-bold">Creator Shop product not found</h1><p className="text-muted-foreground">This product may be unavailable or the link may be incorrect.</p><Button asChild><Link href="/browse">Browse creators</Link></Button></CardContent></Card></main></>;
   }
 
   const image = item.imageUrls?.[0] || null;
+  const isBook = item.productCategory === 'book';
+  const isDigitalBook = isBook && item.bookFormat === 'ebook';
   const soldOut = item.sellingMethod === 'ologywood' && item.trackInventory && (item.inventoryQuantity ?? 0) <= 0;
   function buyItem() {
     if (item.sellingMethod === 'external') {
@@ -55,15 +57,16 @@ export default function MerchItem() {
             </div>
             <div className="space-y-6 pt-1">
               <div className="flex items-start justify-between gap-4">
-                <div><Badge className={item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-800'}>{item.sellingMethod === 'ologywood' ? 'Buy on OlogyWood' : 'External store'}</Badge><h1 className="text-4xl font-bold tracking-tight mt-3">{item.title}</h1><Link href={item.sellerProfileUrl} className="text-purple-700 hover:underline font-medium">by {item.sellerName}</Link></div>
+                <div><div className="flex flex-wrap gap-2"><Badge className={item.sellingMethod === 'ologywood' ? 'bg-purple-700' : 'bg-slate-800'}>{item.sellingMethod === 'ologywood' ? 'Buy on OlogyWood' : 'External store'}</Badge>{isBook && <Badge variant="outline" className="gap-1"><BookOpen className="h-3 w-3" />{item.bookFormat === 'ebook' ? 'eBook' : item.bookFormat === 'hardcover' ? 'Hardcover' : 'Paperback'}</Badge>}{item.isSigned && <Badge variant="outline">Signed copy</Badge>}</div><h1 className="text-4xl font-bold tracking-tight mt-3">{item.title}</h1><Link href={item.sellerProfileUrl} className="text-purple-700 hover:underline font-medium">by {item.sellerName}</Link></div>
                 <Button variant="outline" aria-label="Share this product" className="shrink-0 gap-2" onClick={() => setShareOpen(true)}><Share2 className="h-4 w-4" />Share Product</Button>
               </div>
               <p className="text-3xl font-bold text-purple-700">{item.priceDisplay}</p>
               {item.description && <p className="text-base leading-7 text-muted-foreground whitespace-pre-line">{item.description}</p>}
-              {item.sellingMethod === 'ologywood' && <div className="grid sm:grid-cols-2 gap-3">{item.shippingAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><Truck className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Shipping available</p><p className="text-xs text-muted-foreground">Creator-managed fulfillment</p></div></div>}{item.pickupAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><MapPin className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Local pickup</p><p className="text-xs text-muted-foreground">Details provided after purchase</p></div></div>}</div>}
-              {item.fulfillmentTime && <p className="text-sm text-muted-foreground">Estimated fulfillment: {item.fulfillmentTime}</p>}
-              <Button size="lg" className="w-full sm:w-auto gap-2 bg-purple-700 hover:bg-purple-800" disabled={soldOut || (item.sellingMethod === 'external' && !item.externalUrl)} onClick={buyItem}>{item.sellingMethod === 'ologywood' ? <ShoppingCart className="h-5 w-5" /> : <ExternalLink className="h-5 w-5" />}{soldOut ? 'Sold out' : item.sellingMethod === 'ologywood' ? 'Order securely' : 'Buy from external store'}</Button>
-              <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? 'OlogyWood processes payment and tracks the order. The creator fulfills it directly.' : 'You’ll review the destination before leaving OlogyWood. Checkout and store access are handled by the creator’s external provider.'}</p>
+              {isBook && <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2 rounded-xl border bg-white/70 dark:bg-gray-900/70 p-4 text-sm"><p><strong>Format:</strong> {item.bookFormat === 'ebook' ? 'eBook' : item.bookFormat === 'hardcover' ? 'Hardcover' : 'Paperback'}</p>{item.publisher && <p><strong>Publisher:</strong> {item.publisher}</p>}{item.publicationDate && <p><strong>Published:</strong> {item.publicationDate}</p>}{item.edition && <p><strong>Edition:</strong> {item.edition}</p>}{item.pageCount && <p><strong>Pages:</strong> {item.pageCount}</p>}{item.language && <p><strong>Language:</strong> {item.language}</p>}{item.isbn && <p><strong>ISBN:</strong> {item.isbn}</p>}</div>}
+              {item.sellingMethod === 'ologywood' && (isDigitalBook ? <div className="flex items-center gap-3 rounded-xl border border-purple-200 bg-purple-50/80 dark:bg-purple-950/30 p-4"><Download className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Secure digital delivery</p><p className="text-xs text-muted-foreground">Access your purchased PDF or EPUB from OlogyWood orders after verified payment.</p></div></div> : <div className="grid sm:grid-cols-2 gap-3">{item.shippingAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><Truck className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Shipping available</p><p className="text-xs text-muted-foreground">Author-managed fulfillment</p></div></div>}{item.pickupAvailable && <div className="flex items-center gap-3 rounded-xl border bg-white/80 dark:bg-gray-900/80 p-4"><MapPin className="h-5 w-5 text-purple-700" /><div><p className="font-medium">Local pickup</p><p className="text-xs text-muted-foreground">Details provided after purchase</p></div></div>}</div>)}
+              {!isDigitalBook && item.fulfillmentTime && <p className="text-sm text-muted-foreground">Estimated fulfillment: {item.fulfillmentTime}</p>}
+              <Button size="lg" className="w-full sm:w-auto gap-2 bg-purple-700 hover:bg-purple-800" disabled={soldOut || (item.sellingMethod === 'external' && !item.externalUrl)} onClick={buyItem}>{item.sellingMethod === 'ologywood' ? (isDigitalBook ? <Download className="h-5 w-5" /> : <ShoppingCart className="h-5 w-5" />) : <ExternalLink className="h-5 w-5" />}{soldOut ? 'Sold out' : item.sellingMethod === 'ologywood' ? isDigitalBook ? 'Buy eBook securely' : isBook ? 'Order book securely' : 'Order securely' : 'Buy from external store'}</Button>
+              <p className="text-xs text-muted-foreground">{item.sellingMethod === 'ologywood' ? isDigitalBook ? 'OlogyWood processes payment and provides purchase-authorized access. The author owns and supplies the eBook; OlogyWood is not the publisher.' : 'OlogyWood processes payment and tracks the order. The creator fulfills physical products directly.' : 'You’ll review the destination before leaving OlogyWood. Checkout and store access are handled by the creator’s external provider.'}</p>
             </div>
           </div>
         </div>

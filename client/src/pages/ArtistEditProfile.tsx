@@ -333,7 +333,9 @@ export default function ArtistEditProfile() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Edit Profile</h1>
-              <p className="text-sm text-muted-foreground">Update your artist information</p>
+              <p className="text-sm text-muted-foreground">
+                {isAuthorWriter ? 'Update your author profile and reader-facing information' : 'Update your creator profile information'}
+              </p>
             </div>
           </div>
           <Button
@@ -355,7 +357,9 @@ export default function ArtistEditProfile() {
           <Card>
             <CardHeader>
               <CardTitle>Profile Photo</CardTitle>
-              <CardDescription>Upload a photo that represents you or your act</CardDescription>
+              <CardDescription>
+                {isAuthorWriter ? 'Upload an author photo or professional portrait' : 'Upload a photo that represents you or your work'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-6">

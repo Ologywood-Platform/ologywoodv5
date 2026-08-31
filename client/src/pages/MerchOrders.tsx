@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   ClipboardList,
+  Download,
   ExternalLink,
   Loader2,
   MapPin,
@@ -63,6 +64,22 @@ function formatAddress(address: any) {
 }
 
 function OrderItems({ items }: { items: any[] }) {
+  const [downloadingAccessId, setDownloadingAccessId] = useState<number | null>(null);
+
+  async function downloadEbook(accessId: number) {
+    setDownloadingAccessId(accessId);
+    try {
+      const response = await fetch(`/api/books/download/${accessId}`, { credentials: 'include' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'Could not prepare the eBook download');
+      window.location.href = payload.downloadUrl;
+    } catch (error: any) {
+      toast.error(error.message || 'Could not download this eBook.');
+    } finally {
+      setDownloadingAccessId(null);
+    }
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item) => (
@@ -73,6 +90,7 @@ function OrderItems({ items }: { items: any[] }) {
           <div className="min-w-0">
             <p className="font-medium text-sm">{item.quantity} × {item.title}</p>
             <p className="text-xs text-muted-foreground">{Object.entries(item.selectedVariants || {}).map(([name, value]) => `${name}: ${value}`).join(' · ')}</p>
+            {item.downloadAccess && <div className="mt-2"><Button size="sm" variant="outline" className="gap-2" disabled={downloadingAccessId === item.downloadAccess.id || item.downloadAccess.downloadCount >= item.downloadAccess.maxDownloads} onClick={() => downloadEbook(item.downloadAccess.id)}>{downloadingAccessId === item.downloadAccess.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}Download eBook</Button><p className="text-[11px] text-muted-foreground mt-1">{Math.max(0, item.downloadAccess.maxDownloads - item.downloadAccess.downloadCount)} downloads remaining</p></div>}
           </div>
         </div>
       ))}
@@ -83,7 +101,7 @@ function OrderItems({ items }: { items: any[] }) {
 function BuyerOrdersPanel() {
   const { data: orders, isLoading } = trpc.merchOrders.myOrders.useQuery();
   if (isLoading) return <div className="py-16 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-purple-700" /></div>;
-  if (!orders?.length) return <Card className="border-dashed"><CardContent className="py-12 text-center"><Package className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" /><h2 className="font-semibold text-lg">No merch purchases yet</h2><p className="text-sm text-muted-foreground mt-1">Items purchased through OlogyWood will appear here.</p><Button className="mt-5" onClick={() => { window.location.href = '/browse'; }}>Browse creators</Button></CardContent></Card>;
+  if (!orders?.length) return <Card className="border-dashed"><CardContent className="py-12 text-center"><Package className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" /><h2 className="font-semibold text-lg">No Creator Shop purchases yet</h2><p className="text-sm text-muted-foreground mt-1">Merchandise, books, and eBooks purchased through OlogyWood will appear here.</p><Button className="mt-5" onClick={() => { window.location.href = '/browse'; }}>Browse creators</Button></CardContent></Card>;
 
   return (
     <div className="space-y-4">
@@ -91,7 +109,7 @@ function BuyerOrdersPanel() {
         <Card key={order.id}>
           <CardContent className="p-5">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-              <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground mt-1">Ordered {new Date(order.createdAt).toLocaleDateString()}</p></div>
+              <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground mt-1">Ordered {new Date(order.createdAt).toLocaleDateString()}</p></div>
               <p className="font-bold text-purple-700">${(order.totalCents / 100).toFixed(2)}</p>
             </div>
             <div className="mt-4 border-t pt-4"><OrderItems items={order.items} /></div>
@@ -169,7 +187,7 @@ function SellerOrdersPanel() {
   return (
     <>
       <div className="rounded-lg border border-violet-200 bg-violet-50 p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div><p className="font-medium text-sm">You fulfill these orders</p><p className="text-xs text-muted-foreground mt-1">OlogyWood processes payment and tracks status. Prepare, ship, deliver, or arrange pickup directly with the buyer.</p></div>
+        <div><p className="font-medium text-sm">Creator Shop orders</p><p className="text-xs text-muted-foreground mt-1">You fulfill physical products. OlogyWood provides purchase-authorized access automatically for paid eBooks.</p></div>
         <Button variant="outline" size="sm" onClick={() => stripeDashboardMutation.mutate()} disabled={stripeDashboardMutation.isPending}>Open Stripe payouts</Button>
       </div>
 
@@ -181,7 +199,7 @@ function SellerOrdersPanel() {
         <Card key={order.id}>
           <CardContent className="p-5">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-              <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground">Paid {order.paidAt ? new Date(order.paidAt).toLocaleString() : new Date(order.createdAt).toLocaleString()}</p></div>
+              <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{order.orderNumber}</p><Badge className={statusStyles[order.status]}>{statusLabels[order.status] || order.status}</Badge><Badge variant="outline">{order.fulfillmentMethod === 'shipping' ? 'Shipping' : order.fulfillmentMethod === 'digital' ? 'Digital access delivered' : 'Pickup'}</Badge></div><p className="text-xs text-muted-foreground">Paid {order.paidAt ? new Date(order.paidAt).toLocaleString() : new Date(order.createdAt).toLocaleString()}</p></div>
               <div className="flex items-center gap-3"><p className="font-bold text-purple-700">${(order.totalCents / 100).toFixed(2)}</p>{(nextStatusOptions[order.status]?.length || 0) > 0 && <Button size="sm" onClick={() => openUpdate(order)}>Update order</Button>}</div>
             </div>
 
@@ -225,8 +243,8 @@ export default function MerchOrders() {
       <SiteHeader />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
-          <div><h1 className="text-3xl font-bold flex items-center gap-2"><ShoppingBag className="h-7 w-7 text-purple-700" />Merch Orders</h1><p className="text-muted-foreground mt-1">Track purchases and fulfill orders sold through OlogyWood.</p></div>
-          <Button variant="outline" onClick={() => { window.location.href = '/merch'; }}><PackageCheck className="h-4 w-4 mr-2" />Manage merch</Button>
+          <div><h1 className="text-3xl font-bold flex items-center gap-2"><ShoppingBag className="h-7 w-7 text-purple-700" />Creator Shop Orders</h1><p className="text-muted-foreground mt-1">Track merchandise, physical books, and secure eBook access sold through OlogyWood.</p></div>
+          <Button variant="outline" onClick={() => { window.location.href = '/merch'; }}><PackageCheck className="h-4 w-4 mr-2" />Manage Creator Shop</Button>
         </div>
 
         {!isAuthenticated ? <Card><CardContent className="py-12 text-center"><p className="font-medium">Sign in to view merch orders.</p><Button className="mt-4" onClick={() => { window.location.href = '/'; }}>Sign in</Button></CardContent></Card> : <>

@@ -12,11 +12,14 @@ import {
   getInvalidMerchVariant,
 } from '../utils/merchCommerce';
 import {
+  bookDownloadAccess,
   merchItems,
   merchOrderItems,
   merchOrders,
   stripeConnectAccounts,
 } from '../../drizzle/schema';
+import { isEbook } from '../../shared/bookCommerce';
+import { ensureMerchItemsSchema } from '../services/merchSchemaService';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -94,13 +97,14 @@ export const merchOrdersRouter = router({
       buyerName: z.string().min(1).max(255),
       buyerEmail: z.string().email().max(320),
       buyerPhone: z.string().max(30).optional(),
-      fulfillmentMethod: z.enum(['shipping', 'pickup']),
+      fulfillmentMethod: z.enum(['shipping', 'pickup', 'digital']),
       shippingAddress: addressSchema.optional(),
       customerNote: z.string().max(500).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+      await ensureMerchItemsSchema(db);
 
       const [item] = await db
         .select()
@@ -113,17 +117,30 @@ export const merchOrdersRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'This item is not available for OlogyWood checkout.' });
       }
       const unitPriceCents = item.priceInCents;
+      const digitalDelivery = item.productCategory === 'book' && isEbook(item.bookFormat);
+      if (digitalDelivery && (!item.ebookFileKey || !item.ebookRightsConfirmed)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'This eBook is not ready for purchase yet.' });
+      }
       if (ctx.user?.id === item.userId) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot purchase your own merch item.' });
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot purchase your own product.' });
       }
 
       const variants = (item.variants || []) as Array<{ name: string; options: string[] }>;
-      const invalidVariant = getInvalidMerchVariant(variants, input.selectedVariants);
+      const invalidVariant = digitalDelivery ? null : getInvalidMerchVariant(variants, input.selectedVariants);
       if (invalidVariant) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: `Please choose a valid ${invalidVariant}.` });
       }
 
-      if (input.fulfillmentMethod === 'shipping') {
+      if (digitalDelivery) {
+        if (input.fulfillmentMethod !== 'digital') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'eBooks use secure digital delivery.' });
+        }
+        if (input.quantity !== 1) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'eBooks can be purchased one at a time.' });
+        }
+      } else if (input.fulfillmentMethod === 'digital') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Choose shipping or pickup for this physical item.' });
+      } else if (input.fulfillmentMethod === 'shipping') {
         if (!item.shippingAvailable) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Shipping is not available for this item.' });
         }
@@ -134,7 +151,7 @@ export const merchOrdersRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Pickup is not available for this item.' });
       }
 
-      if (item.trackInventory && (item.inventoryQuantity ?? 0) < input.quantity) {
+      if (!digitalDelivery && item.trackInventory && (item.inventoryQuantity ?? 0) < input.quantity) {
         throw new TRPCError({ code: 'CONFLICT', message: 'This item does not have enough inventory for that quantity.' });
       }
 
@@ -143,7 +160,7 @@ export const merchOrdersRouter = router({
         priceInCents: unitPriceCents,
         quantity: input.quantity,
         shippingAmountCents: item.shippingAmountCents,
-        fulfillmentMethod: input.fulfillmentMethod,
+        fulfillmentMethod: digitalDelivery ? 'digital' : input.fulfillmentMethod,
       });
       const orderNumber = createMerchOrderNumber();
 
@@ -157,8 +174,8 @@ export const merchOrdersRouter = router({
           buyerEmail: input.buyerEmail.toLowerCase(),
           buyerName: input.buyerName.trim(),
           buyerPhone: input.buyerPhone?.trim() || null,
-          fulfillmentMethod: input.fulfillmentMethod,
-          shippingAddress: input.fulfillmentMethod === 'shipping' ? input.shippingAddress : null,
+          fulfillmentMethod: digitalDelivery ? 'digital' : input.fulfillmentMethod,
+          shippingAddress: !digitalDelivery && input.fulfillmentMethod === 'shipping' ? input.shippingAddress : null,
           paymentStatus: 'pending',
           status: 'new',
           subtotalCents,
@@ -176,7 +193,7 @@ export const merchOrdersRouter = router({
           merchItemId: item.id,
           title: item.title,
           imageUrl: item.imageUrls?.[0] || null,
-          selectedVariants: input.selectedVariants,
+          selectedVariants: digitalDelivery ? {} : input.selectedVariants,
           quantity: input.quantity,
           unitPriceCents,
           lineTotalCents: subtotalCents,
@@ -185,7 +202,7 @@ export const merchOrdersRouter = router({
 
       const baseUrl = process.env.BASE_URL || 'https://www.ologywood.com';
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [{
-        quantity: input.quantity,
+        quantity: digitalDelivery ? 1 : input.quantity,
         price_data: {
           currency: 'usd',
           unit_amount: unitPriceCents,
@@ -193,7 +210,11 @@ export const merchOrdersRouter = router({
             name: item.title,
             description: item.description?.slice(0, 500) || undefined,
             images: item.imageUrls?.[0] ? [item.imageUrls[0]] : undefined,
-            metadata: { merchItemId: String(item.id) },
+            metadata: {
+              merchItemId: String(item.id),
+              productCategory: item.productCategory,
+              bookFormat: item.bookFormat || '',
+            },
           },
         },
       }];
@@ -286,8 +307,9 @@ export const merchOrdersRouter = router({
 
   /** Authenticated buyer order history. */
   myOrders: protectedProcedure.query(async ({ ctx }) => {
-      const db = await getDb();
-      if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+    await ensureMerchItemsSchema(db);
     let orders;
     try {
       orders = await db.select().from(merchOrders)
@@ -299,7 +321,21 @@ export const merchOrdersRouter = router({
     const result = [];
     for (const order of orders) {
       const items = await db.select().from(merchOrderItems).where(eq(merchOrderItems.orderId, order.id));
-      result.push({ ...order, items });
+      const accessRecords = order.paymentStatus === 'paid'
+        ? await db.select({
+            id: bookDownloadAccess.id,
+            orderItemId: bookDownloadAccess.orderItemId,
+            downloadCount: bookDownloadAccess.downloadCount,
+            maxDownloads: bookDownloadAccess.maxDownloads,
+          }).from(bookDownloadAccess).where(eq(bookDownloadAccess.orderId, order.id))
+        : [];
+      result.push({
+        ...order,
+        items: items.map((item) => ({
+          ...item,
+          downloadAccess: accessRecords.find((access) => access.orderItemId === item.id) || null,
+        })),
+      });
     }
     return result;
   }),

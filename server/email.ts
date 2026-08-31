@@ -2213,7 +2213,7 @@ export async function sendMerchOrderConfirmationEmail(params: {
   sellerName: string;
   orderNumber: string;
   totalCents: number;
-  fulfillmentMethod: 'shipping' | 'pickup';
+  fulfillmentMethod: 'shipping' | 'pickup' | 'digital';
   fulfillmentTime?: string | null;
   items: Array<{ title: string; quantity: number; selectedVariants?: Record<string, string> | null }>;
 }) {
@@ -2222,8 +2222,12 @@ export async function sendMerchOrderConfirmationEmail(params: {
   const orderNumber = escapeMerchEmailHtml(params.orderNumber);
   const methodText = params.fulfillmentMethod === 'shipping'
     ? 'The creator will prepare and ship your order.'
-    : 'The creator will contact you with pickup or delivery details.';
-  const timing = params.fulfillmentTime ? `<p><strong>Estimated fulfillment:</strong> ${escapeMerchEmailHtml(params.fulfillmentTime)}</p>` : '';
+    : params.fulfillmentMethod === 'digital'
+      ? 'Your eBook is available securely from your OlogyWood orders after you sign in with this email address.'
+      : 'The creator will contact you with pickup or delivery details.';
+  const timing = params.fulfillmentMethod !== 'digital' && params.fulfillmentTime
+    ? `<p><strong>Estimated fulfillment:</strong> ${escapeMerchEmailHtml(params.fulfillmentTime)}</p>`
+    : '';
 
   return sendEmail({
     to: params.buyerEmail,
@@ -2235,15 +2239,15 @@ export async function sendMerchOrderConfirmationEmail(params: {
       </div>
       <div style="border:1px solid #e5e7eb;border-top:0;padding:28px;border-radius:0 0 10px 10px;">
         <p>Hi ${buyerName},</p>
-        <p>Your payment was received and your order was sent to <strong>${sellerName}</strong> for fulfillment.</p>
+        <p>${params.fulfillmentMethod === 'digital' ? `Your payment was received for a digital book from <strong>${sellerName}</strong>.` : `Your payment was received and your order was sent to <strong>${sellerName}</strong> for fulfillment.`}</p>
         <div style="background:#f9fafb;padding:18px;border-radius:8px;margin:20px 0;">
           <ul style="padding-left:20px;margin:0 0 16px;">${merchEmailItemsHtml(params.items)}</ul>
           <p style="margin:0;font-size:18px;"><strong>Total paid:</strong> $${(params.totalCents / 100).toFixed(2)}</p>
           ${timing}
         </div>
         <p>${methodText}</p>
-        <p style="color:#6b7280;font-size:13px;">OlogyWood processed the payment and tracks the order. The creator prepares, ships, delivers, or arranges pickup.</p>
-        <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">Track my order</a>
+        <p style="color:#6b7280;font-size:13px;">${params.fulfillmentMethod === 'digital' ? 'OlogyWood processed the payment and provides purchase-authorized access. The author owns and supplies the eBook.' : 'OlogyWood processed the payment and tracks the order. The creator prepares, ships, delivers, or arranges pickup.'}</p>
+        <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">${params.fulfillmentMethod === 'digital' ? 'Access my eBook' : 'Track my order'}</a>
         ${merchEmailFooter(params.buyerEmail)}
       </div>
     </div>`,
@@ -2256,23 +2260,23 @@ export async function sendMerchNewOrderEmail(params: {
   buyerName: string;
   orderNumber: string;
   totalCents: number;
-  fulfillmentMethod: 'shipping' | 'pickup';
+  fulfillmentMethod: 'shipping' | 'pickup' | 'digital';
   items: Array<{ title: string; quantity: number; selectedVariants?: Record<string, string> | null }>;
 }) {
   return sendEmail({
     to: params.sellerEmail,
-    subject: `New paid merch order — ${params.orderNumber}`,
+    subject: `${params.fulfillmentMethod === 'digital' ? 'New eBook sale' : 'New paid merch order'} — ${params.orderNumber}`,
     html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-      <h1 style="color:#6d28d9;">New paid merch order</h1>
+      <h1 style="color:#6d28d9;">${params.fulfillmentMethod === 'digital' ? 'New eBook sale' : 'New paid merch order'}</h1>
       <p>Hi ${escapeMerchEmailHtml(params.sellerName)},</p>
-      <p><strong>${escapeMerchEmailHtml(params.buyerName)}</strong> placed a paid order that needs your attention.</p>
+      <p><strong>${escapeMerchEmailHtml(params.buyerName)}</strong> ${params.fulfillmentMethod === 'digital' ? 'purchased your eBook.' : 'placed a paid order that needs your attention.'}</p>
       <div style="background:#f5f3ff;padding:18px;border-radius:8px;border-left:4px solid #7c3aed;">
         <p><strong>Order:</strong> ${escapeMerchEmailHtml(params.orderNumber)}</p>
-        <p><strong>Fulfillment:</strong> ${params.fulfillmentMethod === 'shipping' ? 'Ship to buyer' : 'Local pickup/manual delivery'}</p>
+        <p><strong>Fulfillment:</strong> ${params.fulfillmentMethod === 'shipping' ? 'Ship to buyer' : params.fulfillmentMethod === 'digital' ? 'Automatic secure digital access' : 'Local pickup/manual delivery'}</p>
         <p><strong>Order total:</strong> $${(params.totalCents / 100).toFixed(2)}</p>
         <ul style="padding-left:20px;">${merchEmailItemsHtml(params.items)}</ul>
       </div>
-      <p style="color:#6b7280;font-size:13px;">You are responsible for preparing and fulfilling this order. Update its status so the buyer knows what is happening.</p>
+      <p style="color:#6b7280;font-size:13px;">${params.fulfillmentMethod === 'digital' ? 'No shipping is required. OlogyWood makes the author-supplied file available after verified payment.' : 'You are responsible for preparing and fulfilling this order. Update its status so the buyer knows what is happening.'}</p>
       <a href="${ENV.baseUrl}/merch-orders" style="display:inline-block;background:#7c3aed;color:white;padding:12px 22px;border-radius:6px;text-decoration:none;margin-top:12px;">Open merch orders</a>
       ${merchEmailFooter(params.sellerEmail)}
     </div>`,

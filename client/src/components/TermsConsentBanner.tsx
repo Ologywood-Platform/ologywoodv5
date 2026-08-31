@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { X, FileText, Clock } from 'lucide-react';
 import { useAuth } from '@/_core/hooks/useAuth';
 
-const TERMS_VERSION = '2026-07-18';
+const TERMS_VERSION = '2026-08-30';
 const STORAGE_KEY = 'ologywood_terms_accepted_version';
 const REMIND_LATER_KEY = 'ologywood_terms_remind_later';
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
@@ -68,7 +68,7 @@ export function TermsConsentBanner() {
               We've updated our Terms of Service
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Our Terms now include AI Policy, Creator Bill of Rights, and Community Guidelines.{' '}
+              Our Terms now include Creator Shop, Books and eBooks, AI Policy, Creator Bill of Rights, and Community Guidelines.{' '}
               <Link href="/terms-of-service" className="text-primary hover:underline">
                 Review changes
               </Link>

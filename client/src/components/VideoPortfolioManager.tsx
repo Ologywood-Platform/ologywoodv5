@@ -27,6 +27,13 @@ const VISUAL_ART_VIDEO_CATEGORIES = [
   { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-800' },
 ] as const;
 
+const AUTHOR_VIDEO_CATEGORIES = [
+  { value: 'highlights', label: 'Reading or Book Event', color: 'bg-amber-100 text-amber-800' },
+  { value: 'behind_the_scenes', label: 'Writing Process', color: 'bg-purple-100 text-purple-800' },
+  { value: 'studio', label: 'Author Interview', color: 'bg-indigo-100 text-indigo-800' },
+  { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-800' },
+] as const;
+
 type VideoCategory = typeof VIDEO_CATEGORIES[number]['value'];
 
 export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
@@ -191,6 +198,8 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     ? VIDEO_CATEGORIES.filter(c => ['highlights', 'live_performance', 'studio', 'music_video', 'behind_the_scenes', 'other'].includes(c.value))
     : talentType === 'visual_artist'
     ? [...VISUAL_ART_VIDEO_CATEGORIES]
+    : talentType === 'author_writer'
+    ? [...AUTHOR_VIDEO_CATEGORIES]
     : VIDEO_CATEGORIES;
 
   const getCategoryInfo = (cat: string) => {

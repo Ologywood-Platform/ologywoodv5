@@ -1587,6 +1587,22 @@ export const merchItems = mysqlTable("merch_items", {
   priceDisplay: varchar("priceDisplay", { length: 50 }).notNull(), // Public display label; generated from price for native items
   priceInCents: int("priceInCents"), // Required for OlogyWood checkout items
   externalUrl: varchar("externalUrl", { length: 2048 }), // Optional; required only for external items
+  productCategory: mysqlEnum("productCategory", ["merch", "book"]).default("merch").notNull(),
+  bookFormat: mysqlEnum("bookFormat", ["paperback", "hardcover", "ebook"]),
+  isbn: varchar("isbn", { length: 32 }),
+  publisher: varchar("publisher", { length: 255 }),
+  publicationDate: date("publicationDate", { mode: "string" }),
+  edition: varchar("edition", { length: 100 }),
+  pageCount: int("pageCount"),
+  language: varchar("language", { length: 100 }),
+  isSigned: boolean("isSigned").default(false).notNull(),
+  ebookFileKey: varchar("ebookFileKey", { length: 1024 }), // Private S3 key; never expose publicly
+  ebookFileName: varchar("ebookFileName", { length: 255 }),
+  ebookFileSize: int("ebookFileSize"),
+  ebookMimeType: varchar("ebookMimeType", { length: 100 }),
+  ebookFileFormat: mysqlEnum("ebookFileFormat", ["pdf", "epub"]),
+  ebookRightsConfirmed: boolean("ebookRightsConfirmed").default(false).notNull(),
+  ebookRightsConfirmedAt: timestamp("ebookRightsConfirmedAt"),
   imageUrls: json("imageUrls").$type<string[]>().default([]),
   variants: json("variants").$type<Array<{ name: string; options: string[] }>>().default([]),
   trackInventory: boolean("trackInventory").default(false).notNull(),
@@ -1602,6 +1618,7 @@ export const merchItems = mysqlTable("merch_items", {
 }, (table) => ({
   userIdx: index("idx_merch_items_user").on(table.userId, table.userType),
   activeIdx: index("idx_merch_items_active").on(table.userId, table.isActive),
+  categoryIdx: index("idx_merch_items_category").on(table.productCategory, table.bookFormat, table.isActive),
 }));
 
 export type MerchItem = typeof merchItems.$inferSelect;
@@ -1620,7 +1637,7 @@ export const merchOrders = mysqlTable("merch_orders", {
   buyerEmail: varchar("buyerEmail", { length: 320 }).notNull(),
   buyerName: varchar("buyerName", { length: 255 }).notNull(),
   buyerPhone: varchar("buyerPhone", { length: 30 }),
-  fulfillmentMethod: mysqlEnum("fulfillmentMethod", ["shipping", "pickup"]).notNull(),
+  fulfillmentMethod: mysqlEnum("fulfillmentMethod", ["shipping", "pickup", "digital"]).notNull(),
   shippingAddress: json("shippingAddress").$type<{
     line1: string;
     line2?: string;
@@ -1681,6 +1698,33 @@ export const merchOrderItems = mysqlTable("merch_order_items", {
 
 export type MerchOrderItem = typeof merchOrderItems.$inferSelect;
 export type InsertMerchOrderItem = typeof merchOrderItems.$inferInsert;
+
+/**
+ * Book Download Access - purchase-authorized access to private eBook objects.
+ * One access row is granted for each paid eBook order line. Public product
+ * responses never include the private S3 key stored on merch_items.
+ */
+export const bookDownloadAccess = mysqlTable("book_download_access", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  orderItemId: int("orderItemId").notNull().unique(),
+  merchItemId: int("merchItemId").notNull(),
+  buyerUserId: int("buyerUserId"),
+  buyerEmail: varchar("buyerEmail", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["active", "refunded", "revoked"]).default("active").notNull(),
+  downloadCount: int("downloadCount").default(0).notNull(),
+  maxDownloads: int("maxDownloads").default(5).notNull(),
+  lastDownloadedAt: timestamp("lastDownloadedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("idx_book_download_order").on(table.orderId),
+  itemIdx: index("idx_book_download_item").on(table.merchItemId),
+  buyerIdx: index("idx_book_download_buyer").on(table.buyerUserId),
+  emailIdx: index("idx_book_download_email").on(table.buyerEmail),
+}));
+
+export type BookDownloadAccess = typeof bookDownloadAccess.$inferSelect;
+export type InsertBookDownloadAccess = typeof bookDownloadAccess.$inferInsert;
 
 
 // ============= PROJECT PREVIEWS =============

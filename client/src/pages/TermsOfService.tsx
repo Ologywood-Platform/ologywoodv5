@@ -29,7 +29,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: July 16, 2026
+          Last updated: August 30, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -38,7 +38,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">1. Agreement to Terms</h2>
             <p className="text-base leading-relaxed">
-              By accessing and using the Ologywood platform at www.ologywood.com and our progressive web application (collectively, the "Platform"), you accept and agree to be bound by these Terms of Service ("Terms"). Ologywood is a talent booking, fan engagement, and career management platform that connects performing artists, athletes, entertainers, and creators with venues, event organizers, and fans. If you do not agree to these Terms, please do not use the Platform.
+              By accessing and using the Ologywood platform at www.ologywood.com and our progressive web application (collectively, the "Platform"), you accept and agree to be bound by these Terms of Service ("Terms"). Ologywood is a talent booking, fan engagement, and creator-commerce platform that connects music and visual artists, authors and writers, athletes, entertainers, filmmakers, influencers, and other creators with venues, event organizers, readers, and fans. If you do not agree to these Terms, please do not use the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
               We may update these Terms at any time by posting the revised version with an updated "Last updated" date. Material changes will be communicated via email or in-app notification at least fourteen (14) days before they take effect. Your continued use of the Platform after changes are posted constitutes acceptance of the revised Terms. If you do not agree to the revised Terms, you must discontinue use of the Platform before the effective date.
@@ -52,7 +52,7 @@ export default function TermsOfService() {
               <strong>Ologywood is a technology platform that provides tools for talent to manage their careers and grow their fan communities.</strong> Ologywood is not a talent agency, booking agent, promoter, venue operator, employer, payment processor, escrow agent, financial institution, or party to any agreement between users. Ologywood does not employ, endorse, recommend, or guarantee any talent, venue, or event organizer on the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              The Platform provides tools including, but not limited to: talent profile hosting, booking request management, rider contract creation and e-signature, event ticketing, digital music release distribution, content release monetization (for externally-hosted content on platforms such as YouTube, Vimeo, Spotify, and others), Fan Club membership tiers and exclusive content, fan engagement features, messaging, music library and streaming, and payment facilitation through third-party processors. Ologywood serves as a monetization and commerce layer — creators choose where their content lives, and the Platform handles discovery, ticketing, access control, and revenue. All contractual relationships for performances, events, and services are solely between the contracting parties (talent, venues, and/or event organizers). Ologywood has no obligation to enforce, mediate, or adjudicate the terms of any agreement entered into between users.
+              The Platform provides tools including, but not limited to: talent profile hosting, booking request management, rider contract creation and e-signature, event ticketing, Creator Shop sales of merchandise, physical books, and eBooks, digital music releases, content release monetization, Fan Club membership tiers and exclusive content, fan engagement, messaging, and payment facilitation through third-party processors. Ologywood serves as a monetization and commerce layer. Ologywood is not the publisher, printer, distributor, literary agent, or owner of any book offered by a user. All contractual relationships for performances, events, goods, and services are solely between the applicable users, subject to these Terms and the tools Ologywood provides.
             </p>
           </section>
 
@@ -74,12 +74,12 @@ export default function TermsOfService() {
               The Platform supports three primary user roles:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li><strong>Talent</strong> — Artists (solo performers, bands, DJs, comedians, actors), Athletes, Creators (influencers, speakers, content creators), and other entertainers who offer bookable services and/or create content for fans.</li>
+              <li><strong>Talent</strong> — Music and visual artists, authors and writers, athletes, creators, entertainers, filmmakers, influencers, and other professionals who offer bookable services, products, or content.</li>
               <li><strong>Venues</strong> — Event spaces, clubs, restaurants, corporate event organizers, and other performance locations that book talent for events.</li>
-              <li><strong>Fans</strong> — Users who follow talent, discover events, purchase tickets, buy music releases, join Fan Clubs, and engage with exclusive content.</li>
+              <li><strong>Fans</strong> — Users who follow talent, discover events, purchase tickets, books, eBooks, merchandise, and music releases, join Fan Clubs, and engage with creator content.</li>
             </ul>
             <p className="text-base leading-relaxed mt-4">
-              During onboarding, Talent users select their talent type (Artist, Athlete, Creator, Entertainer, or Influencer). Each talent type has specific profile requirements and features. Users may hold only one role per account but may change their talent type at any time through Edit Profile.
+              During onboarding, Talent users select their profile type, including Music Artist, Visual Artist, Author / Writer, Athlete, Creator, Entertainer, Filmmaker, or Influencer. Each type has relevant profile guidance while sharing the Platform's core creator tools. Users may hold only one primary role per account but may change their talent type through Edit Profile.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3">4.1 Athlete Profiles and Data</h3>
@@ -98,7 +98,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">5. Content Ownership and Licensing</h2>
             <p className="text-base leading-relaxed">
-              <strong>You retain full ownership of all content you upload, create, or submit to the Platform.</strong> This includes, without limitation, profile photos, music recordings, album artwork, videos, highlight clips, performance media, video portfolio content, rider templates, contract documents, event descriptions, blog posts, Fan Club posts, and any other materials you provide ("Your Content"). Ologywood does not claim any ownership interest in Your Content.
+              <strong>You retain full ownership of all content you upload, create, or submit to the Platform.</strong> This includes, without limitation, profile photos, music recordings, album and book artwork, manuscripts and eBook files, videos, highlight clips, performance media, video portfolio content, rider templates, contract documents, event descriptions, blog posts, Fan Club posts, and any other materials you provide ("Your Content"). Ologywood does not claim any ownership interest in Your Content.
             </p>
             <p className="text-base leading-relaxed mt-4">
               By uploading Your Content to the Platform, you grant Ologywood a limited, non-exclusive, royalty-free, revocable license to host, store, display, reproduce, and distribute Your Content <strong>solely for the purpose of operating the Platform and providing the services you have requested.</strong> This license includes the right to display Your Content on your public profile, in search results, in social media previews (Open Graph), in Fan Club feeds, in your video portfolio, and in connection with the features you use (such as event listings, music releases, booking pages, and highlight clip galleries). This license does not grant Ologywood the right to sell, sublicense, or commercially exploit Your Content for any purpose unrelated to operating the Platform.
@@ -107,7 +107,7 @@ export default function TermsOfService() {
               <strong>Content removal:</strong> You may remove Your Content at any time through your account settings or by contacting us. Upon removal or account deletion, Ologywood will remove Your Content from public display within a commercially reasonable timeframe. Copies of Your Content may be retained in backups for up to thirty (30) days after deletion, after which they will be permanently purged. Content that has been incorporated into executed contracts or completed transactions may be retained as part of the transaction record as required by law or for dispute resolution purposes.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              You represent and warrant that you own or have obtained all necessary rights, licenses, and permissions for all content you upload, and that Your Content does not infringe upon the intellectual property rights, privacy rights, or any other rights of any third party. You are solely responsible for ensuring that your music, images, videos, highlight clips, and other media comply with all applicable copyright laws.
+              You represent and warrant that you own or have obtained all necessary rights, licenses, and permissions for all content you upload, and that Your Content does not infringe upon the intellectual property rights, privacy rights, publicity rights, or any other rights of any third party. You are solely responsible for ensuring that your books, manuscripts, cover art, music, images, videos, highlight clips, and other media comply with applicable copyright, publishing, licensing, and consumer-protection laws.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3">5.1 Video Portfolio and Highlight Clips</h3>
@@ -412,6 +412,30 @@ export default function TermsOfService() {
               <li><strong>Pay What You Want:</strong> Fans choose their own price (subject to an optional minimum set by the Talent).</li>
               <li><strong>Unlock After Purchase:</strong> Content is locked until the fan completes a purchase at the listed price.</li>
             </ul>
+          </section>
+
+          {/* 11B. Creator Shop Books and eBooks */}
+          <section>
+            <h2 className="text-2xl font-bold mt-8 mb-4">11B. Creator Shop Books and eBooks</h2>
+            <p className="text-base leading-relaxed">
+              Authors and other eligible Talent may list physical books or eBooks in Creator Shop. The listing creator is the seller and is responsible for the accuracy of the title, format, edition, ISBN, publication information, pricing, description, availability, and any signed-copy representation. Ologywood facilitates discovery, payment, order records, and digital access, but is not the publisher, printer, distributor, literary agent, or guarantor of any listed book.
+            </p>
+            <h3 className="text-xl font-semibold mt-6 mb-3">11B.1 Rights and Seller Responsibilities</h3>
+            <p className="text-base leading-relaxed">
+              By listing or uploading a book, the seller represents and warrants that they own or control all rights needed to sell and deliver the book, cover art, description, and related materials in the selected territories and formats. The seller is responsible for royalties, contributor permissions, publisher restrictions, taxes, fulfillment obligations, and infringement claims. Ologywood may hide a listing, suspend access, preserve transaction records, or respond to a valid legal or DMCA request when reasonably necessary.
+            </p>
+            <h3 className="text-xl font-semibold mt-6 mb-3">11B.2 Physical Books</h3>
+            <p className="text-base leading-relaxed">
+              Physical books are fulfilled by the seller. The seller is responsible for inventory, packaging, shipping or pickup, delivery estimates, tracking, signed-copy accuracy, returns, and compliance with applicable consumer laws. Buyers should review the listing and fulfillment terms before purchase.
+            </p>
+            <h3 className="text-xl font-semibold mt-6 mb-3">11B.3 eBook Access and License</h3>
+            <p className="text-base leading-relaxed">
+              A completed eBook purchase grants the buyer a limited, non-exclusive, non-transferable license to download and use the purchased file for personal, non-commercial purposes. It does not transfer copyright or permit resale, public distribution, file sharing, sublicensing, republication, or removal of rights-management notices. eBook files remain in protected storage and are released through purchase-authorized, time-limited download links. Reasonable download limits may apply and are shown in the buyer's order history.
+            </p>
+            <h3 className="text-xl font-semibold mt-6 mb-3">11B.4 Refunds and Access Revocation</h3>
+            <p className="text-base leading-relaxed">
+              Because eBooks are digital goods, purchases are generally final after download access is provided, except where required by law or where the file is unavailable, corrupted, or materially different from the listing. An approved refund, charge reversal, rights claim, or account-enforcement action may revoke future download access. Physical-book refunds are also subject to the seller's stated policy, applicable law, Stripe procedures, and any Platform dispute tools.
+            </p>
           </section>
 
           {/* 12. Refunds and Cancellations */}

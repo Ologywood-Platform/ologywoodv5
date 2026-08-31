@@ -1,0 +1,1 @@
+ALTER TABLE `merch_orders` MODIFY COLUMN `fulfillmentMethod` enum('shipping','pickup','digital') NOT NULL;
