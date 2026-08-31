@@ -4456,4 +4456,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Keep refunded physical-book and eBook orders visible in creator order management for audit and customer service
 - [x] Remove all disposable buyer, product, order-item, order, download-access, notification, storage-key reference, state-file, and temporary-script artifacts without affecting existing records; retain only Stripe test audit objects
 - [x] Run TypeScript, 39 focused payment/order/eBook regressions, 2,712 full-suite tests with 23 skipped, and a successful production build
-- [ ] Save a checkpoint and report exact Stripe test-mode session, payment, refund, webhook, and cleanup results
+- [x] Save checkpoint 76dfacf8 for the exact Stripe test-mode session, payment, refund, webhook, cleanup, and production refund-fix results
