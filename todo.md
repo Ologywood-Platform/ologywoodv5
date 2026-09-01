@@ -4490,4 +4490,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Facebook/X crawler metadata use the launch title, excerpt, artwork, article type, and canonical production URL
 - [x] Convert relative Blog cover paths to absolute production social-preview URLs and require published status for Blog crawler metadata
 - [x] Run TypeScript, 129 focused Blog/Open Graph tests, 2,726 full-suite tests with 23 skipped, and a successful production build
-- [ ] Save a checkpoint so the user can publish the live-ready blog update
+- [x] Save checkpoint de169854 so the user can publish the live-ready Blog update
