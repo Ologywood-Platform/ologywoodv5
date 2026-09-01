@@ -4475,3 +4475,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Run TypeScript, 72 focused tests, 2,724 full-suite tests with 23 skipped, and a successful production build
 - [x] Replace the full-suite SendGrid test’s real Mailinator dependency with deterministic HTTP response mocks after the provider returned 451 Unavailable For Legal Reasons
 - [x] Save checkpoint 25a274a8 for the completed Sandbox Post implementation and validation results
+
+## BOOKING SALES & SANDBOX POST LAUNCH BLOG (Sep 1, 2026)
+- [x] Write a launch-ready marketing blog explaining bookings, physical/eBook sales, and Sandbox Post in simple creator-focused language
+- [x] Add a compelling headline, excerpt, SEO title, meta description, social caption, and clear creator and supporter calls to action
+- [x] Create original 16:9 launch artwork that visibly incorporates the user-provided OlogyWood logo
+- [x] Package the final blog and branded artwork as reusable marketing assets without publishing them automatically
