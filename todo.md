@@ -4481,3 +4481,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add a compelling headline, excerpt, SEO title, meta description, social caption, and clear creator and supporter calls to action
 - [x] Create original 16:9 launch artwork that visibly incorporates the user-provided OlogyWood logo
 - [x] Package the final blog and branded artwork as reusable marketing assets without publishing them automatically
+
+## ADD BOOKS & SANDBOX POST BLOG TO PLATFORM (Sep 1, 2026)
+- [x] Review the existing Blog database, admin, public article, image, slug, and Open Graph contracts
+- [x] Add the branded campaign artwork through OlogyWood’s permanent deployment-safe asset path
+- [x] Add the published launch article with its title, clean slug, excerpt, 5,288-character body, OlogyWood Team attribution, announcement category, tags, and CTAs
+- [x] Verify the article is the newest Blog listing card and opens at `/blog/books-and-sandbox-post-launch` with the complete responsive public layout
+- [x] Verify Facebook/X crawler metadata use the launch title, excerpt, artwork, article type, and canonical production URL
+- [x] Convert relative Blog cover paths to absolute production social-preview URLs and require published status for Blog crawler metadata
+- [x] Run TypeScript, 129 focused Blog/Open Graph tests, 2,726 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save a checkpoint so the user can publish the live-ready blog update

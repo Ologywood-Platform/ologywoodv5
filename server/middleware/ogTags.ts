@@ -556,7 +556,7 @@ export function ogTagMiddleware() {
               coverImageUrl: blogPosts.coverImageUrl,
             })
             .from(blogPosts)
-            .where(eq(blogPosts.slug, slug))
+            .where(and(eq(blogPosts.slug, slug), eq(blogPosts.status, 'published')))
             .limit(1);
 
           if (post) {
@@ -565,11 +565,14 @@ export function ogTagMiddleware() {
               { name: 'Blog', url: '/blog' },
               { name: post.title, url: `/blog/${post.slug}` },
             ], baseUrl);
+            const coverImage = post.coverImageUrl?.startsWith('/')
+              ? `${baseUrl}${post.coverImageUrl}`
+              : post.coverImageUrl;
 
             const html = generateOgHtml({
               title: `${post.title} - Ologywood Blog`,
               description: post.excerpt || `Read ${post.title} on the Ologywood blog.`,
-              image: post.coverImageUrl || DEFAULT_OG_IMAGE,
+              image: coverImage || DEFAULT_OG_IMAGE,
               url: `${baseUrl}/blog/${post.slug}`,
               type: 'article',
               jsonLd: [breadcrumb],
