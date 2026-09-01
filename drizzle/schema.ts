@@ -140,6 +140,36 @@ export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
 
 /**
+ * Sandbox Posts - one replaceable, creator-controlled public update per talent profile.
+ * A replacement deletes the current row and inserts a new row; there is no history table.
+ */
+export const sandboxPosts = mysqlTable("sandbox_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull(),
+  artistUserId: int("artistUserId").notNull(),
+  content: text("content").notNull(),
+  mediaType: mysqlEnum("mediaType", ["image", "video"]),
+  mediaUrl: text("mediaUrl"),
+  mediaKey: text("mediaKey"),
+  mediaMimeType: varchar("mediaMimeType", { length: 100 }),
+  mediaFileName: varchar("mediaFileName", { length: 255 }),
+  mediaSizeBytes: int("mediaSizeBytes"),
+  mediaDurationSeconds: int("mediaDurationSeconds"),
+  mediaThumbnailUrl: text("mediaThumbnailUrl"),
+  mediaThumbnailKey: text("mediaThumbnailKey"),
+  status: mysqlEnum("status", ["active", "hidden"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  profileUnique: unique("uniq_sandbox_posts_profile").on(table.artistProfileId),
+  ownerUnique: unique("uniq_sandbox_posts_owner").on(table.artistUserId),
+  publicIdx: index("idx_sandbox_posts_public").on(table.artistProfileId, table.status),
+}));
+
+export type SandboxPost = typeof sandboxPosts.$inferSelect;
+export type InsertSandboxPost = typeof sandboxPosts.$inferInsert;
+
+/**
  * Video moderation queue - admin review of artist performance videos
  */
 export const videoModerationQueue = mysqlTable("video_moderation_queue", {

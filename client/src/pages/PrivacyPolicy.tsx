@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: August 30, 2026
+          Last updated: September 1, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -83,7 +83,12 @@ export default function PrivacyPolicy() {
               For Creator Shop orders, we store product and order details, buyer contact information, fulfillment status, payment identifiers, and tracking information where applicable. eBook files are stored as private objects. We store protected object identifiers, file metadata, purchase-access records, download counts, and access timestamps so authorized buyers can retrieve purchased files. Public product responses do not include private eBook storage keys.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.7 Information Collected Automatically</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">2.7 Sandbox Post Data</h3>
+            <p className="text-base leading-relaxed">
+              Sandbox Posts may include text, one image or short video, a video preview image, file metadata, talent identity, and timestamps. The current post is public and may appear in social media previews when its clean link is shared. Private storage keys, original internal object identifiers, and owner contact details are not included in the public post response.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">2.8 Information Collected Automatically</h3>
             <p className="text-base leading-relaxed">
               When you access our Platform, we automatically collect:
             </p>
@@ -203,6 +208,9 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-bold mt-8 mb-4">7. Data Retention</h2>
             <p className="text-base leading-relaxed">
               We retain your account information for as long as your account is active. Booking records and signed contracts are retained for 7 years to comply with financial record-keeping requirements. Messages are retained for the duration of your account. If you delete your account, we will remove your personal information within 30 days, except where retention is required by law or for legitimate business purposes (such as resolving disputes or enforcing agreements).
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Sandbox Post replacement:</strong> When you replace or manually delete a Sandbox Post, its current row is removed from Ologywood's active database and is not available through a user-facing history or restore feature. Its previous media reference is removed from the Platform. Limited copies may persist temporarily in backups, security logs, content-delivery caches, or service-provider systems and are removed or expire under their normal retention cycles, generally within 30 days unless a longer period is required for safety, legal compliance, dispute resolution, or enforcement.
             </p>
           </section>
 

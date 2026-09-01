@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { getDb } from '../db';
-import { artistProfiles, venueProfiles, events, blogPosts, merchItems, videoPortfolio } from '../../drizzle/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { artistProfiles, artistTeamMembers, sandboxPosts, users, venueProfiles, events, blogPosts, merchItems, videoPortfolio } from '../../drizzle/schema';
+import { and, eq, ne, or, sql } from 'drizzle-orm';
 import { portfolioVideoDescription, portfolioVideoPath } from '../../shared/portfolioVideoShare';
+import { sandboxPostDescription, sandboxPostPath } from '../../shared/sandboxPost';
+import { ensureSandboxPostSchema } from '../services/sandboxPostSchemaService';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -68,7 +70,7 @@ function escapeHtml(str: string): string {
  * Cloudflare WAF blocks Facebook's crawler from accessing /api/og-image/* proxy.
  * Falls back to the default OG image if no profile photo exists.
  */
-function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue' | 'merch' | 'portfolio-video', entityId: number, baseUrl: string): string {
+function getOgImageUrl(profilePhotoUrl: string | null | undefined, entityType: 'artist' | 'venue' | 'merch' | 'portfolio-video' | 'sandbox-post', entityId: number, baseUrl: string): string {
   if (!profilePhotoUrl) {
     return DEFAULT_OG_IMAGE;
   }
@@ -187,8 +189,64 @@ export function ogTagMiddleware() {
         return res.status(200).set('Content-Type', 'text/html').send(html);
       }
 
+      // Match a current Sandbox Post before the generic artist route: /artist/:slug/sandbox
+      const sandboxPostMatch = pathname.match(/^\/artist\/([^/]+)\/sandbox$/);
+      if (sandboxPostMatch) {
+        const slug = sandboxPostMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const database = await getDb();
+        if (database) {
+          await ensureSandboxPostSchema(database);
+          const candidates = await database
+            .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
+            .from(artistProfiles);
+          const matchedArtist = candidates.find((artist) => sandboxPostPath(artist.artistName).split('/')[2] === slug);
+          if (matchedArtist) {
+            const [post] = await database.select({
+              id: sandboxPosts.id,
+              content: sandboxPosts.content,
+              mediaType: sandboxPosts.mediaType,
+              mediaUrl: sandboxPosts.mediaUrl,
+              mediaThumbnailUrl: sandboxPosts.mediaThumbnailUrl,
+              artistUserId: sandboxPosts.artistUserId,
+              artistName: artistProfiles.artistName,
+              profilePhotoUrl: artistProfiles.profilePhotoUrl,
+            }).from(sandboxPosts)
+              .innerJoin(artistProfiles, eq(artistProfiles.id, sandboxPosts.artistProfileId))
+              .innerJoin(users, eq(users.id, sandboxPosts.artistUserId))
+              .where(and(
+                eq(sandboxPosts.artistProfileId, matchedArtist.id),
+                eq(sandboxPosts.status, 'active'),
+                or(eq(users.role, 'artist'), eq(users.role, 'admin')),
+              ))
+              .limit(1);
+
+            if (post && !post.artistName.toLowerCase().includes('team member')) {
+              const [nonOwnerMembership] = await database.select({ id: artistTeamMembers.id })
+                .from(artistTeamMembers)
+                .where(and(eq(artistTeamMembers.userId, post.artistUserId), ne(artistTeamMembers.role, 'owner')))
+                .limit(1);
+              if (!nonOwnerMembership) {
+                const preferredImage = post.mediaType === 'image'
+                  ? post.mediaUrl
+                  : post.mediaThumbnailUrl || post.profilePhotoUrl;
+                const canonicalUrl = `${baseUrl}${sandboxPostPath(post.artistName)}`;
+                const html = generateOgHtml({
+                  title: `${post.artistName}'s Sandbox Post | OlogyWood`,
+                  description: sandboxPostDescription(post.content, post.artistName),
+                  image: getOgImageUrl(preferredImage, 'sandbox-post', post.id, baseUrl),
+                  imageAlt: `Current Sandbox Post from ${post.artistName} on OlogyWood`,
+                  url: canonicalUrl,
+                  type: 'article',
+                });
+                return res.status(200).set('Content-Type', 'text/html').send(html);
+              }
+            }
+          }
+        }
+      }
+
       // Match /artist/:id
-      const artistMatch = pathname.match(/^\/artist\/(\d+)$/) || pathname.match(/^\/artist\/(.+)$/);
+      const artistMatch = pathname.match(/^\/artist\/(\d+)$/) || pathname.match(/^\/artist\/([^/]+)$/);
       if (artistMatch) {
         const param = artistMatch[1];
         let artistId: number;

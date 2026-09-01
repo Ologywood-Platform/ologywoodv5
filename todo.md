@@ -4457,3 +4457,21 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Remove all disposable buyer, product, order-item, order, download-access, notification, storage-key reference, state-file, and temporary-script artifacts without affecting existing records; retain only Stripe test audit objects
 - [x] Run TypeScript, 39 focused payment/order/eBook regressions, 2,712 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint 76dfacf8 for the exact Stripe test-mode session, payment, refund, webhook, cleanup, and production refund-fix results
+
+## SANDBOX POST — REPLACEABLE TALENT PROFILE UPDATE (Sep 1, 2026)
+- [x] Document the one-current-post architecture, permanent replacement semantics, supported talent profiles, media constraints, moderation, and sharing behavior
+- [x] Add an idempotent Sandbox Post schema with one-row-per-profile and one-row-per-owner constraints, no history table, a generated migration applied to the managed database, and runtime drift protection
+- [x] Add secure owner APIs to create or replace the current post atomically, permanently delete it, and retrieve owner-safe state
+- [x] Add an active public API that exposes only public fields and suppresses hidden, missing, non-talent, and non-owner team-member Sandbox Posts
+- [x] Add safe optional image or short-video upload with validated MIME type, extension, decoded size, file signature, duration, ownership, and randomized storage keys
+- [x] Place the current Sandbox Post directly beneath the talent bio with playful, creator-neutral copy and a clear owner empty state
+- [x] Add an intuitive owner composer with preview, replacement and deletion confirmations, upload progress, error recovery, and explicit active-database permanent-deletion language
+- [x] Keep comments, votes, reaction/follower counts, public history, and popularity ranking out of the first version
+- [x] Add clean share URLs and a custom share panel for copy, native share, Facebook, X, LinkedIn, WhatsApp, email, and text
+- [x] Add active-only dynamic Open Graph and X metadata using current post media and talent identity, crawler JPEG proxying, safe fallback imagery, and first-request runtime schema protection
+- [x] Update Help, Privacy, Terms, Community Guidelines, consent versioning, and AI assistance for replacement deletion, sharing, moderation, and operational-retention boundaries
+- [x] Add ownership, atomic replacement deletion, media validation, redaction, public visibility, clean-share, Open Graph, and profile-placement regression coverage
+- [x] Verify disposable real-router replacement/deletion and cleanup plus public, owner-composer, share-panel, standalone-share, desktop, and 390-pixel mobile flows without modifying existing talent profiles or creating production posts
+- [x] Run TypeScript, 72 focused tests, 2,724 full-suite tests with 23 skipped, and a successful production build
+- [x] Replace the full-suite SendGrid test’s real Mailinator dependency with deterministic HTTP response mocks after the provider returned 451 Unavailable For Legal Reasons
+- [ ] Save and report the Sandbox Post implementation checkpoint

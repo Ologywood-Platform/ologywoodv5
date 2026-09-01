@@ -40,7 +40,7 @@ export default function CommunityGuidelines() {
           OlogyWood is a professional platform built on trust, respect, and opportunity. These guidelines ensure a safe and productive environment for all users — talent, venues, fans, and partners.
         </p>
 
-        <p className="text-sm text-gray-500 mb-10">Last updated: July 17, 2026</p>
+        <p className="text-sm text-gray-500 mb-10">Last updated: September 1, 2026</p>
 
         <div className="space-y-10">
           {/* Our Standards */}
@@ -136,7 +136,7 @@ export default function CommunityGuidelines() {
               <h2 className="text-xl font-semibold text-gray-900">Content Standards</h2>
             </div>
             <p className="text-gray-700 leading-relaxed mb-4">
-              All content uploaded to OlogyWood — including profiles, music, videos, photos, event listings, merchandise, and Ology Live sessions — must meet these standards:
+              All content uploaded to OlogyWood — including profiles, Sandbox Posts, music, videos, photos, event listings, merchandise, and Ology Live sessions — must meet these standards:
             </p>
             <ul className="space-y-2 text-gray-700">
               <li className="flex items-start gap-3">
@@ -158,6 +158,10 @@ export default function CommunityGuidelines() {
               <li className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
                 <span>Profile information must be accurate and not misleading.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <ShieldCheck className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
+                <span>Sandbox Posts must not be used for harassment, spam, impersonation, unlawful promotion, or material that violates another person's privacy, publicity, or intellectual-property rights.</span>
               </li>
             </ul>
           </section>
@@ -198,7 +202,7 @@ export default function CommunityGuidelines() {
               <h2 className="text-xl font-semibold text-gray-900">Reporting Violations</h2>
             </div>
             <p className="text-gray-700 leading-relaxed">
-              If you encounter content or behavior that violates these guidelines, please report it using the "Report an Issue" feature available on profiles, bookings, and sessions. You can also contact us through our{" "}
+              If you encounter content or behavior that violates these guidelines, please report it using the report control available on profiles and Sandbox Posts or the "Report an Issue" feature available on bookings and sessions. You can also contact us through our{" "}
               <Link href="/help" className="text-purple-600 hover:underline">Help Center</Link>.
               All reports are reviewed by our team and handled confidentially.
             </p>

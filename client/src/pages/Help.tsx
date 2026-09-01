@@ -413,6 +413,18 @@ const faqItems: FAQItem[] = [
     question: 'How do I add social media links to my profile?',
     answer: 'Go to Dashboard > Edit Profile and scroll to the Social Links section. Add your Instagram, Twitter/X, Facebook, YouTube, Spotify, SoundCloud, TikTok, or website URL. These appear as clickable icons on your public artist profile.',
   },
+  {
+    id: 'profile-5',
+    category: 'Profile & Settings',
+    question: 'What is a Sandbox Post?',
+    answer: 'A Sandbox Post is a playful, one-at-a-time update directly beneath your profile bio. Talent can share up to 600 characters with an optional image or 30-second video. There are no comments, downvotes, reaction counts, or public post history. Use it to share what you are creating, promoting, thinking about, or celebrating right now.',
+  },
+  {
+    id: 'profile-6',
+    category: 'Profile & Settings',
+    question: 'What happens when I replace or share a Sandbox Post?',
+    answer: 'Publishing a new Sandbox Post permanently deletes the current post row from OlogyWood’s active database and replaces it at the same clean share link. The old post cannot be restored. Share buttons support social networks, email, text, copy link, and your device sharing menu. The shared link always resolves to your current post, so a replaced or deleted version is no longer shown. Limited security logs or provider backups may remain only as described in the Privacy Policy.',
+  },
 
   // Event Ticketing
   {

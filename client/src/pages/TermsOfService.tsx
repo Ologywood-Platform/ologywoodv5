@@ -29,7 +29,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: August 30, 2026
+          Last updated: September 1, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -116,6 +116,17 @@ export default function TermsOfService() {
             </p>
             <p className="text-base leading-relaxed mt-4">
               <strong>Athlete-Specific Video Content:</strong> If you are a student-athlete, you acknowledge that certain game footage, broadcast clips, and institutional media may be owned by your school, conference, or broadcast partners. You are solely responsible for ensuring that any highlight clips you upload do not infringe on broadcast rights or violate your institution's media policies. Ologywood is not responsible for verifying the ownership or licensing status of uploaded video content.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">5.2 Sandbox Posts</h3>
+            <p className="text-base leading-relaxed">
+              Talent may publish one current Sandbox Post on their public profile and share that post through a clean public link. You retain ownership of the text and media you submit and grant Ologywood the limited operational license described above, including display in social media previews. You represent that you own or control all rights necessary for any text, image, music, video, likeness, or other material included in a Sandbox Post.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Replacement and deletion:</strong> Publishing a new Sandbox Post deletes the current post row from Ologywood's active database and inserts the replacement; the prior post is not retained in a user-accessible archive and cannot be restored. Manually deleting the current post also removes its active database row. The prior media reference is removed from the Platform, subject to temporary backup, security-log, legal-retention, and service-provider limitations described in these Terms and the Privacy Policy. Ologywood may hide or remove a Sandbox Post that violates law, these Terms, or the Community Guidelines.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              Sandbox Post links always resolve to the talent's current active post. If a post is replaced, deleted, hidden, or unavailable, a previously shared link will not continue displaying that version. Version one does not provide comments, downvotes, reaction counts, popularity rankings, or public post history.
             </p>
           </section>
 

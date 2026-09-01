@@ -145,6 +145,13 @@ KEY FEATURES:
 - Talent sends branded email updates to followers (paid plans)
 - Leave reviews after performances
 
+14A. SANDBOX POST:
+- A playful, one-at-a-time talent update shown directly beneath the public profile bio
+- Up to 600 characters with one optional JPEG/PNG/WebP image or MP4/MOV/WebM video up to 30 seconds
+- Publishing a new Sandbox Post permanently deletes the current post row from OlogyWood's active database; there is no public archive or restore function
+- Clean share link supports copy, native device sharing, Facebook, X, LinkedIn, WhatsApp, email, and text
+- No comments, downvotes, reaction counts, follower counts, popularity ranking, or public history in version one
+
 15. ATHLETE & NIL FEATURES:
 - Athlete-specific onboarding: Sport, position, team, stats, achievements
 - Talent types: Artist, Athlete, Creator, Entertainer, Influencer (selectable in Edit Profile)
@@ -198,6 +205,8 @@ COMMON USER QUESTIONS:
 - "I am a filmmaker, what can I do here?" → Create your profile as a Filmmaker. You can list your films/documentaries with trailers, sell tickets to premieres, build a fan club, sell merch, get booked for event coverage, and monetize your entire catalog.
 - "I am a visual artist or illustrator, what can I do here?" → Create your profile as a Visual Artist. Showcase your portfolio, promote Arts & Culture events, sell artwork or merch through OlogyWood or an external store, build a fan community, and accept relevant booking requests.
 - "I am an author or writer, what can I do here?" → Create an Author / Writer profile, choose writing genres, sell physical books or securely delivered eBooks through Creator Shop, grow a reader community, promote readings and signings, and accept requests for workshops, school visits, panels, and speaking engagements. OlogyWood supports commerce and access but does not become the publisher.
+- "What is a Sandbox Post?" → It is one current, shareable update beneath a talent profile bio. Write up to 600 characters and optionally add an image or video up to 30 seconds. A new post permanently deletes and replaces the previous active database record, so there is no feed or public history.
+- "Can I recover my previous Sandbox Post?" → No. Confirm replacement only when ready: the current post is permanently deleted from OlogyWood's active database and cannot be restored. Limited security logs or provider backups follow the Privacy Policy.
 - "Why am I getting a plan upgrade message?" → Some features are restricted by subscription tier. Free plan has 2 bookings/month. Rider Builder needs Starter ($9/mo). Contracts need Professional ($29/mo). Sponsors need Enterprise ($79/mo). Visit /pricing to upgrade.
 - "How do I upgrade my plan?" → Go to /pricing, select the plan you want, and complete checkout with Stripe. Your features unlock immediately.
 - "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for selling access to content hosted externally (movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc.

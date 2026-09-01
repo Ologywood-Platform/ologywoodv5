@@ -32,6 +32,7 @@ import { Share2, Flag } from "lucide-react";
 import { ReportContentModal } from "@/components/ReportContentModal";
 import { TipQRSection } from "@/components/TipQRCode";
 import { FanClubSection } from "@/components/FanClubSection";
+import { SandboxPostSection } from "@/components/SandboxPostSection";
 
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
@@ -821,6 +822,13 @@ export default function ArtistProfile() {
                 </CardContent>
               </Card>
             )}
+
+            <SandboxPostSection
+              artistProfileId={resolvedArtistId}
+              artistUserId={artist.userId}
+              artistName={artist.artistName}
+              isOwner={user?.id === artist.userId}
+            />
 
             {/* Athlete Stats & Achievements (only for athletes) */}
             {(artist as any).talentType === 'athlete' && (

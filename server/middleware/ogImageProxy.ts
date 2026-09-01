@@ -10,13 +10,15 @@
  *   GET /api/og-image/venue/:id
  *   GET /api/og-image/merch/:id
  *   GET /api/og-image/portfolio-video/:id
+ *   GET /api/og-image/sandbox-post/:id
  */
 
 import { Router, Request, Response } from 'express';
 import sharp from 'sharp';
 import { getDb } from '../db';
-import { artistProfiles, merchItems, venueProfiles, videoPortfolio } from '../../drizzle/schema';
-import { and, eq } from 'drizzle-orm';
+import { artistProfiles, artistTeamMembers, merchItems, sandboxPosts, users, venueProfiles, videoPortfolio } from '../../drizzle/schema';
+import { and, eq, ne, or } from 'drizzle-orm';
+import { ensureSandboxPostSchema } from '../services/sandboxPostSchemaService';
 
 const router = Router();
 
@@ -323,6 +325,59 @@ router.get('/portfolio-video/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error(`[OG Image Proxy] Error for portfolio video ${videoId}:`, error);
     return serveFallbackImage(res, `portfolio-video-${videoId}-fallback`);
+  }
+});
+
+router.get('/sandbox-post/:id', async (req: Request, res: Response) => {
+  const postId = parseInt(req.params.id, 10);
+  if (isNaN(postId) || postId <= 0) return res.status(404).send('Not found');
+  const fallbackCacheKey = `sandbox-post-${postId}-fallback`;
+
+  try {
+    const database = await getDb();
+    if (!database) return serveFallbackImage(res, fallbackCacheKey);
+    await ensureSandboxPostSchema(database);
+    const [post] = await database.select({
+      artistUserId: sandboxPosts.artistUserId,
+      mediaType: sandboxPosts.mediaType,
+      mediaUrl: sandboxPosts.mediaUrl,
+      mediaThumbnailUrl: sandboxPosts.mediaThumbnailUrl,
+      profilePhotoUrl: artistProfiles.profilePhotoUrl,
+      artistName: artistProfiles.artistName,
+    }).from(sandboxPosts)
+      .innerJoin(artistProfiles, eq(artistProfiles.id, sandboxPosts.artistProfileId))
+      .innerJoin(users, eq(users.id, sandboxPosts.artistUserId))
+      .where(and(
+        eq(sandboxPosts.id, postId),
+        eq(sandboxPosts.status, 'active'),
+        or(eq(users.role, 'artist'), eq(users.role, 'admin')),
+      ))
+      .limit(1);
+    if (!post || post.artistName.toLowerCase().includes('team member')) return serveFallbackImage(res, fallbackCacheKey);
+    const [nonOwnerMembership] = await database.select({ id: artistTeamMembers.id }).from(artistTeamMembers)
+      .where(and(eq(artistTeamMembers.userId, post.artistUserId), ne(artistTeamMembers.role, 'owner')))
+      .limit(1);
+    if (nonOwnerMembership) return serveFallbackImage(res, fallbackCacheKey);
+    const imageUrl = post.mediaType === 'image'
+      ? post.mediaUrl
+      : post.mediaThumbnailUrl || post.profilePhotoUrl;
+    if (!imageUrl) return serveFallbackImage(res, fallbackCacheKey);
+    const cacheKey = `sandbox-post-${postId}-${imageUrl}`;
+    const cached = getCachedImage(cacheKey);
+    if (cached) {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+      return res.send(cached);
+    }
+    const jpegBuffer = await fetchAndConvertToJpeg(imageUrl);
+    if (!jpegBuffer) return serveFallbackImage(res, cacheKey);
+    setCachedImage(cacheKey, jpegBuffer);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+    return res.send(jpegBuffer);
+  } catch (error) {
+    console.error(`[OG Image Proxy] Error for Sandbox Post ${postId}:`, error);
+    return serveFallbackImage(res, fallbackCacheKey);
   }
 });
 

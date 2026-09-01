@@ -56,6 +56,7 @@ import { aiChatRouter } from "./routers/aiChat";
 import { contractAnalyzerRouter } from "./routers/contractAnalyzer";
 import { ologyLiveRouter } from "./routers/ologyLive";
 import { ologyLivePhase2Router } from "./routers/ologyLivePhase2";
+import { sandboxPostRouter } from "./routers/sandboxPost";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -150,6 +151,7 @@ export const appRouter = router({
   venueSponsor: venueSponsorRouter,
   merch: merchRouter,
   merchOrders: merchOrdersRouter,
+  sandboxPost: sandboxPostRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

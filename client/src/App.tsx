@@ -22,6 +22,7 @@ import { TermsConsentBanner } from "./components/TermsConsentBanner";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ArtistProfile from "./pages/ArtistProfile";
+import SandboxPostPage from "./pages/SandboxPostPage";
 
 // ============================================
 // LAZY LOADED — Code-split for smaller initial bundle
@@ -172,6 +173,7 @@ function Router() {
           
           {/* Discovery */}
           <Route path="/browse">{() => <PageErrorBoundary><Browse /></PageErrorBoundary>}</Route>
+          <Route path="/artist/:slug/sandbox">{() => <PageErrorBoundary><SandboxPostPage /></PageErrorBoundary>}</Route>
           <Route path="/artist/:id">{(params: any) => <PageErrorBoundary><ArtistProfile {...params} /></PageErrorBoundary>}</Route>
           <Route path="/artists/:id/history" component={ArtistHistory} />
           <Route path="/venues" component={VenueBrowse} />
