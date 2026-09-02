@@ -4500,4 +4500,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regression coverage for the narrow video frame allowlist, insecure/wildcard exclusion, and unchanged clickjacking protection
 - [x] Verify Tenguu Vision’s YouTube player opens without a CSP violation on desktop and that all five cards remain usable in the 390-pixel mobile layout, with no creator-data changes
 - [x] Run TypeScript, 105 focused video/security tests, 2,728 full-suite tests with 23 skipped, and a successful production build
-- [ ] Save and report the Video Portfolio blocked-content repair checkpoint
+- [x] Save checkpoint 0c980abd for the completed Video Portfolio blocked-content repair and validation results
