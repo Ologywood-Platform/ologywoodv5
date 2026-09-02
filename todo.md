@@ -4491,3 +4491,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Convert relative Blog cover paths to absolute production social-preview URLs and require published status for Blog crawler metadata
 - [x] Run TypeScript, 129 focused Blog/Open Graph tests, 2,726 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint de169854 so the user can publish the live-ready Blog update
+
+## VIDEO PORTFOLIO BLOCKED CONTENT REPAIR (Sep 1, 2026)
+- [x] Reproduce the production blocked-content cause and identify the active catalog: Adonis’s direct CloudFront MP4 plus five Tenguu Vision YouTube clips
+- [x] Audit Video Portfolio URL normalization, embed selection, direct-upload playback, production/development CSP, frame ancestors, provider responses, and unsupported-host rejection
+- [x] Fix the exact cause by adding only official YouTube and Vimeo player origins to `frame-src`, without broadening scripts, media, navigation, forms, objects, or frame ancestors
+- [x] Preserve direct uploaded video, YouTube, Vimeo, thumbnails, clean share URLs, checkout frames, and unsupported-host fallbacks
+- [x] Add regression coverage for the narrow video frame allowlist, insecure/wildcard exclusion, and unchanged clickjacking protection
+- [x] Verify Tenguu Vision’s YouTube player opens without a CSP violation on desktop and that all five cards remain usable in the 390-pixel mobile layout, with no creator-data changes
+- [x] Run TypeScript, 105 focused video/security tests, 2,728 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save and report the Video Portfolio blocked-content repair checkpoint

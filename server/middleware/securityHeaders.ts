@@ -17,6 +17,18 @@ const ALLOWED_FRAME_ANCESTORS = [
   'https://*.manus.im',
 ];
 
+// Trusted child-frame providers used by checkout and Video Portfolio players.
+// Keep this list narrow: frame-src controls what OlogyWood may embed, while
+// frame-ancestors above separately controls who may embed OlogyWood.
+export const ALLOWED_FRAME_SOURCES = [
+  "'self'",
+  'https://js.stripe.com',
+  'https://hooks.stripe.com',
+  'https://www.youtube.com',
+  'https://www.youtube-nocookie.com',
+  'https://player.vimeo.com',
+];
+
 /**
  * Configure security headers using Helmet
  */
@@ -31,7 +43,7 @@ export function configureSecurityHeaders() {
         fontSrc: ["'self'", 'data:'],
         mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
         connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
-        frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+        frameSrc: ALLOWED_FRAME_SOURCES,
         frameAncestors: ALLOWED_FRAME_ANCESTORS,
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
@@ -63,7 +75,7 @@ export function securityHeadersMiddleware(req: Request, res: Response, next: Nex
   // frame-ancestors allows Manus preview iframes while blocking clickjacking
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com https://*.cloudfront.net; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self' https://*.manus.computer https://*.manus.space https://*.manus.im; base-uri 'self'; form-action 'self';"
+    `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' https://*.cloudfront.net https://*.amazonaws.com blob:; connect-src 'self' https://api.manus.im https://*.stripe.com wss: ws: https://*.amazonaws.com https://*.cloudfront.net; frame-src ${ALLOWED_FRAME_SOURCES.join(' ')}; frame-ancestors 'self' https://*.manus.computer https://*.manus.space https://*.manus.im; base-uri 'self'; form-action 'self';`
   );
 
   // Strict Transport Security
@@ -106,7 +118,7 @@ export const securityHeadersConfig = {
       fontSrc: ["'self'", 'data:'],
       mediaSrc: ["'self'", 'https://*.cloudfront.net', 'https://*.amazonaws.com', 'blob:'],
       connectSrc: ["'self'", 'https://api.manus.im', 'https://*.stripe.com', 'wss:', 'ws:', 'https://*.amazonaws.com', 'https://*.cloudfront.net'],
-      frameSrc: ["'self'", 'https://js.stripe.com', 'https://hooks.stripe.com'],
+      frameSrc: ALLOWED_FRAME_SOURCES,
       frameAncestors: ALLOWED_FRAME_ANCESTORS,
       objectSrc: ["'none'"],
     },
