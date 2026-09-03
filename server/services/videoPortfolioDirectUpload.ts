@@ -2,18 +2,28 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { ENV } from '../_core/env';
 import { storageGet } from '../storage';
 import { VIDEO_PORTFOLIO_CATEGORIES, type VideoPortfolioCategory } from '../../shared/videoPortfolio';
+import {
+  PORTFOLIO_VIDEO_FORMATS,
+  PORTFOLIO_VIDEO_MAX_BYTES,
+  PORTFOLIO_VIDEO_MAX_DURATION_SECONDS,
+  getPortfolioVideoMimeType,
+  portfolioVideoRequiresConversion,
+  type PortfolioVideoSourceFormat,
+} from '../../shared/videoPortfolioUpload';
 
-export const PORTFOLIO_MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+export const PORTFOLIO_MAX_VIDEO_BYTES = PORTFOLIO_VIDEO_MAX_BYTES;
 export const PORTFOLIO_MAX_THUMBNAIL_BYTES = 3 * 1024 * 1024;
 export const PORTFOLIO_UPLOAD_CHUNK_BYTES = 4 * 1024 * 1024;
 export const PORTFOLIO_UPLOAD_SESSION_TTL_MS = 15 * 60 * 1000;
-export const PORTFOLIO_VIDEO_MIME_TYPES = ['video/mp4', 'video/webm'] as const;
+export const PORTFOLIO_VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/x-matroska'] as const;
 export const PORTFOLIO_THUMBNAIL_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 
 export type PortfolioUploadInput = {
   title: string;
   category: VideoPortfolioCategory;
   duration: number;
+  sourceFormat: PortfolioVideoSourceFormat;
+  requiresConversion: boolean;
   videoSize: number;
   thumbnailSize: number;
   videoMimeType: typeof PORTFOLIO_VIDEO_MIME_TYPES[number];
@@ -21,7 +31,7 @@ export type PortfolioUploadInput = {
 };
 
 export type PortfolioUploadSession = PortfolioUploadInput & {
-  v: 1;
+  v: 2;
   userId: number;
   profileId: number;
   sessionId: string;
@@ -42,6 +52,7 @@ export function readPortfolioUploadInput(body: any): PortfolioUploadInput {
   const title = String(body?.title || '').trim();
   const category = String(body?.category || '') as VideoPortfolioCategory;
   const duration = Number(body?.durationSeconds);
+  const sourceFormat = String(body?.sourceFormat || '') as PortfolioVideoSourceFormat;
   const videoSize = Number(body?.videoSize);
   const thumbnailSize = Number(body?.thumbnailSize);
   const videoMimeType = String(body?.videoMimeType || '') as PortfolioUploadInput['videoMimeType'];
@@ -49,12 +60,18 @@ export function readPortfolioUploadInput(body: any): PortfolioUploadInput {
 
   if (!title || title.length > 255) throw new PortfolioUploadValidationError('Enter a video title between 1 and 255 characters');
   if (!VIDEO_PORTFOLIO_CATEGORIES.includes(category)) throw new PortfolioUploadValidationError('Select a valid video category');
-  if (!Number.isFinite(duration) || duration <= 0 || duration > 120) throw new PortfolioUploadValidationError('Portfolio videos must be 2 minutes or less');
-  if (!Number.isInteger(videoSize) || videoSize < 1 || videoSize > PORTFOLIO_MAX_VIDEO_BYTES) throw new PortfolioUploadValidationError('Portfolio video must be under 100MB');
-  if (!Number.isInteger(thumbnailSize) || thumbnailSize < 1 || thumbnailSize > PORTFOLIO_MAX_THUMBNAIL_BYTES) throw new PortfolioUploadValidationError('Video thumbnail must be under 3MB');
-  if (!PORTFOLIO_VIDEO_MIME_TYPES.includes(videoMimeType)) throw new PortfolioUploadValidationError('Only browser-compatible MP4 and WebM uploads are supported');
-  if (!PORTFOLIO_THUMBNAIL_MIME_TYPES.includes(thumbnailMimeType)) throw new PortfolioUploadValidationError('Only JPEG, PNG, or WebP thumbnails are supported');
-  return { title, category, duration, videoSize, thumbnailSize, videoMimeType, thumbnailMimeType };
+  if (!PORTFOLIO_VIDEO_FORMATS.includes(sourceFormat)) throw new PortfolioUploadValidationError('Choose an MP4, MOV, WebM, AVI, or MKV video file');
+  const requiresConversion = portfolioVideoRequiresConversion(sourceFormat);
+  if (!Number.isFinite(duration) || duration < 0 || (!requiresConversion && duration <= 0) || duration > PORTFOLIO_VIDEO_MAX_DURATION_SECONDS) {
+    throw new PortfolioUploadValidationError('Portfolio videos must be 2 minutes or less');
+  }
+  if (!Number.isInteger(videoSize) || videoSize < 1 || videoSize > PORTFOLIO_MAX_VIDEO_BYTES) throw new PortfolioUploadValidationError('Video Portfolio uploads must be 100 MB or smaller');
+  if (!Number.isInteger(thumbnailSize) || thumbnailSize < (requiresConversion ? 0 : 1) || thumbnailSize > PORTFOLIO_MAX_THUMBNAIL_BYTES) throw new PortfolioUploadValidationError('Video thumbnail must be under 3MB');
+  if (!PORTFOLIO_VIDEO_MIME_TYPES.includes(videoMimeType)) throw new PortfolioUploadValidationError('The upload type must be MP4, MOV, WebM, AVI, or MKV');
+  if (videoMimeType !== getPortfolioVideoMimeType(sourceFormat)) throw new PortfolioUploadValidationError('The selected video format does not match its upload type');
+  if ((!requiresConversion || thumbnailSize > 0) && !PORTFOLIO_THUMBNAIL_MIME_TYPES.includes(thumbnailMimeType)) throw new PortfolioUploadValidationError('Only JPEG, PNG, or WebP thumbnails are supported');
+  if (requiresConversion && thumbnailSize !== 0) throw new PortfolioUploadValidationError('Converted videos use a server-generated thumbnail');
+  return { title, category, duration, sourceFormat, requiresConversion, videoSize, thumbnailSize, videoMimeType, thumbnailMimeType };
 }
 
 export function createPortfolioUploadSession(
@@ -62,17 +79,17 @@ export function createPortfolioUploadSession(
   owner: { userId: number; profileId: number; sessionId: string; now?: number },
 ): PortfolioUploadSession {
   const now = owner.now ?? Date.now();
-  const videoExtension = input.videoMimeType === 'video/webm' ? 'webm' : 'mp4';
-  const thumbnailExtension = input.thumbnailMimeType === 'image/png' ? 'png' : input.thumbnailMimeType === 'image/webp' ? 'webp' : 'jpg';
+  const videoExtension = input.requiresConversion ? 'mp4' : input.videoMimeType === 'video/webm' ? 'webm' : 'mp4';
+  const thumbnailExtension = input.requiresConversion ? 'jpg' : input.thumbnailMimeType === 'image/png' ? 'png' : input.thumbnailMimeType === 'image/webp' ? 'webp' : 'jpg';
   const root = `video-portfolio/${owner.userId}/uploads/${owner.sessionId}`;
   return {
-    v: 1,
+    v: 2,
     ...input,
     userId: owner.userId,
     profileId: owner.profileId,
     sessionId: owner.sessionId,
     videoChunkCount: Math.ceil(input.videoSize / PORTFOLIO_UPLOAD_CHUNK_BYTES),
-    thumbnailChunkCount: Math.ceil(input.thumbnailSize / PORTFOLIO_UPLOAD_CHUNK_BYTES),
+    thumbnailChunkCount: input.thumbnailSize === 0 ? 0 : Math.ceil(input.thumbnailSize / PORTFOLIO_UPLOAD_CHUNK_BYTES),
     finalVideoKey: `${root}/video.${videoExtension}`,
     finalThumbnailKey: `${root}/thumbnail.${thumbnailExtension}`,
     expiresAt: now + PORTFOLIO_UPLOAD_SESSION_TTL_MS,
@@ -101,7 +118,7 @@ export function verifyPortfolioUploadSession(token: string, now = Date.now()): P
   } catch {
     throw new PortfolioUploadValidationError('Invalid upload confirmation');
   }
-  if (payload.v !== 1 || payload.expiresAt < now) {
+  if (payload.v !== 2 || payload.expiresAt < now) {
     throw new PortfolioUploadValidationError('This upload expired. Choose the video again and retry.');
   }
   return payload;
@@ -174,6 +191,22 @@ export function validateAssembledMedia(buffer: Buffer, kind: 'video' | 'thumbnai
   const isWebP = buffer.length >= 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
   if ((kind === 'video' && !isIsoMedia && !isWebM) || (kind === 'thumbnail' && !isJpeg && !isPng && !isWebP)) {
     throw new PortfolioUploadValidationError(`The uploaded ${kind} file is not a supported media format.`);
+  }
+}
+
+export function validateAssembledVideoSource(buffer: Buffer, format: PortfolioVideoSourceFormat): void {
+  const isIsoMedia = buffer.length >= 12 && buffer.subarray(4, 8).toString('ascii') === 'ftyp';
+  const isEbml = buffer.length >= 4 && buffer[0] === 0x1a && buffer[1] === 0x45 && buffer[2] === 0xdf && buffer[3] === 0xa3;
+  const isAvi = buffer.length >= 12
+    && buffer.subarray(0, 4).toString('ascii') === 'RIFF'
+    && buffer.subarray(8, 12).toString('ascii') === 'AVI ';
+  const valid = format === 'avi'
+    ? isAvi
+    : format === 'mkv' || format === 'webm'
+      ? isEbml
+      : isIsoMedia;
+  if (!valid) {
+    throw new PortfolioUploadValidationError(`This file does not contain a valid ${format.toUpperCase()} video.`);
   }
 }
 

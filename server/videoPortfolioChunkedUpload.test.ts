@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   ensureSchema: vi.fn(),
   storagePut: vi.fn(),
   storageGet: vi.fn(),
+  convertPortfolioVideo: vi.fn(),
 }));
 
 vi.mock('./_core/sdk', () => ({ sdk: { authenticateRequest: mocks.authenticateRequest } }));
@@ -20,11 +21,14 @@ vi.mock('./db', () => ({
 }));
 vi.mock('./services/videoPortfolioSchemaService', () => ({ ensureVideoPortfolioSchema: mocks.ensureSchema }));
 vi.mock('./storage', () => ({ storagePut: mocks.storagePut, storageGet: mocks.storageGet }));
+vi.mock('./services/videoPortfolioConversion', () => ({ convertPortfolioVideo: mocks.convertPortfolioVideo }));
 
 import videoUploadRouter from './routes/videoUpload';
 
 const videoBytes = Buffer.from([0, 0, 0, 20, 102, 116, 121, 112, 0, 0, 0, 0]);
 const thumbnailBytes = Buffer.from([0xff, 0xd8, 0xff, 0xe0]);
+const aviBytes = Buffer.from('RIFFxxxxAVI ');
+const convertedVideoBytes = Buffer.from([0, 0, 0, 20, 102, 116, 121, 112, 0, 0, 0, 0]);
 
 function buildApp() {
   const app = express();
@@ -58,6 +62,7 @@ describe('Video Portfolio authenticated chunked upload route', () => {
     mocks.getArtistProfileByUserId.mockResolvedValue({ id: 11, userId: 7, artistName: 'Validation Artist' });
     mocks.getPool.mockReturnValue({ execute });
     mocks.ensureSchema.mockResolvedValue(undefined);
+    mocks.convertPortfolioVideo.mockResolvedValue({ video: convertedVideoBytes, thumbnail: thumbnailBytes, duration: 3.1 });
     mocks.storagePut.mockImplementation(async (key: string, data: Buffer) => {
       stored.set(key, Buffer.from(data));
       return { key, url: `/manus-storage/${key}` };
@@ -80,6 +85,7 @@ describe('Video Portfolio authenticated chunked upload route', () => {
         title: 'Real MOV class',
         category: 'other',
         durationSeconds: 15,
+        sourceFormat: 'mp4',
         videoSize: videoBytes.length,
         thumbnailSize: thumbnailBytes.length,
         videoMimeType: 'video/mp4',
@@ -95,6 +101,21 @@ describe('Video Portfolio authenticated chunked upload route', () => {
       .set('x-portfolio-upload-kind', kind)
       .set('x-portfolio-upload-index', '0')
       .send(bytes);
+  }
+
+  async function startConversionSession(app = buildApp()) {
+    return request(app)
+      .post('/api/video/portfolio/start')
+      .send({
+        title: 'AVI conversion',
+        category: 'other',
+        durationSeconds: 0,
+        sourceFormat: 'avi',
+        videoSize: aviBytes.length,
+        thumbnailSize: 0,
+        videoMimeType: 'video/x-msvideo',
+        thumbnailMimeType: '',
+      });
   }
 
   it('assembles valid chunks, stores final media, inserts once, and rejects replay', async () => {
@@ -125,6 +146,26 @@ describe('Video Portfolio authenticated chunked upload route', () => {
       .post('/api/video/portfolio/finalize')
       .send({ token: started.body.token });
     expect(replay.status).toBe(409);
+  });
+
+  it('converts an authenticated AVI source and stores only browser-ready MP4/JPEG outputs', async () => {
+    const app = buildApp();
+    const started = await startConversionSession(app);
+    expect(started.status).toBe(200);
+    expect(started.body.requiresConversion).toBe(true);
+    expect(started.body.thumbnailChunkCount).toBe(0);
+    expect((await uploadChunk(app, started.body.token, 'video', aviBytes)).status).toBe(200);
+
+    const finalized = await request(app)
+      .post('/api/video/portfolio/finalize')
+      .send({ token: started.body.token });
+    expect(finalized.status).toBe(200);
+    expect(finalized.body).toMatchObject({ success: true, id: 77, converted: true });
+    expect(mocks.convertPortfolioVideo).toHaveBeenCalledWith({ source: aviBytes, sourceFormat: 'avi' });
+    expect(finalized.body.url).toMatch(/\/video\.mp4$/);
+    expect(finalized.body.thumbnailUrl).toMatch(/\/thumbnail\.jpg$/);
+    expect(stored.get(finalized.body.url.replace('/manus-storage/', ''))).toEqual(convertedVideoBytes);
+    expect(stored.get(finalized.body.thumbnailUrl.replace('/manus-storage/', ''))).toEqual(thumbnailBytes);
   });
 
   it('rejects wrong chunk sizes and tampered upload tokens', async () => {

@@ -24,8 +24,10 @@ import {
   readPortfolioUploadInput,
   signPortfolioUploadSession,
   validateAssembledMedia,
+  validateAssembledVideoSource,
   verifyPortfolioUploadSession,
 } from '../services/videoPortfolioDirectUpload';
+import { convertPortfolioVideo } from '../services/videoPortfolioConversion';
 
 const router = Router();
 
@@ -164,6 +166,7 @@ router.post('/portfolio/start', async (req: Request, res: Response) => {
       chunkBytes: PORTFOLIO_UPLOAD_CHUNK_BYTES,
       videoChunkCount: session.videoChunkCount,
       thumbnailChunkCount: session.thumbnailChunkCount,
+      requiresConversion: session.requiresConversion,
     });
   } catch (err: any) {
     console.error('[Portfolio Video Start Error]', err);
@@ -206,33 +209,49 @@ router.post('/portfolio/finalize', async (req: Request, res: Response) => {
     const payload = verifyPortfolioUploadSession(String(req.body?.token || ''));
     assertUploadSessionOwner(payload, { userId: user.id, profileId: profile.id });
     const count = await assertPortfolioCapacity(pool, profile.id);
-    const videoUrl = publicStorageUrl(payload.finalVideoKey);
-    const thumbnailUrl = publicStorageUrl(payload.finalThumbnailKey);
+    const legacyVideoUrl = publicStorageUrl(payload.finalVideoKey);
+    const legacyThumbnailUrl = publicStorageUrl(payload.finalThumbnailKey);
     const [duplicates] = await pool.execute(
-      'SELECT id FROM video_portfolio WHERE videoUrl = ? OR thumbnailUrl = ? LIMIT 1',
-      [videoUrl, thumbnailUrl],
+      'SELECT id FROM video_portfolio WHERE videoUrl = ? OR thumbnailUrl = ? OR videoUrl LIKE ? OR thumbnailUrl LIKE ? LIMIT 1',
+      [legacyVideoUrl, legacyThumbnailUrl, `%/${payload.finalVideoKey}`, `%/${payload.finalThumbnailKey}`],
     );
     if ((duplicates as any[]).length > 0) {
       throw new PortfolioUploadValidationError('This upload was already added to your portfolio', 409);
     }
 
-    const [videoBuffer, thumbnailBuffer] = await Promise.all([
-      assembleUploadedAsset(payload, 'video'),
-      assembleUploadedAsset(payload, 'thumbnail'),
+    const sourceBuffer = await assembleUploadedAsset(payload, 'video');
+    validateAssembledVideoSource(sourceBuffer, payload.sourceFormat);
+    let videoBuffer: Buffer;
+    let thumbnailBuffer: Buffer;
+    let storedDuration = payload.duration;
+    let storedVideoMimeType = payload.videoMimeType;
+    let storedThumbnailMimeType = payload.thumbnailMimeType;
+    if (payload.requiresConversion) {
+      const converted = await convertPortfolioVideo({ source: sourceBuffer, sourceFormat: payload.sourceFormat });
+      videoBuffer = converted.video;
+      thumbnailBuffer = converted.thumbnail;
+      storedDuration = converted.duration;
+      storedVideoMimeType = 'video/mp4';
+      storedThumbnailMimeType = 'image/jpeg';
+    } else {
+      thumbnailBuffer = await assembleUploadedAsset(payload, 'thumbnail');
+      validateAssembledMedia(sourceBuffer, 'video');
+      validateAssembledMedia(thumbnailBuffer, 'thumbnail');
+      videoBuffer = sourceBuffer;
+    }
+    const [storedVideo, storedThumbnail] = await Promise.all([
+      storagePut(payload.finalVideoKey, videoBuffer, storedVideoMimeType),
+      storagePut(payload.finalThumbnailKey, thumbnailBuffer, storedThumbnailMimeType),
     ]);
-    validateAssembledMedia(videoBuffer, 'video');
-    validateAssembledMedia(thumbnailBuffer, 'thumbnail');
-    await Promise.all([
-      storagePut(payload.finalVideoKey, videoBuffer, payload.videoMimeType),
-      storagePut(payload.finalThumbnailKey, thumbnailBuffer, payload.thumbnailMimeType),
-    ]);
+    const videoUrl = storedVideo.url;
+    const thumbnailUrl = storedThumbnail.url;
 
     const [result] = await pool.execute(
       'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, thumbnailUrl, category, duration, sortOrder, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [profile.id, payload.title, videoUrl, thumbnailUrl, payload.category, payload.duration || null, count, 'active'],
+      [profile.id, payload.title, videoUrl, thumbnailUrl, payload.category, Math.round(storedDuration) || null, count, 'active'],
     );
 
-    return res.json({ success: true, id: (result as any).insertId, url: videoUrl, thumbnailUrl });
+    return res.json({ success: true, id: (result as any).insertId, url: videoUrl, thumbnailUrl, converted: payload.requiresConversion });
   } catch (err: any) {
     console.error('[Portfolio Video Finalize Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;

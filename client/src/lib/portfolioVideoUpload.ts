@@ -1,4 +1,9 @@
-export const PORTFOLIO_VIDEO_UPLOAD_TIMEOUT_MS = 3 * 60 * 1000;
+import {
+  getPortfolioVideoMimeType,
+  getPortfolioVideoSourceFormat,
+  type PortfolioVideoSourceFormat,
+} from '@shared/videoPortfolioUpload';
+
 export const PORTFOLIO_VIDEO_READ_TIMEOUT_MS = 20 * 1000;
 export const PORTFOLIO_UPLOAD_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
 
@@ -10,6 +15,7 @@ export type PortfolioUploadSessionResponse = {
   chunkBytes: number;
   videoChunkCount: number;
   thumbnailChunkCount: number;
+  requiresConversion: boolean;
 };
 
 export type PreparedPortfolioVideo = {
@@ -37,8 +43,22 @@ export function preparePortfolioVideoForBrowser(file: File): PreparedPortfolioVi
   };
 }
 
+export function preparePortfolioVideoForServerConversion(
+  file: File,
+  format?: PortfolioVideoSourceFormat,
+): { file: File; sourceFormat: PortfolioVideoSourceFormat } {
+  const sourceFormat = format || getPortfolioVideoSourceFormat(file.name, file.type);
+  if (!sourceFormat) throw new Error('Choose an MP4, MOV, WebM, AVI, or MKV video file.');
+  const expectedMimeType = getPortfolioVideoMimeType(sourceFormat);
+  if (file.type === expectedMimeType) return { file, sourceFormat };
+  return {
+    sourceFormat,
+    file: new File([file], file.name, { type: expectedMimeType, lastModified: file.lastModified }),
+  };
+}
+
 export const MOV_BROWSER_COMPATIBILITY_ERROR =
-  'This MOV uses a video format your browser cannot process. Export it as an H.264 video with AAC audio in an MP4 file, then try again.';
+  'This MOV uses a video format your browser cannot process. OlogyWood will try to convert it, or you can export it as an H.264 video with AAC audio in an MP4 file.';
 
 async function readError(response: Response, fallback: string): Promise<Error> {
   try {
@@ -53,6 +73,7 @@ export async function startPortfolioUpload(input: {
   title: string;
   category: string;
   durationSeconds: number;
+  sourceFormat: PortfolioVideoSourceFormat;
   videoSize: number;
   thumbnailSize: number;
   videoMimeType: string;

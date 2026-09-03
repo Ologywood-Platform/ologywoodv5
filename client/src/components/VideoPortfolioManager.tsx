@@ -9,11 +9,20 @@ import { Video, Plus, Trash2, Link, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PORTFOLIO_VIDEO_URL_HELP } from '@shared/videoPortfolio';
 import {
-  MOV_BROWSER_COMPATIBILITY_ERROR,
+  PORTFOLIO_VIDEO_ACCEPT,
+  PORTFOLIO_VIDEO_FORMAT_LABEL,
+  PORTFOLIO_VIDEO_MAX_DURATION_SECONDS,
+  formatPortfolioDuration,
+  getPortfolioFileValidationError,
+  getPortfolioVideoSourceFormat,
+  portfolioVideoRequiresConversion,
+} from '@shared/videoPortfolioUpload';
+import {
   PORTFOLIO_VIDEO_READ_TIMEOUT_MS,
   finalizePortfolioUpload,
   getPortfolioUploadChunks,
   preparePortfolioVideoForBrowser,
+  preparePortfolioVideoForServerConversion,
   startPortfolioUpload,
   uploadPortfolioChunk,
 } from '@/lib/portfolioVideoUpload';
@@ -54,6 +63,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<'uploading' | 'converting'>('uploading');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
@@ -82,6 +92,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     setCategory('highlights');
     setUploadFile(null);
     setUploadProgress(0);
+    setUploadStage('uploading');
     setShowAddForm(false);
     setAddMode('url');
   };
@@ -95,26 +106,39 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const handleUpload = async () => {
     if (!title.trim()) { toast.error("Please enter a title"); return; }
     if (!uploadFile) { toast.error("Please select a video file"); return; }
-    if (uploadFile.size > 100 * 1024 * 1024) { toast.error("File must be under 100MB"); return; }
+    const fileValidationError = getPortfolioFileValidationError(uploadFile);
+    if (fileValidationError) { toast.error(fileValidationError); return; }
 
     setUploading(true);
     setUploadProgress(0);
+    setUploadStage('uploading');
     try {
-      const prepared = preparePortfolioVideoForBrowser(uploadFile);
-      let duration: number;
-      try {
-        duration = await getVideoDuration(prepared.file);
-      } catch (error) {
-        if (prepared.relabeledMov) throw new Error(MOV_BROWSER_COMPATIBILITY_ERROR);
-        throw error;
-      }
-      if (duration > 120) throw new Error('Portfolio videos must be 2 minutes or less');
-      let thumbnail: Blob;
-      try {
-        thumbnail = await createVideoThumbnail(prepared.file, duration);
-      } catch (error) {
-        if (prepared.relabeledMov) throw new Error(MOV_BROWSER_COMPATIBILITY_ERROR);
-        throw error;
+      const selectedFormat = getPortfolioVideoSourceFormat(uploadFile.name, uploadFile.type);
+      if (!selectedFormat) throw new Error(`Choose ${PORTFOLIO_VIDEO_FORMAT_LABEL}.`);
+      let requiresConversion = portfolioVideoRequiresConversion(selectedFormat) && selectedFormat !== 'mov';
+      let sourceFormat = selectedFormat;
+      let uploadSource = preparePortfolioVideoForServerConversion(uploadFile, selectedFormat).file;
+      let duration = 0;
+      let thumbnail: Blob | null = null;
+
+      if (!requiresConversion) {
+        const prepared = preparePortfolioVideoForBrowser(uploadFile);
+        try {
+          duration = await getVideoDuration(prepared.file);
+          if (duration > PORTFOLIO_VIDEO_MAX_DURATION_SECONDS) {
+            throw new Error(`This video is ${formatPortfolioDuration(duration)}. Video Portfolio clips must be 2:00 or shorter.`);
+          }
+          thumbnail = await createVideoThumbnail(prepared.file, duration);
+          sourceFormat = prepared.relabeledMov ? 'mp4' : selectedFormat;
+          uploadSource = preparePortfolioVideoForServerConversion(prepared.file, sourceFormat).file;
+        } catch (error) {
+          if (selectedFormat !== 'mov') throw error;
+          requiresConversion = true;
+          sourceFormat = 'mov';
+          uploadSource = preparePortfolioVideoForServerConversion(uploadFile, 'mov').file;
+          duration = 0;
+          thumbnail = null;
+        }
       }
 
       setUploadProgress(2);
@@ -122,18 +146,19 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
         title: title.trim(),
         category,
         durationSeconds: Math.round(duration),
-        videoSize: prepared.file.size,
-        thumbnailSize: thumbnail.size,
-        videoMimeType: prepared.file.type,
-        thumbnailMimeType: thumbnail.type,
+        sourceFormat,
+        videoSize: uploadSource.size,
+        thumbnailSize: thumbnail?.size || 0,
+        videoMimeType: uploadSource.type,
+        thumbnailMimeType: thumbnail?.type || '',
       });
-      const videoChunks = getPortfolioUploadChunks(prepared.file, session.chunkBytes);
-      const thumbnailChunks = getPortfolioUploadChunks(thumbnail, session.chunkBytes);
+      const videoChunks = getPortfolioUploadChunks(uploadSource, session.chunkBytes);
+      const thumbnailChunks = thumbnail ? getPortfolioUploadChunks(thumbnail, session.chunkBytes) : [];
       if (videoChunks.length !== session.videoChunkCount || thumbnailChunks.length !== session.thumbnailChunkCount) {
         throw new Error('The video upload session did not match the selected files. Please retry.');
       }
 
-      const totalBytes = prepared.file.size + thumbnail.size;
+      const totalBytes = uploadSource.size + (thumbnail?.size || 0);
       let completedBytes = 0;
       const uploadChunks = async (kind: 'video' | 'thumbnail', chunks: Blob[]) => {
         for (let index = 0; index < chunks.length; index += 1) {
@@ -155,10 +180,11 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
       await uploadChunks('video', videoChunks);
       await uploadChunks('thumbnail', thumbnailChunks);
       setUploadProgress(95);
+      if (requiresConversion || session.requiresConversion) setUploadStage('converting');
       await finalizePortfolioUpload(session.token);
       setUploadProgress(100);
 
-      toast.success('Video uploaded and added to your portfolio');
+      toast.success(requiresConversion ? 'Video converted and added to your portfolio' : 'Video uploaded and added to your portfolio');
       resetForm();
       await utils.artist.getMyVideoPortfolio.invalidate();
     } catch (error) {
@@ -189,7 +215,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
       finish(() => resolve(element.duration));
     };
     element.onerror = () => {
-      finish(() => reject(new Error('We could not read this video. Try an MP4, MOV, or WebM file.')));
+      finish(() => reject(new Error('We could not read this video in your browser. Try an H.264/AAC MP4, or use AVI or MKV for secure conversion.')));
     };
     element.src = objectUrl;
   });
@@ -212,7 +238,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
       finish(() => reject(new Error('We could not create a thumbnail in time. Try an H.264/AAC MP4 file.')));
     }, PORTFOLIO_VIDEO_READ_TIMEOUT_MS);
     element.onerror = () => {
-      finish(() => reject(new Error('We could not create a thumbnail from this video. Try another MP4, MOV, or WebM file.')));
+      finish(() => reject(new Error('We could not create a thumbnail from this video. Try an H.264/AAC MP4, or use AVI or MKV for secure conversion.')));
     };
     element.onloadedmetadata = () => {
       element.currentTime = Math.min(Math.max(duration * 0.25, 1), 15);
@@ -274,7 +300,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Add up to 10 short clips (2 minutes or less) to showcase your work. Paste a YouTube or Vimeo link, or upload an MP4, MOV, or WebM file.
+          Add up to 10 short clips (2 minutes or less) to showcase your work. Paste a YouTube or Vimeo link, or upload MP4, MOV, WebM, AVI, or MKV.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -285,8 +311,19 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
               ref={fileInputRef}
               id="videoFile"
               type="file"
-              accept="video/mp4,video/quicktime,video/webm"
-              onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+              accept={PORTFOLIO_VIDEO_ACCEPT}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                if (!file) { setUploadFile(null); return; }
+                const error = getPortfolioFileValidationError(file);
+                if (error) {
+                  toast.error(error);
+                  setUploadFile(null);
+                  e.currentTarget.value = '';
+                  return;
+                }
+                setUploadFile(file);
+              }}
               className="sr-only"
             />
             <div className="flex gap-2 mb-3">
@@ -342,11 +379,16 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
                   {uploadFile ? 'Choose a different video' : 'Choose video file'}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {uploadFile ? `${uploadFile.name} · ${(uploadFile.size / 1024 / 1024).toFixed(1)} MB` : 'MP4, MOV, or WebM · 2 minutes or less · 100 MB maximum'}
+                  {uploadFile ? `${uploadFile.name} · ${(uploadFile.size / 1024 / 1024).toFixed(1)} MB` : 'MP4, MOV, WebM, AVI, or MKV · 2 minutes or less · 100 MB maximum'}
                 </p>
                 {uploadFile && (uploadFile.type === 'video/quicktime' || /\.mov$/i.test(uploadFile.name)) && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Browser-compatible MOV files are safely uploaded as MP4 for reliable playback. The video itself is not re-encoded.
+                    Browser-compatible MOV files are safely uploaded as MP4. If needed, OlogyWood will convert the video for reliable playback.
+                  </p>
+                )}
+                {uploadFile && /\.(avi|mkv)$/i.test(uploadFile.name) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    OlogyWood will securely convert this file to a browser-ready MP4 and create its thumbnail after upload.
                   </p>
                 )}
                 {uploading && (
@@ -354,7 +396,9 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
                       <div className="h-full bg-primary transition-[width]" style={{ width: `${uploadProgress}%` }} />
                     </div>
-                    <p className="text-xs text-muted-foreground">Uploading {uploadProgress}%</p>
+                    <p className="text-xs text-muted-foreground">
+                      {uploadStage === 'converting' ? 'Preparing a browser-ready MP4…' : `Uploading ${uploadProgress}%`}
+                    </p>
                   </div>
                 )}
               </div>

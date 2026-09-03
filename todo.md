@@ -4514,3 +4514,19 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify the exact supplied MOV completes ten video chunks, one thumbnail chunk, active catalog insertion, signed 206 playback bytes, duplicate-finalize rejection, and exact zero-row cleanup
 - [x] Run TypeScript, 53 focused video/upload/security tests, 2,742 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint 945ce48d for the completed MOV upload repair and validation results
+
+## VIDEO UPLOAD ERRORS & AVI/MKV COMPATIBILITY (Sep 2, 2026)
+- [x] Audit current client/server format, codec, size, duration, chunking, conversion-runtime, timeout, edge-body, storage-delivery, and deployment constraints
+- [x] Define one shared authoritative upload contract for MP4, MOV, WebM, AVI, and MKV with a 100 MB and two-minute maximum
+- [x] Show immediate, specific errors for unsupported extensions, unreadable media, files over 100 MB, videos over two minutes, missing video streams, and conversion failures
+- [x] Accept AVI and MKV source files through the authenticated 4 MiB chunk path without treating them as browser-playable files
+- [x] Inspect and convert compatible AVI/MKV sources to metadata-stripped H.264/AAC yuv420p fast-start MP4 on the server with serialized work, one CPU thread, bounded buffers/timeouts, and safe temporary files
+- [x] Reject malformed, deceptive, dangerous, unreadable, encrypted, no-video-stream, or unconvertible containers without saving a public catalog row
+- [x] Generate a validated 1200×630 JPEG social/player thumbnail for converted videos and preserve browser-generated thumbnails for native formats
+- [x] Store the storage service’s canonical range-capable video/thumbnail URLs while preserving deterministic replay detection across legacy relative and current absolute URLs
+- [x] Preserve MOV relabeling, native MP4/WebM, URL videos, progress, loading reset, replay protection, ownership, capacity, long-form isolation, and social-preview behavior
+- [x] Add a production Node 22 custom runtime with FFmpeg/FFprobe while preserving complete pnpm install/build, injected secrets, dynamic port behavior, and Node startup
+- [x] Add unit and behavioral HTTP coverage for accepted formats, precise errors, conversion routing, limits, signatures, ownership, tampering, capacity, cleanup, final storage, and existing-format regressions
+- [x] Validate real AVI and MKV conversion plus the user’s exact MOV, native WebM, over-size, over-duration, malformed-signature, audio-only, delivery-signature, replay, and cleanup cases with no creator-data changes
+- [x] Run TypeScript, 49 focused video/upload/security tests, 2,747 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save and report the AVI/MKV compatibility checkpoint

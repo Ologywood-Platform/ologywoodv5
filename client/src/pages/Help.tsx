@@ -605,7 +605,7 @@ const faqItems: FAQItem[] = [
     id: 'athlete-5',
     category: 'Athletes & NIL',
     question: 'How does the Video Portfolio work?',
-    answer: 'Athletes (and artists) can upload up to 10 short video clips (1-2 minutes each) to their portfolio. Each clip gets a title, category tag (Highlights, Training, Game Day, Behind-the-Scenes, Live Performance, Studio, Music Video), and is displayed on your public profile as a "Highlight Clips" grid. Fans can click any clip to watch in a full-screen modal player with social sharing buttons.',
+    answer: 'Talent can add up to 10 Video Portfolio clips, each no longer than two minutes or larger than 100 MB. Upload MP4, MOV, WebM, AVI, or MKV, or paste a supported YouTube or Vimeo URL. OlogyWood securely converts AVI, MKV, and browser-incompatible MOV files to a browser-ready MP4 and creates the thumbnail for you. Each clip receives a title and category, appears on your public profile, and can be opened and shared.',
   },
   {
     id: 'athlete-6',

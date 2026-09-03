@@ -7,7 +7,16 @@ import {
   PORTFOLIO_VIDEO_READ_TIMEOUT_MS,
   getPortfolioUploadChunks,
   preparePortfolioVideoForBrowser,
+  preparePortfolioVideoForServerConversion,
 } from '../client/src/lib/portfolioVideoUpload';
+import {
+  PORTFOLIO_VIDEO_ACCEPT,
+  PORTFOLIO_VIDEO_MAX_BYTES,
+  formatPortfolioDuration,
+  getPortfolioFileValidationError,
+  getPortfolioVideoSourceFormat,
+  portfolioVideoRequiresConversion,
+} from '../shared/videoPortfolioUpload';
 import {
   PORTFOLIO_MAX_VIDEO_BYTES,
   PORTFOLIO_UPLOAD_CHUNK_BYTES,
@@ -19,6 +28,7 @@ import {
   readPortfolioUploadInput,
   signPortfolioUploadSession,
   validateAssembledMedia,
+  validateAssembledVideoSource,
   verifyPortfolioUploadSession,
 } from './services/videoPortfolioDirectUpload';
 
@@ -26,13 +36,14 @@ const validInput = {
   title: 'Creator clip',
   category: 'other',
   durationSeconds: 15,
+  sourceFormat: 'mp4',
   videoSize: 38_930_135,
   thumbnailSize: 54_581,
   videoMimeType: 'video/mp4',
   thumbnailMimeType: 'image/jpeg',
 };
 
-describe('Video Portfolio MOV browser compatibility', () => {
+describe('Video Portfolio browser and source format compatibility', () => {
   it('relabels MOV bytes as MP4 without changing their contents, size, or timestamp', async () => {
     const bytes = new Uint8Array([0, 0, 0, 20, 102, 116, 121, 112, 113, 116, 32, 32]);
     const source = new File([bytes], 'creator-clip.mov', {
@@ -53,6 +64,39 @@ describe('Video Portfolio MOV browser compatibility', () => {
     const webm = new File(['webm'], 'clip.webm', { type: 'video/webm' });
     expect(preparePortfolioVideoForBrowser(mp4)).toEqual({ file: mp4, relabeledMov: false });
     expect(preparePortfolioVideoForBrowser(webm)).toEqual({ file: webm, relabeledMov: false });
+    expect(preparePortfolioVideoForServerConversion(new File(['mp4'], 'clip.mp4', { type: '' })).file.type).toBe('video/mp4');
+    expect(preparePortfolioVideoForServerConversion(new File(['webm'], 'clip.webm', { type: '' })).file.type).toBe('video/webm');
+  });
+
+  it('recognizes every supported container and normalizes AVI/MKV MIME types for server conversion', () => {
+    expect(getPortfolioVideoSourceFormat('clip.mp4')).toBe('mp4');
+    expect(getPortfolioVideoSourceFormat('clip.MOV')).toBe('mov');
+    expect(getPortfolioVideoSourceFormat('clip.webm')).toBe('webm');
+    expect(getPortfolioVideoSourceFormat('clip.avi')).toBe('avi');
+    expect(getPortfolioVideoSourceFormat('clip.mkv')).toBe('mkv');
+    expect(getPortfolioVideoSourceFormat('clip.exe', 'video/mp4')).toBeNull();
+    expect(portfolioVideoRequiresConversion('avi')).toBe(true);
+    expect(portfolioVideoRequiresConversion('mkv')).toBe(true);
+
+    const avi = new File(['avi'], 'clip.avi', { type: '' });
+    const mkv = new File(['mkv'], 'clip.mkv', { type: 'application/octet-stream' });
+    expect(preparePortfolioVideoForServerConversion(avi).file.type).toBe('video/x-msvideo');
+    expect(preparePortfolioVideoForServerConversion(mkv).file.type).toBe('video/x-matroska');
+    expect(PORTFOLIO_VIDEO_ACCEPT).toContain('.avi');
+    expect(PORTFOLIO_VIDEO_ACCEPT).toContain('.mkv');
+  });
+
+  it('returns specific unsupported-format and over-size errors before upload', () => {
+    expect(getPortfolioFileValidationError({ name: 'clip.exe', type: 'application/octet-stream', size: 25 })).toBe(
+      '“clip.exe” is not a supported video. Choose MP4, MOV, WebM, AVI, or MKV.',
+    );
+    expect(getPortfolioFileValidationError({ name: 'large.mkv', type: 'video/x-matroska', size: PORTFOLIO_VIDEO_MAX_BYTES + 1 })).toBe(
+      'This file is 100.0 MB. Video Portfolio uploads must be 100 MB or smaller.',
+    );
+    expect(getPortfolioFileValidationError({ name: 'empty.mp4', type: 'video/mp4', size: 0 })).toBe(
+      'This video file is empty. Choose a different file.',
+    );
+    expect(formatPortfolioDuration(125.1)).toBe('2:06');
   });
 
   it('slices large files into exact bounded chunks without changing bytes', async () => {
@@ -89,9 +133,19 @@ describe('Video Portfolio authenticated chunk sessions', () => {
     const input = readPortfolioUploadInput(validInput);
     expect(input.videoSize).toBe(38_930_135);
     expect(input.duration).toBe(15);
-    expect(() => readPortfolioUploadInput({ ...validInput, videoSize: PORTFOLIO_MAX_VIDEO_BYTES + 1 })).toThrow('under 100MB');
+    expect(() => readPortfolioUploadInput({ ...validInput, videoSize: PORTFOLIO_MAX_VIDEO_BYTES + 1 })).toThrow('100 MB or smaller');
     expect(() => readPortfolioUploadInput({ ...validInput, durationSeconds: 121 })).toThrow('2 minutes');
-    expect(() => readPortfolioUploadInput({ ...validInput, videoMimeType: 'video/quicktime' })).toThrow('MP4 and WebM');
+    expect(() => readPortfolioUploadInput({ ...validInput, videoMimeType: 'video/quicktime' })).toThrow('does not match');
+
+    const avi = readPortfolioUploadInput({
+      ...validInput,
+      sourceFormat: 'avi',
+      durationSeconds: 0,
+      videoMimeType: 'video/x-msvideo',
+      thumbnailSize: 0,
+      thumbnailMimeType: '',
+    });
+    expect(avi.requiresConversion).toBe(true);
   });
 
   it('binds an expiring signed session to one owner, profile, and deterministic key root', () => {
@@ -105,6 +159,22 @@ describe('Video Portfolio authenticated chunk sessions', () => {
     expect(() => assertUploadSessionOwner(payload, { userId: 8, profileId: 11 })).toThrow('does not belong');
     expect(() => verifyPortfolioUploadSession(`${token}tampered`, 2_000)).toThrow('Invalid upload confirmation');
     expect(() => verifyPortfolioUploadSession(token, payload.expiresAt + 1)).toThrow('expired');
+  });
+
+  it('creates conversion sessions without client thumbnails and always targets MP4/JPEG output', () => {
+    const input = readPortfolioUploadInput({
+      ...validInput,
+      sourceFormat: 'mkv',
+      durationSeconds: 0,
+      videoMimeType: 'video/x-matroska',
+      thumbnailSize: 0,
+      thumbnailMimeType: '',
+    });
+    const payload = createPortfolioUploadSession(input, { userId: 7, profileId: 11, sessionId: 'session-mkv' });
+    expect(payload.requiresConversion).toBe(true);
+    expect(payload.thumbnailChunkCount).toBe(0);
+    expect(payload.finalVideoKey).toMatch(/video\.mp4$/);
+    expect(payload.finalThumbnailKey).toMatch(/thumbnail\.jpg$/);
   });
 
   it('enforces exact chunk indexes and expected final-chunk lengths', () => {
@@ -123,18 +193,42 @@ describe('Video Portfolio authenticated chunk sessions', () => {
   it('accepts real media signatures and rejects declared types with fake bytes', () => {
     expect(() => validateAssembledMedia(Buffer.from([0, 0, 0, 20, 102, 116, 121, 112]), 'video')).not.toThrow();
     expect(() => validateAssembledMedia(Buffer.from([0xff, 0xd8, 0xff, 0xe0]), 'thumbnail')).not.toThrow();
+    expect(() => validateAssembledVideoSource(Buffer.from('RIFFxxxxAVI '), 'avi')).not.toThrow();
+    expect(() => validateAssembledVideoSource(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), 'mkv')).not.toThrow();
     expect(() => validateAssembledMedia(Buffer.from('not-video'), 'video')).toThrow(PortfolioUploadValidationError);
+    expect(() => validateAssembledVideoSource(Buffer.from('not-avi'), 'avi')).toThrow('valid AVI');
     expect(() => validateAssembledMedia(Buffer.from('not-image'), 'thumbnail')).toThrow(PortfolioUploadValidationError);
   });
 
-  it('wires authenticated raw chunks, assembly, signature checks, and duplicate finalization protection', () => {
+  it('wires authenticated raw chunks, conversion, assembly, signature checks, and duplicate finalization protection', () => {
     const route = readFileSync(resolve(process.cwd(), 'server/routes/videoUpload.ts'), 'utf8');
     expect(route).toContain("express.raw({ type: 'application/octet-stream', limit: '5mb' })");
     expect(route).toContain('sdk.authenticateRequest');
     expect(route).toContain('assertUploadSessionOwner');
     expect(route).toContain('body.length !== expectedLength');
     expect(route).toContain('assembleUploadedAsset');
+    expect(route).toContain('convertPortfolioVideo');
+    expect(route).toContain('const videoUrl = storedVideo.url');
+    expect(route).toContain('videoUrl LIKE ?');
     expect(route).toContain('validateAssembledMedia');
     expect(route).toContain('This upload was already added to your portfolio');
+  });
+
+  it('ships FFmpeg in the production image and presents clear conversion UX', () => {
+    const dockerfile = readFileSync(resolve(process.cwd(), 'Dockerfile'), 'utf8');
+    const manager = readFileSync(resolve(process.cwd(), 'client/src/components/VideoPortfolioManager.tsx'), 'utf8');
+    const conversion = readFileSync(resolve(process.cwd(), 'server/services/videoPortfolioConversion.ts'), 'utf8');
+    expect(dockerfile).toContain('FROM node:22-slim');
+    expect(dockerfile).toContain('ffmpeg ca-certificates');
+    expect(dockerfile).toContain('corepack pnpm run build');
+    expect(dockerfile).toContain('CMD ["node", "dist/index.js"]');
+    expect(manager).toContain('MP4, MOV, WebM, AVI, or MKV');
+    expect(manager).toContain('Preparing a browser-ready MP4');
+    expect(manager).toContain('getPortfolioFileValidationError(file)');
+    expect(conversion).toContain("spawn(command, args, { shell: false");
+    expect(conversion).toContain("await rm(workDir, { recursive: true, force: true })");
+    expect(conversion).toContain('does not contain a readable video stream');
+    expect(conversion).toContain("'-movflags', '+faststart'");
+    expect(conversion).toContain("'-map_metadata', '-1'");
   });
 });

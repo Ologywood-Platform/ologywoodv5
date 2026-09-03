@@ -155,7 +155,7 @@ KEY FEATURES:
 15. ATHLETE & NIL FEATURES:
 - Athlete-specific onboarding: Sport, position, team, stats, achievements
 - Talent types: Artist, Athlete, Creator, Entertainer, Influencer (selectable in Edit Profile)
-- Video Portfolio: Up to 10 short clips (1-2 min each), categorized (Highlights, Training, Game Day, Behind-the-Scenes)
+- Video Portfolio: Up to 10 clips, each 2 minutes or less and 100 MB or smaller. Upload MP4, MOV, WebM, AVI, or MKV, or use a supported YouTube/Vimeo URL. AVI, MKV, and browser-incompatible MOV files are securely converted to browser-ready MP4 with a generated thumbnail. Unsupported formats, files over 100 MB, clips over 2 minutes, unreadable media, and conversion failures show a specific explanation.
 - Modal video player with social sharing (Copy Link, X, Facebook, WhatsApp)
 - Athlete booking types: Appearances, Autograph Signings, Speaking Engagements, Camps/Clinics, Brand Endorsements/NIL Deals
 - Calendar availability picker: Shows available dates as green chips on booking form
@@ -197,7 +197,7 @@ COMMON USER QUESTIONS:
 - "What are the fees?" → Bookings: 1%, Music: 1%, Tickets: $0.99/ticket, Fan Club: 15%, Merch/Tips: 0%
 - "How do I set up my athlete profile?" → Select Athlete in onboarding or Edit Profile, fill in sport/position/team/stats/achievements, upload highlight clips
 - "What is the NIL contract?" → Auto-generated 10-section professional contract for athlete bookings with NCAA compliance, e-signatures, and PDF download
-- "How do I upload highlight clips?" → Dashboard > Video Portfolio, add up to 10 clips with title and category
+- "How do I upload highlight clips?" → Dashboard > Video Portfolio. Add a title and category, then upload MP4, MOV, WebM, AVI, or MKV (maximum 100 MB and 2 minutes) or paste a supported YouTube/Vimeo URL. AVI/MKV conversion may take a moment after upload.
 - "How do I change from artist to athlete?" → Edit Profile > Basic Information > select Athlete from the talent type grid
 - "Can athletes sell merch?" → Yes! Same merch feature, supports pre-pay model. Upload images, set prices, fans pay upfront
 - "How do I sell my movie/film?" → Go to Dashboard > Releases > New Release. Select Movie or Short Film as the type, paste your YouTube/Vimeo URL, set a ticket price, and publish. Fans pay here, watch there.
