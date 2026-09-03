@@ -4,15 +4,55 @@
  * The file is received via multer and forwarded to S3 via storagePut.
  */
 
-import { Router, Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
 import multer from 'multer';
+import { randomUUID } from 'node:crypto';
 import { storagePut } from '../storage';
 import * as db from '../db';
 import { sdk } from '../_core/sdk';
 import { ensureVideoPortfolioSchema } from '../services/videoPortfolioSchemaService';
 import { VIDEO_PORTFOLIO_CATEGORIES, type VideoPortfolioCategory } from '../../shared/videoPortfolio';
+import {
+  PORTFOLIO_UPLOAD_CHUNK_BYTES,
+  PortfolioUploadValidationError,
+  assembleUploadedAsset,
+  assertUploadSessionOwner,
+  createPortfolioUploadSession,
+  getExpectedChunkLength,
+  getUploadChunkKey,
+  publicStorageUrl,
+  readPortfolioUploadInput,
+  signPortfolioUploadSession,
+  validateAssembledMedia,
+  verifyPortfolioUploadSession,
+} from '../services/videoPortfolioDirectUpload';
 
 const router = Router();
+
+async function getPortfolioUploadContext(req: Request) {
+  let user;
+  try {
+    user = await sdk.authenticateRequest(req as any);
+  } catch {
+    throw new PortfolioUploadValidationError('Unauthorized', 401);
+  }
+  const profile = await db.getArtistProfileByUserId(user.id);
+  if (!profile) throw new PortfolioUploadValidationError('Artist profile not found', 404);
+  const pool = db.getPool();
+  if (!pool) throw new PortfolioUploadValidationError('Database unavailable', 503);
+  await ensureVideoPortfolioSchema(pool as any);
+  return { user, profile, pool };
+}
+
+async function assertPortfolioCapacity(pool: NonNullable<ReturnType<typeof db.getPool>>, profileId: number) {
+  const [existing] = await pool.execute(
+    'SELECT COUNT(*) AS cnt FROM video_portfolio WHERE artistProfileId = ? AND status = ?',
+    [profileId, 'active'],
+  );
+  const count = Number((existing as any[])[0]?.cnt || 0);
+  if (count >= 10) throw new PortfolioUploadValidationError('Maximum 10 videos allowed. Remove one to add another.');
+  return count;
+}
 
 // Configure multer for memory storage (file in buffer)
 const upload = multer({
@@ -107,7 +147,100 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
   }
 });
 
-// POST /api/video/portfolio — multipart upload for short portfolio clips
+// POST /api/video/portfolio/start — create an owner-bound upload session.
+router.post('/portfolio/start', async (req: Request, res: Response) => {
+  try {
+    const { user, profile, pool } = await getPortfolioUploadContext(req);
+    const input = readPortfolioUploadInput(req.body);
+    await assertPortfolioCapacity(pool, profile.id);
+    const session = createPortfolioUploadSession(input, {
+      userId: user.id,
+      profileId: profile.id,
+      sessionId: randomUUID(),
+    });
+    return res.json({
+      token: signPortfolioUploadSession(session),
+      expiresAt: session.expiresAt,
+      chunkBytes: PORTFOLIO_UPLOAD_CHUNK_BYTES,
+      videoChunkCount: session.videoChunkCount,
+      thumbnailChunkCount: session.thumbnailChunkCount,
+    });
+  } catch (err: any) {
+    console.error('[Portfolio Video Start Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not start the video upload' });
+  }
+});
+
+const portfolioChunkBody = express.raw({ type: 'application/octet-stream', limit: '5mb' });
+
+// POST /api/video/portfolio/chunk — send one bounded, authenticated chunk.
+router.post('/portfolio/chunk', portfolioChunkBody, async (req: Request, res: Response) => {
+  try {
+    const { user, profile } = await getPortfolioUploadContext(req);
+    const payload = verifyPortfolioUploadSession(String(req.header('x-portfolio-upload-token') || ''));
+    assertUploadSessionOwner(payload, { userId: user.id, profileId: profile.id });
+
+    const kindHeader = String(req.header('x-portfolio-upload-kind') || '');
+    if (kindHeader !== 'video' && kindHeader !== 'thumbnail') throw new PortfolioUploadValidationError('Invalid upload chunk type');
+    const kind = kindHeader as 'video' | 'thumbnail';
+    const index = Number(req.header('x-portfolio-upload-index'));
+    const expectedLength = getExpectedChunkLength(payload, kind, index);
+    const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+    if (body.length !== expectedLength) throw new PortfolioUploadValidationError('Upload chunk size did not match the signed session');
+
+    const key = getUploadChunkKey(payload, kind, index);
+    await storagePut(key, body, 'application/octet-stream');
+    return res.json({ success: true, kind, index });
+  } catch (err: any) {
+    console.error('[Portfolio Video Chunk Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not upload the video chunk' });
+  }
+});
+
+// POST /api/video/portfolio/finalize — assemble, validate, store, and catalog.
+router.post('/portfolio/finalize', async (req: Request, res: Response) => {
+  try {
+    const { user, profile, pool } = await getPortfolioUploadContext(req);
+    const payload = verifyPortfolioUploadSession(String(req.body?.token || ''));
+    assertUploadSessionOwner(payload, { userId: user.id, profileId: profile.id });
+    const count = await assertPortfolioCapacity(pool, profile.id);
+    const videoUrl = publicStorageUrl(payload.finalVideoKey);
+    const thumbnailUrl = publicStorageUrl(payload.finalThumbnailKey);
+    const [duplicates] = await pool.execute(
+      'SELECT id FROM video_portfolio WHERE videoUrl = ? OR thumbnailUrl = ? LIMIT 1',
+      [videoUrl, thumbnailUrl],
+    );
+    if ((duplicates as any[]).length > 0) {
+      throw new PortfolioUploadValidationError('This upload was already added to your portfolio', 409);
+    }
+
+    const [videoBuffer, thumbnailBuffer] = await Promise.all([
+      assembleUploadedAsset(payload, 'video'),
+      assembleUploadedAsset(payload, 'thumbnail'),
+    ]);
+    validateAssembledMedia(videoBuffer, 'video');
+    validateAssembledMedia(thumbnailBuffer, 'thumbnail');
+    await Promise.all([
+      storagePut(payload.finalVideoKey, videoBuffer, payload.videoMimeType),
+      storagePut(payload.finalThumbnailKey, thumbnailBuffer, payload.thumbnailMimeType),
+    ]);
+
+    const [result] = await pool.execute(
+      'INSERT INTO video_portfolio (artistProfileId, title, videoUrl, thumbnailUrl, category, duration, sortOrder, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [profile.id, payload.title, videoUrl, thumbnailUrl, payload.category, payload.duration || null, count, 'active'],
+    );
+
+    return res.json({ success: true, id: (result as any).insertId, url: videoUrl, thumbnailUrl });
+  } catch (err: any) {
+    console.error('[Portfolio Video Finalize Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not finish the video upload' });
+  }
+});
+
+// POST /api/video/portfolio — backward-compatible multipart upload for short clips.
 router.post('/portfolio', portfolioUpload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 },

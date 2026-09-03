@@ -30,7 +30,7 @@ describe('main performance video playback isolation', () => {
   it('does not change short-form portfolio thumbnail generation or playback', () => {
     expect(portfolioManagerSource).toContain('createVideoThumbnail');
     expect(portfolioManagerSource).toContain('Math.min(Math.max(duration * 0.25, 1), 15)');
-    expect(portfolioManagerSource).toContain("formData.append('thumbnail', thumbnail");
+    expect(portfolioManagerSource).toContain("await uploadChunks('thumbnail', thumbnailChunks)");
     expect(artistProfileSource).toContain('parsePortfolioVideoUrl(video.videoUrl)');
     expect(portfolioPageSource).toContain('poster={video.thumbnailUrl || undefined}');
     expect(portfolioPageSource).toContain('autoPlay');

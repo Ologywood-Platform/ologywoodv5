@@ -4501,3 +4501,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify Tenguu Vision’s YouTube player opens without a CSP violation on desktop and that all five cards remain usable in the 390-pixel mobile layout, with no creator-data changes
 - [x] Run TypeScript, 105 focused video/security tests, 2,728 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint 0c980abd for the completed Video Portfolio blocked-content repair and validation results
+
+## VIDEO PORTFOLIO MOV UPLOAD FAILURE (Sep 2, 2026)
+- [x] Inspect the supplied `minivid-498201-j0I3.mov`: 38,930,135 bytes, 15 seconds, 1080×1920, H.264 Baseline/AAC-LC, ISO media signature, and QuickTime-versus-MP4 browser behavior
+- [x] Reproduce both failure layers without changing a creator video: Chromium rejected the QuickTime MIME before upload, then production rejected the one-request 38 MB body with HTTP 413
+- [x] Audit client metadata/thumbnail capture, limits, MIME behavior, multipart transport, server validation, production edge, storage upload, timeout, CSP, and error recovery
+- [x] Replace oversized multipart transport with authenticated, owner-bound 4 MiB chunks plus server assembly/finalization after production returned 413 and browser-direct storage PUT CORS returned 403
+- [x] Validate chunk lengths, assembled video/thumbnail signatures, exact byte sizes, HMAC ownership, catalog limits, expiry, final storage keys, and single-use finalization without exposing storage credentials
+- [x] Fix browser-compatible MOV uploads through immutable MP4 relabeling and bounded chunk transport without weakening ownership, catalog, size, duration, type, or storage-key protections
+- [x] Preserve successful MP4, WebM, MOV, URL, thumbnail, progress, loading reset, error recovery, long-form playback, and social-preview behavior
+- [x] Add unit and behavioral HTTP coverage for the supplied MOV failure class, chunking, authentication, tampering, ownership, capacity, assembly, signatures, final storage, and replay rejection
+- [x] Verify the exact supplied MOV completes ten video chunks, one thumbnail chunk, active catalog insertion, signed 206 playback bytes, duplicate-finalize rejection, and exact zero-row cleanup
+- [x] Run TypeScript, 53 focused video/upload/security tests, 2,742 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save and report the MOV upload repair checkpoint

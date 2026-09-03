@@ -87,11 +87,13 @@ describe('portfolio upload and playback integration', () => {
     expect(route).toContain('ensureVideoPortfolioSchema');
   });
 
-  it('opens an explicit file picker, avoids base64 conversion, and always clears loading state', () => {
+  it('opens an explicit file picker, uploads bounded chunks without base64, and always clears loading state', () => {
     const manager = projectFile('client/src/components/VideoPortfolioManager.tsx');
+    const helper = projectFile('client/src/lib/portfolioVideoUpload.ts');
     expect(manager).toContain("fileInputRef.current?.click()");
-    expect(manager).toContain("xhr.open('POST', '/api/video/portfolio')");
-    expect(manager).toContain("formData.append('thumbnail', thumbnail");
+    expect(manager).toContain("await uploadChunks('video', videoChunks)");
+    expect(manager).toContain("await uploadChunks('thumbnail', thumbnailChunks)");
+    expect(helper).toContain("xhr.open('POST', '/api/video/portfolio/chunk')");
     expect(manager).toContain("canvas.width = 1200");
     expect(manager).toContain("canvas.height = 630");
     expect(manager).toContain('Math.min(Math.max(duration * 0.25, 1), 15)');
@@ -99,6 +101,7 @@ describe('portfolio upload and playback integration', () => {
     expect(manager).toContain('setUploading(false)');
     expect(manager).toContain("fileInputRef.current.value = ''");
     expect(manager).not.toContain('FileReader');
+    expect(helper).not.toContain('FileReader');
   });
 
   it('normalizes URL saves and renders hosted links on clean slug profiles', () => {

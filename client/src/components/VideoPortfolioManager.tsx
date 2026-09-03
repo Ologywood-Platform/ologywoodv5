@@ -8,6 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Video, Plus, Trash2, Link, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PORTFOLIO_VIDEO_URL_HELP } from '@shared/videoPortfolio';
+import {
+  MOV_BROWSER_COMPATIBILITY_ERROR,
+  PORTFOLIO_VIDEO_READ_TIMEOUT_MS,
+  finalizePortfolioUpload,
+  getPortfolioUploadChunks,
+  preparePortfolioVideoForBrowser,
+  startPortfolioUpload,
+  uploadPortfolioChunk,
+} from '@/lib/portfolioVideoUpload';
 
 const VIDEO_CATEGORIES = [
   { value: 'highlights', label: 'Highlights', color: 'bg-amber-100 text-amber-800' },
@@ -91,37 +100,63 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     setUploading(true);
     setUploadProgress(0);
     try {
-      const duration = await getVideoDuration(uploadFile);
+      const prepared = preparePortfolioVideoForBrowser(uploadFile);
+      let duration: number;
+      try {
+        duration = await getVideoDuration(prepared.file);
+      } catch (error) {
+        if (prepared.relabeledMov) throw new Error(MOV_BROWSER_COMPATIBILITY_ERROR);
+        throw error;
+      }
       if (duration > 120) throw new Error('Portfolio videos must be 2 minutes or less');
-      const thumbnail = await createVideoThumbnail(uploadFile, duration);
+      let thumbnail: Blob;
+      try {
+        thumbnail = await createVideoThumbnail(prepared.file, duration);
+      } catch (error) {
+        if (prepared.relabeledMov) throw new Error(MOV_BROWSER_COMPATIBILITY_ERROR);
+        throw error;
+      }
 
-      const formData = new FormData();
-      formData.append('video', uploadFile);
-      formData.append('thumbnail', thumbnail, `${uploadFile.name.replace(/\.[^.]+$/, '') || 'portfolio-video'}-thumbnail.jpg`);
-      formData.append('title', title.trim());
-      formData.append('category', category);
-      formData.append('durationSeconds', String(Math.round(duration)));
-
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) setUploadProgress(Math.round((event.loaded / event.total) * 90));
-        });
-        xhr.addEventListener('load', () => {
-          let response: { error?: string } = {};
-          try { response = JSON.parse(xhr.responseText); } catch { /* handled below */ }
-          if (xhr.status >= 200 && xhr.status < 300) {
-            setUploadProgress(100);
-            resolve();
-          } else {
-            reject(new Error(response.error || 'Portfolio video upload failed'));
-          }
-        });
-        xhr.addEventListener('error', () => reject(new Error('Network error during video upload')));
-        xhr.addEventListener('abort', () => reject(new Error('Video upload was cancelled')));
-        xhr.open('POST', '/api/video/portfolio');
-        xhr.send(formData);
+      setUploadProgress(2);
+      const session = await startPortfolioUpload({
+        title: title.trim(),
+        category,
+        durationSeconds: Math.round(duration),
+        videoSize: prepared.file.size,
+        thumbnailSize: thumbnail.size,
+        videoMimeType: prepared.file.type,
+        thumbnailMimeType: thumbnail.type,
       });
+      const videoChunks = getPortfolioUploadChunks(prepared.file, session.chunkBytes);
+      const thumbnailChunks = getPortfolioUploadChunks(thumbnail, session.chunkBytes);
+      if (videoChunks.length !== session.videoChunkCount || thumbnailChunks.length !== session.thumbnailChunkCount) {
+        throw new Error('The video upload session did not match the selected files. Please retry.');
+      }
+
+      const totalBytes = prepared.file.size + thumbnail.size;
+      let completedBytes = 0;
+      const uploadChunks = async (kind: 'video' | 'thumbnail', chunks: Blob[]) => {
+        for (let index = 0; index < chunks.length; index += 1) {
+          const chunk = chunks[index];
+          await uploadPortfolioChunk({
+            token: session.token,
+            kind,
+            index,
+            chunk,
+            onProgress: (loaded) => {
+              const percent = 2 + Math.round(((completedBytes + loaded) / totalBytes) * 90);
+              setUploadProgress(Math.min(92, percent));
+            },
+          });
+          completedBytes += chunk.size;
+        }
+      };
+
+      await uploadChunks('video', videoChunks);
+      await uploadChunks('thumbnail', thumbnailChunks);
+      setUploadProgress(95);
+      await finalizePortfolioUpload(session.token);
+      setUploadProgress(100);
 
       toast.success('Video uploaded and added to your portfolio');
       resetForm();
@@ -138,14 +173,23 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const getVideoDuration = (file: File): Promise<number> => new Promise((resolve, reject) => {
     const element = document.createElement('video');
     const objectUrl = URL.createObjectURL(file);
+    let settled = false;
+    const finish = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      URL.revokeObjectURL(objectUrl);
+      action();
+    };
+    const timeout = window.setTimeout(() => {
+      finish(() => reject(new Error('We could not read this video in time. Try an H.264/AAC MP4 file.')));
+    }, PORTFOLIO_VIDEO_READ_TIMEOUT_MS);
     element.preload = 'metadata';
     element.onloadedmetadata = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(element.duration);
+      finish(() => resolve(element.duration));
     };
     element.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('We could not read this video. Try an MP4, MOV, or WebM file.'));
+      finish(() => reject(new Error('We could not read this video. Try an MP4, MOV, or WebM file.')));
     };
     element.src = objectUrl;
   });
@@ -156,11 +200,19 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
     element.preload = 'auto';
     element.muted = true;
     element.playsInline = true;
-
-    const cleanup = () => URL.revokeObjectURL(objectUrl);
+    let settled = false;
+    const finish = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      URL.revokeObjectURL(objectUrl);
+      action();
+    };
+    const timeout = window.setTimeout(() => {
+      finish(() => reject(new Error('We could not create a thumbnail in time. Try an H.264/AAC MP4 file.')));
+    }, PORTFOLIO_VIDEO_READ_TIMEOUT_MS);
     element.onerror = () => {
-      cleanup();
-      reject(new Error('We could not create a thumbnail from this video. Try another MP4, MOV, or WebM file.'));
+      finish(() => reject(new Error('We could not create a thumbnail from this video. Try another MP4, MOV, or WebM file.')));
     };
     element.onloadedmetadata = () => {
       element.currentTime = Math.min(Math.max(duration * 0.25, 1), 15);
@@ -171,8 +223,7 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
       canvas.height = 630;
       const context = canvas.getContext('2d');
       if (!context || !element.videoWidth || !element.videoHeight) {
-        cleanup();
-        reject(new Error('We could not create a thumbnail from this video.'));
+        finish(() => reject(new Error('We could not create a thumbnail from this video.')));
         return;
       }
 
@@ -183,9 +234,8 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
       const height = element.videoHeight * scale;
       context.drawImage(element, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
       canvas.toBlob((blob) => {
-        cleanup();
-        if (blob) resolve(blob);
-        else reject(new Error('We could not create a thumbnail from this video.'));
+        if (blob) finish(() => resolve(blob));
+        else finish(() => reject(new Error('We could not create a thumbnail from this video.')));
       }, 'image/jpeg', 0.88);
     };
     element.src = objectUrl;
@@ -294,6 +344,11 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
                 <p className="text-xs text-muted-foreground mt-1">
                   {uploadFile ? `${uploadFile.name} · ${(uploadFile.size / 1024 / 1024).toFixed(1)} MB` : 'MP4, MOV, or WebM · 2 minutes or less · 100 MB maximum'}
                 </p>
+                {uploadFile && (uploadFile.type === 'video/quicktime' || /\.mov$/i.test(uploadFile.name)) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Browser-compatible MOV files are safely uploaded as MP4 for reliable playback. The video itself is not re-encoded.
+                  </p>
+                )}
                 {uploading && (
                   <div className="mt-2 space-y-1" aria-live="polite">
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
