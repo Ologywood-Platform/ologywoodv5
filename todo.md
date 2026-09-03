@@ -4587,4 +4587,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add focused webhook regressions for the diagnosed failure, invalid signatures, duplicate events, unsupported events, successful 2xx acknowledgment, and ticket retry safety
 - [x] Run TypeScript, 327 focused payment tests across 16 files, all 2,750 platform tests with 23 skipped across 154 files, and a successful production build
 - [ ] Publish the repair checkpoint, retry one failed test-mode delivery in Stripe, and confirm the deployed endpoint returns 2xx
-- [ ] Save and report the Stripe test-mode webhook repair checkpoint
+- [x] Save implementation checkpoint 100aa60e for the Stripe test-mode webhook repair

@@ -29,6 +29,8 @@ The focused payment suite passed **327 tests across 16 files**. The complete pla
 
 The production endpoint will continue running the previously published single-secret handler until the repair checkpoint is published. After publication, use Stripe test mode to retry one failed delivery; a 2xx result confirms production is using both mode-specific signing secrets.
 
+The completed implementation and validation state was saved as checkpoint **100aa60e**.
+
 ## References
 
 1. [Stripe: Receive Stripe events in your webhook endpoint](https://docs.stripe.com/webhooks)
