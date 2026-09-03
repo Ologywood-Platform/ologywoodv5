@@ -14,6 +14,7 @@ const readFile = (filePath: string) =>
 
 describe('Mobile Hamburger Menu (SiteHeader)', () => {
   const content = readFile('client/src/components/SiteHeader.tsx');
+  const navigation = readFile('client/src/lib/ecosystemNavigation.ts');
 
   it('should import Menu and X icons from lucide-react', () => {
     expect(content).toContain('Menu');
@@ -26,17 +27,17 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
   });
 
   it('should have a hamburger toggle button visible on mobile only', () => {
-    expect(content).toContain('md:hidden');
+    expect(content).toContain('lg:hidden');
     expect(content).toContain('aria-label');
     expect(content).toContain('aria-expanded');
   });
 
   it('should hide desktop nav on mobile screens', () => {
-    expect(content).toContain('hidden md:flex');
+    expect(content).toContain('hidden lg:flex');
   });
 
   it('should render mobile dropdown menu when open', () => {
-    expect(content).toContain('md:hidden');
+    expect(content).toContain('lg:hidden');
     expect(content).toContain('mobileOpen');
   });
 
@@ -51,14 +52,17 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
     expect(content).toMatch(/useEffect.*\n.*setMobileOpen\(false\)/);
   });
 
-  it('should include Browse, Events, Pricing links in mobile menu', () => {
-    expect(content).toContain('href="/browse"');
-    expect(content).toContain('href="/events"');
-    expect(content).toContain('href="/pricing"');
+  it('should render the canonical destinations and Learn links in the mobile menu', () => {
+    expect(content).toContain('CORE_DESTINATIONS.map');
+    expect(content).toContain('LEARN_DESTINATIONS.map');
+    expect(navigation).toContain("label: 'Discover'");
+    expect(navigation).toContain("label: 'Experiences'");
+    expect(navigation).toContain("{ label: 'Pricing', href: '/pricing'");
   });
 
-  it('should include Following link in mobile menu for authenticated users', () => {
-    expect(content).toContain('href="/following"');
+  it('should keep Following activity grouped under Community', () => {
+    expect(navigation).toContain("label: 'Community'");
+    expect(navigation).toContain("matches: ['/community', '/following', '/messages', '/fan-club', '/sandbox']");
   });
 
   it('should include Dashboard link in mobile menu for authenticated users', () => {

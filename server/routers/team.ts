@@ -56,6 +56,34 @@ const teamAccessProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const teamRouter = router({
+  // Resolve only the signed-in user's own collaborator context for the shared Workspace.
+  getMyWorkspaceContext: protectedProcedure.query(async ({ ctx }) => {
+    const database = await getDb();
+    if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+    const [membership] = await database.select().from(artistTeamMembers)
+      .where(eq(artistTeamMembers.userId, ctx.user.id))
+      .limit(1);
+    if (!membership) return null;
+
+    const [artistProfile] = await database.select({
+      id: artistProfiles.id,
+      userId: artistProfiles.userId,
+      artistName: artistProfiles.artistName,
+    }).from(artistProfiles)
+      .where(eq(artistProfiles.id, membership.artistProfileId))
+      .limit(1);
+    if (!artistProfile) return null;
+
+    return {
+      artistProfileId: artistProfile.id,
+      artistUserId: artistProfile.userId,
+      artistName: artistProfile.artistName,
+      role: membership.role,
+      permissions: membership.permissions,
+    };
+  }),
+
   // Public: Get invitation preview (email, inviter name, role) without requiring login
   getInvitationPreview: publicProcedure
     .input(z.object({ token: z.string() }))

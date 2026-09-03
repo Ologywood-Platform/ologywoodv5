@@ -33,6 +33,7 @@ import { ReportContentModal } from "@/components/ReportContentModal";
 import { TipQRSection } from "@/components/TipQRCode";
 import { FanClubSection } from "@/components/FanClubSection";
 import { SandboxPostSection } from "@/components/SandboxPostSection";
+import { ProfileJourneyActions } from "@/components/ProfileJourneyActions";
 
 import { toast } from "sonner";
 import { useParams, useLocation } from "wouter";
@@ -830,6 +831,18 @@ export default function ArtistProfile() {
               isOwner={user?.id === artist.userId}
             />
 
+            <ProfileJourneyActions
+              artistUserId={artist.userId || artistId}
+              artistName={artist.artistName}
+              onBook={() => {
+                if (!isAuthenticated) {
+                  setShowAuthModal(true);
+                  return;
+                }
+                setBookingDialogOpen(true);
+              }}
+            />
+
             {/* Athlete Stats & Achievements (only for athletes) */}
             {(artist as any).talentType === 'athlete' && (
               <>
@@ -1209,7 +1222,9 @@ export default function ArtistProfile() {
             
             {/* Fan Club Section */}
             {artist && artist.userId && (
-              <FanClubSection artistUserId={artist.userId} artistName={artist.artistName} talentType={(artist as any).talentType} />
+              <div id="profile-fan-club" className="scroll-mt-24">
+                <FanClubSection artistUserId={artist.userId} artistName={artist.artistName} talentType={(artist as any).talentType} />
+              </div>
             )}
 
             {/* Support This Artist - Tip Links */}
@@ -1340,7 +1355,7 @@ export default function ArtistProfile() {
 
             {/* White Label Releases */}
             {releases && releases.length > 0 && (
-              <Card>
+              <Card id="profile-content" className="scroll-mt-24">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Music className="h-5 w-5 text-primary" />
@@ -1371,12 +1386,16 @@ export default function ArtistProfile() {
 
             {/* Merch Section */}
             {artist && (
-              <MerchDisplay userId={artist.userId} userType={(artist as any).talentType === 'athlete' ? 'athlete' : 'artist'} talentType={(artist as any).talentType} />
+              <div id="profile-shop" className="scroll-mt-24">
+                <MerchDisplay userId={artist.userId} userType={(artist as any).talentType === 'athlete' ? 'athlete' : 'artist'} talentType={(artist as any).talentType} />
+              </div>
             )}
 
             {/* Content Releases Section */}
             {artist && (
-              <ContentReleasesDisplay artistProfileId={artist.id} />
+              <div id={releases && releases.length > 0 ? undefined : 'profile-content'} className="scroll-mt-24">
+                <ContentReleasesDisplay artistProfileId={artist.id} />
+              </div>
             )}
 
             {/* Reviews Section */}

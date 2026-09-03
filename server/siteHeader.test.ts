@@ -1,123 +1,62 @@
-import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { describe, expect, it } from 'vitest';
 
-describe('SiteHeader Component', () => {
+describe('SiteHeader unified ecosystem navigation', () => {
   const siteHeaderPath = path.resolve(__dirname, '../client/src/components/SiteHeader.tsx');
-  const siteHeaderContent = fs.readFileSync(siteHeaderPath, 'utf-8');
+  const content = fs.readFileSync(siteHeaderPath, 'utf-8');
 
-  it('should exist as a component file', () => {
-    expect(fs.existsSync(siteHeaderPath)).toBe(true);
+  it('renders the six canonical destinations from one shared contract', () => {
+    expect(content).toContain('CORE_DESTINATIONS.map');
+    expect(content).toContain('isDestinationActive');
   });
 
-  it('should export a default function component', () => {
-    expect(siteHeaderContent).toContain('export function SiteHeader');
+  it('keeps search, create, inbox, notifications, and account as utilities', () => {
+    expect(content).toContain('aria-label="Search OlogyWood"');
+    expect(content).toContain('CreateActionDialog');
+    expect(content).toContain('aria-label="Inbox"');
+    expect(content).toContain('RealtimeNotifications');
+    expect(content).toContain('Account');
   });
 
-  it('should import useAuth for authentication state', () => {
-    expect(siteHeaderContent).toContain("useAuth");
+  it('moves supporting links into the More menu', () => {
+    expect(content).toContain('LEARN_DESTINATIONS.map');
+    expect(content).toContain('More');
   });
 
-  it('should include a Following link to /following', () => {
-    expect(siteHeaderContent).toContain('href="/following"');
-    expect(siteHeaderContent).toContain('Following');
+  it('preserves authentication, theme, tips, and responsive mobile behavior', () => {
+    expect(content).toContain('useAuth');
+    expect(content).toContain('LogoutButton');
+    expect(content).toContain('HelperNotesToggle');
+    expect(content).toContain('DarkModeToggle');
+    expect(content).toContain('openSignIn');
+    expect(content).toContain('lg:hidden');
   });
 
-  it('should include a Heart icon for the Following link', () => {
-    expect(siteHeaderContent).toContain('Heart');
-    expect(siteHeaderContent).toContain('lucide-react');
-  });
-
-  it('should only show Following link when authenticated', () => {
-    // The Following link should be inside the isAuthenticated conditional block
-    const authBlock = siteHeaderContent.match(/\{isAuthenticated \? \(([\s\S]*?)\) : \(/);
-    expect(authBlock).not.toBeNull();
-    expect(authBlock![1]).toContain('/following');
-  });
-
-  it('should show Log In button when not authenticated', () => {
-    expect(siteHeaderContent).toContain('Log In');
-    expect(siteHeaderContent).toContain('openSignIn');
-  });
-
-  it('should include Dashboard link for authenticated users', () => {
-    expect(siteHeaderContent).toContain('getDashboardUrl');
-    expect(siteHeaderContent).toContain('Dashboard');
-  });
-
-  it('should support hideBrowse prop', () => {
-    expect(siteHeaderContent).toContain('hideBrowse');
-  });
-
-  it('should support largeLogo prop', () => {
-    expect(siteHeaderContent).toContain('largeLogo');
-    expect(siteHeaderContent).toContain('logo-lg.png');
-    expect(siteHeaderContent).toContain('logo-sm.png');
-  });
-
-  it('should support extraNav prop', () => {
-    expect(siteHeaderContent).toContain('extraNav');
-  });
-
-  it('should highlight Following button when on /following page', () => {
-    expect(siteHeaderContent).toContain('isFollowingPage');
-    expect(siteHeaderContent).toContain("location === '/following'");
-  });
-
-  it('should include a Logout button for authenticated users', () => {
-    expect(siteHeaderContent).toContain('LogoutButton');
-    expect(siteHeaderContent).toContain('LogOut');
-  });
-
-  it('should include FAQ link in mobile menu pointing to /faq', () => {
-    expect(siteHeaderContent).toContain('href="/faq"');
-    expect(siteHeaderContent).toContain('FAQ');
+  it('does not expose role-specific My Music as a global destination', () => {
+    expect(content).not.toContain('href="/my-music"');
   });
 });
 
-describe('Pages using SiteHeader', () => {
+describe('Global shell coverage', () => {
   const pages = [
-    { name: 'Home', path: '../client/src/pages/Home.tsx' },
-    { name: 'Browse', path: '../client/src/pages/Browse.tsx' },
-    { name: 'ArtistProfile', path: '../client/src/pages/ArtistProfile.tsx' },
-    { name: 'VenueProfile', path: '../client/src/pages/VenueProfile.tsx' },
-    { name: 'EventDetail', path: '../client/src/pages/EventDetail.tsx' },
-    { name: 'EventDiscovery', path: '../client/src/pages/EventDiscovery.tsx' },
-    { name: 'Following', path: '../client/src/pages/Following.tsx' },
+    'Home',
+    'Browse',
+    'ArtistProfile',
+    'VenueProfile',
+    'EventDetail',
+    'EventDiscovery',
+    'Following',
+    'Workspace',
+    'MyOlogy',
+    'CoreDestinationHub',
   ];
 
-  pages.forEach(({ name, path: pagePath }) => {
-    it(`${name} page should import SiteHeader`, () => {
-      const fullPath = path.resolve(__dirname, pagePath);
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      expect(content).toContain("import SiteHeader from");
-    });
-
-    it(`${name} page should render <SiteHeader`, () => {
-      const fullPath = path.resolve(__dirname, pagePath);
-      const content = fs.readFileSync(fullPath, 'utf-8');
+  for (const page of pages) {
+    it(`${page} renders the shared SiteHeader`, () => {
+      const content = fs.readFileSync(path.resolve(__dirname, `../client/src/pages/${page}.tsx`), 'utf-8');
+      expect(content).toContain('SiteHeader');
       expect(content).toContain('<SiteHeader');
     });
-  });
-
-  it('Browse page should use SiteHeader', () => {
-    const browsePath = path.resolve(__dirname, '../client/src/pages/Browse.tsx');
-    const content = fs.readFileSync(browsePath, 'utf-8');
-    expect(content).toContain('SiteHeader');
-  });
-
-  it('Home page should pass largeLogo prop to SiteHeader', () => {
-    const homePath = path.resolve(__dirname, '../client/src/pages/Home.tsx');
-    const content = fs.readFileSync(homePath, 'utf-8');
-    expect(content).toContain('largeLogo');
-  });
-});
-
-describe('Following route', () => {
-  it('should have /following route defined in App.tsx', () => {
-    const appPath = path.resolve(__dirname, '../client/src/App.tsx');
-    const content = fs.readFileSync(appPath, 'utf-8');
-    expect(content).toContain('path="/following"');
-    expect(content).toContain('Following');
-  });
+  }
 });

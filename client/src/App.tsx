@@ -80,6 +80,12 @@ const MyBookings = lazy(() => import("./pages/MyBookings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 const BlogAdmin = lazy(() => import("./pages/BlogAdmin"));
 const BloggerDashboard = lazy(() => import("./pages/BloggerDashboard"));
+const Workspace = lazy(() => import("./pages/Workspace"));
+const MyOlogy = lazy(() => import("./pages/MyOlogy"));
+const DiscoverHub = lazy(() => import("./pages/CoreDestinationHub").then(m => ({ default: m.DiscoverHub })));
+const ExperiencesHub = lazy(() => import("./pages/CoreDestinationHub").then(m => ({ default: m.ExperiencesHub })));
+const ShopHub = lazy(() => import("./pages/CoreDestinationHub").then(m => ({ default: m.ShopHub })));
+const CommunityHub = lazy(() => import("./pages/CoreDestinationHub").then(m => ({ default: m.CommunityHub })));
 
 // Legal & marketing pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -169,9 +175,15 @@ function Router() {
           <Route path="/admin/payouts" component={AdminPayouts} />
           <Route path="/admin/blog" component={BlogAdmin} />
           <Route path="/blogger-dashboard" component={BloggerDashboard} />
+          <Route path="/workspace">{() => <PageErrorBoundary><Workspace /></PageErrorBoundary>}</Route>
+          <Route path="/my-ology">{() => <PageErrorBoundary><MyOlogy /></PageErrorBoundary>}</Route>
           <Route path="/artist-tax-reporting" component={ArtistTaxReporting} />
           
           {/* Discovery */}
+          <Route path="/discover">{() => <PageErrorBoundary><DiscoverHub /></PageErrorBoundary>}</Route>
+          <Route path="/experiences">{() => <PageErrorBoundary><ExperiencesHub /></PageErrorBoundary>}</Route>
+          <Route path="/shop">{() => <PageErrorBoundary><ShopHub /></PageErrorBoundary>}</Route>
+          <Route path="/community">{() => <PageErrorBoundary><CommunityHub /></PageErrorBoundary>}</Route>
           <Route path="/browse">{() => <PageErrorBoundary><Browse /></PageErrorBoundary>}</Route>
           <Route path="/artist/:slug/sandbox">{() => <PageErrorBoundary><SandboxPostPage /></PageErrorBoundary>}</Route>
           <Route path="/artist/:id">{(params: any) => <PageErrorBoundary><ArtistProfile {...params} /></PageErrorBoundary>}</Route>

@@ -14,6 +14,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton } from '@/components/Skel
 import { ShareVenueModal } from '@/components/ShareVenueModal';
 import { MerchDisplay } from '@/components/MerchDisplay';
 import { FollowVenueButton } from '@/components/FollowVenueButton';
+import { VenueJourneyActions } from '@/components/VenueJourneyActions';
 import { ReportContentModal } from '@/components/ReportContentModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
@@ -296,6 +297,14 @@ export default function VenueProfile() {
           </CardContent>
         </Card>
 
+        {!isVenueOwner && (
+          <VenueJourneyActions
+            venueUserId={venueProfile.userId}
+            venueName={venueProfile.organizationName || 'this venue'}
+            onContact={() => user ? setContactModalOpen(true) : setShowAuthModal(true)}
+          />
+        )}
+
         {/* Venue Details */}
         <Card className="mb-6">
           <CardHeader>
@@ -411,7 +420,9 @@ export default function VenueProfile() {
         })()}
 
         {/* Upcoming Events */}
-        <VenueUpcomingEvents venueId={resolvedVenueId} />
+        <div id="venue-events" className="scroll-mt-24">
+          <VenueUpcomingEvents venueId={resolvedVenueId} />
+        </div>
 
         {/* Venue Sponsors */}
         <VenueSponsorsSection venueId={resolvedVenueId} />
@@ -488,7 +499,7 @@ export default function VenueProfile() {
 
         {/* Shop & Offers Section */}
         {venueProfile && (venueProfile as any)?.userId && (
-          <div className="mb-6">
+          <div id="venue-shop" className="mb-6 scroll-mt-24">
             <MerchDisplay userId={(venueProfile as any).userId} userType="venue" />
           </div>
         )}

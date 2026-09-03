@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Heart, LogOut, Menu, X, ShoppingBag, CalendarCheck, ChevronDown, LayoutDashboard, User, Settings, AlertTriangle, Download, Music, Shield } from 'lucide-react';
+import { LogOut, Menu, X, ChevronDown, LayoutDashboard, User, Settings, Download, Shield, Library, MoreHorizontal, Search, MessageCircle } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
@@ -11,6 +11,8 @@ import RealtimeNotifications from './RealtimeNotifications';
 import { HelperNotesToggle } from './HelperNotesToggle';
 import EarlyAccessBanner from './EarlyAccessBanner';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { CORE_DESTINATIONS, LEARN_DESTINATIONS, getWorkspaceRole, isDestinationActive } from '@/lib/ecosystemNavigation';
+import { CreateActionDialog } from '@/components/CreateActionDialog';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -51,13 +53,14 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [learnMenuOpen, setLearnMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('login');
 
   // Check if Terms banner was temporarily dismissed (remind later)
   const termsRemindLaterActive = useMemo(() => {
     if (!isAuthenticated) return false;
-    const TERMS_VERSION = '2026-07-18';
+    const TERMS_VERSION = '2026-09-01';
     const accepted = localStorage.getItem('ologywood_terms_accepted_version');
     if (accepted === TERMS_VERSION) return false;
     const remindLater = localStorage.getItem('ologywood_terms_remind_later');
@@ -69,6 +72,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
   }, [isAuthenticated]);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const learnMenuRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu on outside click
   useEffect(() => {
@@ -94,10 +98,22 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
     return () => document.removeEventListener('mousedown', handleClick);
   }, [userMenuOpen]);
 
+  useEffect(() => {
+    if (!learnMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (learnMenuRef.current && !learnMenuRef.current.contains(e.target as Node)) {
+        setLearnMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [learnMenuOpen]);
+
   // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
     setUserMenuOpen(false);
+    setLearnMenuOpen(false);
   }, [location]);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
@@ -114,11 +130,10 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
     closeMobile();
   };
 
-  const isFollowingPage = location === '/following';
-
   // Truncate display name for the dropdown trigger
   const displayName = user?.name || user?.email || 'Account';
   const shortName = displayName.length > 16 ? displayName.slice(0, 14) + '...' : displayName;
+  const workspaceRole = getWorkspaceRole(user as any);
 
   return (
     <>
@@ -137,61 +152,56 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          <nav className="hidden lg:flex items-center gap-0.5">
             {extraNav}
+            {CORE_DESTINATIONS.map((item) => {
+              const active = isDestinationActive(location, item.matches);
+              return (
+                <Link key={item.id} href={item.href}>
+                  <Button variant="ghost" size="sm" className={`text-sm px-2.5 ${active ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-semibold' : 'dark:text-gray-300 dark:hover:text-white'}`}>
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            })}
 
-            <Link href="/browse">
-              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/browse' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Browse
+            <div className="relative" ref={learnMenuRef}>
+              <Button variant="ghost" size="sm" className="gap-1 px-2 text-sm dark:text-gray-300 dark:hover:text-white" onClick={() => setLearnMenuOpen((open) => !open)} aria-expanded={learnMenuOpen}>
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">More OlogyWood links</span>
               </Button>
-            </Link>
-
-            <Link href="/events">
-              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/events' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Events
-              </Button>
-            </Link>
-            <Link href="/ology-live">
-              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Ology Live
-              </Button>
-            </Link>
-
-            <Link href="/blog">
-              <Button variant="ghost" size="sm" className="text-sm px-3 dark:text-gray-300 dark:hover:text-white">
-                Blog
-              </Button>
-            </Link>
-
-            <Link href="/sponsor-opportunities">
-              <Button variant="ghost" size="sm" className={`text-sm px-3 ${location === '/sponsor-opportunities' ? 'text-purple-700 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Sponsors
-              </Button>
-            </Link>
+              {learnMenuOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-xl border bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                  <p className="px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Learn & support</p>
+                  {LEARN_DESTINATIONS.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={() => setLearnMenuOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800">
+                      <span className="block text-sm font-medium dark:text-gray-200">{item.label}</span>
+                      <span className="block text-xs text-muted-foreground">{item.description}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {isAuthenticated ? (
               <>
-                <Link href="/following">
-                  <Button
-                    variant={isFollowingPage ? 'default' : 'ghost'}
-                    size="sm"
-                    className={`text-sm px-3 gap-1 ${
-                      isFollowingPage
-                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                        : 'dark:text-gray-300 dark:hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`h-4 w-4 ${isFollowingPage ? 'fill-current' : ''}`} />
-                    Following
+                <Link href="/discover" title="Search OlogyWood">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 dark:text-gray-300 dark:hover:text-white" aria-label="Search OlogyWood">
+                    <Search className="h-4 w-4" />
                   </Button>
                 </Link>
-
+                <CreateActionDialog role={workspaceRole} compact />
+                <Link href="/messages" title="Inbox">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 dark:text-gray-300 dark:hover:text-white" aria-label="Inbox">
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <RealtimeNotifications />
 
                 <HelperNotesToggle />
                 <DarkModeToggle compact />
 
-                {/* User dropdown menu — consolidates Dashboard, Bookings, Purchases, Logout */}
+                      {/* User dropdown menu — account controls stay separate from the six core destinations. */}
                 <div className="relative" ref={userMenuRef}>
                   <Button
                     variant="ghost"
@@ -235,7 +245,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                         <Link href={getDashboardUrl(user)} onClick={() => setUserMenuOpen(false)} className="block">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
                             <LayoutDashboard className="h-4 w-4" />
-                            {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
+                            Workspace
                           </button>
                         </Link>
 
@@ -248,31 +258,10 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                           </Link>
                         )}
 
-                        <Link href="/my-bookings" onClick={() => setUserMenuOpen(false)} className="block">
+                        <Link href="/my-ology" onClick={() => setUserMenuOpen(false)} className="block">
                           <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <CalendarCheck className="h-4 w-4" />
-                            My Bookings
-                          </button>
-                        </Link>
-
-                        <Link href="/my-purchases" onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <ShoppingBag className="h-4 w-4" />
-                            My Purchases
-                          </button>
-                        </Link>
-
-                        <Link href="/my-music" onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <Music className="h-4 w-4" />
-                            My Music Player
-                          </button>
-                        </Link>
-
-                        <Link href="/disputes" onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <AlertTriangle className="h-4 w-4" />
-                            My Disputes
+                            <Library className="h-4 w-4" />
+                            My Ology
                           </button>
                         </Link>
 
@@ -325,7 +314,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
           </nav>
 
           {/* Mobile: Dark mode toggle + Hamburger */}
-          <div className="md:hidden flex items-center gap-1">
+          <div className="lg:hidden flex items-center gap-1">
             {isAuthenticated && <RealtimeNotifications />}
             <DarkModeToggle compact />
             <button
@@ -345,75 +334,24 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
 
         {/* Mobile Dropdown Menu */}
         {mobileOpen && (
-          <nav className="md:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-0.5 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors max-h-[80dvh] overflow-y-auto">
+          <nav className="lg:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-0.5 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors max-h-[80dvh] overflow-y-auto">
             {extraNav}
-
-            <Link href="/browse" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/browse' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Browse
-              </Button>
-            </Link>
-
-            <Link href="/events" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/events' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Events
-              </Button>
-            </Link>
-
-            <Link href="/ology-live" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/ology-live' || location.startsWith('/ology-live/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Ology Live
-              </Button>
-            </Link>
-
-            <Link href="/blog" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/blog' || location.startsWith('/blog/') ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Blog
-              </Button>
-            </Link>
-
-            <Link href="/sponsor-opportunities" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/sponsor-opportunities' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Sponsors
-              </Button>
-            </Link>
-
-            <Link href="/pricing" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/pricing' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                Pricing
-              </Button>
-            </Link>
-
-            <Link href="/faq" onClick={closeMobile} className="block">
-              <Button variant="ghost" size="sm" className={`w-full justify-start text-sm min-h-[44px] ${location === '/faq' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium' : 'dark:text-gray-300 dark:hover:text-white'}`}>
-                FAQ
-              </Button>
-            </Link>
+            {CORE_DESTINATIONS.map((item) => {
+              const active = isDestinationActive(location, item.matches);
+              return <Link key={item.id} href={item.href} onClick={closeMobile} className="block"><Button variant="ghost" size="sm" className={`min-h-[44px] w-full justify-start text-sm ${active ? 'bg-purple-50 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'dark:text-gray-300 dark:hover:text-white'}`}>{item.label}</Button></Link>;
+            })}
+            <div className="my-2 border-t dark:border-gray-700" />
+            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Learn & support</p>
+            {LEARN_DESTINATIONS.map((item) => <Link key={item.href} href={item.href} onClick={closeMobile} className="block"><Button variant="ghost" size="sm" className="min-h-[44px] w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">{item.label}</Button></Link>)}
 
             {isAuthenticated ? (
               <>
-                <Link href="/following" onClick={closeMobile} className="block">
-                  <Button
-                    variant={isFollowingPage ? 'default' : 'ghost'}
-                    size="sm"
-                    className={`w-full justify-start text-sm gap-2 min-h-[44px] ${
-                      isFollowingPage
-                        ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                        : 'dark:text-gray-300 dark:hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`h-4 w-4 ${isFollowingPage ? 'fill-current' : ''}`} />
-                    Following
-                  </Button>
-                </Link>
-
-                <Link href={getDashboardUrl(user)} onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
-                    <LayoutDashboard className="h-4 w-4" />
-                    {user?.role === 'blogger' ? 'Blog Dashboard' : 'Dashboard'}
-                  </Button>
-                </Link>
-
+                <div className="grid grid-cols-2 gap-2 px-1 py-2">
+                  <CreateActionDialog role={workspaceRole} />
+                  <Link href="/messages" onClick={closeMobile} className="block">
+                    <Button variant="outline" className="w-full gap-2"><MessageCircle className="h-4 w-4" />Inbox</Button>
+                  </Link>
+                </div>
                 {(user as any)?.isAdmin && (
                   <Link href="/admin" onClick={closeMobile} className="block">
                     <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] text-purple-600 dark:text-purple-400 font-medium">
@@ -422,34 +360,6 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                     </Button>
                   </Link>
                 )}
-
-                <Link href="/my-bookings" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
-                    <CalendarCheck className="h-4 w-4" />
-                    My Bookings
-                  </Button>
-                </Link>
-
-                <Link href="/my-purchases" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
-                    <ShoppingBag className="h-4 w-4" />
-                    My Purchases
-                  </Button>
-                </Link>
-
-                <Link href="/my-music" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
-                    <Music className="h-4 w-4" />
-                    My Music Player
-                  </Button>
-                </Link>
-
-                <Link href="/disputes" onClick={closeMobile} className="block">
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-sm gap-2 min-h-[44px] dark:text-gray-300 dark:hover:text-white">
-                    <AlertTriangle className="h-4 w-4" />
-                    My Disputes
-                  </Button>
-                </Link>
 
                 <div className="pt-2 border-t dark:border-gray-700 mt-2">
                   {isInstallable && !isInstalled && (

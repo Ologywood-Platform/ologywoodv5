@@ -141,13 +141,18 @@ describe('Blogger Role Feature', () => {
 
   // ============ NAVIGATION ============
   describe('Navigation - Dashboard URL', () => {
-    it('should route bloggers to /blogger-dashboard', () => {
+    it('should route bloggers into the shared Workspace while retaining the legacy blogger route', () => {
       const dashboardUrlContent = fs.readFileSync(
         path.resolve(__dirname, '../client/src/utils/dashboardUrl.ts'),
         'utf-8'
       );
-      expect(dashboardUrlContent).toContain("user.role === 'blogger'");
-      expect(dashboardUrlContent).toContain("'/blogger-dashboard'");
+      const appContent = fs.readFileSync(
+        path.resolve(__dirname, '../client/src/App.tsx'),
+        'utf-8'
+      );
+      expect(dashboardUrlContent).toContain("if (user.role === 'fan') return '/my-ology'");
+      expect(dashboardUrlContent).toContain("return '/workspace'");
+      expect(appContent).toContain('path="/blogger-dashboard"');
     });
   });
 

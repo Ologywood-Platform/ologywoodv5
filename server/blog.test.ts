@@ -179,8 +179,12 @@ describe('Blog Navigation Integration', () => {
       path.resolve(__dirname, '../client/src/components/SiteHeader.tsx'),
       'utf-8'
     );
-    expect(headerFile).toContain('href="/blog"');
-    expect(headerFile).toContain('Blog');
+    const navigationFile = fs.readFileSync(
+      path.resolve(__dirname, '../client/src/lib/ecosystemNavigation.ts'),
+      'utf-8'
+    );
+    expect(headerFile).toContain('LEARN_DESTINATIONS');
+    expect(navigationFile).toContain("{ label: 'Blog', href: '/blog'");
   });
 
   it('should have Blog link in Footer', async () => {

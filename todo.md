@@ -4551,3 +4551,29 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Define shared journey and status language connecting bookings, tickets, releases, Fan Clubs, Books, merch, Sandbox Posts, messages, delivery, refunds, and payouts
 - [x] Recommend a six-stage simplification sequence that preserves current services while reducing navigation and presentation fragmentation
 - [x] Deliver the ecosystem blueprint as a reusable architecture document plus Mermaid source and rendered wireframe with clear priorities and implementation principles
+
+## UNIFIED WORKSPACE, MY OLOGY & SIX-DESTINATION NAVIGATION (Sep 2, 2026)
+- [x] Audit every role’s dashboard data, fan-owned records, current header links, protected routes, and existing canonical/alias destinations
+- [x] Define shared labels, icons, route contracts, role visibility, and migration-safe aliases for Discover, Experiences, Shop, Community, My Ology, and Workspace
+- [x] Make Discover the unquestioned primary entry point and keep Search, Create, Inbox, Notifications, and Account as global utilities rather than competing destinations
+- [x] Keep the creator/venue profile as the public center with immediately understandable Book, Attend, Buy, Watch/Listen, Follow, and Join actions
+- [x] Preserve Sandbox Post directly beneath the creator bio, with the new profile action rail immediately after it rather than displacing the approved placement
+- [x] Express the platform flywheel consistently as Discover → Connect → Experience → Support → Return
+- [x] Build responsive Discover, Experiences, Shop, and Community hub pages that organize existing features without duplicating their data or business logic
+- [x] Build a shared role-aware Workspace shell with consistent overview, section navigation, breadcrumbs, helper copy, and mobile behavior
+- [x] Replace the creator’s 16 equal-weight quick actions with prioritized Needs Attention, recent activity, business snapshot, and grouped workspace destinations
+- [x] Build a server-backed Needs Attention queue using real booking, order, fulfillment, event, profile, payout, and role-appropriate status data
+- [x] Build a role-aware + Create menu for Sandbox Post, booking offers, events/tickets, Creator Shop/Books, releases, Fan Clubs, Ology Live, and venue actions
+- [x] Connect creator, venue, administrator, and blogger roles to the shared Workspace entry while preserving specialized working pages
+- [x] Keep Admin operational complexity separate from creator, venue, fan, and public experiences
+- [x] Build My Ology as the authenticated fan/customer home for purchases, tickets, bookings, unlocked releases/eBooks/music, following, and upcoming activity
+- [x] Include active Fan Club memberships and upcoming Ology Live sessions in My Ology so support and experiences lead back to one Return destination
+- [x] Diagnose and repair the legacy runtime Ology Live schema used by My Ology when upcoming-session retrieval fails, without changing release architecture or existing live-session records
+- [x] Replace the desktop and mobile primary menu with the six core destinations while moving Blog, Sponsors, Pricing, Help, FAQ, and company links into a clear Learn/More area
+- [x] Remove role-inappropriate primary links such as My Music for non-music talent and keep role-specific destinations contextual
+- [x] Preserve old URLs with redirects or compatible aliases so bookmarks, emails, social links, checkout returns, and existing tests continue to work
+- [x] Unify transaction language and presentation without forcing bookings, tickets, orders, memberships, releases, and live sessions into one database model
+- [x] Add regression coverage for role routing, core navigation, Needs Attention priorities, + Create actions, My Ology aggregation, permissions, empty/error states, and aliases
+- [x] Verify creator, venue, fan, admin, blogger, team-member, logged-out, desktop, and mobile journeys without modifying existing production records
+- [x] Run TypeScript, 397 focused ecosystem tests across 17 files, all 2,742 platform tests with 23 skipped across 153 files, and a successful production build
+- [ ] Save and report the unified ecosystem implementation checkpoint

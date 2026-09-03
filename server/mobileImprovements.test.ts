@@ -85,6 +85,7 @@ describe('Sticky Booking Bar', () => {
 describe('Mobile Dashboard Bottom Navigation', () => {
   const mobileNavPath = path.join(clientDir, 'components', 'MobileBottomNav.tsx');
   const dashboardPath = path.join(clientDir, 'pages', 'ArtistDashboardV3.tsx');
+  const ecosystemNavPath = path.join(clientDir, 'lib', 'ecosystemNavigation.ts');
 
   it('MobileBottomNav component file exists', () => {
     expect(fs.existsSync(mobileNavPath)).toBe(true);
@@ -96,39 +97,23 @@ describe('Mobile Dashboard Bottom Navigation', () => {
     expect(src).toContain("dashboard");
   });
 
-  it('MobileBottomNav dashboard mode has Overview tab', () => {
+  it('MobileBottomNav uses the authoritative canonical destination list', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain('Overview');
+    expect(src).toContain('CORE_DESTINATIONS.map');
     expect(src).toContain('LayoutDashboard');
+    expect(src).toContain('grid-cols-6');
   });
 
-  it('MobileBottomNav dashboard mode has Bookings tab', () => {
-    const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("label: 'Bookings'");
-    expect(src).toContain("path: '/bookings'");
+  it('MobileBottomNav has all six core destinations', () => {
+    const src = fs.readFileSync(ecosystemNavPath, 'utf-8');
+    for (const label of ['Discover', 'Experiences', 'Shop', 'Community', 'My Ology', 'Workspace']) {
+      expect(src).toContain(`label: '${label}'`);
+    }
   });
 
-  it('MobileBottomNav dashboard mode has Messages tab', () => {
+  it('MobileBottomNav is only visible below the desktop breakpoint', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("label: 'Messages'");
-    expect(src).toContain("path: '/messages'");
-  });
-
-  it('MobileBottomNav dashboard mode has Earnings tab', () => {
-    const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("label: 'Earnings'");
-    expect(src).toContain("path: '/earnings'");
-  });
-
-  it('MobileBottomNav dashboard mode has More tab', () => {
-    const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("label: 'More'");
-    expect(src).toContain('MoreHorizontal');
-  });
-
-  it('MobileBottomNav is only visible on mobile (sm:hidden)', () => {
-    const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain('sm:hidden');
+    expect(src).toContain('lg:hidden');
   });
 
   it('MobileBottomNav has fixed positioning at bottom', () => {
@@ -139,7 +124,7 @@ describe('Mobile Dashboard Bottom Navigation', () => {
   it('MobileBottomNav highlights active tab', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
     expect(src).toContain('aria-current');
-    expect(src).toContain('text-primary');
+    expect(src).toContain('text-purple-700 dark:text-purple-300');
   });
 
   it('MobileBottomNav has backdrop blur', () => {
@@ -157,26 +142,27 @@ describe('Mobile Dashboard Bottom Navigation', () => {
     expect(src).toContain('<MobileBottomNav mode="dashboard"');
   });
 
-  it('ArtistDashboardV3 has quick-actions id for More tab scroll', () => {
+  it('ArtistDashboardV3 retains its quick-actions anchor for internal dashboard use', () => {
     const src = fs.readFileSync(dashboardPath, 'utf-8');
     expect(src).toContain('id="quick-actions"');
   });
 
-  it('MobileBottomNav More tab scrolls to quick-actions', () => {
+  it('MobileBottomNav navigates each canonical destination directly', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("getElementById('quick-actions')");
-    expect(src).toContain('scrollIntoView');
+    expect(src).toContain('onClick={() => navigate(item.href)}');
+    expect(src).not.toContain("getElementById('quick-actions')");
   });
 
   it('MobileBottomNav includes spacer div to prevent content overlap', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toMatch(/h-(?:1[46]|20)\s+sm:hidden/);
+    expect(src).toContain('h-20 lg:hidden');
   });
 
-  it('MobileBottomNav public mode has Home and Browse tabs', () => {
+  it('MobileBottomNav public and dashboard modes share one global destination model', () => {
     const src = fs.readFileSync(mobileNavPath, 'utf-8');
-    expect(src).toContain("label: 'Home'");
-    expect(src).toContain("label: 'Browse'");
+    expect(src).toContain("mode: _mode = 'public'");
+    expect(src).toContain('role-specific destinations now belong inside Workspace');
+    expect(src).not.toContain('dashboardNavItems');
   });
 });
 

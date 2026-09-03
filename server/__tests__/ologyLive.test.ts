@@ -182,11 +182,19 @@ describe('Ology Live - Phase 1', () => {
       expect(app).toContain('OlogyLiveExperience');
     });
 
-    it('should have Ology Live in the site header navigation', () => {
+    it('should expose Ology Live through the canonical Experiences destination', () => {
       const headerPath = path.join(__dirname, '../../client/src/components/SiteHeader.tsx');
       const header = fs.readFileSync(headerPath, 'utf-8');
-      expect(header).toContain('Ology Live');
-      expect(header).toContain('/ology-live');
+      const navigationPath = path.join(__dirname, '../../client/src/lib/ecosystemNavigation.ts');
+      const navigation = fs.readFileSync(navigationPath, 'utf-8');
+      const experiencesHubPath = path.join(__dirname, '../../client/src/pages/CoreDestinationHub.tsx');
+      const experiencesHub = fs.readFileSync(experiencesHubPath, 'utf-8');
+
+      expect(header).toContain('CORE_DESTINATIONS');
+      expect(navigation).toContain("label: 'Experiences'");
+      expect(navigation).toContain("matches: ['/experiences', '/events', '/ology-live'");
+      expect(experiencesHub).toContain("title: 'Ology Live'");
+      expect(experiencesHub).toContain("href: '/ology-live'");
     });
 
     it('should have Ology Live in the artist dashboard quick actions', () => {

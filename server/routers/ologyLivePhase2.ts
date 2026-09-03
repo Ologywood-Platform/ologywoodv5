@@ -17,6 +17,7 @@ import {
   signContract,
   markContractViewed,
 } from "../services/nilSessionContract";
+import { ensureOlogyLiveBookingsSchema } from "../services/ologyLiveSchemaService";
 
 export const ologyLivePhase2Router = router({
   // ============= SESSION CONTRACTS =============
@@ -413,6 +414,7 @@ export const ologyLivePhase2Router = router({
     }).optional())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
+      await ensureOlogyLiveBookingsSchema(db);
       const conditions = [eq(ologyLiveBookings.fanId, ctx.user.id)];
 
       const now = new Date();

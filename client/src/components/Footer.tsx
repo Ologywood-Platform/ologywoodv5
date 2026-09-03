@@ -26,38 +26,46 @@ const Footer = () => {
     {
       title: 'Platform',
       links: [
-        { label: 'Browse Talent', path: '/browse' },
-        { label: 'Events', path: '/events' },
-        { label: 'Pricing', path: '/pricing' },
-        { label: 'Our Story', path: '/about' },
-        { label: 'How It Works', path: '/how-it-works' },
-        { label: 'Help Center', path: '/help' },
-        { label: 'FAQ', path: '/faq' },
-        { label: 'Contact Us', path: '/contact' },
-        { label: 'Blog', path: '/blog' },
+        { label: 'Discover', path: '/discover' },
+        { label: 'Experiences', path: '/experiences' },
+        { label: 'Shop', path: '/shop' },
+        { label: 'Community', path: '/community' },
+        { label: 'My Ology', path: '/my-ology' },
+        { label: 'Workspace', path: '/workspace' },
       ],
     },
     {
       title: 'For Talent',
       links: [
-        { label: 'Artist Dashboard', path: '/dashboard' },
-        { label: 'Browse Venues', path: '/venues' },
+        { label: 'Creator Workspace', path: '/workspace' },
+        { label: 'Edit Profile', path: '/profile/edit' },
+        { label: 'Riders', path: '/riders' },
+        { label: 'Creator Shop', path: '/merch' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Earnings', path: '/earnings' },
-        { label: 'Releases', path: '/releases' },
-        { label: 'Riders', path: '/riders' },
-        { label: 'Availability', path: '/availability' },
+        { label: 'Create', path: '/workspace' },
       ],
     },
     {
       title: 'For Venues',
       links: [
-        { label: 'Venue Dashboard', path: '/venue-dashboard' },
-        { label: 'Browse Talent', path: '/browse' },
-        { label: 'Events', path: '/events' },
+        { label: 'Venue Workspace', path: '/workspace' },
+        { label: 'Discover Talent', path: '/discover' },
+        { label: 'Create Event', path: '/venue/events/create' },
         { label: 'My Bookings', path: '/bookings' },
         { label: 'Invoices', path: '/venue-invoices' },
-        { label: 'Favorites', path: '/favorites' },
+        { label: 'Following', path: '/following' },
+      ],
+    },
+    {
+      title: 'Explore & Learn',
+      links: [
+        { label: 'Events', path: '/events' },
+        { label: 'Blog', path: '/blog' },
+        { label: 'Pricing', path: '/pricing' },
+        { label: 'How It Works', path: '/how-it-works' },
+        { label: 'Help Center', path: '/help' },
+        { label: 'About', path: '/about' },
       ],
     },
     {
@@ -138,7 +146,7 @@ const Footer = () => {
         </div>
 
         {/* Footer Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {footerSections.map((section) => (
             <div key={section.title}>
               <h4 className="text-white font-semibold mb-4">{section.title}</h4>

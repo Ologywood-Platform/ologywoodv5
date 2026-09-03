@@ -172,6 +172,26 @@ export const fanClubRouter = router({
       return membership || null;
     }),
 
+  listMyMemberships: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+
+    return db.select({
+      id: fanClubMemberships.id,
+      talentUserId: fanClubMemberships.talentUserId,
+      tierId: fanClubMemberships.tierId,
+      tierName: fanClubTiers.name,
+      status: fanClubMemberships.status,
+      startedAt: fanClubMemberships.startedAt,
+      currentPeriodEnd: fanClubMemberships.currentPeriodEnd,
+    })
+      .from(fanClubMemberships)
+      .leftJoin(fanClubTiers, eq(fanClubMemberships.tierId, fanClubTiers.id))
+      .where(eq(fanClubMemberships.fanUserId, ctx.user.id))
+      .orderBy(desc(fanClubMemberships.startedAt))
+      .limit(50);
+  }),
+
   subscribe: protectedProcedure
     .input(z.object({ tierId: z.number() }))
     .mutation(async ({ ctx, input }) => {
