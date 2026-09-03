@@ -4529,4 +4529,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add unit and behavioral HTTP coverage for accepted formats, precise errors, conversion routing, limits, signatures, ownership, tampering, capacity, cleanup, final storage, and existing-format regressions
 - [x] Validate real AVI and MKV conversion plus the user’s exact MOV, native WebM, over-size, over-duration, malformed-signature, audio-only, delivery-signature, replay, and cleanup cases with no creator-data changes
 - [x] Run TypeScript, 49 focused video/upload/security tests, 2,747 full-suite tests with 23 skipped, and a successful production build
-- [ ] Save and report the AVI/MKV compatibility checkpoint
+- [x] Save checkpoint 60c71c37 for the completed AVI/MKV compatibility and upload-error validation results
