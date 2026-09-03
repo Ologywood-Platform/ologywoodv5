@@ -4541,3 +4541,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify the authenticated owner dashboard shows 6 total, 6 published, and 0 drafts, then validate a disposable draft→publish→unpublish→archive→delete lifecycle with exact baseline restoration
 - [x] Run TypeScript, 37 focused Blog/Admin tests, 2,752 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint 5164332f for the completed Admin Blog Management repair and validation results
+
+## UNIFIED PLATFORM WIREFRAME & ECOSYSTEM BLUEPRINT (Sep 2, 2026)
+- [x] Inventory 101 active routes, profile types, global/account navigation, role dashboards, 16 creator quick actions, 10 venue tabs, and major feature entry points
+- [x] Map the end-to-end creator, venue/promoter, fan/buyer, team-member, blogger, and admin journeys
+- [x] Identify duplicated destinations, hidden features, dead ends, terminology drift, dashboard overload, role-inappropriate links, and cross-feature handoff gaps
+- [x] Design one unified information architecture around Discover, Experiences, Shop, Community, My Ology, and a role-aware Workspace
+- [x] Design a responsive platform wireframe showing the global shell, role workspaces, public profile storefront, creation entry point, and shared transaction lifecycle
+- [x] Define shared journey and status language connecting bookings, tickets, releases, Fan Clubs, Books, merch, Sandbox Posts, messages, delivery, refunds, and payouts
+- [x] Recommend a six-stage simplification sequence that preserves current services while reducing navigation and presentation fragmentation
+- [x] Deliver the ecosystem blueprint as a reusable architecture document plus Mermaid source and rendered wireframe with clear priorities and implementation principles
