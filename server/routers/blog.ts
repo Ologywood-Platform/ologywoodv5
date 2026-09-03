@@ -1,20 +1,21 @@
 import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { blogPosts } from "../../drizzle/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { storagePut } from "../storage";
+import { canManageBlog, normalizeBlogStatusCounts } from "../services/blogAdminService";
 
 // Admin, Blogger, or site-owner middleware
 const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
-const OWNER_NAME = process.env.OWNER_NAME || '';
 const blogAccess = protectedProcedure.use(async (opts) => {
   const user = opts.ctx.user;
-  const isAdmin = user.role === 'admin';
-  const isBlogger = user.role === 'blogger';
-  const isOwner = (OWNER_OPEN_ID && user.openId === OWNER_OPEN_ID) || (OWNER_NAME && user.openId === OWNER_NAME);
-  if (!isAdmin && !isBlogger && !isOwner) {
-    throw new Error("Unauthorized: Blog management access required");
+  if (!canManageBlog(user, OWNER_OPEN_ID)) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Blog management access is limited to the site owner, administrators, and approved bloggers.',
+    });
   }
   return opts.next();
 });
@@ -120,9 +121,19 @@ export const blogRouter = router({
         .from(blogPosts)
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
+      const [statusCountRow] = await db
+        .select({
+          total: sql<number>`count(*)`,
+          published: sql<number>`sum(case when ${blogPosts.status} = 'published' then 1 else 0 end)`,
+          drafts: sql<number>`sum(case when ${blogPosts.status} = 'draft' then 1 else 0 end)`,
+          archived: sql<number>`sum(case when ${blogPosts.status} = 'archived' then 1 else 0 end)`,
+        })
+        .from(blogPosts);
+
       return {
         posts,
-        total: countResult[0]?.count ?? 0,
+        total: Number(countResult[0]?.count ?? 0),
+        counts: normalizeBlogStatusCounts(statusCountRow as Record<string, unknown> | undefined),
       };
     }),
 

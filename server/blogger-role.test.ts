@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import { canManageBlog } from './services/blogAdminService';
 
 describe('Blogger Role Feature', () => {
   // ============ SCHEMA ============
@@ -24,8 +25,9 @@ describe('Blogger Role Feature', () => {
       );
       // Should have blogAccess middleware
       expect(blogRouterContent).toContain('blogAccess');
-      // Should check for blogger role
-      expect(blogRouterContent).toContain("user.role === 'blogger'");
+      // Should delegate role checks to the centralized, directly tested helper
+      expect(blogRouterContent).toContain('canManageBlog(user, OWNER_OPEN_ID)');
+      expect(canManageBlog({ role: 'blogger', openId: 'writer' }, 'owner')).toBe(true);
       // Should NOT have adminOnly (replaced with blogAccess)
       expect(blogRouterContent).not.toContain('const adminOnly');
     });
@@ -50,7 +52,8 @@ describe('Blogger Role Feature', () => {
         path.resolve(__dirname, './routers/blog.ts'),
         'utf-8'
       );
-      expect(blogRouterContent).toContain("user.role === 'admin'");
+      expect(canManageBlog({ role: 'admin', openId: 'admin-user' }, 'owner')).toBe(true);
+      expect(canManageBlog({ role: 'artist', openId: 'owner' }, 'owner')).toBe(true);
       expect(blogRouterContent).toContain('OWNER_OPEN_ID');
     });
   });
@@ -178,11 +181,7 @@ describe('Blogger Role Feature', () => {
     });
 
     it('blogger should have blog management access', () => {
-      const blogRouterContent = fs.readFileSync(
-        path.resolve(__dirname, './routers/blog.ts'),
-        'utf-8'
-      );
-      expect(blogRouterContent).toContain("user.role === 'blogger'");
+      expect(canManageBlog({ role: 'blogger', openId: 'approved-blogger' }, 'owner')).toBe(true);
     });
   });
 });

@@ -4530,3 +4530,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate real AVI and MKV conversion plus the user’s exact MOV, native WebM, over-size, over-duration, malformed-signature, audio-only, delivery-signature, replay, and cleanup cases with no creator-data changes
 - [x] Run TypeScript, 49 focused video/upload/security tests, 2,747 full-suite tests with 23 skipped, and a successful production build
 - [x] Save checkpoint 60c71c37 for the completed AVI/MKV compatibility and upload-error validation results
+
+## ADMIN BLOG MANAGEMENT COUNT REPAIR (Sep 2, 2026)
+- [x] Reproduce the misleading zero-count state while the live public Blog API returns six published records
+- [x] Compare the protected Admin query, public query, runtime database, owner authorization, filters, pagination, count derivation, loading state, and error handling
+- [x] Return authoritative global total, published, draft, and archived counts independently of the current status filter or page
+- [x] Ensure Blog Management displays all six authorized records with correct status, author, title, live link, and actions
+- [x] Keep every admin filter and the public Blog synchronized after create, edit, publish, unpublish, archive, and delete mutations without a manual reload
+- [x] Add regression coverage for numeric count normalization, access, global counts, loading/error truthfulness, filtered empty states, and complete cache invalidation
+- [x] Verify the authenticated owner dashboard shows 6 total, 6 published, and 0 drafts, then validate a disposable draft→publish→unpublish→archive→delete lifecycle with exact baseline restoration
+- [x] Run TypeScript, 37 focused Blog/Admin tests, 2,752 full-suite tests with 23 skipped, and a successful production build
+- [ ] Save and report the Admin Blog Management repair checkpoint

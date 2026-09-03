@@ -172,6 +172,7 @@ export default function BlogAdmin() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const utils = trpc.useUtils();
   const postsQuery = trpc.blog.adminList.useQuery({ limit: 100, status: statusFilter });
   const editPostQuery = trpc.blog.adminGetById.useQuery(
     { id: editId! },
@@ -180,7 +181,8 @@ export default function BlogAdmin() {
 
   const createMutation = trpc.blog.create.useMutation({
     onSuccess: () => {
-      postsQuery.refetch();
+      void utils.blog.adminList.invalidate();
+      void utils.blog.list.invalidate();
       setView('list');
       resetForm();
       setToast({ message: 'Blog post created successfully', type: 'success' });
@@ -190,7 +192,8 @@ export default function BlogAdmin() {
 
   const updateMutation = trpc.blog.update.useMutation({
     onSuccess: () => {
-      postsQuery.refetch();
+      void utils.blog.adminList.invalidate();
+      void utils.blog.list.invalidate();
       setView('list');
       setEditId(null);
       resetForm();
@@ -201,7 +204,8 @@ export default function BlogAdmin() {
 
   const setStatusMutation = trpc.blog.setStatus.useMutation({
     onSuccess: (_data, vars) => {
-      postsQuery.refetch();
+      void utils.blog.adminList.invalidate();
+      void utils.blog.list.invalidate();
       setToast({ message: `Post ${vars.status === 'published' ? 'published' : vars.status === 'archived' ? 'archived' : 'unpublished'} successfully`, type: 'success' });
     },
     onError: (err) => setToast({ message: err.message, type: 'error' }),
@@ -209,7 +213,8 @@ export default function BlogAdmin() {
 
   const deleteMutation = trpc.blog.delete.useMutation({
     onSuccess: () => {
-      postsQuery.refetch();
+      void utils.blog.adminList.invalidate();
+      void utils.blog.list.invalidate();
       setToast({ message: 'Blog post deleted', type: 'success' });
     },
     onError: (err) => setToast({ message: err.message, type: 'error' }),
@@ -682,9 +687,12 @@ export default function BlogAdmin() {
 
   // ─── List View ───────────────────────────────────────────────
   const posts = filteredPosts;
-  const totalPosts = postsQuery.data?.total ?? 0;
-  const publishedCount = (postsQuery.data?.posts || []).filter((p: any) => p.status === 'published').length;
-  const draftCount = (postsQuery.data?.posts || []).filter((p: any) => p.status === 'draft').length;
+  const counts = postsQuery.data?.counts;
+  const countSummary = postsQuery.isLoading
+    ? 'Loading blog post counts…'
+    : postsQuery.isError
+      ? 'Blog post counts are temporarily unavailable'
+      : `${counts?.total ?? 0} total posts · ${counts?.published ?? 0} published · ${counts?.drafts ?? 0} drafts`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -710,7 +718,7 @@ export default function BlogAdmin() {
                 <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" /> Blog Management
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                {totalPosts} total posts · {publishedCount} published · {draftCount} drafts
+                {countSummary}
               </p>
             </div>
             <button
@@ -778,16 +786,38 @@ export default function BlogAdmin() {
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
+        ) : postsQuery.isError ? (
+          <div className="bg-white rounded-lg border border-red-200 p-10 text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Blog posts could not be loaded</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              {postsQuery.error.message || 'Check your Blog management access and try again.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => void postsQuery.refetch()}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" /> Try Again
+            </button>
+          </div>
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-16 text-center">
             <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">
-              {searchQuery ? 'No posts match your search' : 'No blog posts yet'}
+              {searchQuery
+                ? 'No posts match your search'
+                : statusFilter
+                  ? `No ${statusFilter} posts`
+                  : 'No blog posts yet'}
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              {searchQuery ? 'Try a different search term.' : 'Create your first blog post to get started.'}
+              {searchQuery
+                ? 'Try a different search term.'
+                : statusFilter
+                  ? `There are currently no posts with ${statusFilter} status.`
+                  : 'Create your first blog post to get started.'}
             </p>
-            {!searchQuery && (
+            {!searchQuery && !statusFilter && (
               <button
                 onClick={() => { resetForm(); setView('create'); }}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
