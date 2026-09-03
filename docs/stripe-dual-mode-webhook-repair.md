@@ -35,6 +35,10 @@ The completed implementation and validation state was saved as checkpoint **100a
 
 After the first publication, the test API secret was accidentally exposed in conversation. The key was not copied into source code or diagnostic commands. The user immediately rotated it in Stripe, entered the replacement through secure project configuration, and the replacement successfully authenticated to Stripe's read-only test-mode balance endpoint. The one-use validation test was removed. The project must be published once more so the deployment receives the rotated `STRIPE_TEST_SECRET_KEY` before a real failed Stripe delivery is retried.
 
+## Production confirmation
+
+After republishing with the rotated credential, both `ologywood-mp6flm6c.manus.space` and `www.ologywood.com` returned HTTP 200 for a valid test-mode signature and HTTP 400 for an invalid signature. The user then resent a previously failed real Stripe test event. Production logs recorded it at **2026-09-03 14:09:19 UTC** as a verified **test-mode `charge.refunded`** event, executed the refund handler, and showed no webhook-processing exception. This confirms that Stripe test-mode deliveries now authenticate and reach the production handler through the existing shared URL.
+
 ## References
 
 1. [Stripe: Receive Stripe events in your webhook endpoint](https://docs.stripe.com/webhooks)

@@ -4588,6 +4588,6 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Run TypeScript, 327 focused payment tests across 16 files, all 2,750 platform tests with 23 skipped across 154 files, and a successful production build
 - [x] Instruct the user to rotate the accidentally exposed test API key; user confirmed the old key was rotated
 - [x] Replace `STRIPE_TEST_SECRET_KEY` through secure configuration and validate the replacement against Stripe's read-only test-mode balance endpoint
-- [ ] Republish after credential rotation and reconfirm the deployed endpoint accepts test-mode signatures
-- [ ] Publish the repair checkpoint, retry one failed test-mode delivery in Stripe, and confirm the deployed endpoint returns 2xx
+- [x] Republish after credential rotation and reconfirm both production domains accept valid test-mode signatures with HTTP 200 while rejecting invalid signatures with HTTP 400
+- [x] Retry a previously failed real Stripe test-mode `charge.refunded` delivery and confirm production processed it without a webhook exception
 - [x] Save implementation checkpoint 100aa60e for the Stripe test-mode webhook repair
