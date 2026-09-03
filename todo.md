@@ -4586,5 +4586,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Implement the narrow production-safe fix without weakening signature verification or changing successful live payment behavior
 - [x] Add focused webhook regressions for the diagnosed failure, invalid signatures, duplicate events, unsupported events, successful 2xx acknowledgment, and ticket retry safety
 - [x] Run TypeScript, 327 focused payment tests across 16 files, all 2,750 platform tests with 23 skipped across 154 files, and a successful production build
+- [x] Instruct the user to rotate the accidentally exposed test API key; user confirmed the old key was rotated
+- [x] Replace `STRIPE_TEST_SECRET_KEY` through secure configuration and validate the replacement against Stripe's read-only test-mode balance endpoint
+- [ ] Republish after credential rotation and reconfirm the deployed endpoint accepts test-mode signatures
 - [ ] Publish the repair checkpoint, retry one failed test-mode delivery in Stripe, and confirm the deployed endpoint returns 2xx
 - [x] Save implementation checkpoint 100aa60e for the Stripe test-mode webhook repair

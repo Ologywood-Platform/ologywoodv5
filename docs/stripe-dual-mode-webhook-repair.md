@@ -31,6 +31,10 @@ The production endpoint will continue running the previously published single-se
 
 The completed implementation and validation state was saved as checkpoint **100aa60e**.
 
+## Test-key rotation
+
+After the first publication, the test API secret was accidentally exposed in conversation. The key was not copied into source code or diagnostic commands. The user immediately rotated it in Stripe, entered the replacement through secure project configuration, and the replacement successfully authenticated to Stripe's read-only test-mode balance endpoint. The one-use validation test was removed. The project must be published once more so the deployment receives the rotated `STRIPE_TEST_SECRET_KEY` before a real failed Stripe delivery is retried.
+
 ## References
 
 1. [Stripe: Receive Stripe events in your webhook endpoint](https://docs.stripe.com/webhooks)
