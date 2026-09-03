@@ -4513,4 +4513,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add unit and behavioral HTTP coverage for the supplied MOV failure class, chunking, authentication, tampering, ownership, capacity, assembly, signatures, final storage, and replay rejection
 - [x] Verify the exact supplied MOV completes ten video chunks, one thumbnail chunk, active catalog insertion, signed 206 playback bytes, duplicate-finalize rejection, and exact zero-row cleanup
 - [x] Run TypeScript, 53 focused video/upload/security tests, 2,742 full-suite tests with 23 skipped, and a successful production build
-- [ ] Save and report the MOV upload repair checkpoint
+- [x] Save checkpoint 945ce48d for the completed MOV upload repair and validation results
