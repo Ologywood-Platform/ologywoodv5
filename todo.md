@@ -4577,3 +4577,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verify creator, venue, fan, admin, blogger, team-member, logged-out, desktop, and mobile journeys without modifying existing production records
 - [x] Run TypeScript, 397 focused ecosystem tests across 17 files, all 2,742 platform tests with 23 skipped across 153 files, and a successful production build
 - [x] Save implementation checkpoint 75986ea1 and report the unified ecosystem validation results
+
+## STRIPE TEST-MODE WEBHOOK DELIVERY FAILURE (Sep 3, 2026)
+- [x] Audit production webhook logs and reproduce the reported deployed-endpoint failure with a harmless test-signed request; confirmed HTTP 400 signature mismatch
+- [x] Keep the existing `/api/stripe/webhook` URL and strictly accept both mode-specific signing secrets, as approved by the user
+- [x] Verify raw-body ordering, Stripe signature verification, test/live webhook-secret behavior, registered events, idempotency, and response status paths
+- [x] Identify the failure class as test/live endpoint-secret mismatch and separately confirm mode-correct API keys are required for test subscription lookups
+- [x] Implement the narrow production-safe fix without weakening signature verification or changing successful live payment behavior
+- [x] Add focused webhook regressions for the diagnosed failure, invalid signatures, duplicate events, unsupported events, successful 2xx acknowledgment, and ticket retry safety
+- [x] Run TypeScript, 327 focused payment tests across 16 files, all 2,750 platform tests with 23 skipped across 154 files, and a successful production build
+- [ ] Publish the repair checkpoint, retry one failed test-mode delivery in Stripe, and confirm the deployed endpoint returns 2xx
+- [ ] Save and report the Stripe test-mode webhook repair checkpoint

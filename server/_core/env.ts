@@ -17,6 +17,8 @@ export const ENV = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
   stripePublishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  stripeTestSecretKey: process.env.STRIPE_TEST_SECRET_KEY ?? "",
+  stripeTestWebhookSecret: process.env.STRIPE_TEST_WEBHOOK_SECRET ?? "",
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
 };
 
@@ -27,4 +29,6 @@ export const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 export const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+export const STRIPE_TEST_SECRET_KEY = process.env.STRIPE_TEST_SECRET_KEY;
+export const STRIPE_TEST_WEBHOOK_SECRET = process.env.STRIPE_TEST_WEBHOOK_SECRET;
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;

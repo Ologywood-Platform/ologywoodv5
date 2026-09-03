@@ -5,12 +5,10 @@ import * as email from '../email';
 import { buildMerchOrderNotification } from '../utils/merchCommerce';
 import { formatDateOnly } from '../../shared/dateOnly';
 import { getEmailLogoImage } from '../../shared/emailBranding';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+import {
+  getStripeClientForWebhookMode,
+  verifyStripeWebhookEvent,
+} from '../services/stripeWebhookMode';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -20,26 +18,17 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.status(400).send('No signature');
   }
 
-  let event: Stripe.Event;
+  let verifiedWebhook: ReturnType<typeof verifyStripeWebhookEvent>;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      webhookSecret
-    );
+    verifiedWebhook = verifyStripeWebhookEvent(req.body, sig);
   } catch (err) {
     console.error('[Stripe Webhook] Signature verification failed:', err);
     return res.status(400).send(`Webhook Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
   }
 
-  // Handle test events
-  if (event.id.startsWith('evt_test_')) {
-    console.log('[Stripe Webhook] Test event detected, returning verification response');
-    return res.json({ verified: true });
-  }
-
-  console.log(`[Stripe Webhook] Processing event: ${event.type}`);
+  const { event, mode } = verifiedWebhook;
+  console.log(`[Stripe Webhook] Processing ${mode} event ${event.id}: ${event.type}`);
 
   try {
     switch (event.type) {
@@ -70,7 +59,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaymentFailed(invoice);
+        await handleInvoicePaymentFailed(invoice, getStripeClientForWebhookMode(mode));
         break;
       }
 
@@ -475,7 +464,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 }
 
-async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient: Stripe) {
   const invoiceData = invoice as any;
   const subscriptionId = invoiceData.subscription as string | undefined;
   const customerId = invoice.customer as string;
@@ -484,7 +473,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     console.log(`[Stripe Webhook] Payment failed for subscription ${subscriptionId}`);
     
     // Get subscription to find userId
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
     const userId = subscription.metadata?.userId;
 
     if (userId) {
@@ -905,7 +894,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
   const { getDb } = await import('../db');
   const { ticketOrders, ticketItems, ticketTiers } = await import('../../drizzle/schema');
-  const { eq, sql } = await import('drizzle-orm');
+  const { and, eq, sql } = await import('drizzle-orm');
   const { randomUUID } = await import('crypto');
 
   const orderId = session.metadata?.orderId;
@@ -927,42 +916,51 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
   }
 
   try {
-    // Update order status to completed
-    await database.update(ticketOrders).set({
-      status: 'completed',
-      stripePaymentIntentId: session.payment_intent as string || null,
-    }).where(eq(ticketOrders.id, parseInt(orderId)));
+    let processed = false;
+    await database.transaction(async (tx) => {
+      const updateResult = await tx.update(ticketOrders).set({
+        status: 'completed',
+        stripePaymentIntentId: session.payment_intent as string || null,
+      }).where(and(
+        eq(ticketOrders.id, parseInt(orderId)),
+        eq(ticketOrders.status, 'pending'),
+      ));
+      const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+      if (affectedRows === 0) return;
+      processed = true;
 
-    // Create individual ticket items and update tier sold counts
-    for (const item of items) {
-      const tierId = item.tierId;
-      const quantity = item.quantity;
+      // Create individual ticket items and update tier sold counts atomically.
+      for (const item of items) {
+        const tierId = item.tierId;
+        const quantity = item.quantity;
 
-      // Get the tier to snapshot the price
-      const [tier] = await database.select().from(ticketTiers).where(eq(ticketTiers.id, tierId)).limit(1);
-      if (!tier) {
-        console.error(`[Stripe Webhook] Tier ${tierId} not found for ticket creation`);
-        continue;
+        const [tier] = await tx.select().from(ticketTiers).where(eq(ticketTiers.id, tierId)).limit(1);
+        if (!tier) {
+          throw new Error(`Tier ${tierId} not found for ticket creation`);
+        }
+
+        for (let i = 0; i < quantity; i++) {
+          await tx.insert(ticketItems).values({
+            orderId: parseInt(orderId),
+            tierId,
+            eventId: parseInt(eventId),
+            ticketCode: randomUUID(),
+            attendeeName: session.metadata?.customer_name || session.customer_details?.name || null,
+            attendeeEmail: session.customer_details?.email || session.metadata?.customer_email || null,
+            status: 'valid',
+            price: tier.price,
+          });
+        }
+
+        await tx.update(ticketTiers).set({
+          quantitySold: sql`${ticketTiers.quantitySold} + ${quantity}`,
+        }).where(eq(ticketTiers.id, tierId));
       }
+    });
 
-      // Create individual tickets with unique codes
-      for (let i = 0; i < quantity; i++) {
-        await database.insert(ticketItems).values({
-          orderId: parseInt(orderId),
-          tierId,
-          eventId: parseInt(eventId),
-          ticketCode: randomUUID(),
-          attendeeName: session.metadata?.customer_name || session.customer_details?.name || null,
-          attendeeEmail: session.customer_details?.email || session.metadata?.customer_email || null,
-          status: 'valid',
-          price: tier.price,
-        });
-      }
-
-      // Update quantity sold on the tier
-      await database.update(ticketTiers).set({
-        quantitySold: sql`${ticketTiers.quantitySold} + ${quantity}`,
-      }).where(eq(ticketTiers.id, tierId));
+    if (!processed) {
+      console.log(`[Stripe Webhook] Ticket order ${orderNumber || orderId} already processed, skipping`);
+      return;
     }
 
     console.log(`[Stripe Webhook] Ticket purchase completed: order ${orderNumber}, ${items.reduce((sum: number, i: any) => sum + i.quantity, 0)} tickets created`);
