@@ -4637,4 +4637,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent regressions for enabled, disabled, legacy-null, owner authorization, validation, migration safety, card/detail tag, and purchase-continuity behavior
 - [x] Validate creator controls and expanded public disclosure details at 390-pixel mobile and desktop widths without changing existing real releases; remove the temporary preview route afterward
 - [x] Run TypeScript, 129 focused release/music/payment/Help/AI tests across nine files, all 2,772 platform tests with 23 skipped across 157 files, and a successful 18.97-second production build
-- [ ] Save, publish, and verify the live AI disclosure feature
+- [x] Save checkpoint `085e3e72`, publish, verify the live Help article and deterministic OlogyWood AI answer, and receive authenticated owner confirmation that the optional Music Release disclosure control is live without saving a release

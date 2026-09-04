@@ -55,6 +55,14 @@ White Label music cards and externally hosted Content Release cards use one expa
 
 The Help Center and OlogyWood AI now explain how to enable the feature and why an absent tag means unknown rather than AI-free. TypeScript passed, and the focused release, purchase, checkout, download, sales, public-profile, Help, and AI guidance suite passed **129 tests across nine files**.
 
+## Live publication verification
+
+After checkpoint `085e3e72` was published, the Help Center displayed **How do I disclose AI use in a song or release?** under Music & Releases. Expanding the live article showed the optional switch, AI-assisted and primarily AI-generated choices, affected-component guidance, optional tools and creator explanation, public-tag behavior, the unknown non-disclosure state, and the statement that OlogyWood does not independently certify ownership or rights.
+
+The published OlogyWood AI was also asked **How do I add an AI disclosure tag to my release?** It returned the deterministic guidance: disclosure is optional, creators enable it in either release form, choose a level and at least one component, may identify tools or add context, and receive a public tag. It correctly stated that an absent tag means no disclosure was provided rather than verified AI-free work, and that OlogyWood does not certify AI use, ownership, copyright, consent, licensing, or rights.
+
+The authenticated owner then opened the live Music Release creation experience and confirmed that the optional **AI Use Disclosure** control is present. No release was created, edited, published, purchased, or deleted for this verification. Because all existing releases remain undisclosed, no public release received a new tag; this is the intended legacy-safe behavior.
+
 ## References
 
 [1]: https://support.google.com/youtube/answer/17124251?hl=en "YouTube Help — Disclose Gen AI usage for music content"
