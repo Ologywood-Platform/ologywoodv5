@@ -4609,4 +4609,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent responsive regression coverage for the Activity table overflow and accessibility contract
 - [x] Validate the Activity view at 390 × 844 mobile and 1280 × 720 desktop widths, then restore the normal Overview default tab
 - [x] Run TypeScript, 141 focused Admin/mobile tests across six files, all 2,754 platform tests with 23 skipped across 154 files, and a successful production build
-- [ ] Save, publish, and verify the fix on the live mobile Admin Activity view
+- [x] Save checkpoint 72af8315, publish it, and verify horizontal table scrolling on the live mobile Admin Activity view; production logged successful Activity stats and log requests for user 7

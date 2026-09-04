@@ -12,4 +12,6 @@ The Activity table now sits inside a dedicated horizontal scroll region. The tab
 
 The Activity view was rendered at 390 × 844 pixels and showed the mobile swipe guidance with the table contained inside the page. It was also rendered at 1280 × 720 pixels, where Timestamp, Admin, Action, Category, Target, and Details remained visible in the existing desktop layout. The focused Admin/mobile suite passed **141 tests across six files**. The complete platform suite passed **2,754 tests**, with **23 skipped**, across **154 files**. TypeScript passed, and the production build completed successfully in **18.98 seconds**.
 
-The remaining step is publication followed by touch-scroll verification on the live mobile Admin Activity view.
+## Production verification
+
+Checkpoint `72af8315` was published on September 4, 2026. The platform owner verified on a real mobile device that the live Admin Activity table now scrolls horizontally. Production logs recorded successful `admin.getActivityStats` and `admin.getActivityLog` calls for authenticated user 7 at 17:44 UTC and 17:45 UTC, with no Activity query error.
