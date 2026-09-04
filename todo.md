@@ -4601,3 +4601,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate authoritative global count invariants, loading/error states, filters, and post listing after access succeeds
 - [x] Run TypeScript, 99 focused Blog/Admin tests across seven files, all 2,753 platform tests with 23 skipped across 154 files, and a successful production build
 - [x] Save checkpoint 5cf164da, publish it, and verify the live mobile Blog Management page displays real Blog images and titles; production logged successful `blog.adminList` calls for user 7 with no authorization or query error
+
+## ADMIN ACTIVITY MOBILE TABLE SCROLLING (Sep 4, 2026)
+- [x] Inspect the Activity tab and identify the clipping source: the wide table was placed directly inside an `overflow-hidden` wrapper
+- [x] Add a bounded horizontal scroll region with iOS momentum scrolling and touch handling that preserves normal vertical page scrolling
+- [x] Keep the Activity filters, rows, pagination, administrator-only access, and data behavior unchanged
+- [x] Add permanent responsive regression coverage for the Activity table overflow and accessibility contract
+- [x] Validate the Activity view at 390 × 844 mobile and 1280 × 720 desktop widths, then restore the normal Overview default tab
+- [x] Run TypeScript, 141 focused Admin/mobile tests across six files, all 2,754 platform tests with 23 skipped across 154 files, and a successful production build
+- [ ] Save, publish, and verify the fix on the live mobile Admin Activity view

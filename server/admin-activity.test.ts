@@ -134,6 +134,20 @@ describe('Admin Activity Dashboard', () => {
       expect(content).toContain('totalPages');
     });
 
+    it('should expose every Activity column through a mobile touch-scroll region', async () => {
+      const fs = await import('fs');
+      const content = fs.readFileSync('/home/ubuntu/ologywood/client/src/pages/AdminDashboard.tsx', 'utf-8');
+
+      expect(content).toContain('data-testid="admin-activity-scroll-region"');
+      expect(content).toContain('overflow-x-auto overscroll-x-contain');
+      expect(content).toContain('[touch-action:pan-x_pan-y]');
+      expect(content).toContain('[-webkit-overflow-scrolling:touch]');
+      expect(content).toContain('min-w-[960px]');
+      expect(content).toContain('Swipe horizontally to view all activity details.');
+      expect(content).toContain('aria-label="Admin activity log"');
+      expect(content).not.toContain('bg-white rounded-lg border border-gray-200 overflow-hidden">\n            <table className="w-full"');
+    });
+
     it('should display action labels for common admin actions', async () => {
       const fs = await import('fs');
       const content = fs.readFileSync('/home/ubuntu/ologywood/client/src/pages/AdminDashboard.tsx', 'utf-8');

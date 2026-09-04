@@ -2052,7 +2052,7 @@ function ActivityTab({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Stats Header */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2126,8 +2126,19 @@ function ActivityTab({
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
+          <p className="text-xs text-gray-500 sm:hidden" id="activity-scroll-hint">
+            Swipe horizontally to view all activity details.
+          </p>
+          <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div
+              className="w-full max-w-full overflow-x-auto overscroll-x-contain [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              role="region"
+              aria-label="Admin activity log"
+              aria-describedby="activity-scroll-hint"
+              tabIndex={0}
+              data-testid="admin-activity-scroll-region"
+            >
+            <table className="w-full min-w-[960px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Timestamp</th>
@@ -2184,6 +2195,7 @@ function ActivityTab({
                 })}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Pagination */}
