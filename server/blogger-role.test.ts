@@ -26,7 +26,7 @@ describe('Blogger Role Feature', () => {
       // Should have blogAccess middleware
       expect(blogRouterContent).toContain('blogAccess');
       // Should delegate role checks to the centralized, directly tested helper
-      expect(blogRouterContent).toContain('canManageBlog(user, OWNER_OPEN_ID)');
+      expect(blogRouterContent).toContain('canManageBlog(user)');
       expect(canManageBlog({ role: 'blogger', openId: 'writer' }, 'owner')).toBe(true);
       // Should NOT have adminOnly (replaced with blogAccess)
       expect(blogRouterContent).not.toContain('const adminOnly');
@@ -54,7 +54,11 @@ describe('Blogger Role Feature', () => {
       );
       expect(canManageBlog({ role: 'admin', openId: 'admin-user' }, 'owner')).toBe(true);
       expect(canManageBlog({ role: 'artist', openId: 'owner' }, 'owner')).toBe(true);
-      expect(blogRouterContent).toContain('OWNER_OPEN_ID');
+      expect(canManageBlog(
+        { role: 'artist', openId: 'linked-owner', email: 'OWNER@example.com' },
+        { openId: 'original-owner', email: 'owner@example.com' },
+      )).toBe(true);
+      expect(blogRouterContent).toContain('canManageBlog(user)');
     });
   });
 

@@ -4591,3 +4591,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Republish after credential rotation and reconfirm both production domains accept valid test-mode signatures with HTTP 200 while rejecting invalid signatures with HTTP 400
 - [x] Retry a previously failed real Stripe test-mode `charge.refunded` delivery and confirm production processed it without a webhook exception
 - [x] Save implementation checkpoint 100aa60e for the Stripe test-mode webhook repair
+
+## RECURRING BLOG MANAGEMENT AUTHORIZATION FAILURE (Sep 4, 2026)
+- [x] Trace the production Blog Management request to repeated `blog.adminList` `FORBIDDEN` errors for authenticated user 7
+- [x] Reproduce the owner-role decision and validate the repair through the read-only real router without changing Blog posts or user records
+- [x] Identify the regression source: Blog access used only `OWNER_OPEN_ID`, while the Admin router also recognized the linked creator-owner account by its established email fallback
+- [x] Implement one shared platform-owner authorization helper used by both Blog Management and the Admin router without granting access to ordinary users
+- [x] Add permanent regressions for configured owner, administrator, approved blogger, creator-owner multi-role context, and unauthorized users
+- [x] Validate authoritative global count invariants, loading/error states, filters, and post listing after access succeeds
+- [x] Run TypeScript, 99 focused Blog/Admin tests across seven files, all 2,753 platform tests with 23 skipped across 154 files, and a successful production build
+- [ ] Save, publish, and verify the repair on the live mobile Blog Management page

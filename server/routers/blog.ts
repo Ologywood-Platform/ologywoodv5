@@ -8,10 +8,9 @@ import { storagePut } from "../storage";
 import { canManageBlog, normalizeBlogStatusCounts } from "../services/blogAdminService";
 
 // Admin, Blogger, or site-owner middleware
-const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
 const blogAccess = protectedProcedure.use(async (opts) => {
   const user = opts.ctx.user;
-  if (!canManageBlog(user, OWNER_OPEN_ID)) {
+  if (!canManageBlog(user)) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Blog management access is limited to the site owner, administrators, and approved bloggers.',

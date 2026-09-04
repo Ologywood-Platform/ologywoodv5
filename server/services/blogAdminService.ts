@@ -1,6 +1,11 @@
-export type BlogManagementIdentity = {
+import {
+  isPlatformOwner,
+  type PlatformOwnerConfiguration,
+  type PlatformOwnerIdentity,
+} from './platformOwnerAccess';
+
+export type BlogManagementIdentity = PlatformOwnerIdentity & {
   role: string;
-  openId: string | null;
 };
 
 export type BlogStatusCounts = {
@@ -10,10 +15,16 @@ export type BlogStatusCounts = {
   archived: number;
 };
 
-export function canManageBlog(user: BlogManagementIdentity, ownerOpenId: string): boolean {
+export function canManageBlog(
+  user: BlogManagementIdentity,
+  ownerConfiguration: PlatformOwnerConfiguration | string = {},
+): boolean {
+  const configuration = typeof ownerConfiguration === 'string'
+    ? { openId: ownerConfiguration }
+    : ownerConfiguration;
   return user.role === 'admin'
     || user.role === 'blogger'
-    || (ownerOpenId.length > 0 && user.openId === ownerOpenId);
+    || isPlatformOwner(user, configuration);
 }
 
 function toCount(value: unknown): number {
