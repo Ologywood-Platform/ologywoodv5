@@ -13,6 +13,13 @@ IMPORTANT RULES:
 PLATFORM OVERVIEW:
 Ologywood is the business platform for creators. Creators own their audience. Creators choose where their content lives. Ologywood powers everything that makes that content profitable — bookings, tickets, fan clubs, merch, and content releases. We are a monetization and commerce layer, not a content host. Talent hosts their content wherever they want (YouTube, Vimeo, Spotify, etc.) and Ologywood handles discovery, ticketing, fan relationships, and revenue.
 
+CANONICAL NAVIGATION:
+- The six main destinations, in order, are Discover, Experiences, Shop, Community, My Ology, and Workspace.
+- Search, Create, Inbox, Notifications, and Account are global utilities, not separate main destinations.
+- My Ology (/my-ology) is the signed-in fan and customer return home. It brings together the user's tickets, booking requests, Creator Shop orders, release purchases, music library, Ology Live sessions, Fan Club memberships, followed creators, and recent activity. Never say My Ology is missing or not a platform feature.
+- Workspace (/workspace) is the role-aware work area for creators, venues, bloggers, team members, and administrators. It includes Needs Attention and Create actions and links to the existing specialized tools. Team members work for the owner profile rather than becoming standalone creators.
+- Public creator and venue profiles are storefronts and primary action centers for booking, attending, buying, watching or listening, following, joining, shopping, and messaging when those actions are available.
+
 ACCOUNT TYPES:
 - Artist/Talent: Music artists, visual artists, authors and writers, athletes, creators, entertainers (DJs, comedians, MCs), filmmakers, influencers
 - Venue: Event organizers, clubs, promoters
@@ -188,6 +195,8 @@ CONTACT/SUPPORT:
 - This chat widget (you!)
 
 COMMON USER QUESTIONS:
+- "Where is My Ology?" → Sign in and select My Ology in the main navigation, or go to /my-ology. It is the personal home for tickets, bookings, orders, purchases, music, Ology Live sessions, Fan Clubs, follows, and recent activity.
+- "Where is my dashboard?" or "Where do I manage my work?" → Select Workspace in the main navigation, or go to /workspace. Workspace adapts to creator, venue, blogger, team, and administrator roles.
 - "How do I book an artist?" → Browse directory, click booking button, fill in details, artist reviews and accepts
 - "How do I book an athlete?" → Same as artist: browse, select booking type (appearance, signing, camp, etc.), pick available date, set budget, submit
 - "How do I sell tickets?" → Create event, go to Ticket Management, add ticket tiers
@@ -213,6 +222,27 @@ COMMON USER QUESTIONS:
 - "Do I need to host my content on Ologywood?" → No! Host your content wherever it performs best (YouTube, Vimeo, Spotify, your website). Ologywood handles the business side: discovery, ticketing, fan relationships, and revenue.
 `;
 
+export const MY_OLOGY_GUIDANCE = "My Ology is your personal fan and customer home. Sign in and select My Ology in the main navigation, or go to /my-ology. It brings together your tickets, booking requests, Creator Shop orders, release purchases, music library, Ology Live sessions, Fan Club memberships, followed creators, and recent activity. If you manage creator, venue, blog, team, or admin work, use Workspace instead.";
+
+export const WORKSPACE_GUIDANCE = "Workspace is the role-aware place to manage your OlogyWood work. Select Workspace in the main navigation, or go to /workspace. It adapts to creator, venue, blogger, team-member, and administrator access and includes Needs Attention and Create actions with links to the existing specialized tools.";
+
+export function getCanonicalNavigationAnswer(message: string): string | null {
+  const normalized = message.trim().toLowerCase();
+
+  if (/\bmy\s+ology\b/.test(normalized)) {
+    return MY_OLOGY_GUIDANCE;
+  }
+
+  if (
+    /\bworkspace\b/.test(normalized)
+    && /\b(where|what|find|open|access|manage|dashboard|navigate|go)\b/.test(normalized)
+  ) {
+    return WORKSPACE_GUIDANCE;
+  }
+
+  return null;
+}
+
 export const aiChatRouter = router({
   sendMessage: publicProcedure
     .input(z.object({
@@ -223,6 +253,11 @@ export const aiChatRouter = router({
       })).max(20).optional(),
     }))
     .mutation(async ({ input }) => {
+      const canonicalNavigationAnswer = getCanonicalNavigationAnswer(input.message);
+      if (canonicalNavigationAnswer) {
+        return { response: canonicalNavigationAnswer };
+      }
+
       const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
         { role: "system", content: SYSTEM_PROMPT },
       ];

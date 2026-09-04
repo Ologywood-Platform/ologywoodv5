@@ -4620,4 +4620,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate the closed/open homepage header, responsive chat panel, custom Admin header, and Blog Management header at 390-pixel mobile and desktop widths; a real `aiChat.sendMessage` request returned an accurate My Ology response
 - [x] Run TypeScript, 200 focused header/chat/Admin/mobile/Spotify tests across nine files, all 2,758 platform tests with 23 skipped across 155 files, and a successful production build
 - [x] Stabilize the independently reproduced Spotify invalid-code callback with bounded four-second provider requests while preserving its existing failure redirects and successful OAuth path
-- [ ] Save, publish, and verify the live header-based AI chat launcher
+- [x] Correct the live assistant’s stale claim that My Ology is not a platform feature with authoritative six-destination prompt guidance and deterministic My Ology/Workspace answers
+- [x] Add permanent guidance regressions for My Ology, Workspace, unrelated-query fallthrough, and the canonical navigation model; verify the corrected answer through the real development chat interface
+- [x] Re-run TypeScript, all 2,761 platform tests with 23 skipped across 156 files, and a successful production build after the guidance correction
+- [ ] Save, republish, and verify the live header-based AI launcher and a correct My Ology response

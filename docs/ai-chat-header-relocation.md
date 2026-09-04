@@ -20,10 +20,20 @@ The custom Admin Dashboard header was also rendered at 390 × 844. The sparkle u
 
 Blog Management was rendered at the same mobile width. Its title, six-post count summary, sparkle utility, and compact `New` action remained on a clean header row with no horizontal overflow; the existing post filters, search field, thumbnails, and titles remained intact. Onboarding was again restored after the check.
 
-## Regression and build validation
+## Initial relocation regression and build validation
 
 The focused header, AI chat, Blog Management, Admin, mobile, dark-mode, and Spotify callback suite passed **200 tests across nine files**. The complete platform suite passed **2,758 tests**, with **23 skipped**, across **155 files**. TypeScript passed, and the production build completed successfully in **17.41 seconds**.
 
 The full-suite run also exposed an unrelated live-network timeout in the pre-existing invalid-code Spotify callback test. The callback now bounds both token and user-profile requests to four seconds and preserves the existing `TOKEN_EXCHANGE_FAILED` and `USERINFO_FAILED` redirects. Successful Spotify OAuth behavior was not changed, and all five OAuth route regressions pass.
 
-The remaining step is publication followed by live mobile and desktop header verification.
+## Production verification
+
+Checkpoint `15f48e3e` was published on September 4, 2026. The live homepage loads with the accessible `Open OlogyWood AI chat` sparkle utility in the header and no floating lower-right launcher. Selecting the live utility opens the existing assistant panel beneath the header and changes the trigger label to `Close OlogyWood AI chat`.
+
+The first live LLM check exposed stale knowledge: in response to “Where can I find My Ology?”, the assistant incorrectly said that My Ology was not a specific feature. The system guidance now explicitly defines the six canonical destinations, My Ology, Workspace, global utilities, profile storefronts, and collaborator boundaries. My Ology and role-management Workspace questions also receive deterministic, source-controlled navigation answers before the general LLM path, preventing the assistant from denying these core features.
+
+The new canonical-navigation tests pass alongside the complete focused header and ecosystem set. After the guidance correction, TypeScript passed, the complete platform suite passed **2,761 tests** with **23 skipped** across **156 files**, and the production build completed successfully in **16.32 seconds**. Republication and one final live My Ology response remain before closure.
+
+The updated development build was reopened after the guidance change. The sparkle trigger still opens the same panel under the header with the correct open/close accessible labels, confirming the knowledge correction did not disturb the relocated interface.
+
+Submitting “Where can I find My Ology?” through that real interface now returns the deterministic answer: My Ology is the personal fan and customer home, is available from the main navigation or `/my-ology`, and brings together tickets, booking requests, Creator Shop orders, release purchases, music, Ology Live sessions, Fan Club memberships, followed creators, and recent activity. It correctly distinguishes management work as belonging in Workspace.
