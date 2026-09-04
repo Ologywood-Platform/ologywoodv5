@@ -24,4 +24,6 @@ Ordinary creators, venues, and fans remain denied. No Blog post, user, role, or 
 
 A read-only real-router validation loaded the actual user 7 identity and successfully returned authoritative Blog status counts. It also proved administrator and approved-blogger access and confirmed that an ordinary creator receives `FORBIDDEN`. The permanent focused suite passed **99 tests across seven files**. The complete platform suite passed **2,753 tests**, with **23 skipped**, across **154 files**. TypeScript passed with zero errors, and the production build completed successfully in **19.44 seconds**.
 
-The remaining step is publication followed by a live mobile Blog Management check.
+## Production verification
+
+Checkpoint `5cf164da` was published on September 4, 2026. The platform owner refreshed the live mobile Blog Management page and confirmed that the All Posts view displayed the expected Blog images and titles. Production logs recorded successful authenticated `blog.adminList` calls for user 7 at 17:24:55 UTC and 17:25:45 UTC, completing in 80 ms and 87 ms respectively, with no `FORBIDDEN` or query-processing exception.

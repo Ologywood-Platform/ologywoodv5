@@ -4600,4 +4600,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent regressions for configured owner, administrator, approved blogger, creator-owner multi-role context, and unauthorized users
 - [x] Validate authoritative global count invariants, loading/error states, filters, and post listing after access succeeds
 - [x] Run TypeScript, 99 focused Blog/Admin tests across seven files, all 2,753 platform tests with 23 skipped across 154 files, and a successful production build
-- [ ] Save, publish, and verify the repair on the live mobile Blog Management page
+- [x] Save checkpoint 5cf164da, publish it, and verify the live mobile Blog Management page displays real Blog images and titles; production logged successful `blog.adminList` calls for user 7 with no authorization or query error
