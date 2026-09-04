@@ -4623,4 +4623,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Correct the live assistant’s stale claim that My Ology is not a platform feature with authoritative six-destination prompt guidance and deterministic My Ology/Workspace answers
 - [x] Add permanent guidance regressions for My Ology, Workspace, unrelated-query fallthrough, and the canonical navigation model; verify the corrected answer through the real development chat interface
 - [x] Re-run TypeScript, all 2,761 platform tests with 23 skipped across 156 files, and a successful production build after the guidance correction
-- [ ] Save, republish, and verify the live header-based AI launcher and a correct My Ology response
+- [x] Save checkpoint `b32e7b0b`, republish, and verify the live header-based AI launcher plus a correct My Ology response with a successful production `aiChat.sendMessage` request
