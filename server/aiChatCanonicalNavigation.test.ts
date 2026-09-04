@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  AI_RELEASE_DISCLOSURE_GUIDANCE,
   getCanonicalNavigationAnswer,
   MY_OLOGY_GUIDANCE,
   WORKSPACE_GUIDANCE,
@@ -24,6 +25,17 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('/workspace');
     expect(answer).toContain('Needs Attention');
     expect(answer).toContain('team-member');
+  });
+
+  it('answers song and release AI-disclosure questions deterministically without making a certification claim', () => {
+    const answer = getCanonicalNavigationAnswer('How do I add an AI disclosure tag to my release?');
+
+    expect(answer).toBe(AI_RELEASE_DISCLOSURE_GUIDANCE);
+    expect(answer).toContain('AI-assisted');
+    expect(answer).toContain('primarily AI-generated');
+    expect(answer).toContain('creator-provided details');
+    expect(answer).toContain('not that OlogyWood verified the release as AI-free');
+    expect(answer).toContain('does not certify');
   });
 
   it('does not bypass the LLM for unrelated platform questions', () => {

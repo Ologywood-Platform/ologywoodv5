@@ -1032,6 +1032,14 @@ export const artistReleases = mysqlTable("artist_releases", {
   rightsCertified: boolean("rightsCertified").default(false).notNull(),
   rightsCertifiedAt: timestamp("rightsCertifiedAt"),
 
+  // Optional creator-provided AI-use disclosure. Disabled means unknown / not disclosed,
+  // not a platform claim that AI was absent.
+  aiUseDisclosureEnabled: boolean("aiUseDisclosureEnabled").default(false).notNull(),
+  aiUseLevel: varchar("aiUseLevel", { length: 40 }),
+  aiUseComponents: json("aiUseComponents").$type<string[]>(),
+  aiUseTools: varchar("aiUseTools", { length: 300 }),
+  aiUseNotes: varchar("aiUseNotes", { length: 1000 }),
+
   // Counters (denormalized for performance — avoids JOIN on every profile view)
   totalSales: int("totalSales").default(0).notNull(),
   totalRevenueCents: int("totalRevenueCents").default(0).notNull(),
@@ -2029,6 +2037,13 @@ export const contentReleases = mysqlTable("releases", {
   includesLiveQA: boolean("includesLiveQA").default(false).notNull(),
   includesBonusContent: boolean("includesBonusContent").default(false).notNull(),
   bonusContentDescription: text("bonusContentDescription"),
+  // Optional creator-provided AI-use disclosure. Disabled means unknown / not disclosed,
+  // not a platform claim that AI was absent.
+  aiUseDisclosureEnabled: boolean("aiUseDisclosureEnabled").default(false).notNull(),
+  aiUseLevel: varchar("aiUseLevel", { length: 40 }),
+  aiUseComponents: json("aiUseComponents").$type<string[]>(),
+  aiUseTools: varchar("aiUseTools", { length: 300 }),
+  aiUseNotes: varchar("aiUseNotes", { length: 1000 }),
   stripeProductId: varchar("stripeProductId", { length: 255 }),
   stripePriceId: varchar("stripePriceId", { length: 255 }),
   viewCount: int("viewCount").default(0).notNull(),

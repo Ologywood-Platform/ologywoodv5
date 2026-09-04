@@ -20,10 +20,12 @@ import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SiteHeader } from "@/components/SiteHeader";
+import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
+import { getAiDisclosureFormValue, type AiDisclosureFormValue, type AiDisclosureRecord } from "@shared/aiDisclosure";
 
 type ReleaseStatus = "draft" | "published" | "archived";
 
-interface Release {
+interface Release extends AiDisclosureRecord {
   id: number;
   title: string;
   description: string | null;
@@ -226,6 +228,7 @@ function ReleaseForm({
   const [priceDisplay, setPriceDisplay] = useState((release?.priceInCents || 100) / 100 + "");
   const [allowPayWhatYouWant, setAllowPayWhatYouWant] = useState(release?.allowPayWhatYouWant || false);
   const [rightsCertified, setRightsCertified] = useState(false);
+  const [aiDisclosure, setAiDisclosure] = useState<AiDisclosureFormValue>(() => getAiDisclosureFormValue(release));
 
   const [audioFileKey, setAudioFileKey] = useState(release?.audioFileKey || "");
   const [audioFileName, setAudioFileName] = useState("");
@@ -403,6 +406,9 @@ function ReleaseForm({
     if (!isEditing && !rightsCertified) {
       errors.rights = "You must certify that you own the rights to this music";
     }
+    if (aiDisclosure.enabled && (!aiDisclosure.level || aiDisclosure.components.length === 0)) {
+      errors.aiDisclosure = "Choose the AI-use level and at least one component, or turn the disclosure off.";
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -418,6 +424,14 @@ function ReleaseForm({
 
     setIsSubmitting(true);
 
+    const aiDisclosurePayload = {
+      aiUseDisclosureEnabled: aiDisclosure.enabled,
+      aiUseLevel: aiDisclosure.enabled && aiDisclosure.level ? aiDisclosure.level : null,
+      aiUseComponents: aiDisclosure.enabled ? aiDisclosure.components : [],
+      aiUseTools: aiDisclosure.enabled ? aiDisclosure.tools.trim() || null : null,
+      aiUseNotes: aiDisclosure.enabled ? aiDisclosure.notes.trim() || null : null,
+    };
+
     if (isEditing && release) {
       updateMutation.mutate({
         id: release.id,
@@ -432,6 +446,7 @@ function ReleaseForm({
         fileSizeBytes: fileSizeBytes || undefined,
         priceInCents,
         allowPayWhatYouWant,
+        ...aiDisclosurePayload,
       });
     } else {
       createMutation.mutate({
@@ -448,6 +463,7 @@ function ReleaseForm({
         allowPayWhatYouWant,
         rightsCertified,
         rightsCertifiedAt: new Date().toISOString(),
+        ...aiDisclosurePayload,
       });
     }
   };
@@ -640,6 +656,22 @@ function ReleaseForm({
             </Label>
           </div>
 
+          <AIUseDisclosureFields
+            idPrefix="white-label-ai-disclosure"
+            value={aiDisclosure}
+            onChange={(value) => {
+              setAiDisclosure(value);
+              if (fieldErrors.aiDisclosure) {
+                setFieldErrors((previous) => {
+                  const next = { ...previous };
+                  delete next.aiDisclosure;
+                  return next;
+                });
+              }
+            }}
+            error={fieldErrors.aiDisclosure}
+          />
+
           {/* Rights Certification (only for new releases) */}
           {!isEditing && (
             <div className={`border rounded-lg p-4 bg-muted/30 ${fieldErrors.rights ? 'border-red-500' : ''}`}>
@@ -782,6 +814,7 @@ function ReleaseListItem({
               <span>{release.totalSales} sales</span>
               <span>${(release.totalRevenueCents / 100).toFixed(2)} revenue</span>
             </div>
+            <AIUseDisclosureTag disclosure={release} className="mt-2" />
             {release.publishedAt && (
               <p className="text-xs text-muted-foreground mt-1">
                 Published {new Date(release.publishedAt).toLocaleDateString()}

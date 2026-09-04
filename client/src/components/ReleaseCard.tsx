@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Music, Play, Pause, ShoppingCart, Download, Loader2, Volume2, Heart } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 import { TrackReviewSection } from "@/components/TrackReviewSection";
+import { AIUseDisclosureTag } from "@/components/AIUseDisclosure";
+import type { AiDisclosureRecord } from "@shared/aiDisclosure";
 
 const PREVIEW_MAX_SECONDS = 30;
 
 interface ReleaseCardProps {
-  release: {
+  release: AiDisclosureRecord & {
     id: number;
     title: string;
     genre?: string | null;
@@ -324,6 +326,8 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
               </span>
             )}
           </div>
+
+          <AIUseDisclosureTag disclosure={release} className="mt-2" />
 
           {/* Audio Preview Player */}
           {(isPlaying || (audioRef.current && progress > 0)) && (

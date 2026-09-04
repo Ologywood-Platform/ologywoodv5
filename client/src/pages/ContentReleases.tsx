@@ -20,6 +20,8 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
+import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
+import { EMPTY_AI_DISCLOSURE, getAiDisclosureFormValue, type AiDisclosureFormValue } from "@shared/aiDisclosure";
 
 // Release type icons
 function getReleaseTypeIcon(type: string) {
@@ -104,12 +106,14 @@ export default function ContentReleases() {
   const [includesLiveQA, setIncludesLiveQA] = useState(false);
   const [includesBonusContent, setIncludesBonusContent] = useState(false);
   const [bonusContentDescription, setBonusContentDescription] = useState("");
+  const [aiDisclosure, setAiDisclosure] = useState<AiDisclosureFormValue>({ ...EMPTY_AI_DISCLOSURE });
 
   function resetForm() {
     setTitle(""); setDescription(""); setReleaseType("movie"); setGenre("");
     setDuration(""); setHostingPlatform("youtube"); setContentUrl("");
     setAccessModel("free"); setPrice(""); setMinPrice(""); setIsPublished(false);
     setIncludesLiveQA(false); setIncludesBonusContent(false); setBonusContentDescription("");
+    setAiDisclosure({ ...EMPTY_AI_DISCLOSURE });
   }
 
   function startEdit(release: any) {
@@ -128,6 +132,7 @@ export default function ContentReleases() {
     setIncludesLiveQA(release.includesLiveQA);
     setIncludesBonusContent(release.includesBonusContent);
     setBonusContentDescription(release.bonusContentDescription || "");
+    setAiDisclosure(getAiDisclosureFormValue(release));
     setShowCreateForm(true);
   }
 
@@ -135,6 +140,10 @@ export default function ContentReleases() {
     if (!title.trim()) { toast.error("Title is required"); return; }
     if (!contentUrl.trim()) { toast.error("Content URL is required"); return; }
     try { new URL(contentUrl); } catch { toast.error("Please enter a valid URL"); return; }
+    if (aiDisclosure.enabled && (!aiDisclosure.level || aiDisclosure.components.length === 0)) {
+      toast.error("Choose the AI-use level and at least one component, or turn the disclosure off.");
+      return;
+    }
 
     const data = {
       title: title.trim(),
@@ -151,6 +160,11 @@ export default function ContentReleases() {
       includesLiveQA,
       includesBonusContent,
       bonusContentDescription: bonusContentDescription.trim() || undefined,
+      aiUseDisclosureEnabled: aiDisclosure.enabled,
+      aiUseLevel: aiDisclosure.enabled && aiDisclosure.level ? aiDisclosure.level : null,
+      aiUseComponents: aiDisclosure.enabled ? aiDisclosure.components : [],
+      aiUseTools: aiDisclosure.enabled ? aiDisclosure.tools.trim() || null : null,
+      aiUseNotes: aiDisclosure.enabled ? aiDisclosure.notes.trim() || null : null,
     };
 
     if (editingId) {
@@ -245,6 +259,12 @@ export default function ContentReleases() {
                 </div>
               </CardContent>
             </Card>
+
+            <AIUseDisclosureFields
+              idPrefix="content-release-ai-disclosure"
+              value={aiDisclosure}
+              onChange={setAiDisclosure}
+            />
 
             {/* Monetization */}
             <Card>
@@ -423,6 +443,7 @@ export default function ContentReleases() {
                             <Badge variant="outline" className="text-[10px]"><EyeOff className="h-3 w-3 mr-1" /> Draft</Badge>
                           )}
                         </div>
+                        <AIUseDisclosureTag disclosure={release} className="mt-2" />
                         {release.price && parseFloat(release.price) > 0 && (
                           <p className="text-xs text-muted-foreground mt-1">
                             <DollarSign className="h-3 w-3 inline" />{parseFloat(release.price).toFixed(2)}

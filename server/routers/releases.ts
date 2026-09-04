@@ -10,6 +10,11 @@ import { z } from "zod";
 import { getDb } from "../db";
 import { contentReleases as releases, contentReleasePurchases as releasePurchases, artistProfiles, fanClubMemberships } from "../../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
+import {
+  aiDisclosureInputShape,
+  EMPTY_AI_DISCLOSURE_DB,
+  normalizeAiDisclosure,
+} from "../services/aiReleaseDisclosure";
 
 // Release type options
 export const RELEASE_TYPES = [
@@ -68,6 +73,7 @@ const createReleaseInput = z.object({
   includesLiveQA: z.boolean().default(false),
   includesBonusContent: z.boolean().default(false),
   bonusContentDescription: z.string().optional(),
+  ...aiDisclosureInputShape,
 });
 
 export const releasesRouter = router({
@@ -112,6 +118,7 @@ export const releasesRouter = router({
         }
       }
 
+      const aiDisclosure = normalizeAiDisclosure(input) ?? EMPTY_AI_DISCLOSURE_DB;
       const result = await database.insert(releases).values({
         artistProfileId: profile.id,
         userId: ctx.user.id,
@@ -132,6 +139,7 @@ export const releasesRouter = router({
         includesLiveQA: input.includesLiveQA,
         includesBonusContent: input.includesBonusContent,
         bonusContentDescription: input.bonusContentDescription || null,
+        ...aiDisclosure,
       });
 
       const insertId = (result as any)[0].insertId;
@@ -171,6 +179,8 @@ export const releasesRouter = router({
       if (data.includesLiveQA !== undefined) updateData.includesLiveQA = data.includesLiveQA;
       if (data.includesBonusContent !== undefined) updateData.includesBonusContent = data.includesBonusContent;
       if (data.bonusContentDescription !== undefined) updateData.bonusContentDescription = data.bonusContentDescription || null;
+      const aiDisclosure = normalizeAiDisclosure(data, existing);
+      if (aiDisclosure) Object.assign(updateData, aiDisclosure);
 
       await database.update(releases).set(updateData).where(eq(releases.id, id));
       const [updated] = await database.select().from(releases).where(eq(releases.id, id));

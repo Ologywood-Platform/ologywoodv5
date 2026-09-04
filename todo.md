@@ -4624,3 +4624,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent guidance regressions for My Ology, Workspace, unrelated-query fallthrough, and the canonical navigation model; verify the corrected answer through the real development chat interface
 - [x] Re-run TypeScript, all 2,761 platform tests with 23 skipped across 156 files, and a successful production build after the guidance correction
 - [x] Save checkpoint `b32e7b0b`, republish, and verify the live header-based AI launcher plus a correct My Ology response with a successful production `aiChat.sendMessage` request
+
+## VOLUNTARY AI-USE DISCLOSURE FOR SONGS & RELEASES (Sep 4, 2026)
+- [x] Audit every song, music-release, and content-release schema, creator form, public card/detail view, purchase flow, and legacy record contract
+- [x] Define a voluntary disclosure model that distinguishes no disclosure from disclosed AI assistance without implying that undisclosed work is AI-free
+- [x] Add a talent-controlled AI disclosure toggle with clear plain-language helper text and no forced disclosure selection
+- [x] Let talent identify applicable components including writing/lyrics/script, composition/melody, voice/vocals, generated sound/performance, production/arrangement, editing/mixing/mastering, artwork/graphics, video/animation, and other
+- [x] Add optional creator explanation and tool/provider fields with server validation, trimming, deduplication, length limits, and public visibility only when disclosure is enabled
+- [x] Display an accessible expandable **AI-assisted** or **Primarily AI-generated** tag on direct song and externally hosted release cards without overwhelming primary release information
+- [x] Preserve all existing publish, edit, purchase, download, access-control, ownership, rights-certification, and legacy-record behavior
+- [x] Add Help and deterministic OlogyWood AI guidance explaining creator-controlled transparency, unknown non-disclosure state, and the non-certification boundary
+- [x] Add permanent regressions for enabled, disabled, legacy-null, owner authorization, validation, migration safety, card/detail tag, and purchase-continuity behavior
+- [x] Validate creator controls and expanded public disclosure details at 390-pixel mobile and desktop widths without changing existing real releases; remove the temporary preview route afterward
+- [x] Run TypeScript, 129 focused release/music/payment/Help/AI tests across nine files, all 2,772 platform tests with 23 skipped across 157 files, and a successful 18.97-second production build
+- [ ] Save, publish, and verify the live AI disclosure feature

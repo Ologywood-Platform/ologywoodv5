@@ -85,6 +85,7 @@ KEY FEATURES:
 - Fans purchase and download (up to 5 downloads per purchase)
 - Platform fee: 1% on music sales
 - My Purchases page for buyers
+- Optional AI-use disclosure: creators may turn on a public disclosure, choose AI-assisted or primarily AI-generated, select the components involved, and optionally name tools or add context. When enabled, a public tag shows those creator-provided details. When disabled, it means no disclosure was provided—not that Ologywood verified the work as AI-free.
 
 5A. CONTENT RELEASES (Starter+):
 - The monetization engine for ALL creator types. Host content anywhere, sell access here.
@@ -220,11 +221,14 @@ COMMON USER QUESTIONS:
 - "How do I upgrade my plan?" → Go to /pricing, select the plan you want, and complete checkout with Stripe. Your features unlock immediately.
 - "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for selling access to content hosted externally (movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc.
 - "Do I need to host my content on Ologywood?" → No! Host your content wherever it performs best (YouTube, Vimeo, Spotify, your website). Ologywood handles the business side: discovery, ticketing, fan relationships, and revenue.
+- "How do I disclose AI use on my song or release?" → In the Music Release or Content Release create/edit form, turn on Disclose AI use on this release. Choose AI-assisted or primarily AI-generated, select at least one component, and optionally name tools or add a creator note. The public tag is based on your disclosure; Ologywood does not independently verify AI use, ownership, or rights. Leaving it off means no disclosure was provided, not that the release is certified AI-free.
 `;
 
 export const MY_OLOGY_GUIDANCE = "My Ology is your personal fan and customer home. Sign in and select My Ology in the main navigation, or go to /my-ology. It brings together your tickets, booking requests, Creator Shop orders, release purchases, music library, Ology Live sessions, Fan Club memberships, followed creators, and recent activity. If you manage creator, venue, blog, team, or admin work, use Workspace instead.";
 
 export const WORKSPACE_GUIDANCE = "Workspace is the role-aware place to manage your OlogyWood work. Select Workspace in the main navigation, or go to /workspace. It adapts to creator, venue, blogger, team-member, and administrator access and includes Needs Attention and Create actions with links to the existing specialized tools.";
+
+export const AI_RELEASE_DISCLOSURE_GUIDANCE = "AI-use disclosure is optional and controlled by the creator. In the Music Release or Content Release create/edit form, turn on Disclose AI use on this release. Choose AI-assisted or primarily AI-generated, select at least one component involved, and optionally name tools or add a creator explanation. When enabled, a public tag shows those creator-provided details. Leaving it off means no disclosure was provided—not that OlogyWood verified the release as AI-free. The disclosure does not certify AI use, ownership, copyright, consent, licensing, or rights.";
 
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
@@ -238,6 +242,14 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
     && /\b(where|what|find|open|access|manage|dashboard|navigate|go)\b/.test(normalized)
   ) {
     return WORKSPACE_GUIDANCE;
+  }
+
+  if (
+    /\bai\b|artificial intelligence/.test(normalized)
+    && /\b(song|track|music|release|project)\b/.test(normalized)
+    && /\b(disclos|tag|label|credit|show|tell|declare)/.test(normalized)
+  ) {
+    return AI_RELEASE_DISCLOSURE_GUIDANCE;
   }
 
   return null;

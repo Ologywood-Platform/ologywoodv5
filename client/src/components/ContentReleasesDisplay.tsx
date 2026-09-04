@@ -9,6 +9,7 @@ import { Film, Music, Mic, BookOpen, Video, Play, ExternalLink, Lock, DollarSign
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
+import { AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 
 function getReleaseTypeIcon(type: string) {
   switch (type) {
@@ -93,6 +94,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
           {release.genre && <Badge variant="secondary" className="text-[10px]">{release.genre}</Badge>}
           {release.duration && <span className="text-[10px] text-muted-foreground">{release.duration}</span>}
         </div>
+        <AIUseDisclosureTag disclosure={release} className="mt-2" />
         {release.includesLiveQA && <span className="text-[10px] text-muted-foreground block mt-1">🎤 Includes Live Q&A</span>}
         {release.includesBonusContent && <span className="text-[10px] text-muted-foreground block">🎁 Bonus Content</span>}
       </div>

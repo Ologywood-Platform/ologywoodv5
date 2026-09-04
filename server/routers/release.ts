@@ -14,6 +14,11 @@ import { sendArtistUpdate } from "../services/artistUpdateService";
 import { storageGet } from "../storage";
 import Stripe from "stripe";
 import { getEmailLogoImage } from "../../shared/emailBranding";
+import {
+  aiDisclosureInputShape,
+  EMPTY_AI_DISCLOSURE_DB,
+  normalizeAiDisclosure,
+} from "../services/aiReleaseDisclosure";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -95,6 +100,7 @@ export const releaseRouter = router({
         allowPayWhatYouWant: z.boolean().default(false),
         rightsCertified: z.boolean(),
         rightsCertifiedAt: z.string().optional(),
+        ...aiDisclosureInputShape,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -139,6 +145,7 @@ export const releaseRouter = router({
         }
       }
 
+      const aiDisclosure = normalizeAiDisclosure(input) ?? EMPTY_AI_DISCLOSURE_DB;
       const release = await db.createRelease({
         artistId: profile.id,
         title: input.title,
@@ -155,6 +162,7 @@ export const releaseRouter = router({
         allowPayWhatYouWant: input.allowPayWhatYouWant,
         rightsCertified: true,
         rightsCertifiedAt: new Date(),
+        ...aiDisclosure,
         status: "draft",
       });
 
@@ -179,6 +187,7 @@ export const releaseRouter = router({
         fileSizeBytes: z.number().int().positive().optional(),
         priceInCents: z.number().int().min(50).optional(),
         allowPayWhatYouWant: z.boolean().optional(),
+        ...aiDisclosureInputShape,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -210,7 +219,9 @@ export const releaseRouter = router({
         }
       }
 
+      const aiDisclosure = normalizeAiDisclosure(input, release);
       const { id, ...updateData } = input;
+      if (aiDisclosure) Object.assign(updateData, aiDisclosure);
       const updated = await db.updateRelease(id, updateData as any);
       return updated;
     }),

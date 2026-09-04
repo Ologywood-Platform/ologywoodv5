@@ -190,6 +190,12 @@ const faqItems: FAQItem[] = [
     question: 'How many times can I download a purchased release?',
     answer: 'Each purchase allows up to 5 downloads. You can download from the Purchase Success page immediately after buying, or return to My Purchases anytime to download again. The remaining download count is shown on each purchase card.',
   },
+  {
+    id: 'music-6',
+    category: 'Music & Releases',
+    question: 'How do I disclose AI use in a song or release?',
+    answer: 'When creating or editing a Music Release or Content Release, turn on “Disclose AI use on this release.” Choose whether the work is AI-assisted or primarily AI-generated, then select the components involved, such as writing, composition, voice, sound, production, artwork, or video. You may also name tools and add a creator explanation. When enabled, a public tag shows your creator-provided details. Leaving the switch off means no disclosure was provided; OlogyWood does not claim the work is AI-free or independently certify ownership or rights.',
+  },
 
 
   // Content Releases
