@@ -60,7 +60,7 @@ describe('Spotify OAuth Routes', () => {
     expect(location).toContain('oauth_error=access_denied');
   });
 
-  it('GET /api/auth/spotify/callback with invalid code should redirect with error', async () => {
+  it('GET /api/auth/spotify/callback with invalid code should redirect with error within the bounded provider timeout', async () => {
     const response = await fetch(`${BASE_URL}/api/auth/spotify/callback?code=invalid_code_123`, {
       redirect: 'manual',
     });
@@ -68,5 +68,5 @@ describe('Spotify OAuth Routes', () => {
     expect(response.status).toBe(302);
     const location = response.headers.get('location');
     expect(location).toContain('oauth_error=TOKEN_EXCHANGE_FAILED');
-  });
+  }, 7_500);
 });

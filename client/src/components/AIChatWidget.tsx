@@ -1,6 +1,52 @@
-import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import React, { createContext, useCallback, useContext, useMemo, useState, useRef, useEffect } from "react";
+import { Sparkles, X, Send } from "lucide-react";
 import { trpc } from "../lib/trpc";
+
+type AIChatContextValue = {
+  isOpen: boolean;
+  toggleChat: () => void;
+  closeChat: () => void;
+};
+
+const AIChatContext = createContext<AIChatContextValue | null>(null);
+
+export function AIChatProvider({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const toggleChat = useCallback(() => setIsOpen((open) => !open), []);
+  const closeChat = useCallback(() => setIsOpen(false), []);
+  const value = useMemo(() => ({ isOpen, toggleChat, closeChat }), [closeChat, isOpen, toggleChat]);
+
+  return (
+    <AIChatContext.Provider value={value}>
+      {children}
+    </AIChatContext.Provider>
+  );
+}
+
+function useAIChat() {
+  const context = useContext(AIChatContext);
+  if (!context) throw new Error('AI chat must be rendered inside AIChatProvider');
+  return context;
+}
+
+export function AIChatTrigger({ className = '' }: { className?: string }) {
+  const { isOpen, toggleChat } = useAIChat();
+
+  return (
+    <button
+      type="button"
+      onClick={toggleChat}
+      className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-purple-600 transition-colors hover:bg-purple-50 hover:text-purple-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 dark:text-purple-300 dark:hover:bg-purple-900/30 dark:hover:text-purple-200 ${className}`}
+      aria-label={isOpen ? 'Close OlogyWood AI chat' : 'Open OlogyWood AI chat'}
+      aria-expanded={isOpen}
+      aria-controls="ologywood-ai-chat-panel"
+      title="Ask OlogyWood AI"
+      data-testid="ologywood-ai-header-trigger"
+    >
+      <Sparkles className="h-5 w-5" aria-hidden="true" />
+    </button>
+  );
+}
 
 interface Message {
   id: string;
@@ -10,7 +56,7 @@ interface Message {
 }
 
 export function AIChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, closeChat } = useAIChat();
   const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -24,6 +70,7 @@ export function AIChatWidget() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
 
@@ -43,6 +90,19 @@ export function AIChatWidget() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 100);
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeChat();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [closeChat, isOpen]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,38 +166,38 @@ export function AIChatWidget() {
     setInputValue(topic);
   };
 
-  const chatWindowWidth = isMobile ? "calc(100vw - 1rem)" : "w-96";
+  const chatWindowWidth = isMobile ? "w-[calc(100vw-1rem)]" : "w-96";
   const chatWindowMaxHeight = isMobile ? "max-h-[70vh]" : "max-h-[600px]";
-  const buttonBottom = isMobile ? "bottom-4" : "bottom-6";
-  const buttonRight = isMobile ? "right-4" : "right-6";
-  const chatWindowBottom = isMobile ? "bottom-20" : "bottom-24";
+  const chatWindowTop = isMobile ? "top-[calc(env(safe-area-inset-top,0px)+4.5rem)]" : "top-20";
   const chatWindowRight = isMobile ? "right-2" : "right-6";
 
   return (
     <>
-      {/* Chat Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed ${buttonBottom} ${buttonRight} bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-[60] flex items-center justify-center hover:scale-110`}
-        aria-label="Open chat"
-        title="Chat with AI Support"
-      >
-        {isOpen ? (
-          <X className="w-6 h-6" />
-        ) : (
-          <MessageCircle className="w-6 h-6" />
-        )}
-      </button>
-
       {/* Chat Window */}
       {isOpen && (
         <div
-          className={`fixed ${chatWindowBottom} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-[60] border border-gray-200 overflow-hidden`}
+          id="ologywood-ai-chat-panel"
+          role="dialog"
+          aria-labelledby="ologywood-ai-chat-title"
+          className={`fixed ${chatWindowTop} ${chatWindowRight} ${chatWindowWidth} ${chatWindowMaxHeight} bg-white rounded-lg shadow-2xl flex flex-col z-[60] border border-gray-200 overflow-hidden`}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg flex-shrink-0">
-            <h3 className="font-semibold text-lg">Ologywood Support</h3>
-            <p className="text-sm text-purple-100">AI-powered assistance 24/7</p>
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-t-lg flex-shrink-0 flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2" id="ologywood-ai-chat-title">
+                <Sparkles className="h-5 w-5" aria-hidden="true" />
+                OlogyWood AI
+              </h3>
+              <p className="text-sm text-purple-100">Platform guidance, 24/7</p>
+            </div>
+            <button
+              type="button"
+              onClick={closeChat}
+              className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-white hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Close OlogyWood AI chat"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
           </div>
 
           {/* Messages */}
@@ -221,6 +281,7 @@ export function AIChatWidget() {
           >
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}

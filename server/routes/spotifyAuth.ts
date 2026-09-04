@@ -15,6 +15,7 @@ const router = Router();
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_USERINFO_URL = 'https://api.spotify.com/v1/me';
+const SPOTIFY_REQUEST_TIMEOUT_MS = 4_000;
 
 function getSpotifyClientId(): string {
   return process.env.SPOTIFY_CLIENT_ID || '';
@@ -119,18 +120,25 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
     const redirectUri = getRedirectUri(req);
     const basicAuth = Buffer.from(`${getSpotifyClientId()}:${getSpotifyClientSecret()}`).toString('base64');
 
-    const tokenResponse = await fetch(SPOTIFY_TOKEN_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`,
-      },
-      body: new URLSearchParams({
-        code,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
-    });
+    let tokenResponse: Awaited<ReturnType<typeof fetch>>;
+    try {
+      tokenResponse = await fetch(SPOTIFY_TOKEN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${basicAuth}`,
+        },
+        body: new URLSearchParams({
+          code,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }),
+        signal: AbortSignal.timeout(SPOTIFY_REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      console.error('[Spotify OAuth] Token exchange request failed:', error);
+      return res.redirect(302, `${origin}/get-started?oauth_error=TOKEN_EXCHANGE_FAILED`);
+    }
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
@@ -141,9 +149,16 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
     const tokens = await tokenResponse.json() as { access_token: string; refresh_token?: string };
 
     // Get user info from Spotify
-    const userInfoResponse = await fetch(SPOTIFY_USERINFO_URL, {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
+    let userInfoResponse: Awaited<ReturnType<typeof fetch>>;
+    try {
+      userInfoResponse = await fetch(SPOTIFY_USERINFO_URL, {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+        signal: AbortSignal.timeout(SPOTIFY_REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      console.error('[Spotify OAuth] User info request failed:', error);
+      return res.redirect(302, `${origin}/get-started?oauth_error=USERINFO_FAILED`);
+    }
 
     if (!userInfoResponse.ok) {
       console.error('[Spotify OAuth] Failed to get user info');

@@ -7,6 +7,7 @@ import {
   List, Bold, Italic, Heading2, Link2, ListOrdered, Quote, Code, Minus,
   Table, Image as ImageIconLucide, Save, ChevronLeft, RotateCcw
 } from 'lucide-react';
+import { AIChatTrigger } from '@/components/AIChatWidget';
 
 type PostStatus = 'draft' | 'published' | 'archived';
 type Category = 'announcement' | 'guide' | 'news' | 'update' | 'tutorial';
@@ -721,12 +722,17 @@ export default function BlogAdmin() {
                 {countSummary}
               </p>
             </div>
-            <button
-              onClick={() => { resetForm(); setView('create'); }}
-              className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" /> New Post
-            </button>
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <AIChatTrigger />
+              <button
+                onClick={() => { resetForm(); setView('create'); }}
+                className="flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">New Post</span>
+                <span className="sm:hidden">New</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

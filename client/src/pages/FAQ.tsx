@@ -97,7 +97,7 @@ export default function FAQ() {
     { q: 'How do I set up Stripe for production?', a: 'Complete Stripe KYC verification, then enter your live API keys in Settings → Payment. Add a production webhook endpoint in Stripe Dashboard → Developers → Webhooks pointing to https://ologywood.com/api/stripe/webhook (current active: https://ologywood-mp6flm6c.manus.space/api/stripe/webhook). Update the webhook signing secret in Settings → Payment. Test with card 4242 4242 4242 4242 before going live.' },
     
     // Support
-    { q: 'How do I contact support?', a: 'Email support@ologywood.com, use the Contact Us page, or the chat widget in the bottom-right corner. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
+    { q: 'How do I contact support?', a: 'Email support@ologywood.com, use the Contact Us page, or select the OlogyWood AI sparkle icon in the header. Our team is available Monday through Friday, 9 AM to 6 PM EST, and typically responds within 24 hours.' },
   ];
 
   return (

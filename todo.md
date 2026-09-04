@@ -4610,3 +4610,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate the Activity view at 390 × 844 mobile and 1280 × 720 desktop widths, then restore the normal Overview default tab
 - [x] Run TypeScript, 141 focused Admin/mobile tests across six files, all 2,754 platform tests with 23 skipped across 154 files, and a successful production build
 - [x] Save checkpoint 72af8315, publish it, and verify horizontal table scrolling on the live mobile Admin Activity view; production logged successful Activity stats and log requests for user 7
+
+## MOVE OLOGYWOOD AI CHAT INTO GLOBAL HEADER (Sep 4, 2026)
+- [x] Audit the existing floating AI chat launcher, shared conversation state, SiteHeader utilities, and custom Admin and Blog Management headers
+- [x] Add a distinct sparkle AI utility to the desktop and mobile header without confusing it with Inbox
+- [x] Preserve the existing LLM panel, conversation behavior, public/authenticated availability, quick questions, input focus, Escape dismissal, and accessibility labels
+- [x] Remove the floating lower-right launcher so it no longer covers page content or controls
+- [x] Add permanent regressions for shared provider state, header placement, sparkle labeling, Help/FAQ guidance, and removal of the floating launcher
+- [x] Validate the closed/open homepage header, responsive chat panel, custom Admin header, and Blog Management header at 390-pixel mobile and desktop widths; a real `aiChat.sendMessage` request returned an accurate My Ology response
+- [x] Run TypeScript, 200 focused header/chat/Admin/mobile/Spotify tests across nine files, all 2,758 platform tests with 23 skipped across 155 files, and a successful production build
+- [x] Stabilize the independently reproduced Spotify invalid-code callback with bounded four-second provider requests while preserving its existing failure redirects and successful OAuth path
+- [ ] Save, publish, and verify the live header-based AI chat launcher

@@ -9,7 +9,7 @@ import { CanonicalUpdater } from "./components/CanonicalUpdater";
 import { RobotsMetaTag } from "./components/RobotsMetaTag";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { HelperNotesProvider } from "./contexts/HelperNotesContext";
-import { AIChatWidget } from "./components/AIChatWidget";
+import { AIChatProvider, AIChatWidget } from "./components/AIChatWidget";
 import { OnboardingTour } from "./components/OnboardingTour";
 import OfflineBanner from "./components/OfflineBanner";
 import Footer from "./components/Footer";
@@ -295,19 +295,21 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light" switchable={true}>
-        <HelperNotesProvider>
-        <TooltipProvider>
-          <OfflineBanner />
-          <Toaster />
-          <CanonicalUpdater />
-          <RobotsMetaTag />
-          <Router />
-          <AIChatWidget />
-          <OnboardingTour />
-          <CookieConsent />
-          <TermsConsentBanner />
-        </TooltipProvider>
-        </HelperNotesProvider>
+        <AIChatProvider>
+          <HelperNotesProvider>
+            <TooltipProvider>
+              <OfflineBanner />
+              <Toaster />
+              <CanonicalUpdater />
+              <RobotsMetaTag />
+              <Router />
+              <AIChatWidget />
+              <OnboardingTour />
+              <CookieConsent />
+              <TermsConsentBanner />
+            </TooltipProvider>
+          </HelperNotesProvider>
+        </AIChatProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

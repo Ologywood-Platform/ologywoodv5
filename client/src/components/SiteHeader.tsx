@@ -13,6 +13,7 @@ import EarlyAccessBanner from './EarlyAccessBanner';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { CORE_DESTINATIONS, LEARN_DESTINATIONS, getWorkspaceRole, isDestinationActive } from '@/lib/ecosystemNavigation';
 import { CreateActionDialog } from '@/components/CreateActionDialog';
+import { AIChatTrigger } from '@/components/AIChatWidget';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -183,6 +184,8 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
               )}
             </div>
 
+            <AIChatTrigger className="h-9 w-9 min-h-9 min-w-9" />
+
             {isAuthenticated ? (
               <>
                 <Link href="/discover" title="Search OlogyWood">
@@ -315,6 +318,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
 
           {/* Mobile: Dark mode toggle + Hamburger */}
           <div className="lg:hidden flex items-center gap-1">
+            <AIChatTrigger />
             {isAuthenticated && <RealtimeNotifications />}
             <DarkModeToggle compact />
             <button

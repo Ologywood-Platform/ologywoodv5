@@ -675,7 +675,7 @@ const faqItems: FAQItem[] = [
     id: 'support-1',
     category: 'Support & Contact',
     question: 'How do I contact support?',
-    answer: 'Use the Contact Us form, email support@ologywood.com, or use the chat widget in the bottom-right corner of any page. We typically respond within 24 hours.',
+    answer: 'Use the Contact Us form, email support@ologywood.com, or select the OlogyWood AI sparkle icon in the header. We typically respond within 24 hours.',
   },
   {
     id: 'support-2',

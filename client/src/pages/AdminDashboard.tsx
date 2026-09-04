@@ -4,6 +4,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
 import { Users, User, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
 import { getTalentTypeLabel } from '@shared/talentTypes';
+import { AIChatTrigger } from '@/components/AIChatWidget';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -53,13 +54,17 @@ export function AdminDashboard() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-sm sm:text-base text-gray-600 mt-1">Platform management and analytics</p>
             </div>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
-            >
-              <Music className="h-4 w-4" />
-              Back to Artist
-            </button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <AIChatTrigger />
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+              >
+                <Music className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Artist</span>
+                <span className="sm:hidden">Artist</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
