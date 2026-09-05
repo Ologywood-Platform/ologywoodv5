@@ -4647,4 +4647,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add regressions for duplicate purchases, distinct releases, newest-entitlement selection, hidden rows, missing legacy joins, stable projections, and unique playable-library entries
 - [x] Validate the real owner account returns two release purchases and one unique playable song through the actual protected procedures without mutating data
 - [x] Run TypeScript, 71 focused My Ology/release/purchase tests across four files, all 2,777 platform tests with 23 skipped across 158 files, and a successful 20.53-second production build
-- [ ] Save, publish, and verify the corrected live My Ology counts
+- [x] Save and publish checkpoint `f3475db2`; owner confirmed the live My Ology counts now show two release purchases and one music-library item
+- [x] Trace the live stream, download, and preview failures to their remaining full-row release lookup and optional disclosure-column runtime drift
+- [x] Verify the deduplicated player selects a valid owned purchase entitlement for the one release and that its stored audio key returns real media bytes without changing either purchase
+- [x] Repair playback with a stable customer-delivery projection while keeping purchase ownership, published-preview rules, and download limits intact
+- [x] Add permanent regressions for duplicate entitlements, selected purchase IDs, hidden and missing-media rows, runtime schema repair, stable stream/download/preview projections, and unauthorized users
+- [x] Revalidate two purchase records, one unique library item, signed media delivery, and another user’s `FORBIDDEN` boundary through real protected procedures without mutating data
+- [x] Run TypeScript, 100 focused player/release/purchase/schema tests across six files, all 2,779 platform tests with 23 skipped across 159 files, and a successful 19.81-second production build
+- [ ] Save, publish, and verify corrected live playback

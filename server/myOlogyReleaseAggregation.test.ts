@@ -55,11 +55,15 @@ describe('My Ology release purchase and library aggregation', () => {
   it('uses a joined legacy-safe release summary for My Ology instead of a full-row N-plus-one lookup', () => {
     const databaseSource = read('server/db.ts');
     const routerSource = read('server/routers/release.ts');
+    const deliverySource = read('server/routes/releaseDownload.ts');
 
     expect(databaseSource).toContain('.leftJoin(artistReleases, eq(releasePurchases.releaseId, artistReleases.id))');
     expect(databaseSource).toContain('audioFileKey: artistReleases.audioFileKey');
     expect(databaseSource).not.toContain('const release = await getReleaseById(purchase.releaseId)');
     expect(routerSource).toContain('selectUniquePlayablePurchases(purchases)');
+    expect(routerSource).toContain('getReleaseDeliveryById(purchase.releaseId)');
+    expect(deliverySource).toContain('getReleaseDeliveryById(purchase.releaseId)');
+    expect(deliverySource).toContain('getReleaseDeliveryById(releaseId)');
   });
 
   it('keeps purchase-history and library counts as separate My Ology concepts', () => {

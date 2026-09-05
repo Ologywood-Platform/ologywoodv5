@@ -52,6 +52,7 @@ import {
 import { ENV } from './_core/env';
 import { eventSearchPattern } from '../shared/eventSearch';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray, getTableColumns } from "drizzle-orm";
+import { ensureArtistReleaseDisclosureSchema } from './services/artistReleaseSchemaService';
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -2239,6 +2240,7 @@ export async function getSimilarEvents(
 export async function createRelease(data: InsertArtistRelease): Promise<ArtistRelease> {
   const db = await getDb();
   if (!db) throw new Error('Database not available');
+  await ensureArtistReleaseDisclosureSchema(db);
   const result = await db.insert(artistReleases).values(data);
   const id = (result as any)[0].insertId;
   const release = await db.select().from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
@@ -2251,8 +2253,29 @@ export async function createRelease(data: InsertArtistRelease): Promise<ArtistRe
 export async function getReleaseById(id: number): Promise<ArtistRelease | null> {
   const db = await getDb();
   if (!db) return null;
+  await ensureArtistReleaseDisclosureSchema(db);
   const result = await db.select().from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
   return result[0] ?? null;
+}
+
+export type ReleaseDeliverySummary = Pick<
+  ArtistRelease,
+  'id' | 'title' | 'status' | 'audioFileKey' | 'previewFileKey' | 'fileFormat'
+>;
+
+/** Stable customer-delivery projection independent of optional release metadata. */
+export async function getReleaseDeliveryById(id: number): Promise<ReleaseDeliverySummary | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [release] = await db.select({
+    id: artistReleases.id,
+    title: artistReleases.title,
+    status: artistReleases.status,
+    audioFileKey: artistReleases.audioFileKey,
+    previewFileKey: artistReleases.previewFileKey,
+    fileFormat: artistReleases.fileFormat,
+  }).from(artistReleases).where(eq(artistReleases.id, id)).limit(1);
+  return release ?? null;
 }
 
 /**
@@ -2261,6 +2284,7 @@ export async function getReleaseById(id: number): Promise<ArtistRelease | null> 
 export async function getReleasesByArtistId(artistId: number): Promise<ArtistRelease[]> {
   const db = await getDb();
   if (!db) return [];
+  await ensureArtistReleaseDisclosureSchema(db);
   return await db.select().from(artistReleases)
     .where(eq(artistReleases.artistId, artistId))
     .orderBy(desc(artistReleases.createdAt));
@@ -2272,6 +2296,7 @@ export async function getReleasesByArtistId(artistId: number): Promise<ArtistRel
 export async function getPublishedReleasesByArtistId(artistId: number): Promise<ArtistRelease[]> {
   const db = await getDb();
   if (!db) return [];
+  await ensureArtistReleaseDisclosureSchema(db);
   return await db.select().from(artistReleases)
     .where(and(
       eq(artistReleases.artistId, artistId),
@@ -2286,6 +2311,7 @@ export async function getPublishedReleasesByArtistId(artistId: number): Promise<
 export async function getActiveReleaseCount(artistId: number): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
+  await ensureArtistReleaseDisclosureSchema(db);
   const result = await db.select().from(artistReleases)
     .where(and(
       eq(artistReleases.artistId, artistId),
@@ -2303,6 +2329,7 @@ export async function getActiveReleaseCount(artistId: number): Promise<number> {
 export async function updateRelease(id: number, data: Partial<InsertArtistRelease>): Promise<ArtistRelease | null> {
   const db = await getDb();
   if (!db) return null;
+  await ensureArtistReleaseDisclosureSchema(db);
   await db.update(artistReleases).set(data).where(eq(artistReleases.id, id));
   return await getReleaseById(id);
 }
@@ -2437,6 +2464,7 @@ export async function getArtistReleaseSalesStats(artistId: number): Promise<{
 }> {
   const db = await getDb();
   if (!db) return { totalReleases: 0, publishedReleases: 0, totalSales: 0, totalRevenueCents: 0 };
+  await ensureArtistReleaseDisclosureSchema(db);
   
   const releases = await db.select().from(artistReleases)
     .where(eq(artistReleases.artistId, artistId));
@@ -2807,6 +2835,7 @@ export async function getReleaseSalesAnalytics(artistProfileId: number): Promise
 }> {
   const db = await getDb();
   if (!db) return { summary: { totalSales: 0, totalGrossRevenueCents: 0, totalPlatformFeeCents: 0, totalNetRevenueCents: 0, releaseCount: 0 }, releases: [] };
+  await ensureArtistReleaseDisclosureSchema(db);
 
   // Get all releases for this artist
   const releases = await db.select().from(artistReleases)

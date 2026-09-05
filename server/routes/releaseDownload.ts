@@ -55,7 +55,7 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
     }
 
     // Get the release to find the audio file key
-    const release = await db.getReleaseById(purchase.releaseId);
+    const release = await db.getReleaseDeliveryById(purchase.releaseId);
     if (!release) {
       return res.status(404).json({ error: "Release not found" });
     }
@@ -97,7 +97,7 @@ router.get("/preview/:releaseId", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid release ID" });
     }
 
-    const release = await db.getReleaseById(releaseId);
+    const release = await db.getReleaseDeliveryById(releaseId);
     if (!release || release.status !== "published") {
       return res.status(404).json({ error: "Release not found" });
     }

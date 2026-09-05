@@ -813,7 +813,7 @@ export const releaseRouter = router({
       if (!isOwner) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Not your purchase' });
       }
-      const release = await db.getReleaseById(purchase.releaseId);
+      const release = await db.getReleaseDeliveryById(purchase.releaseId);
       if (!release || !release.audioFileKey) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Audio file not available' });
       }

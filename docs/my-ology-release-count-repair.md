@@ -34,3 +34,15 @@ Permanent regressions cover duplicate purchases, distinct releases, newest-entit
 ## Automated validation
 
 TypeScript passed with zero errors. The permanent focused My Ology, release, and purchase suite passed **71 tests across four files**. The complete platform suite passed **2,777 tests**, with **23 skipped**, across **158 test files**. The production build completed successfully in **20.53 seconds**. Repository hygiene checks found no whitespace errors, conflict markers, temporary real-account validators, payment-schema changes, or secret exposure.
+
+## Playback follow-up
+
+After checkpoint `f3475db2` was published, the owner confirmed that My Ology displayed the correct **2 release purchases** and **1 music-library item**, but selecting the song produced **“Could not load track.”** Production logs showed the stream, download, and preview paths still used the full `getReleaseById` projection and failed on the same optional disclosure-column runtime drift that had previously hidden the counts.
+
+Customer media delivery now uses a dedicated stable projection containing only the release ID, title, status, audio key, preview key, and format. The protected stream route retains its purchase-owner ID/email check. Downloads retain the five-download limit and increment only after a signed URL is successfully created. Public previews still require a published release.
+
+A narrow, idempotent runtime guard adds only the five already-defined optional AI disclosure columns to legacy `artist_releases` tables. It never updates release or purchase rows, caches successful completion per process, and resets after a DDL failure so a later request can retry safely.
+
+A one-use read-only validation loaded the actual owner account, confirmed **2 purchases** and **1 unique library item**, requested the real protected stream URL, and successfully read media bytes with HTTP 200/206 behavior. A different existing user was denied with `FORBIDDEN`. The validation file was removed immediately afterward. The permanent focused playback and release set passes **100 tests across six files**.
+
+The final complete platform suite passed **2,779 tests**, with **23 skipped**, across **159 test files**. TypeScript passed with zero errors, and the production build completed successfully in **19.81 seconds**. The final hygiene audit found no whitespace errors, conflict markers, temporary validators, schema migration changes, payment or purchase mutations, or exposed secrets.
