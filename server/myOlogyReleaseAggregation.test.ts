@@ -72,4 +72,13 @@ describe('My Ology release purchase and library aggregation', () => {
     expect(myOlogySource).toContain("label: 'Release purchases', count: data.purchases.length");
     expect(myOlogySource).toContain("label: 'Music library', count: data.library.length");
   });
+
+  it('streams listening through the protected query while keeping explicit downloads counted', () => {
+    const musicSource = read('client/src/pages/MyMusic.tsx');
+
+    expect(musicSource).toContain('utils.release.getStreamUrl.fetch({ purchaseId: track.purchaseId })');
+    expect(musicSource).not.toContain('fetch(`/api/release/download/${track.purchaseId}`)');
+    expect(musicSource).toContain('fetch(`/api/release/download/${purchaseId}`)');
+    expect(musicSource).toContain('Could not load track. Refresh your library and try again.');
+  });
 });

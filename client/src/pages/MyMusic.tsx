@@ -37,6 +37,7 @@ type SortOption = "recent" | "title" | "artist" | "genre";
 export default function MyMusic() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
+  const utils = trpc.useUtils();
 
   // Player state
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(-1);
@@ -157,18 +158,12 @@ export default function MyMusic() {
     setCurrentTime(0);
 
     try {
-      // Fetch streaming URL
-      const response = await fetch(`/api/release/download/preview/${track.releaseId}`);
-      const data = await response.json();
-
-      // For purchased tracks, use the full download endpoint for streaming
-      const streamResponse = await fetch(`/api/release/download/${track.purchaseId}`);
-      const streamData = await streamResponse.json();
-
-      const audioUrl = streamData.success ? streamData.downloadUrl : (data.success ? data.previewUrl : null);
+      // Listening uses the protected stream entitlement and never consumes a download.
+      const streamData = await utils.release.getStreamUrl.fetch({ purchaseId: track.purchaseId });
+      const audioUrl = streamData.streamUrl;
 
       if (!audioUrl) {
-        toast.error("Could not load track");
+        toast.error("Could not load track. Refresh your library and try again.");
         setIsLoadingTrack(false);
         return;
       }
@@ -195,14 +190,14 @@ export default function MyMusic() {
       audio.onerror = () => {
         setIsPlaying(false);
         setIsLoadingTrack(false);
-        toast.error("Failed to play track");
+        toast.error("Could not play track. Check your connection and try again.");
       };
 
       await audio.play();
       setIsPlaying(true);
       setIsLoadingTrack(false);
     } catch {
-      toast.error("Failed to load track");
+      toast.error("Could not load track. Refresh your library and try again.");
       setIsLoadingTrack(false);
     }
   };

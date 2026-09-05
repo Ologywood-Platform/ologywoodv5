@@ -4654,4 +4654,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent regressions for duplicate entitlements, selected purchase IDs, hidden and missing-media rows, runtime schema repair, stable stream/download/preview projections, and unauthorized users
 - [x] Revalidate two purchase records, one unique library item, signed media delivery, and another user’s `FORBIDDEN` boundary through real protected procedures without mutating data
 - [x] Run TypeScript, 100 focused player/release/purchase/schema tests across six files, all 2,779 platform tests with 23 skipped across 159 files, and a successful 19.81-second production build
-- [ ] Save, publish, and verify corrected live playback
+- [x] Save and publish checkpoint `89e42306`; owner confirmed the corrected live song plays successfully
+- [x] Replace the Music Library player’s counted `/api/release/download/:purchaseId` request with the protected `release.getStreamUrl` query so listening never consumes a download allowance
+- [x] Keep explicit Download actions on the counted download endpoint and preserve the five-download limit
+- [x] Add permanent regressions that distinguish listening from downloading and verify player errors remain actionable
+- [ ] Publish and confirm repeated live playback succeeds without increasing `downloadCount`
