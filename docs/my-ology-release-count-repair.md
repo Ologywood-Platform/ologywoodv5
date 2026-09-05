@@ -54,3 +54,7 @@ The owner’s first successful live playback revealed that `MyMusic.playTrack` s
 The player now requests `utils.release.getStreamUrl.fetch({ purchaseId })` and shows actionable refresh/connection guidance if stream loading fails. Explicit **Download** actions continue to call `/api/release/download/:purchaseId`, so the five-download limit remains enforceable only for files downloaded to a device.
 
 A one-use real-account validation called the protected stream procedure twice for the owner’s unique library item, read media bytes successfully, and proved that `downloadCount` was identical before and after both listens. The validator was removed. The permanent focused set passes **101 tests across six files**. The complete platform suite passes **2,780 tests**, with **23 skipped**, across **159 test files**; TypeScript and the **18.40-second** production build also pass.
+
+## Final production verification
+
+Checkpoint `92186039` was published on September 4, 2026. The owner played the live song twice successfully. Production recorded successful `release.getStreamUrl` calls for user 7 at 02:13:00 UTC and 02:17:35 UTC. No new `[Release Download]` request or release error accompanied either play, confirming that listening now uses only the protected stream path and does not consume another explicit-download allowance.

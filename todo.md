@@ -4658,4 +4658,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Replace the Music Library player’s counted `/api/release/download/:purchaseId` request with the protected `release.getStreamUrl` query so listening never consumes a download allowance
 - [x] Keep explicit Download actions on the counted download endpoint and preserve the five-download limit
 - [x] Add permanent regressions that distinguish listening from downloading and verify player errors remain actionable
-- [ ] Publish and confirm repeated live playback succeeds without increasing `downloadCount`
+- [x] Publish checkpoint `92186039` and confirm two repeated live plays succeed through `release.getStreamUrl` with no new counted download request or release error
