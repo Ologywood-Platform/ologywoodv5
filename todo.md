@@ -4638,3 +4638,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate creator controls and expanded public disclosure details at 390-pixel mobile and desktop widths without changing existing real releases; remove the temporary preview route afterward
 - [x] Run TypeScript, 129 focused release/music/payment/Help/AI tests across nine files, all 2,772 platform tests with 23 skipped across 157 files, and a successful 18.97-second production build
 - [x] Save checkpoint `085e3e72`, publish, verify the live Help article and deterministic OlogyWood AI answer, and receive authenticated owner confirmation that the optional Music Release disclosure control is live without saving a release
+
+## MY OLOGY RELEASE PURCHASE & MUSIC LIBRARY COUNTS (Sep 4, 2026)
+- [x] Trace both live My Ology procedures to a failed full-row release lookup, with the UI safely falling back to empty arrays and misleading zero counts
+- [x] Verify through the read-only real router that authenticated user 7 has two purchase rows for the same release without modifying any database record
+- [x] Separate purchase-history counting from playable-library deduplication so two purchases remain visible while the same song appears once in the player
+- [x] Preserve payment, download, access-control, ownership, hidden-library, and historical purchase records exactly
+- [x] Add regressions for duplicate purchases, distinct releases, newest-entitlement selection, hidden rows, missing legacy joins, stable projections, and unique playable-library entries
+- [x] Validate the real owner account returns two release purchases and one unique playable song through the actual protected procedures without mutating data
+- [x] Run TypeScript, 71 focused My Ology/release/purchase tests across four files, all 2,777 platform tests with 23 skipped across 158 files, and a successful 20.53-second production build
+- [ ] Save, publish, and verify the corrected live My Ology counts

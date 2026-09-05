@@ -51,7 +51,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { eventSearchPattern } from '../shared/eventSearch';
-import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray } from "drizzle-orm";
+import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray, getTableColumns } from "drizzle-orm";
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -2725,7 +2725,15 @@ export async function upsertNotificationPreferences(
  * Get all purchases for a user (for My Purchases page).
  * Joins with artistReleases to include release details.
  */
-export async function getUserPurchases(userId: number, userEmail?: string): Promise<Array<ReleasePurchase & { release: ArtistRelease | null }>> {
+export type PurchasedReleaseSummary = Pick<
+  ArtistRelease,
+  'id' | 'artistId' | 'title' | 'genre' | 'audioFileKey' | 'coverArtKey' | 'durationSeconds' | 'fileFormat'
+>;
+
+export async function getUserPurchases(
+  userId: number,
+  userEmail?: string,
+): Promise<Array<ReleasePurchase & { release: PurchasedReleaseSummary | null }>> {
   const db = await getDb();
   if (!db) return [];
   // Match by userId OR by email (handles cases where purchase was made before login or on different session)
@@ -2733,18 +2741,27 @@ export async function getUserPurchases(userId: number, userEmail?: string): Prom
   if (userEmail) {
     conditions.push(eq(releasePurchases.buyerEmail, userEmail));
   }
-  const purchases = await db.select().from(releasePurchases)
+  const rows = await db.select({
+    ...getTableColumns(releasePurchases),
+    release: {
+      id: artistReleases.id,
+      artistId: artistReleases.artistId,
+      title: artistReleases.title,
+      genre: artistReleases.genre,
+      audioFileKey: artistReleases.audioFileKey,
+      coverArtKey: artistReleases.coverArtKey,
+      durationSeconds: artistReleases.durationSeconds,
+      fileFormat: artistReleases.fileFormat,
+    },
+  }).from(releasePurchases)
+    .leftJoin(artistReleases, eq(releasePurchases.releaseId, artistReleases.id))
     .where(or(...conditions))
     .orderBy(desc(releasePurchases.purchasedAt));
-  
-  // Fetch release details for each purchase
-  const results = await Promise.all(
-    purchases.map(async (purchase) => {
-      const release = await getReleaseById(purchase.releaseId);
-      return { ...purchase, release };
-    })
-  );
-  return results;
+
+  return rows.map(({ release, ...purchase }) => ({
+    ...purchase,
+    release: release?.id ? release : null,
+  }));
 }
 
 /**

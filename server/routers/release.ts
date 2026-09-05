@@ -19,6 +19,7 @@ import {
   EMPTY_AI_DISCLOSURE_DB,
   normalizeAiDisclosure,
 } from "../services/aiReleaseDisclosure";
+import { selectUniquePlayablePurchases } from "../services/myOlogyReleaseLibrary";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -761,8 +762,8 @@ export const releaseRouter = router({
    */
   myLibrary: protectedProcedure.query(async ({ ctx }) => {
     const purchases = await db.getUserPurchases(ctx.user.id, ctx.user.email || undefined);
-    // Filter out hidden purchases and resolve URLs
-    const visible = purchases.filter((p: any) => !p.hiddenFromLibrary);
+    // Purchase history is transactional; the player is one item per playable release.
+    const visible = selectUniquePlayablePurchases(purchases);
     const results = await Promise.all(
       visible.map(async (p) => {
         let coverArtUrl: string | null = null;
