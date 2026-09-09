@@ -65,8 +65,9 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
     expect(navigation).toContain("matches: ['/community', '/following', '/messages', '/fan-club', '/sandbox']");
   });
 
-  it('should include Dashboard link in mobile menu for authenticated users', () => {
-    expect(content).toContain('getDashboardUrl');
+  it('should include the shared role-aware account links in the authenticated mobile menu', () => {
+    expect(content).toContain('getAccountMenuItems');
+    expect(content).toContain('accountMenuItems.map');
   });
 
   it('should include Log In button in mobile menu for unauthenticated users', () => {

@@ -164,8 +164,8 @@ export function AcceptTeamInvite() {
             <CardDescription>You now have access to manage this artist's profile</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" onClick={() => navigate('/artist-dashboard')}>
-              Go to Dashboard
+            <Button className="w-full" onClick={() => navigate('/workspace')}>
+              Go to Team Workspace
             </Button>
           </CardContent>
         </Card>

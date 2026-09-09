@@ -4659,3 +4659,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Keep explicit Download actions on the counted download endpoint and preserve the five-download limit
 - [x] Add permanent regressions that distinguish listening from downloading and verify player errors remain actionable
 - [x] Publish checkpoint `92186039` and confirm two repeated live plays succeed through `release.getStreamUrl` with no new counted download request or release error
+
+## ROLE-AWARE ACCOUNT MENU ORDER (Sep 4, 2026)
+- [x] Audit the current account dropdown, profile URL resolution, Artist Dashboard route, My Ology and Workspace links, settings route, sign-out action, and protected team-member owner context
+- [x] Implement the exact creator-owner Account sequence: My Profile → Artist Dashboard → My Ology → Workspace → Account Settings → Sign Out
+- [x] Show Artist Dashboard only for standalone creator owners and give invited collaborators one owner-linked Team Workspace entry instead of a standalone or duplicate dashboard
+- [x] Preserve the approved six primary destinations and keep Artist Dashboard solely in the role-aware account utility layer
+- [x] Preserve venue, administrator, blogger, fan, guest, and multi-role behavior without exposing the creator-only Artist Dashboard; retain Admin Dashboard separately
+- [x] Add permanent regressions for item order, clean owner profile routing, team-member workspace routing, hidden creator-only links, settings, sign-out, invitation completion, and canonical navigation integrity
+- [x] Validate the real creator-owner order and collaborator fallback without changing account, profile, invitation, or team data; confirm desktop/mobile use the same shared contract and mobile touch targets
+- [x] Run TypeScript, 171 focused header/navigation/role tests across eight files, all 2,784 platform tests with 23 skipped across 160 files, and a successful 19.65-second production build
+- [ ] Save, publish, and verify the live role-aware account menu

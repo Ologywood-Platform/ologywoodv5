@@ -1,8 +1,7 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, Menu, X, ChevronDown, LayoutDashboard, User, Settings, Download, Shield, Library, MoreHorizontal, Search, MessageCircle } from 'lucide-react';
+import { LogOut, Menu, X, ChevronDown, LayoutDashboard, User, Settings, Download, Shield, Library, MoreHorizontal, Search, MessageCircle, Users } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import { getDashboardUrl } from '@/utils/dashboardUrl';
 import { trpc } from '@/lib/trpc';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DarkModeToggle } from './DarkModeToggle';
@@ -14,6 +13,7 @@ import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { CORE_DESTINATIONS, LEARN_DESTINATIONS, getWorkspaceRole, isDestinationActive } from '@/lib/ecosystemNavigation';
 import { CreateActionDialog } from '@/components/CreateActionDialog';
 import { AIChatTrigger } from '@/components/AIChatWidget';
+import { getAccountMenuItems } from '@/lib/accountMenu';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -33,7 +33,7 @@ function LogoutButton({ onAction }: { onAction?: () => void }) {
       disabled={logoutMutation.isPending}
     >
       <LogOut className="h-4 w-4 mr-2" />
-      {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+      {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
     </Button>
   );
 }
@@ -135,6 +135,35 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
   const displayName = user?.name || user?.email || 'Account';
   const shortName = displayName.length > 16 ? displayName.slice(0, 14) + '...' : displayName;
   const workspaceRole = getWorkspaceRole(user as any);
+  const canHaveArtistTeamContext = !!user && ['artist', 'team_member', 'user'].includes(user.role || '');
+  const teamContextQuery = trpc.team.getMyWorkspaceContext.useQuery(undefined, {
+    enabled: canHaveArtistTeamContext,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const teamContext = teamContextQuery.data && teamContextQuery.data.role !== 'owner'
+    ? teamContextQuery.data
+    : null;
+  const isCreatorOwner = user?.role === 'artist' && teamContextQuery.isSuccess && !teamContext;
+  const artistProfileQuery = trpc.artist.getMyProfile.useQuery(undefined, {
+    enabled: isCreatorOwner,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const accountMenuItems = getAccountMenuItems({
+    userRole: user?.role,
+    isCreatorOwner,
+    artistName: artistProfileQuery.data?.artistName,
+    teamContext,
+  });
+  const accountItemIcon = {
+    profile: User,
+    'artist-dashboard': LayoutDashboard,
+    'team-workspace': Users,
+    'my-ology': Library,
+    workspace: LayoutDashboard,
+    settings: Settings,
+  } as const;
 
   return (
     <>
@@ -245,13 +274,6 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
 
                       {/* Nav links */}
                       <div className="py-1">
-                        <Link href={getDashboardUrl(user)} onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <LayoutDashboard className="h-4 w-4" />
-                            Workspace
-                          </button>
-                        </Link>
-
                         {(user as any)?.isAdmin && (
                           <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="block">
                             <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 text-purple-600 dark:text-purple-400 flex items-center gap-2 font-medium">
@@ -260,20 +282,6 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                             </button>
                           </Link>
                         )}
-
-                        <Link href="/my-ology" onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <Library className="h-4 w-4" />
-                            My Ology
-                          </button>
-                        </Link>
-
-                        <Link href="/settings" onClick={() => setUserMenuOpen(false)} className="block">
-                          <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            Manage Preferences
-                          </button>
-                        </Link>
 
                         {termsRemindLaterActive && (
                           <Link href="/terms-of-service" onClick={() => setUserMenuOpen(false)} className="block">
@@ -293,11 +301,22 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                             Download App
                           </button>
                         )}
-                      </div>
 
-                      {/* Logout */}
-                      <div className="border-t dark:border-gray-700 py-1">
-                        <LogoutButton onAction={() => setUserMenuOpen(false)} />
+                        <div className="mt-1 border-t pt-1 dark:border-gray-700">
+                          <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Account</p>
+                          {accountMenuItems.map((item) => {
+                            const Icon = accountItemIcon[item.id];
+                            return (
+                              <Link key={item.id} href={item.href} onClick={() => setUserMenuOpen(false)} className="block">
+                                <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-300 flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  {item.label}
+                                </button>
+                              </Link>
+                            );
+                          })}
+                          <LogoutButton onAction={() => setUserMenuOpen(false)} />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -344,10 +363,6 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
               const active = isDestinationActive(location, item.matches);
               return <Link key={item.id} href={item.href} onClick={closeMobile} className="block"><Button variant="ghost" size="sm" className={`min-h-[44px] w-full justify-start text-sm ${active ? 'bg-purple-50 font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'dark:text-gray-300 dark:hover:text-white'}`}>{item.label}</Button></Link>;
             })}
-            <div className="my-2 border-t dark:border-gray-700" />
-            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Learn & support</p>
-            {LEARN_DESTINATIONS.map((item) => <Link key={item.href} href={item.href} onClick={closeMobile} className="block"><Button variant="ghost" size="sm" className="min-h-[44px] w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">{item.label}</Button></Link>)}
-
             {isAuthenticated ? (
               <>
                 <div className="grid grid-cols-2 gap-2 px-1 py-2">
@@ -385,6 +400,18 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                       {user?.name || user?.email}
                     </p>
                   </div>
+                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Account</p>
+                  {accountMenuItems.map((item) => {
+                    const Icon = accountItemIcon[item.id];
+                    return (
+                      <Link key={item.id} href={item.href} onClick={closeMobile} className="block">
+                        <Button variant="ghost" size="sm" className="min-h-[44px] w-full justify-start text-sm gap-2 dark:text-gray-300 dark:hover:text-white">
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    );
+                  })}
                   <LogoutButton onAction={closeMobile} />
                 </div>
               </>
@@ -409,6 +436,9 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
                 </Button>
               </div>
             )}
+            <div className="my-2 border-t dark:border-gray-700" />
+            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Learn & support</p>
+            {LEARN_DESTINATIONS.map((item) => <Link key={item.href} href={item.href} onClick={closeMobile} className="block"><Button variant="ghost" size="sm" className="min-h-[44px] w-full justify-start text-sm dark:text-gray-300 dark:hover:text-white">{item.label}</Button></Link>)}
           </nav>
         )}
       </header>
