@@ -34,3 +34,7 @@ Venue, fan, ordinary-user, blogger, and administrator accounts do not receive th
 A one-use read-only validator loaded the real creator owner and confirmed the exact five-link account sequence before Sign Out. It also evaluated any available collaborator membership without changing users, profiles, invitations, or team records, then was removed. Permanent tests cover creator order, clean slugs, Team Workspace fallback, creator-only visibility, invitation routing, and preservation of the six core destinations.
 
 TypeScript passed with zero errors. The focused role, header, mobile, and ecosystem set passed **171 tests across eight files**. The complete platform suite passed **2,784 tests**, with **23 skipped**, across **160 test files**. The production build completed successfully in **19.65 seconds**.
+
+## Production confirmation
+
+Checkpoint `9a94e722` was published. The authenticated creator owner confirmed that the live account menu displays and works in the requested order. Production logs recorded successful `team.getMyWorkspaceContext` and `artist.getMyProfile` requests for user 7, followed by authenticated Artist Dashboard requests, with no account-menu routing or authorization error.

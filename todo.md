@@ -4669,4 +4669,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent regressions for item order, clean owner profile routing, team-member workspace routing, hidden creator-only links, settings, sign-out, invitation completion, and canonical navigation integrity
 - [x] Validate the real creator-owner order and collaborator fallback without changing account, profile, invitation, or team data; confirm desktop/mobile use the same shared contract and mobile touch targets
 - [x] Run TypeScript, 171 focused header/navigation/role tests across eight files, all 2,784 platform tests with 23 skipped across 160 files, and a successful 19.65-second production build
-- [ ] Save, publish, and verify the live role-aware account menu
+- [x] Save and publish checkpoint `9a94e722`; owner confirmed the live requested account order, and production logged successful owner-context plus Artist Dashboard requests
