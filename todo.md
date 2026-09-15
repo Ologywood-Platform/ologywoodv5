@@ -4680,4 +4680,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Add permanent regressions for upload choices, guidelines consent, supported formats, signed sessions, URL entry, validation failures, spinner/progress reset, public playback, CSP, sharing, and unchanged Video Portfolio behavior
 - [x] Validate the actual Performance Video guidelines, Paste URL state, and Upload File state non-destructively at 390-pixel mobile and desktop widths; remove the temporary preview and restore production defaults afterward
 - [x] Run TypeScript, 59 focused Performance Video and Video Portfolio tests across nine files, all 2,791 platform tests with 23 skipped across 162 files, and a successful 18.09-second production build
-- [ ] Save, publish, and verify the live Performance Video upload experience
+- [x] Save and publish checkpoint `800eb260`; owner confirmed both Paste URL and Upload File appear live with the preserved Video Guidelines, and production logged successful authenticated Performance Video status requests for user 7 without errors

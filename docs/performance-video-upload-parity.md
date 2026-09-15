@@ -34,3 +34,7 @@ The actual component was inspected at 390-pixel mobile and desktop widths throug
 The focused Performance Video and Video Portfolio set passed **59 tests across nine files**. It covers format and duration validation, signed-session expiry, exact chunks, owner binding, replay rejection, free-tier and authentication boundaries, conversion, thumbnail generation, URL normalization, CSP, sharing, public playback, and existing portfolio behavior. The complete platform suite passed **2,791 tests**, with **23 skipped**, across **162 test files**. TypeScript passed with zero errors, and the production build completed successfully in **18.09 seconds**.
 
 No real artist video, profile, portfolio item, subscription, report, or moderation record was created, changed, or deleted during validation.
+
+## Production verification
+
+Checkpoint `800eb260` was published. The owner confirmed that the live Artist Dashboard Performance Video section displays both **Paste URL** and **Upload File** behind the preserved Video Guidelines step. Production logged successful authenticated `artist.getPerformanceVideoStatus` requests for user 7 with no Performance Video error. No test upload or replacement was performed.
