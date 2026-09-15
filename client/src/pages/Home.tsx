@@ -221,9 +221,9 @@ export default function Home() {
               <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Shield className="h-6 w-6 text-green-700 dark:text-green-300" />
               </div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">NCAA Compliant</h3>
+              <h3 className="font-semibold text-sm sm:text-base mb-1">NIL Readiness Tools</h3>
               <p className="text-xs text-muted-foreground">
-                Built-in compliance language for NIL deals. School approval workflows and disclosure requirements included.
+                Private deal records, proposed reporting reminders, and fee separation. Institutional or legal review may still be required.
               </p>
             </div>
           </div>

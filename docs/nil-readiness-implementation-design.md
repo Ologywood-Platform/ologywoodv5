@@ -69,3 +69,7 @@ Validation completed with TypeScript passing, **535 focused NIL/security/payment
 > **Counsel review remains required:** Before relying on these provisions as legal compliance controls, qualified sports counsel should approve the Terms amendment, generated NIL contract clauses, student-athlete statutory-rights carve-out, representative-fee scope, and institutional/state disclosure workflow. The feature is technically ready to publish as a voluntary readiness tool; it is not a legal certification system.
 
 The publishable implementation checkpoint is `ab7198f4`.
+
+## Post-publication wording correction
+
+Live verification of checkpoint `189fad61` found one remaining homepage card labeled **“NCAA Compliant”** with unsupported school-approval wording. The card was replaced with **“NIL Readiness Tools”** and now describes private deal records, proposed reporting reminders, fee separation, and the need for institutional or legal review. A permanent regression now rejects the former homepage certification claim. The affected 86-test set, TypeScript, the complete 2,809-test suite with 23 skipped, and the production build passed after the correction.

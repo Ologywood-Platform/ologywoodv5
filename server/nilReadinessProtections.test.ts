@@ -165,10 +165,14 @@ describe("NIL readiness implementation boundaries", () => {
   });
 
   it("provides truthful athlete guidance without certification claims", () => {
+    const home = read("client/src/pages/Home.tsx");
     const help = read("client/src/pages/Help.tsx");
     const faq = read("client/src/pages/FAQ.tsx");
     const tour = read("client/src/components/OnboardingTour.tsx");
     const analyzer = read("client/src/components/ContractAnalyzer.tsx");
+    expect(home).toContain("NIL Readiness Tools");
+    expect(home).toContain("Institutional or legal review may still be required");
+    expect(home).not.toContain("NCAA Compliant");
     expect(help).toContain("Where is the NIL Compliance Center?");
     expect(help).toContain("proposed Division I workflow");
     expect(help).toContain("does not certify NCAA");
