@@ -73,3 +73,5 @@ The publishable implementation checkpoint is `ab7198f4`.
 ## Post-publication wording correction
 
 Live verification of checkpoint `189fad61` found one remaining homepage card labeled **“NCAA Compliant”** with unsupported school-approval wording. The card was replaced with **“NIL Readiness Tools”** and now describes private deal records, proposed reporting reminders, fee separation, and the need for institutional or legal review. A permanent regression now rejects the former homepage certification claim. The affected 86-test set, TypeScript, the complete 2,809-test suite with 23 skipped, and the production build passed after the correction.
+
+Corrected checkpoint `7299874d` was published. Live verification confirmed the homepage now displays **“NIL Readiness Tools”** with the institutional/legal-review boundary, the September 29 Terms amendment and NIL Help guidance remain published, and signed-out access to `/nil-compliance` redirects without exposing private athlete data. No further publication is required for this release.
