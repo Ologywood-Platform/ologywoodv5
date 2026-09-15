@@ -22,6 +22,9 @@ import {
   setDefaultRiderTemplate,
   getDefaultRiderForArtist,
 } from "../services/riderTemplateService";
+import { hasOwnedAthleteProfile, requireOwnedAthleteProfile } from "../services/nilComplianceService";
+
+const isAthleteTemplate = (templateType: string | null | undefined) => templateType?.startsWith("athlete_") === true;
 
 export const riderRouter = router({
   /**
@@ -30,7 +33,9 @@ export const riderRouter = router({
   getMyTemplates: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) throw new Error("Unauthorized");
-    return await getArtistRiderTemplates(userId);
+    const templates = await getArtistRiderTemplates(userId);
+    if (await hasOwnedAthleteProfile(userId)) return templates;
+    return templates.filter((template) => !isAthleteTemplate(template.templateType));
   }),
 
   /**
@@ -64,6 +69,9 @@ export const riderRouter = router({
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
 
+      const templateType = input.templateType || "simple_booking";
+      if (isAthleteTemplate(templateType)) await requireOwnedAthleteProfile(userId);
+
       // Tier enforcement: Rider Builder requires Starter plan or higher
       const { getSubscriptionByUserId } = await import("../db");
       const subscription = await getSubscriptionByUserId(userId);
@@ -73,7 +81,6 @@ export const riderRouter = router({
       }
 
       // Validate required fields before saving
-      const templateType = input.templateType || "simple_booking";
       const formData = input.templateData?.formData || input.templateData || {};
       const validation = validateTemplate(templateType, formData);
       if (!validation.valid) {
@@ -101,6 +108,8 @@ export const riderRouter = router({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
+
+      if (isAthleteTemplate(input.templateType)) await requireOwnedAthleteProfile(userId);
 
       return await createFromDefaultTemplate(
         userId,
@@ -172,14 +181,15 @@ export const riderRouter = router({
   /**
    * Validate rider template data
    */
-  validateTemplate: publicProcedure
+  validateTemplate: protectedProcedure
     .input(
       z.object({
         templateType: z.string(),
         data: z.record(z.string(), z.any()),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (isAthleteTemplate(input.templateType)) await requireOwnedAthleteProfile(ctx.user.id);
       return validateTemplate(input.templateType, input.data || {});
     }),
 
@@ -217,17 +227,20 @@ export const riderRouter = router({
   /**
    * Get default template structure by type
    */
-  getDefaultTemplate: publicProcedure
+  getDefaultTemplate: protectedProcedure
     .input(z.object({ templateType: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (isAthleteTemplate(input.templateType)) await requireOwnedAthleteProfile(ctx.user.id);
       return getDefaultTemplate(input.templateType);
     }),
 
   /**
    * List all available default templates (summary info)
    */
-  listDefaultTemplates: publicProcedure.query(async () => {
-    return listDefaultTemplates();
+  listDefaultTemplates: protectedProcedure.query(async ({ ctx }) => {
+    const templates = listDefaultTemplates();
+    if (await hasOwnedAthleteProfile(ctx.user.id)) return templates;
+    return templates.filter((template) => !isAthleteTemplate(template.id));
   }),
 
   /**

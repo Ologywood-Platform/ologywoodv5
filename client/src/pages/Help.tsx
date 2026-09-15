@@ -593,7 +593,7 @@ const faqItems: FAQItem[] = [
     id: 'athlete-2',
     category: 'Athletes & NIL',
     question: 'What is the NIL Engagement Contract?',
-    answer: 'The NIL (Name, Image, Likeness) Engagement Contract is a professional, auto-generated document that covers all aspects of an athlete booking. It includes 10 sections: Parties, Engagement Details, Compensation Terms, Travel & Logistics, Security Requirements, Equipment & Facilities, Content & Media Rights, NIL Compliance (NCAA/conference language), Cancellation Terms, and Signatures. Both parties sign electronically with drawn or typed signatures. You can also edit clauses before finalizing and download the contract as a PDF.',
+    answer: 'The NIL Engagement Contract is a versioned, auto-generated athlete booking document with parties, services, compensation, separated platform/processing/representative fees, term and termination provisions, media rights, optional proposed protections, and e-signatures. It is a readiness template—not a certification of NCAA, institutional, state, or federal compliance. Review it with your institution and qualified sports counsel before signing.',
   },
   {
     id: 'athlete-3',
@@ -616,8 +616,8 @@ const faqItems: FAQItem[] = [
   {
     id: 'athlete-6',
     category: 'Athletes & NIL',
-    question: 'Is the NIL contract NCAA compliant?',
-    answer: 'Yes. The NIL Engagement Contract includes built-in compliance language covering: disclosure requirements, school/conference approval workflows, prohibited activities under NCAA rules, and athlete representation warranties. However, athletes should always verify specific requirements with their school\'s compliance office, as rules vary by conference and institution.',
+    question: 'Does Ologywood certify that my NIL contract is compliant?',
+    answer: 'No. Ologywood provides a versioned athlete contract and educational readiness checks, but it does not certify NCAA, conference, institutional, state, or federal compliance and does not determine eligibility. Review every agreement with your institution\'s compliance office and qualified sports counsel before signing.',
   },
   {
     id: 'athlete-7',
@@ -636,6 +636,36 @@ const faqItems: FAQItem[] = [
     category: 'Athletes & NIL',
     question: 'How does the Fan Club work for athletes?',
     answer: 'Athletes can create Fan Club membership tiers just like artists. Post exclusive content categorized by type: Training Clips, Game Day footage, Behind-the-Scenes content, and Q&A Sessions. Fans subscribe monthly through Stripe. Non-members see a blurred paywall preview with a "Subscribe to Unlock" button. Members can like posts and leave comments, and athletes can reply directly to fan questions.',
+  },
+  {
+    id: 'athlete-10',
+    category: 'Athletes & NIL',
+    question: 'Where is the NIL Compliance Center?',
+    answer: 'Sign in with an Athlete profile, open Artist Dashboard, and select NIL Compliance Center, or go to /nil-compliance. The private center stores your athletic status, institution and eligibility details, representative information, NIL deal log, proposed reporting reminders, submission attestations, evidence, and audit history. These private records do not appear on your public profile.',
+  },
+  {
+    id: 'athlete-11',
+    category: 'Athletes & NIL',
+    question: 'Does Ologywood limit athlete-agent fees to 5%?',
+    answer: 'Ologywood\'s optional proposed-protection workflow blocks an entered representative fee above 5% only for a covered student-athlete endorsement contract. The Protect College Sports Act of 2026 remains proposed, not enacted, and Ologywood does not decide whether a person or agreement is legally covered. Platform service fees and Stripe processing fees are separate from athlete-agent compensation. Consult qualified sports counsel.',
+  },
+  {
+    id: 'athlete-12',
+    category: 'Athletes & NIL',
+    question: 'How do NIL reporting reminders work?',
+    answer: 'When you choose the optional proposed Division I workflow and your private log reaches $600 from the same source during the rolling 12-month window, Ologywood calculates a five-day agreement reminder. After you record received compensation, it calculates a thirty-day compensation reminder. Reminders refresh when you open the NIL tools. Ologywood does not submit or verify disclosures; you record the recipient and attest when you have submitted them.',
+  },
+  {
+    id: 'athlete-13',
+    category: 'Athletes & NIL',
+    question: 'How are NIL fees shown?',
+    answer: 'The private NIL deal log separates athlete gross compensation, athlete-agent or representative compensation, Ologywood technology marketplace service fees, and Stripe payment-processing fees. Ologywood does not act as an athlete agent or charge the representative fee. Current platform rates do not change because you use the readiness tools.',
+  },
+  {
+    id: 'athlete-14',
+    category: 'Athletes & NIL',
+    question: 'Can I keep proof that I made an NIL disclosure?',
+    answer: 'Yes. You can record the recipient and submission status, attest that the information is accurate, and optionally upload a PDF or image as private evidence. Files are stored under your account and opened through an owner-authorized link. Ologywood records your action but does not file the disclosure or certify that it was sufficient.',
   },
 
   // Ology Live

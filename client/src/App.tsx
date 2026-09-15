@@ -28,6 +28,7 @@ import SandboxPostPage from "./pages/SandboxPostPage";
 // LAZY LOADED — Code-split for smaller initial bundle
 // ============================================
 const ArtistDashboardV3 = lazy(() => import('@/pages/ArtistDashboardV3').then(m => ({ default: m.ArtistDashboardV3 })));
+const NilComplianceCenter = lazy(() => import('@/pages/NilComplianceCenter'));
 const VenueDashboard = lazy(() => import('@/pages/VenueDashboard').then(m => ({ default: m.VenueDashboard })));
 const RoleSelection = lazy(() => import("./pages/RoleSelection"));
 const ArtistOnboarding = lazy(() => import("./pages/ArtistOnboarding"));
@@ -156,6 +157,7 @@ function Router() {
           <Route path="/profile/edit" component={ArtistEditProfile} />
           <Route path="/onboarding/venue" component={VenueOnboarding} />
           <Route path="/dashboard">{() => <PageErrorBoundary><ArtistDashboardV3 /></PageErrorBoundary>}</Route>
+          <Route path="/nil-compliance">{() => <PageErrorBoundary><NilComplianceCenter /></PageErrorBoundary>}</Route>
           <Route path="/venue-dashboard">{() => <PageErrorBoundary><VenueDashboard /></PageErrorBoundary>}</Route>
           <Route path="/verify-email" component={VerifyEmail} />
           <Route path="/revert-email" component={RevertEmail} />

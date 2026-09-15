@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag, Disc3, Megaphone, Video } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, Music, Settings, Star, Clock, DollarSign, Heart, Users, Lock, Download, Crown, Camera, FileText, Pencil, Trash2, MapPin, ExternalLink, Ticket, ShoppingBag, Disc3, Megaphone, Video, Scale } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -515,6 +515,22 @@ export function ArtistDashboardV3() {
                     </TooltipTrigger>
                     <TooltipContent>Generate AI ad copy or request managed promotion for your events and releases</TooltipContent>
                   </Tooltip>
+                  {artistProfile?.talentType === 'athlete' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full flex flex-col items-center gap-2 h-auto py-4 border-violet-200 hover:bg-violet-50"
+                          onClick={() => navigate('/nil-compliance')}
+                        >
+                          <Scale className="h-5 w-5 text-violet-600" />
+                          <span className="text-xs font-medium">NIL Compliance</span>
+                          <span className="text-[10px] text-muted-foreground leading-tight block sm:hidden">Deals & deadlines</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Private athlete compliance profile, deal log, fee separation, and in-app reporting reminders</TooltipContent>
+                    </Tooltip>
+                  )}
                 </div>
               </CardContent>
             </Card>

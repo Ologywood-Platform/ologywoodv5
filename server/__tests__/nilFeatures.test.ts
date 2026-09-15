@@ -17,7 +17,8 @@ describe('NIL Features Enhancement', () => {
 
     it('defines tour steps for NIL features', () => {
       const content = fs.readFileSync(tourPath, 'utf-8');
-      expect(content).toContain('NIL-Compliant Contracts');
+      expect(content).toContain('NIL Contract Protections');
+      expect(content).toContain('does not certify');
       expect(content).toContain('AI Contract Analyzer');
     });
 
@@ -70,13 +71,15 @@ describe('NIL Features Enhancement', () => {
       expect(content).toContain('response_format');
     });
 
-    it('analyzes for NCAA compliance areas', () => {
+    it('analyzes NIL contract readiness without certifying compliance', () => {
       const content = fs.readFileSync(analyzerRouterPath, 'utf-8');
       expect(content).toContain('NCAA');
       expect(content).toContain('PARTIES');
       expect(content).toContain('COMPENSATION');
       expect(content).toContain('EXCLUSIVITY');
-      expect(content).toContain('SCHOOL APPROVAL');
+      expect(content).toContain('INSTITUTIONAL & LEGAL REVIEW');
+      expect(content).toContain('FEES & REPRESENTATION');
+      expect(content).toContain('proposed, not enacted');
     });
 
     it('returns compliance score, areas, red flags, and missing clauses', () => {
@@ -100,7 +103,7 @@ describe('NIL Features Enhancement', () => {
     it('component shows score visualization', () => {
       const content = fs.readFileSync(analyzerComponentPath, 'utf-8');
       expect(content).toContain('ScoreRing');
-      expect(content).toContain('Compliance Score');
+      expect(content).toContain('Readiness Score');
     });
 
     it('component shows status badges (pass/warning/fail)', () => {

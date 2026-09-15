@@ -140,6 +140,39 @@ export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
 
 /**
+ * Private NIL athlete compliance profile. This table is never joined into
+ * public artist-profile responses.
+ */
+export const nilAthleteComplianceProfiles = mysqlTable("nil_athlete_compliance_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  artistProfileId: int("artistProfileId").notNull().unique(),
+  athleteUserId: int("athleteUserId").notNull().unique(),
+  athleticStatus: mysqlEnum("athleticStatus", ["prospective_student_athlete", "college_student_athlete", "professional_athlete", "former_athlete", "other"]).notNull(),
+  institutionName: varchar("institutionName", { length: 255 }),
+  institutionState: varchar("institutionState", { length: 100 }),
+  associationName: varchar("associationName", { length: 100 }),
+  divisionLevel: varchar("divisionLevel", { length: 50 }),
+  eligibilityEndsAt: timestamp("eligibilityEndsAt"),
+  complianceContactName: varchar("complianceContactName", { length: 255 }),
+  complianceContactEmail: varchar("complianceContactEmail", { length: 320 }),
+  complianceContactPhone: varchar("complianceContactPhone", { length: 50 }),
+  isMinor: boolean("isMinor").default(false).notNull(),
+  guardianName: varchar("guardianName", { length: 255 }),
+  guardianEmail: varchar("guardianEmail", { length: 320 }),
+  representativeInvolved: boolean("representativeInvolved").default(false).notNull(),
+  athleteAttestedAt: timestamp("athleteAttestedAt"),
+  termsVersion: varchar("termsVersion", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  athleteUserIdx: index("idx_nil_athlete_compliance_user").on(table.athleteUserId),
+  athleticStatusIdx: index("idx_nil_athlete_compliance_status").on(table.athleticStatus),
+}));
+
+export type NilAthleteComplianceProfile = typeof nilAthleteComplianceProfiles.$inferSelect;
+export type InsertNilAthleteComplianceProfile = typeof nilAthleteComplianceProfiles.$inferInsert;
+
+/**
  * Sandbox Posts - one replaceable, creator-controlled public update per talent profile.
  * A replacement deletes the current row and inserts a new row; there is no history table.
  */
@@ -555,6 +588,10 @@ export const contracts = mysqlTable("contracts", {
   contractData: json("contractData").$type<Record<string, any>>(),
   pdfUrl: text("pdfUrl"),
   riderTemplateId: int("riderTemplateId"),
+  templateVersion: varchar("templateVersion", { length: 32 }),
+  nilTermsVersion: varchar("nilTermsVersion", { length: 64 }),
+  complianceSnapshot: json("complianceSnapshot").$type<Record<string, unknown>>(),
+  contentHash: varchar("contentHash", { length: 64 }),
   status: mysqlEnum("status", ["pending", "signed_by_artist", "signed_by_venue", "fully_signed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -566,6 +603,97 @@ export const contracts = mysqlTable("contracts", {
 
 export type Contract = typeof contracts.$inferSelect;
 export type InsertContract = typeof contracts.$inferInsert;
+
+/**
+ * Athlete-controlled NIL compliance records. These records supplement, and do
+ * not replace, booking, Ology Live, payment, or signature records.
+ */
+export const nilComplianceDeals = mysqlTable("nil_compliance_deals", {
+  id: int("id").autoincrement().primaryKey(),
+  athleteProfileId: int("athleteProfileId").notNull(),
+  athleteUserId: int("athleteUserId").notNull(),
+  sourceType: mysqlEnum("sourceType", ["manual", "booking", "ology_live"]).default("manual").notNull(),
+  bookingId: int("bookingId"),
+  ologyLiveBookingId: int("ologyLiveBookingId"),
+  sourceName: varchar("sourceName", { length: 255 }).notNull(),
+  sourceKey: varchar("sourceKey", { length: 191 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  dealType: mysqlEnum("dealType", ["brand_endorsement", "appearance", "autograph_signing", "speaking", "camp_clinic", "ology_live", "other"]).notNull(),
+  isNilActivity: boolean("isNilActivity").default(true).notNull(),
+  isEndorsementContract: boolean("isEndorsementContract").default(false).notNull(),
+  proposedProtectionEnabled: boolean("proposedProtectionEnabled").default(true).notNull(),
+  divisionOneReportingApplies: boolean("divisionOneReportingApplies").default(false).notNull(),
+  agreementDate: timestamp("agreementDate").notNull(),
+  termStartsAt: timestamp("termStartsAt"),
+  termEndsAt: timestamp("termEndsAt"),
+  eligibilityEndsAtSnapshot: timestamp("eligibilityEndsAtSnapshot"),
+  servicesDescription: text("servicesDescription").notNull(),
+  counterpartyName: varchar("counterpartyName", { length: 255 }).notNull(),
+  counterpartyEmail: varchar("counterpartyEmail", { length: 320 }),
+  grossCompensation: decimal("grossCompensation", { precision: 12, scale: 2 }).notNull(),
+  compensationReceivedAmount: decimal("compensationReceivedAmount", { precision: 12, scale: 2 }),
+  compensationReceivedAt: timestamp("compensationReceivedAt"),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  writtenAgreementConfirmed: boolean("writtenAgreementConfirmed").default(false).notNull(),
+  nonperformanceTerminationTerms: text("nonperformanceTerminationTerms"),
+  notConditionedOnEnrollmentOrResidency: boolean("notConditionedOnEnrollmentOrResidency").default(false).notNull(),
+  representativeInvolved: boolean("representativeInvolved").default(false).notNull(),
+  representativeName: varchar("representativeName", { length: 255 }),
+  representativeEmail: varchar("representativeEmail", { length: 320 }),
+  representativeRegistrationState: varchar("representativeRegistrationState", { length: 100 }),
+  representativeRegistrationNumber: varchar("representativeRegistrationNumber", { length: 120 }),
+  agencyContractConfirmed: boolean("agencyContractConfirmed").default(false).notNull(),
+  agentFeePercent: decimal("agentFeePercent", { precision: 5, scale: 2 }),
+  agentFeeAmount: decimal("agentFeeAmount", { precision: 12, scale: 2 }),
+  platformServiceFeeAmount: decimal("platformServiceFeeAmount", { precision: 12, scale: 2 }),
+  paymentProcessingFeeAmount: decimal("paymentProcessingFeeAmount", { precision: 12, scale: 2 }),
+  agreementDisclosureStatus: mysqlEnum("agreementDisclosureStatus", ["not_recorded", "submitted"]).default("not_recorded").notNull(),
+  agreementSubmittedAt: timestamp("agreementSubmittedAt"),
+  agreementSubmissionRecipient: varchar("agreementSubmissionRecipient", { length: 255 }),
+  agreementSubmittedBy: mysqlEnum("agreementSubmittedBy", ["athlete", "authorized_representative"]),
+  compensationDisclosureStatus: mysqlEnum("compensationDisclosureStatus", ["not_recorded", "submitted"]).default("not_recorded").notNull(),
+  compensationSubmittedAt: timestamp("compensationSubmittedAt"),
+  compensationSubmissionRecipient: varchar("compensationSubmissionRecipient", { length: 255 }),
+  compensationSubmittedBy: mysqlEnum("compensationSubmittedBy", ["athlete", "authorized_representative"]),
+  contractTemplateVersion: varchar("contractTemplateVersion", { length: 32 }).notNull(),
+  nilTermsVersion: varchar("nilTermsVersion", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  athleteCreatedIdx: index("idx_nil_deals_athlete_created").on(table.athleteUserId, table.createdAt),
+  sourceWindowIdx: index("idx_nil_deals_source_window").on(table.athleteProfileId, table.sourceKey, table.agreementDate),
+  bookingIdx: index("idx_nil_deals_booking").on(table.bookingId),
+  liveBookingIdx: index("idx_nil_deals_live_booking").on(table.ologyLiveBookingId),
+}));
+
+export type NilComplianceDeal = typeof nilComplianceDeals.$inferSelect;
+export type InsertNilComplianceDeal = typeof nilComplianceDeals.$inferInsert;
+
+/**
+ * Append-only NIL compliance history. No product API updates or deletes rows.
+ */
+export const nilComplianceEvents = mysqlTable("nil_compliance_events", {
+  id: int("id").autoincrement().primaryKey(),
+  dealId: int("dealId"),
+  athleteProfileId: int("athleteProfileId").notNull(),
+  athleteUserId: int("athleteUserId").notNull(),
+  actorUserId: int("actorUserId").notNull(),
+  eventType: mysqlEnum("eventType", ["profile_created", "profile_updated", "deal_created", "deal_updated", "agreement_submission_recorded", "compensation_submission_recorded", "evidence_uploaded"]).notNull(),
+  eventData: json("eventData").$type<Record<string, unknown>>(),
+  evidenceKey: varchar("evidenceKey", { length: 512 }),
+  evidenceUrl: text("evidenceUrl"),
+  evidenceFileName: varchar("evidenceFileName", { length: 255 }),
+  evidenceMimeType: varchar("evidenceMimeType", { length: 100 }),
+  evidenceSizeBytes: int("evidenceSizeBytes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  athleteCreatedIdx: index("idx_nil_events_athlete_created").on(table.athleteUserId, table.createdAt),
+  dealCreatedIdx: index("idx_nil_events_deal_created").on(table.dealId, table.createdAt),
+  eventTypeIdx: index("idx_nil_events_type").on(table.eventType),
+}));
+
+export type NilComplianceEvent = typeof nilComplianceEvents.$inferSelect;
+export type InsertNilComplianceEvent = typeof nilComplianceEvents.$inferInsert;
 
 /**
  * Signatures - digital signatures on contracts
@@ -2424,6 +2552,11 @@ export const ologyLiveSessionContracts = mysqlTable("ology_live_session_contract
   compensationAmount: decimal("compensationAmount", { precision: 10, scale: 2 }),
   mediaRightsGranted: json("mediaRightsGranted"), // what media rights fan gets (recording, streaming, etc.)
   ncaaComplianceNote: text("ncaaComplianceNote"),
+  templateVersion: varchar("templateVersion", { length: 32 }),
+  nilTermsVersion: varchar("nilTermsVersion", { length: 64 }),
+  complianceSnapshot: json("complianceSnapshot").$type<Record<string, unknown>>(),
+  contentHash: varchar("contentHash", { length: 64 }),
+  statutoryRightsCarveout: boolean("statutoryRightsCarveout").default(false).notNull(),
   // Metadata
   generatedAt: timestamp("generatedAt").defaultNow().notNull(),
   expiresAt: timestamp("expiresAt"),

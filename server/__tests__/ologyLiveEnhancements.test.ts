@@ -25,9 +25,9 @@ describe("Ology Live Enhancements", () => {
       expect(earningsPage).toContain("nil-earnings");
     });
 
-    it("should have exportPDF function that generates printable HTML", () => {
+    it("should have an athlete-controlled PDF readiness summary", () => {
       expect(earningsPage).toContain("exportPDF");
-      expect(earningsPage).toContain("NIL Compliance Earnings Report");
+      expect(earningsPage).toContain("Athlete NIL Activity Earnings Summary");
       expect(earningsPage).toContain("FOR ATTORNEY / COMPLIANCE REVIEW");
     });
 
@@ -36,9 +36,10 @@ describe("Ology Live Enhancements", () => {
       expect(earningsPage).toContain("does not constitute tax");
     });
 
-    it("should include platform details in PDF export", () => {
-      expect(earningsPage).toContain("Platform Fee Rate");
+    it("should classify the technology marketplace fee separately in the PDF export", () => {
+      expect(earningsPage).toContain("Technology Marketplace Service Fee");
       expect(earningsPage).toContain("15% of gross booking amount");
+      expect(earningsPage).toContain("separate from athlete-agent compensation");
       expect(earningsPage).toContain("Payment Processor");
       expect(earningsPage).toContain("Stripe");
     });
@@ -49,7 +50,14 @@ describe("Ology Live Enhancements", () => {
     });
 
     it("should include category breakdown in CSV export", () => {
-      expect(earningsPage).toContain("EARNINGS BY NIL CATEGORY");
+      expect(earningsPage).toContain("EARNINGS BY ACTIVITY CATEGORY");
+    });
+
+    it("should enable NIL exports only for Athlete profiles while preserving general earnings", () => {
+      expect(earningsPage).toContain('const isAthleteProfile = artistProfile?.talentType === "athlete"');
+      expect(earningsPage).toContain('{ enabled: isAthleteProfile }');
+      expect(earningsPage).toContain('isAthleteProfile && <div className="flex gap-2">');
+      expect(earningsPage).toContain("getEarningsSummary.useQuery()");
     });
 
     it("should disable export buttons when no data is available", () => {

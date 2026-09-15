@@ -3,6 +3,8 @@ import {
   AI_RELEASE_DISCLOSURE_GUIDANCE,
   getCanonicalNavigationAnswer,
   MY_OLOGY_GUIDANCE,
+  NIL_AGENT_FEE_GUIDANCE,
+  NIL_READINESS_GUIDANCE,
   WORKSPACE_GUIDANCE,
 } from './routers/aiChat';
 
@@ -36,6 +38,25 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('creator-provided details');
     expect(answer).toContain('not that OlogyWood verified the release as AI-free');
     expect(answer).toContain('does not certify');
+  });
+
+  it('answers NIL Compliance Center questions deterministically with private readiness boundaries', () => {
+    const answer = getCanonicalNavigationAnswer('Where can I find my NIL compliance tools and reporting reminders?');
+
+    expect(answer).toBe(NIL_READINESS_GUIDANCE);
+    expect(answer).toContain('/nil-compliance');
+    expect(answer).toContain('private readiness workspace');
+    expect(answer).toContain('does not file disclosures');
+    expect(answer).toContain('proposed, not enacted');
+  });
+
+  it('answers proposed five-percent fee questions without confusing platform fees with agent compensation', () => {
+    const answer = getCanonicalNavigationAnswer('Is the athlete-agent fee capped at five percent?');
+
+    expect(answer).toBe(NIL_AGENT_FEE_GUIDANCE);
+    expect(answer).toContain('covered student-athlete endorsement contract');
+    expect(answer).toContain('platform service fees and Stripe processing charges are separate');
+    expect(answer).toContain('proposed, not enacted');
   });
 
   it('does not bypass the LLM for unrelated platform questions', () => {

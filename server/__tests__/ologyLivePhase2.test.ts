@@ -229,16 +229,18 @@ describe("Ology Live Phase 2 - NIL Earnings Dashboard", () => {
     expect(fs.existsSync(pagePath)).toBe(true);
   });
 
-  it("should display net earnings, gross revenue, and platform fees", () => {
+  it("should display net earnings, gross revenue, and technology service fees", () => {
     const content = fs.readFileSync(pagePath, "utf-8");
     expect(content).toContain("Net Earnings");
     expect(content).toContain("Gross Revenue");
-    expect(content).toContain("Platform Fees");
+    expect(content).toContain("Technology Service Fees");
   });
 
-  it("should have NIL Compliance Report section", () => {
+  it("should have an Athlete-only NIL activity summary section", () => {
     const content = fs.readFileSync(pagePath, "utf-8");
-    expect(content).toContain("NIL Compliance Report");
+    expect(content).toContain("Athlete NIL Activity Summary");
+    expect(content).toContain("not a filing, eligibility determination, or compliance certificate");
+    expect(content).toContain('isAthleteProfile && <div className="bg-white border rounded-lg p-6 mb-8">');
   });
 
   it("should support year filtering for reports", () => {
@@ -252,9 +254,9 @@ describe("Ology Live Phase 2 - NIL Earnings Dashboard", () => {
     expect(content).toContain("monthlyBreakdown");
   });
 
-  it("should display earnings by NIL category", () => {
+  it("should display earnings by activity category for all creators", () => {
     const content = fs.readFileSync(pagePath, "utf-8");
-    expect(content).toContain("Earnings by NIL Category");
+    expect(content).toContain("Earnings by Activity Category");
     expect(content).toContain("byCategory");
   });
 });

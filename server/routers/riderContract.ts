@@ -9,6 +9,18 @@ import * as notif from "../services/notificationService";
 import crypto from "crypto";
 import { generateRiderPdf } from "../services/riderPdfService";
 import { buildContractDataFromBooking, generateNILContractHTML, NILContractData } from "../services/nilContractGenerator";
+import { NIL_CONTRACT_TEMPLATE_VERSION, NIL_TERMS_VERSION } from "../../shared/nilCompliance";
+import { getContractSafeComplianceSnapshot } from "../services/nilComplianceService";
+
+async function getNilContractMetadata(artistId: number) {
+  const profile = await db.getArtistProfileById(artistId);
+  if (profile?.talentType !== "athlete") return {};
+  return {
+    templateVersion: NIL_CONTRACT_TEMPLATE_VERSION,
+    nilTermsVersion: NIL_TERMS_VERSION,
+    complianceSnapshot: await getContractSafeComplianceSnapshot(artistId),
+  };
+}
 
 export const riderContractRouter = router({
   /**
@@ -124,6 +136,7 @@ export const riderContractRouter = router({
         riderTemplateId: booking.riderTemplateId,
         contractData,
         status: "pending",
+        ...(await getNilContractMetadata(booking.artistId)),
       });
 
       return contract;
@@ -196,6 +209,7 @@ export const riderContractRouter = router({
           riderTemplateId: booking.riderTemplateId,
           contractData,
           status: "pending",
+          ...(await getNilContractMetadata(booking.artistId)),
         });
       }
 
@@ -311,7 +325,10 @@ export const riderContractRouter = router({
                       userId: venueUserForPay.id.toString(),
                       paymentType: 'deposit',
                       depositPercent: (depositPercent * 100).toString(),
-                      platformFeeAmount: Math.round(depositAmountCents * 0.05).toString(), // 5% platform fee
+                      platformFeeAmount: Math.max(1, Math.round(depositAmountCents * 0.01)).toString(),
+                      platformFeePercent: '1',
+                      platformFeeClassification: 'technology_marketplace_service',
+                      athleteAgentFeeIncluded: 'false',
                     },
                     success_url: `${baseUrl}/bookings/${booking.id}?payment=success`,
                     cancel_url: `${baseUrl}/bookings/${booking.id}?payment=cancelled`,
@@ -558,6 +575,7 @@ export const riderContractRouter = router({
           riderTemplateId: booking.riderTemplateId,
           contractData,
           status: "pending",
+          ...(await getNilContractMetadata(booking.artistId)),
         });
       }
 

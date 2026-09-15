@@ -61,7 +61,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
   // Check if Terms banner was temporarily dismissed (remind later)
   const termsRemindLaterActive = useMemo(() => {
     if (!isAuthenticated) return false;
-    const TERMS_VERSION = '2026-09-01';
+    const TERMS_VERSION = '2026-09-15-nil-readiness';
     const accepted = localStorage.getItem('ologywood_terms_accepted_version');
     if (accepted === TERMS_VERSION) return false;
     const remindLater = localStorage.getItem('ologywood_terms_remind_later');

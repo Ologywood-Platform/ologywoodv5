@@ -20,23 +20,23 @@ interface TourStep {
 const ATHLETE_TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to NIL Features',
-    description: 'OlogyWood now supports athletes and creators with full NIL (Name, Image, Likeness) compliance tools. Let us show you what\'s new.',
+    title: 'Welcome to NIL Readiness Tools',
+    description: 'OlogyWood helps Athlete profiles organize NIL agreements, separated fees, private reporting reminders, and supporting records. These tools do not certify eligibility or replace institutional or legal review.',
     icon: <Sparkles className="h-5 w-5 text-purple-500" />,
     position: 'center',
   },
   {
     id: 'rider-builder',
     title: 'Athlete Rider Templates',
-    description: 'New rider templates designed for athletes: Appearance Rider, Autograph Signing, Speaking Engagement, and Camp/Clinic. Each includes NCAA compliance fields.',
+    description: 'Use athlete templates for appearances, autograph signings, speaking engagements, and camps or clinics. Each includes readiness fields that you and your institution or counsel should review.',
     icon: <FileText className="h-5 w-5 text-blue-500" />,
     targetSelector: '[data-tour="rider-builder"]',
     position: 'bottom',
   },
   {
     id: 'nil-contracts',
-    title: 'NIL-Compliant Contracts',
-    description: 'Every contract now includes NIL compliance sections: school approval tracking, conference rules, disclosure requirements, and conflicting brand restrictions.',
+    title: 'NIL Contract Protections',
+    description: 'Athlete contracts separate platform, processing, and representative fees and include optional proposed federal protections. OlogyWood does not certify that an agreement complies with every applicable rule.',
     icon: <Shield className="h-5 w-5 text-green-500" />,
     targetSelector: '[data-tour="contracts"]',
     position: 'bottom',
@@ -44,7 +44,7 @@ const ATHLETE_TOUR_STEPS: TourStep[] = [
   {
     id: 'contract-analyzer',
     title: 'AI Contract Analyzer',
-    description: 'Paste any NIL agreement and our AI will review it for standard NCAA compliance requirements, flagging potential issues and missing clauses.',
+    description: 'Paste an NIL agreement for an educational readiness review that flags missing terms, fee concerns, and questions to take to your institution or qualified sports counsel.',
     icon: <Sparkles className="h-5 w-5 text-amber-500" />,
     targetSelector: '[data-tour="contract-analyzer"]',
     position: 'bottom',

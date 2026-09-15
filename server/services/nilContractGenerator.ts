@@ -17,6 +17,8 @@
  * 11. Signatures
  */
 
+import { NIL_AGENT_FEE_MAX_PERCENT, NIL_CONTRACT_TEMPLATE_VERSION } from "../../shared/nilCompliance";
+
 export interface ContractParty {
   name: string;
   role: 'athlete' | 'venue' | 'brand' | 'representative';
@@ -53,6 +55,10 @@ export interface ContractCompensation {
   paymentMethod: string;
   bonuses?: string;
   revenueShare?: string;
+  platformServiceFee?: number;
+  paymentProcessingFee?: number;
+  agentFeePercent?: number;
+  agentFeeAmount?: number;
 }
 
 export interface ContractTravel {
@@ -92,7 +98,8 @@ export interface ContractMediaRights {
 }
 
 export interface ContractNILCompliance {
-  ncaaCompliant: boolean;
+  studentAthlete: boolean;
+  athleteSelfCertified: boolean;
   schoolApprovalRequired: boolean;
   schoolApprovalObtained?: boolean;
   conferenceRules?: string;
@@ -101,6 +108,15 @@ export interface ContractNILCompliance {
   conflictingBrands?: string[];
   athleteRepresentative?: string;
   representativeContact?: string;
+  representativeRegistrationState?: string;
+  representativeRegistrationNumber?: string;
+  writtenAgencyContractConfirmed?: boolean;
+  proposedProtectionEnabled: boolean;
+  writtenAgreementConfirmed: boolean;
+  notConditionedOnEnrollmentOrResidency: boolean;
+  eligibilityEndsAt?: string;
+  nonperformanceTerminationTerms?: string;
+  contractTemplateVersion: string;
 }
 
 export interface ContractCancellation {
@@ -198,6 +214,10 @@ export function buildContractDataFromBooking(params: {
       paymentMethod: riderData.payment_method || 'Stripe (via Ologywood)',
       bonuses: riderData.bonuses || '',
       revenueShare: riderData.revenue_share || '',
+      platformServiceFee: parseFloat(riderData.platform_service_fee || '0') || 0,
+      paymentProcessingFee: parseFloat(riderData.payment_processing_fee || '0') || 0,
+      agentFeePercent: parseFloat(riderData.agent_fee_percent || '0') || 0,
+      agentFeeAmount: parseFloat(riderData.agent_fee_amount || '0') || 0,
     },
     travel: {
       travelProvided: riderData.travel_provided === 'Yes' || riderData.travel_provided === true,
@@ -232,15 +252,25 @@ export function buildContractDataFromBooking(params: {
       exclusivityPeriod: riderData.exclusivity_period || '',
     },
     nilCompliance: {
-      ncaaCompliant: isAthlete,
-      schoolApprovalRequired: isAthlete,
+      studentAthlete: isAthlete,
+      athleteSelfCertified: riderData.athlete_self_certified === true,
+      schoolApprovalRequired: riderData.school_approval_required === true,
       schoolApprovalObtained: riderData.school_approval_obtained === true,
       conferenceRules: riderData.conference_rules || '',
       disclosureRequired: isAthlete,
-      disclosureMethod: riderData.disclosure_method || 'Platform disclosure via Ologywood',
+      disclosureMethod: riderData.disclosure_method || 'Athlete-managed disclosure; Ologywood does not file disclosures on the athlete’s behalf',
       conflictingBrands: riderData.conflicting_brands ? (Array.isArray(riderData.conflicting_brands) ? riderData.conflicting_brands : [riderData.conflicting_brands]) : [],
       athleteRepresentative: riderData.representative_name || '',
       representativeContact: riderData.representative_contact || '',
+      representativeRegistrationState: riderData.representative_registration_state || '',
+      representativeRegistrationNumber: riderData.representative_registration_number || '',
+      writtenAgencyContractConfirmed: riderData.written_agency_contract_confirmed === true,
+      proposedProtectionEnabled: riderData.proposed_protection_enabled !== false,
+      writtenAgreementConfirmed: riderData.written_agreement_confirmed !== false,
+      notConditionedOnEnrollmentOrResidency: riderData.not_conditioned_on_enrollment_or_residency !== false,
+      eligibilityEndsAt: riderData.eligibility_ends_at || '',
+      nonperformanceTerminationTerms: riderData.nonperformance_termination_terms || riderData.cancellation_policy || '',
+      contractTemplateVersion: NIL_CONTRACT_TEMPLATE_VERSION,
     },
     cancellation: {
       cancellationNotice: riderData.cancellation_notice || '14 days',
@@ -404,7 +434,21 @@ export function generateNILContractHTML(data: NILContractData): string {
         <td style="padding: 8px 12px; font-weight: 600; color: #555;">Revenue Share</td>
         <td style="padding: 8px 12px;">${data.compensation.revenueShare}</td>
       </tr>` : ''}
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Ologywood Platform Service Fee</td>
+        <td style="padding: 8px 12px;">${formatCurrency(data.compensation.platformServiceFee || 0)} — technology marketplace service; not athlete-agent compensation</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Payment Processing Fee</td>
+        <td style="padding: 8px 12px;">${formatCurrency(data.compensation.paymentProcessingFee || 0)} — payment processing; not athlete-agent compensation</td>
+      </tr>
+      ${data.nilCompliance.athleteRepresentative ? `
+      <tr>
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Athlete-Agent Fee</td>
+        <td style="padding: 8px 12px;">${data.compensation.agentFeePercent || 0}% (${formatCurrency(data.compensation.agentFeeAmount || 0)}) — separate representative compensation${data.nilCompliance.proposedProtectionEnabled ? `; proposed protected workflow maximum ${NIL_AGENT_FEE_MAX_PERCENT}%` : ''}</td>
+      </tr>` : ''}
     </table>
+    <p style="font-size: 11px; color: #777; margin-top: 10px;">The listed categories are separated for transparency. Ologywood does not act as an athlete agent and does not negotiate representative compensation.</p>
   </div>
 
   <!-- SECTION 4: TRAVEL & LOGISTICS -->
@@ -496,22 +540,22 @@ export function generateNILContractHTML(data: NILContractData): string {
   </div>
 
   <!-- SECTION 8: NIL COMPLIANCE -->
-  ${data.nilCompliance.ncaaCompliant ? `
+  ${data.nilCompliance.studentAthlete ? `
   <div style="margin-bottom: 32px;">
-    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">8. NIL Compliance & NCAA Regulations</h2>
+    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">8. NIL Readiness & Athlete Representations</h2>
     <div style="background: #f9f9ff; border: 1px solid #e8e4ff; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
       <p style="font-size: 12px; color: #555; margin: 0 0 12px 0;">
-        <strong>IMPORTANT:</strong> This agreement is subject to all applicable NCAA, conference, and institutional rules regarding Name, Image, and Likeness (NIL) activities. Both parties acknowledge and agree to the following:
+        <strong>IMPORTANT:</strong> This agreement may be subject to federal or state law and association, conference, or institutional NIL rules. Ologywood does not certify compliance or file disclosures. The athlete and counterparty remain responsible for required institutional and legal review.
       </p>
     </div>
     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
       <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 12px; font-weight: 600; color: #555; width: 35%;">NCAA Compliant</td>
-        <td style="padding: 8px 12px;">✓ This agreement complies with current NCAA NIL policies</td>
+        <td style="padding: 8px 12px; font-weight: 600; color: #555; width: 35%;">Athlete Self-Certification</td>
+        <td style="padding: 8px 12px;">${data.nilCompliance.athleteSelfCertified ? '✓ Athlete attested to the accuracy of supplied compliance information' : 'Not yet recorded — institutional or legal review may be required'}</td>
       </tr>
       <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 12px; font-weight: 600; color: #555;">School Approval</td>
-        <td style="padding: 8px 12px;">${data.nilCompliance.schoolApprovalRequired ? (data.nilCompliance.schoolApprovalObtained ? '✓ Required and obtained' : '⏳ Required — pending approval') : 'Not required'}</td>
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Institutional Review</td>
+        <td style="padding: 8px 12px;">${data.nilCompliance.schoolApprovalRequired ? (data.nilCompliance.schoolApprovalObtained ? '✓ Athlete reports required review was obtained' : 'Pending athlete confirmation') : 'Athlete has not indicated that prior approval is required; disclosure or review may still apply'}</td>
       </tr>
       ${data.nilCompliance.conferenceRules ? `
       <tr style="border-bottom: 1px solid #f0f0f0;">
@@ -527,6 +571,20 @@ export function generateNILContractHTML(data: NILContractData): string {
         <td style="padding: 8px 12px; font-weight: 600; color: #555;">Disclosure Method</td>
         <td style="padding: 8px 12px;">${data.nilCompliance.disclosureMethod}</td>
       </tr>` : ''}
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Written Agreement</td>
+        <td style="padding: 8px 12px;">${data.nilCompliance.writtenAgreementConfirmed ? '✓ Confirmed' : 'Not confirmed'}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Enrollment / Residence Condition</td>
+        <td style="padding: 8px 12px;">${data.nilCompliance.notConditionedOnEnrollmentOrResidency ? 'Agreement validity and payment are not conditioned on enrollment, continued enrollment, or residence' : 'Requires review before signing'}</td>
+      </tr>
+      ${data.nilCompliance.eligibilityEndsAt ? `<tr style="border-bottom: 1px solid #f0f0f0;"><td style="padding: 8px 12px; font-weight: 600; color: #555;">Recorded Eligibility End</td><td style="padding: 8px 12px;">${formatDate(data.nilCompliance.eligibilityEndsAt)} — contract term should not extend beyond this date</td></tr>` : ''}
+      <tr style="border-bottom: 1px solid #f0f0f0;">
+        <td style="padding: 8px 12px; font-weight: 600; color: #555;">Nonperformance Termination</td>
+        <td style="padding: 8px 12px;">${data.nilCompliance.nonperformanceTerminationTerms || 'Terms must be completed before signing'}</td>
+      </tr>
+      ${data.nilCompliance.athleteRepresentative ? `<tr style="border-bottom: 1px solid #f0f0f0;"><td style="padding: 8px 12px; font-weight: 600; color: #555;">Representative Registration</td><td style="padding: 8px 12px;">${data.nilCompliance.representativeRegistrationState || 'State not recorded'} · ${data.nilCompliance.representativeRegistrationNumber || 'Registration number not recorded'} · Separate agency contract ${data.nilCompliance.writtenAgencyContractConfirmed ? 'confirmed' : 'not confirmed'}</td></tr>` : ''}
       ${data.nilCompliance.conflictingBrands && data.nilCompliance.conflictingBrands.length > 0 ? `
       <tr>
         <td style="padding: 8px 12px; font-weight: 600; color: #555;">Conflicting Brands</td>
@@ -534,13 +592,13 @@ export function generateNILContractHTML(data: NILContractData): string {
       </tr>` : ''}
     </table>
     <p style="font-size: 11px; color: #888; margin-top: 12px; font-style: italic;">
-      The Talent represents that they have disclosed this agreement to their institution's compliance office as required. The Booker agrees not to condition this agreement on athletic performance or enrollment decisions.
+      The Talent is responsible for making any required disclosure and recording it in the private NIL Compliance Center. Ologywood provides reminders and evidence storage but does not submit disclosures. The Booker agrees not to condition validity or payment on enrollment, continued enrollment, residence, or athletic performance.
     </p>
   </div>` : ''}
 
   <!-- SECTION 9: CANCELLATION & FORCE MAJEURE -->
   <div style="margin-bottom: 32px;">
-    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.ncaaCompliant ? '9' : '8'}. Cancellation & Force Majeure</h2>
+    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.studentAthlete ? '9' : '8'}. Cancellation & Force Majeure</h2>
     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
       <tr style="border-bottom: 1px solid #f0f0f0;">
         <td style="padding: 8px 12px; font-weight: 600; color: #555; width: 35%;">Cancellation Notice</td>
@@ -581,20 +639,20 @@ export function generateNILContractHTML(data: NILContractData): string {
   <!-- SECTION 10: ADDITIONAL TERMS -->
   ${data.additionalTerms ? `
   <div style="margin-bottom: 32px;">
-    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.ncaaCompliant ? '10' : '9'}. Additional Terms</h2>
+    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.studentAthlete ? '10' : '9'}. Additional Terms</h2>
     <p style="font-size: 13px; color: #333; white-space: pre-line;">${data.additionalTerms}</p>
   </div>` : ''}
 
   <!-- SECTION 11: GENERAL TERMS -->
   <div style="margin-bottom: 32px;">
-    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.ncaaCompliant ? (data.additionalTerms ? '11' : '10') : (data.additionalTerms ? '10' : '9')}. General Terms & Conditions</h2>
+    <h2 style="font-size: 14px; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0;">${data.nilCompliance.studentAthlete ? (data.additionalTerms ? '11' : '10') : (data.additionalTerms ? '10' : '9')}. General Terms & Conditions</h2>
     <div style="font-size: 11px; color: #555; line-height: 1.7;">
       <p><strong>a) Entire Agreement:</strong> This document, together with any attached rider, constitutes the entire agreement between the parties and supersedes all prior negotiations and agreements.</p>
       <p><strong>b) Governing Law:</strong> This agreement shall be governed by the laws of the state in which the engagement takes place.</p>
       <p><strong>c) Amendments:</strong> Any modifications to this agreement must be made in writing and signed by both parties.</p>
       <p><strong>d) Severability:</strong> If any provision of this agreement is found to be unenforceable, the remaining provisions shall continue in full force and effect.</p>
       <p><strong>e) Confidentiality:</strong> Both parties agree to keep the financial terms of this agreement confidential unless disclosure is required by law or institutional policy.</p>
-      <p><strong>f) Dispute Resolution:</strong> Any disputes arising from this agreement shall first be addressed through the Ologywood platform's dispute resolution process before pursuing legal remedies.</p>
+      <p><strong>f) Dispute Resolution:</strong> Parties may first use Ologywood's voluntary support and dispute process. Nothing in this agreement requires a student athlete to arbitrate a claim, waive a private right of action, or waive another non-waivable statutory remedy that applicable law preserves.</p>
       <p><strong>g) Digital Signatures:</strong> Both parties agree that electronic signatures executed through the Ologywood platform carry the same legal weight as handwritten signatures under the ESIGN Act and UETA.</p>
     </div>
   </div>
@@ -624,7 +682,7 @@ export function generateNILContractHTML(data: NILContractData): string {
   <!-- FOOTER -->
   <div style="margin-top: 40px; text-align: center; padding-top: 16px; border-top: 1px solid #eee;">
     <p style="font-size: 10px; color: #bbb; margin: 4px 0;">Generated by Ologywood™ · NIL & Talent Booking Platform</p>
-    <p style="font-size: 10px; color: #bbb; margin: 4px 0;">Contract ID: ${data.contractId} · This document is legally binding when signed by both parties.</p>
+    <p style="font-size: 10px; color: #bbb; margin: 4px 0;">Contract ID: ${data.contractId} · Template: ${data.nilCompliance.contractTemplateVersion} · This document becomes binding only to the extent enforceable when signed by the required parties.</p>
     <p style="font-size: 10px; color: #bbb; margin: 4px 0;">www.ologywood.com</p>
   </div>
 </div>`;

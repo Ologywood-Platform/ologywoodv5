@@ -52,7 +52,7 @@ function EarningsChart({ monthlyData }: { monthlyData: any[] }) {
               borderRadius: 4,
             },
             {
-              label: "Platform Fees",
+              label: "Technology Service Fees",
               data: feeData,
               backgroundColor: "rgba(156, 163, 175, 0.5)",
               borderColor: "rgba(156, 163, 175, 1)",
@@ -112,8 +112,10 @@ export default function OlogyLiveEarnings() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [exporting, setExporting] = useState<"csv" | "pdf" | null>(null);
 
+  const { data: artistProfile } = trpc.artist.getMyProfile.useQuery();
+  const isAthleteProfile = artistProfile?.talentType === "athlete";
   const earnings = trpc.ologyLivePhase2.getEarningsSummary.useQuery();
-  const nilReport = trpc.ologyLivePhase2.getNilReport.useQuery({ year: selectedYear });
+  const nilReport = trpc.ologyLivePhase2.getNilReport.useQuery({ year: selectedYear }, { enabled: isAthleteProfile });
 
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
@@ -122,14 +124,14 @@ export default function OlogyLiveEarnings() {
     setExporting("csv");
 
     const rows: string[][] = [];
-    rows.push(["OlogyWood NIL Earnings Report"]);
+    rows.push(["OlogyWood Athlete NIL Activity Earnings Summary"]);
     rows.push([`Year: ${selectedYear}`]);
     rows.push([`Generated: ${new Date().toLocaleDateString()}`]);
     rows.push([]);
     rows.push(["--- SUMMARY ---"]);
     rows.push(["Total Gross Earnings", `$${nilReport.data.totalGrossEarnings.toFixed(2)}`]);
     rows.push(["Total Net Earnings", `$${nilReport.data.totalNetEarnings.toFixed(2)}`]);
-    rows.push(["Platform Fees (15%)", `$${(nilReport.data.totalGrossEarnings - nilReport.data.totalNetEarnings).toFixed(2)}`]);
+    rows.push(["Technology Marketplace Service Fees (15%)", `$${(nilReport.data.totalGrossEarnings - nilReport.data.totalNetEarnings).toFixed(2)}`]);
     rows.push(["Total Sessions", String(nilReport.data.totalSessions)]);
     rows.push([]);
 
@@ -150,7 +152,7 @@ export default function OlogyLiveEarnings() {
 
     // Category breakdown
     if (earnings.data?.byCategory && earnings.data.byCategory.length > 0) {
-      rows.push(["--- EARNINGS BY NIL CATEGORY ---"]);
+      rows.push(["--- EARNINGS BY ACTIVITY CATEGORY ---"]);
       rows.push(["Category", "Net Earnings", "Sessions"]);
       earnings.data.byCategory.forEach((cat: any) => {
         rows.push([
@@ -216,7 +218,7 @@ export default function OlogyLiveEarnings() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>NIL Compliance Report - ${selectedYear}</title>
+        <title>Athlete NIL Activity Earnings Summary - ${selectedYear}</title>
         <style>
           body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 40px; color: #1a1a1a; line-height: 1.6; }
           .header { border-bottom: 3px solid #7c3aed; padding-bottom: 20px; margin-bottom: 30px; }
@@ -239,7 +241,7 @@ export default function OlogyLiveEarnings() {
       </head>
       <body>
         <div class="header">
-          <h1>NIL Compliance Earnings Report</h1>
+          <h1>Athlete NIL Activity Earnings Summary</h1>
           <p>OlogyWood &mdash; Name, Image, Likeness Revenue Summary</p>
           <p>Report Year: <strong>${selectedYear}</strong> &nbsp;&nbsp; Generated: <strong>${new Date().toLocaleDateString()}</strong></p>
           <span class="badge">FOR ATTORNEY / COMPLIANCE REVIEW</span>
@@ -255,7 +257,7 @@ export default function OlogyLiveEarnings() {
             <div class="value green">$${netEarnings}</div>
           </div>
           <div class="summary-card">
-            <div class="label">Platform Fees (15%)</div>
+            <div class="label">Technology Service Fees (15%)</div>
             <div class="value">$${platformFees}</div>
           </div>
           <div class="summary-card">
@@ -283,7 +285,7 @@ export default function OlogyLiveEarnings() {
 
         ${categoryRows ? `
         <div class="section">
-          <h2>Earnings by NIL Category</h2>
+          <h2>Earnings by Activity Category</h2>
           <table>
             <thead>
               <tr>
@@ -302,20 +304,20 @@ export default function OlogyLiveEarnings() {
           <table>
             <tbody>
               <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Platform</td><td style="padding:8px;border-bottom:1px solid #eee;">OlogyWood (Ology Live)</td></tr>
-              <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Platform Fee Rate</td><td style="padding:8px;border-bottom:1px solid #eee;">15% of gross booking amount</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Technology Marketplace Service Fee</td><td style="padding:8px;border-bottom:1px solid #eee;">15% of gross booking amount; separate from athlete-agent compensation</td></tr>
               <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Payment Processor</td><td style="padding:8px;border-bottom:1px solid #eee;">Stripe</td></tr>
-              <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Revenue Type</td><td style="padding:8px;border-bottom:1px solid #eee;">NIL Virtual Appearance / Experience</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:600;">Revenue Type</td><td style="padding:8px;border-bottom:1px solid #eee;">Ology Live virtual appearance / experience; the athlete is responsible for classifying NIL activity</td></tr>
               <tr><td style="padding:8px;font-weight:600;">Reporting Period</td><td style="padding:8px;">January 1 - December 31, ${selectedYear}</td></tr>
             </tbody>
           </table>
         </div>
 
         <div class="disclaimer">
-          <strong>⚠️ Legal Disclaimer:</strong> ${nilReport.data.disclaimer || "This report is generated by OlogyWood for informational purposes only. It does not constitute tax, legal, or financial advice. Athletes should consult with their attorney, compliance officer, or tax professional regarding NIL reporting obligations. OlogyWood does not guarantee the accuracy of this data for tax filing purposes. NCAA compliance requirements vary by institution — please verify with your school's compliance office."}
+          <strong>Legal and reporting notice:</strong> ${nilReport.data.disclaimer || "This transaction summary is informational only and does not constitute tax, legal, financial, or eligibility advice. It is not a disclosure filing or compliance certificate. Athletes must verify classification, amounts, recipients, and deadlines with their institution, qualified sports counsel, and tax professional."}
         </div>
 
         <div class="footer">
-          <p>OlogyWood &copy; ${currentYear} &mdash; This document was auto-generated for NIL compliance reporting purposes.</p>
+          <p>OlogyWood &copy; ${currentYear} &mdash; This document is an athlete-controlled transaction summary for readiness review.</p>
           <p>Questions? Contact support@ologywood.com</p>
         </div>
       </body>
@@ -350,10 +352,10 @@ export default function OlogyLiveEarnings() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Ology Live Earnings</h1>
           <p className="text-gray-600 mt-2">
-            Track your NIL earnings, session income, and generate compliance reports
+            {isAthleteProfile ? "Track session income and export an athlete-controlled NIL activity summary for review" : "Track your Ology Live session income and technology marketplace service fees"}
           </p>
         </div>
-        <div className="flex gap-2">
+        {isAthleteProfile && <div className="flex gap-2">
           <button
             onClick={exportCSV}
             disabled={!nilReport.data || exporting === "csv"}
@@ -370,7 +372,7 @@ export default function OlogyLiveEarnings() {
             <FileText className="w-4 h-4" />
             {exporting === "pdf" ? "Generating..." : "Export PDF"}
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Summary Cards */}
@@ -397,7 +399,7 @@ export default function OlogyLiveEarnings() {
           <div className="bg-white border rounded-lg p-5">
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
               <DollarSign className="w-4 h-4" />
-              Platform Fees (15%)
+              Technology Service Fees (15%)
             </div>
             <p className="text-2xl font-bold text-gray-500">
               {formatCurrency(earnings.data.totals.platformFees)}
@@ -431,7 +433,7 @@ export default function OlogyLiveEarnings() {
       {/* Category Breakdown */}
       {earnings.data?.byCategory && earnings.data.byCategory.length > 0 && (
         <div className="bg-white border rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Earnings by NIL Category</h2>
+          <h2 className="text-lg font-semibold mb-4">Earnings by Activity Category</h2>
           <div className="space-y-3">
             {earnings.data.byCategory.map((cat: any) => (
               <div key={cat.category} className="flex items-center justify-between">
@@ -450,10 +452,13 @@ export default function OlogyLiveEarnings() {
         </div>
       )}
 
-      {/* NIL Compliance Report */}
-      <div className="bg-white border rounded-lg p-6 mb-8">
+      {/* Athlete-controlled NIL activity summary */}
+      {isAthleteProfile && <div className="bg-white border rounded-lg p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">NIL Compliance Report</h2>
+          <div>
+            <h2 className="text-lg font-semibold">Athlete NIL Activity Summary</h2>
+            <p className="text-xs text-gray-500 mt-1">For readiness review only—not a filing, eligibility determination, or compliance certificate.</p>
+          </div>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
@@ -520,7 +525,7 @@ export default function OlogyLiveEarnings() {
             </div>
           </>
         )}
-      </div>
+      </div>}
 
       {/* Recent Transactions */}
       {earnings.data?.recentEarnings && earnings.data.recentEarnings.length > 0 && (

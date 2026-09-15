@@ -258,6 +258,13 @@ export default function PaymentSection({
           </div>
         </div>
 
+        <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+          <Shield className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            <strong>Fee transparency:</strong> Ologywood's 1% technology marketplace service fee is deducted from the talent payout when Stripe Connect is used. Stripe processing charges are separate. If this is an athlete NIL booking, any representative or athlete-agent fee must be documented separately and is not charged by Ologywood.
+          </p>
+        </div>
+
         {/* Payment Timeline */}
         <div className="space-y-1">
           <h4 className="text-sm font-semibold mb-3">Payment Timeline</h4>

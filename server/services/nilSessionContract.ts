@@ -8,8 +8,9 @@ import {
 } from "../../drizzle/schema";
 
 /**
- * NIL Session Contract Generator
- * Auto-generates NCAA-compliant NIL agreements for Ology Live bookings
+ * Ology Live Session Contract Generator
+ * Creates creator-session agreements. Athlete sessions include readiness guidance,
+ * but Ologywood does not certify NIL compliance or act as an athlete agent.
  */
 
 interface ContractParty {
@@ -57,6 +58,8 @@ interface NILContractContent {
   compensation: {
     totalAmount: string;
     platformFee: string;
+    platformFeeClassification: string;
+    paymentProcessingDisclosure: string;
     netToTalent: string;
     paymentMethod: string;
     paymentTiming: string;
@@ -103,7 +106,7 @@ export async function generateSessionContract(bookingId: number): Promise<number
   };
 
   const contractContent: NILContractContent = {
-    version: "1.0",
+    version: "2.0",
     generatedAt: new Date().toISOString(),
     parties: {
       talent: { name: talent.name || "Talent", email: talent.email, role: "talent" },
@@ -126,6 +129,8 @@ export async function generateSessionContract(bookingId: number): Promise<number
     compensation: {
       totalAmount: `$${price.toFixed(2)}`,
       platformFee: `$${platformFee.toFixed(2)} (${PLATFORM_FEE_PERCENT}%)`,
+      platformFeeClassification: "Ologywood technology marketplace service fee; not athlete-agent compensation",
+      paymentProcessingDisclosure: "Stripe payment-processing fees, if applicable, are separate from Ologywood's platform service fee and are disclosed through the payment flow.",
       netToTalent: `$${netToTalent.toFixed(2)}`,
       paymentMethod: "Stripe (processed by Ologywood)",
       paymentTiming: "Payment is collected at time of booking. Talent payout is processed after session completion.",
@@ -158,7 +163,7 @@ function generateContractSections(
   return [
     {
       title: "1. Agreement Overview",
-      content: `This Name, Image, and Likeness (NIL) Session Agreement ("Agreement") is entered into between ${talentName} ("Talent") and ${fanName} ("Fan") through the Ologywood platform ("Platform"). This Agreement governs the terms of a virtual ${session.category} session scheduled for ${new Date(session.scheduledAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} with a duration of ${session.duration} minutes.`,
+      content: `This Virtual Session Agreement ("Agreement") is entered into between ${talentName} ("Talent") and ${fanName} ("Fan") through the Ologywood technology marketplace ("Platform"). This Agreement governs the terms of a virtual ${session.category} session scheduled for ${new Date(session.scheduledAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} with a duration of ${session.duration} minutes. If the Talent is a student athlete and the session involves NIL activity, separate institutional, state, or federal requirements may apply.`,
     },
     {
       title: "2. Session Details",
@@ -166,7 +171,7 @@ function generateContractSections(
     },
     {
       title: "3. Compensation",
-      content: `The Fan agrees to pay $${session.price} for this session. The Platform retains a ${PLATFORM_FEE_PERCENT}% service fee ($${session.platformFee}), and the Talent receives $${session.netToTalent} net compensation. Payment is collected at time of booking and held in escrow until session completion.`,
+      content: `The Fan agrees to pay $${session.price} for this session. Ologywood charges a ${PLATFORM_FEE_PERCENT}% technology marketplace service fee ($${session.platformFee}), which is separate from any athlete-agent compensation, and the Talent receives $${session.netToTalent} before any separately disclosed payment-processing adjustments. Payment is processed by Stripe. Ologywood is not an escrow agent and does not provide athlete-agent representation.`,
     },
     {
       title: "4. Name, Image, and Likeness Rights",
@@ -190,7 +195,7 @@ function generateContractSections(
     },
     {
       title: "9. Dispute Resolution",
-      content: `Any disputes arising from this Agreement shall first be addressed through the Platform's dispute resolution process. If unresolved, disputes shall be settled through binding arbitration in accordance with the rules of the American Arbitration Association.`,
+      content: `The parties may first use the Platform's voluntary support and dispute process. Nothing in this Agreement requires a student athlete to arbitrate a claim, waive a private right of action, or waive another non-waivable statutory remedy that applicable law preserves. Other disputes remain subject to the applicable Platform Terms.`,
     },
     {
       title: "10. Governing Law",
@@ -200,7 +205,7 @@ function generateContractSections(
 }
 
 function generateNcaaDisclaimer(): string {
-  return `NCAA COMPLIANCE NOTICE: This Agreement is designed to comply with NCAA Name, Image, and Likeness (NIL) policies as of the date of generation. However, NIL rules vary by state, conference, and institution. The Talent is solely responsible for ensuring compliance with their institution's NIL policies, state laws, and NCAA regulations. The Platform does not provide legal advice and recommends that college athletes consult with their institution's compliance office and/or legal counsel before entering into NIL agreements. This session does not constitute an endorsement of any product, service, or brand unless explicitly stated. The Talent confirms they have reviewed their institution's NIL disclosure requirements and will file any necessary disclosures.`;
+  return `STUDENT-ATHLETE NIL READINESS NOTICE: Ologywood does not certify that this Agreement complies with NCAA, conference, institutional, state, or federal requirements. If the Talent is a student athlete and this session is NIL activity, the Talent is responsible for confirming eligibility, obtaining any required institutional or legal review, making required disclosures, and retaining submission evidence. Ologywood provides private tracking tools and in-app reminders but does not file disclosures. This notice is educational and is not legal advice.`;
 }
 
 export async function getContractByBookingId(bookingId: number) {

@@ -169,17 +169,18 @@ KEY FEATURES:
 - Calendar availability picker: Shows available dates as green chips on booking form
 - Budget field with dynamic price summary based on booking type
 - Athlete rider templates: Appearance Rider, Autograph Signing Rider, Speaking Engagement Rider, Camp/Clinic Rider
-- NIL Engagement Contract: Auto-generated professional contract with NCAA compliance language
+- NIL Engagement Contract: Auto-generated professional athlete contract with readiness protections, separated platform/processing/representative fees, e-signatures, version metadata, and institutional/legal review language
 - Booking dashboard: Accept/Decline/Counter offers with visual contract status
 - Browse page: Filter by talent type (All, Artists, Athletes, Creators, Entertainers, Influencers)
 - Athlete cards show sport and team instead of genre
 
-16. NIL COMPLIANCE:
-- Built-in NCAA/conference compliance language in contracts
-- Disclosure requirements and school approval workflows
-- Prohibited activities under NCAA rules
-- Athlete representation warranties
-- Athletes should verify specific requirements with their school's compliance office
+16. NIL READINESS:
+- Athlete profiles have a private NIL Compliance Center at /nil-compliance for status, institution, eligibility, representative, deal, deadline, submission, evidence, and audit records
+- Ologywood is a technology marketplace, not an athlete agent, eligibility authority, compliance office, or law firm; it does not file or verify disclosures
+- The Protect College Sports Act of 2026 remains proposed, not enacted. Optional readiness checks include a 5% athlete-agent fee ceiling only for covered student-athlete endorsement contracts
+- Platform service fees and Stripe processing fees are separate from athlete-agent compensation and retain their published rates
+- Optional Division I reminders use the athlete's same-source rolling 12-month total: $600 threshold, five-day agreement reminder, and thirty-day compensation reminder
+- Athletes must confirm requirements with their institution and qualified sports counsel before relying on any template, analysis, reminder, or contract
 
 PAYMENTS:
 - Powered by Stripe
@@ -204,9 +205,11 @@ COMMON USER QUESTIONS:
 - "How do I join a fan club?" → Visit talent profile, click Fan Club tab, choose a tier, subscribe
 - "How do I promote my event?" → Go to /promote from dashboard, use AI Generator or submit Boost request
 - "How do I get paid?" → Connect Stripe from Dashboard > Earnings & Payouts
-- "What are the fees?" → Bookings: 1%, Music: 1%, Tickets: $0.99/ticket, Fan Club: 15%, Merch/Tips: 0%
+- "What are the fees?" → Ologywood technology marketplace fees are Bookings: 1%, Music: 1%, Tickets: $0.99/ticket, Fan Club: 15%, Merch/Tips: 0%. Stripe processing charges may apply separately. Athlete-agent compensation is separate, is not charged by Ologywood, and must be documented independently.
 - "How do I set up my athlete profile?" → Select Athlete in onboarding or Edit Profile, fill in sport/position/team/stats/achievements, upload highlight clips
-- "What is the NIL contract?" → Auto-generated 10-section professional contract for athlete bookings with NCAA compliance, e-signatures, and PDF download
+- "What is the NIL contract?" → A versioned athlete-booking contract with e-signatures, PDF download, separated platform/processing/representative fees, written-term safeguards, and institutional/legal review language. It is a readiness tool and does not certify NCAA, institutional, state, or federal compliance.
+- "Where are my NIL tools?" → Athlete profiles can open Artist Dashboard > NIL Compliance Center or go to /nil-compliance. The private center tracks athlete status, institutions, representatives, deals, proposed reporting reminders, submission attestations, evidence, and audit history.
+- "Is the athlete-agent fee capped at 5%?" → Ologywood's optional readiness workflow blocks an entered representative fee above 5% only for covered student-athlete endorsement contracts. The Protect College Sports Act of 2026 remains proposed, not enacted, and Ologywood does not determine whether a person or agreement is legally covered. Confirm with qualified sports counsel.
 - "How do I upload highlight clips?" → Dashboard > Video Portfolio. Add a title and category, then upload MP4, MOV, WebM, AVI, or MKV (maximum 100 MB and 2 minutes) or paste a supported YouTube/Vimeo URL. AVI/MKV conversion may take a moment after upload.
 - "How do I change from artist to athlete?" → Edit Profile > Basic Information > select Athlete from the talent type grid
 - "Can athletes sell merch?" → Yes! Same merch feature, supports pre-pay model. Upload images, set prices, fans pay upfront
@@ -230,6 +233,10 @@ export const WORKSPACE_GUIDANCE = "Workspace is the role-aware place to manage y
 
 export const AI_RELEASE_DISCLOSURE_GUIDANCE = "AI-use disclosure is optional and controlled by the creator. In the Music Release or Content Release create/edit form, turn on Disclose AI use on this release. Choose AI-assisted or primarily AI-generated, select at least one component involved, and optionally name tools or add a creator explanation. When enabled, a public tag shows those creator-provided details. Leaving it off means no disclosure was provided—not that OlogyWood verified the release as AI-free. The disclosure does not certify AI use, ownership, copyright, consent, licensing, or rights.";
 
+export const NIL_READINESS_GUIDANCE = "Athlete profiles can open Artist Dashboard > NIL Compliance Center or go to /nil-compliance. It is a private readiness workspace for athlete status, institution and eligibility information, representatives, separated fees, NIL deal records, proposed $600 same-source reporting reminders, submission attestations, evidence, and audit history. Ologywood is a technology marketplace—not an athlete agent, compliance office, or law firm—and does not file disclosures or certify eligibility. The Protect College Sports Act of 2026 remains proposed, not enacted; confirm requirements with your institution and qualified sports counsel.";
+
+export const NIL_AGENT_FEE_GUIDANCE = "Ologywood's optional proposed-protection workflow blocks an entered athlete-agent fee above 5% only for a covered student-athlete endorsement contract. Ologywood platform service fees and Stripe processing charges are separate and are not entered as athlete-agent compensation. The Protect College Sports Act of 2026 remains proposed, not enacted, and Ologywood does not decide whether a person or contract is legally covered. Consult qualified sports counsel.";
+
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
 
@@ -250,6 +257,20 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
     && /\b(disclos|tag|label|credit|show|tell|declare)/.test(normalized)
   ) {
     return AI_RELEASE_DISCLOSURE_GUIDANCE;
+  }
+
+  if (
+    /\bnil\b|name image likeness/.test(normalized)
+    && /\b(where|find|open|access|tool|center|dashboard|report|reminder|disclos)/.test(normalized)
+  ) {
+    return NIL_READINESS_GUIDANCE;
+  }
+
+  if (
+    (/\b(5|five)\s*%/.test(normalized) || /five percent|agent fee|athlete-agent fee/.test(normalized))
+    && /\b(nil|athlete|endorsement|agent|representative|fee|cap|limit)/.test(normalized)
+  ) {
+    return NIL_AGENT_FEE_GUIDANCE;
   }
 
   return null;

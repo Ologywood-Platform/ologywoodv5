@@ -18,6 +18,7 @@ import {
   markContractViewed,
 } from "../services/nilSessionContract";
 import { ensureOlogyLiveBookingsSchema } from "../services/ologyLiveSchemaService";
+import { requireOwnedAthleteProfile } from "../services/nilComplianceService";
 
 export const ologyLivePhase2Router = router({
   // ============= SESSION CONTRACTS =============
@@ -363,6 +364,7 @@ export const ologyLivePhase2Router = router({
       year: z.number().min(2024).max(2030),
     }))
     .query(async ({ input, ctx }) => {
+      await requireOwnedAthleteProfile(ctx.user.id);
       const db = (await getDb())!;
       const startDate = new Date(`${input.year}-01-01`);
       const endDate = new Date(`${input.year}-12-31`);
@@ -401,7 +403,7 @@ export const ologyLivePhase2Router = router({
         totalSessions: earnings.length,
         monthlyBreakdown,
         allTransactions: earnings,
-        disclaimer: "This report is provided for informational purposes only. It is the athlete's responsibility to report all NIL income to their institution's compliance office and to file appropriate tax returns. Consult a tax professional for guidance.",
+        disclaimer: "This athlete-controlled transaction summary is informational only. It is not a disclosure filing, eligibility determination, compliance certificate, or tax, legal, or financial advice. The athlete is responsible for classifying NIL activity, confirming recipients and deadlines, filing required disclosures and tax returns, and consulting their institution, qualified sports counsel, and tax professional.",
       };
     }),
 

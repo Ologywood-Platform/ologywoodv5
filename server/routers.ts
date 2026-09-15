@@ -57,6 +57,7 @@ import { contractAnalyzerRouter } from "./routers/contractAnalyzer";
 import { ologyLiveRouter } from "./routers/ologyLive";
 import { ologyLivePhase2Router } from "./routers/ologyLivePhase2";
 import { sandboxPostRouter } from "./routers/sandboxPost";
+import { nilComplianceRouter } from "./routers/nilCompliance";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -152,6 +153,7 @@ export const appRouter = router({
   merch: merchRouter,
   merchOrders: merchOrdersRouter,
   sandboxPost: sandboxPostRouter,
+  nilCompliance: nilComplianceRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({
@@ -3468,6 +3470,9 @@ export const appRouter = router({
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
             platformFeeAmount: platformFeeCents.toString(),
+            platformFeePercent: '1',
+            platformFeeClassification: 'technology_marketplace_service',
+            athleteAgentFeeIncluded: 'false',
           },
         };
 
@@ -3557,6 +3562,9 @@ export const appRouter = router({
             customer_email: ctx.user.email || '',
             customer_name: ctx.user.name || '',
             platformFeeAmount: platformFeeCents.toString(),
+            platformFeePercent: '1',
+            platformFeeClassification: 'technology_marketplace_service',
+            athleteAgentFeeIncluded: 'false',
           },
         };
 

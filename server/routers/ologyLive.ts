@@ -315,7 +315,7 @@ export const ologyLiveRouter = router({
               unit_amount: Math.round(price * 100),
               product_data: {
                 name: `Ology Live: ${experience.title}`,
-                description: `${experience.duration} min session on ${experience.platform}`,
+                description: `${experience.duration} min session on ${experience.platform} · Includes a 15% Ologywood technology marketplace service fee deducted from talent earnings; representative fees are separate`,
               },
             },
             quantity: 1,
@@ -328,6 +328,10 @@ export const ologyLiveRouter = router({
             slotId: String(slot.id),
             fanId: String(ctx.user.id),
             talentId: String(experience.talentId),
+            platformFeeAmount: String(Math.round(platformFee * 100)),
+            platformFeePercent: String(PLATFORM_FEE_PERCENT),
+            platformFeeClassification: 'technology_marketplace_service',
+            athleteAgentFeeIncluded: 'false',
           },
         });
 

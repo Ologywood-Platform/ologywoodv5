@@ -17,6 +17,7 @@ import { SkeletonOnboarding } from "@/components/SkeletonLoaders";
 import ImageCropper from "@/components/ImageCropper";
 import { LocationInput } from '@/components/LocationInput';
 import { AUTHOR_GENRES, TALENT_TYPE_OPTIONS, VISUAL_ART_DISCIPLINES, getTalentTypeOption, type TalentType } from '@shared/talentTypes';
+import { NIL_ATHLETIC_STATUS_LABELS, NIL_ATHLETIC_STATUS_VALUES, type NilAthleticStatus } from '@shared/nilCompliance';
 
 const TALENT_TYPE_ICONS: Record<TalentType, typeof Mic2> = {
   artist: Mic2,
@@ -89,6 +90,20 @@ export default function ArtistOnboarding() {
   const [athleteAchievements, setAthleteAchievements] = useState<{ title: string; year?: string }[]>([]);
   const [newAchievement, setNewAchievement] = useState("");
   const [newAchievementYear, setNewAchievementYear] = useState("");
+  const [nilAthleticStatus, setNilAthleticStatus] = useState<NilAthleticStatus>('college_student_athlete');
+  const [nilInstitutionName, setNilInstitutionName] = useState("");
+  const [nilInstitutionState, setNilInstitutionState] = useState("");
+  const [nilAssociationName, setNilAssociationName] = useState("");
+  const [nilDivisionLevel, setNilDivisionLevel] = useState("");
+  const [nilEligibilityEndsAt, setNilEligibilityEndsAt] = useState("");
+  const [nilComplianceContactName, setNilComplianceContactName] = useState("");
+  const [nilComplianceContactEmail, setNilComplianceContactEmail] = useState("");
+  const [nilComplianceContactPhone, setNilComplianceContactPhone] = useState("");
+  const [nilIsMinor, setNilIsMinor] = useState(false);
+  const [nilGuardianName, setNilGuardianName] = useState("");
+  const [nilGuardianEmail, setNilGuardianEmail] = useState("");
+  const [nilRepresentativeInvolved, setNilRepresentativeInvolved] = useState(false);
+  const [nilAttested, setNilAttested] = useState(false);
 
   const SPORT_OPTIONS = [
     "Basketball", "Football", "Baseball", "Soccer", "Track & Field",
@@ -177,8 +192,34 @@ export default function ArtistOnboarding() {
     },
   });
 
+  const saveNilComplianceProfile = trpc.nilCompliance.saveProfile.useMutation();
+
   const createProfile = trpc.artist.createProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (talentType === 'athlete') {
+        try {
+          await saveNilComplianceProfile.mutateAsync({
+            athleticStatus: nilAthleticStatus,
+            institutionName: nilInstitutionName || null,
+            institutionState: nilInstitutionState || null,
+            associationName: nilAssociationName || null,
+            divisionLevel: nilDivisionLevel || null,
+            eligibilityEndsAt: nilEligibilityEndsAt ? new Date(`${nilEligibilityEndsAt}T12:00:00.000Z`) : null,
+            complianceContactName: nilComplianceContactName || null,
+            complianceContactEmail: nilComplianceContactEmail || null,
+            complianceContactPhone: nilComplianceContactPhone || null,
+            isMinor: nilIsMinor,
+            guardianName: nilIsMinor ? nilGuardianName || null : null,
+            guardianEmail: nilIsMinor ? nilGuardianEmail || null : null,
+            representativeInvolved: nilRepresentativeInvolved,
+            attested: true,
+          });
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : "Profile created, but the private NIL profile still needs attention.");
+          navigate("/nil-compliance");
+          return;
+        }
+      }
       toast.success("Profile created successfully!");
       navigate("/dashboard");
     },
@@ -274,6 +315,18 @@ export default function ArtistOnboarding() {
       if (talentType === 'athlete') {
         if (!sportCategory) {
           toast.error("Please select your sport");
+          return;
+        }
+        if (nilAthleticStatus === 'college_student_athlete' && (!nilInstitutionName.trim() || !nilInstitutionState.trim())) {
+          toast.error("Current college athletes must enter their institution and institution state");
+          return;
+        }
+        if (nilIsMinor && (!nilGuardianName.trim() || !nilGuardianEmail.trim())) {
+          toast.error("Guardian name and email are required for athletes under 18");
+          return;
+        }
+        if (!nilAttested) {
+          toast.error("Please confirm the private NIL information is accurate to continue");
           return;
         }
       } else {
@@ -388,7 +441,7 @@ export default function ArtistOnboarding() {
 
   const progress = (currentStep / totalSteps) * 100;
 
-  const isSubmitting = uploadPhoto.isPending || createProfile.isPending;
+  const isSubmitting = uploadPhoto.isPending || createProfile.isPending || saveNilComplianceProfile.isPending;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center p-4">
@@ -662,6 +715,35 @@ export default function ArtistOnboarding() {
                     className="mt-1"
                   />
                 </div>
+              </div>
+
+              <div className="rounded-lg border border-violet-200 bg-violet-50/60 p-4 space-y-4">
+                <div>
+                  <h4 className="font-semibold text-violet-950">Private NIL readiness profile</h4>
+                  <p className="text-xs text-violet-800 mt-1">Used only for contracts and in-app deadline reminders—not your public profile. OlogyWood does not determine eligibility or certify compliance.</p>
+                </div>
+                <div>
+                  <Label htmlFor="nilAthleticStatus">Athletic status *</Label>
+                  <select id="nilAthleticStatus" className="mt-1 h-10 w-full rounded-md border bg-white px-3" value={nilAthleticStatus} onChange={(e) => setNilAthleticStatus(e.target.value as NilAthleticStatus)}>
+                    {NIL_ATHLETIC_STATUS_VALUES.map((value) => <option key={value} value={value}>{NIL_ATHLETIC_STATUS_LABELS[value]}</option>)}
+                  </select>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div><Label htmlFor="nilInstitutionName">Institution</Label><Input id="nilInstitutionName" className="mt-1 bg-white" value={nilInstitutionName} onChange={(e) => setNilInstitutionName(e.target.value)} placeholder="College or university" /></div>
+                  <div><Label htmlFor="nilInstitutionState">Institution state</Label><Input id="nilInstitutionState" className="mt-1 bg-white" value={nilInstitutionState} onChange={(e) => setNilInstitutionState(e.target.value)} /></div>
+                  <div><Label htmlFor="nilAssociationName">Association</Label><Input id="nilAssociationName" className="mt-1 bg-white" value={nilAssociationName} onChange={(e) => setNilAssociationName(e.target.value)} placeholder="NCAA, NAIA, conference, or other" /></div>
+                  <div><Label htmlFor="nilDivisionLevel">Division / level</Label><Input id="nilDivisionLevel" className="mt-1 bg-white" value={nilDivisionLevel} onChange={(e) => setNilDivisionLevel(e.target.value)} placeholder="Division I, Division II, NAIA…" /></div>
+                  <div><Label htmlFor="nilEligibilityEndsAt">Eligibility end date</Label><Input id="nilEligibilityEndsAt" type="date" className="mt-1 bg-white" value={nilEligibilityEndsAt} onChange={(e) => setNilEligibilityEndsAt(e.target.value)} /></div>
+                  <div><Label htmlFor="nilComplianceContactName">Compliance contact</Label><Input id="nilComplianceContactName" className="mt-1 bg-white" value={nilComplianceContactName} onChange={(e) => setNilComplianceContactName(e.target.value)} placeholder="Name" /></div>
+                  <div><Label htmlFor="nilComplianceContactEmail">Compliance email</Label><Input id="nilComplianceContactEmail" type="email" className="mt-1 bg-white" value={nilComplianceContactEmail} onChange={(e) => setNilComplianceContactEmail(e.target.value)} /></div>
+                  <div><Label htmlFor="nilComplianceContactPhone">Compliance phone</Label><Input id="nilComplianceContactPhone" className="mt-1 bg-white" value={nilComplianceContactPhone} onChange={(e) => setNilComplianceContactPhone(e.target.value)} /></div>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <label className="flex items-center gap-2"><input type="checkbox" checked={nilRepresentativeInvolved} onChange={(e) => setNilRepresentativeInvolved(e.target.checked)} />I currently use an athlete representative or agent</label>
+                  <label className="flex items-center gap-2"><input type="checkbox" checked={nilIsMinor} onChange={(e) => setNilIsMinor(e.target.checked)} />I am under 18</label>
+                </div>
+                {nilIsMinor && <div className="grid gap-4 sm:grid-cols-2"><div><Label htmlFor="nilGuardianName">Guardian name *</Label><Input id="nilGuardianName" className="mt-1 bg-white" value={nilGuardianName} onChange={(e) => setNilGuardianName(e.target.value)} /></div><div><Label htmlFor="nilGuardianEmail">Guardian email *</Label><Input id="nilGuardianEmail" type="email" className="mt-1 bg-white" value={nilGuardianEmail} onChange={(e) => setNilGuardianEmail(e.target.value)} /></div></div>}
+                <label className="flex items-start gap-2 rounded-md bg-white p-3 text-xs"><input type="checkbox" className="mt-0.5" checked={nilAttested} onChange={(e) => setNilAttested(e.target.checked)} /><span>I confirm this private information is accurate to the best of my knowledge. I understand institutional or legal review may still be required.</span></label>
               </div>
 
               {/* Key Stats */}

@@ -183,7 +183,7 @@ export function NILContractViewer({ bookingId, currentUserRole, contractStatus: 
               NIL Engagement Contract
             </CardTitle>
             <CardDescription className="mt-1">
-              Full professional contract document with all terms, compliance, and signature fields
+              Versioned athlete contract with material terms, separated fees, readiness protections, and signature fields
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export function NILContractViewer({ bookingId, currentUserRole, contractStatus: 
             </Badge>
             <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
               <Shield className="h-3 w-3 mr-1" />
-              Blueprint
+              Readiness Template
             </Badge>
           </div>
         </div>
@@ -256,7 +256,7 @@ export function NILContractViewer({ bookingId, currentUserRole, contractStatus: 
         </div>
 
         <p className="text-xs text-muted-foreground mb-4">
-          This contract auto-fills from your booking details and rider template. Review all sections before signing.
+          This contract auto-fills from your booking details and rider template. It does not certify eligibility or legal compliance. Review every section with your institution and qualified sports counsel before signing.
         </p>
 
         {/* Inline Editing Panel */}

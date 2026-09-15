@@ -29,7 +29,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: September 1, 2026
+          Last updated: September 15, 2026 · Effective: September 29, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -49,7 +49,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">2. Platform Role and Relationship</h2>
             <p className="text-base leading-relaxed">
-              <strong>Ologywood is a technology platform that provides tools for talent to manage their careers and grow their fan communities.</strong> Ologywood is not a talent agency, booking agent, promoter, venue operator, employer, payment processor, escrow agent, financial institution, or party to any agreement between users. Ologywood does not employ, endorse, recommend, or guarantee any talent, venue, or event organizer on the Platform.
+              <strong>Ologywood is a technology marketplace that provides tools for talent to manage their careers and grow their fan communities.</strong> Ologywood is not a talent agency, athlete agent, sports agent, booking agent, promoter, venue operator, employer, payment processor, escrow agent, financial institution, or party to any agreement between users. Ologywood does not solicit or negotiate athlete-agent representation, determine athlete eligibility, employ, endorse, recommend, or guarantee any talent, venue, event organizer, representative, or NIL transaction on the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
               The Platform provides tools including, but not limited to: talent profile hosting, booking request management, rider contract creation and e-signature, event ticketing, Creator Shop sales of merchandise, physical books, and eBooks, digital music releases, content release monetization, Fan Club membership tiers and exclusive content, fan engagement, messaging, and payment facilitation through third-party processors. Ologywood serves as a monetization and commerce layer. Ologywood is not the publisher, printer, distributor, literary agent, or owner of any book offered by a user. All contractual relationships for performances, events, goods, and services are solely between the applicable users, subject to these Terms and the tools Ologywood provides.
@@ -61,6 +61,9 @@ export default function TermsOfService() {
             <h2 className="text-2xl font-bold mt-8 mb-4">3. Eligibility and Accounts</h2>
             <p className="text-base leading-relaxed">
               You must be at least eighteen (18) years old to create an account and use the Platform. By creating an account, you represent and warrant that you are at least 18 years of age, that you have the legal capacity to enter into a binding agreement, and that all information you provide is accurate and complete. If you are creating an account on behalf of a business entity (such as a band, production company, sports team, or venue), you represent that you have the authority to bind that entity to these Terms.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              A minor athlete may be represented on the Platform only through an account created and controlled by a parent or legal guardian who is at least eighteen (18), has authority to act for the minor, completes the private guardian information requested by the Platform, and signs any agreement requiring guardian consent. A minor may not independently accept these Terms or represent that the minor has adult contractual capacity.
             </p>
             <p className="text-base leading-relaxed mt-4">
               Accounts are created through our OAuth authentication provider (Google, Spotify) or via email and password registration. Email verification is required before you can create a talent profile. You are responsible for maintaining the security of your account credentials and for all activity that occurs under your account. You must notify us immediately at <a href="mailto:support@ologywood.com" className="text-primary hover:underline">support@ologywood.com</a> if you suspect unauthorized access to your account. Ologywood is not liable for any loss or damage arising from unauthorized use of your account.
@@ -85,6 +88,9 @@ export default function TermsOfService() {
             <h3 className="text-xl font-semibold mt-6 mb-3">4.1 Athlete Profiles and Data</h3>
             <p className="text-base leading-relaxed">
               Athletes who create profiles on the Platform may provide additional information specific to their athletic career, including but not limited to: sport, position, team affiliation, athletic statistics, achievements, and NIL deal history. By providing this information, you represent that it is accurate, current, and that you have the right to share it publicly. Athletic statistics and achievements displayed on your profile are self-reported; Ologywood does not independently verify athletic credentials or statistics.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              The NIL Compliance Center separately collects private readiness information such as athletic status, institution, association or division, eligibility end date, compliance contact, guardian status, representative involvement, deal terms, disclosure status, and optional evidence. This private information is used for athlete-owned contract, reminder, and audit tools and is not displayed on the public profile. Ologywood does not independently verify the information or transmit it to an institution unless a future feature expressly says so and the athlete authorizes that transmission.
             </p>
             <p className="text-base leading-relaxed mt-4">
               <strong>Team and Institutional References:</strong> If you reference a team, school, or organization on your profile, you represent that you are (or were) legitimately affiliated with that entity. Displaying a team or school name on your profile does not imply endorsement by that institution. Ologywood reserves the right to remove team or institutional references if we receive a valid complaint from the referenced entity.
@@ -156,7 +162,7 @@ export default function TermsOfService() {
 
             <h3 className="text-xl font-semibold mt-6 mb-3">7.1 NIL Engagement Contracts</h3>
             <p className="text-base leading-relaxed">
-              For athlete bookings, the Platform generates NIL (Name, Image, and Likeness) Engagement Contracts — professional 10-section contracts covering: identification of parties, engagement details, compensation and payment terms, travel and logistics, security requirements, equipment and facilities, media rights and usage, NIL compliance provisions, cancellation and force majeure, and signature blocks. These contracts include NCAA/conference compliance language and disclosure requirements.
+              For athlete bookings, the Platform generates NIL (Name, Image, and Likeness) Engagement Contract templates covering identification of parties, services and engagement details, compensation and separately classified fees, term, travel and logistics, security, equipment and facilities, media rights, athlete representations, institutional review and disclosure status, nonperformance termination, cancellation, and signatures. The templates may include voluntary readiness protections modeled on proposed federal legislation, but they do not certify NCAA, conference, institutional, state, or federal compliance.
             </p>
             <p className="text-base leading-relaxed mt-4">
               <strong>NIL Engagement Contracts are templates provided as a convenience tool and do not constitute legal advice.</strong> Ologywood is not a law firm, sports agent, or compliance advisor. The Platform's contract templates are designed to facilitate common NIL transaction structures but may not address all legal requirements applicable to your specific situation, state, institution, or athletic conference. Both parties are strongly encouraged to consult with qualified legal counsel before executing any NIL agreement.
@@ -171,11 +177,14 @@ export default function TermsOfService() {
             </p>
           </section>
 
-          {/* 7A. NIL Compliance and NCAA Provisions */}
+          {/* 7A. NIL Readiness and Athlete Responsibilities */}
           <section>
-            <h2 className="text-2xl font-bold mt-8 mb-4">7A. NIL Compliance and NCAA Provisions</h2>
+            <h2 className="text-2xl font-bold mt-8 mb-4">7A. NIL Readiness and Athlete Responsibilities</h2>
             <p className="text-base leading-relaxed">
-              <strong>Ologywood is not an NCAA compliance office, athletic department representative, sports agent, or legal advisor.</strong> The Platform provides tools to facilitate NIL transactions between athletes and brands, venues, or event organizers, but does not provide compliance advice, monitor NCAA eligibility, or guarantee that any transaction complies with applicable NCAA rules, conference regulations, state NIL laws, or institutional policies.
+              <strong>Ologywood is not an NCAA compliance office, athletic department representative, athlete agent, sports agent, or legal advisor.</strong> The Platform provides private tools to organize NIL transactions between athletes and brands, venues, event organizers, or representatives, but does not provide legal advice, monitor eligibility, register athlete agents, file disclosures, or guarantee that a transaction complies with association, conference, institutional, state, or federal requirements.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              The Platform may offer optional readiness controls based on provisions proposed in the Protect College Sports Act of 2026, including a five-percent athlete-agent fee ceiling for certain student-athlete endorsement contracts, written-agreement safeguards, and reporting reminders. The proposal was not enacted as of this Terms version. These controls are preventive product limits, not a representation that the proposal is current law or that a particular transaction is covered.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3">7A.1 Athlete Representations</h3>
@@ -183,8 +192,9 @@ export default function TermsOfService() {
               By using the Platform as an athlete, you represent and warrant that:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li>You are eligible to enter into NIL agreements under applicable NCAA rules, conference regulations, and your institution's NIL policies</li>
-              <li>You have disclosed (or will disclose) all NIL activities conducted through the Platform to your institution's compliance office as required by your school's policies</li>
+              <li>You have accurately identified whether you are a current, prospective, former, or professional athlete and will update that status when it changes</li>
+              <li>You will confirm your eligibility and obtain institutional or legal review when required rather than relying on an Ologywood label or template</li>
+              <li>You will make any required NIL disclosures and will not treat an in-app reminder, status, or evidence upload as proof that Ologywood filed the disclosure</li>
               <li>You will not use the Platform to arrange any activity that would violate NCAA rules regarding pay-for-play, recruiting inducements, or academic fraud</li>
               <li>All information provided in your athlete profile (sport, position, team, statistics, achievements) is accurate and current</li>
               <li>You have the authority to license your name, image, and likeness for the purposes described in any booking or contract you accept through the Platform</li>
@@ -192,10 +202,20 @@ export default function TermsOfService() {
 
             <h3 className="text-xl font-semibold mt-6 mb-3">7A.2 Platform Limitations</h3>
             <p className="text-base leading-relaxed">
-              Ologywood does not: (a) verify an athlete's NCAA eligibility status; (b) confirm whether a specific NIL deal complies with an athlete's conference or institutional rules; (c) file disclosure forms on behalf of athletes; (d) monitor changes to NCAA, state, or institutional NIL regulations; or (e) guarantee that contract templates reflect the most current legal requirements. <strong>Athletes are solely responsible for ensuring their NIL activities comply with all applicable rules and regulations.</strong>
+              Ologywood does not: (a) verify eligibility; (b) confirm that a deal complies with association, conference, institutional, state, or federal requirements; (c) file disclosure forms; (d) act as an athlete agent; (e) verify an agent's registration; or (f) guarantee that a template reflects the most current law. Athletes and their guardians, representatives, and counterparties remain responsible for obtaining advice and completing required action. In-app dates and aggregation totals are organizational aids, not legal determinations.
             </p>
 
-            <h3 className="text-xl font-semibold mt-6 mb-3">7A.3 Prohibited NIL Activities</h3>
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.3 Representatives, Fees, and Proposed Protections</h3>
+            <p className="text-base leading-relaxed">
+              When an athlete identifies a representative, the Platform may request the representative's name, contact details, state of registration, registration number, written-agency-contract confirmation, and fee percentage. For a student-athlete endorsement logged under the voluntary proposed-protection workflow, the Platform will reject an entered athlete-agent fee above five percent (5%) of endorsement contract value. Platform service fees and Stripe payment-processing fees are separately identified and are not entered as athlete-agent compensation. This product control does not determine whether a person is legally an athlete agent or whether a fee is lawful in a particular jurisdiction.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.4 In-App Reporting Reminders</h3>
+            <p className="text-base leading-relaxed">
+              Athletes may log NIL agreements and compensation in a private deal record. When the athlete indicates that the proposed Division I reporting workflow applies and the same-source rolling twelve-month total reaches six hundred dollars ($600), the Platform calculates a five-day agreement reminder and, after compensation is recorded, a thirty-day compensation reminder. Reminders are recalculated when the athlete opens the NIL tools. The athlete must identify the recipient, attest to submission, and may upload private evidence. Ologywood does not send, submit, or verify the disclosure.
+            </p>
+
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.5 Prohibited NIL Activities</h3>
             <p className="text-base leading-relaxed">
               The following activities are prohibited on the Platform and may result in immediate account suspension or termination:
             </p>
@@ -207,7 +227,7 @@ export default function TermsOfService() {
               <li>Using the Platform to circumvent institutional or conference NIL disclosure requirements</li>
             </ul>
 
-            <h3 className="text-xl font-semibold mt-6 mb-3">7A.4 Indemnification for NIL Activities</h3>
+            <h3 className="text-xl font-semibold mt-6 mb-3">7A.6 Indemnification for NIL Activities</h3>
             <p className="text-base leading-relaxed">
               You agree to indemnify and hold harmless Ologywood from any claims, damages, penalties, or losses arising from: (a) your failure to comply with NCAA rules, conference regulations, or institutional policies regarding NIL activities; (b) your failure to make required disclosures to your compliance office; (c) any loss of eligibility resulting from NIL activities conducted through the Platform; or (d) any regulatory action taken against you in connection with NIL transactions facilitated through the Platform.
             </p>
@@ -259,11 +279,19 @@ export default function TermsOfService() {
                     <td className="border border-gray-200 px-4 py-2"><strong>No platform fee (0%)</strong></td>
                     <td className="border border-gray-200 px-4 py-2">100% of tip amount (processed outside the Platform)</td>
                   </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 px-4 py-2">Ology Live virtual sessions</td>
+                    <td className="border border-gray-200 px-4 py-2">15% technology marketplace service fee</td>
+                    <td className="border border-gray-200 px-4 py-2">85% before any separately applicable Stripe processing adjustment</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
               Note: Standard Stripe processing fees (currently 2.9% + $0.30 per transaction) apply to all transactions processed through Stripe and are separate from Ologywood's platform fees. These fees are set by Stripe and are subject to change per Stripe's terms. Tips sent via external payment apps (CashApp, Venmo, PayPal, Zelle) are subject to those services' own fee structures.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Fee classification:</strong> Ologywood platform charges compensate the technology marketplace for software, payment facilitation, support, and commerce services. Stripe charges are payment-processing fees. Neither category is athlete-agent compensation. If an athlete separately retains a representative, that representative's fee must be disclosed and documented separately from Ologywood and Stripe charges.
             </p>
             <p className="text-base leading-relaxed mt-4">
               Ologywood reserves the right to modify its fee schedule with at least thirty (30) days' advance written notice to affected users. Fee changes will not apply retroactively to transactions already completed.
@@ -655,6 +683,9 @@ export default function TermsOfService() {
             </p>
             <p className="text-base leading-relaxed mt-4">
               Before initiating any legal proceeding, you agree to first attempt to resolve the dispute informally by contacting Ologywood at <a href="mailto:legal@ologywood.com" className="text-primary hover:underline">legal@ologywood.com</a>. Ologywood will attempt to resolve the dispute informally within thirty (30) days. If the dispute is not resolved informally, either party may proceed with formal legal action as described above.
+            </p>
+            <p className="text-base leading-relaxed mt-4">
+              <strong>Student-athlete statutory-rights carve-out:</strong> Nothing in these Terms, an Ology Live agreement, or an Ologywood-generated NIL template requires a student athlete to arbitrate a claim, waive a private right of action, or waive another remedy that applicable law makes non-waivable. The voluntary informal-resolution process does not shorten a statutory filing period or prevent timely court or agency action.
             </p>
           </section>
 
