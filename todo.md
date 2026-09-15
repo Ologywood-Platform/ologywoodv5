@@ -4670,3 +4670,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Validate the real creator-owner order and collaborator fallback without changing account, profile, invitation, or team data; confirm desktop/mobile use the same shared contract and mobile touch targets
 - [x] Run TypeScript, 171 focused header/navigation/role tests across eight files, all 2,784 platform tests with 23 skipped across 160 files, and a successful 19.65-second production build
 - [x] Save and publish checkpoint `9a94e722`; owner confirmed the live requested account order, and production logged successful owner-context plus Artist Dashboard requests
+
+## PERFORMANCE VIDEO UPLOAD PARITY (Sep 15, 2026)
+- [x] Audit the Artist Dashboard Performance Video section and Video Portfolio upload choices, validation, storage, conversion, thumbnail, URL, playback, and error-reset contracts
+- [x] Reuse the proven Video Portfolio upload options and secure media pipeline in Performance Video without changing unrelated Artist Dashboard behavior
+- [x] Preserve the existing Video Guidelines approval dialog, wording, consent step, reporting policy, five-minute duration limit, 500 MB size limit, and current display behavior
+- [x] Support MP4, MOV, WebM, AVI, and MKV uploads plus YouTube, Vimeo, and direct-media URLs with clear size, duration, codec, unsupported-format, progress, timeout, and retry feedback
+- [x] Preserve ownership authorization, storage isolation, media validation, conversion bounds, replay rejection, playback delivery, reporting, replacement/removal controls, and existing public profile position
+- [x] Add permanent regressions for upload choices, guidelines consent, supported formats, signed sessions, URL entry, validation failures, spinner/progress reset, public playback, CSP, sharing, and unchanged Video Portfolio behavior
+- [x] Validate the actual Performance Video guidelines, Paste URL state, and Upload File state non-destructively at 390-pixel mobile and desktop widths; remove the temporary preview and restore production defaults afterward
+- [x] Run TypeScript, 59 focused Performance Video and Video Portfolio tests across nine files, all 2,791 platform tests with 23 skipped across 162 files, and a successful 18.09-second production build
+- [ ] Save, publish, and verify the live Performance Video upload experience

@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   storagePut: vi.fn(),
   storageGet: vi.fn(),
   convertPortfolioVideo: vi.fn(),
+  convertPerformanceVideo: vi.fn(),
 }));
 
 vi.mock('./_core/sdk', () => ({ sdk: { authenticateRequest: mocks.authenticateRequest } }));
@@ -21,7 +22,10 @@ vi.mock('./db', () => ({
 }));
 vi.mock('./services/videoPortfolioSchemaService', () => ({ ensureVideoPortfolioSchema: mocks.ensureSchema }));
 vi.mock('./storage', () => ({ storagePut: mocks.storagePut, storageGet: mocks.storageGet }));
-vi.mock('./services/videoPortfolioConversion', () => ({ convertPortfolioVideo: mocks.convertPortfolioVideo }));
+vi.mock('./services/videoPortfolioConversion', () => ({
+  convertPortfolioVideo: mocks.convertPortfolioVideo,
+  convertPerformanceVideo: mocks.convertPerformanceVideo,
+}));
 
 import videoUploadRouter from './routes/videoUpload';
 

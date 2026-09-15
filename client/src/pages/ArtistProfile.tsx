@@ -925,8 +925,9 @@ export default function ArtistProfile() {
             <SponsorShowcase artistId={artist?.userId || 0} />
 
             {/* Performance Video */}
-            {(artist as any).performanceVideoUrl && ((artist as any).performanceVideoStatus === 'approved' || (artist as any).performanceVideoStatus === 'flagged') && (artist as any).performanceVideoStatus !== 'taken_down' && (
-              <Card>
+            {(artist as any).performanceVideoUrl && ((artist as any).performanceVideoStatus === 'approved' || (artist as any).performanceVideoStatus === 'flagged') && (artist as any).performanceVideoStatus !== 'taken_down' && (() => {
+              const performanceSource = parsePortfolioVideoUrl((artist as any).performanceVideoUrl);
+              return <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -941,18 +942,28 @@ export default function ArtistProfile() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                    <video
-                      src={(artist as any).performanceVideoUrl}
-                      controls
-                      preload="auto"
-                      playsInline
-                      className="w-full h-full object-contain"
-                      poster={(artist as any).performanceVideoThumbnail || undefined}
-                    />
+                    {performanceSource?.embedUrl ? (
+                      <iframe
+                        src={performanceSource.embedUrl}
+                        title={`${artist.artistName || 'Artist'} performance video`}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video
+                        src={performanceSource?.normalizedUrl || (artist as any).performanceVideoUrl}
+                        controls
+                        preload="auto"
+                        playsInline
+                        className="w-full h-full object-contain"
+                        poster={(artist as any).performanceVideoThumbnail || undefined}
+                      />
+                    )}
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>;
+            })()}
             
             {/* Video Portfolio */}
             {(videoPortfolio as any[]).length > 0 && (

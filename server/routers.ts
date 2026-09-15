@@ -769,6 +769,37 @@ export const appRouter = router({
         return { success: true, url, status: 'pending' };
       }),
 
+    // Add or replace the main Performance Video with a supported hosted URL.
+    setPerformanceVideoByUrl: artistProcedure
+      .input(z.object({ videoUrl: z.string().trim().min(1).max(2048) }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+        const tier = subscription?.tier || 'free';
+        if (!['starter', 'professional', 'enterprise'].includes(tier)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Performance Video requires a Starter, Professional, or Enterprise subscription',
+          });
+        }
+        const source = parsePortfolioVideoUrl(input.videoUrl);
+        if (!source) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: PORTFOLIO_VIDEO_URL_HELP });
+        }
+        await db.updateArtistProfile(profile.id, {
+          performanceVideoUrl: source.normalizedUrl,
+          performanceVideoThumbnail: source.thumbnailUrl,
+          performanceVideoStatus: 'approved',
+          performanceVideoDuration: null,
+          performanceVideoUploadedAt: new Date(),
+          performanceVideoFlagCount: 0,
+        } as any);
+        return { success: true, url: source.normalizedUrl, kind: source.kind, status: 'approved' };
+      }),
+
     // Delete performance video
     deletePerformanceVideo: artistProcedure
       .mutation(async ({ ctx }) => {

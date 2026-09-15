@@ -27,7 +27,17 @@ import {
   validateAssembledVideoSource,
   verifyPortfolioUploadSession,
 } from '../services/videoPortfolioDirectUpload';
-import { convertPortfolioVideo } from '../services/videoPortfolioConversion';
+import { convertPerformanceVideo, convertPortfolioVideo } from '../services/videoPortfolioConversion';
+import {
+  assemblePerformanceAsset,
+  assertPerformanceUploadOwner,
+  createPerformanceUploadSession,
+  getExpectedPerformanceChunkLength,
+  getPerformanceChunkKey,
+  readPerformanceUploadInput,
+  signPerformanceUploadSession,
+  verifyPerformanceUploadSession,
+} from '../services/performanceVideoDirectUpload';
 
 const router = Router();
 
@@ -44,6 +54,23 @@ async function getPortfolioUploadContext(req: Request) {
   if (!pool) throw new PortfolioUploadValidationError('Database unavailable', 503);
   await ensureVideoPortfolioSchema(pool as any);
   return { user, profile, pool };
+}
+
+async function getPerformanceUploadContext(req: Request) {
+  let user;
+  try {
+    user = await sdk.authenticateRequest(req as any);
+  } catch {
+    throw new PortfolioUploadValidationError('Unauthorized', 401);
+  }
+  const profile = await db.getArtistProfileByUserId(user.id);
+  if (!profile) throw new PortfolioUploadValidationError('Artist profile not found', 404);
+  const subscription = await db.getSubscriptionByUserId(user.id);
+  const tier = subscription?.tier || 'free';
+  if (!['starter', 'professional', 'enterprise'].includes(tier)) {
+    throw new PortfolioUploadValidationError('Performance Video upload requires a Starter, Professional, or Enterprise subscription', 403);
+  }
+  return { user, profile };
 }
 
 async function assertPortfolioCapacity(pool: NonNullable<ReturnType<typeof db.getPool>>, profileId: number) {
@@ -108,8 +135,8 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
     // Check subscription tier
     const subscription = await db.getSubscriptionByUserId(user.id);
     const tier = subscription?.tier || 'free';
-    if (tier !== 'professional' && tier !== 'starter') {
-      return res.status(403).json({ error: 'Performance video upload requires a Starter or Professional subscription' });
+    if (!['starter', 'professional', 'enterprise'].includes(tier)) {
+      return res.status(403).json({ error: 'Performance Video upload requires a Starter, Professional, or Enterprise subscription' });
     }
 
     // Check file
@@ -146,6 +173,106 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
       return res.status(413).json({ error: 'Video file must be under 500MB' });
     }
     return res.status(500).json({ error: err.message || 'Upload failed' });
+  }
+});
+
+// POST /api/video/performance/start — create an owner-bound main-video upload session.
+router.post('/performance/start', async (req: Request, res: Response) => {
+  try {
+    const { user, profile } = await getPerformanceUploadContext(req);
+    const input = readPerformanceUploadInput(req.body);
+    const session = createPerformanceUploadSession(input, {
+      userId: user.id,
+      profileId: profile.id,
+      sessionId: randomUUID(),
+    });
+    return res.json({
+      token: signPerformanceUploadSession(session),
+      expiresAt: session.expiresAt,
+      chunkBytes: PORTFOLIO_UPLOAD_CHUNK_BYTES,
+      videoChunkCount: session.videoChunkCount,
+      thumbnailChunkCount: session.thumbnailChunkCount,
+      requiresConversion: session.requiresConversion,
+    });
+  } catch (err: any) {
+    console.error('[Performance Video Start Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not start the Performance Video upload' });
+  }
+});
+
+// POST /api/video/performance/chunk — send one bounded, authenticated chunk.
+router.post('/performance/chunk', express.raw({ type: 'application/octet-stream', limit: '5mb' }), async (req: Request, res: Response) => {
+  try {
+    const { user, profile } = await getPerformanceUploadContext(req);
+    const payload = verifyPerformanceUploadSession(String(req.header('x-performance-upload-token') || ''));
+    assertPerformanceUploadOwner(payload, { userId: user.id, profileId: profile.id });
+    const kindHeader = String(req.header('x-performance-upload-kind') || '');
+    if (kindHeader !== 'video' && kindHeader !== 'thumbnail') throw new PortfolioUploadValidationError('Invalid upload chunk type');
+    const kind = kindHeader as 'video' | 'thumbnail';
+    const index = Number(req.header('x-performance-upload-index'));
+    const expectedLength = getExpectedPerformanceChunkLength(payload, kind, index);
+    const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+    if (body.length !== expectedLength) throw new PortfolioUploadValidationError('Upload chunk size did not match the signed session');
+    await storagePut(getPerformanceChunkKey(payload, kind, index), body, 'application/octet-stream');
+    return res.json({ success: true, kind, index });
+  } catch (err: any) {
+    console.error('[Performance Video Chunk Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not upload the Performance Video chunk' });
+  }
+});
+
+// POST /api/video/performance/finalize — assemble, validate, store, and replace the main video.
+router.post('/performance/finalize', async (req: Request, res: Response) => {
+  try {
+    const { user, profile } = await getPerformanceUploadContext(req);
+    const payload = verifyPerformanceUploadSession(String(req.body?.token || ''));
+    assertPerformanceUploadOwner(payload, { userId: user.id, profileId: profile.id });
+    const finalVideoUrl = publicStorageUrl(payload.finalVideoKey);
+    const currentVideoUrl = String(profile.performanceVideoUrl || '');
+    if (currentVideoUrl === finalVideoUrl || currentVideoUrl.endsWith(`/${payload.finalVideoKey}`)) {
+      throw new PortfolioUploadValidationError('This Performance Video upload was already completed', 409);
+    }
+
+    const sourceBuffer = await assemblePerformanceAsset(payload, 'video');
+    validateAssembledVideoSource(sourceBuffer, payload.sourceFormat);
+    let videoBuffer: Buffer;
+    let thumbnailBuffer: Buffer;
+    let storedDuration = payload.duration;
+    let storedVideoMimeType = payload.videoMimeType;
+    let storedThumbnailMimeType = payload.thumbnailMimeType;
+    if (payload.requiresConversion) {
+      const converted = await convertPerformanceVideo({ source: sourceBuffer, sourceFormat: payload.sourceFormat });
+      videoBuffer = converted.video;
+      thumbnailBuffer = converted.thumbnail;
+      storedDuration = converted.duration;
+      storedVideoMimeType = 'video/mp4';
+      storedThumbnailMimeType = 'image/jpeg';
+    } else {
+      thumbnailBuffer = await assemblePerformanceAsset(payload, 'thumbnail');
+      validateAssembledMedia(sourceBuffer, 'video');
+      validateAssembledMedia(thumbnailBuffer, 'thumbnail');
+      videoBuffer = sourceBuffer;
+    }
+
+    const [storedVideo, storedThumbnail] = await Promise.all([
+      storagePut(payload.finalVideoKey, videoBuffer, storedVideoMimeType),
+      storagePut(payload.finalThumbnailKey, thumbnailBuffer, storedThumbnailMimeType || 'image/jpeg'),
+    ]);
+    await db.updateArtistProfile(profile.id, {
+      performanceVideoUrl: storedVideo.url,
+      performanceVideoThumbnail: storedThumbnail.url,
+      performanceVideoStatus: 'approved',
+      performanceVideoDuration: Math.round(storedDuration),
+      performanceVideoUploadedAt: new Date(),
+      performanceVideoFlagCount: 0,
+    } as any);
+    return res.json({ success: true, url: storedVideo.url, thumbnailUrl: storedThumbnail.url, converted: payload.requiresConversion, status: 'approved' });
+  } catch (err: any) {
+    console.error('[Performance Video Finalize Error]', err);
+    const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
+    return res.status(status).json({ error: err.message || 'Could not finish the Performance Video upload' });
   }
 });
 

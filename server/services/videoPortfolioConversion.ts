@@ -11,6 +11,7 @@ import {
   validateAssembledVideoSource,
 } from './videoPortfolioDirectUpload';
 import { PORTFOLIO_VIDEO_MAX_DURATION_SECONDS, type PortfolioVideoSourceFormat } from '../../shared/videoPortfolioUpload';
+import { PERFORMANCE_VIDEO_MAX_BYTES, PERFORMANCE_VIDEO_MAX_DURATION_SECONDS } from '../../shared/performanceVideoUpload';
 
 const PROCESS_TIMEOUT_MS = 160_000;
 const MAX_DIAGNOSTIC_CHARS = 6_000;
@@ -22,6 +23,24 @@ type ProbeResult = {
 };
 
 type ProcessResult = { stdout: string; stderr: string };
+
+type VideoConversionPolicy = {
+  label: string;
+  maxDurationSeconds: number;
+  maxVideoBytes: number;
+};
+
+const PORTFOLIO_CONVERSION_POLICY: VideoConversionPolicy = {
+  label: 'Video Portfolio clips',
+  maxDurationSeconds: PORTFOLIO_VIDEO_MAX_DURATION_SECONDS,
+  maxVideoBytes: PORTFOLIO_MAX_VIDEO_BYTES,
+};
+
+const PERFORMANCE_CONVERSION_POLICY: VideoConversionPolicy = {
+  label: 'Performance Videos',
+  maxDurationSeconds: PERFORMANCE_VIDEO_MAX_DURATION_SECONDS,
+  maxVideoBytes: PERFORMANCE_VIDEO_MAX_BYTES,
+};
 
 async function runMediaProcess(command: 'ffmpeg' | 'ffprobe', args: string[], timeoutMs = PROCESS_TIMEOUT_MS): Promise<ProcessResult> {
   return new Promise((resolve, reject) => {
@@ -57,7 +76,7 @@ async function runMediaProcess(command: 'ffmpeg' | 'ffprobe', args: string[], ti
   });
 }
 
-async function probeVideo(path: string): Promise<{ duration: number; hasAudio: boolean }> {
+async function probeVideo(path: string, policy: VideoConversionPolicy): Promise<{ duration: number; hasAudio: boolean }> {
   const result = await runMediaProcess('ffprobe', [
     '-v', 'error',
     '-show_entries', 'format=duration,format_name:stream=codec_type,codec_name,width,height',
@@ -75,17 +94,18 @@ async function probeVideo(path: string): Promise<{ duration: number; hasAudio: b
   if (!videoStream || !Number.isFinite(duration) || duration <= 0) {
     throw new PortfolioUploadValidationError('This file does not contain a readable video stream.');
   }
-  if (duration > PORTFOLIO_VIDEO_MAX_DURATION_SECONDS + 0.25) {
+  if (duration > policy.maxDurationSeconds + 0.25) {
     const seconds = Math.ceil(duration);
-    throw new PortfolioUploadValidationError(`This video is ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}. Video Portfolio clips must be 2:00 or shorter.`);
+    const limitMinutes = Math.floor(policy.maxDurationSeconds / 60);
+    throw new PortfolioUploadValidationError(`This video is ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}. ${policy.label} must be ${limitMinutes}:00 or shorter.`);
   }
   return { duration, hasAudio: Boolean(probe.streams?.some(stream => stream.codec_type === 'audio')) };
 }
 
-export async function convertPortfolioVideo(options: {
+async function convertVideo(options: {
   source: Buffer;
   sourceFormat: PortfolioVideoSourceFormat;
-}): Promise<{ video: Buffer; thumbnail: Buffer; duration: number }> {
+}, policy: VideoConversionPolicy): Promise<{ video: Buffer; thumbnail: Buffer; duration: number }> {
   if (conversionActive) {
     throw new PortfolioUploadValidationError('Another video is being prepared right now. Please retry in a moment.', 503);
   }
@@ -98,7 +118,7 @@ export async function convertPortfolioVideo(options: {
     const outputPath = join(workDir, 'video.mp4');
     const thumbnailPath = join(workDir, 'thumbnail.jpg');
     await writeFile(inputPath, options.source, { mode: 0o600 });
-    const sourceProbe = await probeVideo(inputPath);
+    const sourceProbe = await probeVideo(inputPath, policy);
     const seekSeconds = Math.min(Math.max(sourceProbe.duration * 0.25, 1), 15).toFixed(3);
 
     const args = [
@@ -107,7 +127,7 @@ export async function convertPortfolioVideo(options: {
       '-vf', 'scale=w=min(1920\\,iw):h=min(1920\\,ih):force_original_aspect_ratio=decrease,format=yuv420p',
       '-threads', '1', '-filter_threads', '1', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-maxrate', '6M', '-bufsize', '12M',
       '-movflags', '+faststart', '-c:a', 'aac', '-b:a', '128k', '-ac', '2',
-      '-t', String(PORTFOLIO_VIDEO_MAX_DURATION_SECONDS), '-fs', String(PORTFOLIO_MAX_VIDEO_BYTES), outputPath,
+      '-t', String(policy.maxDurationSeconds), '-fs', String(policy.maxVideoBytes), outputPath,
     ];
     await runMediaProcess('ffmpeg', args);
     await runMediaProcess('ffmpeg', [
@@ -117,8 +137,8 @@ export async function convertPortfolioVideo(options: {
     ], 30_000);
 
     const [outputStat, thumbnailStat] = await Promise.all([stat(outputPath), stat(thumbnailPath)]);
-    if (outputStat.size < 1 || outputStat.size > PORTFOLIO_MAX_VIDEO_BYTES) {
-      throw new PortfolioUploadValidationError('The converted video exceeds the 100 MB maximum. Try a shorter or smaller file.');
+    if (outputStat.size < 1 || outputStat.size > policy.maxVideoBytes) {
+      throw new PortfolioUploadValidationError(`The converted video exceeds the ${Math.round(policy.maxVideoBytes / 1024 / 1024)} MB maximum. Try a shorter or smaller file.`);
     }
     if (thumbnailStat.size < 1 || thumbnailStat.size > PORTFOLIO_MAX_THUMBNAIL_BYTES) {
       throw new PortfolioUploadValidationError('We could not create a valid thumbnail from this video.');
@@ -126,12 +146,26 @@ export async function convertPortfolioVideo(options: {
     const [video, thumbnail] = await Promise.all([readFile(outputPath), readFile(thumbnailPath)]);
     validateAssembledVideoSource(video, 'mp4');
     validateAssembledMedia(thumbnail, 'thumbnail');
-    const outputProbe = await probeVideo(outputPath);
+    const outputProbe = await probeVideo(outputPath, policy);
     return { video, thumbnail, duration: outputProbe.duration };
   } finally {
     conversionActive = false;
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }
+}
+
+export function convertPortfolioVideo(options: {
+  source: Buffer;
+  sourceFormat: PortfolioVideoSourceFormat;
+}): Promise<{ video: Buffer; thumbnail: Buffer; duration: number }> {
+  return convertVideo(options, PORTFOLIO_CONVERSION_POLICY);
+}
+
+export function convertPerformanceVideo(options: {
+  source: Buffer;
+  sourceFormat: PortfolioVideoSourceFormat;
+}): Promise<{ video: Buffer; thumbnail: Buffer; duration: number }> {
+  return convertVideo(options, PERFORMANCE_CONVERSION_POLICY);
 }
 
 export function isPortfolioConversionActive(): boolean {
