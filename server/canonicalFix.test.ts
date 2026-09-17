@@ -183,9 +183,9 @@ describe('Canonical Tag Fix - Google Search Console Duplicate Issue', () => {
     });
 
     it('should ensure www prefix in robots.txt baseUrl', () => {
-      // robots.txt handler should also normalize
+      // robots.txt should use the same canonical base URL normalizer as sitemap.xml
       const robotsSection = sitemapRoutes.substring(sitemapRoutes.indexOf("'/robots.txt'"));
-      expect(robotsSection).toContain("baseUrl.replace('https://', 'https://www.')");
+      expect(robotsSection).toContain('normalizeBaseUrl(req)');
     });
 
     it('should have no trailing slashes on sitemap static page URLs (except root)', () => {

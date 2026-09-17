@@ -1,7 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import sitemapRoutes from './sitemapRoutes';
+import sitemapRoutes, {
+  PUBLIC_STATIC_PAGES,
+  artistSitemapPath,
+  eventSitemapPath,
+  merchSitemapPath,
+  venueSitemapPath,
+} from './sitemapRoutes';
 
 describe('Sitemap and Robots.txt Routes', () => {
   let app: express.Application;
@@ -33,10 +39,27 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should include static public pages', async () => {
       const response = await request(app).get('/sitemap.xml');
-      const publicPages = ['/browse', '/how-it-works', '/contact', '/faq', '/help', '/cookies', '/accessibility', 'terms-of-service', 'privacy-policy'];
+      const publicPages = [
+        '/discover', '/experiences', '/shop', '/community', '/browse', '/venues', '/events',
+        '/ology-live', '/pricing', '/how-it-works', '/sell-music', '/sponsor-opportunities',
+        '/blog', '/about', '/contact', '/faq', '/help', '/terms-of-service', '/privacy-policy',
+        '/cookies', '/accessibility', '/dmca', '/disclaimer', '/creator-rights', '/community-guidelines',
+      ];
       publicPages.forEach(page => {
         expect(response.text).toContain(page);
       });
+    });
+
+    it('keeps the static sitemap inventory unique', () => {
+      const urls = PUBLIC_STATIC_PAGES.map(page => page.url);
+      expect(new Set(urls).size).toBe(urls.length);
+    });
+
+    it('builds the same clean canonical paths used by public detail pages', () => {
+      expect(artistSitemapPath('Dawud Anyabwile')).toBe('/artist/dawud-anyabwile');
+      expect(venueSitemapPath('The Velvet Room')).toBe('/venue/the-velvet-room');
+      expect(eventSitemapPath('Arts & Culture Night!')).toBe('/events/arts-culture-night');
+      expect(merchSitemapPath('Signed Art Book', 42)).toBe('/merch/signed-art-book-42');
     });
 
     it('should use canonical URLs (no duplicates)', async () => {
@@ -49,7 +72,11 @@ describe('Sitemap and Robots.txt Routes', () => {
     it('should NOT include private pages', async () => {
       const response = await request(app).get('/sitemap.xml');
       // Private pages should not be in sitemap
-      const privatePages = ['/dashboard', '/venue-dashboard', '/admin', '/settings', '/messages', '/bookings', '/earnings', '/rider-builder', '/verify-email', '/revert-email', '/following', '/favorites', '/rider-templates', '/unsubscribe'];
+      const privatePages = [
+        '/dashboard', '/nil-compliance', '/venue-dashboard', '/workspace', '/my-ology', '/admin',
+        '/settings', '/messages', '/bookings', '/earnings', '/rider-builder', '/verify-email',
+        '/revert-email', '/following', '/favorites', '/rider-templates', '/unsubscribe',
+      ];
       privatePages.forEach(page => {
         // Check that page is not in sitemap URLs
         const regex = new RegExp(`<loc>[^<]*${page.replace(/\//g, '\\/')}[^<]*</loc>`);
@@ -105,7 +132,12 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should allow public pages', async () => {
       const response = await request(app).get('/robots.txt');
-      const publicPages = ['/browse', '/artist/', '/venue/', '/venues', '/events', '/pricing', '/how-it-works', '/contact', '/faq', '/help', '/cookies', '/accessibility'];
+      const publicPages = [
+        '/discover', '/experiences', '/shop', '/community', '/browse', '/artist/', '/venue/',
+        '/venues', '/events', '/ology-live', '/merch/', '/portfolio-video/', '/pricing',
+        '/how-it-works', '/sponsor-opportunities', '/blog', '/about', '/contact', '/faq',
+        '/help', '/cookies', '/accessibility', '/creator-rights', '/community-guidelines',
+      ];
       publicPages.forEach(page => {
         expect(response.text).toContain(`Allow: ${page}`);
       });
@@ -113,7 +145,18 @@ describe('Sitemap and Robots.txt Routes', () => {
 
     it('should disallow private pages', async () => {
       const response = await request(app).get('/robots.txt');
-      const privatePages = ['/admin', '/admin/payouts', '/dashboard', '/venue-dashboard', '/settings', '/messages', '/bookings', '/booking/', '/booking-confirmation', '/earnings', '/earnings-dashboard', '/venue-invoices', '/rider-builder', '/rider-templates', '/saved-riders', '/riders', '/favorites', '/following', '/availability', '/profile/edit', '/events/create', '/verify-email', '/revert-email', '/unsubscribe', '/artist-tax-reporting'];
+      const privatePages = [
+        '/admin', '/admin/payouts', '/blogger-dashboard', '/dashboard', '/nil-compliance',
+        '/venue-dashboard', '/workspace', '/my-ology', '/settings', '/team', '/messages',
+        '/notifications', '/bookings', '/booking/', '/booking-confirmation', '/contracts',
+        '/disputes', '/earnings', '/earnings-dashboard', '/venue-invoices', '/rider-builder',
+        '/releases', '/content-releases', '/rider-templates', '/saved-riders', '/riders',
+        '/favorites', '/following', '/availability', '/profile/edit', '/events/create',
+        '/venue/events/create', '/ology-live/dashboard', '/merch-orders', '/projects', '/promote',
+        '/sponsor-dashboard', '/sponsor-analytics', '/media-kit', '/my-tickets', '/my-purchases',
+        '/my-music', '/fan-club', '/verify-email', '/revert-email', '/reset-password',
+        '/unsubscribe', '/artist-tax-reporting',
+      ];
       privatePages.forEach(page => {
         expect(response.text).toContain(`Disallow: ${page}`);
       });
@@ -131,11 +174,6 @@ describe('Sitemap and Robots.txt Routes', () => {
       const response = await request(app).get('/robots.txt');
       // Should include sitemap reference
       expect(response.text).toContain('Sitemap:');
-    });
-
-    it('should include crawl delay', async () => {
-      const response = await request(app).get('/robots.txt');
-      expect(response.text).toContain('Crawl-delay');
     });
 
     it('should include crawl delay', async () => {
