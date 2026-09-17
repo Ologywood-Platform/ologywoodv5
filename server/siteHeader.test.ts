@@ -12,7 +12,8 @@ describe('SiteHeader unified ecosystem navigation', () => {
   });
 
   it('keeps search, create, inbox, notifications, and account as utilities', () => {
-    expect(content).toContain('aria-label="Search OlogyWood"');
+    expect(content).toContain('<GlobalSearch />');
+    expect(content).toContain('<GlobalSearch mobile />');
     expect(content).toContain('CreateActionDialog');
     expect(content).toContain('aria-label="Inbox"');
     expect(content).toContain('RealtimeNotifications');

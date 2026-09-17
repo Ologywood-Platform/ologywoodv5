@@ -41,7 +41,7 @@ import { ProfileHeaderSkeleton, ProfileSectionSkeleton, PhotoGridSkeleton } from
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
 import { getDashboardUrl } from "@/utils/dashboardUrl";
 import SiteHeader from "@/components/SiteHeader";
-import PageBreadcrumb from '@/components/PageBreadcrumb';
+import EntityBreadcrumb from '@/components/EntityBreadcrumb';
 import { TouringDisplay } from '@/components/TouringDisplay';
 import { SponsorShowcase } from '@/components/SponsorShowcase';
 import { StickyBookingBar } from "@/components/StickyBookingBar";
@@ -324,7 +324,7 @@ export default function ArtistProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Artists', url: '/browse' }, { name: artist.artistName, url: `/artist/${artist ? toSlug(artist.artistName) : String(resolvedArtistId)}` }])]} id={`artist-${resolvedArtistId}`} />}
+      {artist && <JsonLd data={[buildArtistJsonLd(artist), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Discover', url: '/discover' }, { name: 'Talent', url: '/browse' }, { name: artist.artistName, url: `/artist/${artist ? toSlug(artist.artistName) : String(resolvedArtistId)}` }])]} id={`artist-${resolvedArtistId}`} />}
       {artist && releases && releases.length > 0 && (
         <JsonLd
           data={releases.map((r: any) => buildMusicRecordingJsonLd({
@@ -347,12 +347,10 @@ export default function ArtistProfile() {
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8">
-        <PageBreadcrumb
+        <EntityBreadcrumb
           className="mb-4"
-          segments={[
-            { label: 'Browse', href: '/browse' },
-            { label: artist.artistName },
-          ]}
+          type="artist"
+          currentLabel={artist.artistName}
         />
         {/* Hero Section */}
         <div className="mb-6 sm:mb-8" ref={heroRef}>

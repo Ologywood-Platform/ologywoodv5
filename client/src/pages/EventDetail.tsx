@@ -13,7 +13,7 @@ import { formatEventTime } from '@/lib/utils';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildEventJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
-import PageBreadcrumb from '@/components/PageBreadcrumb';
+import EntityBreadcrumb from '@/components/EntityBreadcrumb';
 import { SimilarEvents } from '@/components/SimilarEvents';
 import SiteHeader from '@/components/SiteHeader';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
@@ -186,21 +186,14 @@ export default function EventDetail() {
         ...event,
         eventDate: typeof event.eventDate === 'string' ? event.eventDate : (event.eventDate as any)?.toISOString?.()?.split('T')[0] || '',
         rate: event.rate ? String(event.rate) : undefined,
-      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${toSlug(event.eventTitle)}` }])]} id={`event-${resolvedEventId}`} />
+      }), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Experiences', url: '/experiences' }, { name: 'Events', url: '/events' }, { name: event.eventTitle, url: `/events/${toSlug(event.eventTitle)}` }])]} id={`event-${resolvedEventId}`} />
       <SiteHeader />
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Breadcrumb */}
-        <PageBreadcrumb
+        <EntityBreadcrumb
           className="mb-4"
-          segments={[
-            ...(isAuthenticated
-              ? [{ label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' }]
-              : [{ label: 'Home', href: '/' }]
-            ),
-            { label: 'Events', href: '/events' },
-            { label: event.eventTitle },
-          ]}
+          type="event"
+          currentLabel={event.eventTitle}
         />
 
         {/* Cover Image / Flyer */}

@@ -19,7 +19,7 @@ import { ReportContentModal } from '@/components/ReportContentModal';
 import { trpc } from '@/lib/trpc';
 import { JsonLd, buildVenueJsonLd, buildBreadcrumbJsonLd } from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
-import PageBreadcrumb from '@/components/PageBreadcrumb';
+import EntityBreadcrumb from '@/components/EntityBreadcrumb';
 import { setMetaTags, pageMetaTags } from '@/utils/seoMeta';
 import { toSlug } from '@/lib/slugify';
 import { dateOnlyTimestamp, formatDateOnly } from '@shared/dateOnly';
@@ -197,7 +197,7 @@ export default function VenueProfile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Browse Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${venueProfile ? toSlug(venueProfile.organizationName) : String(resolvedVenueId)}` }])]} id={`venue-${resolvedVenueId}`} />}
+      {venueProfile && <JsonLd data={[buildVenueJsonLd(venueProfile), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Discover', url: '/discover' }, { name: 'Venues', url: '/venues' }, { name: venueProfile.organizationName, url: `/venue/${venueProfile ? toSlug(venueProfile.organizationName) : String(resolvedVenueId)}` }])]} id={`venue-${resolvedVenueId}`} />}
       {/* Shared Header with Following link */}
       <SiteHeader
         extraNav={
@@ -211,12 +211,10 @@ export default function VenueProfile() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <PageBreadcrumb
+        <EntityBreadcrumb
           className="mb-4"
-          segments={[
-            { label: 'Browse Venues', href: '/venues' },
-            { label: venueProfile?.organizationName || 'Venue' },
-          ]}
+          type="venue"
+          currentLabel={venueProfile?.organizationName || 'Venue'}
         />
         {/* Venue Info Card */}
         <Card className="mb-6">

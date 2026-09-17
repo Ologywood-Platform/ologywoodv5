@@ -58,6 +58,7 @@ import { ologyLiveRouter } from "./routers/ologyLive";
 import { ologyLivePhase2Router } from "./routers/ologyLivePhase2";
 import { sandboxPostRouter } from "./routers/sandboxPost";
 import { nilComplianceRouter } from "./routers/nilCompliance";
+import { discoverySearchRouter } from "./routers/discoverySearch";
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -154,6 +155,7 @@ export const appRouter = router({
   merchOrders: merchOrdersRouter,
   sandboxPost: sandboxPostRouter,
   nilCompliance: nilComplianceRouter,
+  discoverySearch: discoverySearchRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

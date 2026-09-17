@@ -35,12 +35,12 @@ export default function PageBreadcrumb({ segments, className }: PageBreadcrumbPr
   if (segments.length === 0) return null;
 
   return (
-    <Breadcrumb className={className}>
-      <BreadcrumbList>
+    <Breadcrumb className={className} aria-label="Breadcrumb">
+      <BreadcrumbList className="flex-nowrap overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Home icon link */}
-        <BreadcrumbItem>
+        <BreadcrumbItem className="shrink-0">
           <BreadcrumbLink asChild>
-            <Link href="/">
+            <Link href="/" aria-label="Home">
               <Home className="h-3.5 w-3.5" />
             </Link>
           </BreadcrumbLink>
@@ -51,10 +51,10 @@ export default function PageBreadcrumb({ segments, className }: PageBreadcrumbPr
           const isLast = index === segments.length - 1;
 
           return (
-            <span key={index} className="inline-flex items-center gap-1.5">
-              <BreadcrumbItem>
+            <span key={`${segment.href || 'current'}-${segment.label}`} className="inline-flex min-w-0 items-center gap-1.5">
+              <BreadcrumbItem className={isLast ? 'min-w-0' : 'shrink-0'}>
                 {isLast || !segment.href ? (
-                  <BreadcrumbPage>{segment.label}</BreadcrumbPage>
+                  <BreadcrumbPage className="max-w-[14rem] truncate sm:max-w-[24rem]" title={segment.label}>{segment.label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link href={segment.href}>{segment.label}</Link>

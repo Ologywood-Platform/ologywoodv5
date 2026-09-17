@@ -1,6 +1,6 @@
 import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, Menu, X, ChevronDown, LayoutDashboard, User, Settings, Download, Shield, Library, MoreHorizontal, Search, MessageCircle, Users } from 'lucide-react';
+import { LogOut, Menu, X, ChevronDown, LayoutDashboard, User, Settings, Download, Shield, Library, MoreHorizontal, MessageCircle, Users } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -14,6 +14,7 @@ import { CORE_DESTINATIONS, LEARN_DESTINATIONS, getWorkspaceRole, isDestinationA
 import { CreateActionDialog } from '@/components/CreateActionDialog';
 import { AIChatTrigger } from '@/components/AIChatWidget';
 import { getAccountMenuItems } from '@/lib/accountMenu';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 function LogoutButton({ onAction }: { onAction?: () => void }) {
   const logoutMutation = (trpc.auth.logout as any).useMutation?.() || { mutateAsync: async () => {} };
@@ -214,14 +215,10 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
             </div>
 
             <AIChatTrigger className="h-9 w-9 min-h-9 min-w-9" />
+            <GlobalSearch />
 
             {isAuthenticated ? (
               <>
-                <Link href="/discover" title="Search OlogyWood">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 dark:text-gray-300 dark:hover:text-white" aria-label="Search OlogyWood">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </Link>
                 <CreateActionDialog role={workspaceRole} compact />
                 <Link href="/messages" title="Inbox">
                   <Button variant="ghost" size="icon" className="h-9 w-9 dark:text-gray-300 dark:hover:text-white" aria-label="Inbox">
@@ -337,6 +334,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
 
           {/* Mobile: Dark mode toggle + Hamburger */}
           <div className="lg:hidden flex items-center gap-1">
+            <GlobalSearch mobile />
             <AIChatTrigger />
             {isAuthenticated && <RealtimeNotifications />}
             <DarkModeToggle compact />
