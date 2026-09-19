@@ -31,7 +31,7 @@ After live recovery, the state transitions were hardened further for Stripe’s 
 
 Subscription-created and subscription-cancelled emails are now non-critical side effects after the subscription state is saved. Email-provider failures are logged but no longer convert a successfully persisted financial event into an HTTP 500 retry.
 
-## Required production verification
+## Production verification plan (completed)
 
 After publishing the repair with the live signing secret, send a harmless correctly signed live probe and confirm HTTP 200, then resend the two known `payment_intent.succeeded` events from Stripe Workbench. Verify that orders 49 and 53 each become paid exactly once and receive their PaymentIntent references. Review the remaining unique failed live events from September 16 onward and resend any fulfillment-critical events that did not succeed automatically. No charge, refund, payout, or customer object should be created during verification.
 
@@ -50,6 +50,8 @@ Stripe redelivery was initiated for order 49’s `payment_intent.succeeded` even
 Stripe redelivery was initiated for order 53’s `payment_intent.succeeded` event (`evt_3UGLTLAjAqXCmw110vVzg4KD`) as delivery attempt `wc_1UHRndAjAqXCmw11i7vO9lnD`. A read-only database audit confirmed that order 53 also changed from pending to **paid**, gained its Stripe PaymentIntent reference, and gained a paid timestamp. The Workbench event-detail list remained visually stale immediately after redelivery, but the attempt identifier and resulting database state independently confirmed processing.
 
 A final read-only audit after both redeliveries confirmed that orders 49 and 53 remained paid, retained their PaymentIntent references, and retained paid timestamps. No charge, refund, payout, customer object, or new order was created during verification.
+
+Final state-ordering checkpoint `f3c389c6` was then published. Production again returned **HTTP 200** for a valid live signature and **HTTP 400** for an invalid signature. A controlled, correctly signed `payment_intent.payment_failed` replay targeting already-paid order 49 returned **HTTP 200**, while a read-only audit proved that neither order 49 nor order 53 was downgraded, cancelled, or assigned the probe PaymentIntent. This closes the live incident and validates the stale-event guard on the production runtime.
 
 ## Sources
 

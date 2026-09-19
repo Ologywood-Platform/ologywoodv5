@@ -4722,4 +4722,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Recovered live-paid merchandise orders 49 and 53 through Stripe redelivery and confirmed both are paid with PaymentIntent references and paid timestamps
 - [x] Added stale-event guards for merchandise, bookings, subscription invoices, refunds, and payout replay deduplication
 - [x] Passed 94 focused tests, the complete suite with 2,825 passing and 23 skipped, TypeScript, production build, and repository hygiene
-- [ ] Publish the final stale-event guard checkpoint and verify live webhook acceptance plus stable paid order states
+- [x] Published final stale-event guard checkpoint `f3c389c6`; production accepted a valid live signature with HTTP 200, rejected an invalid signature with HTTP 400, and a controlled stale failed-payment replay returned HTTP 200 without changing paid orders 49 or 53
