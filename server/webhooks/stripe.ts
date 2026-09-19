@@ -99,9 +99,24 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
     res.json({ received: true });
   } catch (error) {
-    console.error('[Stripe Webhook] Error processing event:', error);
+    console.error(`[Stripe Webhook] Error processing ${mode} event ${event.id} (${event.type}):`, error);
     res.status(500).json({ error: 'Webhook processing failed' });
   }
+}
+
+export function createMerchCheckoutSessionFromPaymentIntent(
+  paymentIntent: Stripe.PaymentIntent,
+): Stripe.Checkout.Session | null {
+  if (paymentIntent.metadata?.type !== 'merch_purchase' || !paymentIntent.metadata?.orderId) {
+    return null;
+  }
+
+  return {
+    id: `payment_intent:${paymentIntent.id}`,
+    metadata: paymentIntent.metadata,
+    payment_intent: paymentIntent.id,
+    amount_total: paymentIntent.amount_received || paymentIntent.amount,
+  } as Stripe.Checkout.Session;
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
@@ -355,10 +370,12 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     currentPeriodEnd,
   });
   
-  // Send email for new subscriptions
-  if (subscription.status === 'trialing' || subscription.status === 'active') {
-    const user = await db.getUserById(parseInt(userId)) as any;
-    if (user?.email) {
+  // Email is non-critical after subscription state has been persisted. A
+  // provider outage must not make Stripe retry the financial event.
+  try {
+    if (subscription.status === 'trialing' || subscription.status === 'active') {
+      const user = await db.getUserById(parseInt(userId)) as any;
+      if (!user?.email) return;
       const subData = subscription as any;
       const trialEndDate = subData.trial_end 
         ? new Date(subData.trial_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -408,6 +425,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         trialEndDate,
       });
     }
+  } catch (emailErr) {
+    console.error('[Stripe Webhook] Error sending subscription-created email:', emailErr);
   }
 }
 
@@ -423,9 +442,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   await db.updateSubscriptionStatus(parseInt(userId), 'cancelled');
   
-  // Send cancellation email with plan details
-  const user = await db.getUserById(parseInt(userId)) as any;
-  if (user?.email) {
+  // Email is non-critical after cancellation state has been persisted.
+  try {
+    const user = await db.getUserById(parseInt(userId)) as any;
+    if (!user?.email) return;
     const subData = subscription as any;
     const endDate = subData.current_period_end 
       ? new Date(subData.current_period_end * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -451,6 +471,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       planName,
       endDate,
     });
+  } catch (emailErr) {
+    console.error('[Stripe Webhook] Error sending subscription-canceled email:', emailErr);
   }
 }
 
@@ -486,6 +508,16 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   // Handle tips separately
   if (paymentIntent.metadata?.type === 'tip') {
     await handleTipSucceeded(paymentIntent);
+    return;
+  }
+
+  // Stripe does not guarantee event ordering. Fulfill merchandise from the
+  // successful PaymentIntent as a fallback when checkout.session.completed is
+  // delayed or was not delivered. The merch handler is transactionally
+  // idempotent, so receiving both events cannot fulfill an order twice.
+  const merchCheckoutSession = createMerchCheckoutSessionFromPaymentIntent(paymentIntent);
+  if (merchCheckoutSession) {
+    await handleMerchPurchaseCompleted(merchCheckoutSession);
     return;
   }
 

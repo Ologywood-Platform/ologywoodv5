@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Stripe from 'stripe';
-import { handleStripeWebhook } from './webhooks/stripe';
+import {
+  createMerchCheckoutSessionFromPaymentIntent,
+  handleStripeWebhook,
+} from './webhooks/stripe';
 import {
   getStripeApiKeyForWebhookMode,
   verifyStripeWebhookEvent,
@@ -90,6 +93,78 @@ describe('Stripe same-URL dual-mode webhook verification', () => {
     expect(getStripeApiKeyForWebhookMode('test', env)).toBe(env.STRIPE_TEST_SECRET_KEY);
   });
 
+  it('uses explicit live credentials when the primary project configuration remains in test mode', () => {
+    const mixedModeEnv = {
+      STRIPE_SECRET_KEY: 'sk_test_primary_key',
+      STRIPE_WEBHOOK_SECRET: 'whsec_test_primary_secret',
+      STRIPE_TEST_SECRET_KEY: 'sk_test_primary_key',
+      STRIPE_TEST_WEBHOOK_SECRET: 'whsec_test_primary_secret',
+      STRIPE_LIVE_SECRET_KEY: 'sk_live_explicit_key',
+      STRIPE_LIVE_WEBHOOK_SECRET: liveSecret,
+    };
+    const payload = makeEvent(true, 'evt_live_mixed_mode_unit');
+    const verified = verifyStripeWebhookEvent(payload, sign(payload, liveSecret), mixedModeEnv);
+
+    expect(verified.mode).toBe('live');
+    expect(verified.event.id).toBe('evt_live_mixed_mode_unit');
+    expect(getStripeApiKeyForWebhookMode('live', mixedModeEnv)).toBe('sk_live_explicit_key');
+  });
+
+  it('does not misclassify a generic test signing secret as live', () => {
+    const testPrimaryEnv = {
+      STRIPE_SECRET_KEY: 'sk_test_primary_key',
+      STRIPE_WEBHOOK_SECRET: 'whsec_test_primary_secret',
+      STRIPE_TEST_SECRET_KEY: 'sk_test_primary_key',
+      STRIPE_TEST_WEBHOOK_SECRET: 'whsec_test_primary_secret',
+    };
+    const payload = makeEvent(true, 'evt_live_without_explicit_secret_unit');
+
+    expect(() => verifyStripeWebhookEvent(
+      payload,
+      sign(payload, testPrimaryEnv.STRIPE_WEBHOOK_SECRET),
+      testPrimaryEnv,
+    )).toThrow(/mode mismatch/i);
+    expect(() => getStripeApiKeyForWebhookMode('live', testPrimaryEnv))
+      .toThrow(/live-mode API key is not configured/i);
+  });
+
+  it('ignores an invalid live-key record ID and keeps a valid primary live API key', () => {
+    expect(getStripeApiKeyForWebhookMode('live', {
+      ...env,
+      STRIPE_LIVE_SECRET_KEY: 'mk_unit_key_record_id',
+    })).toBe(env.STRIPE_SECRET_KEY);
+  });
+
+  it('maps a successful merchandise PaymentIntent into the idempotent order fulfillment path', () => {
+    const session = createMerchCheckoutSessionFromPaymentIntent({
+      id: 'pi_live_merch_unit',
+      amount: 499,
+      amount_received: 499,
+      metadata: {
+        type: 'merch_purchase',
+        orderId: '53',
+        orderNumber: 'OWM-UNIT-53',
+      },
+    } as Stripe.PaymentIntent);
+
+    expect(session).toMatchObject({
+      id: 'payment_intent:pi_live_merch_unit',
+      payment_intent: 'pi_live_merch_unit',
+      amount_total: 499,
+      metadata: {
+        type: 'merch_purchase',
+        orderId: '53',
+        orderNumber: 'OWM-UNIT-53',
+      },
+    });
+    expect(createMerchCheckoutSessionFromPaymentIntent({
+      id: 'pi_booking_unit',
+      amount: 499,
+      amount_received: 499,
+      metadata: { bookingId: '12' },
+    } as Stripe.PaymentIntent)).toBeNull();
+  });
+
   it('returns HTTP 200 for a valid unsupported test event, including a retry', async () => {
     vi.stubEnv('STRIPE_SECRET_KEY', env.STRIPE_SECRET_KEY);
     vi.stubEnv('STRIPE_WEBHOOK_SECRET', env.STRIPE_WEBHOOK_SECRET);
@@ -109,6 +184,26 @@ describe('Stripe same-URL dual-mode webhook verification', () => {
     }
   });
 
+  it('returns HTTP 200 for a valid live event while the primary project key remains test mode', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_primary_key');
+    vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_primary_secret');
+    vi.stubEnv('STRIPE_TEST_SECRET_KEY', 'sk_test_primary_key');
+    vi.stubEnv('STRIPE_TEST_WEBHOOK_SECRET', 'whsec_test_primary_secret');
+    vi.stubEnv('STRIPE_LIVE_SECRET_KEY', 'sk_live_explicit_key');
+    vi.stubEnv('STRIPE_LIVE_WEBHOOK_SECRET', liveSecret);
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const payload = makeEvent(true, 'evt_live_handler_mixed_mode_unit');
+    const request = {
+      body: Buffer.from(payload),
+      headers: { 'stripe-signature': sign(payload, liveSecret) },
+    } as any;
+    const { response, state } = createResponse();
+
+    await handleStripeWebhook(request, response as any);
+
+    expect(state).toEqual({ status: 200, body: { received: true } });
+  });
+
   it('returns HTTP 400 when the Stripe signature is missing', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { response, state } = createResponse();
@@ -126,5 +221,7 @@ describe('Stripe same-URL dual-mode webhook verification', () => {
     expect(webhookSource).toContain("eq(ticketOrders.status, 'pending')");
     expect(webhookSource).toContain('await database.transaction');
     expect(webhookSource).toContain('already processed, skipping');
+    expect(webhookSource).toContain('createMerchCheckoutSessionFromPaymentIntent(paymentIntent)');
+    expect(webhookSource).toContain('await handleMerchPurchaseCompleted(merchCheckoutSession)');
   });
 });

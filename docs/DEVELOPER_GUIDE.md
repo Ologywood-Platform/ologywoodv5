@@ -42,8 +42,12 @@ Environment variables are managed through the Manus platform. In the Manus Manag
 |----------|---------|
 | `DATABASE_URL` | AWS RDS MySQL connection string |
 | `JWT_SECRET` | Session signing key |
-| `STRIPE_SECRET_KEY` | Stripe API key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook verification |
+| `STRIPE_SECRET_KEY` | Primary Stripe API key |
+| `STRIPE_WEBHOOK_SECRET` | Primary webhook signing secret (legacy-compatible; mode follows `STRIPE_SECRET_KEY`) |
+| `STRIPE_LIVE_WEBHOOK_SECRET` | Explicit live signing secret for the shared `/api/stripe/webhook` URL |
+| `STRIPE_TEST_WEBHOOK_SECRET` | Explicit test signing secret for the shared `/api/stripe/webhook` URL |
+| `STRIPE_LIVE_SECRET_KEY` | Optional explicit live API key for live webhook follow-up retrievals |
+| `STRIPE_TEST_SECRET_KEY` | Test API key for test-mode webhook follow-up retrievals |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe client key |
 | `SENDGRID_API_KEY` | Email delivery |
 | `SENDGRID_FROM_EMAIL` | Sender email address |
@@ -481,7 +485,7 @@ npx vitest run path/to/test.ts
 
 ### Stripe Webhook Issues
 
-Check the Stripe Dashboard under **Developers > Webhooks** for event delivery logs. The webhook endpoint is `/api/stripe/webhook`. Use test card `4242 4242 4242 4242` for testing.
+Check Stripe Workbench under **Webhooks > Event deliveries** for exact response codes and response bodies. The webhook endpoint is `/api/stripe/webhook`. The same URL can receive live and test events, but their endpoint signing secrets are different and must be stored separately as `STRIPE_LIVE_WEBHOOK_SECRET` and `STRIPE_TEST_WEBHOOK_SECRET`. Never copy the shortened key display or a `mk_` key-record ID into a secret-key variable. Use test card `4242 4242 4242 4242` only in a Stripe sandbox or test mode.
 
 ---
 

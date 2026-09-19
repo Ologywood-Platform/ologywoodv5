@@ -4,7 +4,9 @@ export type StripeWebhookMode = 'live' | 'test';
 
 type StripeWebhookEnvironment = {
   STRIPE_SECRET_KEY?: string;
+  STRIPE_LIVE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_LIVE_WEBHOOK_SECRET?: string;
   STRIPE_TEST_SECRET_KEY?: string;
   STRIPE_TEST_WEBHOOK_SECRET?: string;
 };
@@ -28,6 +30,9 @@ function getWebhookSecretCandidates(env: StripeWebhookEnvironment) {
   const candidates: Array<{ mode: StripeWebhookMode; secret: string }> = [];
   const primaryMode = getApiKeyMode(env.STRIPE_SECRET_KEY);
 
+  if (env.STRIPE_LIVE_WEBHOOK_SECRET) {
+    candidates.push({ mode: 'live', secret: env.STRIPE_LIVE_WEBHOOK_SECRET });
+  }
   if (env.STRIPE_WEBHOOK_SECRET && primaryMode) {
     candidates.push({ mode: primaryMode, secret: env.STRIPE_WEBHOOK_SECRET });
   }
@@ -87,10 +92,15 @@ export function getStripeApiKeyForWebhookMode(
     return testKey;
   }
 
-  if (primaryMode !== 'live' || !env.STRIPE_SECRET_KEY?.startsWith('sk_live_')) {
+  const explicitLiveKey = env.STRIPE_LIVE_SECRET_KEY?.startsWith('sk_live_')
+    ? env.STRIPE_LIVE_SECRET_KEY
+    : undefined;
+  const liveKey = explicitLiveKey
+    || (primaryMode === 'live' ? env.STRIPE_SECRET_KEY : undefined);
+  if (!liveKey?.startsWith('sk_live_')) {
     throw new Error('Stripe live-mode API key is not configured');
   }
-  return env.STRIPE_SECRET_KEY;
+  return liveKey;
 }
 
 export function getStripeClientForWebhookMode(mode: StripeWebhookMode) {
