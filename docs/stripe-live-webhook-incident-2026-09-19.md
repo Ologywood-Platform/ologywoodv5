@@ -27,6 +27,8 @@ The existing generic variables remain supported for backward compatibility, but 
 
 The merchandise handler now also treats `payment_intent.succeeded` with `type = merch_purchase` and an `orderId` as a fallback fulfillment signal. It maps that event into the same transactionally idempotent order-finalization path used by `checkout.session.completed`. If both events arrive, only the first can change the order from non-paid to paid, so inventory, downloadable-book access, seller notifications, and order state cannot be duplicated.
 
+After live recovery, the state transitions were hardened further for Stripe’s unordered retry model. Merchandise success can now move only `pending` or `failed` orders to `paid`; merchandise failure cannot downgrade `paid` or `refunded` orders; refunds can move only `paid` orders to `refunded`; booking success/failure cannot overwrite refunded or fully paid terminal states; invoice-failure retries persist the subscription’s current Stripe state rather than blindly writing `past_due`; and payout retries update the existing transfer record instead of inserting duplicates or downgrading a completed payout.
+
 Subscription-created and subscription-cancelled emails are now non-critical side effects after the subscription state is saved. Email-provider failures are logged but no longer convert a successfully persisted financial event into an HTTP 500 retry.
 
 ## Required production verification
@@ -38,6 +40,16 @@ After publishing the repair with the live signing secret, send a harmless correc
 The live destination signing secret was entered through encrypted project configuration and was not written to source code. The running application returned HTTP 200 for a harmless live-signed probe, HTTP 200 for a harmless test-signed probe, and HTTP 400 for an invalid signature. The live API-key row in Stripe exposed only its `mk_` key-record ID after the secret had previously been revealed; the code therefore ignores that invalid optional override and continues to use an already configured live `STRIPE_SECRET_KEY` when available.
 
 The focused Stripe, checkout, merchandise, ticketing, and payout regression set passed **183 tests across 13 files**. The complete platform suite passed **2,825 tests with 23 skipped** and no failures. TypeScript, the production build, diff hygiene, conflict-marker scanning, and credential-literal scanning all passed.
+
+## Production verification
+
+Checkpoint `a8593bcc` was published on September 19, 2026. A harmless event signed with the configured live destination secret returned **HTTP 200** from the production webhook, while the same endpoint returned **HTTP 400** for an invalid signature. This confirms the deployed endpoint now recognizes the live destination secret without weakening signature enforcement.
+
+Stripe redelivery was initiated for order 49’s `payment_intent.succeeded` event (`evt_3UGLR8AjAqXCmw111lQ6qCSR`) as delivery attempt `wc_1UHRlyAjAqXCmw119t4cc9vS`. A read-only database audit then confirmed that order 49 changed from pending to **paid**, gained its Stripe PaymentIntent reference, and gained a paid timestamp.
+
+Stripe redelivery was initiated for order 53’s `payment_intent.succeeded` event (`evt_3UGLTLAjAqXCmw110vVzg4KD`) as delivery attempt `wc_1UHRndAjAqXCmw11i7vO9lnD`. A read-only database audit confirmed that order 53 also changed from pending to **paid**, gained its Stripe PaymentIntent reference, and gained a paid timestamp. The Workbench event-detail list remained visually stale immediately after redelivery, but the attempt identifier and resulting database state independently confirmed processing.
+
+A final read-only audit after both redeliveries confirmed that orders 49 and 53 remained paid, retained their PaymentIntent references, and retained paid timestamps. No charge, refund, payout, customer object, or new order was created during verification.
 
 ## Sources
 

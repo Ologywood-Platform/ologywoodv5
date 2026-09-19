@@ -127,7 +127,7 @@ describe('Secure Creator Shop book commerce', () => {
     expect(stripe).toContain("await tx.update(bookDownloadAccess).set({ status: 'refunded' })");
     expect(stripe).toContain("fulfillmentMethod === 'digital' ? 'completed'");
     expect(stripe).toContain('if (!charge.refunded)');
-    expect(stripe).toContain("ne(merchOrders.paymentStatus, 'refunded')");
+    expect(stripe).toContain("eq(merchOrders.paymentStatus, 'paid')");
     expect(stripe).toContain('inventoryQuantity: sql`COALESCE(${merchItems.inventoryQuantity}, 0) + ${orderItem.quantity}`');
   });
 

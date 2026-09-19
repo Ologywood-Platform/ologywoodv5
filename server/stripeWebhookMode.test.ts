@@ -223,5 +223,14 @@ describe('Stripe same-URL dual-mode webhook verification', () => {
     expect(webhookSource).toContain('already processed, skipping');
     expect(webhookSource).toContain('createMerchCheckoutSessionFromPaymentIntent(paymentIntent)');
     expect(webhookSource).toContain('await handleMerchPurchaseCompleted(merchCheckoutSession)');
+    expect(webhookSource).toContain("inArray(merchOrders.paymentStatus, ['pending', 'failed'])");
+    expect(webhookSource).toContain("inArray(bookings.paymentStatus, ['unpaid', 'deposit_paid'])");
+    expect(webhookSource).toContain("ne(bookings.paymentStatus, 'fully_paid')");
+    expect(webhookSource).toContain("ne(bookings.paymentStatus, 'refunded')");
+    expect(webhookSource).toContain("eq(merchOrders.paymentStatus, 'paid')");
+    expect(webhookSource).toContain('const currentStatus = subscription.status');
+    expect(webhookSource).toContain('updateSubscriptionStatus(parseInt(userId), currentStatus)');
+    expect(webhookSource).toContain('where(eq(artistPayouts.stripeTransferId, payout.id)).limit(1)');
+    expect(webhookSource).toContain("existing?.status === 'completed'");
   });
 });

@@ -4713,3 +4713,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Kept non-owner team members out of Talent suggestions and limited Venue/Event suggestions to listed, public, non-cancelled records
 - [x] Browser-verified all three breadcrumb hierarchies, grouped suggestions, concise dates, keyboard selection, clean-link navigation, single-dialog shortcut behavior, and one-character precision without modifying real records
 - [x] Added 10 permanent discovery navigation/search regressions; TypeScript passed, the complete suite passed with 2,820 tests and 23 skipped, production build succeeded, and repository hygiene found no conflict markers or credential patterns
+
+## STRIPE LIVE WEBHOOK INCIDENT (Sep 19, 2026)
+- [x] Confirmed 2,574 live delivery failures were signature-mismatch HTTP 400 responses, not endpoint timeouts
+- [x] Added independent live/test signing-secret support for the shared webhook URL and preserved backward compatibility
+- [x] Added idempotent `payment_intent.succeeded` merchandise fulfillment fallback and non-critical subscription email handling
+- [x] Published checkpoint `a8593bcc` and verified the live signing secret returns HTTP 200 while invalid signatures remain HTTP 400
+- [x] Recovered live-paid merchandise orders 49 and 53 through Stripe redelivery and confirmed both are paid with PaymentIntent references and paid timestamps
+- [x] Added stale-event guards for merchandise, bookings, subscription invoices, refunds, and payout replay deduplication
+- [x] Passed 94 focused tests, the complete suite with 2,825 passing and 23 skipped, TypeScript, production build, and repository hygiene
+- [ ] Publish the final stale-event guard checkpoint and verify live webhook acceptance plus stable paid order states

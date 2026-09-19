@@ -499,7 +499,15 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient:
     const userId = subscription.metadata?.userId;
 
     if (userId) {
-      await db.updateSubscriptionStatus(parseInt(userId), 'past_due');
+      // Stripe retries and event ordering are not guaranteed. Persist the
+      // subscription's current state, not the stale invoice event's state.
+      const currentStatus = subscription.status === 'active'
+        || subscription.status === 'trialing'
+        || subscription.status === 'past_due'
+        || subscription.status === 'paused'
+        ? subscription.status
+        : 'cancelled';
+      await db.updateSubscriptionStatus(parseInt(userId), currentStatus);
     }
   }
 }
@@ -530,15 +538,23 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   if (!database) return;
   
   const { bookings } = await import('../../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
+  const { and, eq, inArray } = await import('drizzle-orm');
   
-  await database
+  const updateResult = await database
     .update(bookings)
     .set({
       paymentStatus: 'fully_paid',
       stripePaymentIntentId: paymentIntent.id,
     })
-    .where(eq(bookings.id, parseInt(bookingId)));
+    .where(and(
+      eq(bookings.id, parseInt(bookingId)),
+      inArray(bookings.paymentStatus, ['unpaid', 'deposit_paid']),
+    ));
+  const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
+  if (affectedRows === 0) {
+    console.log(`[Stripe Webhook] Booking ${bookingId} is already paid or refunded, skipping success replay`);
+    return;
+  }
 
   // Send payment receipt email
   try {
@@ -590,12 +606,15 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     const database = await db.getDb();
     if (!database) return;
     const { merchOrders } = await import('../../drizzle/schema');
-    const { eq } = await import('drizzle-orm');
+    const { and, eq, inArray } = await import('drizzle-orm');
     await database.update(merchOrders).set({
       paymentStatus: 'failed',
       status: 'cancelled',
       stripePaymentIntentId: paymentIntent.id,
-    }).where(eq(merchOrders.id, parseInt(paymentIntent.metadata.orderId)));
+    }).where(and(
+      eq(merchOrders.id, parseInt(paymentIntent.metadata.orderId)),
+      inArray(merchOrders.paymentStatus, ['pending', 'failed']),
+    ));
     return;
   }
 
@@ -607,12 +626,16 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   if (!database) return;
   
   const { bookings } = await import('../../drizzle/schema');
-  const { eq } = await import('drizzle-orm');
+  const { and, eq, ne } = await import('drizzle-orm');
   
   await database
     .update(bookings)
     .set({ paymentStatus: 'unpaid' })
-    .where(eq(bookings.id, parseInt(bookingId)));
+    .where(and(
+      eq(bookings.id, parseInt(bookingId)),
+      ne(bookings.paymentStatus, 'fully_paid'),
+      ne(bookings.paymentStatus, 'refunded'),
+    ));
 }
 
 async function handleChargeRefunded(charge: Stripe.Charge) {
@@ -628,7 +651,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   if (!database) return;
 
   const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders } = await import('../../drizzle/schema');
-  const { and, eq, ne, sql } = await import('drizzle-orm');
+  const { and, eq, sql } = await import('drizzle-orm');
   const [merchOrder] = await database.select().from(merchOrders)
     .where(eq(merchOrders.stripePaymentIntentId, paymentIntentId)).limit(1);
   if (merchOrder) {
@@ -638,7 +661,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
         status: 'refunded',
       }).where(and(
         eq(merchOrders.id, merchOrder.id),
-        ne(merchOrders.paymentStatus, 'refunded'),
+        eq(merchOrders.paymentStatus, 'paid'),
       ));
       const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
       if (affectedRows > 0) {
@@ -719,15 +742,23 @@ async function handlePayoutPaid(payout: Stripe.Payout) {
   if (!database) return;
   
   const { artistPayouts } = await import('../../drizzle/schema');
-  
-  await database.insert(artistPayouts).values({
+  const { eq } = await import('drizzle-orm');
+  const [existing] = await database.select({ id: artistPayouts.id }).from(artistPayouts)
+    .where(eq(artistPayouts.stripeTransferId, payout.id)).limit(1);
+  const values = {
     artistId: parseInt(artistId),
     stripeTransferId: payout.id,
     amount: (payout.amount / 100).toString(),
-    status: 'completed',
-    payoutMethod: 'stripe_connect',
+    status: 'completed' as const,
+    payoutMethod: 'stripe_connect' as const,
     completedAt: new Date(payout.arrival_date * 1000),
-  });
+    notes: null,
+  };
+  if (existing) {
+    await database.update(artistPayouts).set(values).where(eq(artistPayouts.id, existing.id));
+  } else {
+    await database.insert(artistPayouts).values(values);
+  }
 }
 
 async function handlePayoutFailed(payout: Stripe.Payout) {
@@ -739,16 +770,26 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
   if (!database) return;
   
   const { artistPayouts } = await import('../../drizzle/schema');
+  const { eq } = await import('drizzle-orm');
   const payoutData = payout as any;
-  
-  await database.insert(artistPayouts).values({
+  const [existing] = await database.select({ id: artistPayouts.id, status: artistPayouts.status })
+    .from(artistPayouts).where(eq(artistPayouts.stripeTransferId, payout.id)).limit(1);
+  // Never let an older failed delivery downgrade a payout already recorded as
+  // completed. Repeated failed deliveries update the same record.
+  if (existing?.status === 'completed') return;
+  const values = {
     artistId: parseInt(artistId),
     stripeTransferId: payout.id,
     amount: (payout.amount / 100).toString(),
-    status: 'failed',
-    payoutMethod: 'stripe_connect',
+    status: 'failed' as const,
+    payoutMethod: 'stripe_connect' as const,
     notes: payoutData.failure_reason || 'Unknown failure',
-  });
+  };
+  if (existing) {
+    await database.update(artistPayouts).set(values).where(eq(artistPayouts.id, existing.id));
+  } else {
+    await database.insert(artistPayouts).values(values);
+  }
 }
 
 function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): 'active' | 'inactive' | 'trialing' | 'canceled' | 'past_due' {
@@ -783,7 +824,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
   if (!database) return;
   const { bookDownloadAccess, merchItems, merchOrderItems, merchOrders, notifications } = await import('../../drizzle/schema');
   const { ensureMerchItemsSchema } = await import('../services/merchSchemaService');
-  const { and, eq, ne, sql } = await import('drizzle-orm');
+  const { and, eq, inArray, sql } = await import('drizzle-orm');
   await ensureMerchItemsSchema(database);
 
   const [order] = await database.select().from(merchOrders)
@@ -792,8 +833,8 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
     console.error(`[Stripe Webhook] Merch order ${orderId} not found`);
     return;
   }
-  if (order.paymentStatus === 'paid') {
-    console.log(`[Stripe Webhook] Merch order ${order.orderNumber} already processed, skipping`);
+  if (!['pending', 'failed'].includes(order.paymentStatus)) {
+    console.log(`[Stripe Webhook] Merch order ${order.orderNumber} is ${order.paymentStatus}, skipping success replay`);
     return;
   }
 
@@ -807,7 +848,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
       paidAt: new Date(),
     }).where(and(
       eq(merchOrders.id, orderId),
-      ne(merchOrders.paymentStatus, 'paid'),
+      inArray(merchOrders.paymentStatus, ['pending', 'failed']),
     ));
 
     const affectedRows = Number((updateResult as any)?.[0]?.affectedRows ?? 0);
