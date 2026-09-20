@@ -4742,4 +4742,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added a safe `Portfolio not found` recovery state for zero, missing, and unavailable artist IDs so no empty `Artist` breadcrumb can lead to `/artist/`
 - [x] Browser-verified `/artist/adonis/portfolio`, real portfolio content, `Browse → Adonis → Portfolio`, the clean Adonis breadcrumb return, zero-ID recovery, and legacy numeric URL canonicalization without changing portfolio data
 - [x] Added permanent routing regressions; 18 focused tests and the complete suite with 2,828 passing tests and 23 skipped passed, together with TypeScript, production build, and repository hygiene
-- [ ] Publish the artist portfolio routing fix and verify the clean URL and breadcrumb on production
+- [x] Published checkpoint `6264a520`; production verification confirmed the profile button opens `/artist/adonis/portfolio`, the portfolio and breadcrumb render correctly, the Adonis breadcrumb returns to `/artist/adonis`, legacy `/artists/11/history` canonicalizes to the clean URL, and `/artists/0/history` shows a safe recovery page
