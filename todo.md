@@ -4731,4 +4731,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Kept the confirmation visible during publishing and preserved retry/edit options after an error
 - [x] Confirmed the existing Adonis Sandbox Post remains active and unchanged; no post data was modified during diagnosis
 - [x] Added permanent regression coverage; 13 focused tests and the complete suite with 2,826 passing tests and 23 skipped passed, together with TypeScript, production build, generated CSS layer verification, and repository hygiene
-- [ ] Publish the Sandbox Post replacement-dialog fix and verify the live confirmation and exit flow without publishing or deleting the current post
+- [x] Published checkpoint `9830e146`; verified the live bundle contains all three replacement actions and generated `z-index:10003/10004` layers, while the current Adonis post remains active and unchanged
+- [ ] Confirm in the authenticated owner UI that `Review replacement` shows the confirmation above the composer and that `Back to editing` and `Discard replacement and exit` both work without changing the current post
+
+## ARTIST PORTFOLIO ROUTING FIX (Sep 19, 2026)
+- [x] Identified the root cause: clean `/artist/name` profile pages resolved correctly, but several actions still used the original numeric route parameter, which is `0` for slug-based profiles
+- [x] Replaced affected booking, favorites, touring, event filtering, portfolio, reviews, Ology Live, and profile-sharing actions with the resolved artist profile ID
+- [x] Added the clean public portfolio URL `/artist/:slug/portfolio` and kept `/artists/:id/history` as a backward-compatible alias that replaces itself with the clean URL
+- [x] Updated profile, creator dashboard, and completed-booking portfolio actions to prefer the clean artist-name URL and prevented empty dashboard links
+- [x] Added a safe `Portfolio not found` recovery state for zero, missing, and unavailable artist IDs so no empty `Artist` breadcrumb can lead to `/artist/`
+- [x] Browser-verified `/artist/adonis/portfolio`, real portfolio content, `Browse → Adonis → Portfolio`, the clean Adonis breadcrumb return, zero-ID recovery, and legacy numeric URL canonicalization without changing portfolio data
+- [x] Added permanent routing regressions; 18 focused tests and the complete suite with 2,828 passing tests and 23 skipped passed, together with TypeScript, production build, and repository hygiene
+- [ ] Publish the artist portfolio routing fix and verify the clean URL and breadcrumb on production

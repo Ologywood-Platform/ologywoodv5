@@ -32,19 +32,29 @@ import { PhotoUploadGallery } from "@/components/PhotoUploadGallery";
 import { useEffect, useState } from "react";
 
 export default function ArtistHistory() {
-  const [, params] = useRoute("/artists/:id/history");
+  const [isCleanRoute, cleanParams] = useRoute("/artist/:slug/portfolio");
+  const [isLegacyRoute, legacyParams] = useRoute("/artists/:id/history");
   const [, navigate] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  const artistId = params?.id ? parseInt(params.id) : 0;
+  const legacyArtistId = legacyParams?.id && /^\d+$/.test(legacyParams.id) ? Number(legacyParams.id) : 0;
+  const slug = cleanParams?.slug?.trim() || '';
+  const hasValidRoute = (isCleanRoute && !!slug) || (isLegacyRoute && legacyArtistId > 0);
 
-  const { data: artist } = trpc.artist.getProfile.useQuery(
-    { id: artistId },
-    { enabled: artistId > 0 }
+  const { data: artistById, isLoading: artistByIdLoading } = trpc.artist.getProfile.useQuery(
+    { id: legacyArtistId },
+    { enabled: isLegacyRoute && legacyArtistId > 0 }
   );
+  const { data: artistBySlug, isLoading: artistBySlugLoading } = (trpc.artist as any).getProfileBySlug.useQuery(
+    { slug },
+    { enabled: isCleanRoute && !!slug }
+  );
+  const artist = isCleanRoute ? artistBySlug : artistById;
+  const artistId = Number(artist?.id || legacyArtistId);
+  const artistLoading = isCleanRoute ? artistBySlugLoading : artistByIdLoading;
 
   const {
     data: history = [],
-    isLoading,
+    isLoading: historyLoading,
     refetch: refetchHistory,
   } = trpc.events.getHistory.useQuery(
     { artistId },
@@ -83,6 +93,12 @@ export default function ArtistHistory() {
     });
   }, [artist]);
 
+  useEffect(() => {
+    if (isLegacyRoute && artist?.artistName) {
+      navigate(`/artist/${toSlug(artist.artistName)}/portfolio`, { replace: true });
+    }
+  }, [artist?.artistName, isLegacyRoute, navigate]);
+
   // Parse the notes field to extract event name, venue, location, and body
   const parseNotes = (notes: string | null) => {
     if (!notes) return { eventName: "Portfolio Entry", venueName: "", location: "", body: "" };
@@ -99,7 +115,7 @@ export default function ArtistHistory() {
     return { eventName, venueName, location, body };
   };
 
-  if (isLoading) {
+  if (artistLoading || historyLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
         <SiteHeader />
@@ -119,6 +135,24 @@ export default function ArtistHistory() {
     );
   }
 
+  if (!hasValidRoute || !artist) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
+        <SiteHeader />
+        <div className="max-w-3xl mx-auto px-4 py-16">
+          <Card>
+            <CardContent className="py-14 text-center">
+              <ImageIcon className="h-14 w-14 mx-auto text-slate-300 dark:text-gray-600 mb-4" />
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Portfolio not found</h1>
+              <p className="mt-2 text-slate-500 dark:text-gray-400">This artist profile is unavailable, or the portfolio link is incomplete.</p>
+              <Button className="mt-6" onClick={() => navigate('/browse')}>Browse Artists</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
       <SiteHeader />
@@ -128,8 +162,8 @@ export default function ArtistHistory() {
           segments={[
             { label: "Browse", href: "/browse" },
             {
-              label: artist?.artistName || "Artist",
-              href: `/artist/${toSlug(artist?.artistName || '')}`,
+              label: artist.artistName,
+              href: `/artist/${toSlug(artist.artistName)}`,
             },
             { label: "Portfolio" },
           ]}
@@ -144,7 +178,7 @@ export default function ArtistHistory() {
             <p className="text-slate-600 dark:text-gray-400 mt-1">
               {isOwner
                 ? "Showcase your work, projects, appearances, and creative highlights"
-                : `Selected work and professional highlights from ${artist?.artistName || "this creator"}`}
+                : `Selected work and professional highlights from ${artist.artistName}`}
             </p>
           </div>
           {isOwner && history.length > 0 && (

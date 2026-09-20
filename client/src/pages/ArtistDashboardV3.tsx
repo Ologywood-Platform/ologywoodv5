@@ -427,7 +427,11 @@ export function ArtistDashboardV3() {
                       <Button
                         variant="outline"
                         className="w-full flex flex-col items-center gap-2 h-auto py-4"
-                        onClick={() => navigate(`/artists/${artistProfile?.id || ''}/history`)}
+                        onClick={() => {
+                          const artistSlug = toSlug(artistProfile?.artistName || '');
+                          if (artistSlug) navigate(`/artist/${artistSlug}/portfolio`);
+                        }}
+                        disabled={!artistProfile?.artistName}
                       >
                         <Camera className="h-5 w-5" />
                         <span className="text-xs font-medium">Portfolio</span>

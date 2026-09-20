@@ -396,7 +396,11 @@ export default function BookingDetail() {
                       eventDate: booking.eventDate ? new Date(booking.eventDate).toISOString().split('T')[0] : '',
                       bookingId: bookingId.toString(),
                     });
-                    navigate(`/artists/${booking.artistId}/history?addFromBooking=true&${params.toString()}`);
+                    const artistName = String((booking as any).artistName || '').trim();
+                    const portfolioPath = artistName
+                      ? `/artist/${toSlug(artistName)}/portfolio`
+                      : `/artists/${booking.artistId}/history`;
+                    navigate(`${portfolioPath}?addFromBooking=true&${params.toString()}`);
                   }}
                 >
                   <Camera className="h-4 w-4" />

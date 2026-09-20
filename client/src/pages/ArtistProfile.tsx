@@ -764,7 +764,7 @@ export default function ArtistProfile() {
                     setShowAuthModal(true);
                     return;
                   }
-                  navigate(`/book/${artistId}`);
+                  navigate(`/book/${resolvedArtistId}`);
                 }}>
                   Book This Artist
                 </Button>
@@ -772,8 +772,8 @@ export default function ArtistProfile() {
 
               {/* Secondary actions row */}
               <div className="flex items-center gap-2 flex-wrap">
-                <FollowButton artistUserId={artist.userId || artistId} artistName={artist.artistName} showCount={false} />
-                <FavoriteButton artistId={artistId} artistUserId={artist.userId || artistId} size="lg" showText={false} />
+                <FollowButton artistUserId={artist.userId || resolvedArtistId} artistName={artist.artistName} showCount={false} />
+                <FavoriteButton artistId={resolvedArtistId} artistUserId={artist.userId || resolvedArtistId} size="lg" showText={false} />
                 <Button
                   onClick={() => setShareProfileOpen(true)}
                   variant="outline"
@@ -786,7 +786,7 @@ export default function ArtistProfile() {
 
                 <span className="text-sm text-muted-foreground flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" />
-                  <FollowerCount artistUserId={artist.userId || artistId} />
+                  <FollowerCount artistUserId={artist.userId || resolvedArtistId} />
                 </span>
 
                 {user?.id !== artist.userId && (
@@ -830,7 +830,7 @@ export default function ArtistProfile() {
             />
 
             <ProfileJourneyActions
-              artistUserId={artist.userId || artistId}
+              artistUserId={artist.userId || resolvedArtistId}
               artistName={artist.artistName}
               onBook={() => {
                 if (!isAuthenticated) {
@@ -919,7 +919,7 @@ export default function ArtistProfile() {
             )}
 
             {/* Touring Availability */}
-            <TouringDisplay artistProfileId={artistId} />
+            <TouringDisplay artistProfileId={resolvedArtistId} />
             <SponsorShowcase artistId={artist?.userId || 0} />
 
             {/* Performance Video */}
@@ -1608,7 +1608,7 @@ export default function ArtistProfile() {
                         <Button
                           variant="outline"
                           className="w-full"
-                          onClick={() => navigate(`/events?artistId=${artistId}`)}
+                          onClick={() => navigate(`/events?artistId=${resolvedArtistId}`)}
                         >
                           View All {upcomingEvents.length} Events
                         </Button>
@@ -1654,7 +1654,7 @@ export default function ArtistProfile() {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => navigate(`/artists/${artistId}/history`)}
+                    onClick={() => navigate(`/artist/${toSlug(artist.artistName)}/portfolio`)}
                   >
                     View Full Portfolio
                   </Button>
@@ -1668,7 +1668,7 @@ export default function ArtistProfile() {
               </CardHeader>
               <CardContent>
                 <ReviewSystem
-                  targetId={artistId}
+                  targetId={resolvedArtistId}
                   targetType="artist"
                   onReviewSubmitted={() => {
                     // Reviews are now persisted via tRPC
@@ -1681,7 +1681,7 @@ export default function ArtistProfile() {
         {/* Ology Live Section */}
         {artist && (
           <OlogyLiveProfileSection
-            talentId={artist.userId || artistId}
+            talentId={artist.userId || resolvedArtistId}
             talentName={artist.artistName}
           />
         )}
@@ -1701,7 +1701,7 @@ export default function ArtistProfile() {
             if (user?.role === 'venue') {
               setBookingDialogOpen(true);
             } else {
-              navigate(`/book/${artistId}`);
+              navigate(`/book/${resolvedArtistId}`);
             }
           }}
           heroRef={heroRef}
@@ -1713,7 +1713,7 @@ export default function ArtistProfile() {
         <ShareProfileModal
           isOpen={shareProfileOpen}
           onClose={() => setShareProfileOpen(false)}
-          artistId={artistId}
+          artistId={resolvedArtistId}
           artistName={artist.artistName}
           artistBio={artist.bio || ''}
           artistProfileImage={artist.profilePhotoUrl || ''}

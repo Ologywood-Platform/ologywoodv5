@@ -187,6 +187,7 @@ function Router() {
           <Route path="/shop">{() => <PageErrorBoundary><ShopHub /></PageErrorBoundary>}</Route>
           <Route path="/community">{() => <PageErrorBoundary><CommunityHub /></PageErrorBoundary>}</Route>
           <Route path="/browse">{() => <PageErrorBoundary><Browse /></PageErrorBoundary>}</Route>
+          <Route path="/artist/:slug/portfolio">{() => <PageErrorBoundary><ArtistHistory /></PageErrorBoundary>}</Route>
           <Route path="/artist/:slug/sandbox">{() => <PageErrorBoundary><SandboxPostPage /></PageErrorBoundary>}</Route>
           <Route path="/artist/:id">{(params: any) => <PageErrorBoundary><ArtistProfile {...params} /></PageErrorBoundary>}</Route>
           <Route path="/artists/:id/history" component={ArtistHistory} />

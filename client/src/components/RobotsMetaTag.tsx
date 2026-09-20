@@ -51,7 +51,7 @@ const NOINDEX_PREFIXES = [
   '/booking/',
   '/booking-confirmation/',
   '/messages/',
-  '/artists/',  // /artists/:id/history (private history pages)
+  '/artists/',  // Legacy numeric portfolio aliases; clean /artist/:slug/portfolio URLs are indexable
 ];
 
 // Duplicate paths that should point to their canonical version
