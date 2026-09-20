@@ -4723,3 +4723,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added stale-event guards for merchandise, bookings, subscription invoices, refunds, and payout replay deduplication
 - [x] Passed 94 focused tests, the complete suite with 2,825 passing and 23 skipped, TypeScript, production build, and repository hygiene
 - [x] Published final stale-event guard checkpoint `f3c389c6`; production accepted a valid live signature with HTTP 200, rejected an invalid signature with HTTP 400, and a controlled stale failed-payment replay returned HTTP 200 without changing paid orders 49 or 53
+
+## SANDBOX POST REPLACEMENT DIALOG FIX (Sep 19, 2026)
+- [x] Identified the frozen replacement flow as a modal layering defect: the confirmation focus trap opened behind the higher-z-index composer
+- [x] Added per-dialog overlay layer control and placed the replacement confirmation above the composer
+- [x] Added clear `Back to editing`, `Discard replacement and exit`, and `Delete old post and publish` actions
+- [x] Kept the confirmation visible during publishing and preserved retry/edit options after an error
+- [x] Confirmed the existing Adonis Sandbox Post remains active and unchanged; no post data was modified during diagnosis
+- [x] Added permanent regression coverage; 13 focused tests and the complete suite with 2,826 passing tests and 23 skipped passed, together with TypeScript, production build, generated CSS layer verification, and repository hygiene
+- [ ] Publish the Sandbox Post replacement-dialog fix and verify the live confirmation and exit flow without publishing or deleting the current post

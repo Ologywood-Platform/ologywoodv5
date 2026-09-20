@@ -269,7 +269,29 @@ export function SandboxPostSection({ artistProfileId, artistUserId, artistName, 
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmReplaceOpen} onOpenChange={setConfirmReplaceOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently replace this Sandbox Post?</AlertDialogTitle><AlertDialogDescription>Your current post and its database record will be permanently deleted and cannot be restored. The new post will take its place at the same share link.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep current post</AlertDialogCancel><AlertDialogAction className="bg-purple-700 hover:bg-purple-800" onClick={() => void publish()}>Delete old post and publish</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={confirmReplaceOpen} onOpenChange={setConfirmReplaceOpen}>
+        <AlertDialogContent overlayClassName="z-[10003]" className="z-[10004]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently replace this Sandbox Post?</AlertDialogTitle>
+            <AlertDialogDescription>Your current post and its database record will be permanently deleted and cannot be restored. The new post will take its place at the same share link.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:flex-wrap">
+            <Button type="button" variant="ghost" onClick={closeComposer} disabled={replaceMutation.isPending}>Discard replacement and exit</Button>
+            <AlertDialogCancel disabled={replaceMutation.isPending}>Back to editing</AlertDialogCancel>
+            <AlertDialogAction
+              className="gap-2 bg-purple-700 hover:bg-purple-800"
+              disabled={replaceMutation.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                void publish();
+              }}
+            >
+              {replaceMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {replaceMutation.isPending ? 'Publishing…' : 'Delete old post and publish'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Permanently delete this Sandbox Post?</AlertDialogTitle><AlertDialogDescription>The current post and its active database record will be permanently deleted. This cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? 'Deleting…' : 'Delete permanently'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       {sharePost && <SandboxPostShareDialog open={shareOpen} onOpenChange={setShareOpen} post={sharePost} />}
       <ReportContentModal open={reportOpen} onOpenChange={setReportOpen} contentType="content" contentName={`${artistName}'s Sandbox Post`} />

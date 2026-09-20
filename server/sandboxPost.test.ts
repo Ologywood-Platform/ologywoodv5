@@ -95,6 +95,17 @@ describe('Sandbox Post security and replacement', () => {
     expect(router).toContain('setHidden: adminProcedure');
   });
 
+  it('keeps replacement confirmation above the composer with clear edit and exit paths', () => {
+    const section = read('client/src/components/SandboxPostSection.tsx');
+    const alertDialog = read('client/src/components/ui/alert-dialog.tsx');
+    expect(section).toContain('overlayClassName="z-[10003]" className="z-[10004]"');
+    expect(section).toContain('Discard replacement and exit');
+    expect(section).toContain('Back to editing');
+    expect(section).toContain('event.preventDefault()');
+    expect(alertDialog).toContain('overlayClassName?: string');
+    expect(alertDialog).toContain('<AlertDialogOverlay className={overlayClassName} />');
+  });
+
   it('serves active-only Sandbox Post metadata before the generic artist route', () => {
     const middleware = read('server/middleware/ogTags.ts');
     const proxy = read('server/middleware/ogImageProxy.ts');
