@@ -36,3 +36,9 @@ The Terms are versioned as `2026-09-26-fan-club-90-10`, with a September 26, 202
 - Continued 15% Ology Live rate and other unchanged fees
 - Absence of stale Fan Club 85/15 or 15% copy
 - TypeScript, focused tests, full suite, production build, and repository hygiene
+
+## Production verification
+
+Checkpoint `c49ec7af` was published on September 26, 2026. The live homepage displays **You Keep 90%** and the 90/10 split. The live Terms show September 26, 2026 as the updated and effective date, list Fan Club memberships at a 10% platform fee with a 90% Talent share, retain the 15% Ology Live rate, and separate Stripe processing. The live deterministic AI response reports the same complete fee schedule and the 90/10 Fan Club split.
+
+A final read-only production audit found **zero Fan Club tiers and zero Fan Club membership records**. Because there is no real tier to select, a production Checkout Session could not be opened without creating test data. No tier, membership, Checkout Session, charge, subscription, user, or payment record was created or changed for verification. The deployed checkpoint's shared 10% `application_fee_percent` path is covered by focused regressions and the complete test suite.
