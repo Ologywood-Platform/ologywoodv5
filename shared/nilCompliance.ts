@@ -1,4 +1,4 @@
-export const NIL_TERMS_VERSION = "2026-09-15-pcsa-readiness-v1";
+export const NIL_TERMS_VERSION = "2026-09-26-fan-club-fee-v2";
 export const NIL_CONTRACT_TEMPLATE_VERSION = "2026.1";
 
 export const NIL_AGENT_FEE_MAX_PERCENT = 5;

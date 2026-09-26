@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { CURRENT_TERMS_EFFECTIVE_DATE, CURRENT_TERMS_LAST_UPDATED } from "@shared/terms";
 
 export default function TermsOfService() {
   return (
@@ -29,7 +30,7 @@ export default function TermsOfService() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Terms of Service</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: September 15, 2026 · Effective: September 29, 2026
+          Last updated: {CURRENT_TERMS_LAST_UPDATED} · Effective: {CURRENT_TERMS_EFFECTIVE_DATE}
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -271,8 +272,8 @@ export default function TermsOfService() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="border border-gray-200 px-4 py-2"><strong>Fan Club Memberships (monthly subscriptions)</strong></td>
-                    <td className="border border-gray-200 px-4 py-2"><strong>15% of subscription amount</strong></td>
-                    <td className="border border-gray-200 px-4 py-2"><strong>85% (direct to talent's connected Stripe account)</strong></td>
+                    <td className="border border-gray-200 px-4 py-2"><strong>10% of subscription amount</strong></td>
+                    <td className="border border-gray-200 px-4 py-2"><strong>90% (direct to talent's connected Stripe account)</strong></td>
                   </tr>
                   <tr>
                     <td className="border border-gray-200 px-4 py-2">Fan Tips and Donations (via external links)</td>
@@ -294,7 +295,7 @@ export default function TermsOfService() {
               <strong>Fee classification:</strong> Ologywood platform charges compensate the technology marketplace for software, payment facilitation, support, and commerce services. Stripe charges are payment-processing fees. Neither category is athlete-agent compensation. If an athlete separately retains a representative, that representative's fee must be disclosed and documented separately from Ologywood and Stripe charges.
             </p>
             <p className="text-base leading-relaxed mt-4">
-              Ologywood reserves the right to modify its fee schedule with at least thirty (30) days' advance written notice to affected users. Fee changes will not apply retroactively to transactions already completed.
+              The September 26, 2026 update reduces the Fan Club platform fee from 15% to 10% and increases the Talent share from 85% to 90%. It applies to Fan Club subscription payments processed on or after September 26, 2026 and does not retroactively recalculate completed transactions. Other published Ologywood fees and Stripe processing charges are unchanged. Ologywood may make a fee reduction effective when posted; a fee increase or other materially adverse fee change requires at least thirty (30) days' advance written notice to affected users.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3">8.2 Stripe Connect and Direct Payouts</h3>
@@ -344,7 +345,7 @@ export default function TermsOfService() {
 
             <h3 className="text-xl font-semibold mt-6 mb-3">9.2 Revenue Share</h3>
             <p className="text-base leading-relaxed">
-              Fan Club subscription revenue is split between the Talent and Ologywood as follows: <strong>85% of each subscription payment goes to the Talent</strong> (routed directly to their connected Stripe account) and <strong>15% is retained by Ologywood as a platform fee.</strong> Standard Stripe processing fees (approximately 2.9% + $0.30) are deducted from the gross amount before the revenue split is applied.
+              Fan Club subscription revenue is split between the Talent and Ologywood as follows: <strong>90% of each subscription payment goes to the Talent</strong> (routed directly to their connected Stripe account) and <strong>10% is retained by Ologywood as a platform fee.</strong> Under the current Stripe Connect destination-charge configuration, Stripe processing charges are separate and are debited from Ologywood's platform balance under Stripe's current terms; they do not increase Ologywood's stated 10% platform fee.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-3">9.3 Exclusive Content</h3>

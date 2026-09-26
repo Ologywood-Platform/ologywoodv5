@@ -3,8 +3,8 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Clock } from 'lucide-react';
 import { useAuth } from '@/_core/hooks/useAuth';
+import { CURRENT_TERMS_VERSION } from '@shared/terms';
 
-const TERMS_VERSION = '2026-09-15-nil-readiness';
 const STORAGE_KEY = 'ologywood_terms_accepted_version';
 const REMIND_LATER_KEY = 'ologywood_terms_remind_later';
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
@@ -20,7 +20,7 @@ export function TermsConsentBanner() {
       return;
     }
     const acceptedVersion = localStorage.getItem(STORAGE_KEY);
-    if (acceptedVersion === TERMS_VERSION) {
+    if (acceptedVersion === CURRENT_TERMS_VERSION) {
       setVisible(false);
       return;
     }
@@ -41,7 +41,7 @@ export function TermsConsentBanner() {
   }, [user]);
 
   const handleAccept = () => {
-    localStorage.setItem(STORAGE_KEY, TERMS_VERSION);
+    localStorage.setItem(STORAGE_KEY, CURRENT_TERMS_VERSION);
     localStorage.removeItem(REMIND_LATER_KEY);
     setVisible(false);
   };
@@ -68,7 +68,7 @@ export function TermsConsentBanner() {
               We've updated our Terms of Service
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              A material NIL readiness update becomes effective September 29, 2026. It clarifies Ologywood's non-agent role, private athlete compliance tools, separate platform/Stripe/agent fees, proposed protections, reporting responsibilities, minor/guardian participation, and preserved student-athlete statutory rights.{' '}
+              The September 26, 2026 update reduces Ologywood's Fan Club platform fee from 15% to 10%, so talent keeps 90% before any separately applicable Stripe processing adjustment. Other published fees remain unchanged.{' '}
               <Link href="/terms-of-service" className="text-primary hover:underline">
                 Review changes
               </Link>

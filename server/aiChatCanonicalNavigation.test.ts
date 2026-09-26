@@ -5,6 +5,7 @@ import {
   MY_OLOGY_GUIDANCE,
   NIL_AGENT_FEE_GUIDANCE,
   NIL_READINESS_GUIDANCE,
+  PLATFORM_FEE_GUIDANCE,
   WORKSPACE_GUIDANCE,
 } from './routers/aiChat';
 
@@ -57,6 +58,16 @@ describe('AI chat canonical navigation guidance', () => {
     expect(answer).toContain('covered student-athlete endorsement contract');
     expect(answer).toContain('platform service fees and Stripe processing charges are separate');
     expect(answer).toContain('proposed, not enacted');
+  });
+
+  it('answers platform fee questions with the current complete fee schedule', () => {
+    const answer = getCanonicalNavigationAnswer('What are the current platform fees?');
+
+    expect(answer).toBe(PLATFORM_FEE_GUIDANCE);
+    expect(answer).toContain('Fan Club memberships 10%');
+    expect(answer).toContain('talent keeps 90%');
+    expect(answer).toContain('Ology Live 15%');
+    expect(answer).toContain('Stripe processing charges are separate');
   });
 
   it('does not bypass the LLM for unrelated platform questions', () => {

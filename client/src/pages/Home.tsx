@@ -463,8 +463,8 @@ export default function Home() {
               </div>
               <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                 <Users className="h-6 w-6 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">You Keep 85%</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Competitive 85/15 revenue split. You keep 85% of every subscription &mdash; better than most platforms.</p>
+                <h3 className="font-semibold text-sm sm:text-base mb-1">You Keep 90%</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Simple 90/10 revenue split. You keep 90% of every subscription; OlogyWood retains a 10% platform fee.</p>
               </div>
             </div>
           </div>

@@ -6,7 +6,7 @@
 
 ## Product posture
 
-OlogyWood remains a **self-service technology marketplace**, not an athlete agent. The platform does not negotiate or solicit endorsement agreements for athletes. Existing platform fee percentages remain unchanged and are presented separately from any athlete-agent fee.
+OlogyWood remains a **self-service technology marketplace**, not an athlete agent. The platform does not negotiate or solicit endorsement agreements for athletes. Platform fees are presented separately from any athlete-agent fee.
 
 The new controls are voluntary readiness protections based on the August 2026 revised Senate text. The interface must never describe the proposal as enacted law or represent that OlogyWood, an institution, an athletic association, or a lawyer has certified a deal.
 
@@ -50,7 +50,7 @@ Ology Live remains available to all creator types. Athlete-only contract analysi
 
 ## Legacy and payment boundaries
 
-All schema changes are additive and nullable/default-safe. Existing athlete profiles, bookings, contracts, Ology Live sessions, signatures, and payment records remain unchanged. Current 1% booking/release, 15% Ology Live, 15% Fan Club, subscription, and Stripe-processing calculations are not modified. The implementation changes labels and contract presentation so those charges are not described as agent compensation.
+All schema changes are additive and nullable/default-safe. Existing athlete profiles, bookings, contracts, Ology Live sessions, signatures, and payment records remain unchanged. The NIL implementation did not modify the then-current 1% booking/release, 15% Ology Live, 15% Fan Club, subscription, or Stripe-processing calculations. On September 26, 2026, the owner separately authorized a business-rate reduction for Fan Club memberships from 15% to 10%; Ology Live remains 15%, booking/release and Creator Shop remain 1%, ticketing remains $0.99 per ticket, external tips remain 0%, and Stripe processing charges remain separate. None of those marketplace charges is athlete-agent compensation.
 
 ## Implementation and validation record
 

@@ -299,7 +299,7 @@ const faqItems: FAQItem[] = [
     id: 'fanclub-4',
     category: 'Fan Club',
     question: 'What is the revenue share for Fan Club subscriptions?',
-    answer: 'The revenue split is 85% to the talent and 15% to Ologywood (platform fee). Stripe processing fees (~2.9% + $0.30) are deducted separately before the split. For example, on a $10/month subscription: Stripe takes ~$0.59, Ologywood takes $1.41 (15%), and the talent receives ~$8.00 (85% of net).',
+    answer: 'The revenue split is 90% to the talent and 10% to Ologywood as a platform fee. For example, on a $10 monthly subscription, Ologywood\'s application fee is $1.00 and $9.00 is transferred to the talent. Under the current Stripe Connect destination-charge setup, Stripe processing charges are separate and are debited from Ologywood\'s platform balance under Stripe\'s current terms.',
   },
   {
     id: 'fanclub-5',

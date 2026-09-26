@@ -6,9 +6,10 @@ import { getDb } from "../db";
 import { fanClubTiers, fanClubMemberships, fanClubPosts, artistProfiles, stripeConnectAccounts, fanClubPostLikes, fanClubPostComments } from "../../drizzle/schema";
 import { stripe } from "../stripe";
 import { ENV } from "../_core/env";
+import { FAN_CLUB_PLATFORM_FEE_PERCENT } from "../../shared/platformFees";
 
-// Platform revenue share: 15% to Ologywood, 85% to talent
-const PLATFORM_FEE_PERCENT = 15;
+// Fan Club revenue share: 10% to Ologywood, 90% to talent.
+const PLATFORM_FEE_PERCENT = FAN_CLUB_PLATFORM_FEE_PERCENT;
 
 function getStripe() {
   if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe not configured' });
@@ -215,7 +216,7 @@ export const fanClubRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'You already have an active membership with this talent' });
       }
 
-      // Create Stripe Checkout Session for subscription with 85/15 revenue share
+      // Create Stripe Checkout Session for subscription with 90/10 revenue share
       const baseUrl = ENV.baseUrl || 'https://www.ologywood.com';
       const s = getStripe();
 
@@ -249,7 +250,7 @@ export const fanClubRouter = router({
         },
       };
 
-      // Route 85% to talent's connected Stripe account, 15% platform fee
+      // Route 90% to talent's connected Stripe account, 10% platform fee
       if (connectAccountId) {
         sessionParams.subscription_data.application_fee_percent = PLATFORM_FEE_PERCENT;
         sessionParams.subscription_data.transfer_data = { destination: connectAccountId };

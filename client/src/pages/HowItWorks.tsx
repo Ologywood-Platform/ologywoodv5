@@ -95,7 +95,7 @@ const artistSteps: Step[] = [
     items: [
       'Create custom membership tiers with monthly pricing',
       'Post exclusive members-only content',
-      'Fans subscribe via Stripe (you keep 85%, platform takes 15%)',
+      'Fans subscribe via Stripe (you keep 90%, platform takes 10%)',
       'Track member count and earnings from your dashboard',
       'Build a loyal community that supports you monthly',
     ],

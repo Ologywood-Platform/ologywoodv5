@@ -4743,3 +4743,15 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Browser-verified `/artist/adonis/portfolio`, real portfolio content, `Browse → Adonis → Portfolio`, the clean Adonis breadcrumb return, zero-ID recovery, and legacy numeric URL canonicalization without changing portfolio data
 - [x] Added permanent routing regressions; 18 focused tests and the complete suite with 2,828 passing tests and 23 skipped passed, together with TypeScript, production build, and repository hygiene
 - [x] Published checkpoint `6264a520`; production verification confirmed the profile button opens `/artist/adonis/portfolio`, the portfolio and breadcrumb render correctly, the Adonis breadcrumb returns to `/artist/adonis`, legacy `/artists/11/history` canonicalizes to the clean URL, and `/artists/0/history` shows a safe recovery page
+
+## FAN CLUB 90/10 REVENUE SHARE (Sep 26, 2026)
+- [x] Reduced OlogyWood's Fan Club platform fee from 15% to 10% and increased the Talent share from 85% to 90%
+- [x] Added one shared revenue-share contract and cent-rounding helper used by Stripe Checkout metadata/application fees and the creator earnings UI
+- [x] Verified through Stripe's official Connect documentation that `application_fee_percent` applies to the final subscription invoice amount and that the current destination-charge setup debits Stripe processing fees from OlogyWood's platform balance
+- [x] Confirmed by read-only database audit that there are no Fan Club membership records or active Stripe subscriptions requiring migration; no user or payment data was changed
+- [x] Updated the homepage, Fan Club Manager, How It Works, Help example, Terms fee schedule and revenue-share clause, in-app Terms notice, AI prompt and deterministic fee answer, and NIL fee-separation records
+- [x] Preserved every other approved charge: Bookings 1%, Music Releases 1%, Creator Shop 1%, Event Tickets $0.99 per ticket, Ology Live 15%, external Tips 0%, and separate Stripe processing
+- [x] Versioned the current Terms as `2026-09-26-fan-club-90-10` and updated new NIL contract snapshots to the current Terms version without rewriting signed records
+- [x] Browser-verified the desktop/mobile Terms notice, September 26 effective date, 10%/90% fee table, Ology Live 15% row, Fan Club revenue-share clause, and homepage `You Keep 90%` marketing card
+- [x] Passed 132 focused tests, the complete suite with 2,834 passing tests and 23 skipped across 896 suites, TypeScript, production build, exact conflict-marker checks, diff hygiene, and credential-pattern review
+- [ ] Publish the Fan Club 90/10 checkpoint and verify the live Terms, homepage, AI guidance, and production checkout percentage without creating a charge

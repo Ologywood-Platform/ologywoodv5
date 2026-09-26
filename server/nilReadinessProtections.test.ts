@@ -146,11 +146,14 @@ describe("NIL readiness implementation boundaries", () => {
   it("classifies platform fees separately without changing approved percentages", () => {
     const payment = read("server/routers.ts");
     const live = read("server/routers/ologyLive.ts");
+    const fanClub = read("server/routers/fanClub.ts");
     const booking = read("server/routes/bookingCheckout.ts");
     expect(payment).toContain("amountCents * 0.01");
     expect(payment).toContain("technology_marketplace_service");
     expect(booking).toContain("const PLATFORM_FEE_PERCENT = 1");
     expect(live).toContain("const PLATFORM_FEE_PERCENT = 15");
+    expect(fanClub).toContain("FAN_CLUB_PLATFORM_FEE_PERCENT");
+    expect(fanClub).toContain("90/10 revenue share");
     expect(live).toContain("athleteAgentFeeIncluded: 'false'");
   });
 

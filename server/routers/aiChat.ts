@@ -103,7 +103,7 @@ KEY FEATURES:
 - Talent creates membership tiers with name, price/month, and perks
 - Fans subscribe via Stripe recurring payments
 - Exclusive content posting (public or members-only)
-- Revenue share: 85% to talent, 15% to Ologywood (after Stripe fees ~2.9% + $0.30)
+- Revenue share: 90% to talent, 10% to Ologywood; Stripe processing charges are separate
 - Subscription paywall: Blurred preview with tier selection checkout modal for non-members
 - Content categories for athletes: Training Clips, Game Day, Behind-the-Scenes, Q&A Sessions
 - Content categories for artists: Live Performance, Studio Session, Music Video, Backstage
@@ -205,7 +205,7 @@ COMMON USER QUESTIONS:
 - "How do I join a fan club?" → Visit talent profile, click Fan Club tab, choose a tier, subscribe
 - "How do I promote my event?" → Go to /promote from dashboard, use AI Generator or submit Boost request
 - "How do I get paid?" → Connect Stripe from Dashboard > Earnings & Payouts
-- "What are the fees?" → Ologywood technology marketplace fees are Bookings: 1%, Music: 1%, Tickets: $0.99/ticket, Fan Club: 15%, Merch/Tips: 0%. Stripe processing charges may apply separately. Athlete-agent compensation is separate, is not charged by Ologywood, and must be documented independently.
+- "What are the fees?" → Ologywood technology marketplace fees are Bookings: 1%, Music: 1%, Creator Shop: 1%, Tickets: $0.99/ticket, Fan Club: 10%, Ology Live: 15%, Tips: 0%. Stripe processing charges may apply separately. Athlete-agent compensation is separate, is not charged by Ologywood, and must be documented independently.
 - "How do I set up my athlete profile?" → Select Athlete in onboarding or Edit Profile, fill in sport/position/team/stats/achievements, upload highlight clips
 - "What is the NIL contract?" → A versioned athlete-booking contract with e-signatures, PDF download, separated platform/processing/representative fees, written-term safeguards, and institutional/legal review language. It is a readiness tool and does not certify NCAA, institutional, state, or federal compliance.
 - "Where are my NIL tools?" → Athlete profiles can open Artist Dashboard > NIL Compliance Center or go to /nil-compliance. The private center tracks athlete status, institutions, representatives, deals, proposed reporting reminders, submission attestations, evidence, and audit history.
@@ -236,6 +236,8 @@ export const AI_RELEASE_DISCLOSURE_GUIDANCE = "AI-use disclosure is optional and
 export const NIL_READINESS_GUIDANCE = "Athlete profiles can open Artist Dashboard > NIL Compliance Center or go to /nil-compliance. It is a private readiness workspace for athlete status, institution and eligibility information, representatives, separated fees, NIL deal records, proposed $600 same-source reporting reminders, submission attestations, evidence, and audit history. Ologywood is a technology marketplace—not an athlete agent, compliance office, or law firm—and does not file disclosures or certify eligibility. The Protect College Sports Act of 2026 remains proposed, not enacted; confirm requirements with your institution and qualified sports counsel.";
 
 export const NIL_AGENT_FEE_GUIDANCE = "Ologywood's optional proposed-protection workflow blocks an entered athlete-agent fee above 5% only for a covered student-athlete endorsement contract. Ologywood platform service fees and Stripe processing charges are separate and are not entered as athlete-agent compensation. The Protect College Sports Act of 2026 remains proposed, not enacted, and Ologywood does not decide whether a person or contract is legally covered. Consult qualified sports counsel.";
+
+export const PLATFORM_FEE_GUIDANCE = "Ologywood's current technology marketplace fees are: Bookings 1%, Music Releases 1%, Creator Shop 1%, Event Tickets $0.99 per ticket, Fan Club memberships 10%, Ology Live 15%, and external Tips 0%. For Fan Club memberships, talent keeps 90% and Ologywood retains 10%. Stripe processing charges are separate and can vary under Stripe's terms. Athlete-agent or representative compensation is also separate and is not charged by Ologywood.";
 
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
@@ -271,6 +273,13 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
     && /\b(nil|athlete|endorsement|agent|representative|fee|cap|limit)/.test(normalized)
   ) {
     return NIL_AGENT_FEE_GUIDANCE;
+  }
+
+  if (
+    /\b(fee|fees|revenue share|platform charge|platform charges)\b/.test(normalized)
+    && /\b(what|which|how much|current|fan club|booking|music|shop|ticket|ology live|tip)\b/.test(normalized)
+  ) {
+    return PLATFORM_FEE_GUIDANCE;
   }
 
   return null;

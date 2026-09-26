@@ -11,6 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus, Trash2, Edit2, Crown, Lock, Globe, Image, Loader2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
+import {
+  calculateFanClubRevenueShare,
+  FAN_CLUB_PLATFORM_FEE_PERCENT,
+  FAN_CLUB_TALENT_SHARE_PERCENT,
+} from "@shared/platformFees";
 
 const ATHLETE_CONTENT_CATEGORIES = [
   { value: 'training_clips', label: 'Training Clips' },
@@ -172,11 +177,8 @@ export default function FanClubManager() {
     return sum + (tier?.priceCents || 0);
   }, 0);
 
-  // Revenue share: 85% goes to talent, 15% platform fee
-  const TALENT_SHARE_PERCENT = 85;
-  const PLATFORM_FEE_PERCENT = 15;
-  const talentEarnings = Math.round(totalMonthlyRevenue * TALENT_SHARE_PERCENT / 100);
-  const platformFee = totalMonthlyRevenue - talentEarnings;
+  const { talentShareCents: talentEarnings, platformFeeCents: platformFee } =
+    calculateFanClubRevenueShare(totalMonthlyRevenue);
 
   return (
     <div className="min-h-screen bg-background">
@@ -214,7 +216,7 @@ export default function FanClubManager() {
                 <DollarSign className="h-8 w-8 text-green-500" />
                 <div>
                   <p className="text-2xl font-bold">${(talentEarnings / 100).toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Your Earnings (85%)</p>
+                  <p className="text-sm text-muted-foreground">Your Earnings ({FAN_CLUB_TALENT_SHARE_PERCENT}%)</p>
                 </div>
               </div>
             </CardContent>
@@ -250,14 +252,14 @@ export default function FanClubManager() {
             <div className="flex flex-col sm:flex-row gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                <span>Your Earnings: <strong>${(talentEarnings / 100).toFixed(2)}/mo</strong> (85%)</span>
+                <span>Your Earnings: <strong>${(talentEarnings / 100).toFixed(2)}/mo</strong> ({FAN_CLUB_TALENT_SHARE_PERCENT}%)</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-muted-foreground"></div>
-                <span>Platform Fee: <strong>${(platformFee / 100).toFixed(2)}/mo</strong> (15%)</span>
+                <span>Platform Fee: <strong>${(platformFee / 100).toFixed(2)}/mo</strong> ({FAN_CLUB_PLATFORM_FEE_PERCENT}%)</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span>Stripe processing fees (~2.9% + $0.30) deducted separately</span>
+                <span>Stripe processing is handled separately under the connected payment setup</span>
               </div>
             </div>
           </div>
