@@ -22,6 +22,7 @@ import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 import { EMPTY_AI_DISCLOSURE, getAiDisclosureFormValue, type AiDisclosureFormValue } from "@shared/aiDisclosure";
+import { CONTENT_RELEASE_TYPES, getContentReleaseTypeLabel, getContentReleaseErrorMessage } from "@shared/contentReleaseTypes";
 
 // Release type icons
 function getReleaseTypeIcon(type: string) {
@@ -32,7 +33,7 @@ function getReleaseTypeIcon(type: string) {
       return <Video className="h-4 w-4" />;
     case 'podcast_episode': case 'interview':
       return <Mic className="h-4 w-4" />;
-    case 'album': case 'music_video':
+    case 'single': case 'album': case 'music_video':
       return <Music className="h-4 w-4" />;
     case 'course': case 'masterclass':
       return <BookOpen className="h-4 w-4" />;
@@ -68,9 +69,10 @@ export default function ContentReleases() {
   const [, navigate] = useLocation();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Fetch releases
-  const { data: releases, isLoading, refetch } = trpc.contentRelease.myReleases.useQuery(undefined, {
+  const { data: releases, isLoading, isError, refetch } = trpc.contentRelease.myReleases.useQuery(undefined, {
     enabled: !!user,
   });
 
@@ -78,17 +80,22 @@ export default function ContentReleases() {
   const { data: options } = trpc.contentRelease.getOptions.useQuery();
 
   // Mutations
+  function onSaveError(err: { message: string; data?: { code?: string } | null }) {
+    const message = getContentReleaseErrorMessage(err);
+    setSaveError(message);
+    toast.error(message);
+  }
   const createMutation = trpc.contentRelease.create.useMutation({
     onSuccess: () => { toast.success("Release created!"); refetch(); setShowCreateForm(false); resetForm(); },
-    onError: (err) => toast.error(err.message),
+    onError: onSaveError,
   });
   const updateMutation = trpc.contentRelease.update.useMutation({
-    onSuccess: () => { toast.success("Release updated!"); refetch(); setEditingId(null); resetForm(); },
-    onError: (err) => toast.error(err.message),
+    onSuccess: () => { toast.success("Release updated!"); refetch(); setShowCreateForm(false); setEditingId(null); resetForm(); },
+    onError: onSaveError,
   });
   const deleteMutation = trpc.contentRelease.delete.useMutation({
     onSuccess: () => { toast.success("Release deleted"); refetch(); },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error(getContentReleaseErrorMessage(err)),
   });
 
   // Form state
@@ -109,6 +116,7 @@ export default function ContentReleases() {
   const [aiDisclosure, setAiDisclosure] = useState<AiDisclosureFormValue>({ ...EMPTY_AI_DISCLOSURE });
 
   function resetForm() {
+    setSaveError(null);
     setTitle(""); setDescription(""); setReleaseType("movie"); setGenre("");
     setDuration(""); setHostingPlatform("youtube"); setContentUrl("");
     setAccessModel("free"); setPrice(""); setMinPrice(""); setIsPublished(false);
@@ -117,6 +125,7 @@ export default function ContentReleases() {
   }
 
   function startEdit(release: any) {
+    setSaveError(null);
     setEditingId(release.id);
     setTitle(release.title);
     setDescription(release.description || "");
@@ -137,6 +146,7 @@ export default function ContentReleases() {
   }
 
   function handleSubmit() {
+    setSaveError(null);
     if (!title.trim()) { toast.error("Title is required"); return; }
     if (!contentUrl.trim()) { toast.error("Content URL is required"); return; }
     try { new URL(contentUrl); } catch { toast.error("Please enter a valid URL"); return; }
@@ -210,7 +220,7 @@ export default function ContentReleases() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Title *</Label>
-                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Summer Vibes Documentary" />
+                  <Input value={title} maxLength={255} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Summer Vibes Documentary" />
                 </div>
                 <div>
                   <Label>Description</Label>
@@ -218,21 +228,24 @@ export default function ContentReleases() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Release Type *</Label>
-                    <select className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm" value={releaseType} onChange={(e) => setReleaseType(e.target.value)}>
-                      {(options?.releaseTypes || []).map((t) => (
+                    <Label htmlFor="content-release-type">Release Type *</Label>
+                    <select id="content-release-type" className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm" value={releaseType} onChange={(e) => setReleaseType(e.target.value)}>
+                      {(options?.releaseTypes || CONTENT_RELEASE_TYPES).map((t) => (
                         <option key={t.value} value={t.value}>{t.label}</option>
                       ))}
                     </select>
+                    {releaseType === 'single' && (
+                      <p className="text-xs text-muted-foreground mt-2">Releasing one song? Use Single with your hosted YouTube, Spotify, or SoundCloud link. For an audio-file upload and fan downloads, use Music Releases instead.</p>
+                    )}
                   </div>
                   <div>
                     <Label>Genre</Label>
-                    <Input value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="e.g., Hip-Hop, Drama" />
+                    <Input value={genre} maxLength={100} onChange={(e) => setGenre(e.target.value)} placeholder="e.g., Hip-Hop, Drama" />
                   </div>
                 </div>
                 <div>
                   <Label>Duration</Label>
-                  <Input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g., 1h 45m, 3 episodes, 12 tracks" />
+                  <Input value={duration} maxLength={50} onChange={(e) => setDuration(e.target.value)} placeholder="e.g., 1h 45m, 3 episodes, 12 tracks" />
                 </div>
               </CardContent>
             </Card>
@@ -345,6 +358,9 @@ export default function ContentReleases() {
             </Card>
 
             {/* Submit */}
+            {saveError && (
+              <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{saveError}</div>
+            )}
             <div className="flex gap-3">
               <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending} className="flex-1">
                 {(createMutation.isPending || updateMutation.isPending) ? (
@@ -374,7 +390,7 @@ export default function ContentReleases() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Content Releases</h1>
-            <p className="text-sm text-muted-foreground">Monetize your content — movies, albums, courses, and more</p>
+            <p className="text-sm text-muted-foreground">Monetize your content — singles, movies, albums, courses, and more</p>
           </div>
           <Button onClick={() => setShowCreateForm(true)} className="gap-2">
             <Plus className="h-4 w-4" /> New Release
@@ -407,6 +423,13 @@ export default function ContentReleases() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : isError ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p role="alert" className="text-sm text-destructive mb-4">We could not load your releases. Please try again.</p>
+              <Button variant="outline" onClick={() => refetch()}>Retry loading releases</Button>
+            </CardContent>
+          </Card>
         ) : !releases || releases.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
@@ -433,6 +456,7 @@ export default function ContentReleases() {
                       <div className="min-w-0">
                         <h3 className="font-semibold text-sm truncate">{release.title}</h3>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[10px]">{getContentReleaseTypeLabel(release.releaseType)}</Badge>
                           {getAccessBadge(release.accessModel)}
                           <Badge variant="outline" className="text-[10px]">
                             {getPlatformLabel(release.hostingPlatform)}

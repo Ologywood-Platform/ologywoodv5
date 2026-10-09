@@ -233,7 +233,13 @@ const faqItems: FAQItem[] = [
     id: 'content-release-6',
     category: 'Content Releases',
     question: 'What types of content can I release?',
-    answer: 'Movies, Documentaries, Short Films, Web Series, Concerts, Livestreams, Podcast Episodes, Albums, Courses, Masterclasses, Interviews, Music Videos, and Behind the Scenes content. The same system works for every creator type on the platform.',
+    answer: 'Singles, Albums, Movies, Documentaries, Short Films, Web Series, Concerts, Livestreams, Podcast Episodes, Courses, Masterclasses, Interviews, Music Videos, and Behind the Scenes content. Choose Single for one song hosted externally. The same system works for every creator type on the platform.',
+  },
+  {
+    id: 'content-release-single',
+    category: 'Content Releases',
+    question: 'How do I release a single song?',
+    answer: 'Open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single as the release type. Add your title and hosted YouTube, Spotify, or SoundCloud link, then choose your access model and optional AI-use disclosure. Publish immediately only when you are ready to make the listing public. For uploading an audio file that fans can play and download, use Music Releases instead. If saving fails, the form keeps your entries so you can correct them and retry; it does not reset your draft.',
   },
 
   // Subscription & Tier Limits

@@ -15,24 +15,37 @@ import {
   EMPTY_AI_DISCLOSURE_DB,
   normalizeAiDisclosure,
 } from "../services/aiReleaseDisclosure";
+import { ensureContentReleaseSchema } from "../services/contentReleaseSchemaService";
+import { CONTENT_RELEASE_TYPES, CONTENT_RELEASE_SAVE_ERROR } from "../../shared/contentReleaseTypes";
 
 // Release type options
-export const RELEASE_TYPES = [
-  { value: 'movie', label: 'Movie' },
-  { value: 'documentary', label: 'Documentary' },
-  { value: 'short_film', label: 'Short Film' },
-  { value: 'web_series', label: 'Web Series' },
-  { value: 'concert', label: 'Concert' },
-  { value: 'livestream', label: 'Livestream' },
-  { value: 'podcast_episode', label: 'Podcast Episode' },
-  { value: 'album', label: 'Album' },
-  { value: 'course', label: 'Course' },
-  { value: 'masterclass', label: 'Masterclass' },
-  { value: 'interview', label: 'Interview' },
-  { value: 'music_video', label: 'Music Video' },
-  { value: 'behind_the_scenes', label: 'Behind the Scenes' },
-  { value: 'other', label: 'Other' },
-] as const;
+export const RELEASE_TYPES = CONTENT_RELEASE_TYPES;
+
+async function getReleaseDb() {
+  const database = await getDb();
+  if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+  await ensureContentReleaseSchema(database);
+  return database;
+}
+
+function safeReleaseError(path: string, error: TRPCError): never {
+  // Record only the operation and driver code, never SQL or creator input.
+  const cause = error.cause as { code?: string; cause?: { code?: string } } | undefined;
+  console.error('[ContentRelease] Operation failed', { path, code: cause?.code ?? cause?.cause?.code ?? error.code });
+  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: CONTENT_RELEASE_SAVE_ERROR });
+}
+
+const releaseProtectedProcedure = protectedProcedure.use(async ({ next, path }) => {
+  const result = await next();
+  if (!result.ok && result.error.code === 'INTERNAL_SERVER_ERROR') safeReleaseError(path, result.error);
+  return result;
+});
+
+const releasePublicProcedure = publicProcedure.use(async ({ next, path }) => {
+  const result = await next();
+  if (!result.ok && result.error.code === 'INTERNAL_SERVER_ERROR') safeReleaseError(path, result.error);
+  return result;
+});
 
 // Hosting platform options
 export const HOSTING_PLATFORMS = [
@@ -58,14 +71,14 @@ export const ACCESS_MODELS = [
 const createReleaseInput = z.object({
   title: z.string().min(1).max(255),
   description: z.string().optional(),
-  releaseType: z.string().min(1),
-  genre: z.string().optional(),
-  duration: z.string().optional(),
+  releaseType: z.string().min(1).max(50),
+  genre: z.string().max(100).optional(),
+  duration: z.string().max(50).optional(),
   thumbnailUrl: z.string().optional(),
   trailerUrl: z.string().optional(),
-  hostingPlatform: z.string().min(1),
+  hostingPlatform: z.string().min(1).max(50),
   contentUrl: z.string().url(),
-  accessModel: z.string().default('free'),
+  accessModel: z.string().max(50).default('free'),
   price: z.number().min(0).optional(),
   minPrice: z.number().min(0).optional(),
   premiereDate: z.string().optional(), // ISO date string
@@ -76,10 +89,19 @@ const createReleaseInput = z.object({
   ...aiDisclosureInputShape,
 });
 
+// Create defaults must not run during an unrelated partial edit.
+const updateReleaseInput = createReleaseInput.partial().extend({
+  id: z.number(),
+  accessModel: z.string().max(50).optional(),
+  isPublished: z.boolean().optional(),
+  includesLiveQA: z.boolean().optional(),
+  includesBonusContent: z.boolean().optional(),
+});
+
 export const releasesRouter = router({
   // Get all releases for the current artist (dashboard)
-  myReleases: protectedProcedure.query(async ({ ctx }) => {
-    const database = await getDb();
+  myReleases: releaseProtectedProcedure.query(async ({ ctx }) => {
+    const database = await getReleaseDb();
     if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
     const results = await database.select().from(releases)
@@ -89,10 +111,10 @@ export const releasesRouter = router({
   }),
 
   // Create a new release
-  create: protectedProcedure
+  create: releaseProtectedProcedure
     .input(createReleaseInput)
     .mutation(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       // Get artist profile
@@ -148,10 +170,10 @@ export const releasesRouter = router({
     }),
 
   // Update a release
-  update: protectedProcedure
-    .input(z.object({ id: z.number() }).merge(createReleaseInput.partial()))
+  update: releaseProtectedProcedure
+    .input(updateReleaseInput)
     .mutation(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const { id, ...data } = input;
@@ -188,10 +210,10 @@ export const releasesRouter = router({
     }),
 
   // Delete a release
-  delete: protectedProcedure
+  delete: releaseProtectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const [existing] = await database.select().from(releases)
@@ -206,10 +228,10 @@ export const releasesRouter = router({
     }),
 
   // Get a single release by ID (public - for viewing)
-  getById: publicProcedure
+  getById: releasePublicProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const [release] = await database.select().from(releases)
@@ -231,10 +253,10 @@ export const releasesRouter = router({
     }),
 
   // Get all published releases for an artist (public profile)
-  getByArtist: publicProcedure
+  getByArtist: releasePublicProcedure
     .input(z.object({ artistProfileId: z.number() }))
     .query(async ({ input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const results = await database.select().from(releases)
@@ -247,10 +269,10 @@ export const releasesRouter = router({
     }),
 
   // Check if current user has access to a release
-  checkAccess: protectedProcedure
+  checkAccess: releaseProtectedProcedure
     .input(z.object({ releaseId: z.number() }))
     .query(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const [release] = await database.select().from(releases)
@@ -289,13 +311,13 @@ export const releasesRouter = router({
     }),
 
   // Purchase/unlock a release
-  purchase: protectedProcedure
+  purchase: releaseProtectedProcedure
     .input(z.object({
       releaseId: z.number(),
       amount: z.number().min(0),
     }))
     .mutation(async ({ ctx, input }) => {
-      const database = await getDb();
+      const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
       const [release] = await database.select().from(releases)
@@ -365,7 +387,7 @@ export const releasesRouter = router({
     }),
 
   // Get release options (types, platforms, access models)
-  getOptions: publicProcedure.query(() => {
+  getOptions: releasePublicProcedure.query(() => {
     return {
       releaseTypes: RELEASE_TYPES,
       hostingPlatforms: HOSTING_PLATFORMS,

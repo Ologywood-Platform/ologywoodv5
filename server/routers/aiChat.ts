@@ -222,7 +222,7 @@ COMMON USER QUESTIONS:
 - "Can I recover my previous Sandbox Post?" → No. Confirm replacement only when ready: the current post is permanently deleted from OlogyWood's active database and cannot be restored. Limited security logs or provider backups follow the Privacy Policy.
 - "Why am I getting a plan upgrade message?" → Some features are restricted by subscription tier. Free plan has 2 bookings/month. Rider Builder needs Starter ($9/mo). Contracts need Professional ($29/mo). Sponsors need Enterprise ($79/mo). Visit /pricing to upgrade.
 - "How do I upgrade my plan?" → Go to /pricing, select the plan you want, and complete checkout with Stripe. Your features unlock immediately.
-- "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for selling access to content hosted externally (movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc.
+- "What is the difference between Music Releases and Content Releases?" → Music Releases are for uploading audio tracks that fans download. Content Releases are for content hosted externally (singles, albums, movies, courses, podcasts, livestreams) on YouTube, Vimeo, Spotify, etc. Select Single for one externally hosted song; use Music Releases for an uploaded audio file.
 - "Do I need to host my content on Ologywood?" → No! Host your content wherever it performs best (YouTube, Vimeo, Spotify, your website). Ologywood handles the business side: discovery, ticketing, fan relationships, and revenue.
 - "How do I disclose AI use on my song or release?" → In the Music Release or Content Release create/edit form, turn on Disclose AI use on this release. Choose AI-assisted or primarily AI-generated, select at least one component, and optionally name tools or add a creator note. The public tag is based on your disclosure; Ologywood does not independently verify AI use, ownership, or rights. Leaving it off means no disclosure was provided, not that the release is certified AI-free.
 `;
@@ -239,8 +239,14 @@ export const NIL_AGENT_FEE_GUIDANCE = "Ologywood's optional proposed-protection 
 
 export const PLATFORM_FEE_GUIDANCE = "Ologywood's current technology marketplace fees are: Bookings 1%, Music Releases 1%, Creator Shop 1%, Event Tickets $0.99 per ticket, Fan Club memberships 10%, Ology Live 15%, and external Tips 0%. For Fan Club memberships, talent keeps 90% and Ologywood retains 10%. Stripe processing charges are separate and can vary under Stripe's terms. Athlete-agent or representative compensation is also separate and is not charged by Ologywood.";
 
+export const SINGLE_RELEASE_GUIDANCE = "For one song hosted on YouTube, Spotify, or SoundCloud, open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single. Add your title and hosted link, choose an access model, and optionally disclose AI use. For uploading an audio file that fans can play and download, use Music Releases instead. If a save fails, the form keeps your entries so you can correct them and retry; it does not reset the draft.";
+
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
+
+  if (/\b(single|one song)\b/.test(normalized) && /\b(release|publish|upload|song|track|option)\b/.test(normalized)) {
+    return SINGLE_RELEASE_GUIDANCE;
+  }
 
   if (/\bmy\s+ology\b/.test(normalized)) {
     return MY_OLOGY_GUIDANCE;

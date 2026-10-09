@@ -4755,3 +4755,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Browser-verified the desktop/mobile Terms notice, September 26 effective date, 10%/90% fee table, Ology Live 15% row, Fan Club revenue-share clause, and homepage `You Keep 90%` marketing card
 - [x] Passed 132 focused tests, the complete suite with 2,834 passing tests and 23 skipped across 896 suites, TypeScript, production build, exact conflict-marker checks, diff hygiene, and credential-pattern review
 - [x] Published checkpoint `c49ec7af`; live verification confirmed the homepage 90/10 card, September 26 Terms and 10%/90% fee table, unchanged 15% Ology Live rate, and deterministic AI fee answer. A final read-only audit found zero Fan Club tiers and zero memberships, so no production Checkout Session could be opened; the shared 10% Stripe application-fee parameter remains covered by focused and full-suite regressions without creating test data or a charge
+
+## CONTENT RELEASE SINGLE AND SAVE REPAIR (Oct 9, 2026)
+- [x] Audited the missing Single option and failed Content Release INSERT before editing; managed release schema was complete but the runtime `releases` table was absent, and the old published listing returned a failed-query error
+- [x] Added a shared Single type for API options, form fallback, creator/public labels, and music icons without converting existing Other releases
+- [x] Added a narrow MySQL/TiDB-compatible runtime guard for the two already-declared Content Release tables and five optional AI metadata columns; explicit column inspection, per-database concurrency/cache, retry after failure, and duplicate-column race handling preserve existing rows
+- [x] Wired schema readiness into every database-backed Content Release procedure and replaced raw internal SQL diagnostics with safe release-only API/form feedback
+- [x] Preserved failed form entries, edit/retry controls, owner/tier protections, and all fee percentages; added list-load error recovery and correct return to the list after updates
+- [x] Fixed the partial-update defaults bug so changing type does not reset access, publication, or extras
+- [x] Updated contextual form tips, public Help, supported release types, and deterministic AI guidance for externally hosted Single versus uploaded/downloadable Music Releases
+- [x] Verified runtime guard twice, full owner projection, zero release/purchase rows, and development HTTP 200 release listing without creating any real content or payment
+- [x] Passed isolated desktop/mobile Single selection, retained draft, masked database failures, two failed attempts and successful retry; intercepted every browser API request so no real mutation occurred
+- [x] Passed 37 focused tests, all 2,854 platform tests with 23 skipped and no failures, TypeScript, production build, diff hygiene, and exact conflict-marker checks
+- [ ] Publish this repair checkpoint and verify live Single options, successful public release listing, and updated Help/AI guidance; the creator can then retry their own release

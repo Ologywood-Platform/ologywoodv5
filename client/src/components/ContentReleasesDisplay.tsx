@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { AIUseDisclosureTag } from "@/components/AIUseDisclosure";
+import { getContentReleaseTypeLabel } from "@shared/contentReleaseTypes";
 
 function getReleaseTypeIcon(type: string) {
   switch (type) {
@@ -19,7 +20,7 @@ function getReleaseTypeIcon(type: string) {
       return <Video className="h-5 w-5" />;
     case 'podcast_episode': case 'interview':
       return <Mic className="h-5 w-5" />;
-    case 'album': case 'music_video':
+    case 'single': case 'album': case 'music_video':
       return <Music className="h-5 w-5" />;
     case 'course': case 'masterclass':
       return <BookOpen className="h-5 w-5" />;
@@ -46,17 +47,6 @@ function getPlatformLabel(platform: string) {
     personal_website: 'Personal Website', other: 'Other',
   };
   return map[platform] || platform;
-}
-
-function getReleaseTypeLabel(type: string) {
-  const map: Record<string, string> = {
-    movie: 'Movie', documentary: 'Documentary', short_film: 'Short Film',
-    web_series: 'Web Series', concert: 'Concert', livestream: 'Livestream',
-    podcast_episode: 'Podcast Episode', album: 'Album', course: 'Course',
-    masterclass: 'Masterclass', interview: 'Interview', music_video: 'Music Video',
-    behind_the_scenes: 'Behind the Scenes', other: 'Other',
-  };
-  return map[type] || type;
 }
 
 interface ReleaseCardProps {
@@ -89,7 +79,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{release.description}</p>
         )}
         <div className="flex flex-wrap items-center gap-2 mt-2">
-          <Badge variant="outline" className="text-[10px]">{getReleaseTypeLabel(release.releaseType)}</Badge>
+          <Badge variant="outline" className="text-[10px]">{getContentReleaseTypeLabel(release.releaseType)}</Badge>
           <Badge variant="outline" className="text-[10px]">{getPlatformLabel(release.hostingPlatform)}</Badge>
           {release.genre && <Badge variant="secondary" className="text-[10px]">{release.genre}</Badge>}
           {release.duration && <span className="text-[10px] text-muted-foreground">{release.duration}</span>}
