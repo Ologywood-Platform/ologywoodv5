@@ -95,8 +95,8 @@ export function TrackReviewSection({ releaseId, releaseTitle, isOwner = false }:
   return (
     <div className="mt-4 space-y-3">
       {/* Review Summary Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StarRating value={Math.round(avgRating)} readOnly size="sm" />
           {reviewCount > 0 && (
             <span className="text-sm text-muted-foreground">
@@ -203,7 +203,7 @@ export function TrackReviewSection({ releaseId, releaseTitle, isOwner = false }:
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium">{review.reviewerName}</span>
+                  <span className="text-sm font-medium max-w-full [overflow-wrap:anywhere]">{review.reviewerName}</span>
                   <StarRating value={review.rating} readOnly size="sm" />
                   <span className="text-xs text-muted-foreground">
                     {new Date(review.createdAt).toLocaleDateString()}
@@ -214,7 +214,7 @@ export function TrackReviewSection({ releaseId, releaseTitle, isOwner = false }:
                   </span>
                 </div>
                 {review.reviewText && (
-                  <p className="text-sm text-muted-foreground mt-1">{review.reviewText}</p>
+                  <p className="text-sm text-muted-foreground mt-1 [overflow-wrap:anywhere]">{review.reviewText}</p>
                 )}
               </div>
 

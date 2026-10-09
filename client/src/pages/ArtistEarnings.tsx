@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/components/ErrorToast';
@@ -117,7 +117,6 @@ function IncomeBreakdownChart({ summary }: { summary: { bookings: number; releas
               const percent = ((segment.value / total) * 100).toFixed(1);
               return (
                 <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-      <SiteHeader />
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: segment.color }} />
                     <Icon className="h-4 w-4 text-gray-500" />
@@ -267,7 +266,7 @@ function TransactionHistoryTable() {
       </CardHeader>
       <CardContent>
         {filtered.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -369,52 +368,65 @@ function ReleaseSalesAnalytics() {
             <div className="text-xs text-gray-500">Platform Fee</div>
           </div>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Release</TableHead>
-              <TableHead className="text-center">Price</TableHead>
-              <TableHead className="text-center">Sales</TableHead>
-              <TableHead className="text-center hidden sm:table-cell">Gross</TableHead>
-              <TableHead className="text-center">Net</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {releases.map((release: any) => (
-              <TableRow key={release.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    {release.coverArtUrl ? (
-                      <img
-                        src={release.coverArtUrl}
-                        alt={release.title}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                        <Music className="h-5 w-5 text-gray-400" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-medium">{release.title}</div>
-                      {release.genre && (
-                        <div className="text-xs text-gray-500">{release.genre}</div>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">{formatCents(release.priceInCents)}</TableCell>
-                <TableCell className="text-center font-semibold">{release.totalSales}</TableCell>
-                <TableCell className="text-center hidden sm:table-cell">{formatCents(release.totalRevenueCents)}</TableCell>
-                <TableCell className="text-center font-semibold text-green-600">
-                  {formatCents(release.totalRevenueCents - (release.totalRevenueCents * 0.01))}
-                </TableCell>
+        <div className="w-full overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Release</TableHead>
+                <TableHead className="text-center">Price</TableHead>
+                <TableHead className="text-center">Sales</TableHead>
+                <TableHead className="text-center hidden sm:table-cell">Gross</TableHead>
+                <TableHead className="text-center">Net</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {releases.map((release: any) => (
+                <TableRow key={release.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {release.coverArtUrl ? (
+                        <img
+                          src={release.coverArtUrl}
+                          alt={release.title}
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                          <Music className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium">{release.title}</div>
+                        {release.genre && (
+                          <div className="text-xs text-gray-500">{release.genre}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">{formatCents(release.priceInCents)}</TableCell>
+                  <TableCell className="text-center font-semibold">{release.totalSales}</TableCell>
+                  <TableCell className="text-center hidden sm:table-cell">{formatCents(release.totalRevenueCents)}</TableCell>
+                  <TableCell className="text-center font-semibold text-green-600">
+                    {formatCents(release.totalRevenueCents - (release.totalRevenueCents * 0.01))}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function EarningsPageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="container mx-auto w-full max-w-5xl min-w-0 px-4 py-6">
+        {children}
+      </main>
+    </div>
   );
 }
 
@@ -490,10 +502,12 @@ export default function ArtistEarnings() {
 
   if (connectLoading || earningsLoading || transactionLoading) {
     return (
-      <div className="flex items-center justify-center py-12 gap-2">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <span>Loading earnings data...</span>
-      </div>
+      <EarningsPageShell>
+        <div className="flex items-center justify-center py-12 gap-2">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading earnings data...</span>
+        </div>
+      </EarningsPageShell>
     );
   }
 
@@ -501,7 +515,8 @@ export default function ArtistEarnings() {
   const isPending = connectStatus?.connected && connectStatus?.status === 'pending';
 
   return (
-    <div className="space-y-6">
+    <EarningsPageShell>
+      <div className="min-w-0 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
@@ -750,6 +765,7 @@ export default function ArtistEarnings() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </EarningsPageShell>
   );
 }

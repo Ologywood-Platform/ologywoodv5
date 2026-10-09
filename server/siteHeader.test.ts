@@ -31,7 +31,7 @@ describe('SiteHeader unified ecosystem navigation', () => {
     expect(content).toContain('HelperNotesToggle');
     expect(content).toContain('DarkModeToggle');
     expect(content).toContain('openSignIn');
-    expect(content).toContain('lg:hidden');
+    expect(content).toContain('min-[1440px]:hidden');
   });
 
   it('does not expose role-specific My Music as a global destination', () => {

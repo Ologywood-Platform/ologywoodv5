@@ -27,17 +27,17 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
   });
 
   it('should have a hamburger toggle button visible on mobile only', () => {
-    expect(content).toContain('lg:hidden');
+    expect(content).toContain('min-[1440px]:hidden');
     expect(content).toContain('aria-label');
     expect(content).toContain('aria-expanded');
   });
 
   it('should hide desktop nav on mobile screens', () => {
-    expect(content).toContain('hidden lg:flex');
+    expect(content).toContain('hidden min-[1440px]:flex');
   });
 
   it('should render mobile dropdown menu when open', () => {
-    expect(content).toContain('lg:hidden');
+    expect(content).toContain('min-[1440px]:hidden');
     expect(content).toContain('mobileOpen');
   });
 
@@ -74,8 +74,9 @@ describe('Mobile Hamburger Menu (SiteHeader)', () => {
     expect(content).toContain('Log In');
   });
 
-  it('should show full Ologywood text on all screens (not abbreviated)', () => {
-    // Desktop and mobile should both show "Ologywood" with TM symbol
+  it('keeps branded logo on small phones and full wordmark when space permits', () => {
+    expect(content).toContain('alt="Ologywood"');
+    expect(content).toContain('hidden min-[480px]:inline');
     expect(content).toContain('Ologywood<sup');
   });
 

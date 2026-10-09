@@ -267,6 +267,13 @@ const faqItems: FAQItem[] = [
     answer: 'On a creator profile, uploaded Music Releases show Buy with the price, or Name Your Price. These purchases provide an audio-file download and a playable track in My Ology → Music library. Externally hosted Content Releases show Buy access or a Your price field for Pay What You Want, including the minimum. Sign in, choose the amount, and continue to secure Stripe checkout. Access is granted only after Stripe confirms payment; find it in My Ology or My Purchases under Hosted content purchases and choose Watch / Listen. A creator viewing their own hosted release sees Creator preview instead of purchasing it. Hosted access does not include an audio-file download. Free releases use Watch / Listen, and Fan Club-only releases require membership. Professional and Enterprise allow unlimited releases; Starter allows two. Publishing limits do not hide or remove an already-published song.',
   },
 
+  {
+    id: 'release-section-differences',
+    category: 'Content Releases',
+    question: 'Why do Music and Content Releases appear in different profile sections?',
+    answer: 'Music is the uploaded-song section, shown in the profile sidebar on wider screens. Fans preview a song and buy its audio download; purchases also appear in My Ology’s music library. Content Releases appear farther down the profile and provide free, paid, or membership-based access to content hosted on YouTube, Spotify, Vimeo or another creator-chosen platform. They do not include a downloadable music file. Project Previews are a separate promotional showcase of upcoming projects and track snippets, not purchase listings. Use Music Releases to sell an audio download and Content Releases to offer hosted access. These sections stay separate so existing purchases and access rights are preserved.',
+  },
+
   // Subscription & Tier Limits
   {
     id: 'tier-1',

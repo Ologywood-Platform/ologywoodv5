@@ -171,7 +171,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
       <div className="sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <EarlyAccessBanner />
       <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 transition-colors duration-200" ref={menuRef}>
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+        <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-6 xl:px-8 py-3 sm:py-4 flex items-center justify-between gap-2">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary dark:text-purple-400 shrink-0">
             {largeLogo ? (
@@ -179,11 +179,11 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
             ) : (
               <img src="/logo-sm.png" alt="Ologywood" className="h-7 sm:h-8 w-7 sm:w-8 rounded" />
             )}
-            <span>Ologywood<sup className="text-[8px] align-super ml-0.5">™</sup></span>
+            <span className="hidden min-[480px]:inline">Ologywood<sup className="text-[8px] align-super ml-0.5">™</sup></span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-0.5">
+          <nav className="hidden min-[1440px]:flex items-center gap-0.5">
             {extraNav}
             {CORE_DESTINATIONS.map((item) => {
               const active = isDestinationActive(location, item.matches);
@@ -333,7 +333,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
           </nav>
 
           {/* Mobile: Dark mode toggle + Hamburger */}
-          <div className="lg:hidden flex items-center gap-1">
+          <div className="min-[1440px]:hidden flex items-center gap-1 shrink-0">
             <GlobalSearch mobile />
             <AIChatTrigger />
             {isAuthenticated && <RealtimeNotifications />}
@@ -355,7 +355,7 @@ export function SiteHeader({ largeLogo = false, extraNav, hideBrowse = false }: 
 
         {/* Mobile Dropdown Menu */}
         {mobileOpen && (
-          <nav className="lg:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-0.5 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors max-h-[80dvh] overflow-y-auto">
+          <nav className="min-[1440px]:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 pb-4 pt-2 space-y-0.5 shadow-lg animate-in slide-in-from-top-2 duration-200 transition-colors max-h-[80dvh] overflow-y-auto">
             {extraNav}
             {CORE_DESTINATIONS.map((item) => {
               const active = isDestinationActive(location, item.matches);

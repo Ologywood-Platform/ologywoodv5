@@ -4844,3 +4844,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Passed 88 focused tests, all 3,022 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; synthetic real-storage clipping/cache checks returned HTTP 200
 - [x] Verified isolated desktop/mobile upload error/retry, seek cap, explicit save attachment, public on-demand playback/clear and intact purchase controls with all API calls intercepted
 - [ ] Publish the preview checkpoint and verify live music sample delivery and Content Release owner preview controls without modifying real content unless intentionally saved by its creator
+
+## RELEASE SECTION CLARITY AND PAGE LAYOUT (Oct 9, 2026)
+- [x] Explained uploaded Music downloads versus hosted Content Release access and non-checkout Project Previews in public sections, creator guidance and Help without merging records
+- [x] Moved misplaced Settings notification-child and Earnings chart-legend headers to root shells; preserved one global header in loading and loaded states
+- [x] Removed duplicate Project Previews heading/sticky shell while retaining back action, breadcrumb and unchanged project/snippet policies
+- [x] Corrected profile quick-action overlap, narrow tablet columns, long release/bio/review wrapping, phone preference/payment actions and footer newsletter overflow
+- [x] Switched full desktop navigation to compact menu below 1440 px with bounded header width and retained small-phone logo, utilities, role-aware account menu and canonical destinations
+- [x] Passed 82 focused tests, all 3031 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; no payment, entitlement, fee, schema or real record changes
+- [x] Fully intercepted browser checks passed Settings/Earnings/Projects/profile at 320/390/768/1024/1280/1440/1920 px, one root header, no page overflow or overlapping buttons, compact-menu and single-search-shortcut checks, zero mutation requests
+- [ ] Publish the layout checkpoint and verify live Settings/Earnings root headers and profile release descriptions without modifying creator, preference or billing records

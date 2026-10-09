@@ -1,7 +1,7 @@
 /** Published externally hosted content: pricing is visible; paid access follows Stripe confirmation. */
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -47,12 +47,12 @@ function ReleaseCard({release}:{release:any}){
   if(pwyw&&!validAmount){toast.error(`Choose at least $${price}, using up to two decimal places.`);return;}
   purchase.mutate({releaseId:release.id,amount:pwyw?chosen:minimum/100});
  };
- return <div className="flex flex-col gap-4 p-4 rounded-lg border hover:bg-muted/30 transition-colors sm:flex-row sm:items-start">
+ return <div className="min-w-0 [overflow-wrap:anywhere] flex flex-col gap-4 p-4 rounded-lg border hover:bg-muted/30 transition-colors md:flex-row md:items-start">
   <div className="flex items-start gap-4 flex-1 min-w-0">
    <ContentReleaseArtwork url={release.thumbnailUrl} title={release.title} className="w-16 h-16 text-primary" fallback={getReleaseTypeIcon(release.releaseType)}/>
-   <div className="flex-1 min-w-0"><h4 className="font-semibold text-sm">{release.title}</h4>
+   <div className="flex-1 min-w-0"><h4 className="font-semibold text-sm [overflow-wrap:anywhere]">{release.title}</h4>
     {release.description&&<p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{release.description}</p>}
-    <div className="flex flex-wrap items-center gap-2 mt-2"><Badge variant="outline" className="text-[10px]">{getContentReleaseTypeLabel(release.releaseType)}</Badge><Badge variant="outline" className="text-[10px]">{getPlatformLabel(release.hostingPlatform)}</Badge>{release.genre&&<Badge variant="secondary" className="text-[10px]">{release.genre}</Badge>}{release.duration&&<span className="text-[10px] text-muted-foreground">{release.duration}</span>}</div>
+    <div className="flex flex-wrap items-center gap-2 mt-2 [&_span]:max-w-full [&_span]:whitespace-normal"><Badge variant="outline" className="text-[10px]">{getContentReleaseTypeLabel(release.releaseType)}</Badge><Badge variant="outline" className="text-[10px]">{getPlatformLabel(release.hostingPlatform)}</Badge>{release.genre&&<Badge variant="secondary" className="text-[10px]">{release.genre}</Badge>}{release.duration&&<span className="text-[10px] text-muted-foreground">{release.duration}</span>}</div>
     <AIUseDisclosureTag disclosure={release} className="mt-2"/>
     {release.includesLiveQA&&<span className="text-[10px] text-muted-foreground block mt-1">Includes Live Q&amp;A</span>}
     {release.includesBonusContent&&<span className="text-[10px] text-muted-foreground block">Bonus Content</span>}
@@ -61,7 +61,7 @@ function ReleaseCard({release}:{release:any}){
     <ContentReleasePublicPreview releaseId={release.id} hasPreview={release.hasPreview === true} title={release.title}/>
    </div>
   </div>
-  <div className="flex flex-col gap-2 sm:w-44 shrink-0">
+  <div className="flex flex-col gap-2 md:w-44 shrink-0 min-w-0 [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-9 [&_button]:py-2">
    {owner&&<p className="text-xs text-muted-foreground">Your release. Fans see the purchase controls.</p>}
    {hasAccess?<Button size="sm" className="gap-1 text-xs" disabled={!url} onClick={()=>window.open(url,'_blank','noopener,noreferrer')}><ExternalLink className="h-3 w-3"/>{owner?'Open full release':'Watch / Listen'}</Button>
     :fanClub?<Button size="sm" variant="outline" onClick={()=>navigate('/fan-club-discovery')}>Join Fan Club</Button>
@@ -79,5 +79,5 @@ export function ContentReleasesDisplay({artistProfileId}:{artistProfileId:number
  if(query.isLoading)return <p className="text-sm text-muted-foreground p-4">Loading content releases…</p>;
  if(query.isError)return <Card><CardContent className="p-4"><p role="alert" className="text-sm">Content releases could not be loaded. Please retry.</p><Button variant="outline" size="sm" onClick={()=>query.refetch()}>Retry content releases</Button></CardContent></Card>;
  if(!query.data?.length)return null;
- return <Card id="profile-releases"><CardHeader><CardTitle className="flex items-center gap-2"><Film className="h-5 w-5 text-primary"/>Content Releases ({query.data.length})</CardTitle></CardHeader><CardContent className="space-y-2">{query.data.map(release=><ReleaseCard key={release.id} release={release}/>)}</CardContent></Card>;
+ return <Card id="profile-releases" className="min-w-0"><CardHeader><CardTitle className="flex items-center gap-2"><Film className="h-5 w-5 text-primary shrink-0"/>Content Releases ({query.data.length})</CardTitle><CardDescription>Watch or listen on the creator’s chosen platform. Paid purchases unlock hosted access, not a downloadable music file.</CardDescription></CardHeader><CardContent className="space-y-2">{query.data.map(release=><ReleaseCard key={release.id} release={release}/>)}</CardContent></Card>;
 }

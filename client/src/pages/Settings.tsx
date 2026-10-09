@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Loader2, ArrowLeft, Mail, Bell, Shield, CheckCircle, AlertCircle, Camera, Trash2, User, DollarSign, CreditCard, Heart } from "lucide-react";
@@ -73,7 +73,6 @@ function NotificationPreferencesSection() {
 
   return (
     <div className="space-y-4">
-      <SiteHeader />
       {saveStatus === 'success' && (
         <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -284,23 +283,34 @@ function ProfilePictureSection({ user }: { user: any }) {
   );
 }
 
+function SettingsPageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
+      <SiteHeader />
+      {children}
+    </div>
+  );
+}
+
 export default function Settings() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-      </div>
+      <SettingsPageShell>
+        <main className="flex items-center justify-center py-12" aria-label="Loading settings">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        </main>
+      </SettingsPageShell>
     );
   }
 
   // If not logged in, prompt to log in
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
-        <div className="container mx-auto px-4 py-12 max-w-lg">
+      <SettingsPageShell>
+        <main className="container mx-auto px-4 py-12 max-w-lg">
           <Card className="text-center">
             <CardHeader>
               <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
@@ -328,15 +338,14 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </main>
+      </SettingsPageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur-sm shadow-sm">
+    <SettingsPageShell>
+      <section className="border-b bg-white/80 backdrop-blur-sm shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button
             variant="ghost"
@@ -354,9 +363,9 @@ export default function Settings() {
             </p>
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <main className="container mx-auto px-4 py-8 max-w-3xl">
         <PageBreadcrumb
           className="mb-6"
           segments={[
@@ -451,7 +460,7 @@ export default function Settings() {
                 </p>
                 <Button
                   onClick={() => navigate("/earnings")}
-                  className="bg-purple-600 hover:bg-purple-700 gap-2"
+                  className="w-full sm:w-auto whitespace-normal h-auto min-h-9 py-2 bg-purple-600 hover:bg-purple-700 gap-2"
                 >
                   <CreditCard className="h-4 w-4" />
                   Set Up Payments / Connect to Stripe
@@ -493,7 +502,7 @@ export default function Settings() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+      </main>
+    </SettingsPageShell>
   );
 }

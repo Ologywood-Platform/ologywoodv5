@@ -120,13 +120,13 @@ const Footer = () => {
           <div className="max-w-md">
             <h3 className="text-white text-lg font-semibold mb-2">Stay Updated</h3>
             <p className="text-gray-400 text-sm mb-4">Get the latest news about talent, venues, and booking opportunities.</p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-4 py-2 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
+                className="w-full min-w-0 flex-1 px-4 py-2 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none text-sm"
               />
               <button 
                 type="submit"

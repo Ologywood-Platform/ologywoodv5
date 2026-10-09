@@ -807,9 +807,9 @@ export default function ArtistProfile() {
 
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:p-4 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:p-4 md:p-8 [&>div]:min-w-0">
           {/* Main Content - Left Column */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Bio */}
             {artist.bio && (
               <Card>
@@ -817,7 +817,7 @@ export default function ArtistProfile() {
                   <CardTitle>About</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{artist.bio}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap [overflow-wrap:anywhere]">{artist.bio}</p>
                 </CardContent>
               </Card>
             )}
@@ -1372,6 +1372,7 @@ export default function ArtistProfile() {
                     <Music className="h-5 w-5 text-primary" />
                     Music ({releases.length})
                   </CardTitle>
+                  <CardDescription>Preview songs, then buy the audio download. Purchased tracks are available in My Ology.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {releases.map((release: any) => (

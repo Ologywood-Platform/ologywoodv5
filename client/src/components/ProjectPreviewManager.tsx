@@ -258,7 +258,7 @@ export function ProjectPreviewManager() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
       {/* Header with limit info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -269,9 +269,10 @@ export function ProjectPreviewManager() {
           <p className="text-sm text-muted-foreground">
             Showcase upcoming albums, EPs, and mixtapes with audio snippets.
           </p>
+          <p className="text-xs text-muted-foreground mt-1">A showcase, not a purchase listing. Use Music Releases for audio downloads or Content Releases for hosted access.</p>
         </div>
         {projects && projects.length > 0 && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {limitInfo && (
               <Badge variant="secondary" className="text-xs">
                 {projects ? projects.length : limitInfo.currentCount}/{limitInfo.maxProjects} projects
@@ -344,8 +345,8 @@ export function ProjectPreviewManager() {
                   {/* Project info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-semibold text-base">{project.title}</h3>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-base [overflow-wrap:anywhere]">{project.title}</h3>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge variant="secondary" className="text-xs capitalize">{project.releaseType.replace('_', ' ')}</Badge>
                           <Badge

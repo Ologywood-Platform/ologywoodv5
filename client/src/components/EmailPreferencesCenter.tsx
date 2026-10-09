@@ -279,7 +279,7 @@ export function EmailPreferencesCenter() {
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 [&_button]:whitespace-normal [&_button]:h-auto [&_button]:min-h-9">
         <Button
           onClick={handleSave}
           disabled={saveStatus === 'saving' || isUnsubscribed}

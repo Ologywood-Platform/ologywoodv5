@@ -253,7 +253,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
   };
 
   return (
-    <Card className="overflow-hidden group hover:shadow-md transition-shadow">
+    <Card className="min-w-0 [overflow-wrap:anywhere] overflow-hidden group hover:shadow-md transition-shadow">
       <div className="flex flex-col">
         {/* Cover Art */}
         <div className="relative aspect-square w-full flex-shrink-0 bg-muted">
@@ -290,7 +290,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
         {/* Content */}
         <CardContent className="p-3">
           {/* Title */}
-          <h3 className="font-semibold text-sm leading-snug break-words">{release.title}</h3>
+          <h3 className="font-semibold text-sm leading-snug break-words [overflow-wrap:anywhere]">{release.title}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{artistName}</p>
 
           {/* Price */}
@@ -304,7 +304,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
           {/* Meta info */}
           <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
             {release.genre && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 max-w-full whitespace-normal">
                 {release.genre}
               </Badge>
             )}

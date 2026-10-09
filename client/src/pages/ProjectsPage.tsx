@@ -17,22 +17,14 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+      <main className="container mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="h-4 w-4 mr-1.5" />
             <span className="hidden sm:inline">Dashboard</span>
           </Button>
-          <div>
-            <h1 className="text-lg font-bold">Project Previews</h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              Showcase upcoming albums, EPs, and mixtapes
-            </p>
-          </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
         <PageBreadcrumb
           className="mb-4"
           segments={[
@@ -41,7 +33,7 @@ export default function ProjectsPage() {
           ]}
         />
         <ProjectPreviewManager />
-      </div>
+      </main>
     </div>
   );
 }
