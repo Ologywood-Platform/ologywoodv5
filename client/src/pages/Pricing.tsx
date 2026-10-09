@@ -330,6 +330,7 @@ export default function Pricing() {
     enabled: isAuthenticated,
   });
   const currentTier: string | null = subscription?.tier || (isAuthenticated ? 'free' : null);
+  const isComplimentary = subscription?.isComplimentary === true;
 
   // Fetch referral credit balance
   const { data: creditStats } = (trpc.referral as any).getMyStats.useQuery(undefined, {
@@ -363,6 +364,13 @@ export default function Pricing() {
   });
 
   const handleCTA = (tier: Tier) => {
+    if (isComplimentary) {
+      toastCtx.addInfo(
+        'Complimentary Enterprise access is active',
+        'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
+      );
+      return;
+    }
     if (!tier.planSlug) {
       // Free plan: go to home where they can sign up
       if (!isAuthenticated) {
@@ -383,6 +391,16 @@ export default function Pricing() {
   };
 
   const handleConfirmUpgrade = () => {
+    if (isComplimentary) {
+      toastCtx.addInfo(
+        'Complimentary Enterprise access is active',
+        'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
+      );
+      setShowCompareModal(false);
+      setPendingPlan(null);
+      setLoadingPlan(null);
+      return;
+    }
     if (!pendingPlan) return;
     const tierObj = tiers.find(t => t.planSlug === pendingPlan);
     if (tierObj) setLoadingPlan(tierObj.name);
@@ -437,6 +455,12 @@ export default function Pricing() {
         />
         <div className="max-w-7xl mx-auto">
           <StripeTestModeBanner />
+          {isComplimentary && (
+            <div className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-center shadow-sm" role="status">
+              <p className="font-semibold text-amber-900">Enterprise — Complimentary Owner Access</p>
+              <p className="mt-1 text-sm text-amber-800">$0 subscription fee — no payment needed. Regular plan pricing remains available to everyone else.</p>
+            </div>
+          )}
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -478,7 +502,9 @@ export default function Pricing() {
                   href="/dashboard/subscription"
                   className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                 >
-                  Manage your {currentTier === 'starter' ? 'Starter' : 'Professional'} subscription
+                  {isComplimentary
+                    ? 'View complimentary Enterprise access'
+                    : `Manage your ${currentTier === 'starter' ? 'Starter' : currentTier === 'enterprise' ? 'Enterprise' : 'Professional'} subscription`}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>

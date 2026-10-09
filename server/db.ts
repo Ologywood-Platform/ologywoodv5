@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../drizzle/schema";
+import { resolveOwnerSubscription } from './services/ownerSubscriptionAccess';
 import { getStatesForRegion } from '../shared/locationData';
 import { dateOnlyTimestamp, dateOnlyToUtcDate, getDateOnlyKey } from '../shared/dateOnly';
 
@@ -871,18 +872,21 @@ export async function updateSubscriptionStatus(userId: number, status: "active" 
 }
 
 export async function getSubscriptionByUserId(userId: number) {
+  const subscription = await getBillingSubscriptionByUserId(userId);
+  const user = await getUserById(userId);
+  return resolveOwnerSubscription(user, subscription);
+}
+/** Raw billing state for Stripe writes; never persist an effective-access projection. */
+export async function getBillingSubscriptionByUserId(userId: number) {
   const db = await getDb();
   if (!db) return null;
-  
   const result = await db.select().from(userSubscriptions).where(eq(userSubscriptions.userId, userId)).limit(1);
   return result[0] || null;
 }
-
 export async function upsertSubscription(data: any): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  
-  const existing = await getSubscriptionByUserId(data.userId);
+  const existing = await getBillingSubscriptionByUserId(data.userId);
   if (existing) {
     await db.update(userSubscriptions).set(data).where(eq(userSubscriptions.userId, data.userId));
   } else {

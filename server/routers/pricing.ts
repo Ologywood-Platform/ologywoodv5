@@ -21,6 +21,9 @@ export const pricingRouter = router({
     const tier = PRICING_TIERS[subscription.tier as keyof typeof PRICING_TIERS];
 
     return {
+      isComplimentary: subscription.isComplimentary === true,
+      accessSource: subscription.accessSource ?? 'subscription',
+      subscriptionPrice: subscription.isComplimentary ? 0 : tier.price,
       tier: subscription.tier,
       tierName: tier.name,
       status: subscription.status,

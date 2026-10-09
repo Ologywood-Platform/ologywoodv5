@@ -79,6 +79,18 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next({ ctx });
 });
 
+// Complimentary owner access is an entitlement, never a paid Stripe subscription.
+const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+  if (subscription?.isComplimentary) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Your complimentary Enterprise owner access needs no paid subscription. Existing billing records are unchanged.',
+    });
+  }
+  return next({ ctx });
+});
+
 export const appRouter = router({
   // Debug endpoint for testing input parsing
   debug: router({
@@ -717,7 +729,7 @@ export const appRouter = router({
         // Check subscription tier from user_subscriptions table
         const subscription = await db.getSubscriptionByUserId(ctx.user.id);
         const tier = subscription?.tier || 'free';
-        if (tier !== 'professional' && tier !== 'starter') {
+        if (tier !== 'professional' && tier !== 'starter' && tier !== 'enterprise') {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Performance video upload requires a Starter or Professional subscription' });
         }
 
@@ -2713,7 +2725,7 @@ export const appRouter = router({
     }),
 
     // Create checkout session for subscription
-    createCheckoutSession: protectedProcedure
+    createCheckoutSession: paidSubscriptionProcedure
       .input(z.object({
         successUrl: z.string(),
         cancelUrl: z.string(),
@@ -2798,7 +2810,7 @@ export const appRouter = router({
 
     // Get subscription status from Stripe
     getStatus: protectedProcedure.query(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      const subscription = await db.getBillingSubscriptionByUserId(ctx.user.id);
       if (!subscription?.stripeSubscriptionId) {
         return null;
       }
@@ -2812,7 +2824,7 @@ export const appRouter = router({
 
     // Cancel subscription
     cancel: protectedProcedure.mutation(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      const subscription = await db.getBillingSubscriptionByUserId(ctx.user.id);
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }
@@ -2855,8 +2867,8 @@ export const appRouter = router({
     }),
 
     // Reactivate subscription
-    reactivate: protectedProcedure.mutation(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+    reactivate: paidSubscriptionProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getBillingSubscriptionByUserId(ctx.user.id);
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }
@@ -2903,7 +2915,7 @@ export const appRouter = router({
 
     // Pause subscription (90-day max)
     pause: protectedProcedure.mutation(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+      const subscription = await db.getBillingSubscriptionByUserId(ctx.user.id);
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }
@@ -2962,8 +2974,8 @@ export const appRouter = router({
     }),
 
     // Resume a paused subscription
-    resume: protectedProcedure.mutation(async ({ ctx }) => {
-      const subscription = await db.getSubscriptionByUserId(ctx.user.id);
+    resume: paidSubscriptionProcedure.mutation(async ({ ctx }) => {
+      const subscription = await db.getBillingSubscriptionByUserId(ctx.user.id);
       if (!subscription?.stripeSubscriptionId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No active subscription' });
       }

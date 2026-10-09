@@ -331,25 +331,25 @@ describe('tRPC Subscription Endpoints (routers.ts)', () => {
 
   describe('reactivate endpoint - email integration', () => {
     it('imports getSubscriptionStatus for plan detection', () => {
-      const reactivateStart = src.indexOf('reactivate: protectedProcedure');
+      const reactivateStart = src.indexOf('reactivate: paidSubscriptionProcedure');
       const reactivateBlock = src.substring(reactivateStart, reactivateStart + 2000);
       expect(reactivateBlock).toContain('getSubscriptionStatus');
     });
 
     it('imports SUBSCRIPTION_PRODUCTS for plan name lookup', () => {
-      const reactivateStart = src.indexOf('reactivate: protectedProcedure');
+      const reactivateStart = src.indexOf('reactivate: paidSubscriptionProcedure');
       const reactivateBlock = src.substring(reactivateStart, reactivateStart + 2000);
       expect(reactivateBlock).toContain('SUBSCRIPTION_PRODUCTS');
     });
 
     it('calls sendSubscriptionReactivatedEmail', () => {
-      const reactivateStart = src.indexOf('reactivate: protectedProcedure');
+      const reactivateStart = src.indexOf('reactivate: paidSubscriptionProcedure');
       const reactivateBlock = src.substring(reactivateStart, reactivateStart + 2000);
       expect(reactivateBlock).toContain('sendSubscriptionReactivatedEmail');
     });
 
     it('sends email with planName, planPrice, and nextBillingDate', () => {
-      const reactivateStart = src.indexOf('reactivate: protectedProcedure');
+      const reactivateStart = src.indexOf('reactivate: paidSubscriptionProcedure');
       const reactivateBlock = src.substring(reactivateStart, reactivateStart + 2000);
       expect(reactivateBlock).toContain('planName');
       expect(reactivateBlock).toContain('planPrice');
@@ -357,7 +357,7 @@ describe('tRPC Subscription Endpoints (routers.ts)', () => {
     });
 
     it('handles email sending errors gracefully with catch', () => {
-      const reactivateStart = src.indexOf('reactivate: protectedProcedure');
+      const reactivateStart = src.indexOf('reactivate: paidSubscriptionProcedure');
       const reactivateBlock = src.substring(reactivateStart, reactivateStart + 2000);
       expect(reactivateBlock).toContain('.catch(err =>');
     });

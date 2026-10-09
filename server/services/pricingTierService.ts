@@ -1,4 +1,4 @@
-import { getDb } from "../db";
+import { getDb, getSubscriptionByUserId, getBillingSubscriptionByUserId } from "../db";
 import { userSubscriptions, bookingUsage } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -146,16 +146,9 @@ export type FeatureKey = keyof (typeof PRICING_TIERS)["free"]["features"];
 export async function getUserSubscription(userId: number) {
   const db = await getDb();
   if (!db) throw new Error('Database not available');
-  
-  const subscription = await db
-    .select()
-    .from(userSubscriptions)
-    .where(eq(userSubscriptions.userId, userId))
-    .limit(1);
 
-  if (subscription.length > 0) {
-    return subscription[0];
-  }
+  const subscription = await getSubscriptionByUserId(userId);
+  if (subscription) return subscription;
 
   // Create default free subscription
   const newSubscription = await db!.insert(userSubscriptions).values({
@@ -285,7 +278,9 @@ export async function upgradeTier(
   const db = await getDb();
   if (!db) return;
   
-  const subscription = await getUserSubscription(userId);
+  if (!await getBillingSubscriptionByUserId(userId)) {
+    await db.insert(userSubscriptions).values({ userId, tier: 'free', status: 'active' });
+  }
 
   await db
     .update(userSubscriptions)

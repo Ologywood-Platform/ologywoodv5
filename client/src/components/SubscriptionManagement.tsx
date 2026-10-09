@@ -56,9 +56,15 @@ export function SubscriptionManagement() {
   const { data: subscription, isLoading: subLoading, refetch: refetchSub } =
     (trpc.subscription as any).getMy.useQuery(undefined, { retry: false });
 
-  // Fetch live Stripe status
+  const isComplimentary = subscription?.isComplimentary === true;
+
+  // Fetch live Stripe status only after the local record has loaded. Complimentary
+  // owner access is authoritative and should not be blocked by a prior Stripe record.
   const { data: stripeStatus, isLoading: statusLoading, refetch: refetchStatus } =
-    (trpc.subscription as any).getStatus.useQuery(undefined, { retry: false });
+    (trpc.subscription as any).getStatus.useQuery(undefined, {
+      retry: false,
+      enabled: !subLoading && !isComplimentary,
+    });
 
   const cancelMutation = (trpc.subscription as any).cancel.useMutation({
     onSuccess: () => {
@@ -143,7 +149,7 @@ export function SubscriptionManagement() {
     },
   });
 
-  const isLoading = subLoading || statusLoading;
+  const isLoading = subLoading || (!isComplimentary && statusLoading);
 
   if (isLoading) {
     return (
@@ -151,6 +157,68 @@ export function SubscriptionManagement() {
         <CardContent className="py-8 flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           <span className="ml-2 text-sm text-slate-500">Loading subscription...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isComplimentary) {
+    return (
+      <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-amber-100 p-2">
+                <Crown className="h-5 w-5 text-amber-700" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Enterprise — Complimentary Owner Access</CardTitle>
+                <CardDescription>Verified platform owner entitlement</CardDescription>
+              </div>
+            </div>
+            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+              Active
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-amber-200 bg-white/80 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-700">Subscription fee</span>
+              <span className="text-lg font-bold text-slate-900">$0/month</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">Status</span>
+              <span className="flex items-center gap-1 text-sm font-medium text-green-700">
+                <CheckCircle className="h-3.5 w-3.5" />
+                Active
+              </span>
+            </div>
+            <p className="text-sm text-slate-600">No renewal or expiry applies to this owner entitlement.</p>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white/80 p-4">
+            <p className="text-sm font-medium text-slate-800">Enterprise access included</p>
+            <p className="mt-1 text-sm text-slate-600">
+              All Enterprise plan features are available, including unlimited releases.
+            </p>
+          </div>
+
+          {subscription?.billingStatus && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-slate-600">Prior billing status</span>
+                <span className="text-sm font-medium text-slate-800">{subscription.billingStatus}</span>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                This complimentary entitlement does not change existing Stripe billing records, invoices, or subscriptions.
+              </p>
+            </div>
+          )}
+
+          <p className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-800">
+            Complimentary access does not waive marketplace transaction fees, Stripe processing fees, or fan purchase charges. Role and ownership rules still apply.
+          </p>
         </CardContent>
       </Card>
     );
