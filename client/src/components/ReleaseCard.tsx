@@ -24,6 +24,7 @@ interface ReleaseCardProps {
     genre?: string | null;
     priceInCents: number;
     coverArtUrl?: string | null;
+    hasPreview?: boolean;
     previewFileKey?: string | null;
     audioFileKey?: string | null;
     totalSales: number;
@@ -46,7 +47,6 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [previewDuration, setPreviewDuration] = useState(PREVIEW_MAX_SECONDS);
-  const [hasPreviewFile, setHasPreviewFile] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
@@ -55,7 +55,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
   const [customPrice, setCustomPrice] = useState<string>(priceFormatted);
   const [showPriceInput, setShowPriceInput] = useState(false);
   const hasPurchased = !!purchaseId;
-  const hasPreview = !!(release.previewFileKey || release.audioFileKey);
+  const hasPreview = release.hasPreview ?? !!(release.previewFileKey || release.audioFileKey);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -88,13 +88,13 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
     if (!audio || !isPlaying) return;
 
     const time = audio.currentTime;
-    const maxDuration = hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+    const maxDuration = Math.min(audio.duration || PREVIEW_MAX_SECONDS, PREVIEW_MAX_SECONDS);
 
     setCurrentTime(time);
     setProgress(maxDuration > 0 ? (time / maxDuration) * 100 : 0);
 
-    // Enforce 30-second cap when using full audio file as preview
-    if (!hasPreviewFile && time >= PREVIEW_MAX_SECONDS) {
+    // Always cap every preview, including dedicated clips.
+    if (time >= PREVIEW_MAX_SECONDS) {
       audio.pause();
       setIsPlaying(false);
       setProgress(100);
@@ -103,7 +103,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
     }
 
     animFrameRef.current = requestAnimationFrame(updateProgress);
-  }, [isPlaying, hasPreviewFile]);
+  }, [isPlaying]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -128,13 +128,12 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
     if (audioRef.current && audioRef.current.src && !isPlaying) {
       const audio = audioRef.current;
       // If at the end, restart
-      if (!hasPreviewFile && audio.currentTime >= PREVIEW_MAX_SECONDS) {
+      if (audio.currentTime >= Math.min(audio.duration || PREVIEW_MAX_SECONDS, PREVIEW_MAX_SECONDS)) {
         audio.currentTime = 0;
         setCurrentTime(0);
         setProgress(0);
       }
-      audio.play();
-      setIsPlaying(true);
+      try { await audio.play(); setIsPlaying(true); } catch { toast.addError("Preview unavailable", "Please try playing the preview again."); }
       return;
     }
 
@@ -144,13 +143,12 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
       const response = await fetch(`/api/release/download/preview/${release.id}`);
       const data = await response.json();
       if (data.success && data.previewUrl) {
-        setHasPreviewFile(!!data.hasPreviewFile);
 
         const audio = new Audio(data.previewUrl);
         audioRef.current = audio;
 
         audio.onloadedmetadata = () => {
-          const maxDur = data.hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+          const maxDur = Math.min(audio.duration || PREVIEW_MAX_SECONDS, PREVIEW_MAX_SECONDS);
           setPreviewDuration(maxDur);
         };
 
@@ -182,8 +180,8 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
 
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    const ratio = clickX / rect.width;
-    const maxDur = hasPreviewFile ? audio.duration : Math.min(audio.duration, PREVIEW_MAX_SECONDS);
+    const ratio = Math.min(1, Math.max(0, clickX / rect.width));
+    const maxDur = Math.min(audio.duration || PREVIEW_MAX_SECONDS, PREVIEW_MAX_SECONDS);
     const newTime = ratio * maxDur;
 
     audio.currentTime = newTime;

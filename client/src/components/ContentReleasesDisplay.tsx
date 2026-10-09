@@ -13,6 +13,7 @@ import { AIUseDisclosureTag } from '@/components/AIUseDisclosure';
 import { getContentReleaseTypeLabel } from '@shared/contentReleaseTypes';
 import { contentReleasePriceCents } from '@shared/contentReleaseCommerce';
 import { ContentReleaseArtwork } from '@/components/ContentReleaseCoverArt';
+import { ContentReleasePublicPreview } from '@/components/ContentReleasePreview';
 import { QuickSignupModal } from '@/components/QuickSignupModal';
 function getReleaseTypeIcon(type:string){
  if(['movie','documentary','short_film','web_series'].includes(type))return <Film className="h-5 w-5"/>;
@@ -57,11 +58,12 @@ function ReleaseCard({release}:{release:any}){
     {release.includesBonusContent&&<span className="text-[10px] text-muted-foreground block">Bonus Content</span>}
     <p className="text-xs text-muted-foreground mt-2">{isFree?'Free access':fanClub?'Fan Club members only':pwyw?`Pay What You Want · minimum $${price}`:`Buy access · $${price}`}</p>
     <p className="text-[10px] text-muted-foreground mt-1">Hosted on {getPlatformLabel(release.hostingPlatform)} · access purchase, not an audio-file download.</p>
+    <ContentReleasePublicPreview releaseId={release.id} hasPreview={release.hasPreview === true} title={release.title}/>
    </div>
   </div>
   <div className="flex flex-col gap-2 sm:w-44 shrink-0">
    {owner&&<p className="text-xs text-muted-foreground">Your release. Fans see the purchase controls.</p>}
-   {hasAccess?<Button size="sm" className="gap-1 text-xs" disabled={!url} onClick={()=>window.open(url,'_blank','noopener,noreferrer')}><ExternalLink className="h-3 w-3"/>{owner?'Creator preview':'Watch / Listen'}</Button>
+   {hasAccess?<Button size="sm" className="gap-1 text-xs" disabled={!url} onClick={()=>window.open(url,'_blank','noopener,noreferrer')}><ExternalLink className="h-3 w-3"/>{owner?'Open full release':'Watch / Listen'}</Button>
     :fanClub?<Button size="sm" variant="outline" onClick={()=>navigate('/fan-club-discovery')}>Join Fan Club</Button>
     :<>
       {pwyw&&<div><label className="text-xs font-medium" htmlFor={`release-price-${release.id}`}>Your price (USD)</label><Input id={`release-price-${release.id}`} type="number" inputMode="decimal" min={minimum/100} step="0.01" value={amount} onChange={event=>setAmount(event.target.value)} className="mt-1 h-9"/></div>}

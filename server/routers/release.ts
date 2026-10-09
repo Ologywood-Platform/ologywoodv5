@@ -47,6 +47,13 @@ async function withUrls(release: any) {
   return result;
 }
 
+async function publicReleaseView(release: any) {
+  const { audioFileKey, previewFileKey, audioUrl, previewUrl, ...metadata } = release;
+  const coverArtUrl = release.coverArtKey ? (await storageGet(release.coverArtKey)).url : null;
+  return { ...metadata, audioFileKey: null, previewFileKey: null, audioUrl: null, previewUrl: null,
+    hasPreview: Boolean(previewFileKey || audioFileKey), coverArtUrl };
+}
+
 // Helper to check if user is an artist
 const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== "artist" && ctx.user.role !== "admin") {
@@ -381,12 +388,15 @@ export const releaseRouter = router({
    */
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const release = await db.getReleaseById(input.id);
       if (!release) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Release not found" });
       }
-      return await withUrls(release);
+      const profile = ctx.user ? await db.getArtistProfileByUserId(ctx.user.id) : null;
+      if (profile?.id === release.artistId) return withUrls(release);
+      if (release.status !== 'published') throw new TRPCError({ code: 'NOT_FOUND', message: 'Release not found' });
+      return publicReleaseView(release);
     }),
 
   /**
@@ -396,7 +406,7 @@ export const releaseRouter = router({
     .input(z.object({ artistId: z.number() }))
     .query(async ({ input }) => {
       const releases = await db.getPublishedReleasesByArtistId(input.artistId);
-      return await Promise.all(releases.map(withUrls));
+      return await Promise.all(releases.map(publicReleaseView));
     }),
 
   /**

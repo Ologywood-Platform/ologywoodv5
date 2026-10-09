@@ -2183,6 +2183,7 @@ export const contentReleases = mysqlTable("releases", {
   duration: varchar("duration", { length: 50 }),
   thumbnailUrl: text("thumbnailUrl"),
   trailerUrl: text("trailerUrl"),
+  previewMedia: text("previewMedia"), // Signed owner-bound reference to a server-trimmed public clip
   hostingPlatform: varchar("hostingPlatform", { length: 50 }).notNull(),
   contentUrl: text("contentUrl").notNull(),
   accessModel: varchar("accessModel", { length: 50 }).notNull().default("free"),

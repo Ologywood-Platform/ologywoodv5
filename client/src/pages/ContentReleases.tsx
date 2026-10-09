@@ -24,6 +24,7 @@ import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDis
 import { EMPTY_AI_DISCLOSURE, getAiDisclosureFormValue, type AiDisclosureFormValue } from "@shared/aiDisclosure";
 import { CONTENT_RELEASE_TYPES, getContentReleaseTypeLabel, getContentReleaseErrorMessage } from "@shared/contentReleaseTypes";
 import { ContentReleaseArtwork, ContentReleaseCoverUpload } from "@/components/ContentReleaseCoverArt";
+import { ContentReleasePreviewUpload } from "@/components/ContentReleasePreview";
 
 // Release type icons
 function getReleaseTypeIcon(type: string) {
@@ -107,6 +108,8 @@ export default function ContentReleases() {
   const [duration, setDuration] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState("");
+  const [isUploadingPreview, setIsUploadingPreview] = useState(false);
   const [hostingPlatform, setHostingPlatform] = useState("youtube");
   const [contentUrl, setContentUrl] = useState("");
   const [accessModel, setAccessModel] = useState("free");
@@ -122,6 +125,7 @@ export default function ContentReleases() {
     setSaveError(null);
     setTitle(""); setDescription(""); setReleaseType("movie"); setGenre("");
     setThumbnailUrl(""); setIsUploadingCover(false);
+    setPreviewMedia(""); setIsUploadingPreview(false);
     setDuration(""); setHostingPlatform("youtube"); setContentUrl("");
     setAccessModel("free"); setPrice(""); setMinPrice(""); setIsPublished(false);
     setIncludesLiveQA(false); setIncludesBonusContent(false); setBonusContentDescription("");
@@ -137,6 +141,8 @@ export default function ContentReleases() {
     setGenre(release.genre || "");
     setDuration(release.duration || "");
     setThumbnailUrl(release.thumbnailUrl || "");
+    setPreviewMedia(release.previewMedia || "");
+    setIsUploadingPreview(false);
     setHostingPlatform(release.hostingPlatform);
     setContentUrl(release.contentUrl);
     setAccessModel(release.accessModel);
@@ -152,7 +158,7 @@ export default function ContentReleases() {
 
   function handleSubmit() {
     setSaveError(null);
-    if (isUploadingCover) { toast.error('Please wait for your cover art to finish uploading.'); return; }
+    if (isUploadingCover || isUploadingPreview) { toast.error('Please wait for your cover art or preview to finish uploading.'); return; }
     if (!title.trim()) { toast.error("Title is required"); return; }
     if (!contentUrl.trim()) { toast.error("Content URL is required"); return; }
     try { new URL(contentUrl); } catch { toast.error("Please enter a valid URL"); return; }
@@ -182,6 +188,8 @@ export default function ContentReleases() {
       aiUseComponents: aiDisclosure.enabled ? aiDisclosure.components : [],
       aiUseTools: aiDisclosure.enabled ? aiDisclosure.tools.trim() || null : null,
       aiUseNotes: aiDisclosure.enabled ? aiDisclosure.notes.trim() || null : null,
+      // A blank value on update explicitly removes a prior preview; a new release omits it when no preview was added.
+      ...(editingId ? { previewMedia } : previewMedia ? { previewMedia } : {}),
     };
 
     if (editingId) {
@@ -263,7 +271,17 @@ export default function ContentReleases() {
                 <CardDescription>Give your release a visual identity on your profile.</CardDescription>
               </CardHeader>
               <CardContent>
-                <ContentReleaseCoverUpload url={thumbnailUrl} releaseId={editingId ?? undefined} onChange={setThumbnailUrl} onBusyChange={setIsUploadingCover} disabled={createMutation.isPending || updateMutation.isPending} />
+                <ContentReleaseCoverUpload url={thumbnailUrl} releaseId={editingId ?? undefined} onChange={setThumbnailUrl} onBusyChange={setIsUploadingCover} disabled={isUploadingPreview || createMutation.isPending || updateMutation.isPending} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>30-Second Preview (optional)</CardTitle>
+                <CardDescription>Give visitors a short, safe preview without exposing your full hosted release.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContentReleasePreviewUpload previewMedia={previewMedia} releaseId={editingId ?? undefined} onChange={setPreviewMedia} onBusyChange={setIsUploadingPreview} disabled={isUploadingCover || createMutation.isPending || updateMutation.isPending} />
               </CardContent>
             </Card>
 
@@ -379,7 +397,7 @@ export default function ContentReleases() {
               <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{saveError}</div>
             )}
             <div className="flex gap-3">
-              <Button onClick={handleSubmit} disabled={isUploadingCover || createMutation.isPending || updateMutation.isPending} className="flex-1">
+              <Button onClick={handleSubmit} disabled={isUploadingCover || isUploadingPreview || createMutation.isPending || updateMutation.isPending} className="flex-1">
                 {(createMutation.isPending || updateMutation.isPending) ? (
                   <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Saving...</>
                 ) : editingId ? 'Update Release' : 'Create Release'}

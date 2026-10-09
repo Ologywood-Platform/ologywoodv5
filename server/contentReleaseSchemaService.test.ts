@@ -4,7 +4,7 @@ import { MySqlDialect } from 'drizzle-orm/mysql-core';
 import { ensureContentReleaseSchema, resetContentReleaseSchemaForTests } from './services/contentReleaseSchemaService';
 
 const dialect = new MySqlDialect();
-const names = ['aiUseDisclosureEnabled', 'aiUseLevel', 'aiUseComponents', 'aiUseTools', 'aiUseNotes'];
+const names = ['aiUseDisclosureEnabled', 'aiUseLevel', 'aiUseComponents', 'aiUseTools', 'aiUseNotes', 'previewMedia'];
 const queryText = (query: any) => typeof query === 'string' ? query : dialect.sqlToQuery(query).sql;
 function mockDatabase(columns: string[] = names) {
   const commands: string[] = [];
@@ -31,7 +31,7 @@ describe('Content Release runtime schema compatibility', () => {
   });
 
   it('repairs only missing optional AI columns on an older table', async () => {
-    const db = mockDatabase(['aiUseLevel', 'aiUseTools']);
+    const db = mockDatabase(['aiUseLevel', 'aiUseTools', 'previewMedia']);
     await ensureContentReleaseSchema(db);
     const alters = db.commands.filter(c => c.startsWith('ALTER'));
     expect(alters).toHaveLength(3);

@@ -8,6 +8,7 @@ import { Router, Request, Response } from "express";
 import { storageGet } from "../storage";
 import * as db from "../db";
 import { sdk } from "../_core/sdk";
+import { getMusicPreview } from "../services/releasePreviewMedia";
 
 const router = Router();
 
@@ -88,12 +89,12 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
 /**
  * GET /api/release/download/preview/:releaseId
  * Stream or redirect to a 30-second preview (public, no auth required).
- * Falls back to the full file if no preview is available.
+ * Always returns a separately clipped preview, never the full audio source.
  */
 router.get("/preview/:releaseId", async (req: Request, res: Response) => {
   try {
-    const releaseId = parseInt(req.params.releaseId);
-    if (isNaN(releaseId)) {
+    const releaseId = Number(req.params.releaseId);
+    if (!Number.isInteger(releaseId) || releaseId < 1) {
       return res.status(400).json({ error: "Invalid release ID" });
     }
 
@@ -102,18 +103,10 @@ router.get("/preview/:releaseId", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Release not found" });
     }
 
-    // Use dedicated preview file if available, otherwise fall back to full audio
-    // The client-side player will limit playback to 30 seconds
-    const previewKey = release.previewFileKey;
-    if (previewKey) {
-      const { url } = await storageGet(previewKey);
-      return res.json({ success: true, previewUrl: url, hasPreviewFile: true });
-    }
-
-    // Fall back to full audio file — client will cap at 30 seconds
-    if (release.audioFileKey) {
-      const { url } = await storageGet(release.audioFileKey);
-      return res.json({ success: true, previewUrl: url, hasPreviewFile: false });
+    const sourceKey = release.previewFileKey || release.audioFileKey;
+    if (sourceKey) {
+      const previewUrl = await getMusicPreview(sourceKey);
+      return res.json({ success: true, previewUrl, hasPreviewFile: true, maxSeconds: 30 });
     }
 
     return res.status(404).json({ error: "Preview not available for this release" });

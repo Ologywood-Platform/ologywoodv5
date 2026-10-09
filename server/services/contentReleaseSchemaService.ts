@@ -9,9 +9,10 @@ const DISCLOSURE_COLUMNS = [
   { name: 'aiUseComponents', definition: '`aiUseComponents` json' },
   { name: 'aiUseTools', definition: '`aiUseTools` varchar(300)' },
   { name: 'aiUseNotes', definition: '`aiUseNotes` varchar(1000)' },
+  { name: 'previewMedia', definition: '`previewMedia` text NULL' },
 ] as const;
 
-/** Restore only schema declared in migrations 0102, 0111, and 0113.
+/** Restore only schema declared in migrations 0102, 0111, 0113 and 0115.
  * No release, purchase, payment, or user row is inserted, updated, or removed.
  * MySQL/TiDB require inspection before ADD COLUMN (no IF NOT EXISTS support).
  */
@@ -30,6 +31,7 @@ export function ensureContentReleaseSchema(db: ContentReleaseSchemaDb): Promise<
       \`duration\` varchar(50),
       \`thumbnailUrl\` text,
       \`trailerUrl\` text,
+      \`previewMedia\` text,
       \`hostingPlatform\` varchar(50) NOT NULL,
       \`contentUrl\` text NOT NULL,
       \`accessModel\` varchar(50) NOT NULL DEFAULT 'free',

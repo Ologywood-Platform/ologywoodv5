@@ -4833,3 +4833,14 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verified read-only real-router Dawud link, isolated desktop/mobile popup navigation and no-mutation checks; no user/profile/grant/payment data or schema changed
 - [x] Passed 17 new behavioral tests, 36 focused tests, all 2,987 platform tests with 23 skipped, TypeScript, production build and diff hygiene
 - [ ] Publish admin profile-navigation checkpoint and verify live Users name clicks open creator/venue profiles in new tabs
+
+## THIRTY-SECOND RELEASE PREVIEWS (Oct 9, 2026)
+- [x] Replaced uploaded music's full-file preview fallback with separately encoded up-to-30-second samples, lazy generation and cached repeat delivery; public metadata no longer exposes full audio keys/URLs
+- [x] Added Content Release owner audio/video preview uploads, optional saved sample state, replace/remove/cancel behavior and independent on-demand public preview controls without changing purchase controls
+- [x] Preserved existing hosted releases with truthful Preview not added yet state; no automatic extraction from external/private links and no preview requirement imposed on legacy content
+- [x] Added owner-bound signed preview references, published/owner-draft gates, local-only bounded FFmpeg processing, byte/container/duration/size validation and upload/conversion limits
+- [x] Applied reviewed additive migration 0115 and narrow runtime preview-column guard; confirmed runtime release/receipt counts unchanged and no real user/content/payment/subscription records modified
+- [x] Updated Help and deterministic AI preview guidance; preserved plan limits, prices, all fees, purchase/refund gates and download-count behavior
+- [x] Passed 88 focused tests, all 3,022 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; synthetic real-storage clipping/cache checks returned HTTP 200
+- [x] Verified isolated desktop/mobile upload error/retry, seek cap, explicit save attachment, public on-demand playback/clear and intact purchase controls with all API calls intercepted
+- [ ] Publish the preview checkpoint and verify live music sample delivery and Content Release owner preview controls without modifying real content unless intentionally saved by its creator

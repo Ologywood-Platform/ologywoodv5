@@ -242,6 +242,12 @@ const faqItems: FAQItem[] = [
     answer: 'Singles, Albums, Movies, Documentaries, Short Films, Web Series, Concerts, Livestreams, Podcast Episodes, Courses, Masterclasses, Interviews, Music Videos, and Behind the Scenes content. Choose Single for one song hosted externally. The same system works for every creator type on the platform.',
   },
   {
+    id: 'content-release-preview',
+    category: 'Content Releases',
+    question: 'How do 30-second release previews work?',
+    answer: 'Fans can sample up to 30 seconds before buying. Uploaded Music Releases generate a separate trimmed audio clip automatically when first requested; later requests reuse it. For externally hosted Content Releases, edit or create your release and upload audio or video in 30-second Preview, then save. MP3, WAV, FLAC, AAC, M4A, MP4, MOV and WebM are supported up to 20 MB and five minutes. The server uses only the first 30 seconds, or the whole sample if shorter. You can replace or remove the sample when editing. Existing hosted releases are unchanged and show Preview not added yet until you add a sample. Full content stays with your chosen host; the preview never reveals a paid source link, grants full access, consumes downloads or changes prices, fees or plan limits.',
+  },
+  {
     id: 'content-release-single',
     category: 'Content Releases',
     question: 'How do I release a single song?',

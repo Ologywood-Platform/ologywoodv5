@@ -24,8 +24,10 @@ import { RateLimiter } from "../utils/rateLimiter";
 
 import { createContentReleaseCheckout } from "../services/contentReleaseCommerceService";
 import { contentReleasePublicView, isVerifiedContentPurchase } from "../../shared/contentReleaseCommerce";
+import { PREVIEW_INPUT_BYTES, PREVIEW_ERROR, readPreviewReference, resolveHostedPreview, uploadHostedPreview } from "../services/releasePreviewMedia";
 
 export const contentReleaseCoverLimiter = new RateLimiter({maxRequests:10, windowMs:60_000});
+export const contentReleasePreviewLimiter = new RateLimiter({maxRequests:6, windowMs:60_000});
 
 // Release type options
 export const RELEASE_TYPES = CONTENT_RELEASE_TYPES;
@@ -41,7 +43,7 @@ function safeReleaseError(path: string, error: TRPCError): never {
   // Record only the operation and driver code, never SQL or creator input.
   const cause = error.cause as { code?: string; cause?: { code?: string } } | undefined;
   console.error('[ContentRelease] Operation failed', { path, code: cause?.code ?? cause?.cause?.code ?? error.code });
-  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: path.endsWith('uploadCoverArt') ? CONTENT_RELEASE_COVER_UPLOAD_ERROR : path.endsWith('purchase') ? 'We could not start checkout. No access was granted. Please try again.' : CONTENT_RELEASE_SAVE_ERROR });
+  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: path.endsWith('uploadPreview') || path.endsWith('getPreview') ? PREVIEW_ERROR : path.endsWith('uploadCoverArt') ? CONTENT_RELEASE_COVER_UPLOAD_ERROR : path.endsWith('purchase') ? 'We could not start checkout. No access was granted. Please try again.' : CONTENT_RELEASE_SAVE_ERROR });
 }
 
 const releaseProtectedProcedure = protectedProcedure.use(async ({ next, path }) => {
@@ -88,6 +90,7 @@ const createReleaseInput = z.object({
     try { return ['https:', 'http:'].includes(new URL(value).protocol); } catch { return false; }
   }, 'Please use a valid uploaded cover-art URL.').optional(),
   trailerUrl: z.string().optional(),
+  previewMedia: z.string().max(2048).optional(),
   hostingPlatform: z.string().min(1).max(50),
   contentUrl: z.string().url(),
   accessModel: z.string().max(50).default('free'),
@@ -111,6 +114,41 @@ const updateReleaseInput = createReleaseInput.partial().extend({
 });
 
 export const releasesRouter = router({
+  uploadPreview: releaseProtectedProcedure
+    .input(z.object({
+      fileData: z.string().min(1).max(Math.ceil(PREVIEW_INPUT_BYTES / 3) * 4 + 128),
+      mimeType: z.enum(['audio/mpeg','audio/wav','audio/x-wav','audio/flac','audio/x-flac','audio/aac','audio/mp4','audio/x-m4a','video/mp4','video/quicktime','video/webm']),
+      releaseId: z.number().int().positive().optional(),
+    }))
+    .mutation(async ({ctx,input}) => {
+      if(!['artist','admin'].includes(ctx.user.role)) throw new TRPCError({code:'FORBIDDEN',message:'Creator access required.'});
+      if(!contentReleasePreviewLimiter.check(String(ctx.user.id)).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS',message:'Too many preview uploads. Please wait a minute.'});
+      const database = await getReleaseDb();
+      const [profile] = await database.select({id:artistProfiles.id}).from(artistProfiles).where(eq(artistProfiles.userId,ctx.user.id)).limit(1);
+      if(!profile) throw new TRPCError({code:'NOT_FOUND',message:'Artist profile not found'});
+      if(input.releaseId !== undefined){
+        const [release] = await database.select({id:releases.id}).from(releases).where(and(eq(releases.id,input.releaseId),eq(releases.userId,ctx.user.id))).limit(1);
+        if(!release) throw new TRPCError({code:'NOT_FOUND',message:'Release not found'});
+      } else {
+        const {getSubscriptionByUserId}=await import('../db');
+        const subscription=await getSubscriptionByUserId(ctx.user.id);
+        if(!subscription || subscription.tier==='free')throw new TRPCError({code:'FORBIDDEN',message:'Content Releases require Starter or higher.'});
+        if(subscription.tier==='starter'){
+          const existing=await database.select({id:releases.id}).from(releases).where(eq(releases.userId,ctx.user.id));
+          if(existing.length>=2)throw new TRPCError({code:'FORBIDDEN',message:'Starter plan is limited to 2 releases. Edit an existing release or upgrade.'});
+        }
+      }
+      return uploadHostedPreview(ctx.user.id,input.fileData,input.mimeType);
+    }),
+  getPreview: releasePublicProcedure
+    .input(z.object({releaseId:z.number().int().positive()}))
+    .query(async ({ctx,input}) => {
+      const database=await getReleaseDb();
+      const [release]=await database.select({userId:releases.userId,isPublished:releases.isPublished,previewMedia:releases.previewMedia}).from(releases).where(eq(releases.id,input.releaseId)).limit(1);
+      if(!release || (!release.isPublished && release.userId!==ctx.user?.id))throw new TRPCError({code:'NOT_FOUND',message:'Preview not found'});
+      if(!release.previewMedia)throw new TRPCError({code:'NOT_FOUND',message:'The creator has not added a preview yet.'});
+      return resolveHostedPreview(release.previewMedia,release.userId);
+    }),
   // Upload only stores a new image. Save/Create explicitly attaches it to a release.
   uploadCoverArt: releaseProtectedProcedure
     .input(z.object({
@@ -185,6 +223,7 @@ export const releasesRouter = router({
       }
 
       const aiDisclosure = normalizeAiDisclosure(input) ?? EMPTY_AI_DISCLOSURE_DB;
+      if(input.previewMedia) readPreviewReference(input.previewMedia,ctx.user.id);
       const result = await database.insert(releases).values({
         artistProfileId: profile.id,
         userId: ctx.user.id,
@@ -195,6 +234,7 @@ export const releasesRouter = router({
         duration: input.duration || null,
         thumbnailUrl: input.thumbnailUrl || null,
         trailerUrl: input.trailerUrl || null,
+        previewMedia: input.previewMedia || null,
         hostingPlatform: input.hostingPlatform,
         contentUrl: input.contentUrl,
         accessModel: input.accessModel,
@@ -235,6 +275,10 @@ export const releasesRouter = router({
       if (data.duration !== undefined) updateData.duration = data.duration || null;
       if (data.thumbnailUrl !== undefined) updateData.thumbnailUrl = data.thumbnailUrl || null;
       if (data.trailerUrl !== undefined) updateData.trailerUrl = data.trailerUrl || null;
+      if (data.previewMedia !== undefined) {
+        if(data.previewMedia) readPreviewReference(data.previewMedia,ctx.user.id);
+        updateData.previewMedia = data.previewMedia || null;
+      }
       if (data.hostingPlatform !== undefined) updateData.hostingPlatform = data.hostingPlatform;
       if (data.contentUrl !== undefined) updateData.contentUrl = data.contentUrl;
       if (data.accessModel !== undefined) updateData.accessModel = data.accessModel;
