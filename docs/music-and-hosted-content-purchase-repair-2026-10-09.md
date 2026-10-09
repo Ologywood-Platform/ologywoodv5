@@ -1,7 +1,7 @@
 # Music visibility and hosted-content purchases
 
 **Date:** October 9, 2026  
-**Status:** Implemented and validated in development; publication and live verification pending.
+**Status:** Published in checkpoint `9edb771b`; non-mutating production verification completed October 9, 2026.
 
 ## Findings
 
@@ -49,8 +49,14 @@ Reviewed migration `0113_boring_gunslinger.sql` adds only `paymentStatus` to `co
 - Final read-only database audit confirmed both real releases remain published and the owner's existing subscription status is unchanged. Disposable audit scripts were removed.
 - Diff whitespace checks and changed-file conflict-marker/credential/artifact review passed.
 
-## Required production closeout
+## Production verification
 
-Publish the checkpoint, then verify the original song, hosted price, cover-art controls, purchaser login and Help on the live site. Do not represent mocked Checkout as a completed live payment. A controlled Stripe test-mode end-to-end purchase/refund requires a separately scoped test transaction and should not modify real creator releases or customer receipts.
+The creator confirmed publication of checkpoint `9edb771b`. The live Adonis profile now renders **Keep Pushin test release**, its **$3.00 or more** price, **two sales**, Preview and Name Your Price controls. **Try Again 2** renders as a Single with a **$1.50 Pay What You Want minimum**, an amount field initialized to 1.50 and Sign in to buy. The live public hosted-release API returned HTTP 200 and redacted the protected content URL.
+
+The live profile Buy shortcut targets the Music section. Sign in to buy opens the existing login modal in place and keeps `/artist/adonis`, without submitting credentials or starting Checkout. The published Help answer and live deterministic AI endpoint explain uploaded music versus hosted access, payment confirmation, owner preview, My Ology, and unchanged unlimited Professional/Enterprise limits. The AI endpoint returned HTTP 200.
+
+The production bundle contains Cover Art upload, replace/remove controls, the upload API reference and 10 MB guidance; the matching live Help article is visible. The browser was signed out, so this is deployment/public guidance verification, not an authenticated owner upload or save test. No cover, release, purchase, payment or subscription was changed during production verification.
+
+No live payment or Stripe Checkout Session was created. Development mocked Checkout and regression evidence remain distinct from a completed live transaction. A controlled Stripe test-mode end-to-end purchase/refund requires a separately scoped test transaction and should not modify real creator releases or customer receipts. The previously identified Enterprise/cancelled subscription mismatch remains outside this repair and was not changed.
 
 External hosting remains external: OlogyWood protects its own access handoff, but a public or shared YouTube URL cannot be made private or DRM-protected by this paywall.

@@ -4779,7 +4779,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Passed 54 focused tests and all 2,871 full-suite tests with 23 skipped and zero failures, TypeScript, production build and repository hygiene
 - [x] Passed isolated desktop/mobile upload rejection, failure/retry, replacement/removal persistence, cancel isolation and new-Single cover checks with every API request intercepted; verified a synthetic real-storage WebP returns HTTP 200 with a stable URL
 - [x] Recorded user confirmation that the prior Single/save repair works; an automated public probe was blocked by HTTP 403 and was not treated as successful independent production verification
-- [ ] Publish the cover-art checkpoint and verify live upload controls and Help; the creator can then Edit their Single and Update Release with artwork
+- [x] Cover-art implementation published within checkpoint `9edb771b`; live Help and deployed production bundle verified upload/replace/remove controls and 10 MB guidance. Browser signed out, so no authenticated owner upload or save was exercised and no real artwork was changed
 
 ## MUSIC VISIBILITY AND HOSTED PURCHASE REPAIR (Oct 9, 2026)
 - [x] Confirmed original Keep Pushin test release remains published with two sales; repaired unsupported optional-column schema syntax using narrow explicit MySQL/TiDB column inspection
@@ -4792,4 +4792,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Confirmed Professional/Enterprise unlimited release rules remain unchanged; read-only audit found owner's Enterprise record status cancelled, which was not changed and requires a separate subscription reconciliation
 - [x] Passed 53 focused tests including 14 behavioral commerce regressions; all 2,889 platform tests passed with 23 skipped, TypeScript and production build passed, and changed-file hygiene found no credential patterns, merge markers or temporary scripts
 - [x] Development real-profile reads and isolated desktop/mobile fan tests verified original music, $1.50 hosted minimum, under-minimum block, retained amount after error, mocked checkout retry and in-place login; no real purchase or payment created
-- [ ] Publish the music/hosted-purchase checkpoint and verify live original song, hosted price, purchaser controls and Help without creating a charge
+- [x] Published `9edb771b`; live profile verified original song with two sales, Try Again 2 Single with $1.50 minimum, music-first Buy, in-place purchaser login, protected public URL redaction (HTTP 200), live Help and deterministic AI guidance (HTTP 200). No live Checkout/payment or record change; Enterprise/cancelled subscription mismatch remains a separate reconciliation
