@@ -1,7 +1,7 @@
 # Owner-controlled complimentary access
 
 **Date:** October 9, 2026  
-**Status:** Implemented and validated; production publication and live verification pending.
+**Status:** Published; owner confirmed successful live use and issued intended grants. Independent authenticated production UI verification is not claimed.
 
 ## Where to find it
 
@@ -65,6 +65,8 @@ At expiration or revocation, the next protected feature request resolves the acc
 
 The owner confirmed publication of checkpoint **6e47c485**. Production Artist Dashboard and Pricing bundles contain complimentary owner/zero-fee UI; an unauthenticated subscription request returned HTTP 401. Owner Enterprise was rechecked through read-only local router integration, with unchanged raw billing. The browser was signed out, so this is not a claim of independent authenticated production UI verification.
 
-## Remaining step
+## Production closeout and grant emails
 
-Publish the new complimentary-grant checkpoint. Then verify the authenticated owner sees the management action in live Admin Users, can open an existing account's details and close/review without issuing a grant, and that ordinary admins remain denied. Issue a real grant only for an account you actually intend to authorize.
+The owner confirmed the published grant feature is working great on October 9, 2026. Read-only follow-up found the owner's intended real grants; earlier zero-row counts describe the pre-publication test state, not current production.
+
+The owner separately requested confirmation emails for granted users. Individual emails were sent through the configured provider and logged, with plan, zero subscription fee, expiration/revocation language, account links, approved logo and unsubscribe links. This was a one-time authorized send, not an automatic email trigger on future grants. See `docs/complimentary-access-email-confirmations-2026-10-09.md` for outcomes and delivery limitations.

@@ -4816,4 +4816,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Read-only real-account verification confirmed owner capability, ordinary-user inspect denial, unchanged owner raw billing and zero grant/audit rows; no real access issued
 - [x] Passed isolated desktop/mobile grant retry, draft retention, stale review, revoke/history, Cancel and non-owner-hidden checks with every API request intercepted
 - [x] Passed all 2,960 tests with 23 skipped, TypeScript, production build and scoped repository hygiene
-- [ ] Publish complimentary grants checkpoint and verify owner-only live management controls without issuing a grant unless explicitly intended
+- [x] Owner confirmed the published complimentary grant feature is working great and issued intended real grants. Completion is based on owner live confirmation and read-only current grants; no independent authenticated production UI test is claimed
+
+## COMPLIMENTARY GRANT EMAIL CONFIRMATIONS (Oct 9, 2026)
+- [x] Owner requested emails for current grants; identified 11 initial active recipients and one additional newly granted recipient, respecting verified email and global opt-outs
+- [x] Sent 12 individual branded plan confirmations (10 Enterprise, 2 Professional) through configured SendGrid with $0 subscription fee, no-scheduled-expiry/revocation language, canonical sign-in/settings links, unchanged fees and visible unsubscribe
+- [x] Recorded all 12 provider-accepted sends in existing email logs; inbox delivery/opening is not claimed
+- [x] Added HTML-escaped reusable template and explicit manual owner send utility with dry run, active-grant/billing checks, optional targeted send and recipient/revision attempt reservations to avoid blind resends
+- [x] Verified prior sends skipped on dry-run follow-up and targeted only the new account; no grant/subscription/role/fee changes were made and private reasons were not emailed
+- [x] Passed 10 new email tests, full suite with 2,970 passing and 23 skipped, TypeScript, production build and hygiene; no future automatic trigger or scheduler added
