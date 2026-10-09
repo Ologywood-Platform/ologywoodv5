@@ -245,8 +245,12 @@ export const CONTENT_RELEASE_COVER_GUIDANCE = "To add cover art, open Content Re
 
 export const MUSIC_PURCHASE_GUIDANCE = "Open the creator profile. Uploaded Music Releases show Buy with the price or Name Your Price and add a downloadable, playable track to My Ology > Music library. Externally hosted Content Releases show Buy access or Your price for Pay What You Want, with the minimum price shown. Sign in and continue to secure Stripe checkout; hosted access is granted only after payment confirmation. Find it in My Ology or My Purchases under Hosted content purchases and select Watch / Listen. Hosted access does not include an audio-file download. Creators see Creator preview on their own hosted releases. Professional and Enterprise allow unlimited releases; Starter allows two. A published song is not removed by the creation limit.";
 
+export const COMPLIMENTARY_ACCESS_GUIDANCE = 'Only the verified platform owner can grant complimentary Starter, Professional, or Enterprise plan access in Admin → Users → Manage complimentary access. Select the account, plan, optional expiry and reason, acknowledge the billing notice, then review and confirm. The owner can replace or revoke a grant; audit history is retained. Recipients see their granted plan at $0 subscription fee and its expiry in subscription settings. At expiry or revocation, access returns to the underlying eligible subscription or Free plan, without automatically starting paid billing. Active, trialing, past-due, paused, period-end or unverified cancelled Stripe billing must be resolved separately before granting access. This tool does not cancel Stripe billing or waive transaction fees, processing fees, fan purchases, plan limits or role/ownership rules. No redemption code is available and complimentary access does not give admin permissions.';
+
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
+
+  if (/\bcomplimentary\b|\bgrant\b.*\b(free|access|plan)\b|\bfree access\b/.test(normalized)) return COMPLIMENTARY_ACCESS_GUIDANCE;
 
   if (/\b(buy|purchase|pay|unlimited|missing|disappeared)\b/.test(normalized) && /\b(music|single|song|release|content)\b/.test(normalized)) return MUSIC_PURCHASE_GUIDANCE;
 

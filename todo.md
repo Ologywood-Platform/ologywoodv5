@@ -4803,4 +4803,17 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added 22 permanent identity, billing-guard and UI regressions; all 2,911 tests passed with 23 skipped, TypeScript passed, production build passed, and desktop/mobile authenticated owner UI verified
 - [x] Verified actual owner raw billing and an existing non-owner subscription remain unchanged; removed disposable read-only validators
 - [x] Documented recommendation for account-specific owner-authorized complimentary grants with optional expiration/revocation/audit; no codes or other-user grants implemented or issued
-- [ ] Publish the owner-access checkpoint and verify complimentary Enterprise display and feature access on production without creating a payment or modifying creator records
+- [x] Owner confirmed publication of `6e47c485`; deployed Artist Dashboard and Pricing chunks contain complimentary owner and zero-fee UI. Signed-out subscription access remains HTTP 401; authenticated owner feature access was reverified read-only locally, without claiming a separate authenticated production check
+
+## OWNER-CONTROLLED COMPLIMENTARY ACCESS (Oct 9, 2026)
+- [x] Added verified-owner-only Admin Users → Plan access → Manage complimentary access for account-specific Starter, Professional or Enterprise grants with optional expiry, required reason and billing acknowledgement
+- [x] Added reviewed additive migration 0114 and narrow idempotent runtime guard for separate grant state and append-only history; preserved existing subscription/user/payment data
+- [x] Added atomic grant/revoke plus audit transactions, account locking, expected revisions, frozen review snapshots, retry/error recovery and protected owner target
+- [x] Enforced expiry/revocation on effective subscription reads with underlying eligible plan/Free fallback; preserved protected owner Enterprise, raw Stripe billing, role/privacy boundaries, marketplace fees and fan purchases
+- [x] Blocked active/trialing/past-due/paused Stripe subscriptions, scheduled period-end cancellations and unverified cancelled billing from silent complimentary replacement; no Stripe changes or redemption codes
+- [x] Added recipient tier-aware $0 subscription/expiry presentation in subscription settings and pricing; disabled accidental paid checkout during active grants
+- [x] Added Help/AI guidance and unobscured responsive grant dialog layers above global Terms notices without changing default dialog behavior
+- [x] Read-only real-account verification confirmed owner capability, ordinary-user inspect denial, unchanged owner raw billing and zero grant/audit rows; no real access issued
+- [x] Passed isolated desktop/mobile grant retry, draft retention, stale review, revoke/history, Cancel and non-owner-hidden checks with every API request intercepted
+- [x] Passed all 2,960 tests with 23 skipped, TypeScript, production build and scoped repository hygiene
+- [ ] Publish complimentary grants checkpoint and verify owner-only live management controls without issuing a grant unless explicitly intended

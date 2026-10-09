@@ -38,7 +38,9 @@ describe('Owner complimentary Enterprise entitlement',()=>{
  });
  it('uses effective entitlement at both central feature read paths and raw billing for upserts',()=>{
   const db=src('server/db.ts');const pricing=src('server/services/pricingTierService.ts');
-  expect(db).toContain('return resolveOwnerSubscription(user, subscription)');
+  expect(db).toContain('const ownerSubscription = resolveOwnerSubscription(user, subscription)');
+  expect(db).toContain("if (ownerSubscription?.accessSource === 'platform_owner') return ownerSubscription");
+  expect(db).toContain('return applyComplimentaryGrant(userId, ownerSubscription)');
   expect(db).toContain('const existing = await getBillingSubscriptionByUserId(data.userId)');
   expect(pricing).toContain('const subscription = await getSubscriptionByUserId(userId)');
  });

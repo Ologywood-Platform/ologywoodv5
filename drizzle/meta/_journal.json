@@ -806,6 +806,13 @@
       "when": 1791567733824,
       "tag": "0113_boring_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "5",
+      "when": 1791570552915,
+      "tag": "0114_rich_wendigo",
+      "breakpoints": true
     }
   ]
 }

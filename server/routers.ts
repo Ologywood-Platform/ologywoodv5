@@ -59,6 +59,7 @@ import { ologyLivePhase2Router } from "./routers/ologyLivePhase2";
 import { sandboxPostRouter } from "./routers/sandboxPost";
 import { nilComplianceRouter } from "./routers/nilCompliance";
 import { discoverySearchRouter } from "./routers/discoverySearch";
+import { complimentaryAccessRouter } from './routers/complimentaryAccess';
 import { newsletterLimiter } from "./utils/rateLimiter";
 import * as notif from "./services/notificationService";
 
@@ -85,7 +86,9 @@ const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) =
   if (subscription?.isComplimentary) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: 'Your complimentary Enterprise owner access needs no paid subscription. Existing billing records are unchanged.',
+      message: subscription.accessSource === 'platform_owner'
+        ? 'Your complimentary Enterprise owner access needs no paid subscription. Existing billing records are unchanged.'
+        : 'Your complimentary plan access needs no paid subscription while the grant is active. Existing billing records are unchanged.',
     });
   }
   return next({ ctx });
@@ -168,6 +171,7 @@ export const appRouter = router({
   sandboxPost: sandboxPostRouter,
   nilCompliance: nilComplianceRouter,
   discoverySearch: discoverySearchRouter,
+  complimentaryAccess: complimentaryAccessRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

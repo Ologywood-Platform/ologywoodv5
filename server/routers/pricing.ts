@@ -24,6 +24,7 @@ export const pricingRouter = router({
       isComplimentary: subscription.isComplimentary === true,
       accessSource: subscription.accessSource ?? 'subscription',
       subscriptionPrice: subscription.isComplimentary ? 0 : tier.price,
+      complimentaryExpiresAt: subscription.complimentaryExpiresAt ?? null,
       tier: subscription.tier,
       tierName: tier.name,
       status: subscription.status,

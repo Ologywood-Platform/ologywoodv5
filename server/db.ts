@@ -874,7 +874,10 @@ export async function updateSubscriptionStatus(userId: number, status: "active" 
 export async function getSubscriptionByUserId(userId: number) {
   const subscription = await getBillingSubscriptionByUserId(userId);
   const user = await getUserById(userId);
-  return resolveOwnerSubscription(user, subscription);
+  const ownerSubscription = resolveOwnerSubscription(user, subscription);
+  if (ownerSubscription?.accessSource === 'platform_owner') return ownerSubscription;
+  const { applyComplimentaryGrant } = await import('./services/complimentaryAccessService');
+  return applyComplimentaryGrant(userId, ownerSubscription);
 }
 /** Raw billing state for Stripe writes; never persist an effective-access projection. */
 export async function getBillingSubscriptionByUserId(userId: number) {

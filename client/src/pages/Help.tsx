@@ -71,6 +71,12 @@ const faqItems: FAQItem[] = [
 
   // Payments & Billing
   {
+    id: 'payment-complimentary',
+    category: 'Payments & Billing',
+    question: 'How does complimentary plan access work?',
+    answer: 'Only the verified platform owner can grant account-specific Starter, Professional, or Enterprise access in Admin → Users → Manage complimentary access. The owner chooses a plan, optional expiry, and reason, reviews the billing notice, and confirms. Grants can be replaced or revoked with retained audit history. Recipients see their granted plan at a $0 subscription fee and its expiry in subscription settings. No-expiry grants remain subject to owner revocation. Active, trialing, past-due, paused, period-end or unverified cancelled Stripe billing must be resolved separately before a grant; this tool does not cancel or refund Stripe billing. At expiry or revocation, access returns to the account’s underlying eligible subscription or Free plan, and no paid subscription is started automatically. Transaction fees, Stripe processing, fan purchases, normal plan limits, and role/ownership rules still apply. There is no public redemption code and grants do not make users admins or reveal other users’ private content.',
+  },
+  {
     id: 'payment-1',
     category: 'Payments & Billing',
     question: 'How are payments handled?',

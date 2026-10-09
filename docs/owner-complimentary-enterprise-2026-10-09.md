@@ -1,7 +1,7 @@
 # Complimentary Enterprise access for the platform owner
 
 **Date:** October 9, 2026  
-**Status:** Implemented; publication and live verification pending.
+**Status:** Published with owner confirmation; deployed code and signed-out privacy verified. Authenticated live UI was not independently rechecked in the signed-out browser.
 
 ## Authorized change
 
@@ -31,4 +31,6 @@ Desktop and mobile development screenshots verified the authenticated owner subs
 
 ## Production closeout
 
-Publish the saved checkpoint, then verify the authenticated owner sees the complimentary Enterprise card, pricing and Enterprise features on the live platform. No new Stripe subscription or customer charge is required. Do not alter real creator records solely to test feature availability. Other-user complimentary grants remain a recommended, separately scoped enhancement.
+The owner confirmed publication of checkpoint `6e47c485`. Live Artist Dashboard and Pricing bundles contain the complimentary owner UI and zero-fee wording. An unauthenticated subscription request returned HTTP 401. A later read-only real-router check again returned owner Enterprise entitlement and confirmed raw owner billing was unchanged; this local check is not a claim of independent authenticated production UI verification. No Stripe charge or creator record change was made.
+
+The owner subsequently authorized the account-specific admin grants feature. Its implementation and usage are tracked separately in `docs/owner-controlled-complimentary-access-2026-10-09.md`; no real grant was issued during validation.

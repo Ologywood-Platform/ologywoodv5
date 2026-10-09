@@ -57,6 +57,15 @@ export function SubscriptionManagement() {
     (trpc.subscription as any).getMy.useQuery(undefined, { retry: false });
 
   const isComplimentary = subscription?.isComplimentary === true;
+  const isComplimentaryGrant = isComplimentary && subscription?.accessSource === 'complimentary_grant';
+  const isComplimentaryOwner = isComplimentary && !isComplimentaryGrant;
+  const complimentaryTier: SubscriptionTier = ['starter', 'professional', 'enterprise'].includes(subscription?.tier)
+    ? subscription.tier
+    : 'enterprise';
+  const complimentaryTierInfo = TIER_INFO[complimentaryTier];
+  const complimentaryExpiresAt = subscription?.complimentaryExpiresAt
+    ? new Date(subscription.complimentaryExpiresAt)
+    : null;
 
   // Fetch live Stripe status only after the local record has loaded. Complimentary
   // owner access is authoritative and should not be blocked by a prior Stripe record.
@@ -162,7 +171,77 @@ export function SubscriptionManagement() {
     );
   }
 
-  if (isComplimentary) {
+  if (isComplimentaryGrant) {
+    const ComplimentaryIcon = complimentaryTierInfo.icon;
+    return (
+      <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-amber-100 p-2">
+                <ComplimentaryIcon className="h-5 w-5 text-amber-700" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">{complimentaryTierInfo.label} — Complimentary Access</CardTitle>
+                <CardDescription>Access provided by an Ologywood complimentary grant</CardDescription>
+              </div>
+            </div>
+            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+              Active
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-amber-200 bg-white/80 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-700">Subscription fee</span>
+              <span className="text-lg font-bold text-slate-900">$0/month</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">Granted plan</span>
+              <span className="text-sm font-medium text-slate-900">{complimentaryTierInfo.label}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600">Expiry</span>
+              <span className="text-sm font-medium text-slate-900">
+                {complimentaryExpiresAt
+                  ? complimentaryExpiresAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                  : 'No expiry'}
+              </span>
+            </div>
+            <p className="text-sm text-slate-600">
+              {complimentaryExpiresAt
+                ? `This complimentary access expires on ${complimentaryExpiresAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
+                : 'This complimentary access has no scheduled expiry.'}
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white/80 p-4">
+            <p className="text-sm font-medium text-slate-800">{complimentaryTierInfo.label} access included</p>
+            <p className="mt-1 text-sm text-slate-600">{complimentaryTierInfo.description}</p>
+          </div>
+
+          {subscription?.billingStatus && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-slate-600">Prior billing status</span>
+                <span className="text-sm font-medium text-slate-800">{subscription.billingStatus}</span>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                This complimentary grant does not cancel existing Stripe billing, invoices, or subscriptions.
+              </p>
+            </div>
+          )}
+
+          <p className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-800">
+            Complimentary access does not waive marketplace transaction fees, Stripe processing fees, or fan purchase charges. Standard role requirements and permissions still apply.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isComplimentaryOwner) {
     return (
       <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
         <CardHeader>

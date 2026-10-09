@@ -194,7 +194,7 @@ const tiers: Tier[] = [
 ];
 
 /** Renders a single pricing card */
-function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void; billingInterval: BillingInterval; currentTier?: string | null }) {
+function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier, complimentaryAccess = false }: { tier: Tier; loadingPlan: string | null; onCTA: (tier: Tier) => void; billingInterval: BillingInterval; currentTier?: string | null; complimentaryAccess?: boolean }) {
   const isCurrentPlan = currentTier && (
     (currentTier === 'starter' && tier.planSlug === 'starter') ||
     (currentTier === 'professional' && tier.planSlug === 'professional') ||
@@ -258,11 +258,13 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }:
 
         {/* CTA Button */}
         <Button
-          onClick={() => !isCurrentPlan && onCTA(tier)}
-          disabled={!!isCurrentPlan || loadingPlan === tier.name}
+          onClick={() => !isCurrentPlan && !complimentaryAccess && onCTA(tier)}
+          disabled={!!isCurrentPlan || complimentaryAccess || loadingPlan === tier.name}
           className={`w-full mb-8 ${
             isCurrentPlan
               ? "bg-green-100 text-green-800 cursor-default border border-green-200"
+              : complimentaryAccess
+                ? "bg-amber-100 text-amber-900 cursor-default border border-amber-200"
               : tier.highlight
                 ? "bg-indigo-600 hover:bg-indigo-700"
                 : tier.planSlug
@@ -275,6 +277,8 @@ function PricingCard({ tier, loadingPlan, onCTA, billingInterval, currentTier }:
               <Check className="h-4 w-4 mr-2" />
               Your Current Plan
             </>
+          ) : complimentaryAccess ? (
+            'Complimentary access active'
           ) : loadingPlan === tier.name ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -331,6 +335,14 @@ export default function Pricing() {
   });
   const currentTier: string | null = subscription?.tier || (isAuthenticated ? 'free' : null);
   const isComplimentary = subscription?.isComplimentary === true;
+  const isComplimentaryGrant = isComplimentary && subscription?.accessSource === 'complimentary_grant';
+  const isComplimentaryOwner = isComplimentary && !isComplimentaryGrant;
+  const complimentaryTier = ['starter', 'professional', 'enterprise'].includes(subscription?.tier)
+    ? subscription.tier
+    : 'enterprise';
+  const complimentaryExpiresAt = subscription?.complimentaryExpiresAt
+    ? new Date(subscription.complimentaryExpiresAt)
+    : null;
 
   // Fetch referral credit balance
   const { data: creditStats } = (trpc.referral as any).getMyStats.useQuery(undefined, {
@@ -366,8 +378,10 @@ export default function Pricing() {
   const handleCTA = (tier: Tier) => {
     if (isComplimentary) {
       toastCtx.addInfo(
-        'Complimentary Enterprise access is active',
-        'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
+        isComplimentaryGrant ? `Complimentary ${complimentaryTier} access is active` : 'Complimentary Enterprise access is active',
+        isComplimentaryGrant
+          ? 'Your complimentary grant is active, so no paid upgrade or checkout is available.'
+          : 'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
       );
       return;
     }
@@ -393,8 +407,10 @@ export default function Pricing() {
   const handleConfirmUpgrade = () => {
     if (isComplimentary) {
       toastCtx.addInfo(
-        'Complimentary Enterprise access is active',
-        'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
+        isComplimentaryGrant ? `Complimentary ${complimentaryTier} access is active` : 'Complimentary Enterprise access is active',
+        isComplimentaryGrant
+          ? 'Your complimentary grant is active, so no paid upgrade or checkout is available.'
+          : 'Your verified owner entitlement already includes Enterprise features, so no checkout is needed.'
       );
       setShowCompareModal(false);
       setPendingPlan(null);
@@ -457,8 +473,27 @@ export default function Pricing() {
           <StripeTestModeBanner />
           {isComplimentary && (
             <div className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-center shadow-sm" role="status">
-              <p className="font-semibold text-amber-900">Enterprise — Complimentary Owner Access</p>
-              <p className="mt-1 text-sm text-amber-800">$0 subscription fee — no payment needed. Regular plan pricing remains available to everyone else.</p>
+              {isComplimentaryOwner ? (
+                <>
+                  <p className="font-semibold text-amber-900">Enterprise — Complimentary Owner Access</p>
+                  <p className="mt-1 text-sm text-amber-800">$0 subscription fee — no payment needed. Regular plan pricing remains available to everyone else.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-amber-900">{complimentaryTier.charAt(0).toUpperCase() + complimentaryTier.slice(1)} — Complimentary Access</p>
+                  <p className="mt-1 text-sm text-amber-800">
+                    $0 subscription fee — no payment needed. {complimentaryExpiresAt
+                      ? `Your access expires ${complimentaryExpiresAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
+                      : 'Your access has no scheduled expiry.'}
+                  </p>
+                  {subscription?.billingStatus && (
+                    <p className="mt-2 text-xs text-amber-800">
+                      Prior billing status: {subscription.billingStatus}. This grant does not cancel Stripe billing or change invoices.
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-amber-800">Transaction fees, Stripe processing fees, fan purchase charges, and standard role requirements still apply.</p>
+                </>
+              )}
             </div>
           )}
           {/* Header */}
@@ -471,7 +506,7 @@ export default function Pricing() {
             </p>
 
             {/* Monthly / Yearly Toggle */}
-            <div className="mt-8 inline-flex items-center bg-gray-100 rounded-full p-1">
+            {!isComplimentary && <div className="mt-8 inline-flex items-center bg-gray-100 rounded-full p-1">
               <button
                 onClick={() => setBillingInterval('month')}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
@@ -493,7 +528,7 @@ export default function Pricing() {
                 Yearly
                 <span className="ml-1.5 text-xs font-semibold text-green-600">2 months free</span>
               </button>
-            </div>
+            </div>}
 
             {/* Manage Subscription link for active subscribers */}
             {currentTier && currentTier !== 'free' && (
@@ -503,7 +538,9 @@ export default function Pricing() {
                   className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                 >
                   {isComplimentary
-                    ? 'View complimentary Enterprise access'
+                    ? isComplimentaryGrant
+                      ? `View complimentary ${complimentaryTier} access`
+                      : 'View complimentary Enterprise access'
                     : `Manage your ${currentTier === 'starter' ? 'Starter' : currentTier === 'enterprise' ? 'Enterprise' : 'Professional'} subscription`}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </a>
@@ -514,7 +551,7 @@ export default function Pricing() {
           {/* Desktop: 3-column grid */}
           <div className="hidden md:grid md:grid-cols-3 gap-8 mb-12">
             {tiers.map((tier) => (
-              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} />
+              <PricingCard key={tier.name} tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} complimentaryAccess={isComplimentary} />
             ))}
           </div>
 
@@ -551,7 +588,7 @@ export default function Pricing() {
               >
                 {tiers.map((tier) => (
                   <div key={tier.name} className="w-full flex-shrink-0 px-4">
-                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} />
+                    <PricingCard tier={tier} loadingPlan={loadingPlan} onCTA={handleCTA} billingInterval={billingInterval} currentTier={currentTier} complimentaryAccess={isComplimentary} />
                   </div>
                 ))}
               </div>

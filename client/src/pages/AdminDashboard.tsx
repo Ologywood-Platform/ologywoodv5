@@ -5,6 +5,7 @@ import { useLocation } from 'wouter';
 import { Users, User, DollarSign, Calendar, TrendingUp, Search, Filter, Music, AlertTriangle, RotateCcw, BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, Archive, Upload, ImageIcon, X, MessageSquareOff, Shield, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, ClipboardList, Video, Crown, Flag } from 'lucide-react';
 import { getTalentTypeLabel } from '@shared/talentTypes';
 import { AIChatTrigger } from '@/components/AIChatWidget';
+import { AdminComplimentaryAccess } from '@/components/AdminComplimentaryAccess';
 
 export function AdminDashboard() {
   const { user } = useAuth();
@@ -417,11 +418,17 @@ function UsersTab({
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [confirmAction, setConfirmAction] = useState<{ user: any; newRole: string } | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedComplimentaryUser, setSelectedComplimentaryUser] = useState<any | null>(null);
   const utils = trpc.useUtils();
 
   // Check if current user is the owner (for display purposes)
   const isOwnerQuery = trpc.admin.isOwner.useQuery();
   const isOwner = isOwnerQuery.data?.isOwner || false;
+
+  // Independent of the legacy owner-display query: the backend validates the
+  // secure platform-owner identity before exposing this capability.
+  const complimentaryCapabilitiesQuery = trpc.complimentaryAccess.capabilities.useQuery(undefined, { retry: false });
+  const canManageComplimentaryAccess = complimentaryCapabilitiesQuery.data?.canManage === true;
 
   // Get current admins
   const adminsQuery = trpc.admin.getAdmins.useQuery();
@@ -564,7 +571,7 @@ function UsersTab({
       ) : (
         <>
           <div className="overflow-x-auto -mx-3 sm:-mx-6 px-3 sm:px-6">
-            <table className="w-full text-sm min-w-[640px]">
+            <table className="w-full text-sm min-w-[760px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
@@ -572,6 +579,7 @@ function UsersTab({
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Role</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Joined</th>
+                  {canManageComplimentaryAccess && <th className="text-left py-3 px-4 font-medium text-gray-700">Plan access</th>}
                   <th className="text-right py-3 px-4 font-medium text-gray-700">Change Role</th>
                 </tr>
               </thead>
@@ -620,6 +628,21 @@ function UsersTab({
                        )}
                       </td>
                       <td className="py-3 px-4 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      {canManageComplimentaryAccess && (
+                        <td className="py-3 px-4">
+                          {isUserOwner ? (
+                            <span className="text-xs font-medium text-amber-700">Enterprise — Owner</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedComplimentaryUser({ id: user.id, name: user.name, email: user.email })}
+                              className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
+                            >
+                              Manage complimentary access
+                            </button>
+                          )}
+                        </td>
+                      )}
                       <td className="py-3 px-4 text-right">
                         {isUserOwner ? (
                           <span className="text-xs text-gray-400 italic">Protected</span>
@@ -711,6 +734,19 @@ function UsersTab({
                 </div>
               </div>
             </div>
+          )}
+          {selectedComplimentaryUser && canManageComplimentaryAccess && (
+            <AdminComplimentaryAccess
+              user={selectedComplimentaryUser}
+              canManage={canManageComplimentaryAccess}
+              onOpenChange={(open) => {
+                if (!open) setSelectedComplimentaryUser(null);
+              }}
+              onSuccess={(message) => {
+                setSuccessMessage(message);
+                setTimeout(() => setSuccessMessage(null), 4000);
+              }}
+            />
           )}
         </>
       )}

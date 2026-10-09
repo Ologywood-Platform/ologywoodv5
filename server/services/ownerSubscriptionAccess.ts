@@ -3,9 +3,10 @@ import type { PlatformOwnerConfiguration, PlatformOwnerIdentity } from './platfo
 import { isPlatformOwner } from './platformOwnerAccess';
 
 export type EffectiveSubscription = UserSubscription & {
-  accessSource?: 'platform_owner';
+  accessSource?: 'platform_owner' | 'complimentary_grant' | 'expired_grant' | 'revoked_grant';
   isComplimentary?: boolean;
   subscriptionPrice?: number;
+  complimentaryExpiresAt?: Date | null;
   billingStatus?: UserSubscription['status'] | null;
   billingTier?: UserSubscription['tier'] | null;
   hasExistingStripeSubscription?: boolean;

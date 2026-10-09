@@ -72,6 +72,34 @@ export const userSubscriptions = mysqlTable("user_subscriptions", {
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
 
+/** Owner-issued subscription entitlements, deliberately separate from Stripe billing. */
+export const complimentaryAccessGrants = mysqlTable('complimentary_access_grants', {
+  userId: int('userId').primaryKey(),
+  tier: mysqlEnum('tier', ['starter', 'professional', 'enterprise']).notNull(),
+  status: mysqlEnum('status', ['active', 'revoked']).notNull(),
+  expiresAt: timestamp('expiresAt'),
+  reason: varchar('reason', { length: 500 }).notNull(),
+  grantedByUserId: int('grantedByUserId').notNull(),
+  grantedAt: timestamp('grantedAt').defaultNow().notNull(),
+  revision: int('revision').notNull(),
+  revokedAt: timestamp('revokedAt'),
+  updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow().notNull(),
+});
+export type ComplimentaryAccessGrant = typeof complimentaryAccessGrants.$inferSelect;
+
+/** Grant history is append-only; grant/revoke and audit append share one transaction. */
+export const complimentaryAccessEvents = mysqlTable('complimentary_access_events', {
+  id: int('id').autoincrement().primaryKey(),
+  userId: int('userId').notNull(),
+  actorUserId: int('actorUserId').notNull(),
+  action: mysqlEnum('action', ['grant', 'revoke']).notNull(),
+  tier: mysqlEnum('tier', ['starter', 'professional', 'enterprise']).notNull(),
+  reason: varchar('reason', { length: 500 }).notNull(),
+  expiresAt: timestamp('expiresAt'),
+  revision: int('revision').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+}, (table) => ({ userHistoryIdx: index('idx_comp_access_user_history').on(table.userId, table.id) }));
+
 /**
  * Booking Usage - tracks monthly booking count for FREE tier enforcement
  */
