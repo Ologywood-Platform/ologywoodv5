@@ -254,6 +254,12 @@ const faqItems: FAQItem[] = [
     answer: 'Open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single as the release type. Add your title, optional cover art, and hosted YouTube, Spotify, or SoundCloud link, then choose your access model and optional AI-use disclosure. Publish immediately only when you are ready to make the listing public. For uploading an audio file that fans can play and download, use Music Releases instead. If saving fails, the form keeps your entries so you can correct them and retry; it does not reset your draft.',
   },
   {
+    id: 'upload-downloadable-song',
+    category: 'Content Releases',
+    question: 'Where do I upload songs fans can download?',
+    answer: 'Open Artist Dashboard → Music Releases, or Workspace → Create → Music Release. Choose Upload a Song, upload your full audio file (MP3, WAV, FLAC, AAC or M4A, up to 50 MB) and cover art (JPG, PNG or WebP, up to 10 MB), add the title and price, and certify your distribution rights. Choose Create Draft, then Publish from the release list. Fans can sample up to 30 seconds, purchase the song and download it; it also appears in their My Ology music library. Content Releases are for externally hosted access, and Project Previews are promotional showcases, not download listings. Professional and Enterprise allow unlimited Music Releases; Starter allows two.',
+  },
+  {
     id: 'content-release-cover-art',
     category: 'Content Releases',
     question: 'How do I upload or replace cover art for a Content Release?',

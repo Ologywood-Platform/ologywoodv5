@@ -4854,3 +4854,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Passed 82 focused tests, all 3031 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; no payment, entitlement, fee, schema or real record changes
 - [x] Fully intercepted browser checks passed Settings/Earnings/Projects/profile at 320/390/768/1024/1280/1440/1920 px, one root header, no page overflow or overlapping buttons, compact-menu and single-search-shortcut checks, zero mutation requests
 - [ ] Publish the layout checkpoint and verify live Settings/Earnings root headers and profile release descriptions without modifying creator, preference or billing records
+
+## DOWNLOADABLE MUSIC UPLOAD NAVIGATION (Oct 9, 2026)
+- [x] Found existing `/releases` song upload manager omitted from creator dashboard and Create menu, while generic Releases opened hosted Content Releases
+- [x] Added Artist Dashboard Music Releases → Upload songs to sell and creator-only header/Workspace Create → Music Release; kept hosted Content Releases separate and preserved role gates
+- [x] Renamed existing upload manager to Music Releases with Upload a Song button and explicit audio/cover/price/rights/Create Draft/Publish instructions; retained existing upload endpoints, purchase flow, 1% fee and plan limits
+- [x] Added root Music Release header across loading/error/upgrade/loaded states, hosted-content cross-link and unsaved-form warning, phone-scrollable Create menu, Help and deterministic AI upload directions
+- [x] Added nine permanent navigation/support regressions; 72 focused tests, all 3040 platform tests with 23 skipped, TypeScript, production build and scoped hygiene passed
+- [x] Fully intercepted desktop/mobile checks verified Workspace create navigation, audio/cover form controls, Cancel, hosted cross-link and retained upgrade gate with zero mutation requests; no real song, purchase, profile or subscription changed
+- [ ] Publish this checkpoint and confirm live Music Releases shortcut and Upload a Song control without creating a song unless the creator intentionally submits it

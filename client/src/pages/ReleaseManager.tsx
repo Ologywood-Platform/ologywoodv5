@@ -3,7 +3,7 @@
  * Allows creating, editing, publishing, unpublishing, and archiving releases.
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,15 @@ interface Release extends AiDisclosureRecord {
   createdAt: string | Date;
 }
 
+function MusicReleasePageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="container mx-auto px-4 py-8 max-w-4xl min-w-0">{children}</main>
+    </div>
+  );
+}
+
 export default function ReleaseManager() {
   const toast = useToast();
   const [, setLocation] = useLocation();
@@ -70,50 +79,49 @@ export default function ReleaseManager() {
 
   if (canCreateQuery.isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <SiteHeader />
+      <MusicReleasePageShell>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </div>
+      </MusicReleasePageShell>
     );
   }
 
   // Error — likely not an artist
   if (canCreateQuery.isError) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <MusicReleasePageShell>
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
           </Button>
-          <h1 className="text-2xl font-bold">White Label Release</h1>
+          <h1 className="text-2xl font-bold">Music Releases</h1>
         </div>
         <Card className="border-destructive/20">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <AlertTriangle className="h-16 w-16 text-destructive/40 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Artist Account Required</h2>
             <p className="text-muted-foreground max-w-md mb-6">
-              White Label Release is available for artists. Please create an artist profile first to start selling your music.
+              Music Releases are available for creator profiles. Please create an artist profile first to start selling your music.
             </p>
             <Button onClick={() => setLocation("/dashboard")}>
               Go to Dashboard
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </MusicReleasePageShell>
     );
   }
 
   // Not allowed — show upgrade prompt
   if (canCreate && !canCreate.hasAccess) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <MusicReleasePageShell>
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
           </Button>
-          <h1 className="text-2xl font-bold">White Label Release</h1>
+          <h1 className="text-2xl font-bold">Music Releases</h1>
         </div>
         <Card className="border-primary/20">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -127,17 +135,17 @@ export default function ReleaseManager() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </MusicReleasePageShell>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <MusicReleasePageShell>
       <PageBreadcrumb
         className="mb-4"
         segments={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Releases' },
+          { label: 'Music Releases' },
         ]}
       />
       {/* Header */}
@@ -147,17 +155,22 @@ export default function ReleaseManager() {
             <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">White Label Release</h1>
+            <h1 className="text-2xl font-bold">Music Releases</h1>
             <p className="text-sm text-muted-foreground">
-              Sell your singles directly to fans • 1% platform fee
+              Upload songs fans can buy, play, and download • 1% platform fee
             </p>
           </div>
         </div>
         {canCreate?.allowed && !showCreateForm && !editingRelease && (
           <Button onClick={() => setShowCreateForm(true)} className="shrink-0 self-end sm:self-center">
-            <Plus className="h-4 w-4 mr-2" /> New Release
+            <Plus className="h-4 w-4 mr-2" /> Upload a Song
           </Button>
         )}
+      </div>
+
+      <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 p-4 text-sm dark:border-purple-800 dark:bg-purple-950/30">
+        <p className="font-semibold">For downloadable songs, you are in the right place.</p>
+        <p className="mt-1 text-muted-foreground">Choose Upload a Song, upload the full audio file and cover art, set your price, and certify your rights. Create Draft, then Publish to offer fan purchases. Fans get an audio download and playback in My Ology; the public sample is capped at 30 seconds.</p>
       </div>
 
       {/* Tier info */}
@@ -187,7 +200,7 @@ export default function ReleaseManager() {
                 <Music className="h-16 w-16 text-muted-foreground/30 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No releases yet</h3>
                 <p className="text-muted-foreground">
-                  Upload your first single and start selling to fans. Use the "+ New Release" button above to get started.
+                  Upload your first single and start selling to fans. Use the "Upload a Song" button above to get started.
                 </p>
               </CardContent>
             </Card>
@@ -203,7 +216,7 @@ export default function ReleaseManager() {
           )}
         </div>
       )}
-    </div>
+    </MusicReleasePageShell>
   );
 }
 
@@ -471,7 +484,7 @@ function ReleaseForm({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Release" : "New Release"}</CardTitle>
+        <CardTitle>{isEditing ? "Edit Music Release" : "Upload a Song"}</CardTitle>
         <CardDescription>
           {isEditing ? "Update your release details" : "Upload your single and set your price"}
         </CardDescription>

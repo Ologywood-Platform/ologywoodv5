@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import SiteHeader from "@/components/SiteHeader";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
@@ -250,7 +250,7 @@ export default function ContentReleases() {
                       ))}
                     </select>
                     {releaseType === 'single' && (
-                      <p className="text-xs text-muted-foreground mt-2">Releasing one song? Use Single with your hosted YouTube, Spotify, or SoundCloud link. For an audio-file upload and fan downloads, use Music Releases instead.</p>
+                      <p className="text-xs text-muted-foreground mt-2">Releasing one song? Use Single with your hosted YouTube, Spotify, or SoundCloud link. For an audio-file upload and fan downloads, <Link href="/releases" className="font-medium text-primary underline">open Music Releases</Link> instead. Unsaved entries on this form will not be carried over.</p>
                     )}
                   </div>
                   <div>
@@ -422,7 +422,7 @@ export default function ContentReleases() {
           { label: 'Content Releases' },
         ]} />
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold">Content Releases</h1>
             <p className="text-sm text-muted-foreground">Monetize your content — singles, movies, albums, courses, and more</p>
@@ -430,6 +430,12 @@ export default function ContentReleases() {
           <Button onClick={() => setShowCreateForm(true)} className="gap-2">
             <Plus className="h-4 w-4" /> New Release
           </Button>
+        </div>
+
+        <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
+          <p className="text-sm font-semibold">Want fans to download your song?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Use Music Releases to upload audio and sell downloads. This page is for content hosted on another platform.</p>
+          <Link href="/releases" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary underline"><Music className="h-4 w-4" />Open Music Releases</Link>
         </div>
 
         {/* Help Tips Banner */}

@@ -4,6 +4,7 @@ import {
   BookOpen,
   CalendarPlus,
   Megaphone,
+  Music,
   Plus,
   Radio,
   ShoppingBag,
@@ -23,6 +24,7 @@ export function CreateActionDialog({ role, profileSlug, compact = false }: { rol
     { label: 'Sandbox Post', description: 'Share one current update beneath your bio.', href: profileSlug ? `/artist/${profileSlug}` : '/profile/edit', icon: Sparkles },
     { label: 'Event & tickets', description: 'Create an event and choose how fans attend.', href: '/events/create', icon: CalendarPlus },
     { label: 'Shop item or Book', description: 'Sell merch, physical Books, or secure eBooks.', href: '/merch', icon: ShoppingBag },
+    { label: 'Music Release', description: 'Upload a song fans can buy, play, and download.', href: '/releases', icon: Music },
     { label: 'Content release', description: 'Monetize content hosted where you choose.', href: '/content-releases', icon: Megaphone },
     { label: 'Fan Club', description: 'Create recurring membership support.', href: '/fan-club', icon: Users },
     { label: 'Ology Live session', description: 'Offer a paid or free virtual experience.', href: '/ology-live/dashboard', icon: Radio },
@@ -60,7 +62,7 @@ export function CreateActionDialog({ role, profileSlug, compact = false }: { rol
           {!compact && 'Create'}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>What do you want to create?</DialogTitle>
           <DialogDescription>Start with the outcome. OlogyWood will take you to the right tool.</DialogDescription>
