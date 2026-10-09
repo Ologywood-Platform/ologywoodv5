@@ -4825,3 +4825,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added HTML-escaped reusable template and explicit manual owner send utility with dry run, active-grant/billing checks, optional targeted send and recipient/revision attempt reservations to avoid blind resends
 - [x] Verified prior sends skipped on dry-run follow-up and targeted only the new account; no grant/subscription/role/fee changes were made and private reasons were not emailed
 - [x] Passed 10 new email tests, full suite with 2,970 passing and 23 skipped, TypeScript, production build and hygiene; no future automatic trigger or scheduler added
+
+## ADMIN USER NAME PROFILE NAVIGATION (Oct 9, 2026)
+- [x] Added clickable Users names for actual artist/creator and venue profiles with clean public-name URLs, new-tab behavior and preserved admin list/search context
+- [x] Added actual public profile-name context beneath differing account names, clear missing/unavailable-profile labels and non-owner/legacy team-member exclusions without fabricating public profiles
+- [x] Resolved profile ownership even for admin-role creator owners; added three bounded metadata queries per page, preserved admin authorization and excluded authentication secrets from list responses
+- [x] Verified read-only real-router Dawud link, isolated desktop/mobile popup navigation and no-mutation checks; no user/profile/grant/payment data or schema changed
+- [x] Passed 17 new behavioral tests, 36 focused tests, all 2,987 platform tests with 23 skipped, TypeScript, production build and diff hygiene
+- [ ] Publish admin profile-navigation checkpoint and verify live Users name clicks open creator/venue profiles in new tabs

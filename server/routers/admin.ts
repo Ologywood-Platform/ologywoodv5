@@ -7,6 +7,7 @@ import { desc, sql, eq } from "drizzle-orm";
 import sgMail from "@sendgrid/mail";
 import { getEmailLogoImage } from "../../shared/emailBranding";
 import { isPlatformOwner } from "../services/platformOwnerAccess";
+import { getAdminProfileNavigation } from "../services/adminProfileNavigation";
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -152,30 +153,36 @@ export const adminRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
       
-      const allUsers = await db.select().from(users);
+      // List display fields only; authentication secrets never belong in the UI.
+      const allUsers = await db.select({
+        id: users.id, name: users.name, email: users.email, role: users.role,
+        emailVerified: users.emailVerified, createdAt: users.createdAt,
+        updatedAt: users.updatedAt, lastSignedIn: users.lastSignedIn,
+      }).from(users);
       let filtered = allUsers;
 
       if (input.search) {
         const searchLower = input.search.toLowerCase();
         filtered = filtered.filter(
-          (u: typeof users.$inferSelect) =>
+          (u) =>
             u.email?.toLowerCase().includes(searchLower) ||
             u.name?.toLowerCase().includes(searchLower)
         );
       }
 
       if (input.role) {
-        filtered = filtered.filter((u: typeof users.$inferSelect) => u.role === input.role);
+        filtered = filtered.filter((u) => u.role === input.role);
       }
 
       const paginated = filtered
-        .sort((a: typeof users.$inferSelect, b: typeof users.$inferSelect) => 
+        .sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
         .slice(input.offset, input.offset + input.limit);
 
+      const profileNavigation = await getAdminProfileNavigation(db, paginated);
       return {
-        users: paginated,
+        users: paginated.map(user => ({ ...user, profileNavigation: profileNavigation.get(user.id) })),
         total: filtered.length,
         limit: input.limit,
         offset: input.offset,

@@ -6,7 +6,7 @@ import { Users, User, DollarSign, Calendar, TrendingUp, Search, Filter, Music, A
 import { getTalentTypeLabel } from '@shared/talentTypes';
 import { AIChatTrigger } from '@/components/AIChatWidget';
 import { AdminComplimentaryAccess } from '@/components/AdminComplimentaryAccess';
-
+import { AdminUserProfileLink } from '@/components/AdminUserProfileLink';
 export function AdminDashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -596,7 +596,9 @@ function UsersTab({
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">{user.name || '\u2014'}</td>
+                      <td className="py-3 px-4 text-gray-600">
+                        <AdminUserProfileLink name={user.name} profile={user.profileNavigation} />
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${isUserOwner ? 'bg-yellow-100 text-yellow-700' : getRoleBadgeColor(user.role)}`}>
                           {isUserOwner ? 'Owner' : user.role}
