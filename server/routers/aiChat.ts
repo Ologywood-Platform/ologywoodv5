@@ -239,10 +239,16 @@ export const NIL_AGENT_FEE_GUIDANCE = "Ologywood's optional proposed-protection 
 
 export const PLATFORM_FEE_GUIDANCE = "Ologywood's current technology marketplace fees are: Bookings 1%, Music Releases 1%, Creator Shop 1%, Event Tickets $0.99 per ticket, Fan Club memberships 10%, Ology Live 15%, and external Tips 0%. For Fan Club memberships, talent keeps 90% and Ologywood retains 10%. Stripe processing charges are separate and can vary under Stripe's terms. Athlete-agent or representative compensation is also separate and is not charged by Ologywood.";
 
-export const SINGLE_RELEASE_GUIDANCE = "For one song hosted on YouTube, Spotify, or SoundCloud, open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single. Add your title and hosted link, choose an access model, and optionally disclose AI use. For uploading an audio file that fans can play and download, use Music Releases instead. If a save fails, the form keeps your entries so you can correct them and retry; it does not reset the draft.";
+export const SINGLE_RELEASE_GUIDANCE = "For one song hosted on YouTube, Spotify, or SoundCloud, open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single. Add your title, optional cover art and hosted link, choose an access model, and optionally disclose AI use. Cover Art accepts JPG, PNG, or WebP up to 10 MB; save the release to apply your upload. For uploading an audio file that fans can play and download, use Music Releases instead. If a save fails, the form keeps your entries so you can correct them and retry; it does not reset the draft.";
+
+export const CONTENT_RELEASE_COVER_GUIDANCE = "To add cover art, open Content Releases from your creator dashboard or Workspace and choose New Release or Edit. In Cover Art, upload a JPG, PNG, or WebP image up to 10 MB. A square image is recommended; the artwork is not cropped. Preview it, then Create Release or Update Release to apply the cover. Use Replace cover art or Remove cover art to change an existing cover; uploading or removing does not change the release until you save. Failed uploads keep the previous cover and your other entries intact. Cover art is optional and appears on creator and public release cards.";
 
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
+
+  if (/\b(cover art|cover artwork|album cover|single cover|release cover|release artwork)\b/.test(normalized)) {
+    return CONTENT_RELEASE_COVER_GUIDANCE;
+  }
 
   if (/\b(single|one song)\b/.test(normalized) && /\b(release|publish|upload|song|track|option)\b/.test(normalized)) {
     return SINGLE_RELEASE_GUIDANCE;

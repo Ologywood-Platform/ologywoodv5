@@ -17,6 +17,13 @@ import {
 } from "../services/aiReleaseDisclosure";
 import { ensureContentReleaseSchema } from "../services/contentReleaseSchemaService";
 import { CONTENT_RELEASE_TYPES, CONTENT_RELEASE_SAVE_ERROR } from "../../shared/contentReleaseTypes";
+import { CONTENT_RELEASE_COVER_MAX_BYTES, CONTENT_RELEASE_COVER_MIME_TYPES, CONTENT_RELEASE_COVER_UPLOAD_ERROR } from "../../shared/contentReleaseCover";
+import { prepareContentReleaseCover } from "../services/contentReleaseCoverService";
+import { storagePut } from "../storage";
+import { randomUUID } from "node:crypto";
+import { RateLimiter } from "../utils/rateLimiter";
+
+export const contentReleaseCoverLimiter = new RateLimiter({maxRequests:10, windowMs:60_000});
 
 // Release type options
 export const RELEASE_TYPES = CONTENT_RELEASE_TYPES;
@@ -32,7 +39,7 @@ function safeReleaseError(path: string, error: TRPCError): never {
   // Record only the operation and driver code, never SQL or creator input.
   const cause = error.cause as { code?: string; cause?: { code?: string } } | undefined;
   console.error('[ContentRelease] Operation failed', { path, code: cause?.code ?? cause?.cause?.code ?? error.code });
-  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: CONTENT_RELEASE_SAVE_ERROR });
+  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: path.endsWith('uploadCoverArt') ? CONTENT_RELEASE_COVER_UPLOAD_ERROR : CONTENT_RELEASE_SAVE_ERROR });
 }
 
 const releaseProtectedProcedure = protectedProcedure.use(async ({ next, path }) => {
@@ -74,7 +81,10 @@ const createReleaseInput = z.object({
   releaseType: z.string().min(1).max(50),
   genre: z.string().max(100).optional(),
   duration: z.string().max(50).optional(),
-  thumbnailUrl: z.string().optional(),
+  thumbnailUrl: z.string().max(4096).refine(value => {
+    if (!value || value.startsWith('/manus-storage/')) return true;
+    try { return ['https:', 'http:'].includes(new URL(value).protocol); } catch { return false; }
+  }, 'Please use a valid uploaded cover-art URL.').optional(),
   trailerUrl: z.string().optional(),
   hostingPlatform: z.string().min(1).max(50),
   contentUrl: z.string().url(),
@@ -99,6 +109,38 @@ const updateReleaseInput = createReleaseInput.partial().extend({
 });
 
 export const releasesRouter = router({
+  // Upload only stores a new image. Save/Create explicitly attaches it to a release.
+  uploadCoverArt: releaseProtectedProcedure
+    .input(z.object({
+      fileData: z.string().min(1).max(Math.ceil(CONTENT_RELEASE_COVER_MAX_BYTES / 3) * 4 + 64),
+      mimeType: z.enum(CONTENT_RELEASE_COVER_MIME_TYPES),
+      releaseId: z.number().int().positive().optional(),
+    }))
+    .mutation(async ({ctx, input}) => {
+      if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') throw new TRPCError({code:'FORBIDDEN', message:'Creator access required.'});
+      if (!contentReleaseCoverLimiter.check(String(ctx.user.id)).allowed) throw new TRPCError({code:'TOO_MANY_REQUESTS', message:'Too many cover uploads. Please wait a minute and try again.'});
+      const database = await getReleaseDb();
+      const [profile] = await database.select().from(artistProfiles).where(eq(artistProfiles.userId, ctx.user.id)).limit(1);
+      if (!profile) throw new TRPCError({code:'NOT_FOUND', message:'Artist profile not found'});
+      if (input.releaseId !== undefined) {
+        const [owned] = await database.select().from(releases).where(and(eq(releases.id, input.releaseId), eq(releases.userId, ctx.user.id))).limit(1);
+        if (!owned) throw new TRPCError({code:'NOT_FOUND', message:'Release not found'});
+      } else {
+        const { getSubscriptionByUserId } = await import('../db');
+        const subscription = await getSubscriptionByUserId(ctx.user.id);
+        const tier = subscription?.tier || 'free';
+        if (tier === 'free') throw new TRPCError({code:'FORBIDDEN', message:'Content Releases require a Starter plan or higher.'});
+        if (tier === 'starter') {
+          const existing = await database.select({id:releases.id}).from(releases).where(eq(releases.userId, ctx.user.id));
+          if (existing.length >= 2) throw new TRPCError({code:'FORBIDDEN', message:'Starter plan is limited to 2 releases. Edit an existing release or upgrade to Professional.'});
+        }
+      }
+      const image = await prepareContentReleaseCover(input.fileData, input.mimeType);
+      const key = `content-release-covers/${ctx.user.id}/${randomUUID()}.webp`;
+      const uploaded = await storagePut(key, image.data, image.mimeType);
+      return {url:uploaded.url, width:image.width, height:image.height};
+    }),
+
   // Get all releases for the current artist (dashboard)
   myReleases: releaseProtectedProcedure.query(async ({ ctx }) => {
     const database = await getReleaseDb();

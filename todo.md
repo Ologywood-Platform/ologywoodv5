@@ -4767,4 +4767,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Verified runtime guard twice, full owner projection, zero release/purchase rows, and development HTTP 200 release listing without creating any real content or payment
 - [x] Passed isolated desktop/mobile Single selection, retained draft, masked database failures, two failed attempts and successful retry; intercepted every browser API request so no real mutation occurred
 - [x] Passed 37 focused tests, all 2,854 platform tests with 23 skipped and no failures, TypeScript, production build, diff hygiene, and exact conflict-marker checks
-- [ ] Publish this repair checkpoint and verify live Single options, successful public release listing, and updated Help/AI guidance; the creator can then retry their own release
+- [x] Creator confirmed the published Single/save repair is working. Automated follow-up public access received HTTP 403, so completion relies on the creator's live confirmation rather than an independent authenticated save; cover-art enhancement is tracked separately below
+
+## CONTENT RELEASE COVER ART (Oct 9, 2026)
+- [x] Added optional JPG/PNG/WebP cover-art uploads (10 MB) to every Content Release type including Single, using the existing thumbnailUrl column without a migration
+- [x] Added preview, replace/remove, existing-cover edit state, safe retry, same-file reset, disabled save during upload and cancellation-safe callbacks; artwork changes apply only when the creator saves
+- [x] Displayed covers on dashboard and public release cards with no-crop object-contain and missing/broken-image fallback
+- [x] Added authenticated creator/profile/owner checks, existing plan limits for new uploads, per-user upload rate limiting, canonical base64/byte-size/actual-format/pixel validation, orientation handling, metadata stripping, aspect-preserving WebP optimization and random owner-bound storage keys
+- [x] Preserved existing releases, payment percentages, Music Release uploads and access/publication settings; no real release or payment was modified during validation
+- [x] Updated contextual tips, Help and deterministic AI guidance for upload/replace/remove and save behavior
+- [x] Passed 54 focused tests and all 2,871 full-suite tests with 23 skipped and zero failures, TypeScript, production build and repository hygiene
+- [x] Passed isolated desktop/mobile upload rejection, failure/retry, replacement/removal persistence, cancel isolation and new-Single cover checks with every API request intercepted; verified a synthetic real-storage WebP returns HTTP 200 with a stable URL
+- [x] Recorded user confirmation that the prior Single/save repair works; an automated public probe was blocked by HTTP 403 and was not treated as successful independent production verification
+- [ ] Publish the cover-art checkpoint and verify live upload controls and Help; the creator can then Edit their Single and Update Release with artwork

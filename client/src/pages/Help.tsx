@@ -239,7 +239,13 @@ const faqItems: FAQItem[] = [
     id: 'content-release-single',
     category: 'Content Releases',
     question: 'How do I release a single song?',
-    answer: 'Open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single as the release type. Add your title and hosted YouTube, Spotify, or SoundCloud link, then choose your access model and optional AI-use disclosure. Publish immediately only when you are ready to make the listing public. For uploading an audio file that fans can play and download, use Music Releases instead. If saving fails, the form keeps your entries so you can correct them and retry; it does not reset your draft.',
+    answer: 'Open Content Releases from your creator dashboard or Workspace, choose New Release, and select Single as the release type. Add your title, optional cover art, and hosted YouTube, Spotify, or SoundCloud link, then choose your access model and optional AI-use disclosure. Publish immediately only when you are ready to make the listing public. For uploading an audio file that fans can play and download, use Music Releases instead. If saving fails, the form keeps your entries so you can correct them and retry; it does not reset your draft.',
+  },
+  {
+    id: 'content-release-cover-art',
+    category: 'Content Releases',
+    question: 'How do I upload or replace cover art for a Content Release?',
+    answer: 'Open New Release or Edit on an existing Content Release. In Cover Art, choose Upload cover art and select a JPG, PNG, or WebP image up to 10 MB. A square image is recommended, but your artwork is not cropped. Preview the image, then Create Release or Update Release to apply it. Replace cover art and Remove cover art are available while editing; changes are not applied until you save. If an upload fails, your previous cover and other form entries stay unchanged and you can retry. Cover art appears on your creator release list and public profile release cards. It is optional for all Content Release types, including Single.',
   },
 
   // Subscription & Tier Limits

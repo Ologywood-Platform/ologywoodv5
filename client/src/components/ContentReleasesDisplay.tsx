@@ -11,6 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 import { getContentReleaseTypeLabel } from "@shared/contentReleaseTypes";
+import { ContentReleaseArtwork } from "@/components/ContentReleaseCoverArt";
 
 function getReleaseTypeIcon(type: string) {
   switch (type) {
@@ -70,9 +71,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-lg border hover:bg-muted/30 transition-colors">
-      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-        {getReleaseTypeIcon(release.releaseType)}
-      </div>
+      <ContentReleaseArtwork url={release.thumbnailUrl} title={release.title} className="w-16 h-16 text-primary" fallback={getReleaseTypeIcon(release.releaseType)} />
       <div className="flex-1 min-w-0">
         <h4 className="font-semibold text-sm">{release.title}</h4>
         {release.description && (

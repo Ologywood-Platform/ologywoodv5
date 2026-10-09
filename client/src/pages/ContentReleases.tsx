@@ -23,6 +23,7 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 import { EMPTY_AI_DISCLOSURE, getAiDisclosureFormValue, type AiDisclosureFormValue } from "@shared/aiDisclosure";
 import { CONTENT_RELEASE_TYPES, getContentReleaseTypeLabel, getContentReleaseErrorMessage } from "@shared/contentReleaseTypes";
+import { ContentReleaseArtwork, ContentReleaseCoverUpload } from "@/components/ContentReleaseCoverArt";
 
 // Release type icons
 function getReleaseTypeIcon(type: string) {
@@ -104,6 +105,8 @@ export default function ContentReleases() {
   const [releaseType, setReleaseType] = useState("movie");
   const [genre, setGenre] = useState("");
   const [duration, setDuration] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [hostingPlatform, setHostingPlatform] = useState("youtube");
   const [contentUrl, setContentUrl] = useState("");
   const [accessModel, setAccessModel] = useState("free");
@@ -118,6 +121,7 @@ export default function ContentReleases() {
   function resetForm() {
     setSaveError(null);
     setTitle(""); setDescription(""); setReleaseType("movie"); setGenre("");
+    setThumbnailUrl(""); setIsUploadingCover(false);
     setDuration(""); setHostingPlatform("youtube"); setContentUrl("");
     setAccessModel("free"); setPrice(""); setMinPrice(""); setIsPublished(false);
     setIncludesLiveQA(false); setIncludesBonusContent(false); setBonusContentDescription("");
@@ -132,6 +136,7 @@ export default function ContentReleases() {
     setReleaseType(release.releaseType);
     setGenre(release.genre || "");
     setDuration(release.duration || "");
+    setThumbnailUrl(release.thumbnailUrl || "");
     setHostingPlatform(release.hostingPlatform);
     setContentUrl(release.contentUrl);
     setAccessModel(release.accessModel);
@@ -147,6 +152,7 @@ export default function ContentReleases() {
 
   function handleSubmit() {
     setSaveError(null);
+    if (isUploadingCover) { toast.error('Please wait for your cover art to finish uploading.'); return; }
     if (!title.trim()) { toast.error("Title is required"); return; }
     if (!contentUrl.trim()) { toast.error("Content URL is required"); return; }
     try { new URL(contentUrl); } catch { toast.error("Please enter a valid URL"); return; }
@@ -161,6 +167,7 @@ export default function ContentReleases() {
       releaseType,
       genre: genre.trim() || undefined,
       duration: duration.trim() || undefined,
+      thumbnailUrl,
       hostingPlatform,
       contentUrl: contentUrl.trim(),
       accessModel,
@@ -247,6 +254,16 @@ export default function ContentReleases() {
                   <Label>Duration</Label>
                   <Input value={duration} maxLength={50} onChange={(e) => setDuration(e.target.value)} placeholder="e.g., 1h 45m, 3 episodes, 12 tracks" />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Cover Art (optional)</CardTitle>
+                <CardDescription>Give your release a visual identity on your profile.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ContentReleaseCoverUpload url={thumbnailUrl} releaseId={editingId ?? undefined} onChange={setThumbnailUrl} onBusyChange={setIsUploadingCover} disabled={createMutation.isPending || updateMutation.isPending} />
               </CardContent>
             </Card>
 
@@ -362,7 +379,7 @@ export default function ContentReleases() {
               <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{saveError}</div>
             )}
             <div className="flex gap-3">
-              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending} className="flex-1">
+              <Button onClick={handleSubmit} disabled={isUploadingCover || createMutation.isPending || updateMutation.isPending} className="flex-1">
                 {(createMutation.isPending || updateMutation.isPending) ? (
                   <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Saving...</>
                 ) : editingId ? 'Update Release' : 'Create Release'}
@@ -450,9 +467,7 @@ export default function ContentReleases() {
                 <CardContent className="py-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        {getReleaseTypeIcon(release.releaseType)}
-                      </div>
+                      <ContentReleaseArtwork url={release.thumbnailUrl} title={release.title} className="w-16 h-16 text-primary" fallback={getReleaseTypeIcon(release.releaseType)} />
                       <div className="min-w-0">
                         <h3 className="font-semibold text-sm truncate">{release.title}</h3>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
