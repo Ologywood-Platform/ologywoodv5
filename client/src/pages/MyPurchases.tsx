@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Music, Download, Loader2, ShoppingBag, ArrowLeft, Calendar, DollarSign } from "lucide-react";
 import { useToast } from "@/components/ErrorToast";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ContentReleasePurchases } from "@/components/ContentReleasePurchases";
 
 export default function MyPurchases() {
   const { user, loading: authLoading } = useAuth();
@@ -189,6 +190,7 @@ export default function MyPurchases() {
           ))}
         </div>
       )}
+      <ContentReleasePurchases />
     </div>
   );
 }

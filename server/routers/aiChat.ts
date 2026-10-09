@@ -243,8 +243,12 @@ export const SINGLE_RELEASE_GUIDANCE = "For one song hosted on YouTube, Spotify,
 
 export const CONTENT_RELEASE_COVER_GUIDANCE = "To add cover art, open Content Releases from your creator dashboard or Workspace and choose New Release or Edit. In Cover Art, upload a JPG, PNG, or WebP image up to 10 MB. A square image is recommended; the artwork is not cropped. Preview it, then Create Release or Update Release to apply the cover. Use Replace cover art or Remove cover art to change an existing cover; uploading or removing does not change the release until you save. Failed uploads keep the previous cover and your other entries intact. Cover art is optional and appears on creator and public release cards.";
 
+export const MUSIC_PURCHASE_GUIDANCE = "Open the creator profile. Uploaded Music Releases show Buy with the price or Name Your Price and add a downloadable, playable track to My Ology > Music library. Externally hosted Content Releases show Buy access or Your price for Pay What You Want, with the minimum price shown. Sign in and continue to secure Stripe checkout; hosted access is granted only after payment confirmation. Find it in My Ology or My Purchases under Hosted content purchases and select Watch / Listen. Hosted access does not include an audio-file download. Creators see Creator preview on their own hosted releases. Professional and Enterprise allow unlimited releases; Starter allows two. A published song is not removed by the creation limit.";
+
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
+
+  if (/\b(buy|purchase|pay|unlimited|missing|disappeared)\b/.test(normalized) && /\b(music|single|song|release|content)\b/.test(normalized)) return MUSIC_PURCHASE_GUIDANCE;
 
   if (/\b(cover art|cover artwork|album cover|single cover|release cover|release artwork)\b/.test(normalized)) {
     return CONTENT_RELEASE_COVER_GUIDANCE;

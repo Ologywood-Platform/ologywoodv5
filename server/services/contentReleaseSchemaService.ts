@@ -11,7 +11,7 @@ const DISCLOSURE_COLUMNS = [
   { name: 'aiUseNotes', definition: '`aiUseNotes` varchar(1000)' },
 ] as const;
 
-/** Restore only schema already defined in migrations 0102 and 0111.
+/** Restore only schema declared in migrations 0102, 0111, and 0113.
  * No release, purchase, payment, or user row is inserted, updated, or removed.
  * MySQL/TiDB require inspection before ADD COLUMN (no IF NOT EXISTS support).
  */
@@ -63,12 +63,19 @@ export function ensureContentReleaseSchema(db: ContentReleaseSchemaDb): Promise<
       \`userId\` int NOT NULL,
       \`amountPaid\` decimal(10,2) NOT NULL,
       \`stripePaymentIntentId\` varchar(255),
+      \`paymentStatus\` varchar(20) NOT NULL DEFAULT 'completed',
       \`accessGrantedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       UNIQUE KEY \`uniq_content_release_purchase\` (\`releaseId\`, \`userId\`),
       KEY \`idx_content_purchases_release\` (\`releaseId\`),
       KEY \`idx_content_purchases_user\` (\`userId\`)
     )`));
+    const [receiptRows] = await db.execute('SHOW COLUMNS FROM `content_release_purchases`');
+    if(!Array.isArray(receiptRows))throw new Error('Could not inspect Content Release receipt schema');
+    if(!receiptRows.some(row=>(row.Field??row.field)==='paymentStatus')){
+      try {await db.execute("ALTER TABLE `content_release_purchases` ADD COLUMN `paymentStatus` varchar(20) NOT NULL DEFAULT 'completed'");}
+      catch(error:any){if((error?.code??error?.cause?.code)!=='ER_DUP_FIELDNAME')throw error;}
+    }
     const [rows] = await db.execute('SHOW COLUMNS FROM `releases`');
     if (!Array.isArray(rows)) throw new Error('Could not inspect Content Release schema');
     const columns = new Set(rows.map(row => String(row.Field ?? row.field)));

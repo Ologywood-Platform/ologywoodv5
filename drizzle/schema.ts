@@ -2198,6 +2198,7 @@ export const contentReleasePurchases = mysqlTable("content_release_purchases", {
   userId: int("userId").notNull(),
   amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).notNull(),
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  paymentStatus: varchar("paymentStatus", { length: 20 }).default("completed").notNull(),
   accessGrantedAt: timestamp("accessGrantedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({

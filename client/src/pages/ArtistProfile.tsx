@@ -136,7 +136,7 @@ export default function ArtistProfile() {
     { enabled: resolvedArtistId > 0 }
   );
 
-  const { data: releases } = trpc.release.getByArtist.useQuery(
+  const { data: releases, isLoading: releasesLoading, isError: releasesError, refetch: retryReleases } = trpc.release.getByArtist.useQuery(
     { artistId: resolvedArtistId },
     { enabled: resolvedArtistId > 0 }
   );
@@ -1363,6 +1363,8 @@ export default function ArtistProfile() {
             )}
 
             {/* White Label Releases */}
+            {releasesLoading && <p className="text-sm text-muted-foreground">Loading music…</p>}
+            {releasesError && <Card id="profile-content" className="scroll-mt-24"><CardHeader><CardTitle>Music</CardTitle></CardHeader><CardContent><p role="alert" className="text-sm mb-3">Music could not be loaded. Your releases have not been removed.</p><Button variant="outline" size="sm" onClick={() => retryReleases()}>Retry music</Button></CardContent></Card>}
             {releases && releases.length > 0 && (
               <Card id="profile-content" className="scroll-mt-24">
                 <CardHeader>

@@ -4780,3 +4780,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Passed isolated desktop/mobile upload rejection, failure/retry, replacement/removal persistence, cancel isolation and new-Single cover checks with every API request intercepted; verified a synthetic real-storage WebP returns HTTP 200 with a stable URL
 - [x] Recorded user confirmation that the prior Single/save repair works; an automated public probe was blocked by HTTP 403 and was not treated as successful independent production verification
 - [ ] Publish the cover-art checkpoint and verify live upload controls and Help; the creator can then Edit their Single and Update Release with artwork
+
+## MUSIC VISIBILITY AND HOSTED PURCHASE REPAIR (Oct 9, 2026)
+- [x] Confirmed original Keep Pushin test release remains published with two sales; repaired unsupported optional-column schema syntax using narrow explicit MySQL/TiDB column inspection
+- [x] Added visible music loading/error/retry states instead of silently hiding existing songs
+- [x] Corrected hosted Pay What You Want to use minPrice, added clear fan Buy controls, creator preview, in-place login and music-first Buy navigation with hosted/merch fallbacks
+- [x] Replaced direct hosted purchase entitlement creation with authenticated Stripe Checkout and signature-backed Checkout/PaymentIntent fulfillment, server price authority, metadata/amount/currency/current-state checks and existing 1% fee separation
+- [x] Added transactional retry idempotency, protected public URL redaction, zero-minimum claim validation, full-refund receipt status and stale-success/refund-before-fulfillment protection
+- [x] Applied reviewed additive migration 0113 for hosted purchase paymentStatus and a narrow compatible runtime guard; no real release, payment, customer receipt or subscription data modified during validation
+- [x] Included hosted entitlements in My Ology counts and existing My Purchases alongside, not replacing, downloadable music; updated Help and AI directions
+- [x] Confirmed Professional/Enterprise unlimited release rules remain unchanged; read-only audit found owner's Enterprise record status cancelled, which was not changed and requires a separate subscription reconciliation
+- [x] Passed 53 focused tests including 14 behavioral commerce regressions; all 2,889 platform tests passed with 23 skipped, TypeScript and production build passed, and changed-file hygiene found no credential patterns, merge markers or temporary scripts
+- [x] Development real-profile reads and isolated desktop/mobile fan tests verified original music, $1.50 hosted minimum, under-minimum block, retained amount after error, mocked checkout retry and in-place login; no real purchase or payment created
+- [ ] Publish the music/hosted-purchase checkpoint and verify live original song, hosted price, purchaser controls and Help without creating a charge

@@ -1,0 +1,1 @@
+ALTER TABLE `content_release_purchases` ADD `paymentStatus` varchar(20) DEFAULT 'completed' NOT NULL;

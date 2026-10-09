@@ -248,6 +248,13 @@ const faqItems: FAQItem[] = [
     answer: 'Open New Release or Edit on an existing Content Release. In Cover Art, choose Upload cover art and select a JPG, PNG, or WebP image up to 10 MB. A square image is recommended, but your artwork is not cropped. Preview the image, then Create Release or Update Release to apply it. Replace cover art and Remove cover art are available while editing; changes are not applied until you save. If an upload fails, your previous cover and other form entries stay unchanged and you can retry. Cover art appears on your creator release list and public profile release cards. It is optional for all Content Release types, including Single.',
   },
 
+  {
+    id: 'buy-music-and-content',
+    category: 'Content Releases',
+    question: 'How do I buy music or a Content Release?',
+    answer: 'On a creator profile, uploaded Music Releases show Buy with the price, or Name Your Price. These purchases provide an audio-file download and a playable track in My Ology → Music library. Externally hosted Content Releases show Buy access or a Your price field for Pay What You Want, including the minimum. Sign in, choose the amount, and continue to secure Stripe checkout. Access is granted only after Stripe confirms payment; find it in My Ology or My Purchases under Hosted content purchases and choose Watch / Listen. A creator viewing their own hosted release sees Creator preview instead of purchasing it. Hosted access does not include an audio-file download. Free releases use Watch / Listen, and Fan Club-only releases require membership. Professional and Enterprise allow unlimited releases; Starter allows two. Publishing limits do not hide or remove an already-published song.',
+  },
+
   // Subscription & Tier Limits
   {
     id: 'tier-1',

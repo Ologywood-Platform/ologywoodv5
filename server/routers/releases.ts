@@ -5,7 +5,6 @@
  */
 import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { sendReleasePurchaseConfirmationEmail } from "../email";
 import { z } from "zod";
 import { getDb } from "../db";
 import { contentReleases as releases, contentReleasePurchases as releasePurchases, artistProfiles, fanClubMemberships } from "../../drizzle/schema";
@@ -23,6 +22,9 @@ import { storagePut } from "../storage";
 import { randomUUID } from "node:crypto";
 import { RateLimiter } from "../utils/rateLimiter";
 
+import { createContentReleaseCheckout } from "../services/contentReleaseCommerceService";
+import { contentReleasePublicView, isVerifiedContentPurchase } from "../../shared/contentReleaseCommerce";
+
 export const contentReleaseCoverLimiter = new RateLimiter({maxRequests:10, windowMs:60_000});
 
 // Release type options
@@ -39,7 +41,7 @@ function safeReleaseError(path: string, error: TRPCError): never {
   // Record only the operation and driver code, never SQL or creator input.
   const cause = error.cause as { code?: string; cause?: { code?: string } } | undefined;
   console.error('[ContentRelease] Operation failed', { path, code: cause?.code ?? cause?.cause?.code ?? error.code });
-  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: path.endsWith('uploadCoverArt') ? CONTENT_RELEASE_COVER_UPLOAD_ERROR : CONTENT_RELEASE_SAVE_ERROR });
+  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: path.endsWith('uploadCoverArt') ? CONTENT_RELEASE_COVER_UPLOAD_ERROR : path.endsWith('purchase') ? 'We could not start checkout. No access was granted. Please try again.' : CONTENT_RELEASE_SAVE_ERROR });
 }
 
 const releaseProtectedProcedure = protectedProcedure.use(async ({ next, path }) => {
@@ -291,7 +293,7 @@ export const releasesRouter = router({
       const [artist] = await database.select().from(artistProfiles)
         .where(eq(artistProfiles.id, release.artistProfileId));
 
-      return { ...release, artist };
+      return { ...contentReleasePublicView(release, ctx.user?.id), artist };
     }),
 
   // Get all published releases for an artist (public profile)
@@ -307,7 +309,7 @@ export const releasesRouter = router({
           eq(releases.isPublished, true)
         ))
         .orderBy(desc(releases.createdAt));
-      return results;
+      return results.map(release => contentReleasePublicView(release));
     }),
 
   // Check if current user has access to a release
@@ -322,10 +324,11 @@ export const releasesRouter = router({
       if (!release) return { hasAccess: false, reason: 'not_found' };
 
       // Creator always has access to their own releases
-      if (release.userId === ctx.user.id) return { hasAccess: true, reason: 'owner' };
+      if (release.userId === ctx.user.id) return { hasAccess: true, reason: 'owner', contentUrl: release.contentUrl };
+      if (!release.isPublished) return {hasAccess:false,reason:'not_found'};
 
       // Free releases are always accessible
-      if (release.accessModel === 'free') return { hasAccess: true, reason: 'free' };
+      if (release.accessModel === 'free') return { hasAccess: true, reason: 'free', contentUrl:release.contentUrl };
 
       // Check if user has purchased
       const [purchase] = await database.select().from(releasePurchases)
@@ -333,7 +336,7 @@ export const releasesRouter = router({
           eq(releasePurchases.releaseId, input.releaseId),
           eq(releasePurchases.userId, ctx.user.id)
         ));
-      if (purchase) return { hasAccess: true, reason: 'purchased' };
+      if (isVerifiedContentPurchase(purchase)) return { hasAccess: true, reason: 'purchased', contentUrl:release.contentUrl };
 
       // Fan club only - check if user is an active fan club member
       if (release.accessModel === 'fan_club_only') {
@@ -345,88 +348,29 @@ export const releasesRouter = router({
               eq(fanClubMemberships.fanUserId, ctx.user.id),
               eq(fanClubMemberships.talentUserId, artistProfile[0].userId)
             ));
-          if (membership && membership.status === 'active') return { hasAccess: true, reason: 'fan_club_member' };
+          if (membership && membership.status === 'active') return { hasAccess: true, reason: 'fan_club_member', contentUrl:release.contentUrl };
         }
       }
 
       return { hasAccess: false, reason: 'payment_required' };
     }),
 
-  // Purchase/unlock a release
+  // Starting Checkout never creates a paid entitlement. Verified Stripe fulfillment does.
   purchase: releaseProtectedProcedure
-    .input(z.object({
-      releaseId: z.number(),
-      amount: z.number().min(0),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const database = await getReleaseDb();
-      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+    .input(z.object({releaseId:z.number().int().positive(),amount:z.number().finite().min(0)}))
+    .mutation(({ctx,input}) => createContentReleaseCheckout(ctx.user,input)),
 
-      const [release] = await database.select().from(releases)
-        .where(eq(releases.id, input.releaseId));
-      if (!release) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Release not found' });
-      }
-
-      // Check if already purchased
-      const [existingPurchase] = await database.select().from(releasePurchases)
-        .where(and(
-          eq(releasePurchases.releaseId, input.releaseId),
-          eq(releasePurchases.userId, ctx.user.id)
-        ));
-      if (existingPurchase) {
-        return { success: true, alreadyPurchased: true };
-      }
-
-      // Validate price
-      if (release.accessModel === 'ticketed' || release.accessModel === 'unlock_after_purchase') {
-        const requiredPrice = parseFloat(release.price || '0');
-        if (input.amount < requiredPrice) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: `Minimum price is $${requiredPrice}` });
-        }
-      }
-      if (release.accessModel === 'pay_what_you_want') {
-        const minPrice = parseFloat(release.minPrice || '0');
-        if (input.amount < minPrice) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: `Minimum price is $${minPrice}` });
-        }
-      }
-
-      // Record purchase
-      await database.insert(releasePurchases).values({
-        releaseId: input.releaseId,
-        userId: ctx.user.id,
-        amountPaid: input.amount.toFixed(2),
-      });
-
-      // Update release stats
-      await database.update(releases).set({
-        purchaseCount: sql`${releases.purchaseCount} + 1`,
-        revenue: sql`${releases.revenue} + ${input.amount.toFixed(2)}`,
-      }).where(eq(releases.id, input.releaseId));
-
-      // Send purchase confirmation email
-      try {
-        const [artist] = await database.select().from(artistProfiles)
-          .where(eq(artistProfiles.id, release.artistProfileId)).limit(1);
-        const creatorName = artist?.artistName || 'Creator';
-        await sendReleasePurchaseConfirmationEmail({
-          buyerEmail: ctx.user.email || '' ,
-          buyerName: ctx.user.name || ''  ,
-          releaseTitle: release.title,
-          releaseType: release.releaseType,
-          creatorName,
-          amountPaid: input.amount,
-          contentUrl: release.contentUrl,
-          hostingPlatform: release.hostingPlatform,
-          premiereDate: release.premiereDate,
-        });
-      } catch (emailError) {
-        console.error('[ContentRelease] Failed to send purchase confirmation email:', emailError);
-      }
-
-      return { success: true, alreadyPurchased: false };
-    }),
+  myPurchases: releaseProtectedProcedure.query(async ({ctx})=>{
+    const database=await getReleaseDb();
+    const rows=await database.select({purchase:releasePurchases,release:releases}).from(releasePurchases)
+      .innerJoin(releases,eq(releases.id,releasePurchases.releaseId))
+      .where(eq(releasePurchases.userId,ctx.user.id)).orderBy(desc(releasePurchases.createdAt));
+    return rows.filter(row=>isVerifiedContentPurchase(row.purchase)).map(({purchase,release})=>({
+      id:purchase.id,releaseId:release.id,title:release.title,releaseType:release.releaseType,hostingPlatform:release.hostingPlatform,
+      thumbnailUrl:release.thumbnailUrl,artistProfileId:release.artistProfileId,amountPaid:purchase.amountPaid,
+      createdAt:purchase.createdAt,isPublished:release.isPublished,
+    }));
+  }),
 
   // Get release options (types, platforms, access models)
   getOptions: releasePublicProcedure.query(() => {

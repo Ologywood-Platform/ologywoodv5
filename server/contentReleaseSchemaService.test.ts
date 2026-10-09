@@ -11,6 +11,7 @@ function mockDatabase(columns: string[] = names) {
   return { commands, execute: vi.fn(async (query: any) => {
     const text = queryText(query);
     commands.push(text);
+    if(text.includes('SHOW COLUMNS FROM `content_release_purchases`'))return [[{Field:'paymentStatus'}],[]];
     return text.startsWith('SHOW COLUMNS') ? [columns.map(Field => ({ Field })), []] : [{}, []];
   }) };
 }
@@ -21,7 +22,7 @@ describe('Content Release runtime schema compatibility', () => {
   it('creates both absent tables with the declared columns and indexes, without row writes', async () => {
     const db = mockDatabase();
     await ensureContentReleaseSchema(db);
-    expect(db.commands).toHaveLength(3);
+    expect(db.commands).toHaveLength(4);
     expect(db.commands[0]).toContain('CREATE TABLE IF NOT EXISTS `releases`');
     expect(db.commands[1]).toContain('CREATE TABLE IF NOT EXISTS `content_release_purchases`');
     for (const name of names) expect(db.commands[0]).toContain('`' + name + '`');
@@ -44,10 +45,10 @@ describe('Content Release runtime schema compatibility', () => {
     const db = mockDatabase();
     await Promise.all([ensureContentReleaseSchema(db), ensureContentReleaseSchema(db)]);
     await ensureContentReleaseSchema(db);
-    expect(db.commands).toHaveLength(3);
+    expect(db.commands).toHaveLength(4);
     const other = mockDatabase();
     await ensureContentReleaseSchema(other);
-    expect(other.commands).toHaveLength(3);
+    expect(other.commands).toHaveLength(4);
   });
 
   it('retries after a failure and does not mark incomplete repairs ready', async () => {
@@ -55,7 +56,7 @@ describe('Content Release runtime schema compatibility', () => {
     db.execute.mockRejectedValueOnce(new Error('temporary schema failure'));
     await expect(ensureContentReleaseSchema(db)).rejects.toThrow('temporary schema failure');
     await expect(ensureContentReleaseSchema(db)).resolves.toBeUndefined();
-    expect(db.commands).toHaveLength(3);
+    expect(db.commands).toHaveLength(4);
   });
 
   it('tolerates only a duplicate-column race, not a permission failure', async () => {

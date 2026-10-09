@@ -5,6 +5,7 @@ import * as email from '../email';
 import { buildMerchOrderNotification } from '../utils/merchCommerce';
 import { formatDateOnly } from '../../shared/dateOnly';
 import { getEmailLogoImage } from '../../shared/emailBranding';
+import { fulfillContentReleaseCheckout, fulfillContentReleasePaymentIntent, refundContentReleaseCharge } from '../services/contentReleaseCommerceService';
 import {
   getStripeClientForWebhookMode,
   verifyStripeWebhookEvent,
@@ -120,6 +121,7 @@ export function createMerchCheckoutSessionFromPaymentIntent(
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  if(session.metadata?.type==='content_release_purchase'){await fulfillContentReleaseCheckout(session);return;}
   const userId = session.metadata?.userId;
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType; // 'deposit', 'final_payment', or undefined for full payment
@@ -513,6 +515,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient:
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  if(paymentIntent.metadata?.type==='content_release_purchase'){await fulfillContentReleasePaymentIntent(paymentIntent);return;}
   // Handle tips separately
   if (paymentIntent.metadata?.type === 'tip') {
     await handleTipSucceeded(paymentIntent);
@@ -639,6 +642,7 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
 }
 
 async function handleChargeRefunded(charge: Stripe.Charge) {
+  if(charge.metadata?.type==='content_release_purchase'){await refundContentReleaseCharge(charge);return;}
   const paymentIntentId = charge.payment_intent as string | null;
   if (!paymentIntentId) return;
   if (!charge.refunded) {

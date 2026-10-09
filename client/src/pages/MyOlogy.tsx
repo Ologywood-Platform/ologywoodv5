@@ -21,11 +21,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { getUnifiedLifecycleLabel, getUnifiedLifecycleStage, getUnifiedLifecycleStyle } from '@/lib/unifiedLifecycle';
+import { ContentReleasePurchases } from '@/components/ContentReleasePurchases';
 
 export default function MyOlogy() {
   const { user, loading } = useAuth();
   const enabled = !!user;
   const purchases = trpc.release.myPurchases.useQuery(undefined, { enabled, retry: false });
+  const hostedPurchases = trpc.contentRelease.myPurchases.useQuery(undefined, { enabled, retry: false });
   const tickets = trpc.ticketing.getMyTickets.useQuery({ status: 'upcoming' }, { enabled, retry: false });
   const bookings = trpc.booking.getMyClientBookings.useQuery(undefined, { enabled, retry: false });
   const orders = trpc.merchOrders.myOrders.useQuery(undefined, { enabled, retry: false });
@@ -74,7 +76,7 @@ export default function MyOlogy() {
     { label: 'Upcoming tickets', count: data.tickets.length, description: 'QR tickets and event details', href: '/my-tickets', icon: Ticket, accent: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' },
     { label: 'Bookings', count: upcomingBookings.length, description: 'Requests, payments, and confirmations', href: '/my-bookings', icon: CalendarCheck, accent: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300' },
     { label: 'Shop orders', count: data.orders.length, description: 'Merch, Books, eBooks, and delivery', href: '/merch-orders', icon: ShoppingBag, accent: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' },
-    { label: 'Release purchases', count: data.purchases.length, description: 'Paid releases and downloads', href: '/my-purchases', icon: BookOpen, accent: 'bg-pink-100 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300' },
+    { label: 'Release purchases', count: data.purchases.length + (hostedPurchases.data?.length || 0), description: 'Paid releases, hosted access, and downloads', href: '/my-purchases', icon: BookOpen, accent: 'bg-pink-100 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300' },
     { label: 'Music library', count: data.library.length, description: 'Your playable purchased tracks', href: '/my-music', icon: Music2, accent: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300' },
     { label: 'Ology Live sessions', count: data.liveSessions.length, description: 'Upcoming virtual experiences and join details', href: '/ology-live/my-sessions', icon: Radio, accent: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300' },
     { label: 'Fan Club memberships', count: activeMemberships.length, description: 'Active communities and member access', href: '/fan-club-discovery', icon: Users, accent: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950/50 dark:text-fuchsia-300' },
@@ -103,6 +105,8 @@ export default function MyOlogy() {
               <Card><CardHeader><CardTitle>Recent activity</CardTitle></CardHeader><CardContent>{latestActivity.length === 0 ? <div className="py-8 text-center"><Library className="mx-auto h-9 w-9 text-slate-400" /><p className="mt-3 font-medium">Your activity will collect here</p><p className="mt-1 text-sm text-muted-foreground">Browse creators, events, shops, and live sessions to get started.</p><Link href="/discover"><Button variant="outline" className="mt-4">Start discovering</Button></Link></div> : <div className="space-y-3">{latestActivity.map((item) => { const Icon = item.icon; return <Link key={item.id} href={item.href} className="flex items-start gap-3 rounded-xl border border-slate-100 p-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"><Icon className="mt-0.5 h-5 w-5 text-purple-600" /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-medium">{item.title}</p><Badge variant="outline" className={getUnifiedLifecycleStyle(item.stage)}>{getUnifiedLifecycleLabel(item.stage)}</Badge></div><p className="text-sm text-muted-foreground">{item.detail}</p></div><ArrowRight className="mt-1 h-4 w-4 text-slate-400" /></Link>; })}</div>}</CardContent></Card>
               <Card className="bg-gradient-to-br from-purple-950 to-indigo-950 text-white"><CardHeader><CardTitle>What is next?</CardTitle></CardHeader><CardContent className="space-y-3"><Link href="/experiences" className="flex items-center justify-between rounded-xl bg-white/10 p-3 hover:bg-white/15"><span className="flex items-center gap-2"><Radio className="h-4 w-4" />Find an experience</span><ArrowRight className="h-4 w-4" /></Link><Link href="/shop" className="flex items-center justify-between rounded-xl bg-white/10 p-3 hover:bg-white/15"><span className="flex items-center gap-2"><ShoppingBag className="h-4 w-4" />Support a creator</span><ArrowRight className="h-4 w-4" /></Link><Link href="/community" className="flex items-center justify-between rounded-xl bg-white/10 p-3 hover:bg-white/15"><span className="flex items-center gap-2"><Heart className="h-4 w-4" />Visit your community</span><ArrowRight className="h-4 w-4" /></Link></CardContent></Card>
             </div>
+            {window.location.search.includes('content_release_checkout=complete') && <p className="mt-6 text-sm text-muted-foreground">Stripe checkout returned. Access appears below once payment is confirmed; use Refresh purchases if it is still processing.</p>}
+            <ContentReleasePurchases />
           </>
         )}
       </main>
