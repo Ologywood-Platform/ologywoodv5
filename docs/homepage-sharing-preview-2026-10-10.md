@@ -29,10 +29,11 @@ Updated the static HTML fallback, homepage client SEO preset, alternate meta hoo
 - Scoped credential/conflict-marker review passed; no media was placed inside the source repository.
 - Local HTTP 200 checks confirmed the new title/image for Facebook and LinkedIn crawler requests, ordinary HTML and legacy home sharing.
 - Local real-profile checks confirmed Adonis retains `/api/og-image/artist/11` and The Velvet Room Jazz Lounge retains `/api/og-image/venue/3`, with their own titles and alt text.
-- The new artwork is already publicly retrievable; the published homepage metadata still points to the old preview until this checkpoint is published.
+- Published implementation checkpoint `c01f2b98` is live. Production requests using Facebook and LinkedIn crawler user agents returned HTTP 200 with the new headline, versioned Open Graph image, matching Twitter/X image and 1200 × 630 metadata.
+- The owner confirmed on October 10, 2026 that Facebook Debugger and LinkedIn's inspector both display the new design. This platform-sharing update is complete.
 
 ## Publication and social cache follow-up
 
-Publish the sharing checkpoint, then verify the live homepage's crawler-visible title, description, Open Graph image and Twitter/X image. Existing social posts or conversations may retain platform-specific caches. The distinct image URL avoids reusing the old image cache, but it does not force every service to recrawl an already shared page immediately.
+Publication and live verification are complete. No additional code change or publication is needed for the verified card. Existing social posts or conversations may retain platform-specific caches. The distinct image URL avoids reusing the old image cache, but it does not force every service to recrawl an already shared page immediately.
 
 If Facebook still shows the old card after publication, use https://developers.facebook.com/tools/debug/ for `https://www.ologywood.com/` and choose **Scrape Again**. For LinkedIn use https://www.linkedin.com/post-inspector/. No immediate refresh of old posts or third-party caches is guaranteed.

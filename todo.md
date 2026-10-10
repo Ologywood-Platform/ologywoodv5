@@ -4888,4 +4888,4 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Preserved artist/venue/event/merch/video/Sandbox entity-specific previews and changed only generic fallback artwork; no layout, fees, entitlements, schemas or real records modified
 - [x] Added 10 permanent sharing regressions; 182 focused tests and all 3090 platform tests with 23 skipped passed, plus TypeScript, production build and scoped hygiene
 - [x] Local crawler/browser/legacy-home checks show the new card; real Adonis and venue checks retain specific photo proxies and titles; no purchases or form submissions
-- [ ] Publish sharing-preview checkpoint and verify live homepage crawler metadata; third-party existing shares may need a fresh scrape and are not guaranteed to refresh immediately
+- [x] Published `c01f2b98`; live Facebook/LinkedIn crawler requests return HTTP 200 with the new headline, versioned artwork, matching Twitter image and 1200 × 630 metadata. Owner confirmed Facebook Debugger and LinkedIn inspector both display the new design; no account or creator data changed
