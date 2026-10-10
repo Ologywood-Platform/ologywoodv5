@@ -4863,3 +4863,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Added nine permanent navigation/support regressions; 72 focused tests, all 3040 platform tests with 23 skipped, TypeScript, production build and scoped hygiene passed
 - [x] Fully intercepted desktop/mobile checks verified Workspace create navigation, audio/cover form controls, Cancel, hosted cross-link and retained upgrade gate with zero mutation requests; no real song, purchase, profile or subscription changed
 - [ ] Publish this checkpoint and confirm live Music Releases shortcut and Upload a Song control without creating a song unless the creator intentionally submits it
+
+## AUTOMATIC COMPLIMENTARY GRANT EMAILS (Oct 9, 2026)
+- [x] Added automatic approved branded confirmation after successful owner-only grant/replacement commit, targeting the exact new revision; failed grants, inspections and revocations do not send
+- [x] Shared automatic/manual reservation service preserves prior email keys and locks recipient user first; concurrent/manual/replayed attempts cannot duplicate a recorded revision
+- [x] Rechecks active grant, verified email, conflicting Stripe billing and unsubscribe preferences; bounded eight-second provider call and truthful accepted/skipped/unconfirmed admin feedback; email failure does not revoke access
+- [x] Updated Admin review, Help and deterministic AI guidance; no fee, billing, role or schema changes and no scheduler or blind ambiguous retries
+- [x] Sent one newly eligible catch-up confirmation accepted by provider, skipped thirteen prior attempts, and verified zero eligible unsent confirmations afterward; inbox delivery not claimed
+- [x] Passed 86 focused tests, all 3071 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; fully intercepted 1280/390 px admin checks verified accepted/opt-out/unconfirmed results, retained access and Cancel with zero real grant mutations
+- [ ] Publish automatic-email checkpoint and verify live Admin review notice; only intentionally grant a real user when owner wishes to issue access, then verify that revision's email provider outcome

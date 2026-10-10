@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Loader2, RefreshCw, ShieldAlert } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { GRANT_BILLING_NOTICE } from '@shared/complimentaryAccess';
+import { getGrantEmailNotice } from '@shared/complimentaryAccessEmail';
 import {
   Dialog,
   DialogContent,
@@ -128,7 +129,7 @@ export function AdminComplimentaryAccess({
   };
 
   const grantMutation = trpc.complimentaryAccess.grant.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       await invalidateAccessData();
       await inspectQuery.refetch();
       setStep('form');
@@ -137,7 +138,7 @@ export function AdminComplimentaryAccess({
       setBillingAcknowledged(false);
       setFormError(null);
       setReviewExpectedRevision(null);
-      onSuccess(`Complimentary ${tier} access was ${grant ? 'replaced' : 'granted'} for ${user.name || user.email}.`);
+      onSuccess(`Complimentary ${tier} access was ${grant ? 'replaced' : 'granted'} for ${user.name || user.email}. ${getGrantEmailNotice(result.emailNotification?.outcome)}`);
     },
     onError: handleMutationError,
   });
@@ -396,6 +397,7 @@ export function AdminComplimentaryAccess({
                     <span>I understand this does not cancel Stripe billing or waive transaction fees.</span>
                   </label>
                   <p className="text-xs leading-relaxed text-slate-600">{GRANT_BILLING_NOTICE}</p>
+                  <p className="rounded-md border border-indigo-200 bg-indigo-50 p-3 text-xs leading-relaxed text-indigo-900">After a successful grant or replacement, the branded confirmation email is sent automatically to the account's verified email address, unless the user opted out. Each grant revision is attempted once. Email issues do not undo access, and provider acceptance does not guarantee inbox delivery.</p>
                   {grant && activeGrant && (
                     <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs leading-relaxed text-blue-800">
                       Replacing active access applies the new grant immediately and replaces the current active grant; audit history is preserved.
@@ -413,6 +415,7 @@ export function AdminComplimentaryAccess({
                     <div className="sm:col-span-2"><dt className="text-indigo-700">Reason</dt><dd className="font-medium text-indigo-950">{reason.trim()}</dd></div>
                   </dl>
                   {activeGrant && <p className="text-xs text-indigo-800">This will replace the active {grant?.tier} grant at revision {grant?.revision}. The current grant display will update after confirmation.</p>}
+                  <p className="text-xs text-indigo-800">Confirmation also attempts the grant email automatically. Email preferences and prior attempts are respected.</p>
                 </section>
               )}
 

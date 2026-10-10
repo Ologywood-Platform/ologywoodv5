@@ -46,16 +46,18 @@ describe('Complimentary grant email confirmations', () => {
   vi.mocked(sendEmail).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
   expect(await sendComplimentaryAccessEmail(input)).toBe(true);
   expect(await sendComplimentaryAccessEmail(input)).toBe(false);
-  expect(sendEmail).toHaveBeenCalledWith(buildComplimentaryAccessEmail(input));
+  expect(sendEmail).toHaveBeenCalledWith(buildComplimentaryAccessEmail(input), { timeoutMs: 8_000 });
  });
  it('requires explicit send flag and deduplicates attempts while respecting opt-outs and current access', () => {
   const script = readFileSync(new URL('../scripts/send-complimentary-access-emails.ts', import.meta.url), 'utf8');
+  const delivery = readFileSync(new URL('./services/complimentaryAccessEmailDelivery.ts', import.meta.url), 'utf8');
   expect(script).toContain("process.argv.includes('--send')");
-  expect(script).toContain("row.frequency === 'never' || row.unsubscribedAt");
-  expect(script).toContain("getGrantStatus(row) !== 'active'");
-  expect(script).toContain('hasPotentiallyBillingSubscription');
-  expect(script).toContain('skipped_already_attempted');
-  expect(script).toContain('FOR UPDATE');
-  expect(script).toContain('await conn.commit()');
+  expect(script).toContain('notifyComplimentaryGrant(owner, target.userId, null, !sending)');
+  expect(delivery).toContain("row.frequency === 'never' || row.unsubscribedAt");
+  expect(delivery).toContain("getGrantStatus(row) !== 'active'");
+  expect(delivery).toContain('hasPotentiallyBillingSubscription');
+  expect(delivery).toContain('skipped_already_attempted');
+  expect(delivery).toContain('FOR UPDATE');
+  expect(delivery).toContain('await conn.commit()');
  });
 });

@@ -15,7 +15,7 @@ interface EmailParams {
 /**
  * Send an email using SendGrid
  */
-export async function sendEmail({ to, subject, html }: EmailParams): Promise<boolean> {
+export async function sendEmail({ to, subject, html }: EmailParams, options?: { timeoutMs: number }): Promise<boolean> {
   if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
     console.error('[Email] SendGrid not configured - SENDGRID_API_KEY or SENDGRID_FROM_EMAIL missing');
     return false;
@@ -25,6 +25,7 @@ export async function sendEmail({ to, subject, html }: EmailParams): Promise<boo
     console.log(`[Email] Sending to: ${to}, subject: ${subject}`);
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
+      ...(options ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
       headers: {
         'Authorization': `Bearer ${ENV.sendgridApiKey}`,
         'Content-Type': 'application/json',

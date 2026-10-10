@@ -46,5 +46,5 @@ export function buildComplimentaryAccessEmail(input: ComplimentaryEmailInput) {
   return { to: input.email, subject, html };
 }
 export async function sendComplimentaryAccessEmail(input: ComplimentaryEmailInput): Promise<boolean> {
-  return sendEmail(buildComplimentaryAccessEmail(input));
+  return sendEmail(buildComplimentaryAccessEmail(input), { timeoutMs: 8_000 });
 }

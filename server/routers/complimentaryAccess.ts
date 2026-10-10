@@ -4,6 +4,7 @@ import { protectedProcedure, router } from '../_core/trpc';
 import { hasComplimentaryOwnerAccess } from '../services/ownerSubscriptionAccess';
 import { requireGrantOwner, inspectComplimentaryAccess, grantComplimentaryAccess, revokeComplimentaryAccess } from '../services/complimentaryAccessService';
 import { COMPLIMENTARY_TIERS } from '../../shared/complimentaryAccess';
+import { notifyComplimentaryGrant } from '../services/complimentaryAccessEmailDelivery';
 
 const ownerProcedure=protectedProcedure.use(async({ctx,next})=>{
  requireGrantOwner(ctx.user);
@@ -18,6 +19,17 @@ const target={userId:z.number().int().positive(),expectedRevision:z.number().int
 export const complimentaryAccessRouter=router({
  capabilities:protectedProcedure.query(({ctx})=>({canManage:hasComplimentaryOwnerAccess(ctx.user)})),
  inspect:ownerProcedure.input(z.object({userId:z.number().int().positive()})).query(({ctx,input})=>inspectComplimentaryAccess(ctx.user,input.userId)),
- grant:ownerProcedure.input(z.object({...target,tier:z.enum(COMPLIMENTARY_TIERS),expiresAt:z.date().nullable(),billingAcknowledged:z.literal(true)})).mutation(({ctx,input})=>grantComplimentaryAccess(ctx.user,input)),
+ grant:ownerProcedure.input(z.object({...target,tier:z.enum(COMPLIMENTARY_TIERS),expiresAt:z.date().nullable(),billingAcknowledged:z.literal(true)})).mutation(async({ctx,input})=>{
+  const result=await grantComplimentaryAccess(ctx.user,input);
+  // A grant transaction must have committed before any email is reserved or sent.
+  // Target the newly committed revision, not a later replacement or revoked grant.
+  try {
+   const emailNotification=await notifyComplimentaryGrant(ctx.user,input.userId,input.expectedRevision+1);
+   return {...result,emailNotification};
+  } catch {
+   console.error('[ComplimentaryAccess] Post-grant email unavailable',{userId:input.userId});
+   return {...result,emailNotification:{outcome:'error' as const}};
+  }
+ }),
  revoke:ownerProcedure.input(z.object(target)).mutation(({ctx,input})=>revokeComplimentaryAccess(ctx.user,input)),
 });

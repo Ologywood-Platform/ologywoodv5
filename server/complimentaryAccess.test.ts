@@ -541,6 +541,7 @@ describe('complimentary access router', () => {
     const grant = vi.fn().mockResolvedValue({ success: true });
     const inspect = vi.fn().mockResolvedValue({ user: { id: 2 } });
     const revoke = vi.fn().mockResolvedValue({ success: true });
+    const notify = vi.fn().mockResolvedValue({ outcome: 'not_configured' });
     const requireOwner = vi.fn((actor: User | null | undefined) => {
       if (actor?.openId !== 'test-owner') {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the verified platform owner can manage complimentary access.' });
@@ -553,6 +554,9 @@ describe('complimentary access router', () => {
       inspectComplimentaryAccess: inspect,
       revokeComplimentaryAccess: revoke,
       requireGrantOwner: requireOwner,
+    }));
+    vi.doMock('./services/complimentaryAccessEmailDelivery', () => ({
+      notifyComplimentaryGrant: notify,
     }));
 
     try {
@@ -569,8 +573,9 @@ describe('complimentary access router', () => {
         reason: '  Router approved reason  ',
         expectedRevision: 0,
         billingAcknowledged: true,
-      })).resolves.toEqual({ success: true });
+      })).resolves.toEqual({ success: true, emailNotification: { outcome: 'not_configured' } });
       expect(grant).toHaveBeenCalledWith(owner, expect.objectContaining({ reason: 'Router approved reason', tier: 'professional' }));
+      expect(notify).toHaveBeenCalledWith(owner, 2, 1);
 
       const nonOwnerCaller = complimentaryAccessRouter.createCaller(context(makeUser({ id: 3, openId: 'not-owner' })));
       await expect(nonOwnerCaller.grant({
@@ -584,6 +589,7 @@ describe('complimentary access router', () => {
       expect(grant).toHaveBeenCalledTimes(1);
     } finally {
       vi.doUnmock('./services/complimentaryAccessService');
+      vi.doUnmock('./services/complimentaryAccessEmailDelivery');
       vi.resetModules();
     }
   });
