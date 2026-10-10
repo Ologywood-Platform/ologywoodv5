@@ -42,4 +42,8 @@ Only `client/src/pages/Home.tsx`, a new route-local `Home.css`, permanent homepa
 
 ## Publication
 
-Implementation is ready for an owner publication through the project UI after checkpoint save. Production publication and post-publication verification have not yet been claimed. After publication, verify the hero/category layout and existing profile/search/signup navigation without changing any creator record.
+The owner published implementation checkpoint `7230eb19` on October 10, 2026 and confirmed satisfaction with the redesign. Production verification at `https://www.ologywood.com/` confirmed the cinematic hero and all three category images load, current artist and venue profiles render, the Athlete category selects correctly and resets to All talent, and the published Fan Club copy retains the 90/10 split.
+
+Live interaction checks opened and dismissed the signup modal without submitting it, found Adonis through the existing autocomplete, opened exactly one header search dialog with Ctrl+K, and confirmed all six canonical destinations in the compact menu. The featured Adonis link opened `/artist/adonis`; that profile rendered with one header and without the homepage-only visual wrapper. The creator-tool guide, Help link and NIL non-certification disclaimer remain accessible. At the inspected 1280 px browser viewport, document width was 1265 px with no horizontal overflow.
+
+No signup, purchase, follow, preference, profile, or billing mutation was submitted during production checks. Responsive checks at seven widths and the complete 3,080-test validation remain the pre-publication evidence; a separate production payment, OAuth completion, or authenticated owner workflow test is not claimed. This closes the homepage redesign release without changing deployed application code after publication.
