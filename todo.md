@@ -4872,3 +4872,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Sent one newly eligible catch-up confirmation accepted by provider, skipped thirteen prior attempts, and verified zero eligible unsent confirmations afterward; inbox delivery not claimed
 - [x] Passed 86 focused tests, all 3071 platform tests with 23 skipped, TypeScript, production build and scoped hygiene; fully intercepted 1280/390 px admin checks verified accepted/opt-out/unconfirmed results, retained access and Cancel with zero real grant mutations
 - [ ] Publish automatic-email checkpoint and verify live Admin review notice; only intentionally grant a real user when owner wishes to issue access, then verify that revision's email provider outcome
+
+## HOMEPAGE VISUAL REDESIGN (Oct 10, 2026)
+- [x] Implemented owner-approved cinematic dark/purple homepage, opportunity-led hero, category discovery, real profile carousels, compact creator tools and ownership/fee transparency
+- [x] Preserved shared logo/six-destination navigation, existing auth/OAuth/invitation flows, autocomplete, featured eligibility, Suggested Follows, clean URLs, SEO, creator features and shared footer; no fees, billing, entitlements, roles, schemas or real profiles changed
+- [x] Scoped all new dark styling to Home; retained stored user theme and appearance on other pages; used optimized decorative promotional artwork rather than fake registered-user profiles
+- [x] Added local category filters and truthful empty/error recovery with Browse links for advanced filters; preserved existing music/merch/ticket/Fan Club/Ology Live access and readiness-only NIL language
+- [x] Passed nine new homepage regressions and all 3,080 platform tests with 23 skipped, TypeScript, production build and changed-file hygiene
+- [x] Fully intercepted browser checks passed 320/390/768/1024/1280/1440/1920 px without overflow, signup, autocomplete, category clear, compact menu, one keyboard search dialog, empty/error states and zero real mutation requests; real-data desktop/mobile screenshots inspected
+- [ ] Publish homepage redesign checkpoint and verify production appearance and preserved discovery/signup navigation without editing user or creator records

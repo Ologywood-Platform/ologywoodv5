@@ -1,7 +1,29 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Calendar, FileText, Shield, Heart, Send, Headphones, Scale, Ticket, AlertTriangle, MapPin, Globe, Zap, HelpCircle, Mail, ShoppingBag, Building2, Award, BarChart3, Users, Crown, Lock, Video, MessageCircle, DollarSign } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  FileText,
+  Shield,
+  Heart,
+  Send,
+  Headphones,
+  Ticket,
+  AlertTriangle,
+  MapPin,
+  Globe,
+  HelpCircle,
+  Mail,
+  ShoppingBag,
+  Building2,
+  Award,
+  Users,
+  Lock,
+  Video,
+  Search,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
 import { ArtistSearchDropdown } from "@/components/ArtistSearchDropdown";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -10,632 +32,739 @@ import { QuickSignupModal } from "@/components/QuickSignupModal";
 import SuggestedFollows from "@/components/SuggestedFollows";
 import { FeaturedArtistsCarousel } from "@/components/FeaturedArtistsCarousel";
 import { FeaturedVenuesCarousel } from "@/components/FeaturedVenuesCarousel";
-import { TrustBadges } from "@/components/TrustBadges";
 import { setMetaTags, pageMetaTags } from "@/utils/seoMeta";
-import { JsonLd, buildHomepageJsonLd, buildBreadcrumbJsonLd } from "@/components/JsonLd";
+import {
+  JsonLd,
+  buildHomepageJsonLd,
+  buildBreadcrumbJsonLd,
+} from "@/components/JsonLd";
 import SiteHeader from "@/components/SiteHeader";
+import { TALENT_TYPE_OPTIONS } from "@shared/talentTypes";
+import "./Home.css";
+
+const heroImage = "/manus-storage/ologywood-cinematic-hero_4ee30676.webp";
+const categories = [
+  {
+    type: "artist",
+    title: "Music Artists",
+    description: "Bands · Singers · Producers",
+    image: "/manus-storage/ologywood-category-musician_5487c223.webp",
+  },
+  {
+    type: "athlete",
+    title: "Athletes",
+    description: "Appearances · Sports · NIL",
+    image: "/manus-storage/ologywood-category-athlete_95ffa575.webp",
+  },
+  {
+    type: "filmmaker",
+    title: "Filmmakers",
+    description: "Directors · Producers · Storytellers",
+    image: "/manus-storage/ologywood-category-filmmaker_2f0c6c93.webp",
+  },
+];
+const creatorTools = [
+  {
+    icon: Calendar,
+    title: "Get Booked",
+    copy: "Connect with venues and bookers. Set your availability and build your next opportunity.",
+    href: "/browse",
+  },
+  {
+    icon: Users,
+    title: "Build Your Fan Club",
+    copy: "Turn your audience into a community with memberships and exclusive experiences.",
+    href: "/how-it-works",
+  },
+  {
+    icon: Ticket,
+    title: "Sell Tickets",
+    copy: "Event Ticketing brings people together. Discover events and sell tickets directly to your fans.",
+    href: "/events",
+  },
+  {
+    icon: Headphones,
+    title: "Release Your Work",
+    copy: "Sell music downloads or paid access to content hosted wherever you choose.",
+    href: "/shop",
+  },
+  {
+    icon: ShoppingBag,
+    title: "Sell Your Merch",
+    copy: "Offer merch, books and digital products. Connect your shop or fulfill orders yourself.",
+    href: "/shop",
+  },
+  {
+    icon: Video,
+    title: "Go Live",
+    copy: "Host paid virtual sessions, workshops and live conversations with your fans.",
+    href: "/ology-live",
+  },
+];
+const moreTools = [
+  {
+    icon: FileText,
+    title: "Riders & Contracts",
+    copy: "Technical requirements, professional booking contracts and e-signatures.",
+  },
+  {
+    icon: MapPin,
+    title: "Events & Availability",
+    copy: "Manage your calendar, touring dates and appearance availability.",
+  },
+  {
+    icon: Heart,
+    title: "Follow & Stay Connected",
+    copy: "Follow talent and send updates directly to your fan base.",
+  },
+  {
+    icon: Send,
+    title: "Direct Messaging",
+    copy: "Discuss details and coordinate bookings in one place.",
+  },
+  {
+    icon: Building2,
+    title: "Venue Management",
+    copy: "Venue profiles, availability calendars and booking management.",
+  },
+  {
+    icon: Award,
+    title: "Sponsor Showcase & Media Kit",
+    copy: "Enterprise tools: 5 sponsor slots, Sponsor Analytics and an auto-generated Media Kit.",
+  },
+];
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'signup' | 'login'>('signup');
-  // Use artist.search with empty filters to get all artists (same as Browse page)
-  const { data: artists, isLoading } = trpc.artist.search.useQuery({});
-  // Fetch featured venues
-  const { data: featuredVenues, isLoading: venuesLoading } = trpc.venue.getFeatured.useQuery();
+  const [authModalTab, setAuthModalTab] = useState<"signup" | "login">(
+    "signup"
+  );
+  const [talentType, setTalentType] = useState("all");
+  // Preserve the same public discovery sources and eligibility rules.
+  const {
+    data: artists,
+    isLoading,
+    isError: artistsError,
+    refetch: retryArtists,
+  } = trpc.artist.search.useQuery({});
+  const {
+    data: featuredVenues,
+    isLoading: venuesLoading,
+    isError: venuesError,
+    refetch: retryVenues,
+  } = trpc.venue.getFeatured.useQuery();
 
-  // Set SEO meta tags
   useEffect(() => {
     setMetaTags(pageMetaTags.home);
   }, []);
-
-  // Handle OAuth errors - show user-friendly message with retry
   const [oauthError, setOauthError] = useState<string | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get('oauth_error');
     if (error) {
       setOauthError(error);
-      // Remove the error parameter from URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-    // If there's a redirect param (e.g., from team invite), auto-open the login modal
     const redirect = params.get('redirect');
     if (redirect && !isAuthenticated) {
       setAuthModalTab('login');
       setAuthModalOpen(true);
     }
   }, [isAuthenticated]);
-  
   const openSignUp = () => {
-    setAuthModalTab('signup');
+    setAuthModalTab("signup");
     setAuthModalOpen(true);
   };
-
   const openSignIn = () => {
     setAuthModalTab('login');
     setAuthModalOpen(true);
   };
-
-  // Redirect authenticated users without a proper role to role selection
-  // Fans (role='fan') stay on the homepage — it's their home base
   useEffect(() => {
-    if (isAuthenticated && user && (!user.role || user.role === 'user')) {
-      window.location.href = '/get-started';
-    }
+    if (isAuthenticated && user && (!user.role || user.role === "user"))
+      window.location.href = "/get-started";
   }, [isAuthenticated, user]);
 
-  // Allow authenticated users to browse home page - they can click Dashboard button to go to dashboard
+  const visibleArtists = (artists || []).filter(
+    artist =>
+      talentType === "all" ||
+      ((artist as { talentType?: string }).talentType || "artist") ===
+        talentType
+  );
+  const selectedLabel =
+    TALENT_TYPE_OPTIONS.find(option => option.value === talentType)
+      ?.pluralLabel || "Talent";
+  const showCategory = (type: string) => {
+    setTalentType(type);
+    document
+      .getElementById("home-talent")
+      ?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <JsonLd data={[buildHomepageJsonLd(), buildBreadcrumbJsonLd([{ name: 'Home', url: '/' }])]} id="homepage" />
-      
-      {/* Shared Header with Following link */}
+    <div className="home-redesign dark min-h-screen flex flex-col">
+      <JsonLd
+        data={[
+          buildHomepageJsonLd(),
+          buildBreadcrumbJsonLd([{ name: "Home", url: "/" }]),
+        ]}
+        id="homepage"
+      />
       <SiteHeader largeLogo />
-
-      {/* OAuth Error Banner */}
       {oauthError && (
-        <div className="bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-800 px-4 py-3">
-          <div className="container mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
-              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-              <p className="text-sm font-medium">
-                {oauthError === 'INVALID_CODE'
-                  ? 'Sign in expired. Please try again.'
-                  : oauthError === 'INVALID_STATE'
-                  ? 'Security check failed. Please try signing in again.'
-                  : 'Sign in failed. Please try again or use email login.'}
-              </p>
-            </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/30"
-                onClick={() => {
-                  setOauthError(null);
-                  openSignIn();
-                }}
-              >
-                Try Again
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-red-600 dark:text-red-400"
-                onClick={() => setOauthError(null)}
-              >
-                Dismiss
-              </Button>
-            </div>
+        <div className="home-auth-error" role="alert">
+          <div className="home-container flex flex-wrap items-center gap-3">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            <p className="text-sm flex-1">
+              {oauthError === "INVALID_CODE"
+                ? "Sign in expired. Please try again."
+                : oauthError === "INVALID_STATE"
+                  ? "Security check failed. Please try signing in again."
+                  : "Sign in failed. Please try again or use email login."}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setOauthError(null);
+                openSignIn();
+              }}
+            >
+              Try Again
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setOauthError(null)}
+            >
+              Dismiss
+            </Button>
           </div>
         </div>
       )}
-
-      {/* Hero Section - Original Messaging */}
-      <section className="bg-gradient-to-br from-primary/10 via-accent/5 to-background py-12 sm:py-20">
-        <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 text-foreground">
-            Build Your Brand. Grow Your Fans. Create More Opportunities.
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.
-          </p>
-          
-          {!isAuthenticated && (
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
+      <main id="home-main">
+        <section className="home-hero" aria-labelledby="home-headline">
+          <img
+            src={heroImage}
+            alt=""
+            aria-hidden="true"
+            className="home-hero-image"
+            width="2200"
+            height="943"
+            fetchPriority="high"
+          />
+          <div className="home-hero-shade" />
+          <div className="home-container home-hero-content">
+            <p className="home-eyebrow">
+              <span /> INDEPENDENT TALENT. REAL POSSIBILITIES.
+            </p>
+            <h1
+              id="home-headline"
+              aria-label="Your Talent. Your Platform. Your Next Opportunity."
+            >
+              Your Talent.
+              <br />
+              Your Platform.
+              <br />
+              <span>Your Next Opportunity.</span>
+            </h1>
+            <p className="home-hero-description">
+              Get discovered, book opportunities, grow your audience,
+              <br className="hidden sm:block" /> and earn from what you create.
+            </p>
+            <div className="home-hero-actions">
+              <Link href="/browse" className="home-button home-button-primary">
+                Explore Talent <ArrowRight className="h-4 w-4" />
+              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/workspace"
+                  className="home-button home-button-outline"
+                >
+                  Open Workspace
+                </Link>
+              ) : (
+                <button
+                  className="home-button home-button-outline"
+                  onClick={openSignUp}
+                >
                   Join as Talent
-                </Button>
-              <a href="/browse" className="no-underline">
-                <Button size="lg" variant="outline" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto">
-                  Join as a Fan
-                </Button>
-              </a>
+                </button>
+              )}
+            </div>
+            <p className="home-hero-note">
+              Free profile <span>·</span> Direct connections <span>·</span>{" "}
+              Built for independent talent
+            </p>
+          </div>
+        </section>
+
+        <section
+          className="home-container home-search"
+          aria-label="Find talent"
+        >
+          <div className="home-search-panel">
+            <div className="home-search-field">
+              <label className="home-field-label">
+                Find your next connection
+              </label>
+              <ArtistSearchDropdown
+                inputClassName="home-search-input"
+                placeholder="Search by name, genre, or location..."
+                maxResults={5}
+              />
+            </div>
+            <div className="home-type-field">
+              <label htmlFor="home-talent-type" className="home-field-label">
+                Talent type
+              </label>
+              <div className="home-select-wrap">
+                <Users className="h-4 w-4" aria-hidden="true" />
+                <select
+                  id="home-talent-type"
+                  value={talentType}
+                  onChange={event => setTalentType(event.target.value)}
+                >
+                  <option value="all">All talent</option>
+                  {TALENT_TYPE_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.pluralLabel}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="h-4 w-4 pointer-events-none"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+            <button
+              className="home-button home-button-primary home-search-button"
+              onClick={() => showCategory(talentType)}
+            >
+              <Search className="h-4 w-4" /> Explore
+            </button>
+          </div>
+          <p className="home-search-help">
+            Choose a suggestion to open a profile. Talent type filters the
+            featured profiles below.{" "}
+            <Link href="/browse">
+              More location & availability filters{" "}
+              <ArrowRight className="h-3 w-3 inline" />
+            </Link>
+          </p>
+        </section>
+
+        <section
+          className="home-container home-categories"
+          aria-labelledby="home-categories-title"
+        >
+          <div className="home-section-heading">
+            <div>
+              <p className="home-eyebrow">DISCOVER</p>
+              <h2 id="home-categories-title">
+                A world of talent. A place for you.
+              </h2>
+            </div>
+            <Link href="/browse" className="home-text-link">
+              Explore all talent <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="home-category-grid">
+            {categories.map(category => (
+              <button
+                key={category.type}
+                className="home-category"
+                onClick={() => showCategory(category.type)}
+                aria-label={`Explore ${category.title}`}
+              >
+                <img
+                  src={category.image}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width="800"
+                  height="533"
+                />
+                <div className="home-category-caption">
+                  <h3>{category.title}</h3>
+                  <p>{category.description}</p>
+                  <span>
+                    Explore category <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
+              </button>
+            ))}
+            <Link
+              href="/browse?tab=venues"
+              className="home-category home-category-venue"
+            >
+              <div className="home-venue-art" aria-hidden="true">
+                <Building2 />
+                <span />
+              </div>
+              <div className="home-category-caption">
+                <h3>Venues & Places</h3>
+                <p>Stages · Spaces · Connections</p>
+                <span>
+                  Explore venues <ArrowRight className="h-4 w-4" />
+                </span>
+              </div>
+            </Link>
+          </div>
+          <div
+            className="home-category-chips"
+            aria-label="More talent categories"
+          >
+            <button
+              onClick={() => showCategory("all")}
+              aria-pressed={talentType === "all"}
+            >
+              All talent
+            </button>
+            {TALENT_TYPE_OPTIONS.filter(
+              option =>
+                !categories.some(category => category.type === option.value)
+            ).map(option => (
+              <button
+                key={option.value}
+                onClick={() => showCategory(option.value)}
+                aria-pressed={talentType === option.value}
+              >
+                {option.pluralLabel}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <div
+          id="home-talent"
+          className="home-discovery scroll-mt-28"
+          aria-label={`Featured ${selectedLabel}`}
+        >
+          {talentType !== "all" && (
+            <div className="home-container home-filter-status">
+              <p>Showing {selectedLabel.toLowerCase()}</p>
+              <button onClick={() => setTalentType("all")}>
+                Clear category
+              </button>
+            </div>
+          )}
+          {artistsError ? (
+            <div className="home-container home-empty" role="status">
+              <h3>Talent is taking a moment to load.</h3>
+              <p>Your profiles are still here. Try again or explore Browse.</p>
+              <Button onClick={() => retryArtists()}>Try Again</Button>
+              <Link href="/browse" className="home-text-link">
+                Browse talent <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ) : isLoading ? (
+            <div
+              className="home-container home-skeleton-grid"
+              aria-label="Loading talent"
+            >
+              {[1, 2, 3].map(item => (
+                <div key={item} className="home-skeleton animate-pulse" />
+              ))}
+            </div>
+          ) : visibleArtists.length > 0 ? (
+            <FeaturedArtistsCarousel
+              key={talentType}
+              artists={visibleArtists}
+              isLoading={isLoading}
+            />
+          ) : (
+            <div className="home-container home-empty">
+              <Sparkles className="h-7 w-7" />
+              <h3>
+                {talentType === "all"
+                  ? "Your next connection starts here."
+                  : `More ${selectedLabel.toLowerCase()} are on the way.`}
+              </h3>
+              <p>
+                Explore all talent, or create your profile and help this
+                community grow.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  className="home-button home-button-primary"
+                  onClick={() => setTalentType("all")}
+                >
+                  See all talent
+                </button>
+                {!isAuthenticated && (
+                  <button
+                    className="home-button home-button-outline"
+                    onClick={openSignUp}
+                  >
+                    Join as Talent
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
-      </section>
-
-      {/* Search Section - Mobile Optimized */}
-      <section className="py-8 sm:py-12 bg-muted/30">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6">Find Your Perfect Talent</h2>
-            <ArtistSearchDropdown
-              inputClassName="py-2 sm:py-6 text-sm sm:text-base"
-              placeholder="Search by name, sport, genre, or location..."
-              maxResults={5}
+        <div className="home-discovery home-venue-discovery">
+          {venuesError ? (
+            <div className="home-container home-empty">
+              <h3>Venues couldn't load just now.</h3>
+              <Button onClick={() => retryVenues()}>Retry venues</Button>
+            </div>
+          ) : (
+            <FeaturedVenuesCarousel
+              venues={featuredVenues || []}
+              isLoading={venuesLoading}
             />
-          </div>
+          )}
         </div>
-      </section>
 
-      {/* Featured Artists Carousel - Show all talent types */}
-      <FeaturedArtistsCarousel artists={artists || []} isLoading={isLoading} />
-
-      {/* Explore All Talent CTA */}
-      <div className="text-center pb-6">
-        <Link href="/browse">
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors">
-            Explore All Talent — Artists, Athletes, Filmmakers & More
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </span>
-        </Link>
-      </div>
-
-      {/* Featured Venues Carousel */}
-      <FeaturedVenuesCarousel venues={featuredVenues || []} isLoading={venuesLoading} />
-
-      {/* Suggested Follows Section */}
-      <section className="py-8 sm:py-16">
-        <div className="container mx-auto px-3 sm:px-4">
-          <SuggestedFollows />
-        </div>
-      </section>
-
-      {/* NIL & College Sports Blueprint Section */}
-      <section className="py-10 sm:py-16 bg-gradient-to-b from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-8 sm:mb-12">
-            <span className="inline-block bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-semibold px-3 py-1 rounded-full mb-4">NIL &amp; COLLEGE SPORTS</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">The Blueprint for Athlete Bookings &amp; NIL Deals</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-              Purpose-built for college athletes navigating NIL. Professional contracts, compliance-ready templates, and a platform that treats athletes like the brands they are.
-            </p>
+        <section
+          className="home-container home-tools"
+          aria-labelledby="home-tools-title"
+        >
+          <div className="home-section-heading">
+            <div>
+              <p className="home-eyebrow">BUILD & EARN</p>
+              <h2 id="home-tools-title">One platform. More ways to grow.</h2>
+            </div>
+            <Link href="/how-it-works" className="home-text-link">
+              See how it works <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto">
-            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
-              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <FileText className="h-6 w-6 text-green-700 dark:text-green-300" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">NIL Contracts</h3>
-              <p className="text-xs text-muted-foreground">
-                Auto-generated engagement contracts with compliance language, e-signatures, and PDF export.
-              </p>
-            </div>
-
-            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
-              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Award className="h-6 w-6 text-green-700 dark:text-green-300" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">Athlete Profiles</h3>
-              <p className="text-xs text-muted-foreground">
-                Sport, position, stats, achievements, and highlight reels &mdash; all showcased on a professional profile.
-              </p>
-            </div>
-
-            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
-              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Calendar className="h-6 w-6 text-green-700 dark:text-green-300" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">Booking Types</h3>
-              <p className="text-xs text-muted-foreground">
-                Appearances, signings, speaking, camps/clinics, and brand endorsements &mdash; each with its own rider template.
-              </p>
-            </div>
-
-            <div className="text-center p-5 rounded-lg bg-white/80 dark:bg-card shadow-sm">
-              <div className="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Shield className="h-6 w-6 text-green-700 dark:text-green-300" />
-              </div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">NIL Readiness Tools</h3>
-              <p className="text-xs text-muted-foreground">
-                Private deal records, proposed reporting reminders, and fee separation. Institutional or legal review may still be required.
-              </p>
-            </div>
+          <p className="home-section-intro">
+            Creators own their audience. Creators choose where their content
+            lives. OlogyWood powers everything that makes that content
+            profitable — bookings, Sell Tickets, fan clubs, merch, and content
+            releases.
+          </p>
+          <div className="home-tools-grid">
+            {creatorTools.map(tool => (
+              <Link
+                key={tool.title}
+                href={tool.href}
+                className="home-tool-card"
+              >
+                <div className="home-tool-icon">
+                  <tool.icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3>{tool.title}</h3>
+                  <p>{tool.copy}</p>
+                </div>
+                <ArrowRight className="home-tool-arrow h-4 w-4" />
+              </Link>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* Touring & Availability Section */}
-      <section className="py-10 sm:py-16 bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Built for Touring Artists &amp; Athlete Appearances</h2>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-              Plan your tour or set your appearance availability. Get discovered by venues and brands &mdash; no more juggling multiple tools.
-            </p>
+          <div className="home-live-links">
+            <Link href="/ology-live/dashboard" className="home-text-link">Host a virtual session <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/ology-live" className="home-text-link">Explore live experiences <ArrowRight className="h-4 w-4" /></Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
-            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
-              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="font-semibold text-base sm:text-lg mb-2">Set Your Availability</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Mark your available dates and cities. Venues and brands find you when you're open for bookings.
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
-              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="font-semibold text-base sm:text-lg mb-2">Get Discovered</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Your availability badge shows bookers you're open. They book you directly &mdash; no middleman, no agents taking 20%.
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-lg bg-gradient-to-b from-primary/5 to-transparent">
-              <div className="bg-primary/10 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="font-semibold text-base sm:text-lg mb-2">One Platform, Everything</h3>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Bookings, contracts, riders, tickets, payments, and messaging &mdash; all handled here. Focus on your craft, not admin.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Badges Section */}
-      <TrustBadges />
-
-      {/* Features Section - Mobile Optimized */}
-      <section className="py-8 sm:py-16 bg-muted/30">
-        <div className="container mx-auto px-3 sm:px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8 sm:mb-12 text-center">Why Choose Ologywood™?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <Card>
-              <CardHeader>
-                <Music className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Browse & Book Artists</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Search artists by genre, location, and availability. Send booking requests and manage everything in one place.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <MapPin className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Touring & Availability</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Set your tour dates and cities. Venues see your "On Tour" badge and book you directly &mdash; no agents needed.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <FileText className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Riders & Contracts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Build professional riders with technical requirements. Generate contracts and sign them digitally with e-signatures.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Ticket className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Event Ticketing</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Sell tickets directly to fans with transparent pricing. QR code check-in, promo codes, and ticket transfers built in.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Calendar className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Events & Availability</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Discover upcoming events, manage your availability calendar, and keep your schedule organized.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Heart className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Follow & Stay Connected</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Follow your favorite artists to stay updated. Artists can send email updates directly to their fan base.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Shield className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Secure Payments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Safe payment processing powered by Stripe. Track earnings, manage invoices, and handle payouts securely.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Send className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Direct Messaging</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Message artists and venues directly to discuss event details, negotiate terms, and finalize bookings.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Headphones className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Music Marketplace</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Upload and sell music directly to fans. Purchase releases, download instantly, and support your favorite talent.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Scale className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Payment Protection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  All payments and disputes are handled securely by Stripe. Chargebacks, refunds, and payment disputes follow card network rules &mdash; transparent and fair for everyone.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <ShoppingBag className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Merch & Shop</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Showcase merch directly on your profile. Athletes can offer pre-pay merchandise &mdash; fans order, you produce and ship. Keep 100% of sales.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Building2 className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Venue Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Venues get a full dashboard with availability calendars, booking management, analytics, and a public profile to attract artists. Browse and filter venues by type, capacity, and location.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Award className="h-6 sm:h-8 w-6 sm:w-8 text-primary mb-2" />
-                <CardTitle className="text-base sm:text-lg">Sponsor Showcase</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Enterprise artists display sponsor logos on their profile, event pages, and ticket emails. Track impressions and clicks with built-in analytics.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Fan Club Feature Highlight */}
-      <section className="py-8 sm:py-12 bg-gradient-to-r from-purple-50 to-pink-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">FAN CLUB</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Turn Followers Into Paying Members</h2>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Launch your Fan Club with custom membership tiers. Share training clips, behind-the-scenes content, game day footage, Q&amp;A sessions, and more &mdash; all powered by Stripe.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Crown className="h-6 w-6 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Custom Tiers</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Create unlimited membership tiers with your own pricing and perks. Fans choose the level that fits them.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Lock className="h-6 w-6 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Exclusive Content</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Post members-only content: training clips, game day footage, studio sessions, Q&amp;A &mdash; only your paying fans can see it.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Users className="h-6 w-6 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">You Keep 90%</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Simple 90/10 revenue split. You keep 90% of every subscription; OlogyWood retains a 10% platform fee.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Ology Live Feature Highlight */}
-      <section className="py-8 sm:py-12 bg-gradient-to-r from-emerald-50 to-teal-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">OLOGY LIVE</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Virtual Sessions That Change the Game</h2>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Ology Live lets talent host paid virtual experiences &mdash; gaming sessions, Q&amp;A/AMAs, music listening parties, fitness workouts, workshops, and more. Fans book, join live, and interact directly with the people they admire.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Video className="h-6 w-6 text-emerald-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">10 Session Categories</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Gaming, Music, Fitness, Q&amp;A, Workshops, Photography, Film, Creative, Brand Building &mdash; host on Twitch, Discord, Zoom, FaceTime, or YouTube Live.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <MessageCircle className="h-6 w-6 text-emerald-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Live Fan Q&amp;A</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Fans submit questions before and during sessions. Talent answers live &mdash; creating unforgettable, personal connections at scale.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <DollarSign className="h-6 w-6 text-emerald-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Earn on Your Terms</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Set your own price per session. One-on-one, small group, or broadcast &mdash; you control capacity, scheduling, and earnings.</p>
-              </div>
-            </div>
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a href="/ology-live/dashboard" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg text-sm sm:text-base transition-colors shadow-md">
-                <Video className="h-4 w-4" />
-                Start Hosting
-              </a>
-              <a href="/ology-live" className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline">
-                Browse Sessions →
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Enterprise Feature Spotlight */}
-      <section className="py-8 sm:py-12 bg-gradient-to-r from-indigo-50 to-blue-50">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">ENTERPRISE</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Sponsor Showcase &amp; Media Kit</h2>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Monetize your brand partnerships. Display sponsor logos on your profile, event pages, and ticket confirmation emails. Track real engagement with Sponsor Analytics and pitch new partners with your auto-generated Media Kit.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-left">
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <Award className="h-6 w-6 text-indigo-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">5 Sponsor Slots</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Showcase up to 5 sponsors with logos, links, and descriptions on your profile and events.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <BarChart3 className="h-6 w-6 text-indigo-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Sponsor Analytics</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Track impressions, clicks, and CTR per sponsor. Show brands real ROI from your audience.</p>
-              </div>
-              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                <FileText className="h-6 w-6 text-indigo-600 mb-2" />
-                <h3 className="font-semibold text-sm sm:text-base mb-1">Media Kit</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Auto-generated press kit with your stats, bio, and achievements. Share with sponsors and labels.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The Five Principles */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-10">
-              <span className="inline-block bg-white/10 text-purple-200 text-xs font-semibold px-3 py-1 rounded-full mb-4">THE FOUNDER'S BLUEPRINT</span>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3">The Five Principles</h2>
-              <p className="text-sm sm:text-base text-purple-200 max-w-xl mx-auto">The values that guide every decision we make.</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-              {[
-                { title: "Opportunity", subtitle: "Before Popularity" },
-                { title: "People", subtitle: "Before Platforms" },
-                { title: "Community", subtitle: "Before Competition" },
-                { title: "Ownership", subtitle: "Before Dependency" },
-                { title: "Legacy", subtitle: "Before Virality" },
-              ].map((p, i) => (
-                <div key={i} className="text-center p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <h3 className="text-white font-bold text-base sm:text-lg">{p.title}</h3>
-                  <p className="text-purple-200 text-xs sm:text-sm font-medium">{p.subtitle}</p>
+          <details className="home-more-tools">
+            <summary>
+              Explore all creator tools <ChevronDown className="h-4 w-4" />
+            </summary>
+            <div className="home-more-grid">
+              {moreTools.map(tool => (
+                <div key={tool.title}>
+                  <tool.icon className="h-5 w-5" />
+                  <h3>{tool.title}</h3>
+                  <p>{tool.copy}</p>
                 </div>
               ))}
             </div>
-            <div className="text-center mt-8">
-              <Link href="/about" className="text-purple-200 hover:text-white text-sm font-medium transition-colors">
-                Read Our Full Story &rarr;
+            <div className="home-nil-note">
+              <Shield className="h-5 w-5 shrink-0" />
+              <div>
+                <h3>NIL Readiness Tools</h3>
+                <p>
+                  Private deal records, proposed reporting reminders, and fee
+                  separation for Athlete accounts. {"Institutional or legal review may still be required."} These tools are not legal or NCAA
+                  certification.
+                </p>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section
+          className="home-container home-how"
+          aria-labelledby="home-how-title"
+        >
+          <div className="home-how-intro">
+            <p className="home-eyebrow">MAKE YOUR NEXT MOVE</p>
+            <h2 id="home-how-title">
+              From talent
+              <br />
+              to opportunity.
+            </h2>
+            <p>Less admin. More time for what you do best.</p>
+            <Link href="/how-it-works" className="home-text-link">
+              Your guide to getting started <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <ol className="home-steps">
+            {[
+              {
+                title: "Make it yours",
+                copy: "Create your profile. Showcase your work, your story and what you offer.",
+              },
+              {
+                title: "Build real connections",
+                copy: "Get discovered by bookers and fans. Find venues, events and new audiences.",
+              },
+              {
+                title: "Create your next opportunity",
+                copy: "Manage bookings, sell your work and grow your community — all in one place.",
+              },
+            ].map((step, index) => (
+              <li key={step.title}>
+                <span className="home-step-number">0{index + 1}</span>
+                <div>
+                  <h3>{step.title}</h3>
+                  <p>{step.copy}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section
+          className="home-container home-trust"
+          aria-labelledby="home-trust-title"
+        >
+          <div className="home-section-heading">
+            <div>
+              <p className="home-eyebrow">YOUR WORK. YOUR BUSINESS.</p>
+              <h2 id="home-trust-title">Ownership comes first.</h2>
+            </div>
+            <Link href="/pricing" className="home-text-link">
+              View plans & fees <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="home-trust-grid">
+            <div>
+              <Globe className="h-6 w-6" />
+              <h3>Your content, your choice</h3>
+              <p>
+                Host your content wherever you choose. OlogyWood handles
+                discovery, ticketing, fan relationships and revenue.
+              </p>
+            </div>
+            <div>
+              <Users className="h-6 w-6" />
+              <h3>You Keep 90%</h3>
+              <p>
+                Fan Club subscriptions use a 90/10 revenue split: 90% to Talent
+                and a 10% platform fee. Other services have their own fees.
+              </p>
+              <Link href="/terms-of-service">
+                Read the fee schedule <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-primary/20 to-accent/20 py-8 sm:py-16">
-        <div className="container mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Ready to Build Your Brand?</h2>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-            Host your content wherever you want. OlogyWood handles discovery, ticketing, fan relationships, and revenue. Join thousands of creators who monetize their craft.
-          </p>
-          {!isAuthenticated && (
-            <Button size="lg" className="text-sm sm:text-base px-6 sm:px-8 w-full sm:w-auto" onClick={openSignUp}>
-              Get Started
-            </Button>
-          )}
-        </div>
-      </section>
-
-      {/* Help & Support Section */}
-      <section className="py-8 sm:py-12">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Need Help?</h2>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-              Our AI-powered support is available 24/7, plus our team is here Monday through Friday for complex questions.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <div className="flex items-start gap-4 p-4 sm:p-6 rounded-lg border bg-card text-left">
-                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base mb-1">Email Support</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                    Get help with bookings, payments, account issues, or anything else.
-                  </p>
-                  <a href="mailto:support@ologywood.com" className="text-xs sm:text-sm text-primary font-medium hover:underline">
-                    support@ologywood.com
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 p-4 sm:p-6 rounded-lg border bg-card text-left">
-                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-sm sm:text-base mb-1">Getting Started</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                    New to Ologywood? Create your profile, set up your rider, and start booking in minutes.
-                  </p>
-                  <a href={isAuthenticated ? "/get-started" : "/"} className="text-xs sm:text-sm text-primary font-medium hover:underline">
-                    Set up your account →
-                  </a>
-                </div>
-              </div>
+            <div>
+              <Lock className="h-6 w-6" />
+              <h3>Secure Payments</h3>
+              <p>
+                Payments are processed by Stripe. Processing fees are separate;
+                refunds and disputes follow the applicable payment terms.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer - Mobile Optimized */}
-      <footer className="bg-muted/50 border-t mt-8 sm:mt-16 py-6 sm:py-8">
-        <div className="container mx-auto px-3 sm:px-4 text-center text-xs sm:text-sm text-muted-foreground">
+        <section
+          className="home-container home-follows"
+          aria-label="Suggested connections"
+        >
+          <SuggestedFollows />
+        </section>
+        <section
+          className="home-container home-principles"
+          aria-labelledby="home-principles-title"
+        >
+          <p className="home-eyebrow">THE FOUNDER'S BLUEPRINT</p>
+          <h2 id="home-principles-title">Built on something bigger.</h2>
+          <div>
+            {[
+              { title: "Opportunity", subtitle: "Before Popularity" },
+              { title: "People", subtitle: "Before Platforms" },
+              { title: "Community", subtitle: "Before Competition" },
+              { title: "Ownership", subtitle: "Before Dependency" },
+              { title: "Legacy", subtitle: "Before Virality" },
+            ].map(principle => (
+              <p key={principle.title}>
+                <strong>{principle.title}</strong>
+                <span>{principle.subtitle}</span>
+              </p>
+            ))}
+          </div>
+          <Link href="/about" className="home-text-link">
+            Read our story <ArrowRight className="h-4 w-4" />
+          </Link>
+        </section>
+        <section className="home-container home-final-cta">
+          <div>
+            <p className="home-eyebrow">THIS IS YOUR PLATFORM</p>
+            <h2>What's your next opportunity?</h2>
+            <p>
+              Your talent deserves a place to grow. Start with a free profile.
+            </p>
+          </div>
+          <div className="home-hero-actions">
+            {isAuthenticated ? (
+              <Link
+                href="/workspace"
+                className="home-button home-button-primary"
+              >
+                Open Workspace <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <button
+                className="home-button home-button-primary"
+                onClick={openSignUp}
+              >
+                Join as Talent <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+            <Link href="/browse" className="home-button home-button-outline">
+              Explore Talent
+            </Link>
+          </div>
+        </section>
+        <section
+          className="home-container home-support"
+          aria-label="Help and support"
+        >
+          <div>
+            <HelpCircle className="h-5 w-5" />
+            <p>
+              Need a hand? <Link href="/help">Visit the Help Center</Link> or
+              use the AI assistant in the header.
+            </p>
+          </div>
+          <a href="mailto:support@ologywood.com">
+            <Mail className="h-4 w-4" /> support@ologywood.com
+          </a>
+        </section>
+      </main>
+      <footer className="home-footer">
+        <div className="home-container">
           <p>&copy; 2026 Ologywood™. All rights reserved.</p>
+          <div>
+            <Link href="/about">About</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/terms-of-service">Terms</Link>
+            <Link href="/privacy-policy">Privacy</Link>
+            <Link href="/help">Help</Link>
+          </div>
         </div>
       </footer>
-      {/* Auth Modal */}
       <QuickSignupModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
