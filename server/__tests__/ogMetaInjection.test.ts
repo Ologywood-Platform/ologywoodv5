@@ -7,9 +7,9 @@ describe('OG Meta Tags Middleware (ogTags.ts)', () => {
   const middlewareSrc = fs.readFileSync(middlewarePath, 'utf-8');
 
   describe('Homepage Social Preview', () => {
-    const expectedTitle = 'Build Your Brand. Grow Your Fans. Create More Opportunities.';
+    const expectedTitle = 'Your Talent. Your Platform. Your Next Opportunity.';
     const expectedDescription = 'Creators own their audience. Creators choose where their content lives.';
-    const expectedImage = 'ologywood-social-preview-2026_af1c0d6d.png';
+    const expectedImage = 'ologywood-platform-og-2026-10-10_f734dc76.png';
     const clientIndexPath = path.join(__dirname, '..', '..', 'client', 'index.html');
     const clientIndexSrc = fs.readFileSync(clientIndexPath, 'utf-8');
 

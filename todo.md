@@ -4881,3 +4881,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Passed nine new homepage regressions and all 3,080 platform tests with 23 skipped, TypeScript, production build and changed-file hygiene
 - [x] Fully intercepted browser checks passed 320/390/768/1024/1280/1440/1920 px without overflow, signup, autocomplete, category clear, compact menu, one keyboard search dialog, empty/error states and zero real mutation requests; real-data desktop/mobile screenshots inspected
 - [x] Owner published `7230eb19`; live verification confirmed cinematic artwork loads, real artist/venue cards and clean links, category selection/reset, signup modal, Adonis autocomplete, one keyboard search dialog, all six compact-menu destinations, Help/tool explanations and 90/10 Fan Club copy. Adonis profile opens correctly without homepage styles leaking; no forms, purchases, follows or record changes submitted
+
+## HOMEPAGE-ALIGNED PLATFORM SHARING (Oct 10, 2026)
+- [x] Updated global Open Graph/Twitter headline, description, static HTML, client defaults, main crawler middleware and legacy sharing endpoint to match the cinematic homepage
+- [x] Created branded 1200 × 630 promotional sharing artwork and versioned asset URL; verified public HTTP 200 image/png and dimensions without cropping text
+- [x] Preserved artist/venue/event/merch/video/Sandbox entity-specific previews and changed only generic fallback artwork; no layout, fees, entitlements, schemas or real records modified
+- [x] Added 10 permanent sharing regressions; 182 focused tests and all 3090 platform tests with 23 skipped passed, plus TypeScript, production build and scoped hygiene
+- [x] Local crawler/browser/legacy-home checks show the new card; real Adonis and venue checks retain specific photo proxies and titles; no purchases or form submissions
+- [ ] Publish sharing-preview checkpoint and verify live homepage crawler metadata; third-party existing shares may need a fresh scrape and are not guaranteed to refresh immediately

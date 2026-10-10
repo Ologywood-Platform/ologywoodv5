@@ -17,10 +17,10 @@ import {
 } from '../utils/jsonLd';
 
 // Cache-busted 1200x630 branded social preview used by the homepage and entity fallbacks.
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
 const SITE_NAME = 'Ologywood';
-const HOME_TITLE = 'Build Your Brand. Grow Your Fans. Create More Opportunities.';
-const HOME_DESCRIPTION = 'Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.';
+const HOME_TITLE = 'Your Talent. Your Platform. Your Next Opportunity.';
+const HOME_DESCRIPTION = 'Get discovered, book opportunities, grow your audience, and earn from what you create. Creators own their audience. Creators choose where their content lives. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.';
 
 /**
  * Detect if the request is from a social media crawler / bot
@@ -178,7 +178,7 @@ export function ogTagMiddleware() {
           title: HOME_TITLE,
           description: HOME_DESCRIPTION,
           image: DEFAULT_OG_IMAGE,
-          imageAlt: 'OlogyWood logo with the message Build Your Brand. Grow Your Fans. Create More Opportunities.',
+          imageAlt: 'OlogyWood logo with the message Your Talent. Your Platform. Your Next Opportunity.',
           url: baseUrl,
           type: 'website',
           jsonLd: [

@@ -4,7 +4,7 @@
  * to improve social media link previews and search engine visibility.
  */
 
-const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-social-preview-2026_af1c0d6d.png';
+const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
 const BASE_URL = 'https://www.ologywood.com';
 const SITE_NAME = 'Ologywood';
 
@@ -131,8 +131,8 @@ function updateCanonicalTag(url: string) {
  */
 export const pageMetaTags = {
   home: {
-    title: 'Build Your Brand. Grow Your Fans. Create More Opportunities.',
-    description: 'Creators own their audience. Creators choose where their content lives. OlogyWood powers everything that makes that content profitable — bookings, Sell Tickets, fan clubs, merch, and content releases.',
+    title: 'Your Talent. Your Platform. Your Next Opportunity.',
+    description: 'Get discovered, book opportunities, grow your audience, and earn from what you create. Creators own their audience. Creators choose where their content lives. OlogyWood powers bookings, tickets, fan clubs, merch, and content releases.',
     keywords: 'artist booking, event planning, performers, venues, entertainment booking',
     ogImage: DEFAULT_OG_IMAGE,
     ogUrl: BASE_URL,
