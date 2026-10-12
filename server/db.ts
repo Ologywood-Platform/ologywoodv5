@@ -54,6 +54,7 @@ import { ENV } from './_core/env';
 import { eventSearchPattern } from '../shared/eventSearch';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray, getTableColumns } from "drizzle-orm";
 import { ensureArtistReleaseDisclosureSchema } from './services/artistReleaseSchemaService';
+import { ensureScheduleSchema } from './services/scheduleSchemaService';
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -826,6 +827,7 @@ export async function deleteRiderTemplate(id: number): Promise<void> {
 // ============= BOOKING FUNCTIONS =============
 
 export async function createBooking(data: InsertBooking): Promise<Booking> {
+  await ensureScheduleSchema();
   const db = await getDb();
   if (!db) {
     throw new Error('Database not available');
@@ -838,6 +840,7 @@ export async function createBooking(data: InsertBooking): Promise<Booking> {
 }
 
 export async function getBookingById(id: number): Promise<Booking | undefined> {
+  await ensureScheduleSchema();
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
@@ -845,18 +848,21 @@ export async function getBookingById(id: number): Promise<Booking | undefined> {
 }
 
 export async function getBookingsByArtistId(artistId: number): Promise<Booking[]> {
+  await ensureScheduleSchema();
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(bookings).where(eq(bookings.artistId, artistId));
 }
 
 export async function getBookingsByVenueId(venueId: number): Promise<Booking[]> {
+  await ensureScheduleSchema();
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(bookings).where(eq(bookings.venueId, venueId));
 }
 
 export async function updateBooking(id: number, data: Partial<InsertBooking>): Promise<Booking | undefined> {
+  await ensureScheduleSchema();
   const db = await getDb();
   if (!db) return undefined;
   
@@ -903,27 +909,8 @@ export async function updateBookingPaymentStatus(
   stripeSessionId?: string,
   paymentType?: string
 ): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  
-  const updateData: any = { paymentStatus };
-  
-  if (paymentType === 'deposit') {
-    updateData.depositPaidAt = new Date();
-    if (stripeSessionId) updateData.stripeDepositPaymentIntentId = stripeSessionId;
-    // Auto-confirm booking when deposit is paid
-    updateData.status = 'confirmed';
-  } else if (paymentType === 'final_payment' || paymentType === 'final') {
-    updateData.finalPaidAt = new Date();
-    if (stripeSessionId) updateData.stripeFinalPaymentIntentId = stripeSessionId;
-    // Mark booking as completed when fully paid
-    updateData.status = 'completed';
-  } else {
-    // Legacy full payment
-    if (stripeSessionId) updateData.stripePaymentIntentId = stripeSessionId;
-  }
-  
-  await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
+  const { applyScheduledBookingPayment } = await import('./services/bookingScheduleService');
+  await applyScheduledBookingPayment(bookingId, paymentStatus, stripeSessionId, paymentType);
   console.log(`[DB] Updated booking #${bookingId} payment status to ${paymentStatus} (type: ${paymentType || 'full'})`);
 }
 

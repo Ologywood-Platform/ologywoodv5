@@ -16,6 +16,9 @@ import { googleCalendarIntegrations, availability } from '../../drizzle/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { sdk } from '../_core/sdk';
+import { setScheduledAvailability } from '../services/bookingScheduleService';
+import { artistProfiles } from '../../drizzle/schema';
+import { TRPCError } from '@trpc/server';
 
 const router = Router();
 
@@ -344,36 +347,13 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
       }
     }
 
-    // Insert/update availability records for busy dates
+    // Imported busy days remain whole-day blocks, but cannot overwrite a booking or timed appointment.
+    const [profile] = await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id,artistId)).limit(1);
+    if(!profile) return {synced:0,error:'Artist profile not found'};
     let synced = 0;
-    for (const dateStr of busyDates) {
-      // Check if there's already an availability record for this date
-      const [existing] = await database
-        .select()
-        .from(availability)
-        .where(and(
-          eq(availability.artistId, artistId),
-          eq(availability.date, dateStr),
-        ))
-        .limit(1);
-
-      if (!existing) {
-        // Only add unavailable if no record exists (don't override manual settings)
-        await database.insert(availability).values({
-          artistId,
-          date: dateStr,
-          status: 'unavailable',
-        });
-        synced++;
-      } else if (existing.status === 'available') {
-        // If currently marked as available, update to unavailable from Google
-        await database
-          .update(availability)
-          .set({ status: 'unavailable' })
-          .where(eq(availability.id, existing.id));
-        synced++;
-      }
-      // If already booked or unavailable, leave it alone
+    for(const dateStr of busyDates){
+      try { await setScheduledAvailability(profile.userId,artistId,[dateStr],'unavailable'); synced++; }
+      catch(error){ if(!(error instanceof TRPCError) || error.code!=='CONFLICT')throw error; }
     }
 
     // Update last synced timestamp

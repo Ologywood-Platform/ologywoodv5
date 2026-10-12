@@ -67,11 +67,14 @@ describe('Critical Gap 2: Dispute Resolution', () => {
 });
 
 describe('Critical Gap 3: Calendar Integration', () => {
-  it('auto-blocking is already implemented in booking confirmation', async () => {
+  it('shared reservation checks replace whole-day auto-blocking for timed booking confirmation', async () => {
     const fs = await import('fs');
     const routers = fs.readFileSync('server/routers.ts', 'utf-8');
-    // Should call setAvailability when booking is confirmed
-    expect(routers).toContain('setAvailability');
+    // Acceptance reserves the exact interval under the shared owner locks.
+    expect(routers).toContain('confirmScheduledBooking');
+    const adapter = fs.readFileSync('server/services/bookingScheduleService.ts', 'utf-8');
+    expect(adapter).toContain('assertNoScheduleConflict');
+    expect(adapter).toContain('if(interval.allDay) await reconcileBookingDayAvailability');
   });
 
   it('iCal feed route exists', async () => {

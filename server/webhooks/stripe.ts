@@ -10,6 +10,11 @@ import {
   getStripeClientForWebhookMode,
   verifyStripeWebhookEvent,
 } from '../services/stripeWebhookMode';
+import {
+  handleOlogyLiveCheckout,
+  handleOlogyLiveCheckoutRefund,
+  handleOlogyLiveCheckoutTerminal,
+} from '../services/ologyLiveCheckoutService';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -35,7 +40,28 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutSessionCompleted(session);
+        if (session.metadata?.type === 'ology_live_booking') {
+          await handleOlogyLiveCheckout(session);
+        } else {
+          await handleCheckoutSessionCompleted(session);
+        }
+        break;
+      }
+
+      case 'checkout.session.async_payment_succeeded': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.type === 'ology_live_booking') {
+          await handleOlogyLiveCheckout(session);
+        }
+        break;
+      }
+
+      case 'checkout.session.expired':
+      case 'checkout.session.async_payment_failed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.type === 'ology_live_booking') {
+          await handleOlogyLiveCheckoutTerminal(session);
+        }
         break;
       }
 
@@ -66,19 +92,27 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentSucceeded(paymentIntent);
+        if (paymentIntent.metadata?.type !== 'ology_live_booking') {
+          await handlePaymentIntentSucceeded(paymentIntent);
+        }
         break;
       }
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await handlePaymentIntentFailed(paymentIntent);
+        if (paymentIntent.metadata?.type !== 'ology_live_booking') {
+          await handlePaymentIntentFailed(paymentIntent);
+        }
         break;
       }
 
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge;
-        await handleChargeRefunded(charge);
+        if (charge.metadata?.type === 'ology_live_booking') {
+          await handleOlogyLiveCheckoutRefund(charge);
+        } else {
+          await handleChargeRefunded(charge);
+        }
         break;
       }
 

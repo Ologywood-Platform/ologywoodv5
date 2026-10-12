@@ -3,6 +3,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { scheduleTimingSchema, scheduleDateSchema, scheduleTimezoneSchema, addCalendarDays } from "../shared/schedule";
+import { scheduleRouter } from "./routers/schedule";
+import { checkBookingScheduleRequest, confirmScheduledBooking, cancelScheduledBooking, setScheduledAvailability, deleteScheduledAvailability } from "./services/bookingScheduleService";
+import { ensureScheduleSchema } from "./services/scheduleSchemaService";
 import * as db from "./db";
 import * as schema from "../drizzle/schema";
 import { eq, gte, and } from "drizzle-orm";
@@ -154,6 +158,7 @@ export const appRouter = router({
   } as any),
   emailPreferences: emailPreferencesRouter,
   notifications: notificationsRouter,
+  schedule: scheduleRouter,
   pricing: pricingRouter,
   rider: riderRouter,
   follows: followsRouter,
@@ -1107,7 +1112,8 @@ export const appRouter = router({
     // Set availability (artist only)
     set: artistProcedure
       .input(z.object({
-        date: z.string(),
+        date: scheduleDateSchema,
+        timezone: scheduleTimezoneSchema.default("UTC"),
         status: z.enum(['available', 'booked', 'unavailable']),
         notes: z.string().optional(),
       }))
@@ -1118,11 +1124,7 @@ export const appRouter = router({
         }
         // Date is stored as YYYY-MM-DD string in database
         const dateStr = input.date; // Already in YYYY-MM-DD format
-        await db.setAvailability({
-          artistId: profile.id,
-          date: dateStr,
-          status: input.status,
-        });
+        await setScheduledAvailability(ctx.user.id, profile.id, [dateStr], input.status, input.timezone);
         
         // Send notifications to venues who favorited this artist (only for new availability)
         if (input.status === 'available') {
@@ -1147,46 +1149,33 @@ export const appRouter = router({
     // Delete availability
     delete: artistProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await db.deleteAvailability(input.id);
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) throw new TRPCError({code:'NOT_FOUND',message:'Artist profile not found'});
+        await deleteScheduledAvailability(ctx.user.id, profile.id, [input.id]);
         return { success: true };
       }),
 
     // Set availability for a date range (artist only)
     setRange: artistProcedure
       .input(z.object({
-        fromDate: z.string(),
-        toDate: z.string(),
+        fromDate: scheduleDateSchema,
+        toDate: scheduleDateSchema,
         status: z.enum(['available', 'booked', 'unavailable']),
+        timezone: scheduleTimezoneSchema.default('UTC'),
       }))
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
-        // Generate all dates in range
         const dates: string[] = [];
-        const start = new Date(input.fromDate + 'T00:00:00');
-        const end = new Date(input.toDate + 'T00:00:00');
-        if (end < start) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'End date must be after start date' });
+        if (input.toDate < input.fromDate) throw new TRPCError({code:'BAD_REQUEST',message:'End date must be after start date'});
+        for (let date = input.fromDate; date <= input.toDate; date = addCalendarDays(date, 1)) {
+          dates.push(date);
+          if (dates.length > 91) throw new TRPCError({code:'BAD_REQUEST',message:'Date range cannot exceed 90 days'});
         }
-        // Limit range to 90 days max
-        const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        if (diffDays > 90) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Date range cannot exceed 90 days' });
-        }
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          dates.push(d.toISOString().split('T')[0]);
-        }
-        // Set availability for each date
-        for (const dateStr of dates) {
-          await db.setAvailability({
-            artistId: profile.id,
-            date: dateStr,
-            status: input.status,
-          });
-        }
+        await setScheduledAvailability(ctx.user.id, profile.id, dates, input.status, input.timezone);
         // Send notifications to venues who favorited this artist (only for available)
         if (input.status === 'available') {
           const venues = await db.getVenuesWhoFavoritedArtist(profile.id);
@@ -1209,8 +1198,8 @@ export const appRouter = router({
     // Delete availability for a date range (artist only)
     deleteRange: artistProcedure
       .input(z.object({
-        fromDate: z.string(),
-        toDate: z.string(),
+        fromDate: scheduleDateSchema,
+        toDate: scheduleDateSchema,
       }))
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
@@ -1219,16 +1208,10 @@ export const appRouter = router({
         }
         // Get all availability entries for this artist in the date range
         const allAvailability = await db.getAvailabilityByArtistId(profile.id);
-        const start = new Date(input.fromDate + 'T00:00:00');
-        const end = new Date(input.toDate + 'T00:00:00');
-        let deletedCount = 0;
-        for (const avail of allAvailability) {
-          const aDate = new Date((typeof avail.date === 'string' ? avail.date : new Date(avail.date).toISOString().split('T')[0]) + 'T00:00:00');
-          if (aDate >= start && aDate <= end) {
-            await db.deleteAvailability(avail.id);
-            deletedCount++;
-          }
-        }
+        if(input.toDate < input.fromDate || input.toDate > addCalendarDays(input.fromDate,90)) throw new TRPCError({code:'BAD_REQUEST',message:'Choose a valid range of at most 90 days.'});
+        const entries = allAvailability.filter(entry => typeof entry.date === 'string' && entry.date >= input.fromDate && entry.date <= input.toDate);
+        await deleteScheduledAvailability(ctx.user.id, profile.id, entries.map(entry => entry.id));
+        const deletedCount = entries.length;
         return { success: true, datesRemoved: deletedCount };
       }),
   }),
@@ -1241,6 +1224,7 @@ export const appRouter = router({
         artistId: z.number(),
         eventDate: z.string(),
         eventTime: z.string().optional(),
+        schedule: scheduleTimingSchema.optional(),
         venueName: z.string().min(1),
         venueAddress: z.string().optional(),
         eventDetails: z.string().optional(),
@@ -1253,6 +1237,7 @@ export const appRouter = router({
         guaranteeAmount: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        await ensureScheduleSchema();
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -1274,13 +1259,10 @@ export const appRouter = router({
           }
         }
         
-        // Check if artist is available on this date
-        const avail = await db.getAvailabilityForDate(input.artistId, new Date(input.eventDate));
-        if (avail && avail.status !== 'available') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
-        }
+        const scheduleFields = await checkBookingScheduleRequest({ artistId: input.artistId, venueId: venueProfile.id, eventDate: input.eventDate, schedule: input.schedule });
         
         await db.createBooking({
+          ...scheduleFields,
           artistId: input.artistId,
           venueId: venueProfile.id,
           eventDate: new Date(input.eventDate),
@@ -1330,6 +1312,7 @@ export const appRouter = router({
         artistId: z.number(),
         eventDate: z.string(),
         eventTime: z.string().optional(),
+        schedule: scheduleTimingSchema.optional(),
         eventType: z.enum(['wedding', 'corporate', 'birthday', 'church', 'festival', 'house_party', 'restaurant', 'other']),
         venueName: z.string().min(1),
         venueAddress: z.string().optional(),
@@ -1340,11 +1323,8 @@ export const appRouter = router({
         clientPhone: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Check if artist is available on this date
-        const avail = await db.getAvailabilityForDate(input.artistId, new Date(input.eventDate));
-        if (avail && avail.status !== 'available') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Artist is not available on this date' });
-        }
+        await ensureScheduleSchema();
+        const scheduleFields = await checkBookingScheduleRequest({ artistId: input.artistId, venueId: ctx.user.id, bookingSource: 'client_booking', eventDate: input.eventDate, schedule: input.schedule });
         
         // Check if artist has a default rider template to auto-attach
         let defaultRiderId: number | undefined;
@@ -1358,6 +1338,7 @@ export const appRouter = router({
         } catch (_) { /* fallback: no auto-attach */ }
 
         const booking = await db.createBooking({
+          ...scheduleFields,
           artistId: input.artistId,
           venueId: ctx.user.id, // Use the client's user ID as the booker
           eventDate: new Date(input.eventDate),
@@ -1435,11 +1416,13 @@ export const appRouter = router({
         eventName: z.string().min(1),
         eventDate: z.string(),
         eventTime: z.string().optional(),
+        schedule: scheduleTimingSchema.optional(),
         message: z.string().optional(),
         paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage']).optional(),
         proposedFee: z.number().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
+        await ensureScheduleSchema();
         // Get the artist's profile
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!artistProfile) {
@@ -1470,8 +1453,11 @@ export const appRouter = router({
           if (defaultRider) defaultRiderId = defaultRider.id;
         } catch (_) { /* fallback: no auto-attach */ }
 
+        const scheduleFields = await checkBookingScheduleRequest({ artistId: artistProfile.id, venueId: venueProfile.id, bookingSource: 'artist_request', eventDate: input.eventDate, schedule: input.schedule });
+
         // Create a booking for this performance request
         const booking = await db.createBooking({
+          ...scheduleFields,
           artistId: artistProfile.id,
           venueId: venueProfile.id,
           eventDate: new Date(input.eventDate),
@@ -1629,39 +1615,20 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to update this booking' });
         }
         
-        // If confirming, mark date as booked
+        // Acceptance reserves only the actual interval; legacy untimed requests still reserve the whole day.
         if (input.status === 'confirmed') {
-          const dateStr = booking.eventDate instanceof Date 
-            ? booking.eventDate.toISOString().split('T')[0] 
-            : booking.eventDate;
-          await db.setAvailability({
-            artistId: booking.artistId,
-            date: dateStr,
-            status: 'booked',
-          });
-        }
-        
-        // If cancelling, handle refunds and mark date as available
-        if (input.status === 'cancelled') {
-          if (booking.status === 'confirmed') {
-            const dateStr = booking.eventDate instanceof Date 
-              ? booking.eventDate.toISOString().split('T')[0] 
-              : booking.eventDate;
-            await db.setAvailability({
-              artistId: booking.artistId,
-              date: dateStr,
-              status: 'available',
-            });
-          }
-          
-          // Use cancellation service for refund handling
-          const { cancelBooking } = await import('./services/bookingCancellation');
-          const result = await cancelBooking(input.id, 'artist');
-          // cancelBooking already updates the booking status
+          const result = await confirmScheduledBooking(input.id, ctx.user.id, 'artist');
+          if (!result.changed) return { success: true };
+        } else if (input.status === 'cancelled') {
+          const result = await cancelScheduledBooking(input.id, ctx.user.id, 'artist');
+          if (!result.changed) return { success: true };
         } else {
+          if (booking.status === 'cancelled' || booking.status === 'completed' || input.status === 'pending') {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'This booking cannot be moved back to a tentative state.' });
+          }
           await db.updateBooking(input.id, { status: input.status });
         }
-        
+
         // Send email notifications based on status change
         const bookingArtistProfile = await db.getArtistProfileById(booking.artistId);
         const bookingVenueProfile = await db.getVenueProfileById(booking.venueId);
@@ -1800,35 +1767,14 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
         }
         
-        // If confirming, mark date as booked
-        if (input.status === 'confirmed') {
-          const dateStr = booking.eventDate instanceof Date 
-            ? booking.eventDate.toISOString().split('T')[0] 
-            : booking.eventDate;
-          await db.setAvailability({
-            artistId: booking.artistId,
-            date: dateStr,
-            status: 'booked',
-          });
-          await db.updateBooking(input.id, { status: input.status });
+        if (booking.bookingSource === 'client_booking') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'This request does not belong to this venue profile.' });
         }
-        
-        // If cancelling, handle refunds via cancellation service
-        if (input.status === 'cancelled') {
-          if (booking.status === 'confirmed') {
-            const dateStr = booking.eventDate instanceof Date 
-              ? booking.eventDate.toISOString().split('T')[0] 
-              : booking.eventDate;
-            await db.setAvailability({
-              artistId: booking.artistId,
-              date: dateStr,
-              status: 'available',
-            });
-          }
-          const { cancelBooking } = await import('./services/bookingCancellation');
-          await cancelBooking(input.id, 'venue');
-        }
-        
+        const transition = input.status === 'confirmed'
+          ? await confirmScheduledBooking(input.id, ctx.user.id, 'venue')
+          : await cancelScheduledBooking(input.id, ctx.user.id, 'venue');
+        if (!transition.changed) return { success: true };
+
         // Send email notifications
         const artistProfile = await db.getArtistProfileById(booking.artistId);
         if (artistProfile && venueProfile) {

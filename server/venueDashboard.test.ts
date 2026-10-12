@@ -40,7 +40,7 @@ describe('Venue Dashboard - Book Artist Button', () => {
     const filePath = join(clientSrc, 'pages', 'BookingCreate.tsx');
     const content = readFileSync(filePath, 'utf-8');
 
-    expect(content).toContain("params.get('artistId')");
+    expect(content).toMatch(/params\.get\(['"]artistId['"]\)/);
     expect(content).toContain('useSearch');
   });
 

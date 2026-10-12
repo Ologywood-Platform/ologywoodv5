@@ -1,3 +1,5 @@
+import { scheduleDateSchema, scheduleTimezoneSchema } from '../../shared/schedule';
+import { setVenueScheduledDates, setVenueScheduledRecurringBlock } from '../services/bookingScheduleService';
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
@@ -726,13 +728,14 @@ export const venueRouter = router({
    */
   blockDates: venueProcedure
     .input(z.object({
-      dates: z.array(z.string()), // Array of YYYY-MM-DD strings
+      dates: z.array(scheduleDateSchema).min(1).max(91), // Whole-day blocks
+      timezone: scheduleTimezoneSchema.default('UTC'),
       reason: z.string().max(255).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
-      await db.blockVenueDates(venueProfile.id, input.dates, input.reason);
+      await setVenueScheduledDates(ctx.user.id, venueProfile.id, input.dates, true, input.reason, input.timezone);
       return { success: true, count: input.dates.length };
     }),
 
@@ -760,12 +763,13 @@ export const venueRouter = router({
    */
   unblockDates: venueProcedure
     .input(z.object({
-      dates: z.array(z.string()), // Array of YYYY-MM-DD strings
+      dates: z.array(scheduleDateSchema).min(1).max(91), // Whole-day blocks
+      timezone: scheduleTimezoneSchema.default('UTC'),
     }))
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
-      await db.unblockVenueDates(venueProfile.id, input.dates);
+      await setVenueScheduledDates(ctx.user.id, venueProfile.id, input.dates, false, undefined, input.timezone);
       return { success: true, count: input.dates.length };
     }),
 
@@ -780,24 +784,24 @@ export const venueRouter = router({
 
   addRecurringBlock: venueProcedure
     .input(z.object({
-      dayOfWeek: z.number().min(0).max(6), // 0=Sunday, 6=Saturday
+      dayOfWeek: z.number().int().min(0).max(6), // 0=Sunday, 6=Saturday
       reason: z.string().max(255).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
-      const block = await db.addVenueRecurringBlock(venueProfile.id, input.dayOfWeek, input.reason);
+      const block = await setVenueScheduledRecurringBlock(ctx.user.id, venueProfile.id, input.dayOfWeek, true, input.reason);
       return { success: true, block };
     }),
 
   removeRecurringBlock: venueProcedure
     .input(z.object({
-      dayOfWeek: z.number().min(0).max(6),
+      dayOfWeek: z.number().int().min(0).max(6),
     }))
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
-      await db.removeVenueRecurringBlock(venueProfile.id, input.dayOfWeek);
+      await setVenueScheduledRecurringBlock(ctx.user.id, venueProfile.id, input.dayOfWeek, false);
       return { success: true };
     }),
 
@@ -870,16 +874,18 @@ export const venueRouter = router({
         return acc;
       }, {} as Record<string, string>);
 
-      // Block each unique date with its reason
+      // Preserve existing commitments; report imported dates accurately when a closure conflicts.
+      let imported = 0;
       for (const date of uniqueDates) {
         try {
-          await db.blockVenueDates(venueProfile.id, [date], `Calendar: ${reasons[date]}`);
+          await setVenueScheduledDates(ctx.user.id, venueProfile.id, [date], true, `Calendar: ${reasons[date]}`.slice(0,255));
+          imported++;
         } catch {
           // Skip duplicates silently
         }
       }
 
-      return { success: true, imported: uniqueDates.length, message: `Imported ${uniqueDates.length} dates as blocked from your calendar.` };
+      return { success: true, imported, skipped: uniqueDates.length-imported, message: `Imported ${imported} dates as blocked. Existing commitments were not overridden.` };
     }),
 
   /**

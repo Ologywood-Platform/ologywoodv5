@@ -1,31 +1,93 @@
-import { toSlug } from '@/lib/slugify';
-import { useAuth } from '@/_core/hooks/useAuth';
-import { trpc } from '@/lib/trpc';
-import { formatEventTime } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, MapPin, DollarSign, Clock, Camera } from 'lucide-react';
-import { toast } from 'sonner';
-import BookingMessages from '@/components/BookingMessages';
-import { ReviewForm } from '@/components/ReviewForm';
-import { VenueReviewForm } from '@/components/VenueReviewForm';
-import ArtistReviewForm from '@/components/ArtistReviewForm';
-import PaymentSection from '@/components/PaymentSection';
-import TestModeBadge from '@/components/TestModeBadge';
-import { RiderContractSigning } from '@/components/RiderContractSigning';
-import { RiderAttach } from '@/components/RiderAttach';
-import { RiderRevisionPanel } from '@/components/RiderRevisionPanel';
-import { NILContractViewer } from '@/components/NILContractViewer';
-import { VenueContractSection } from '@/components/VenueContractSection';
-import { Star } from 'lucide-react';
-import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { BookingDetailSkeleton } from '@/components/SkeletonLoader';
-import PageBreadcrumb from '@/components/PageBreadcrumb';
-import ReportIssueDialog from '@/components/ReportIssueDialog';
-import { useParams, useLocation } from 'wouter';
-import { useEffect, useRef } from 'react';
+import { toSlug } from "@/lib/slugify";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { formatEventTime } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Clock,
+  Camera,
+} from "lucide-react";
+import { toast } from "sonner";
+import BookingMessages from "@/components/BookingMessages";
+import { ReviewForm } from "@/components/ReviewForm";
+import { VenueReviewForm } from "@/components/VenueReviewForm";
+import ArtistReviewForm from "@/components/ArtistReviewForm";
+import PaymentSection from "@/components/PaymentSection";
+import TestModeBadge from "@/components/TestModeBadge";
+import { RiderContractSigning } from "@/components/RiderContractSigning";
+import { RiderAttach } from "@/components/RiderAttach";
+import { RiderRevisionPanel } from "@/components/RiderRevisionPanel";
+import { NILContractViewer } from "@/components/NILContractViewer";
+import { VenueContractSection } from "@/components/VenueContractSection";
+import { Star } from "lucide-react";
+import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { BookingDetailSkeleton } from "@/components/SkeletonLoader";
+import PageBreadcrumb from "@/components/PageBreadcrumb";
+import ReportIssueDialog from "@/components/ReportIssueDialog";
+import { useParams, useLocation } from "wouter";
+import { useEffect, useRef } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+
+type BookingScheduleDisplay = {
+  startAt: number;
+  endAt: number;
+  timezone: string;
+  allDay: boolean;
+  preparationMinutes: number;
+  travelMinutes: number;
+};
+
+function getBookingScheduleDisplay(
+  booking: Record<string, unknown>
+): BookingScheduleDisplay | null {
+  const startAt = booking.scheduleStartAt;
+  const endAt = booking.scheduleEndAt;
+  const timezone = booking.scheduleTimezone;
+  if (
+    typeof startAt !== "number" ||
+    typeof endAt !== "number" ||
+    typeof timezone !== "string" ||
+    !timezone
+  )
+    return null;
+  return {
+    startAt,
+    endAt,
+    timezone,
+    allDay: Boolean(booking.scheduleAllDay),
+    preparationMinutes:
+      typeof booking.preparationMinutes === "number"
+        ? booking.preparationMinutes
+        : 0,
+    travelMinutes:
+      typeof booking.travelMinutes === "number" ? booking.travelMinutes : 0,
+  };
+}
+
+function formatScheduleDate(epoch: number, timezone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(epoch);
+}
+
+function formatScheduleClock(epoch: number, timezone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(epoch);
+}
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,63 +96,96 @@ export default function BookingDetail() {
   const bookingId = id ? parseInt(id, 10) : 0;
   const paymentVerified = useRef(false);
 
-  const { data: booking, isLoading, refetch } = trpc.booking.getById.useQuery({ id: bookingId }, { enabled: bookingId > 0 });
+  const {
+    data: booking,
+    isLoading,
+    refetch,
+  } = trpc.booking.getById.useQuery(
+    { id: bookingId },
+    { enabled: bookingId > 0 }
+  );
   const verifyPayment = trpc.payment.verifyPayment.useMutation();
 
   // Auto-verify payment when returning from Stripe checkout
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment') === 'success' && bookingId > 0 && !paymentVerified.current) {
+    if (
+      params.get("payment") === "success" &&
+      bookingId > 0 &&
+      !paymentVerified.current
+    ) {
       paymentVerified.current = true;
-      toast.info('Verifying your payment...');
-      verifyPayment.mutateAsync({ bookingId }).then((result) => {
-        if (result.updated) {
-          toast.success(result.status === 'deposit_paid' 
-            ? 'Deposit payment confirmed! The booking has been updated.' 
-            : 'Payment confirmed! The booking is now fully paid.');
-          refetch();
-        } else if (result.status !== 'unpaid') {
-          toast.success('Payment already recorded.');
-          refetch();
-        } else {
-          toast.info('Payment is being processed. It may take a moment to update.');
-          // Retry after a short delay
-          setTimeout(() => {
-            verifyPayment.mutateAsync({ bookingId }).then((retryResult) => {
-              if (retryResult.updated) {
-                toast.success('Payment confirmed!');
-                refetch();
-              }
-            }).catch(() => {});
-          }, 5000);
-        }
-        // Clean up URL
-        window.history.replaceState({}, '', `/booking/${bookingId}`);
-      }).catch(() => {
-        toast.error('Could not verify payment. Please refresh the page.');
-      });
+      toast.info("Verifying your payment...");
+      verifyPayment
+        .mutateAsync({ bookingId })
+        .then(result => {
+          if (result.updated) {
+            toast.success(
+              result.status === "deposit_paid"
+                ? "Deposit payment confirmed! The booking has been updated."
+                : "Payment confirmed! The booking is now fully paid."
+            );
+            refetch();
+          } else if (result.status !== "unpaid") {
+            toast.success("Payment already recorded.");
+            refetch();
+          } else {
+            toast.info(
+              "Payment is being processed. It may take a moment to update."
+            );
+            // Retry after a short delay
+            setTimeout(() => {
+              verifyPayment
+                .mutateAsync({ bookingId })
+                .then(retryResult => {
+                  if (retryResult.updated) {
+                    toast.success("Payment confirmed!");
+                    refetch();
+                  }
+                })
+                .catch(() => {});
+            }, 5000);
+          }
+          // Clean up URL
+          window.history.replaceState({}, "", `/booking/${bookingId}`);
+        })
+        .catch(() => {
+          toast.error("Could not verify payment. Please refresh the page.");
+        });
     }
   }, [bookingId]);
-  const { data: existingReview } = trpc.review.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
-  const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
-  const { data: existingArtistReview } = trpc.artistReview.getByBooking.useQuery({ bookingId }, { enabled: bookingId > 0 });
+  const { data: existingReview } = trpc.review.getByBooking.useQuery(
+    { bookingId },
+    { enabled: bookingId > 0 }
+  );
+  const { data: existingVenueReview } = trpc.venueReview.getByBooking.useQuery(
+    { bookingId },
+    { enabled: bookingId > 0 }
+  );
+  const { data: existingArtistReview } =
+    trpc.artistReview.getByBooking.useQuery(
+      { bookingId },
+      { enabled: bookingId > 0 }
+    );
   const updateStatusMutation = trpc.booking.updateStatus.useMutation({
     onSuccess: () => {
-      toast.success('Booking status updated');
+      toast.success("Booking status updated");
       refetch();
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to update booking');
+    onError: error => {
+      toast.error(error.message || "Failed to update booking");
     },
   });
 
   if (!bookingId || bookingId === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-      <SiteHeader />
+        <SiteHeader />
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">Invalid booking ID</p>
-          <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+          <Button onClick={() => navigate("/dashboard")}>
+            Back to Dashboard
+          </Button>
         </Card>
       </div>
     );
@@ -104,14 +199,12 @@ export default function BookingDetail() {
     );
   }
 
-
-
   if (!booking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">Booking not found</p>
-          <Button onClick={() => navigate('/dashboard')}>
+          <Button onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -120,33 +213,54 @@ export default function BookingDetail() {
     );
   }
 
-  const isArtist = booking.bookingRole === 'artist';
+  const isArtist = booking.bookingRole === "artist";
   const canUpdateStatus = isArtist;
 
-  const handleStatusUpdate = (status: 'confirmed' | 'cancelled') => {
-    if (window.confirm(`Are you sure you want to ${status === 'confirmed' ? 'confirm' : 'cancel'} this booking?`)) {
+  const handleStatusUpdate = (status: "confirmed" | "cancelled") => {
+    if (
+      window.confirm(
+        `Are you sure you want to ${status === "confirmed" ? "confirm" : "cancel"} this booking?`
+      )
+    ) {
       updateStatusMutation.mutate({ id: bookingId, status });
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'bg-green-500';
-      case 'pending':
-        return 'bg-yellow-500';
-      case 'cancelled':
-        return 'bg-red-500';
-      case 'completed':
-        return 'bg-blue-500';
+      case "confirmed":
+        return "bg-green-500";
+      case "pending":
+        return "bg-yellow-500";
+      case "cancelled":
+        return "bg-red-500";
+      case "completed":
+        return "bg-blue-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
-  const eventDate = booking.eventDate instanceof Date 
-    ? booking.eventDate 
-    : new Date(booking.eventDate);
+  const eventDate =
+    booking.eventDate instanceof Date
+      ? booking.eventDate
+      : new Date(booking.eventDate);
+  const schedule = getBookingScheduleDisplay(
+    booking as unknown as Record<string, unknown>
+  );
+  const scheduleStartsDate = schedule
+    ? formatScheduleDate(schedule.startAt, schedule.timezone)
+    : "";
+  // All-day end timestamps are midnight at the end boundary, so the prior instant is the final reserved date.
+  const scheduleEndsDate = schedule
+    ? formatScheduleDate(
+        schedule.allDay ? schedule.endAt - 1 : schedule.endAt,
+        schedule.timezone
+      )
+    : "";
+  const scheduleSpansDates = Boolean(
+    schedule && scheduleStartsDate !== scheduleEndsDate
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-teal-50 py-12">
@@ -154,8 +268,11 @@ export default function BookingDetail() {
         <PageBreadcrumb
           className="mb-6"
           segments={[
-            { label: 'Dashboard', href: user?.role === 'venue' ? '/venue-dashboard' : '/dashboard' },
-            { label: 'Bookings', href: '/bookings' },
+            {
+              label: "Dashboard",
+              href: user?.role === "venue" ? "/venue-dashboard" : "/dashboard",
+            },
+            { label: "Bookings", href: "/bookings" },
             { label: `Booking #${id}` },
           ]}
         />
@@ -165,7 +282,10 @@ export default function BookingDetail() {
           <Card className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <a href={`/venue/${toSlug((booking as any).venueName || '')}`} className="hover:underline cursor-pointer">
+                <a
+                  href={`/venue/${toSlug((booking as any).venueName || "")}`}
+                  className="hover:underline cursor-pointer"
+                >
                   <h1 className="text-3xl font-bold mb-2">Event Booking</h1>
                 </a>
                 <Badge className={getStatusColor(booking.status)}>
@@ -175,35 +295,104 @@ export default function BookingDetail() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-4 mt-6">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Event Date</p>
-                  <p className="font-medium">
-                    {eventDate.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              {booking.eventTime && (
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Event Time</p>
-                    <p className="font-medium">{formatEventTime(booking.eventTime)}</p>
+              {schedule ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {schedule.allDay
+                          ? "Reservation dates"
+                          : "Appointment starts"}
+                      </p>
+                      <p className="font-medium">
+                        {schedule.allDay
+                          ? `${scheduleStartsDate}${scheduleSpansDates ? ` – ${scheduleEndsDate}` : ""}`
+                          : `${scheduleStartsDate} · ${formatScheduleClock(schedule.startAt, schedule.timezone)}`}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {schedule.allDay ? "Timing" : "Appointment ends"}
+                      </p>
+                      <p className="font-medium">
+                        {schedule.allDay
+                          ? `All-day reservation · ${schedule.timezone}`
+                          : `${scheduleSpansDates ? `${scheduleEndsDate} · ` : ""}${formatScheduleClock(schedule.endAt, schedule.timezone)}${scheduleSpansDates ? " (Next Day)" : ""} · ${schedule.timezone}`}
+                      </p>
+                    </div>
+                  </div>
+                  {!schedule.allDay &&
+                    (schedule.preparationMinutes > 0 ||
+                      schedule.travelMinutes > 0) && (
+                      <div className="flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Schedule buffers
+                          </p>
+                          <p className="font-medium">
+                            {schedule.preparationMinutes > 0
+                              ? `${schedule.preparationMinutes} min preparation before`
+                              : "No preparation buffer"}
+                            {schedule.preparationMinutes > 0 &&
+                            schedule.travelMinutes > 0
+                              ? " · "
+                              : ""}
+                            {schedule.travelMinutes > 0
+                              ? `${schedule.travelMinutes} min travel after`
+                              : ""}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Event Date
+                      </p>
+                      <p className="font-medium">
+                        {eventDate.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  {booking.eventTime && (
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Event Time
+                        </p>
+                        <p className="font-medium">
+                          {formatEventTime(booking.eventTime)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Duration not specified (date-level reservation)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {booking.eventDetails && (
                 <div className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Event Details</p>
+                    <p className="text-sm text-muted-foreground">
+                      Event Details
+                    </p>
                     <p className="font-medium">{booking.eventDetails}</p>
                   </div>
                 </div>
@@ -221,49 +410,72 @@ export default function BookingDetail() {
             </div>
 
             {/* Payment Terms */}
-            {(booking as any).paymentTermsType && (booking as any).paymentTermsType !== 'flat_guarantee' && (
-              <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Payment Terms
-                </h3>
-                <div className="text-sm text-slate-600 space-y-1">
-                  {(booking as any).paymentTermsType === 'door_split' && (
-                    <>
-                      <p className="font-medium text-slate-800">Door Split</p>
-                      <p>Artist receives {(booking as any).doorSplitArtistPercent || 80}% of door revenue</p>
-                      <p>Venue retains {100 - ((booking as any).doorSplitArtistPercent || 80)}% of door revenue</p>
-                    </>
-                  )}
-                  {(booking as any).paymentTermsType === 'guarantee_vs_percentage' && (
-                    <>
-                      <p className="font-medium text-slate-800">Guarantee vs. Percentage</p>
-                      <p>Minimum guarantee: ${(booking as any).guaranteeAmount || '0'}</p>
-                      <p>OR {(booking as any).doorSplitArtistPercent || 80}% of door — whichever is higher</p>
-                    </>
-                  )}
+            {(booking as any).paymentTermsType &&
+              (booking as any).paymentTermsType !== "flat_guarantee" && (
+                <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Payment Terms
+                  </h3>
+                  <div className="text-sm text-slate-600 space-y-1">
+                    {(booking as any).paymentTermsType === "door_split" && (
+                      <>
+                        <p className="font-medium text-slate-800">Door Split</p>
+                        <p>
+                          Artist receives{" "}
+                          {(booking as any).doorSplitArtistPercent || 80}% of
+                          door revenue
+                        </p>
+                        <p>
+                          Venue retains{" "}
+                          {100 -
+                            ((booking as any).doorSplitArtistPercent || 80)}
+                          % of door revenue
+                        </p>
+                      </>
+                    )}
+                    {(booking as any).paymentTermsType ===
+                      "guarantee_vs_percentage" && (
+                      <>
+                        <p className="font-medium text-slate-800">
+                          Guarantee vs. Percentage
+                        </p>
+                        <p>
+                          Minimum guarantee: $
+                          {(booking as any).guaranteeAmount || "0"}
+                        </p>
+                        <p>
+                          OR {(booking as any).doorSplitArtistPercent || 80}% of
+                          door — whichever is higher
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {(booking as any).paymentTermsType === 'flat_guarantee' && booking.totalFee && (
-              <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Payment Terms
-                </h3>
-                <div className="text-sm text-slate-600">
-                  <p className="font-medium text-slate-800">Flat Guarantee</p>
-                  <p>Artist receives ${booking.totalFee} regardless of door revenue</p>
+            {(booking as any).paymentTermsType === "flat_guarantee" &&
+              booking.totalFee && (
+                <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Payment Terms
+                  </h3>
+                  <div className="text-sm text-slate-600">
+                    <p className="font-medium text-slate-800">Flat Guarantee</p>
+                    <p>
+                      Artist receives ${booking.totalFee} regardless of door
+                      revenue
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Action Buttons */}
-            {canUpdateStatus && booking.status === 'pending' && (
+            {canUpdateStatus && booking.status === "pending" && (
               <div className="flex gap-3 mt-6">
                 <Button
-                  onClick={() => handleStatusUpdate('confirmed')}
+                  onClick={() => handleStatusUpdate("confirmed")}
                   disabled={updateStatusMutation.isPending}
                   className="flex-1"
                 >
@@ -271,7 +483,7 @@ export default function BookingDetail() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleStatusUpdate('cancelled')}
+                  onClick={() => handleStatusUpdate("cancelled")}
                   disabled={updateStatusMutation.isPending}
                   className="flex-1"
                 >
@@ -280,37 +492,59 @@ export default function BookingDetail() {
               </div>
             )}
 
-            {booking.status === 'confirmed' && canUpdateStatus && (
+            {booking.status === "confirmed" && canUpdateStatus && (
               <div className="mt-6 flex items-center gap-3">
                 <Button
                   variant="destructive"
-                  onClick={() => handleStatusUpdate('cancelled')}
+                  onClick={() => handleStatusUpdate("cancelled")}
                   disabled={updateStatusMutation.isPending}
                 >
                   Cancel Booking
                 </Button>
-                <ReportIssueDialog bookingId={bookingId} onDisputeFiled={() => refetch()} />
+                <ReportIssueDialog
+                  bookingId={bookingId}
+                  onDisputeFiled={() => refetch()}
+                />
               </div>
             )}
 
             {/* Report Issue - available on completed or cancelled bookings */}
-            {(booking.status === 'completed' || booking.status === 'cancelled') && (
+            {(booking.status === "completed" ||
+              booking.status === "cancelled") && (
               <div className="mt-6 flex items-center gap-3">
-                <ReportIssueDialog bookingId={bookingId} onDisputeFiled={() => refetch()} />
+                <ReportIssueDialog
+                  bookingId={bookingId}
+                  onDisputeFiled={() => refetch()}
+                />
                 {/* Rebook shortcut for venues */}
-                {booking.bookingRole === 'venue' && (
+                {booking.bookingRole === "venue" && (
                   <Button
                     variant="outline"
                     className="gap-2"
                     onClick={() => {
                       const params = new URLSearchParams({
-                        artistId: booking.artistId?.toString() || '',
-                        paymentTermsType: (booking as any).paymentTermsType || 'flat_guarantee',
-                        ...(booking.totalFee ? { totalFee: booking.totalFee } : {}),
-                        ...((booking as any).doorSplitArtistPercent ? { doorSplitArtistPercent: (booking as any).doorSplitArtistPercent.toString() } : {}),
-                        ...((booking as any).guaranteeAmount ? { guaranteeAmount: (booking as any).guaranteeAmount } : {}),
+                        artistId: booking.artistId?.toString() || "",
+                        paymentTermsType:
+                          (booking as any).paymentTermsType || "flat_guarantee",
+                        ...(booking.totalFee
+                          ? { totalFee: booking.totalFee }
+                          : {}),
+                        ...((booking as any).doorSplitArtistPercent
+                          ? {
+                              doorSplitArtistPercent: (
+                                booking as any
+                              ).doorSplitArtistPercent.toString(),
+                            }
+                          : {}),
+                        ...((booking as any).guaranteeAmount
+                          ? {
+                              guaranteeAmount: (booking as any).guaranteeAmount,
+                            }
+                          : {}),
                       });
-                      navigate(`/booking/create?rebook=true&${params.toString()}`);
+                      navigate(
+                        `/booking/create?rebook=true&${params.toString()}`
+                      );
                     }}
                   >
                     <Calendar className="h-4 w-4" />
@@ -320,7 +554,7 @@ export default function BookingDetail() {
               </div>
             )}
           </Card>
-          
+
           {/* Test Mode Notice */}
           <TestModeBadge showTestCard />
 
@@ -328,9 +562,11 @@ export default function BookingDetail() {
           <PaymentSection
             bookingId={bookingId}
             totalFee={booking.totalFee ? Number(booking.totalFee) : undefined}
-            depositAmount={booking.depositAmount ? Number(booking.depositAmount) : undefined}
-            paymentStatus={booking.paymentStatus || 'unpaid'}
-            isVenue={booking.bookingRole === 'venue'}
+            depositAmount={
+              booking.depositAmount ? Number(booking.depositAmount) : undefined
+            }
+            paymentStatus={booking.paymentStatus || "unpaid"}
+            isVenue={booking.bookingRole === "venue"}
             bookingStatus={booking.status}
             depositPaidAt={(booking as any).depositPaidAt || null}
             finalPaidAt={(booking as any).finalPaidAt || null}
@@ -339,7 +575,9 @@ export default function BookingDetail() {
           {/* Rider Attach (for artists without a rider on this booking) */}
           <RiderAttach
             bookingId={bookingId}
-            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+            currentUserRole={
+              booking.bookingRole === "venue" ? "venue" : "artist"
+            }
             hasRider={!!booking.riderTemplateId}
             onRiderAttached={() => refetch()}
           />
@@ -348,7 +586,9 @@ export default function BookingDetail() {
           {booking.riderTemplateId && (
             <RiderContractSigning
               bookingId={bookingId}
-              currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+              currentUserRole={
+                booking.bookingRole === "venue" ? "venue" : "artist"
+              }
               onSigningComplete={() => refetch()}
             />
           )}
@@ -357,138 +597,170 @@ export default function BookingDetail() {
           {booking.riderTemplateId && (
             <RiderRevisionPanel
               bookingId={bookingId}
-              currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+              currentUserRole={
+                booking.bookingRole === "venue" ? "venue" : "artist"
+              }
               riderData={{}}
-              contractStatus={booking.riderStatus === 'signed' ? 'fully_signed' : undefined}
+              contractStatus={
+                booking.riderStatus === "signed" ? "fully_signed" : undefined
+              }
             />
           )}
 
           {/* NIL Engagement Contract */}
           <NILContractViewer
             bookingId={bookingId}
-            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+            currentUserRole={
+              booking.bookingRole === "venue" ? "venue" : "artist"
+            }
           />
 
           {/* Venue Agreement / Contract */}
           <VenueContractSection
             bookingId={bookingId}
-            currentUserRole={booking.bookingRole === 'venue' ? 'venue' : 'artist'}
+            currentUserRole={
+              booking.bookingRole === "venue" ? "venue" : "artist"
+            }
             onContractChange={() => refetch()}
           />
 
           {/* Add to Portfolio - Only show for artists on completed bookings */}
-          {booking.bookingRole === 'artist' && booking.status === 'completed' && (
-            <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-              <CardContent className="py-5 flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm">Add to Your Portfolio</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Showcase this performance in your portfolio with photos and details
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 shrink-0"
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      eventName: booking.eventDetails || 'Performance',
-                      eventDate: booking.eventDate ? new Date(booking.eventDate).toISOString().split('T')[0] : '',
-                      bookingId: bookingId.toString(),
-                    });
-                    const artistName = String((booking as any).artistName || '').trim();
-                    const portfolioPath = artistName
-                      ? `/artist/${toSlug(artistName)}/portfolio`
-                      : `/artists/${booking.artistId}/history`;
-                    navigate(`${portfolioPath}?addFromBooking=true&${params.toString()}`);
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  Add to Portfolio
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {booking.bookingRole === "artist" &&
+            booking.status === "completed" && (
+              <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+                <CardContent className="py-5 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-sm">
+                      Add to Your Portfolio
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Showcase this performance in your portfolio with photos
+                      and details
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 shrink-0"
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        eventName: booking.eventDetails || "Performance",
+                        eventDate: booking.eventDate
+                          ? new Date(booking.eventDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : "",
+                        bookingId: bookingId.toString(),
+                      });
+                      const artistName = String(
+                        (booking as any).artistName || ""
+                      ).trim();
+                      const portfolioPath = artistName
+                        ? `/artist/${toSlug(artistName)}/portfolio`
+                        : `/artists/${booking.artistId}/history`;
+                      navigate(
+                        `${portfolioPath}?addFromBooking=true&${params.toString()}`
+                      );
+                    }}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Add to Portfolio
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
           {/* Artist Review of Venue - Only show for artists on completed bookings */}
-          {booking.bookingRole === 'artist' && booking.status === 'completed' && (
-            <div>
-              {existingVenueReview ? (
-                <Card className="p-6">
-                  <CardHeader>
-                    <CardTitle>Your Review of the Venue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-5 h-5 ${
-                            star <= existingVenueReview.rating
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    {existingVenueReview.comment && (
-                      <p className="text-muted-foreground">{existingVenueReview.comment}</p>
-                    )}
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Submitted on {new Date(existingVenueReview.createdAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <VenueReviewForm
-                  bookingId={bookingId}
-                  venueId={booking.venueId}
-                  venueName="Venue"
-                  onReviewSubmitted={() => refetch()}
-                />
-              )}
-            </div>
-          )}
+          {booking.bookingRole === "artist" &&
+            booking.status === "completed" && (
+              <div>
+                {existingVenueReview ? (
+                  <Card className="p-6">
+                    <CardHeader>
+                      <CardTitle>Your Review of the Venue</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2 mb-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            className={`w-5 h-5 ${
+                              star <= existingVenueReview.rating
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {existingVenueReview.comment && (
+                        <p className="text-muted-foreground">
+                          {existingVenueReview.comment}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Submitted on{" "}
+                        {new Date(
+                          existingVenueReview.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <VenueReviewForm
+                    bookingId={bookingId}
+                    venueId={booking.venueId}
+                    venueName="Venue"
+                    onReviewSubmitted={() => refetch()}
+                  />
+                )}
+              </div>
+            )}
 
           {/* Venue Review of Artist - Only show for venues on completed bookings */}
-          {booking.bookingRole === 'venue' && booking.status === 'completed' && (
-            <div>
-              {existingArtistReview ? (
-                <Card className="p-6">
-                  <CardHeader>
-                    <CardTitle>Your Artist Review</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-5 h-5 ${
-                            star <= (existingArtistReview.rating ?? 0)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    {existingArtistReview.comment && (
-                      <p className="text-muted-foreground">{existingArtistReview.comment}</p>
-                    )}
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Submitted on {new Date(existingArtistReview.createdAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <ArtistReviewForm
-                  bookingId={bookingId}
-                  artistId={booking.artistId}
-                  artistName={(booking as any).artistName || 'this artist'}
-                  onSuccess={() => refetch()}
-                />
-              )}
-            </div>
-          )}
+          {booking.bookingRole === "venue" &&
+            booking.status === "completed" && (
+              <div>
+                {existingArtistReview ? (
+                  <Card className="p-6">
+                    <CardHeader>
+                      <CardTitle>Your Artist Review</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2 mb-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star
+                            key={star}
+                            className={`w-5 h-5 ${
+                              star <= (existingArtistReview.rating ?? 0)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {existingArtistReview.comment && (
+                        <p className="text-muted-foreground">
+                          {existingArtistReview.comment}
+                        </p>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Submitted on{" "}
+                        {new Date(
+                          existingArtistReview.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <ArtistReviewForm
+                    bookingId={bookingId}
+                    artistId={booking.artistId}
+                    artistName={(booking as any).artistName || "this artist"}
+                    onSuccess={() => refetch()}
+                  />
+                )}
+              </div>
+            )}
 
           {/* Messages */}
           <BookingMessages bookingId={bookingId} currentUserId={user.id} />

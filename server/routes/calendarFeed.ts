@@ -15,10 +15,13 @@ import { getDb } from '../db';
 import { eq, and, sql } from 'drizzle-orm';
 import { bookings, artistProfiles, venueProfiles } from '../../drizzle/schema';
 import crypto from 'crypto';
+import { bookingCalendarDateLines } from '../services/bookingCalendarFormatting';
+import { ensureScheduleSchema } from '../services/scheduleSchemaService';
 
 const router = Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+function calendarSecret():string { if(!JWT_SECRET) throw new Error('Calendar signing is not configured'); return JWT_SECRET; }
 
 /**
  * Generate a calendar token for an artist
@@ -26,7 +29,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
  */
 export function generateCalendarToken(artistId: number): string {
   return crypto
-    .createHmac('sha256', JWT_SECRET)
+    .createHmac('sha256', calendarSecret())
     .update(`calendar-feed-${artistId}`)
     .digest('hex')
     .substring(0, 32);
@@ -37,7 +40,8 @@ export function generateCalendarToken(artistId: number): string {
  */
 function validateCalendarToken(artistId: number, token: string): boolean {
   const expected = generateCalendarToken(artistId);
-  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  const supplied=Buffer.from(token), reference=Buffer.from(expected);
+  return supplied.length===reference.length && crypto.timingSafeEqual(supplied,reference);
 }
 
 /**
@@ -79,7 +83,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
       return res.status(400).send('Invalid artist ID');
     }
 
-    if (!token || token.length !== 32) {
+    if (typeof token !== 'string' || !/^[a-f0-9]{32}$/.test(token)) {
       return res.status(401).send('Invalid or missing calendar token');
     }
 
@@ -89,6 +93,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
     }
 
     // Get artist profile
+    await ensureScheduleSchema();
     const database = await getDb();
     if (!database) {
       return res.status(500).send('Database not available');
@@ -109,6 +114,8 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
         id: bookings.id,
         eventDate: bookings.eventDate,
         eventTime: bookings.eventTime,
+        scheduleStartAt: bookings.scheduleStartAt, scheduleEndAt: bookings.scheduleEndAt,
+        scheduleTimezone: bookings.scheduleTimezone, scheduleAllDay: bookings.scheduleAllDay,
         eventDetails: bookings.eventDetails,
         status: bookings.status,
         totalFee: bookings.totalFee,
@@ -156,19 +163,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
     ];
 
     for (const booking of artistBookings) {
-      const eventDate = booking.eventDate instanceof Date 
-        ? booking.eventDate 
-        : new Date(booking.eventDate);
-
-      // Parse event time if available
-      if (booking.eventTime) {
-        const [hours, minutes] = booking.eventTime.split(':').map(Number);
-        eventDate.setUTCHours(hours || 0, minutes || 0, 0, 0);
-      }
-
-      // Default 2-hour event duration
-      const endDate = new Date(eventDate);
-      endDate.setUTCHours(endDate.getUTCHours() + 2);
+      const dateLines = bookingCalendarDateLines(booking);
 
       const venueName = booking.venueName || venueMap.get(booking.venueId) || 'Venue';
       const location = booking.venueAddress || venueName;
@@ -183,6 +178,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
         booking.totalFee ? `Fee: $${booking.totalFee}` : '',
         booking.eventDetails || '',
         `Status: ${booking.status}`,
+        `Timezone: ${booking.scheduleTimezone || 'Unspecified (date-level reservation)'}`,
         '',
         'Managed on Ologywood',
       ].filter(Boolean).join('\\n');
@@ -195,8 +191,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `DTSTAMP:${dtstamp}`,
-        `DTSTART:${formatICalDate(eventDate)}`,
-        `DTEND:${formatICalDate(endDate)}`,
+        ...dateLines,
         `SUMMARY:${escapeICalText(summary)}`,
         `DESCRIPTION:${description}`,
         `LOCATION:${escapeICalText(location)}`,
@@ -226,7 +221,7 @@ router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
  */
 export function generateVenueCalendarToken(venueId: number): string {
   return crypto
-    .createHmac('sha256', JWT_SECRET)
+    .createHmac('sha256', calendarSecret())
     .update(`venue-calendar-feed-${venueId}`)
     .digest('hex')
     .substring(0, 32);
@@ -237,7 +232,8 @@ export function generateVenueCalendarToken(venueId: number): string {
  */
 function validateVenueCalendarToken(venueId: number, token: string): boolean {
   const expected = generateVenueCalendarToken(venueId);
-  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+  const supplied=Buffer.from(token), reference=Buffer.from(expected);
+  return supplied.length===reference.length && crypto.timingSafeEqual(supplied,reference);
 }
 
 /**
@@ -255,7 +251,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
       return res.status(400).send('Invalid venue ID');
     }
 
-    if (!token || token.length !== 32) {
+    if (typeof token !== 'string' || !/^[a-f0-9]{32}$/.test(token)) {
       return res.status(401).send('Invalid or missing calendar token');
     }
 
@@ -265,6 +261,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
     }
 
     // Get venue profile
+    await ensureScheduleSchema();
     const database = await getDb();
     if (!database) {
       return res.status(500).send('Database not available');
@@ -285,6 +282,8 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
         id: bookings.id,
         eventDate: bookings.eventDate,
         eventTime: bookings.eventTime,
+        scheduleStartAt: bookings.scheduleStartAt, scheduleEndAt: bookings.scheduleEndAt,
+        scheduleTimezone: bookings.scheduleTimezone, scheduleAllDay: bookings.scheduleAllDay,
         eventDetails: bookings.eventDetails,
         status: bookings.status,
         totalFee: bookings.totalFee,
@@ -297,6 +296,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
       .where(
         and(
           eq(bookings.venueId, venueId),
+          sql`${bookings.bookingSource} <> 'client_booking'`,
           sql`${bookings.status} IN ('confirmed', 'completed')`
         )
       );
@@ -330,19 +330,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
     ];
 
     for (const booking of venueBookings) {
-      const eventDate = booking.eventDate instanceof Date 
-        ? booking.eventDate 
-        : new Date(booking.eventDate);
-
-      // Parse event time if available
-      if (booking.eventTime) {
-        const [hours, minutes] = booking.eventTime.split(':').map(Number);
-        eventDate.setUTCHours(hours || 0, minutes || 0, 0, 0);
-      }
-
-      // Default 2-hour event duration
-      const endDate = new Date(eventDate);
-      endDate.setUTCHours(endDate.getUTCHours() + 2);
+      const dateLines = bookingCalendarDateLines(booking);
 
       const artistName = artistMap.get(booking.artistId) || 'Artist';
       const eventTypeLabel = booking.eventType 
@@ -356,6 +344,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
         booking.totalFee ? `Fee: $${booking.totalFee}` : '',
         booking.eventDetails || '',
         `Status: ${booking.status}`,
+        `Timezone: ${booking.scheduleTimezone || 'Unspecified (date-level reservation)'}`,
         '',
         'Managed on Ologywood',
       ].filter(Boolean).join('\\n');
@@ -368,8 +357,7 @@ router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => 
         'BEGIN:VEVENT',
         `UID:${uid}`,
         `DTSTAMP:${dtstamp}`,
-        `DTSTART:${formatICalDate(eventDate)}`,
-        `DTEND:${formatICalDate(endDate)}`,
+        ...dateLines,
         `SUMMARY:${escapeICalText(summary)}`,
         `DESCRIPTION:${description}`,
         `LAST-MODIFIED:${lastModified}`,

@@ -57,7 +57,7 @@ export default function OlogyLiveDashboard() {
 
   const utils = trpc.useUtils();
   const experiences = trpc.ologyLive.getMyExperiences.useQuery();
-  const bookings = trpc.ologyLive.getMyBookingsAsTalent.useQuery();
+  const bookings = trpc.ologyLive.getMyBookingsAsTalent.useQuery(undefined, { refetchInterval: 45_000 });
 
   const createExperience = trpc.ologyLive.createExperience.useMutation({
     onSuccess: () => {
@@ -144,10 +144,11 @@ export default function OlogyLiveDashboard() {
   const confirmedBookings = bookings.data?.filter(b => b.status === "confirmed") || [];
 
   return (
+    <>
+    <SiteHeader />
     <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <SiteHeader />
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Video className="h-8 w-8 text-primary" />
@@ -173,28 +174,32 @@ export default function OlogyLiveDashboard() {
           <CardContent>
             <div className="space-y-2">
               {pendingBookings.slice(0, 3).map(booking => (
-                <div key={booking.id} className="flex items-center justify-between bg-white dark:bg-background rounded-lg p-3 border">
-                  <div>
+                <div key={booking.id} className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-background rounded-lg p-3 border">
+                  <div className="min-w-0">
                     <p className="font-medium text-sm">Booking #{booking.id}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(booking.scheduledAt).toLocaleDateString()} at{" "}
                       {new Date(booking.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       {" · "}{booking.duration} min · ${booking.amount}
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{booking.paymentStatus === "paid" ? "Payment verified — ready for confirmation" : "Temporary checkout hold — awaiting verified payment"}</p>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => confirmBooking.mutate({ bookingId: booking.id })}
-                    disabled={confirmBooking.isPending}
+                    disabled={confirmBooking.isPending || booking.paymentStatus !== "paid"}
                   >
-                    Confirm
+                    {booking.paymentStatus === "paid" ? "Confirm" : "Awaiting payment"}
                   </Button>
                 </div>
               ))}
             </div>
+            {confirmBooking.error && <p role="alert" className="mt-3 text-sm text-destructive">{confirmBooking.error.message}</p>}
           </CardContent>
         </Card>
       )}
+
+      {bookings.isError && <p role="alert" className="text-sm text-destructive">Live reservations could not be refreshed. <Button variant="link" size="sm" onClick={() => void bookings.refetch()}>Try again</Button></p>}
 
       {/* Create / Edit Form */}
       {showCreateForm && (
@@ -561,5 +566,6 @@ export default function OlogyLiveDashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }

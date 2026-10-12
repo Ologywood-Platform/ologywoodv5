@@ -13,6 +13,7 @@ import Stripe from 'stripe';
 import { getDb } from '../db';
 import { bookings } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
+import type { ScheduleConnection } from './scheduleService';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -28,16 +29,13 @@ interface CancellationResult {
 export async function cancelBooking(
   bookingId: number,
   cancelledBy: 'artist' | 'venue',
-  reason?: string
+  reason?: string,
+  transaction?: { booking: Record<string, any>; connection: ScheduleConnection }
 ): Promise<CancellationResult> {
   const db = await getDb();
   if (!db) throw new Error('Database not available');
 
-  const [booking] = await db
-    .select()
-    .from(bookings)
-    .where(eq(bookings.id, bookingId))
-    .limit(1);
+  const booking = transaction?.booking || (await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1))[0];
 
   if (!booking) {
     throw new Error('Booking not found');
@@ -158,7 +156,12 @@ export async function cancelBooking(
     updateData.stripeRefundId = refundId;
   }
 
-  await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
+  if (transaction) {
+    const columns = Object.keys(updateData);
+    await transaction.connection.execute(`UPDATE bookings SET ${columns.map(key => '`'+key+'`=?').join(',')} WHERE id=?`, [...columns.map(key => updateData[key]), bookingId]);
+  } else {
+    await db.update(bookings).set(updateData).where(eq(bookings.id, bookingId));
+  }
 
   console.log(`[Cancellation] Booking #${bookingId} cancelled by ${cancelledBy}. ${message}`);
 

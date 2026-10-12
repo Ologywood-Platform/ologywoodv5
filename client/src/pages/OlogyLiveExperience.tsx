@@ -249,6 +249,7 @@ export default function OlogyLiveExperience() {
                 {slots.data.map(slot => {
                   const start = new Date(slot.startTime);
                   const spotsLeft = slot.spotsTotal - slot.spotsTaken;
+                  const displayTimezone = slot.scheduleTimezone || 'UTC';
                   return (
                     <button
                       key={slot.id}
@@ -263,9 +264,10 @@ export default function OlogyLiveExperience() {
                         {start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {start.toLocaleTimeString([], { timeZone: displayTimezone, hour: '2-digit', minute: '2-digit' })}
                         {" — "}
-                        {new Date(slot.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(slot.endTime).toLocaleTimeString([], { timeZone: displayTimezone, hour: '2-digit', minute: '2-digit' })}
+                        {" "}{displayTimezone}
                       </p>
                       {exp.capacityType !== "one_on_one" && (
                         <p className="text-xs text-muted-foreground mt-1">

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
+import { materializeScheduleRemindersBestEffort } from "../services/scheduleService";
 
 export const notificationsRouter = router({
   /**
@@ -16,6 +17,7 @@ export const notificationsRouter = router({
     .query(async ({ ctx, input }) => {
       const limit = input?.limit || 30;
       const offset = input?.offset || 0;
+      await materializeScheduleRemindersBestEffort(ctx.user.id);
       const items = await db.getNotificationsByUserId(ctx.user.id, { limit, offset });
       const unreadCount = await db.getUnreadNotificationCount(ctx.user.id);
       return { items, unreadCount };
@@ -25,6 +27,7 @@ export const notificationsRouter = router({
    * Get unread notification count (lightweight poll)
    */
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
+    await materializeScheduleRemindersBestEffort(ctx.user.id);
     return await db.getUnreadNotificationCount(ctx.user.id);
   }),
 

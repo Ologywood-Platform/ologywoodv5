@@ -71,7 +71,7 @@ describe("Ology Live Phase 2 - Recurring Availability", () => {
   it("should support day of week scheduling (0-6)", () => {
     const content = fs.readFileSync(routerPath, "utf-8");
     expect(content).toContain("dayOfWeek");
-    expect(content).toContain("z.number().min(0).max(6)");
+    expect(content).toContain("z.number().int().min(0).max(6)");
   });
 
   it("should support timezone configuration", () => {
@@ -83,13 +83,14 @@ describe("Ology Live Phase 2 - Recurring Availability", () => {
   it("should support configurable weeks ahead (1-8)", () => {
     const content = fs.readFileSync(routerPath, "utf-8");
     expect(content).toContain("weeksAhead");
-    expect(content).toContain("z.number().min(1).max(8)");
+    expect(content).toContain("z.number().int().min(1).max(8)");
   });
 
   it("should generate time slots based on duration", () => {
     const content = fs.readFileSync(routerPath, "utf-8");
-    expect(content).toContain("generateRecurringSlots");
-    expect(content).toContain("durationMinutes");
+    expect(content).toContain("createRecurringLiveSlots");
+    const service = fs.readFileSync(path.resolve(__dirname,"../services/ologyLiveScheduleService.ts"),"utf-8");
+    expect(service).toContain("durationMinutes * 60_000");
   });
 
   it("should avoid creating duplicate time slots", () => {
@@ -100,7 +101,9 @@ describe("Ology Live Phase 2 - Recurring Availability", () => {
 
   it("should only generate future time slots", () => {
     const content = fs.readFileSync(routerPath, "utf-8");
-    expect(content).toContain("slotStart > now");
+    const service = fs.readFileSync(path.resolve(__dirname, "../services/ologyLiveScheduleService.ts"), "utf-8");
+    expect(service).toContain("startAt <= now");
+    expect(service).toContain("skipped.past");
   });
 });
 

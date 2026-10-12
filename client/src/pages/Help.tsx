@@ -418,6 +418,14 @@ const faqItems: FAQItem[] = [
     answer: 'Click the bell icon in the top navigation to see your notifications. You can mark individual notifications as read, mark all as read, or delete them. Email notifications are sent automatically for important events like booking requests and payment confirmations.',
   },
 
+  {
+    id: 'schedule-1', category: 'Booking & Contracts', question: 'How do I schedule radio interviews and several appointments in one day?',
+    answer: 'Open Workspace → Schedule. Choose Add appointment for radio or podcast interviews, appearances, rehearsals, performances or private commitments. Enter the date, start and end times and named timezone. Add an end date for overnight activity. Multiple non-overlapping appointments can share a day; preparation time before and travel time after reserve extra space. These private or unpaid appointments do not require checkout and do not create a paid booking. Use Day or Week for a chronological agenda. Existing confirmed bookings and active Ology Live time slots use the same conflict checks. Old bookings without a reliable end time remain date-level reservations; their original records are not rewritten.'
+  },
+  {
+    id: 'schedule-2', category: 'Booking & Contracts', question: 'How do all-day blocks, team access and Schedule reminders work?',
+    answer: 'Turn on All day only when the whole calendar day should be reserved. The named timezone determines that day, including daylight-saving changes. Timed appointments reserve only their actual duration plus optional buffers. A collaborator must have Manage Calendar permission to see or edit the owner’s Schedule; calendar notes and titles are not public. Choose an in-app reminder when creating a private appointment. Reminders appear in the notification bell as Schedule or the inbox refreshes while you are signed in; there is no email or offline/background delivery guarantee. Turn reminder notifications on or off in Settings. Cancel or edit private appointments from Schedule; manage marketplace bookings and Live sessions in their original screens.'
+  },
   // Following & Fans
   {
     id: 'fans-1',

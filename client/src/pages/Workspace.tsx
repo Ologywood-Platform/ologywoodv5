@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
 import { CreateActionDialog } from '@/components/CreateActionDialog';
+import { WorkspaceSchedule } from '@/components/WorkspaceSchedule';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +52,7 @@ export default function Workspace() {
   const [location, navigate] = useLocation();
   const baseRole = getWorkspaceRole(user as any);
   const requestedWorkspaceView = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('view') : null;
+  const requestedSection = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('section') : null;
   const canSwitchToCreator = !!user?.isAdmin && user?.role === 'artist';
   const teamContextQuery = trpc.team.getMyWorkspaceContext.useQuery(undefined, { enabled: !!user, retry: false });
   const hasCollaboratorWorkspace = !!teamContextQuery.data
@@ -62,8 +64,10 @@ export default function Workspace() {
   const isVenue = role === 'venue';
 
   useEffect(() => {
-    if (!loading && role === 'fan') navigate('/my-ology', { replace: true });
-  }, [loading, navigate, role]);
+    if (requestedSection !== 'schedule' || typeof document === 'undefined') return;
+    const timer = window.setTimeout(() => document.getElementById('schedule')?.scrollIntoView({ block: 'start' }), 0);
+    return () => window.clearTimeout(timer);
+  }, [requestedSection]);
 
   const profileQuery = trpc.artist.getMyProfile.useQuery(undefined, { enabled: !!user && isCreator, retry: false });
   const venueProfileQuery = trpc.venue.getMyProfile.useQuery(undefined, { enabled: !!user && isVenue, retry: false });
@@ -81,6 +85,7 @@ export default function Workspace() {
   const orders: any[] = sellerOrdersQuery.data || [];
   const events: any[] = eventsQuery.data || [];
   const profileSlug = isCreator && profile?.artistName ? toSlug(profile.artistName) : null;
+  const scheduleOwnerUserId = role === 'team' ? teamContextQuery.data?.artistUserId : undefined;
 
   const attentionItems = useMemo<AttentionItem[]>(() => {
     if (!user) return [];
@@ -214,7 +219,7 @@ export default function Workspace() {
 
   const anyLoading = teamContextQuery.isLoading || profileQuery.isLoading || venueProfileQuery.isLoading || artistBookingsQuery.isLoading || venueBookingsQuery.isLoading || sellerOrdersQuery.isLoading || incompleteProfilesQuery.isLoading || flaggedVideosQuery.isLoading || draftPostsQuery.isLoading;
 
-  if (loading || role === 'fan') {
+  if (loading) {
     return <div className="min-h-screen bg-slate-50 dark:bg-slate-950"><SiteHeader /><div className="flex min-h-[55vh] items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-purple-600" /></div></div>;
   }
 
@@ -250,15 +255,16 @@ export default function Workspace() {
           <CreateActionDialog role={role} profileSlug={profileSlug} />
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="mt-8 grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             {workspaceSections.map((section, index) => (
               <Link key={section.label} href={section.href} className={`block rounded-xl px-3 py-2.5 text-sm transition-colors ${index === 0 ? 'bg-purple-600 font-semibold text-white' : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-purple-950/30 dark:hover:text-purple-200'}`}>{section.label}</Link>
             ))}
+            <Link href="/workspace?section=schedule#schedule" className={`mt-1 block rounded-xl px-3 py-2.5 text-sm transition-colors ${requestedSection === 'schedule' || location.includes('#schedule') ? 'bg-purple-600 font-semibold text-white' : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-purple-950/30 dark:hover:text-purple-200'}`}><CalendarClock className="mr-2 inline h-4 w-4" />Schedule</Link>
             <p className="px-3 pt-3 text-xs leading-5 text-slate-500">The shell stays familiar while the tools and language follow your role.</p>
           </aside>
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <Card className="border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-3"><CardTitle className="flex items-center gap-2 text-xl"><AlertCircle className="h-5 w-5 text-amber-600" />Needs Attention</CardTitle>{attentionItems.length > 0 && <Badge className="bg-amber-600">{attentionItems.length}</Badge>}</div>
@@ -279,6 +285,15 @@ export default function Workspace() {
                 )}
               </CardContent>
             </Card>
+
+            <Card className="border-violet-200 bg-violet-50/60 dark:border-violet-900/60 dark:bg-violet-950/20">
+              <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-semibold text-slate-950 dark:text-white">Plan your schedule</p><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Private appointments, bookings, and Ology Live commitments in one agenda.</p></div>
+                <Link href="/workspace?section=schedule#schedule"><Button variant="outline" className="border-violet-300 bg-white text-violet-800 hover:bg-violet-100 dark:border-violet-800 dark:bg-slate-900 dark:text-violet-200"><CalendarClock className="mr-2 h-4 w-4" />Open Schedule</Button></Link>
+              </CardContent>
+            </Card>
+
+            <WorkspaceSchedule ownerUserId={scheduleOwnerUserId} />
 
             <section>
               <div className="mb-4"><h2 className="text-xl font-bold text-slate-950 dark:text-white">Your business, grouped by purpose</h2><p className="text-sm text-slate-600 dark:text-slate-300">Open the outcome you need—not a wall of unrelated tools.</p></div>

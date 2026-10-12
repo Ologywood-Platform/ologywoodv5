@@ -1,5 +1,4 @@
-import { int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date, unique } from "drizzle-orm/mysql-core";
-
+import { bigint, int, mysqlTable, varchar, timestamp, text, mysqlEnum, boolean, decimal, json, index, date, unique } from "drizzle-orm/mysql-core";
 /**
  * Operating hours schedule type for venues.
  * Each day has open/close times or is marked as closed.
@@ -358,6 +357,13 @@ export const bookings = mysqlTable("bookings", {
   artistId: int("artistId").notNull(),
   eventDate: timestamp("eventDate").notNull(),
   eventTime: varchar("eventTime", { length: 5 }), // HH:MM format
+  // Optional precise UTC timing; legacy date-only bookings continue to block their whole date.
+  scheduleStartAt: bigint("scheduleStartAt", { mode: "number" }),
+  scheduleEndAt: bigint("scheduleEndAt", { mode: "number" }),
+  scheduleTimezone: varchar("scheduleTimezone", { length: 100 }),
+  scheduleAllDay: boolean("scheduleAllDay"),
+  preparationMinutes: int("preparationMinutes").default(0).notNull(),
+  travelMinutes: int("travelMinutes").default(0).notNull(),
   eventDetails: text("eventDetails"),
   status: mysqlEnum("status", ["pending", "confirmed", "completed", "cancelled"]).default("pending").notNull(),
   totalFee: decimal("totalFee", { precision: 10, scale: 2 }),
@@ -2545,6 +2551,7 @@ export const ologyLiveTimeSlots = mysqlTable("ology_live_time_slots", {
   talentId: int("talentId").notNull(),
   startTime: timestamp("startTime").notNull(),
   endTime: timestamp("endTime").notNull(),
+  scheduleTimezone: varchar("scheduleTimezone", { length: 100 }),
   spotsTotal: int("spotsTotal").default(1).notNull(), // total capacity for this slot
   spotsTaken: int("spotsTaken").default(0).notNull(), // how many booked
   isAvailable: boolean("isAvailable").default(true).notNull(),
@@ -2687,3 +2694,47 @@ export const ologyLiveQuestions = mysqlTable("ology_live_questions", {
 }));
 export type OlogyLiveQuestion = typeof ologyLiveQuestions.$inferSelect;
 export type InsertOlogyLiveQuestion = typeof ologyLiveQuestions.$inferInsert;
+
+/** Private calendar commitments. UTC epoch milliseconds are authoritative. */
+export const scheduleAppointments = mysqlTable("schedule_appointments", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  createdByUserId: int("createdByUserId").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  category: varchar("category", { length: 40 }).notNull(),
+  startAt: bigint("startAt", { mode: "number" }).notNull(),
+  endAt: bigint("endAt", { mode: "number" }).notNull(),
+  timezone: varchar("timezone", { length: 100 }).notNull(),
+  allDay: boolean("allDay").default(false).notNull(),
+  date: date("date", { mode: "string" }).notNull(),
+  preparationMinutes: int("preparationMinutes").default(0).notNull(),
+  travelMinutes: int("travelMinutes").default(0).notNull(),
+  location: varchar("location", { length: 500 }),
+  notes: text("notes"),
+  reminderMinutes: int("reminderMinutes"),
+  revision: int("revision").default(1).notNull(),
+  status: varchar("status", { length: 20 }).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  ownerTimeIdx: index("idx_schedule_appointments_owner_time").on(table.ownerUserId, table.startAt),
+  ownerStatusIdx: index("idx_schedule_appointments_owner_status").on(table.ownerUserId, table.status),
+}));
+export type ScheduleAppointment = typeof scheduleAppointments.$inferSelect;
+export type InsertScheduleAppointment = typeof scheduleAppointments.$inferInsert;
+
+/** Reservation and notification insertion happen in one transaction; never sends email. */
+export const scheduleReminderReceipts = mysqlTable("schedule_reminder_receipts", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  source: varchar("source", { length: 20 }).notNull(),
+  sourceId: int("sourceId").notNull(),
+  revision: varchar("revision", { length: 64 }).notNull(),
+  dueAt: bigint("dueAt", { mode: "number" }).notNull(),
+  dedupKey: varchar("dedupKey", { length: 190 }).notNull().unique(),
+  notificationId: int("notificationId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  ownerSourceIdx: index("idx_schedule_receipts_owner_source").on(table.ownerUserId, table.source, table.sourceId),
+}));
+export type ScheduleReminderReceipt = typeof scheduleReminderReceipts.$inferSelect;
