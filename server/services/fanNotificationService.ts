@@ -1,300 +1,106 @@
-/**
- * Fan Notification Service
- * Sends email notifications to fans when artists create events or update their profiles.
- * Uses the shared sendEmail() function which routes through Forge API with SendGrid fallback.
- * Respects email preferences and includes unsubscribe links.
- */
-
+/** Automatic creator news emails use the same explicit consent rules as Send Update. */
 import { sendEmail } from '../email';
-import { getDb } from '../db';
+import { getDb, createNotification } from '../db';
 import { follows, users, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
-import { createNotification } from '../db';
 import { getEmailLogoImage } from '../../shared/emailBranding';
+import { ENV } from '../_core/env';
+import { getEligibleFanEmailRecipients, withEligibleFanEmailRecipient } from './fanEmailConsentService';
+import { escapeFanEmailHtml as escapeHtml, fanEmailDeliveryOptions } from './fanEmailFormatting';
 
-const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
+const BASE_URL = ENV.baseUrl || 'https://www.ologywood.com';
 
-interface FanNotificationRecipient {
-  id: number;
-  name: string;
-  email: string;
-}
-
-/**
- * Get all fans (followers) of an artist with their email addresses
- */
-async function getArtistFans(artistUserId: number): Promise<FanNotificationRecipient[]> {
-  const db = await getDb();
-  if (!db) return [];
-
-  const followerRelations = await db
-    .select()
-    .from(follows)
-    .where(eq(follows.followingId, artistUserId));
-
-  const fans: FanNotificationRecipient[] = [];
-
-  for (const relation of followerRelations) {
-    const userResult = await db
-      .select({ id: users.id, name: users.name, email: users.email })
-      .from(users)
-      .where(eq(users.id, relation.followerId))
-      .limit(1);
-
-    if (userResult.length > 0 && userResult[0].email) {
-      fans.push({
-        id: userResult[0].id,
-        name: userResult[0].name || 'Fan',
-        email: userResult[0].email,
-      });
-    }
-  }
-
-  return fans;
-}
-
-/**
- * Get the artist's display name and profile ID from their profile
- */
 async function getArtistInfo(artistUserId: number): Promise<{ name: string; profileId: number | null }> {
   const db = await getDb();
-  if (!db) return { name: 'Artist', profileId: null };
-
-  const profile = await db
-    .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
-    .from(artistProfiles)
-    .where(eq(artistProfiles.userId, artistUserId))
-    .limit(1);
-
-  if (profile.length > 0) {
-    return { name: profile[0].artistName || 'Artist', profileId: profile[0].id };
-  }
-  return { name: 'Artist', profileId: null };
+  if (!db) throw new Error('Fan notifications temporarily unavailable.');
+  const profiles = await db.select({ id: artistProfiles.id, name: artistProfiles.artistName }).from(artistProfiles).where(eq(artistProfiles.userId, artistUserId)).limit(1);
+  return { name: profiles[0]?.name || 'Creator', profileId: profiles[0]?.id ?? null };
 }
 
-/**
- * Branded email header
- */
+/** Following still enables in-app news; it does not require email/contact sharing. */
+async function getInAppFans(artistUserId: number): Promise<Array<{ id: number }>> {
+  const db = await getDb();
+  if (!db) throw new Error('Follower notifications temporarily unavailable.');
+  const rows = await db.select({ id: users.id }).from(follows).innerJoin(users, eq(users.id, follows.followerId)).where(eq(follows.followingId, artistUserId));
+  return [...new Map(rows.map(row => [row.id, row])).values()];
+}
+
 function getEmailHeader(): string {
-  return `
-    <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-      ${getEmailLogoImage({ size: 88, marginBottom: 12 })}
-      <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
-    </div>
-  `;
+  return `<div style="background:linear-gradient(135deg,#6D28D9,#00D9FF);padding:30px;text-align:center">${getEmailLogoImage({ size: 88, marginBottom: 12 })}<p style="color:white;font-size:14px">Where Artists Meet Opportunities</p></div>`;
 }
 
-/**
- * Branded email footer with unsubscribe link
- */
-function getEmailFooter(userId: number): string {
-  const unsubscribeUrl = `${BASE_URL}/unsubscribe?userId=${userId}&type=fan_updates`;
-  return `
-    <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
-      <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
-        You're receiving this email because you follow this artist on Ologywood.
-      </p>
-      <p style="color: #6b7280; font-size: 12px; margin: 0;">
-        <a href="${unsubscribeUrl}" style="color: #6D28D9; text-decoration: none;">Unsubscribe from artist updates</a> | 
-        <a href="${BASE_URL}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a> | 
-        <a href="${BASE_URL}/privacy" style="color: #6D28D9; text-decoration: none;">Privacy Policy</a>
-      </p>
-      <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">
-        &copy; 2026 Ologywood. All rights reserved.
-      </p>
-    </div>
-  `;
+function getEmailFooter(unsubscribeUrl: string): string {
+  return `<div style="background:#f9fafb;padding:20px;font-size:12px;color:#6b7280">
+    <p>You're receiving this email because you explicitly opted in to updates from this creator on Ologywood.</p>
+    <p><a href="${escapeHtml(unsubscribeUrl)}">Unsubscribe from this creator's updates</a> |
+    <a href="${escapeHtml(BASE_URL)}/settings">Manage preferences</a> |
+    <a href="${escapeHtml(BASE_URL)}/privacy-policy">Privacy Policy</a></p>
+    <p>OlogyWood · 171 Prestwick Dr, Hoschton, GA 30548 · &copy; ${new Date().getFullYear()} Ologywood</p>
+  </div>`;
 }
 
-/**
- * Notify all fans when an artist creates a new event
- */
-export async function notifyFansNewEvent(
-  artistUserId: number,
-  eventDetails: {
-    eventTitle: string;
-    eventDate: string;
-    eventLocation?: string;
-    eventId?: number;
-  }
-): Promise<{ sent: number; failed: number }> {
+export async function notifyFansNewEvent(artistUserId: number, eventDetails: { eventTitle: string; eventDate: string; eventLocation?: string; eventId?: number }): Promise<{ sent: number; failed: number }> {
   const result = { sent: 0, failed: 0 };
+  let artistInfo: { name: string; profileId: number | null };
+  try { artistInfo = await getArtistInfo(artistUserId); }
+  catch { console.error('[FanNotification] Creator news source unavailable'); return result; }
+  if (!artistInfo.profileId) return result;
+  const artistProfileUrl = `${BASE_URL}/artist/${artistInfo.profileId}`;
+  const eventUrl = eventDetails.eventId ? `${BASE_URL}/events/${eventDetails.eventId}` : artistProfileUrl;
+
+  // This path deliberately does not inspect, disclose, or export follower email addresses.
+  try {
+    for (const fan of await getInAppFans(artistUserId)) {
+      try {
+        await createNotification({ userId: fan.id, type: 'booking', title: `${artistInfo.name} has a new event`,
+          message: `${eventDetails.eventTitle} — ${eventDetails.eventDate}${eventDetails.eventLocation ? ` at ${eventDetails.eventLocation}` : ''}`,
+          actionUrl: eventDetails.eventId ? `/events/${eventDetails.eventId}` : `/artist/${artistInfo.profileId}` });
+      } catch { console.error('[FanNotification] Could not create follower in-app notice'); }
+    }
+  } catch { console.error('[FanNotification] In-app follower source unavailable'); }
 
   try {
-    const [fans, artistInfo] = await Promise.all([
-      getArtistFans(artistUserId),
-      getArtistInfo(artistUserId),
-    ]);
-    const artistName = artistInfo.name;
-    const profileId = artistInfo.profileId;
-
-    if (!profileId) {
-      console.error(`[FanNotification] Could not find artist profile ID for userId ${artistUserId}, skipping notifications`);
-      return result;
-    }
-
-    if (fans.length === 0) {
-      console.log(`[FanNotification] No fans to notify for artist ${artistUserId}`);
-      return result;
-    }
-
-    const artistProfileUrl = `${BASE_URL}/artist/${profileId}`;
-    const eventUrl = eventDetails.eventId 
-      ? `${BASE_URL}/events/${eventDetails.eventId}` 
-      : artistProfileUrl;
-
+    const fans = await getEligibleFanEmailRecipients(artistUserId, 10000, 0);
     for (const fan of fans) {
       try {
-        const html = `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-            ${getEmailHeader()}
-            <div style="padding: 30px 24px;">
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
-              
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                <strong>${artistName}</strong>, an artist you follow, just announced a new event!
-              </p>
-
-              <div style="background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
-                <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 20px;">${eventDetails.eventTitle}</h3>
-                <p style="color: #4b5563; margin: 0 0 8px 0;">
-                  <strong>Date:</strong> ${eventDetails.eventDate}
-                </p>
-                ${eventDetails.eventLocation ? `
-                  <p style="color: #4b5563; margin: 0;">
-                    <strong>Location:</strong> ${eventDetails.eventLocation}
-                  </p>
-                ` : ''}
-              </div>
-
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${eventUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Event Details</a>
-              </div>
-
-              <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
-                Don't miss out — check out the event and book your spot!
-              </p>
-            </div>
-            ${getEmailFooter(fan.id)}
-          </div>
-        `;
-
-        const success = await sendEmail({
-          to: fan.email,
-          subject: `${artistName} has a new event: ${eventDetails.eventTitle}`,
-          html,
+        const checked = await withEligibleFanEmailRecipient(artistUserId, fan.id, fan.consentRevision, async (current, unsubscribeUrl) => {
+          const html = `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+            ${getEmailHeader()}<div style="padding:30px 24px"><p>Hi ${escapeHtml(current.name)},</p>
+            <p><strong>${escapeHtml(artistInfo.name)}</strong>, a creator you follow, just announced a new event!</p>
+            <div style="background:#f5f3ff;padding:24px;border-left:4px solid #6D28D9"><h3>${escapeHtml(eventDetails.eventTitle)}</h3>
+            <p><strong>Date:</strong> ${escapeHtml(eventDetails.eventDate)}</p>
+            ${eventDetails.eventLocation ? `<p><strong>Location:</strong> ${escapeHtml(eventDetails.eventLocation)}</p>` : ''}</div>
+            <p><a href="${escapeHtml(eventUrl)}">View Event Details</a></p></div>${getEmailFooter(unsubscribeUrl)}</div>`;
+          return sendEmail({ to: current.email, subject: `${artistInfo.name} has a new event: ${eventDetails.eventTitle}`, html }, fanEmailDeliveryOptions(unsubscribeUrl));
         });
-
-        if (success) {
-          result.sent++;
-        } else {
-          console.error(`[FanNotification] sendEmail returned false for ${fan.email}`);
-          result.failed++;
-        }
-
-        // Also create in-app notification
-        try {
-          await createNotification({
-            userId: fan.id,
-            type: 'booking', // reuse booking type for event notifications
-            title: `${artistName} has a new event`,
-            message: `${eventDetails.eventTitle} — ${eventDetails.eventDate}${eventDetails.eventLocation ? ` at ${eventDetails.eventLocation}` : ''}`,
-            actionUrl: eventDetails.eventId ? `/events/${eventDetails.eventId}` : `/artist/${profileId}`,
-          });
-        } catch (notifErr) {
-          console.error(`[FanNotification] Failed to create in-app notification for user ${fan.id}:`, notifErr);
-        }
-      } catch (error) {
-        console.error(`[FanNotification] Failed to send to ${fan.email}:`, error);
-        result.failed++;
-      }
+        if (!checked.eligible) continue;
+        if (checked.value) result.sent++; else result.failed++;
+      } catch { result.failed++; console.error('[FanNotification] Could not verify event email delivery'); }
     }
-
-    console.log(`[FanNotification] New event notification: sent=${result.sent}, failed=${result.failed} for artist ${artistUserId}`);
-    return result;
-  } catch (error) {
-    console.error('[FanNotification] Error notifying fans of new event:', error);
-    return result;
-  }
+  } catch { console.error('[FanNotification] Eligible email recipients unavailable; no emails sent'); }
+  return result;
 }
 
-/**
- * Notify all fans when an artist updates their profile
- */
-export async function notifyFansProfileUpdate(
-  artistUserId: number,
-  updateDetails: {
-    updateType: 'bio' | 'photos' | 'availability' | 'general';
-    summary: string;
-  }
-): Promise<{ sent: number; failed: number }> {
+export async function notifyFansProfileUpdate(artistUserId: number, updateDetails: { updateType: 'bio' | 'photos' | 'availability' | 'general'; summary: string }): Promise<{ sent: number; failed: number }> {
   const result = { sent: 0, failed: 0 };
-
   try {
-    const [fans, artistInfo] = await Promise.all([
-      getArtistFans(artistUserId),
-      getArtistInfo(artistUserId),
-    ]);
-    const artistName = artistInfo.name;
-    const profileId = artistInfo.profileId;
-
-    if (!profileId) {
-      console.error(`[FanNotification] Could not find artist profile ID for userId ${artistUserId}, skipping notifications`);
-      return result;
-    }
-
-    if (fans.length === 0) {
-      return result;
-    }
-
-    const artistProfileUrl = `${BASE_URL}/artist/${profileId}`;
-
+    const [fans, artistInfo] = await Promise.all([getEligibleFanEmailRecipients(artistUserId, 10000, 0), getArtistInfo(artistUserId)]);
+    if (!artistInfo.profileId) return result;
+    const artistProfileUrl = `${BASE_URL}/artist/${artistInfo.profileId}`;
     for (const fan of fans) {
       try {
-        const html = `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-            ${getEmailHeader()}
-            <div style="padding: 30px 24px;">
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${fan.name},</p>
-              
-              <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">
-                <strong>${artistName}</strong>, an artist you follow, has updated their profile.
-              </p>
-
-              <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6D28D9;">
-                <p style="color: #4b5563; margin: 0; font-size: 15px;">${updateDetails.summary}</p>
-              </div>
-
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${artistProfileUrl}" style="background: linear-gradient(135deg, #6D28D9 0%, #7c3aed 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View Profile</a>
-              </div>
-            </div>
-            ${getEmailFooter(fan.id)}
-          </div>
-        `;
-
-        const success = await sendEmail({
-          to: fan.email,
-          subject: `${artistName} updated their profile on Ologywood`,
-          html,
+        const checked = await withEligibleFanEmailRecipient(artistUserId, fan.id, fan.consentRevision, async (current, unsubscribeUrl) => {
+          const html = `<div style="font-family:'Segoe UI',Tahoma,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+            ${getEmailHeader()}<div style="padding:30px 24px"><p>Hi ${escapeHtml(current.name)},</p>
+            <p><strong>${escapeHtml(artistInfo.name)}</strong>, a creator you follow, has updated their profile.</p>
+            <div style="background:#f5f3ff;padding:20px;border-left:4px solid #6D28D9">${escapeHtml(updateDetails.summary)}</div>
+            <p><a href="${escapeHtml(artistProfileUrl)}">View Profile</a></p></div>${getEmailFooter(unsubscribeUrl)}</div>`;
+          return sendEmail({ to: current.email, subject: `${artistInfo.name} updated their profile on Ologywood`, html }, fanEmailDeliveryOptions(unsubscribeUrl));
         });
-
-        if (success) {
-          result.sent++;
-        } else {
-          console.error(`[FanNotification] sendEmail returned false for ${fan.email}`);
-          result.failed++;
-        }
-      } catch (error) {
-        console.error(`[FanNotification] Failed to send to ${fan.email}:`, error);
-        result.failed++;
-      }
+        if (!checked.eligible) continue;
+        if (checked.value) result.sent++; else result.failed++;
+      } catch { result.failed++; console.error('[FanNotification] Could not verify profile email delivery'); }
     }
-
-    console.log(`[FanNotification] Profile update notification: sent=${result.sent}, failed=${result.failed} for artist ${artistUserId}`);
-    return result;
-  } catch (error) {
-    console.error('[FanNotification] Error notifying fans of profile update:', error);
-    return result;
-  }
+  } catch { console.error('[FanNotification] Eligible email recipients unavailable; no emails sent'); }
+  return result;
 }

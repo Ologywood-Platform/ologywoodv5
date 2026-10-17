@@ -9,6 +9,10 @@ import { z } from "zod";
 import * as followService from "../services/followService";
 import { hasFeatureAccess } from "../services/pricingTierService";
 import * as db from "../db";
+import { TRPCError } from '@trpc/server';
+import { assertFanEmailCreator } from '../services/fanEmailAccessService';
+import { getFanEmailConsent, setFanEmailConsent, getEligibleFanEmailCount, FanEmailConsentConflictError, FanEmailConsentEligibilityError } from '../services/fanEmailConsentService';
+import { fanEmailCsvCell } from '../services/fanEmailFormatting';
 
 export const followsRouter = router({
   /**
@@ -17,7 +21,7 @@ export const followsRouter = router({
   follow: protectedProcedure
     .input(
       z.object({
-        followingId: z.number(),
+        followingId: z.number().int().positive(),
         followingType: z.enum(["artist", "venue"]),
       })
     )
@@ -41,7 +45,7 @@ export const followsRouter = router({
   unfollow: protectedProcedure
     .input(
       z.object({
-        followingId: z.number(),
+        followingId: z.number().int().positive(),
         followingType: z.enum(["artist", "venue"]),
       })
     )
@@ -57,6 +61,21 @@ export const followsRouter = router({
       }
 
       return { success: true };
+    }),
+
+  // Email permission belongs to the signed-in fan, not a creator or purchaser.
+  getEmailConsent: protectedProcedure
+    .input(z.object({ followingId: z.number().int().positive() }).strict())
+    .query(({ ctx, input }) => getFanEmailConsent(ctx.user.id, input.followingId)),
+  setEmailConsent: protectedProcedure
+    .input(z.object({ followingId: z.number().int().positive(), optIn: z.boolean(), expectedRevision: z.number().int().nonnegative() }).strict())
+    .mutation(async ({ ctx, input }) => {
+      try { return await setFanEmailConsent(ctx.user.id, input.followingId, { optIn: input.optIn, expectedRevision: input.expectedRevision }); }
+      catch (error) {
+        if (error instanceof FanEmailConsentConflictError) throw new TRPCError({ code: 'CONFLICT', message: error.message });
+        if (error instanceof FanEmailConsentEligibilityError) throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Email permission could not be saved. Please try again.' });
+      }
     }),
 
   /**
@@ -77,11 +96,12 @@ export const followsRouter = router({
     .input(
       z.object({
         userId: z.number(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().nonnegative().default(0),
       })
     )
-    .query(async ({ input }: any) => {
+    .query(async ({ ctx, input }: any) => {
+      if (input.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Open your own following list." });
       const following = await followService.getFollowing(
         input.userId,
         input.limit,
@@ -97,8 +117,8 @@ export const followsRouter = router({
     .input(
       z.object({
         userId: z.number(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().nonnegative().default(0),
       })
     )
     .query(async ({ input }: any) => {
@@ -117,15 +137,12 @@ export const followsRouter = router({
   getFanEmails: protectedProcedure
     .input(
       z.object({
-        limit: z.number().default(100),
-        offset: z.number().default(0),
+        limit: z.number().int().min(1).max(100).default(100),
+        offset: z.number().int().nonnegative().default(0),
       })
     )
     .query(async ({ ctx, input }: any) => {
-      // Only artists can access their fan email list
-      if (ctx.user.role !== "artist") {
-        throw new Error("Only artists can access fan email lists");
-      }
+      await assertFanEmailCreator(ctx.user.id);
 
       // Check tier access - requires paid tier
       const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
@@ -133,6 +150,7 @@ export const followsRouter = router({
         return {
           fans: [],
           totalCount: await followService.getFollowerCount(ctx.user.id),
+          eligibleCount: 0,
           hasAccess: false,
           message: "Upgrade to STARTER tier or higher to access your fan email list",
         };
@@ -144,10 +162,12 @@ export const followsRouter = router({
         input.offset
       );
       const totalCount = await followService.getFollowerCount(ctx.user.id);
+      const eligibleCount = await getEligibleFanEmailCount(ctx.user.id);
 
       return {
         fans,
         totalCount,
+        eligibleCount,
         hasAccess: true,
         message: null,
       };
@@ -158,27 +178,23 @@ export const followsRouter = router({
    */
   exportFanEmails: protectedProcedure
     .query(async ({ ctx }: any) => {
-      if (ctx.user.role !== "artist") {
-        throw new Error("Only artists can export fan email lists");
-      }
+      await assertFanEmailCreator(ctx.user.id);
 
       const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
       if (!hasAccess) {
-        throw new Error("Upgrade to STARTER tier or higher to export fan emails");
+        throw new TRPCError({ code: "FORBIDDEN", message: "Upgrade to Starter tier or higher to export fan emails." });
       }
 
       const fans = await followService.getFanEmailList(ctx.user.id, 10000, 0);
-      
-      // Build CSV
-      const csvHeader = "Name,Email,Followed At\n";
-      const csvRows = fans.map(f => 
-        `"${(f.name || '').replace(/"/g, '""')}","${f.email}","${f.followedAt.toISOString()}"`
-      ).join("\n");
+      const eligibleCount = await getEligibleFanEmailCount(ctx.user.id);
+      const csvHeader = 'Name,Email,Followed At\r\n';
+      const csvRows = fans.map(f => [f.name || 'Fan', f.email, f.followedAt.toISOString()].map(fanEmailCsvCell).join(',')).join('\r\n');
 
       return {
         csv: csvHeader + csvRows,
         filename: `ologywood-fans-${new Date().toISOString().split('T')[0]}.csv`,
         totalCount: fans.length,
+        truncated: eligibleCount > fans.length,
       };
     }),
 
@@ -201,7 +217,7 @@ export const followsRouter = router({
   isFollowing: protectedProcedure
     .input(
       z.object({
-        followingId: z.number(),
+        followingId: z.number().int().positive(),
         followingType: z.enum(["artist", "venue"]).optional(),
       })
     )

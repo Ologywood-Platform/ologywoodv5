@@ -4900,3 +4900,16 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] In-app reminders are signed-in Schedule/inbox refresh-driven, preference-aware and deduplicated, own commitments only. Available/unpaid Live holds and pending ordinary requests do not remind. No email, cron, offline/background delivery guarantee. No real appointment, booking, payment/refund, profile, contract or user records changed during validation. Disposable verification scripts/images removed.
 - [ ] Publish the validated Schedule checkpoint, then verify deployed Help/bundle and signed-out private endpoints without changing real records. Authenticated production owner workflow is still pending; do not claim local/mocked tests are live production verification.
 - Implementation/release record: `docs/workspace-schedule-implementation-2026-10-12.md`.
+
+## FAN EMAIL CONSENT & UNSUBSCRIBE SAFEGUARDS (Oct 17, 2026)
+- [x] Separate following/purchases from optional explicit creator-email opt-in, with current verified email, follow, disclosure version, address hash and revision binding; no legacy mass opt-in.
+- [x] Honor global opt-outs; creator-update category toggles never create scoped consent; atomic unfollow/revoke and preference-deletion safeguards use shared recipient locks.
+- [x] Restrict paid contacts/export/send to actual creator profile owners; remove emails from social APIs; fresh consent-eligible counts/formula-safe CSVs, capped sends and per-recipient checks.
+- [x] Secure signed creator-scoped no-login unsubscribe confirmation, non-mutating GET, RFC 8058 POST, stale-token safety and no bare-identifier authority.
+- [x] Preserve in-app notices and daily limits; eight-second bounded provider work, truthful acceptance/skip/error feedback, fail-closed outages. Past exports cannot be recalled; creators must honor external removals.
+- [x] Update Follow/Following controls, Your Fans, sender review/retry, settings, Help, Privacy Policy and deterministic AI. Fees, Stripe, purchases, grants, six destinations and prior Schedule implementation unchanged.
+- [x] Generate/review/apply additive migration 0117; confirm schema defaults/indexes through metadata only. No real application-row mutations, backfill, or emails during validation.
+- [x] Exact validation: 251 focused tests/14 files; full suite 3,315 passed, 23 existing skipped, zero failed (3,338 total); TypeScript/build passed (18.37s); scoped diff/credential/conflict/artifact hygiene clean.
+- [x] Intercepted 390px/1440px browser checks passed follow-only, unchecked opt-in, retained conflict draft/retry, revoke/global block, fresh export retry/download, send confirmation/Cancel, skipped feedback, saved never preference, signed-out scoped unsubscribe, invalid/legacy safety, no page errors/overflow, zero real API mutations. Mobile dialog visually reviewed.
+- [ ] Publish the latest checkpoint; perform non-mutating production Help/privacy/private-endpoint verification. Real opt-in/export/revoke or provider delivery is not claimed by local/mocked tests.
+- Implementation record: `docs/fan-email-consent-repair-2026-10-17.md`.

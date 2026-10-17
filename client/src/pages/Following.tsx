@@ -1,51 +1,69 @@
-import { toSlug } from '@/lib/slugify';
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { trpc } from '@/lib/trpc';
-import { useAuth } from '@/_core/hooks/useAuth';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Heart, Music, MapPin, ExternalLink, UserMinus, Loader2, Users, ArrowLeft, Calendar } from 'lucide-react';
-import { toast } from 'sonner';
-import { QuickSignupModal } from '@/components/QuickSignupModal';
-import SiteHeader from '@/components/SiteHeader';
-import { SuggestedFollows } from '@/components/SuggestedFollows';
+import { toSlug } from "@/lib/slugify";
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FanEmailConsentControl } from "@/components/FanEmailConsentControl";
+import {
+  Heart,
+  Music,
+  MapPin,
+  ExternalLink,
+  UserMinus,
+  Loader2,
+  ArrowLeft,
+  Calendar,
+} from "lucide-react";
+import { toast } from "sonner";
+import { QuickSignupModal } from "@/components/QuickSignupModal";
+import SiteHeader from "@/components/SiteHeader";
+import { SuggestedFollows } from "@/components/SuggestedFollows";
 
 export default function Following() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authTab, setAuthTab] = useState<'signup' | 'login'>('login');
+  const [authTab, setAuthTab] = useState<"signup" | "login">("login");
 
-  // If not logged in, show sign-up prompt
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
-        <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Heart className="w-8 h-8 text-purple-600" />
+        <div className="mx-auto max-w-4xl px-4 py-16">
+          <div className="text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
+              <Heart className="h-8 w-8 text-purple-600" />
+            </div>
+            <h1 className="mb-4 text-3xl font-bold text-gray-900">
+              Follow Your Favorite Artists
+            </h1>
+            <p className="mx-auto mb-8 max-w-md text-gray-600">
+              Sign up to keep artists and venues in your Following list. Creator
+              email updates are always optional and require separate permission.
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button
+                onClick={() => {
+                  setAuthTab("login");
+                  setShowAuthModal(true);
+                }}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAuthTab("signup");
+                  setShowAuthModal(true);
+                }}
+              >
+                Create Account
+              </Button>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Follow Your Favorite Artists</h1>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            Sign up to follow artists and get notified about their new events, profile updates, and more.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button
-              onClick={() => { setAuthTab('login'); setShowAuthModal(true); }}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Sign In
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => { setAuthTab('signup'); setShowAuthModal(true); }}
-            >
-              Create Account
-            </Button>
-          </div>
-        </div>
         </div>
         <QuickSignupModal
           isOpen={showAuthModal}
@@ -60,8 +78,13 @@ export default function Following() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="max-w-4xl mx-auto px-4 pt-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="gap-2">
+      <div className="mx-auto max-w-4xl px-4 pt-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/dashboard")}
+          className="gap-2"
+        >
           <ArrowLeft className="h-4 w-4" />
           Dashboard
         </Button>
@@ -74,67 +97,84 @@ export default function Following() {
 function FollowingList({ userId }: { userId: number }) {
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
-
-  const { data: following, isLoading } = trpc.follows.getFollowing.useQuery({
-    userId,
-    limit: 100,
-    offset: 0,
-  });
-
+  const {
+    data: following,
+    isLoading,
+    error,
+  } = trpc.follows.getFollowing.useQuery({ userId, limit: 100, offset: 0 });
   const unfollowMutation = trpc.follows.unfollow.useMutation({
     onSuccess: () => {
       utils.follows.getFollowing.invalidate();
-      toast.success('Unfollowed successfully');
+      toast.success("Unfollowed successfully");
     },
-    onError: () => {
-      toast.error('Failed to unfollow');
-    },
+    onError: () => toast.error("Failed to unfollow"),
   });
-
-  const handleUnfollow = (followingId: number, followingType: 'artist' | 'venue') => {
-    unfollowMutation.mutate({ followingId, followingType });
-  };
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <div className="flex justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
         </div>
       </div>
     );
   }
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            We could not load the accounts you follow. Please refresh and try
+            again.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  const followedArtists = following?.filter((f: any) => f.followingType === 'artist') || [];
-  const followedVenues = following?.filter((f: any) => f.followingType === 'venue') || [];
+  const followedArtists =
+    following?.filter((f: any) => f.followingType === "artist") || [];
+  const followedVenues =
+    following?.filter((f: any) => f.followingType === "venue") || [];
+  const handleUnfollow = (
+    followingId: number,
+    followingType: "artist" | "venue"
+  ) => unfollowMutation.mutate({ followingId, followingType });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Following</h1>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Following</h1>
         <p className="text-gray-600">
-          Artists and venues you follow. You'll receive email updates when they post new events or update their profiles.
+          Artists and venues you follow. Following does not subscribe you to
+          creator email; manage optional artist email permission on each artist
+          card.
         </p>
       </div>
 
-      {/* Artists Section */}
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Music className="w-5 h-5 text-purple-600" />
+      <section className="mb-10">
+        <div className="mb-4 flex items-center gap-2">
+          <Music className="h-5 w-5 text-purple-600" />
           <h2 className="text-xl font-semibold text-gray-900">
             Artists ({followedArtists.length})
           </h2>
         </div>
-
         {followedArtists.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Music className="w-6 h-6 text-purple-600" />
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
+                <Music className="h-6 w-6 text-purple-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No artists followed yet</h3>
-              <p className="text-gray-500 mb-4">Discover and follow artists to get updates about their events.</p>
-              <Button onClick={() => navigate('/browse')} className="bg-purple-600 hover:bg-purple-700">
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
+                No artists followed yet
+              </h3>
+              <p className="mb-4 text-gray-500">
+                Discover artists to keep them in your Following list.
+              </p>
+              <Button
+                onClick={() => navigate("/browse")}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
                 Browse Artists
               </Button>
             </CardContent>
@@ -142,25 +182,52 @@ function FollowingList({ userId }: { userId: number }) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {followedArtists.map((artist: any) => (
-              <Card key={artist.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
+              <Card
+                key={artist.id}
+                className="transition-shadow hover:shadow-md"
+              >
+                <CardContent className="space-y-4 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       {artist.profilePhotoUrl ? (
-                        <img src={artist.profilePhotoUrl} alt={artist.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                        <img
+                          src={artist.profilePhotoUrl}
+                          alt={artist.name}
+                          className="h-12 w-12 shrink-0 rounded-full object-cover"
+                        />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-bold text-lg">
-                            {(artist.name || 'A').charAt(0).toUpperCase()}
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-cyan-500">
+                          <span className="text-lg font-bold text-white">
+                            {(artist.name || "A").charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate cursor-pointer hover:text-purple-600 transition-colors" onClick={() => navigate(`/artist/${toSlug(artist.name || '')}`)}>{artist.name}</h3>
+                        <h3
+                          className="cursor-pointer truncate font-semibold text-gray-900 transition-colors hover:text-purple-600"
+                          onClick={() =>
+                            navigate(`/artist/${toSlug(artist.name || "")}`)
+                          }
+                        >
+                          {artist.name}
+                        </h3>
                         {artist.nextEvent ? (
-                          <p className="text-sm text-purple-600 flex items-center gap-1 cursor-pointer hover:underline" onClick={() => navigate(`/events/${toSlug(artist.nextEvent.title || '')}`)}>
-                            <Calendar className="w-3 h-3" />
-                            {artist.nextEvent.title} — {new Date(artist.nextEvent.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          <p
+                            className="flex cursor-pointer items-center gap-1 text-sm text-purple-600 hover:underline"
+                            onClick={() =>
+                              navigate(
+                                `/events/${toSlug(artist.nextEvent.title || "")}`
+                              )
+                            }
+                          >
+                            <Calendar className="h-3 w-3" />
+                            {artist.nextEvent.title} —{" "}
+                            {new Date(
+                              artist.nextEvent.date + "T00:00:00"
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })}
                           </p>
                         ) : (
                           <p className="text-sm text-gray-500">
@@ -169,57 +236,67 @@ function FollowingList({ userId }: { userId: number }) {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex shrink-0 gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/artist/${toSlug(artist.name || '')}`)}
+                        onClick={() =>
+                          navigate(`/artist/${toSlug(artist.name || "")}`)
+                        }
                         title="View Profile"
+                        aria-label={`View ${artist.name}'s profile`}
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleUnfollow(artist.id, 'artist')}
+                        onClick={() => handleUnfollow(artist.id, "artist")}
                         disabled={unfollowMutation.isPending}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-700"
                         title="Unfollow"
+                        aria-label={`Unfollow ${artist.name}`}
                       >
-                        <UserMinus className="w-4 h-4" />
+                        <UserMinus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
+                  <FanEmailConsentControl
+                    followingId={artist.id}
+                    creatorName={artist.name || "this creator"}
+                    className="w-full justify-center"
+                  />
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Discover More Artists */}
       <div className="mb-10">
         <SuggestedFollows />
       </div>
 
-      {/* Venues Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="w-5 h-5 text-cyan-600" />
+      <section>
+        <div className="mb-4 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-cyan-600" />
           <h2 className="text-xl font-semibold text-gray-900">
             Venues ({followedVenues.length})
           </h2>
         </div>
-
         {followedVenues.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-6 h-6 text-cyan-600" />
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-cyan-100">
+                <MapPin className="h-6 w-6 text-cyan-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No venues followed yet</h3>
-              <p className="text-gray-500 mb-4">Follow venues to stay updated on their events and opportunities.</p>
-              <Button onClick={() => navigate('/venues')} variant="outline">
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
+                No venues followed yet
+              </h3>
+              <p className="mb-4 text-gray-500">
+                Follow venues to keep track of their events.
+              </p>
+              <Button onClick={() => navigate("/venues")} variant="outline">
                 Browse Venues
               </Button>
             </CardContent>
@@ -227,44 +304,66 @@ function FollowingList({ userId }: { userId: number }) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {followedVenues.map((venue: any) => (
-              <Card key={venue.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={venue.id}
+                className="transition-shadow hover:shadow-md"
+              >
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       {venue.profilePhotoUrl ? (
-                        <img src={venue.profilePhotoUrl} alt={venue.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                        <img
+                          src={venue.profilePhotoUrl}
+                          alt={venue.name}
+                          className="h-12 w-12 shrink-0 rounded-full object-cover"
+                        />
                       ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-bold text-lg">
-                            {(venue.name || 'V').charAt(0).toUpperCase()}
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-500">
+                          <span className="text-lg font-bold text-white">
+                            {(venue.name || "V").charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate cursor-pointer hover:text-cyan-600 transition-colors" onClick={() => navigate(`/venue/${toSlug(venue.name || '')}`)}>{venue.name}</h3>
+                        <h3
+                          className="cursor-pointer truncate font-semibold text-gray-900 transition-colors hover:text-cyan-600"
+                          onClick={() =>
+                            navigate(`/venue/${toSlug(venue.name || "")}`)
+                          }
+                        >
+                          {venue.name}
+                        </h3>
                         <p className="text-sm text-gray-500">
-                          Followed {new Date(venue.followedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          Followed{" "}
+                          {new Date(venue.followedAt).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric", year: "numeric" }
+                          )}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex shrink-0 gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/venue/${toSlug(venue.name || '')}`)}
+                        onClick={() =>
+                          navigate(`/venue/${toSlug(venue.name || "")}`)
+                        }
                         title="View Profile"
+                        aria-label={`View ${venue.name}'s profile`}
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <ExternalLink className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleUnfollow(venue.id, 'venue')}
+                        onClick={() => handleUnfollow(venue.id, "venue")}
                         disabled={unfollowMutation.isPending}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-700"
                         title="Unfollow"
+                        aria-label={`Unfollow ${venue.name}`}
                       >
-                        <UserMinus className="w-4 h-4" />
+                        <UserMinus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -273,8 +372,7 @@ function FollowingList({ userId }: { userId: number }) {
             ))}
           </div>
         )}
-      </div>
-
+      </section>
     </div>
   );
 }

@@ -1150,7 +1150,7 @@ export async function getBookingRemindersByBookingId(bookingId: number): Promise
  */
 export async function getEmailPreferences(userId: number): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) return null;
+  if (!db) throw new Error('Email preferences are temporarily unavailable');
   const result = await db.select().from(emailPreferences).where(eq(emailPreferences.userId, userId)).limit(1);
   return result[0] ?? null;
 }
@@ -1158,27 +1158,66 @@ export async function getEmailPreferences(userId: number): Promise<EmailPreferen
 // Alias for backward compatibility
 export const getEmailPreferencesByUserId = getEmailPreferences;
 
+const EMAIL_PREFERENCE_WRITE_FIELDS = new Set([
+  'frequency',
+  'bookingUpdates',
+  'newOpportunities',
+  'platformNews',
+  'weeklyDigest',
+  'reminders',
+  'fanUpdates',
+  'unsubscribeToken',
+  'unsubscribedAt',
+]);
+
+function normaliseEmailPreferenceWrite(data: Partial<InsertEmailPreference>): Record<string, unknown> {
+  const changes: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (EMAIL_PREFERENCE_WRITE_FIELDS.has(key) && value !== undefined) changes[key] = value;
+  }
+  if (changes.frequency === 'never') {
+    changes.unsubscribedAt ??= new Date();
+    changes.fanUpdates = false;
+  } else if (changes.frequency === 'daily' || changes.frequency === 'weekly') {
+    // An explicit frequency selection is an intentional global resubscribe.
+    changes.unsubscribedAt = null;
+  }
+  return changes;
+}
+
+async function withLockedEmailPreferenceWriter<T>(userId: number, work: (executor: any) => Promise<T>): Promise<T> {
+  // Dynamic imports avoid a db <-> consent-service initialization cycle. Every
+  // global preference writer shares the recipient-row lock used by fan consent.
+  const [{ ensureFanEmailSchema }, { withFanEmailUserLock }] = await Promise.all([
+    import('./services/fanEmailSchemaService'),
+    import('./services/fanEmailConsentService'),
+  ]);
+  await ensureFanEmailSchema();
+  return withFanEmailUserLock(userId, work);
+}
+
 /**
  * Create default email preferences for a user.
  * Returns the created preferences or null if DB is unavailable.
  */
 export async function createEmailPreferences(userId: number): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) return null;
-  
-  // Check if preferences already exist
-  const existing = await getEmailPreferences(userId);
-  if (existing) return existing;
-  
-  await db.insert(emailPreferences).values({
-    userId,
-    frequency: 'weekly',
-    bookingUpdates: true,
-    newOpportunities: true,
-    platformNews: false,
-    weeklyDigest: true,
-    reminders: true,
-  } as InsertEmailPreference);
+  if (!db) throw new Error('Email preferences are temporarily unavailable');
+
+  // Check if preferences already exist while holding the shared recipient lock.
+  await withLockedEmailPreferenceWriter(userId, async connection => {
+    const [existing] = await connection.execute(
+      'SELECT id FROM email_preferences WHERE userId = ? LIMIT 1 FOR UPDATE',
+      [userId],
+    );
+    if (Array.isArray(existing) && existing.length) return;
+    await connection.execute(
+      `INSERT INTO email_preferences
+        (userId, frequency, bookingUpdates, newOpportunities, platformNews, weeklyDigest, reminders, fanUpdates)
+       VALUES (?, 'weekly', TRUE, TRUE, FALSE, TRUE, TRUE, TRUE)`,
+      [userId],
+    );
+  });
   
   // Return the newly created preferences
   return await getEmailPreferences(userId);
@@ -1190,16 +1229,63 @@ export async function createEmailPreferences(userId: number): Promise<EmailPrefe
  */
 export async function updateEmailPreferences(userId: number, data: Partial<InsertEmailPreference>): Promise<EmailPreference | null> {
   const db = await getDb();
-  if (!db) return null;
-  
-  const existing = await getEmailPreferences(userId);
-  if (existing) {
-    await db.update(emailPreferences).set(data).where(eq(emailPreferences.userId, userId));
-  } else {
-    await db.insert(emailPreferences).values({ userId, ...data } as InsertEmailPreference);
-  }
+  if (!db) throw new Error('Email preferences are temporarily unavailable');
+  const changes = normaliseEmailPreferenceWrite(data);
+  if (!Object.keys(changes).length) return await getEmailPreferences(userId);
+
+  await withLockedEmailPreferenceWriter(userId, async connection => {
+    const [existing] = await connection.execute(
+      'SELECT id FROM email_preferences WHERE userId = ? LIMIT 1 FOR UPDATE',
+      [userId],
+    );
+    if (Array.isArray(existing) && existing.length) {
+      const assignments = Object.keys(changes).map(key => `\`${key}\` = ?`).join(', ');
+      await connection.execute(
+        `UPDATE email_preferences SET ${assignments} WHERE userId = ?`,
+        [...Object.values(changes), userId],
+      );
+    } else {
+      const defaults: Record<string, unknown> = {
+        frequency: 'weekly', bookingUpdates: true, newOpportunities: true,
+        platformNews: false, weeklyDigest: true, reminders: true, fanUpdates: true,
+      };
+      const values: Record<string, unknown> = { ...defaults, ...changes, userId };
+      const keys = Object.keys(values);
+      await connection.execute(
+        `INSERT INTO email_preferences (${keys.map(key => `\`${key}\``).join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`,
+        keys.map(key => values[key]),
+      );
+    }
+  });
   
   return await getEmailPreferences(userId);
+}
+
+/** Atomic global opt-out for the legacy opaque preference token only. */
+export async function unsubscribeAllEmailPreferencesByToken(token: string): Promise<boolean> {
+  if (!token || token.length > 255) return false;
+  const db = await getDb();
+  if (!db) return false;
+  const preference = await db.select({ userId: emailPreferences.userId })
+    .from(emailPreferences).where(eq(emailPreferences.unsubscribeToken, token)).limit(1);
+  if (!preference[0]) return false;
+
+  return withLockedEmailPreferenceWriter(preference[0].userId, async connection => {
+    const [current] = await connection.execute(
+      'SELECT id FROM email_preferences WHERE userId = ? AND unsubscribeToken = ? LIMIT 1 FOR UPDATE',
+      [preference[0].userId, token],
+    );
+    if (!Array.isArray(current) || !current.length) return false;
+    await connection.execute(
+      `UPDATE email_preferences
+          SET frequency = 'never', bookingUpdates = FALSE, newOpportunities = FALSE,
+              platformNews = FALSE, weeklyDigest = FALSE, reminders = FALSE,
+              fanUpdates = FALSE, unsubscribedAt = NOW()
+        WHERE userId = ?`,
+      [preference[0].userId],
+    );
+    return true;
+  });
 }
 
 /**
@@ -1207,8 +1293,14 @@ export async function updateEmailPreferences(userId: number, data: Partial<Inser
  */
 export async function deleteEmailPreferences(userId: number): Promise<void> {
   const db = await getDb();
-  if (!db) return;
-  await db.delete(emailPreferences).where(eq(emailPreferences.userId, userId));
+  if (!db) throw new Error('Email preferences are temporarily unavailable');
+  await withLockedEmailPreferenceWriter(userId, async connection => {
+    const { revokeAllFanEmailConsentsForUser } = await import('./services/fanEmailConsentService');
+    await revokeAllFanEmailConsentsForUser(userId, connection);
+    // Transactional delete(emailPreferences) is intentionally done on this
+    // locked raw connection so deletion cannot bypass active scoped opt-ins.
+    await connection.execute('DELETE FROM email_preferences WHERE userId = ?', [userId]);
+  });
 }
 
 // ============= STRIPE FUNCTIONS =============

@@ -431,13 +431,13 @@ const faqItems: FAQItem[] = [
     id: 'fans-1',
     category: 'Following & Fans',
     question: 'How do I follow an artist?',
-    answer: 'Visit any artist\'s profile page and click the "Follow" button. View all artists you follow from the "Following" link in the navigation bar. You will receive email updates when artists you follow post new events or update their profiles.',
+    answer: "Visit an artist's profile and click \"Follow.\" View artists you follow in My Ology → Following. Following only adds the artist to your list; it does not subscribe you to email or share your email address. After following, choose the separate optional Email updates control for that artist if you want to share your name and email for creator updates. You can revoke that permission later without unfollowing.",
   },
   {
     id: 'fans-2',
     category: 'Following & Fans',
     question: 'What is the Send Update feature?',
-    answer: 'Artists on paid plans can compose and send branded email updates to all their followers. Go to your Artist Dashboard, find the Fans section, and click "Send Update" to compose a message with a subject and body. This is a great way to announce upcoming shows, new releases, or special news.',
+    answer: "Eligible paid creators can compose a branded update in the Fans section for followers who separately opted in to that creator’s updates, have a verified email, and have not globally blocked creator updates. It does not email all followers. Review the current eligible count, write and preview the subject and message, then choose Confirm Send. Send results show accepted, failed, and skipped counts; acceptance is not a delivery guarantee.",
   },
   {
     id: 'fans-3',

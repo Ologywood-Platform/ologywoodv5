@@ -17,15 +17,18 @@ describe('Fan Notification Service', () => {
 
   it('includes email consent and unsubscribe link in templates', () => {
     expect(fanNotifService).toContain('Unsubscribe');
-    expect(fanNotifService).toContain('email preferences');
+    expect(fanNotifService).toContain('explicitly opted in');
+    expect(fanNotifService).toContain('fanEmailDeliveryOptions');
   });
 
-  it('fetches followers for the artist before sending', () => {
-    expect(fanNotifService).toContain('getArtistFans');
+  it('fetches only consent-eligible recipients and rechecks their revision before sending', () => {
+    expect(fanNotifService).toContain('getEligibleFanEmailRecipients');
+    expect(fanNotifService).toContain('withEligibleFanEmailRecipient');
   });
 
   it('handles case where artist has no followers gracefully', () => {
-    expect(fanNotifService).toContain('fans.length === 0');
+    expect(fanNotifService).toContain('for (const fan of fans)');
+    expect(fanNotifService).toContain('return result;');
   });
 
   it('uses fire-and-forget pattern (does not block caller)', () => {
@@ -80,8 +83,8 @@ describe('Following Page', () => {
   });
 
   it('shows separate sections for artists and venues', () => {
-    expect(followingPage).toContain("followingType === 'artist'");
-    expect(followingPage).toContain("followingType === 'venue'");
+    expect(followingPage).toMatch(/followingType === ["']artist["']/);
+    expect(followingPage).toMatch(/followingType === ["']venue["']/);
   });
 
   it('shows empty state with browse link when no artists followed', () => {

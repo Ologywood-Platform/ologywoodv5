@@ -1,20 +1,17 @@
-/**
- * FollowButton Component
- * Auth-aware follow/unfollow button with follower count and email consent.
- * 
- * States:
- * - Not logged in: "Follow" button → prompts sign-up as fan
- * - Logged in + not following: "Follow" button with email consent
- * - Logged in + following: "Following" button → click to unfollow
- */
-
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { QuickSignupModal } from "@/components/QuickSignupModal";
+import { FanEmailConsentControl } from "@/components/FanEmailConsentControl";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UserPlus, UserCheck, Users, Mail, Music } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UserPlus, UserCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface FollowButtonProps {
@@ -22,26 +19,30 @@ interface FollowButtonProps {
   artistUserId: number;
   /** The display name of the artist */
   artistName: string;
-  /** Button size variant */
   size?: "sm" | "default" | "lg";
-  /** Whether to show follower count */
   showCount?: boolean;
 }
 
-export function FollowButton({ artistUserId, artistName, size = "lg", showCount = true }: FollowButtonProps) {
+/**
+ * Follow is deliberately independent of email permission. After a fan follows,
+ * the optional FanEmailConsentControl is available as a separate action.
+ */
+export function FollowButton({
+  artistUserId,
+  artistName,
+  size = "lg",
+  showCount = true,
+}: FollowButtonProps) {
   const { user, isAuthenticated } = useAuth();
-  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [showFollowDialog, setShowFollowDialog] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const utils = trpc.useUtils();
 
-  // Get follow stats (public - works without auth)
   const { data: stats } = trpc.follows.getStats.useQuery(
     { userId: artistUserId },
     { enabled: !!artistUserId }
   );
-
-  // Check if current user is following (only when authenticated)
   const { data: followStatus } = trpc.follows.isFollowing.useQuery(
     { followingId: artistUserId, followingType: "artist" as const },
     { enabled: isAuthenticated && !!artistUserId }
@@ -52,14 +53,15 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
 
   const followMutation = trpc.follows.follow.useMutation({
     onSuccess: () => {
-      toast.success(`You're now following ${artistName}! You'll receive updates about their events and news.`);
+      toast.success(`You’re now following ${artistName}.`);
       utils.follows.getStats.invalidate({ userId: artistUserId });
       utils.follows.isFollowing.invalidate({ followingId: artistUserId });
-      setShowConsentDialog(false);
+      setShowFollowDialog(false);
     },
-    onError: (error) => {
+    onError: error => {
       if (error.message?.includes("Already following")) {
-        toast.info(`You're already following ${artistName}`);
+        toast.info(`You’re already following ${artistName}.`);
+        utils.follows.isFollowing.invalidate({ followingId: artistUserId });
       } else {
         toast.error(error.message || "Failed to follow");
       }
@@ -72,40 +74,31 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
       utils.follows.getStats.invalidate({ userId: artistUserId });
       utils.follows.isFollowing.invalidate({ followingId: artistUserId });
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to unfollow");
-    },
+    onError: error => toast.error(error.message || "Failed to unfollow"),
   });
 
   const handleClick = () => {
     if (!isAuthenticated) {
-      // Not logged in → show auth modal
       setShowAuthModal(true);
       return;
     }
-
     if (isFollowing) {
-      // Already following → unfollow
-      unfollowMutation.mutate({ followingId: artistUserId, followingType: "artist" });
+      unfollowMutation.mutate({
+        followingId: artistUserId,
+        followingType: "artist",
+      });
     } else {
-      // Not following → show consent dialog
-      setShowConsentDialog(true);
+      setShowFollowDialog(true);
     }
   };
 
-  const handleConfirmFollow = () => {
-    followMutation.mutate({ followingId: artistUserId, followingType: "artist" });
-  };
-
   const isLoading = followMutation.isPending || unfollowMutation.isPending;
-
-  // Don't show follow button on own profile
   const isOwnProfile = isAuthenticated && user?.id === artistUserId;
   if (isOwnProfile) {
     return showCount ? (
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground flex items-center gap-1">
-          <Users className="w-3.5 h-3.5" />
+        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
           {followerCount} {followerCount === 1 ? "follower" : "followers"}
         </span>
       </div>
@@ -114,107 +107,99 @@ export function FollowButton({ artistUserId, artistName, size = "lg", showCount 
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           onClick={handleClick}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          variant={isFollowing ? (isHovering ? "destructive" : "secondary") : "outline"}
+          variant={
+            isFollowing ? (isHovering ? "destructive" : "secondary") : "outline"
+          }
           size={size}
           className="gap-2 transition-all"
           disabled={isLoading}
         >
           {isFollowing ? (
-            <>
-              {isHovering ? (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  Unfollow
-                </>
-              ) : (
-                <>
-                  <UserCheck className="w-4 h-4" />
-                  Following
-                </>
-              )}
-            </>
+            isHovering ? (
+              <>
+                <UserPlus className="h-4 w-4" />
+                Unfollow
+              </>
+            ) : (
+              <>
+                <UserCheck className="h-4 w-4" />
+                Following
+              </>
+            )
           ) : (
             <>
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="h-4 w-4" />
               {!isAuthenticated ? "Sign Up to Follow" : "Follow"}
             </>
           )}
         </Button>
 
+        {isFollowing && (
+          <FanEmailConsentControl
+            followingId={artistUserId}
+            creatorName={artistName}
+            triggerLabel="Email updates (optional)"
+          />
+        )}
+
         {showCount && (
-          <span className="text-sm text-muted-foreground flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Users className="h-3.5 w-3.5" />
             {followerCount} {followerCount === 1 ? "follower" : "followers"}
           </span>
         )}
       </div>
 
-      {/* Email Consent Dialog */}
-      <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
+      <Dialog open={showFollowDialog} onOpenChange={setShowFollowDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-primary" />
+              <UserPlus className="h-5 w-5 text-primary" />
               Follow {artistName}
             </DialogTitle>
             <DialogDescription>
-              Stay connected with {artistName} and never miss an update.
+              Add {artistName} to the creators you follow on OlogyWood.
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-2">
-            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-              <p className="text-sm font-medium">By following, you'll receive:</p>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li className="flex items-start gap-2">
-                  <Mail className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  Email updates about new events and shows
-                </li>
-                <li className="flex items-start gap-2">
-                  <Music className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  Notifications about new releases and announcements
-                </li>
-                <li className="flex items-start gap-2">
-                  <Users className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  Priority access to booking availability
-                </li>
-              </ul>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-              By clicking "Follow," you agree to receive email updates from {artistName} via Ologywood. 
-              You can unfollow at any time to stop receiving updates. 
-              Your email will be shared with {artistName} in accordance with our privacy policy.
+            <p className="text-sm text-muted-foreground">
+              Following helps you keep this creator in your list. It does not
+              sign you up for emails or share your email address. Optional
+              creator email permission is available separately after you follow.
             </p>
-
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
-                onClick={handleConfirmFollow}
-                className="flex-1 gap-2"
-                disabled={isLoading}
-              >
-                <UserPlus className="w-4 h-4" />
-                {isLoading ? "Following..." : "Follow"}
-              </Button>
-              <Button
-                onClick={() => setShowConsentDialog(false)}
+                type="button"
                 variant="outline"
-                className="flex-1"
+                onClick={() => setShowFollowDialog(false)}
                 disabled={isLoading}
               >
                 Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() =>
+                  followMutation.mutate({
+                    followingId: artistUserId,
+                    followingType: "artist",
+                  })
+                }
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                {followMutation.isPending ? "Following…" : "Follow"}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Auth Modal for unauthenticated users */}
       <QuickSignupModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}

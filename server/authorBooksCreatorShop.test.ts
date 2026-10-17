@@ -163,6 +163,6 @@ describe('Secure Creator Shop book commerce', () => {
     expect(terms).toContain('limited, non-exclusive, non-transferable license');
     expect(disclaimer).toContain('Creator Shop, Books, and eBooks');
     expect(privacy).toContain('Creator Shop and eBook Data');
-    expect(privacy).toContain('Public product responses do not include private eBook storage keys');
+    expect(privacy.replace(/\s+/g, ' ')).toContain('Public product responses do not include private eBook storage keys');
   });
 });

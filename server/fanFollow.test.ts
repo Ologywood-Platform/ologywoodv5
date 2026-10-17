@@ -69,8 +69,9 @@ describe('Fan + Follow Feature', () => {
       expect(component).toContain('Unfollow');
     });
 
-    it('should include email consent dialog', () => {
-      expect(component).toContain('you agree to receive email updates');
+    it('should keep follow separate from optional email consent', () => {
+      expect(component).toContain('FanEmailConsentControl');
+      expect(component).not.toContain('you agree to receive email updates');
     });
 
     it('should display follower count', () => {
@@ -103,16 +104,17 @@ describe('Fan + Follow Feature', () => {
     });
 
     it('should show empty state when no fans', () => {
-      expect(component).toContain('No fans yet');
+      expect(component).toContain('No followers yet');
     });
 
-    it('should blur emails for free tier users', () => {
-      expect(component).toContain('blur-sm');
-      expect(component).toContain('email@hidden.com');
+    it('should not query or imply private email access through the social follower API', () => {
+      expect(component).not.toContain('follows.getFollowers.useQuery');
+      expect(component).not.toContain('email@hidden.com');
+      expect(component).toContain('consent-eligible');
     });
 
     it('should show upgrade prompt for free tier', () => {
-      expect(component).toContain('Unlock Fan Email List & Updates');
+      expect(component).toContain('Unlock consent-eligible fan emails');
       expect(component).toContain('View Plans');
     });
 
@@ -126,7 +128,8 @@ describe('Fan + Follow Feature', () => {
     });
 
     it('should include fan email data in CSV export', () => {
-      expect(component).toContain('Name,Email,Followed Since');
+      expect(component).toContain('exportFanEmails.fetch(undefined, { staleTime: 0 })');
+      expect(component).toContain('exportData.csv');
     });
 
     it('should query getFanEmails endpoint', () => {

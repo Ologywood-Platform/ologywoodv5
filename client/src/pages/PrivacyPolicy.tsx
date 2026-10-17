@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
       <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-12 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">Privacy Policy</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Last updated: September 1, 2026
+          Last updated: October 17, 2026
         </p>
 
         <div className="prose prose-sm sm:prose max-w-none space-y-6">
@@ -43,62 +43,158 @@ export default function PrivacyPolicy() {
 
           {/* Information We Collect */}
           <section>
-            <h2 className="text-2xl font-bold mt-8 mb-4">2. Information We Collect</h2>
-            
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.1 Account Information</h3>
+            <h2 className="text-2xl font-bold mt-8 mb-4">
+              2. Information We Collect
+            </h2>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.1 Account Information
+            </h3>
             <p className="text-base leading-relaxed">
-              When you create an account, you authenticate through our OAuth provider. We receive and store your name and email address. We do not collect or store passwords, as authentication is handled entirely by our OAuth provider.
+              When you create an account, you authenticate through our OAuth
+              provider. We receive and store your name and email address. We do
+              not collect or store passwords, as authentication is handled
+              entirely by our OAuth provider.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.2 Profile Information</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.2 Profile Information
+            </h3>
             <p className="text-base leading-relaxed">
-              Depending on your role, you may provide additional information to complete your profile:
+              Depending on your role, you may provide additional information to
+              complete your profile:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li><strong>Music and Visual Artists:</strong> Bio, genres or creative disciplines, location, portfolio media, social links, availability calendar, and booking rates</li>
-              <li><strong>Authors and Writers:</strong> Author or pen name, writing genres, biography, location, portfolio media, social links, availability, and appearance rates</li>
-              <li><strong>Athletes:</strong> Sport, position, team affiliation, athletic statistics, achievements, NIL deal history, highlight video clips, and booking availability</li>
-              <li><strong>Creators/Entertainers/Influencers:</strong> Bio, category, location, profile photos, social media links, content type, and rates</li>
-              <li><strong>Venues:</strong> Venue name, type, capacity, location, photos, amenities, and event history</li>
-              <li><strong>Event Organizers:</strong> Organization name, event details, and contact information</li>
+              <li>
+                <strong>Music and Visual Artists:</strong> Bio, genres or
+                creative disciplines, location, portfolio media, social links,
+                availability calendar, and booking rates
+              </li>
+              <li>
+                <strong>Authors and Writers:</strong> Author or pen name,
+                writing genres, biography, location, portfolio media, social
+                links, availability, and appearance rates
+              </li>
+              <li>
+                <strong>Athletes:</strong> Sport, position, team affiliation,
+                athletic statistics, achievements, NIL deal history, highlight
+                video clips, and booking availability
+              </li>
+              <li>
+                <strong>Creators/Entertainers/Influencers:</strong> Bio,
+                category, location, profile photos, social media links, content
+                type, and rates
+              </li>
+              <li>
+                <strong>Venues:</strong> Venue name, type, capacity, location,
+                photos, amenities, and event history
+              </li>
+              <li>
+                <strong>Event Organizers:</strong> Organization name, event
+                details, and contact information
+              </li>
             </ul>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.3 Booking and Contract Information</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.3 Booking and Contract Information
+            </h3>
             <p className="text-base leading-relaxed">
-              When you create or accept bookings, we collect event details (date, time, location, event type), agreed fees, and rider requirements (technical specifications, hospitality needs, stage setup). When you sign contracts through our e-signature system, we record your signature (drawn or typed), the signing timestamp, and your IP address for verification purposes.
+              When you create or accept bookings, we collect event details
+              (date, time, location, event type), agreed fees, and rider
+              requirements (technical specifications, hospitality needs, stage
+              setup). When you sign contracts through our e-signature system, we
+              record your signature (drawn or typed), the signing timestamp, and
+              your IP address for verification purposes.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.4 Payment Information</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.4 Payment Information
+            </h3>
             <p className="text-base leading-relaxed">
-              Payments are processed entirely by Stripe. We store only your Stripe Customer ID and Payment Intent IDs to link transactions to your account. We never receive, process, or store your credit card numbers, CVV, or full billing details. All payment data is handled directly by Stripe under their <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</a>.
+              Payments are processed entirely by Stripe. We store only your
+              Stripe Customer ID and Payment Intent IDs to link transactions to
+              your account. We never receive, process, or store your credit card
+              numbers, CVV, or full billing details. All payment data is handled
+              directly by Stripe under their{" "}
+              <a
+                href="https://stripe.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Privacy Policy
+              </a>
+              .
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.5 Communication Data</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.5 Communication Data
+            </h3>
             <p className="text-base leading-relaxed">
-              Messages sent through our in-platform messaging system are stored to facilitate communication between talent (music artists, visual artists, athletes, creators, entertainers, filmmakers, and influencers), venues, and organizers. We also store email update blasts that talent send to their followers through our platform.
+              Messages sent through our in-platform messaging system are stored
+              to facilitate communication between talent (music artists, visual
+              artists, athletes, creators, entertainers, filmmakers, and
+              influencers), venues, and organizers. We store records needed to
+              manage creator-update email permission and creator update sends.
+              Following a creator, buying a product, or joining a Fan Club does
+              not by itself give that creator permission to receive your name or
+              email for creator updates.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.6 Creator Shop and eBook Data</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.6 Creator Shop and eBook Data
+            </h3>
             <p className="text-base leading-relaxed">
-              For Creator Shop orders, we store product and order details, buyer contact information, fulfillment status, payment identifiers, and tracking information where applicable. eBook files are stored as private objects. We store protected object identifiers, file metadata, purchase-access records, download counts, and access timestamps so authorized buyers can retrieve purchased files. Public product responses do not include private eBook storage keys.
+              For Creator Shop orders, we store product and order details, buyer
+              contact information, fulfillment status, payment identifiers, and
+              tracking information where applicable. eBook files are stored as
+              private objects. We store protected object identifiers, file
+              metadata, purchase-access records, download counts, and access
+              timestamps so authorized buyers can retrieve purchased files.
+              Public product responses do not include private eBook storage
+              keys.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.7 Sandbox Post Data</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.7 Sandbox Post Data
+            </h3>
             <p className="text-base leading-relaxed">
-              Sandbox Posts may include text, one image or short video, a video preview image, file metadata, talent identity, and timestamps. The current post is public and may appear in social media previews when its clean link is shared. Private storage keys, original internal object identifiers, and owner contact details are not included in the public post response.
+              Sandbox Posts may include text, one image or short video, a video
+              preview image, file metadata, talent identity, and timestamps. The
+              current post is public and may appear in social media previews
+              when its clean link is shared. Private storage keys, original
+              internal object identifiers, and owner contact details are not
+              included in the public post response.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">2.8 Information Collected Automatically</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              2.8 Information Collected Automatically
+            </h3>
             <p className="text-base leading-relaxed">
               When you access our Platform, we automatically collect:
             </p>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li><strong>Device Information:</strong> Device type, operating system, and browser type</li>
-              <li><strong>Usage Data:</strong> Pages visited, features used, and time spent on the Platform</li>
-              <li><strong>IP Address:</strong> Used for approximate location detection and contract signature verification</li>
+              <li>
+                <strong>Device Information:</strong> Device type, operating
+                system, and browser type
+              </li>
+              <li>
+                <strong>Usage Data:</strong> Pages visited, features used, and
+                time spent on the Platform
+              </li>
+              <li>
+                <strong>IP Address:</strong> Used for approximate location
+                detection and contract signature verification
+              </li>
             </ul>
             <p className="text-base leading-relaxed mt-2">
-              We use a privacy-focused analytics service that does not use cookies for tracking and does not collect personally identifiable information. See our <Link href="/cookies" className="text-primary hover:underline">Cookie Policy</Link> for full details on cookies and local storage.
+              We use a privacy-focused analytics service that does not use
+              cookies for tracking and does not collect personally identifiable
+              information. See our{" "}
+              <Link href="/cookies" className="text-primary hover:underline">
+                Cookie Policy
+              </Link>{" "}
+              for full details on cookies and local storage.
             </p>
           </section>
 
@@ -180,26 +276,68 @@ export default function PrivacyPolicy() {
 
           {/* Information Sharing */}
           <section>
-            <h2 className="text-2xl font-bold mt-8 mb-4">6. How We Share Your Information</h2>
-            
-            <h3 className="text-lg font-semibold mt-6 mb-3">6.1 With Other Users</h3>
+            <h2 className="text-2xl font-bold mt-8 mb-4">
+              6. How We Share Your Information
+            </h2>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              6.1 With Other Users
+            </h3>
             <p className="text-base leading-relaxed">
-              Your public profile information (name, photo, bio, genre/sport, location, ratings) is visible to other Platform users to facilitate bookings. For athletes, this includes sport, position, team, statistics, and achievements. When you accept a booking, your contact information and rider requirements are shared with the other party to the booking. Signed contracts (including NIL Engagement Contracts) are accessible to both the talent and the venue, organizer, or brand involved.
+              Your public profile information (name, photo, bio, genre/sport,
+              location, ratings) is visible to other Platform users to
+              facilitate bookings. For athletes, this includes sport, position,
+              team, statistics, and achievements. When you accept a booking,
+              your contact information and rider requirements are shared with
+              the other party to the booking. Signed contracts (including NIL
+              Engagement Contracts) are accessible to both the talent and the
+              venue, organizer, or brand involved.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">6.2 With Service Providers</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              6.2 With Service Providers
+            </h3>
             <p className="text-base leading-relaxed">
-              We share information with the third-party services listed in Section 4 solely for the purposes described. These providers are contractually obligated to protect your data and use it only for the services they provide to us.
+              We share information with the third-party services listed in
+              Section 4 solely for the purposes described. These providers are
+              contractually obligated to protect your data and use it only for
+              the services they provide to us.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">6.3 Legal Requirements</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              6.3 With Creators You Choose
+            </h3>
             <p className="text-base leading-relaxed">
-              We may disclose your information when required by law, court order, or government request, or when we believe disclosure is necessary to protect our rights, your safety, or the safety of others.
+              We share your name and email with a creator for creator updates
+              only when you separately and affirmatively opt in for that
+              specific creator, your email is verified, and you have not
+              globally blocked creator updates. Paid eligible creators may view
+              or export those opted-in contacts and may contact them outside
+              OlogyWood. Exports are limited to up to 10,000 contacts. You can
+              revoke a creator’s permission without unfollowing, and can
+              globally block future creator-update eligibility in Settings.
+              Revocation and a global block apply to future Platform exports and
+              sends; a creator is responsible for removing contacts from any
+              list already exported, and past exports cannot be recalled.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3">6.4 Business Transfers</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              6.4 Legal Requirements
+            </h3>
             <p className="text-base leading-relaxed">
-              If Ologywood is involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction. We will notify you of any such change.
+              We may disclose your information when required by law, court
+              order, or government request, or when we believe disclosure is
+              necessary to protect our rights, your safety, or the safety of
+              others.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">
+              6.5 Business Transfers
+            </h3>
+            <p className="text-base leading-relaxed">
+              If Ologywood is involved in a merger, acquisition, or sale of
+              assets, your information may be transferred as part of that
+              transaction. We will notify you of any such change.
             </p>
           </section>
 
@@ -216,17 +354,55 @@ export default function PrivacyPolicy() {
 
           {/* Your Rights and Choices */}
           <section>
-            <h2 className="text-2xl font-bold mt-8 mb-4">8. Your Rights and Choices</h2>
+            <h2 className="text-2xl font-bold mt-8 mb-4">
+              8. Your Rights and Choices
+            </h2>
             <ul className="list-disc list-inside space-y-2 text-base leading-relaxed ml-2">
-              <li><strong>Access:</strong> Request a copy of the personal information we hold about you</li>
-              <li><strong>Correction:</strong> Update your information through your profile settings or dashboard</li>
-              <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
-              <li><strong>Email Opt-Out:</strong> Unsubscribe from marketing emails using the link in every email. Transactional emails (booking confirmations, contract notifications) cannot be disabled while your account is active.</li>
-              <li><strong>Data Portability:</strong> Request your data in a portable format</li>
-              <li><strong>Cookie Control:</strong> Manage cookies and local storage through your browser settings (see our <Link href="/cookies" className="text-primary hover:underline">Cookie Policy</Link>)</li>
+              <li>
+                <strong>Access:</strong> Request a copy of the personal
+                information we hold about you
+              </li>
+              <li>
+                <strong>Correction:</strong> Update your information through
+                your profile settings or dashboard
+              </li>
+              <li>
+                <strong>Deletion:</strong> Request deletion of your account and
+                associated data
+              </li>
+              <li>
+                <strong>Email Opt-Out:</strong> Manage account-wide email
+                preferences in Settings or use the link in every email.
+                Creator-update permission is separate for each creator and
+                requires an explicit opt-in, including for existing followers. A
+                creator-update unsubscribe link revokes only that creator
+                permission; it does not unfollow you, re-opt you in later, or
+                affect booking and purchase emails. Transactional emails
+                (booking confirmations, contract notifications) cannot be
+                disabled while your account is active.
+              </li>
+              <li>
+                <strong>Data Portability:</strong> Request your data in a
+                portable format
+              </li>
+              <li>
+                <strong>Cookie Control:</strong> Manage cookies and local
+                storage through your browser settings (see our{" "}
+                <Link href="/cookies" className="text-primary hover:underline">
+                  Cookie Policy
+                </Link>
+                )
+              </li>
             </ul>
             <p className="text-base leading-relaxed mt-4">
-              To exercise these rights, contact us at <a href="mailto:privacy@ologywood.com" className="text-primary hover:underline">privacy@ologywood.com</a>.
+              To exercise these rights, contact us at{" "}
+              <a
+                href="mailto:privacy@ologywood.com"
+                className="text-primary hover:underline"
+              >
+                privacy@ologywood.com
+              </a>
+              .
             </p>
           </section>
 

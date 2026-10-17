@@ -9,15 +9,15 @@ import { z } from "zod";
 import { hasFeatureAccess } from "../services/pricingTierService";
 import * as artistUpdateService from "../services/artistUpdateService";
 import { TRPCError } from "@trpc/server";
+import { assertFanEmailCreator } from '../services/fanEmailAccessService';
+import { getEligibleFanEmailCount } from '../services/fanEmailConsentService';
 
 export const artistUpdatesRouter = router({
   /**
    * Check if the artist can send an update (rate limit check)
    */
   canSend: protectedProcedure.query(async ({ ctx }: any) => {
-    if (ctx.user.role !== "artist" && ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Only artists can send updates" });
-    }
+    await assertFanEmailCreator(ctx.user.id);
 
     // Check paid tier access (uses riderBuilder as the feature gate for starter+)
     const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
@@ -25,17 +25,24 @@ export const artistUpdatesRouter = router({
       return {
         canSend: false,
         hasAccess: false,
+        eligibleCount: 0,
         message: "Upgrade to Starter tier or higher to send updates to your fans",
       };
     }
 
-    const rateCheck = await artistUpdateService.canSendUpdate(ctx.user.id);
+    const [rateCheck, eligibleTotal] = await Promise.all([
+      artistUpdateService.canSendUpdate(ctx.user.id), getEligibleFanEmailCount(ctx.user.id),
+    ]);
+    const eligibleCount = Math.min(eligibleTotal, 10000);
     return {
-      canSend: rateCheck.allowed,
+      canSend: rateCheck.allowed && eligibleCount > 0,
+      eligibleCount,
+      eligibleTotal,
+      recipientLimit: 10000,
       hasAccess: true,
       nextAllowedAt: rateCheck.nextAllowedAt?.toISOString() || null,
       lastSentAt: rateCheck.lastSentAt?.toISOString() || null,
-      message: rateCheck.allowed ? null : "You can send one update per day. Try again later.",
+      message: !eligibleCount ? "No eligible opted-in fans yet." : rateCheck.allowed ? null : "You can send one update per day. Try again later.",
     };
   }),
 
@@ -45,14 +52,12 @@ export const artistUpdatesRouter = router({
   send: protectedProcedure
     .input(
       z.object({
-        subject: z.string().min(1, "Subject is required").max(200, "Subject too long"),
-        body: z.string().min(1, "Body is required").max(5000, "Body too long (max 5000 characters)"),
+        subject: z.string().trim().min(1, "Subject is required").max(200, "Subject too long"),
+        body: z.string().trim().min(1, "Body is required").max(5000, "Body too long (max 5000 characters)"),
       })
     )
     .mutation(async ({ ctx, input }: any) => {
-      if (ctx.user.role !== "artist" && ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Only artists can send updates" });
-      }
+      await assertFanEmailCreator(ctx.user.id);
 
       // Check paid tier
       const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
@@ -85,6 +90,7 @@ export const artistUpdatesRouter = router({
         recipientCount: result.recipientCount,
         sentCount: result.sentCount,
         failedCount: result.failedCount,
+        skippedCount: result.skippedCount,
       };
     }),
 
@@ -99,9 +105,7 @@ export const artistUpdatesRouter = router({
       })
     )
     .query(async ({ ctx, input }: any) => {
-      if (ctx.user.role !== "artist" && ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Only artists can view update history" });
-      }
+      await assertFanEmailCreator(ctx.user.id);
 
       const hasAccess = await hasFeatureAccess(ctx.user.id, "riderBuilder");
       if (!hasAccess) {
@@ -122,6 +126,7 @@ export const artistUpdatesRouter = router({
           recipientCount: u.recipientCount,
           sentCount: u.sentCount,
           failedCount: u.failedCount,
+          skippedCount: Math.max(0, u.recipientCount - u.sentCount - u.failedCount),
           status: u.status,
           sentAt: u.sentAt.toISOString(),
         })),

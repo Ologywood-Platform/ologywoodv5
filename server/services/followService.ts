@@ -7,6 +7,7 @@ import { drizzle } from "drizzle-orm/mysql2";
 import { follows, users, artistProfiles, venueProfiles, events } from "../../drizzle/schema";
 import { eq, and, ne, inArray, gte, asc } from "drizzle-orm";
 import { getDb } from "../db";
+import { getEligibleFanEmailRecipients, revokeFanEmailConsent, withFanEmailUserLock } from './fanEmailConsentService';
 
 export interface FollowStats {
   followersCount: number;
@@ -17,7 +18,7 @@ export interface FollowStats {
 export interface FollowedUser {
   id: number;
   name: string;
-  email: string;
+  email?: never;
   role: "artist" | "venue";
   followingType: "artist" | "venue";
   followedAt: Date;
@@ -34,7 +35,7 @@ export interface FollowedUser {
 export interface FollowRecommendation {
   id: number;
   name: string;
-  email: string;
+  email?: never;
   role: "artist" | "venue";
   followingType: "artist" | "venue";
   mutualFollowers: number;
@@ -49,45 +50,14 @@ export async function followUser(
   followingId: number,
   followingType: "artist" | "venue"
 ): Promise<boolean> {
-  try {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    // Prevent self-following
-    if (followerId === followingId) {
-      throw new Error("Cannot follow yourself");
-    }
-
-    // Check if already following
-    const existing = await db
-      .select()
-      .from(follows)
-      .where(
-        and(
-          eq(follows.followerId, followerId),
-          eq(follows.followingId, followingId),
-          eq(follows.followingType, followingType)
-        )
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      return false; // Already following
-    }
-
-    // Create follow relationship
-    await db.insert(follows).values({
-      followerId,
-      followingId,
-      followingType,
-      createdAt: new Date(),
-    });
-
+  if (followerId === followingId) throw new Error('Cannot follow yourself');
+  return withFanEmailUserLock(followerId, async connection => {
+    const [existing] = await connection.execute('SELECT id FROM follows WHERE followerId = ? AND followingId = ? AND followingType = ? LIMIT 1', [followerId, followingId, followingType]);
+    if ((existing as any[]).length) return false;
+    await connection.execute('INSERT INTO follows (followerId, followingId, followingType) VALUES (?, ?, ?)', [followerId, followingId, followingType]);
+    // Following is deliberately not permission to email, export, or share contact details.
     return true;
-  } catch (error) {
-    console.error("Error following user:", error);
-    throw error;
-  }
+  });
 }
 
 /**
@@ -98,42 +68,13 @@ export async function unfollowUser(
   followingId: number,
   followingType: "artist" | "venue"
 ): Promise<boolean> {
-  try {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    // Check if follow exists before deleting
-    const existing = await db
-      .select()
-      .from(follows)
-      .where(
-        and(
-          eq(follows.followerId, followerId),
-          eq(follows.followingId, followingId),
-          eq(follows.followingType, followingType)
-        )
-      )
-      .limit(1);
-
-    if (existing.length === 0) {
-      return false;
-    }
-
-    await db
-      .delete(follows)
-      .where(
-        and(
-          eq(follows.followerId, followerId),
-          eq(follows.followingId, followingId),
-          eq(follows.followingType, followingType)
-        )
-      );
-
+  return withFanEmailUserLock(followerId, async connection => {
+    const [existing] = await connection.execute('SELECT id FROM follows WHERE followerId = ? AND followingId = ? AND followingType = ? LIMIT 1', [followerId, followingId, followingType]);
+    if (!(existing as any[]).length) return false;
+    if (followingType === 'artist') await revokeFanEmailConsent(followerId, followingId, connection);
+    await connection.execute('DELETE FROM follows WHERE followerId = ? AND followingId = ? AND followingType = ?', [followerId, followingId, followingType]);
     return true;
-  } catch (error) {
-    console.error("Error unfollowing user:", error);
-    throw error;
-  }
+  });
 }
 
 /**
@@ -209,7 +150,7 @@ export async function getFollowing(
 
     for (const relation of followingRelations) {
       const userResult = await db
-        .select()
+        .select({ id: users.id, name: users.name, role: users.role })
         .from(users)
         .where(eq(users.id, relation.followingId))
         .limit(1);
@@ -217,13 +158,11 @@ export async function getFollowing(
       let profileId: number | undefined;
       let profilePhotoUrl: string | null | undefined;
       let name = "Unknown";
-      let email = "";
       let role: "artist" | "venue" = relation.followingType;
 
       if (userResult.length > 0) {
         const user = userResult[0];
         name = user.name || "Unknown";
-        email = user.email || "";
         role = (user.role as "artist" | "venue") || relation.followingType;
       }
 
@@ -304,7 +243,6 @@ export async function getFollowing(
       followedUsers.push({
         id: userResult.length > 0 ? userResult[0].id : relation.followingId,
         name,
-        email,
         role,
         followingType: relation.followingType,
         followedAt: relation.createdAt,
@@ -344,7 +282,7 @@ export async function getFollowers(
 
     for (const relation of followerRelations) {
       const userResult = await db
-        .select()
+        .select({ id: users.id, name: users.name, role: users.role })
         .from(users)
         .where(eq(users.id, relation.followerId))
         .limit(1);
@@ -354,7 +292,6 @@ export async function getFollowers(
         followers.push({
           id: user.id,
           name: user.name || "Unknown",
-          email: user.email || "",
           role: (user.role as "artist" | "venue") || "user",
           followingType: relation.followingType,
           followedAt: relation.createdAt,
@@ -433,7 +370,7 @@ export async function getFollowRecommendations(
       }
 
       const recommendedUserResult = await db
-        .select()
+        .select({ id: users.id, name: users.name, role: users.role })
         .from(users)
         .where(eq(users.id, recommendedId))
         .limit(1);
@@ -443,7 +380,6 @@ export async function getFollowRecommendations(
         recommendationList.push({
           id: recommendedUser.id,
           name: recommendedUser.name || "Unknown",
-          email: recommendedUser.email || "",
           role: (recommendedUser.role as "artist" | "venue") || "user",
           followingType: (data.type as "artist" | "venue") || "artist",
           mutualFollowers: data.count,
@@ -565,7 +501,7 @@ export async function getTrendingUsers(
     const trendingUsers: FollowedUser[] = [];
     for (const [userId] of sorted) {
       const userResult = await db
-        .select()
+        .select({ id: users.id, name: users.name, role: users.role })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
@@ -575,7 +511,6 @@ export async function getTrendingUsers(
         trendingUsers.push({
           id: user.id,
           name: user.name || "Unknown",
-          email: user.email || "",
           role: (user.role as "artist" | "venue") || "user",
           followingType,
           followedAt: new Date(),
@@ -594,17 +529,11 @@ export async function getTrendingUsers(
  * Remove all follows for a user (used during account deletion)
  */
 export async function removeAllFollows(userId: number): Promise<void> {
-  try {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    // Remove all follows where user is follower (people they follow)
-    // Note: We do NOT remove follows where user is being followed (their followers)
-    await db.delete(follows).where(eq(follows.followerId, userId));
-  } catch (error) {
-    console.error("Error removing all follows:", error);
-    throw error;
-  }
+  await withFanEmailUserLock(userId, async connection => {
+    const [relations] = await connection.execute('SELECT followingId FROM follows WHERE followerId = ? AND followingType = ?', [userId, 'artist']);
+    for (const relation of relations as any[]) await revokeFanEmailConsent(userId, relation.followingId, connection);
+    await connection.execute('DELETE FROM follows WHERE followerId = ?', [userId]);
+  });
 }
 
 
@@ -644,42 +573,5 @@ export async function getFanEmailList(
   limit_: number = 100,
   offset: number = 0
 ): Promise<FanEmail[]> {
-  try {
-    const db = await getDb();
-    if (!db) throw new Error("Database not available");
-
-    const followerRelations = await db
-      .select()
-      .from(follows)
-      .where(eq(follows.followingId, artistUserId))
-      .limit(limit_)
-      .offset(offset);
-
-    const fans: FanEmail[] = [];
-
-    for (const relation of followerRelations) {
-      const userResult = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, relation.followerId))
-        .limit(1);
-
-      if (userResult.length > 0) {
-        const user = userResult[0];
-        if (user.email) {
-          fans.push({
-            id: user.id,
-            name: user.name || "Unknown",
-            email: user.email,
-            followedAt: relation.createdAt,
-          });
-        }
-      }
-    }
-
-    return fans;
-  } catch (error) {
-    console.error("Error getting fan email list:", error);
-    throw error;
-  }
+  return getEligibleFanEmailRecipients(artistUserId, limit_, offset);
 }

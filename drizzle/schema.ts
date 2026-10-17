@@ -822,6 +822,8 @@ export const emailPreferences = mysqlTable("email_preferences", {
   platformNews: boolean("platformNews").default(false).notNull(),
   weeklyDigest: boolean("weeklyDigest").default(true).notNull(),
   reminders: boolean("reminders").default(true).notNull(),
+  // Category permission only. Creator-update delivery also requires scoped consent.
+  fanUpdates: boolean("fanUpdates").default(true).notNull(),
   // Unsubscribe tracking for CAN-SPAM/GDPR compliance
   unsubscribeToken: varchar("unsubscribeToken", { length: 255 }).unique(),
   unsubscribedAt: timestamp("unsubscribedAt"),
@@ -832,6 +834,31 @@ export const emailPreferences = mysqlTable("email_preferences", {
 
 export type EmailPreference = typeof emailPreferences.$inferSelect;
 export type InsertEmailPreference = typeof emailPreferences.$inferInsert;
+
+/**
+ * Explicit, creator-scoped permission for promotional creator updates.
+ * A consent is bound to the normalized email address hash so an email-address
+ * change never silently carries an earlier consent to a new address.
+ */
+export const fanEmailConsents = mysqlTable("fan_email_consents", {
+  id: int("id").autoincrement().primaryKey(),
+  followerUserId: int("followerUserId").notNull(),
+  creatorUserId: int("creatorUserId").notNull(),
+  optIn: boolean("optIn").default(false).notNull(),
+  revision: int("revision").default(0).notNull(),
+  consentedAt: timestamp("consentedAt"),
+  revokedAt: timestamp("revokedAt"),
+  consentVersion: varchar("consentVersion", { length: 64 }).notNull(),
+  emailHash: varchar("emailHash", { length: 64 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  scopeUnique: unique("uniq_fan_email_consent_scope").on(table.followerUserId, table.creatorUserId),
+  creatorOptInIdx: index("idx_fan_email_consent_creator_optin").on(table.creatorUserId, table.optIn),
+}));
+
+export type FanEmailConsent = typeof fanEmailConsents.$inferSelect;
+export type InsertFanEmailConsent = typeof fanEmailConsents.$inferInsert;
 
 
 /**

@@ -15,13 +15,19 @@ interface EmailParams {
 /**
  * Send an email using SendGrid
  */
-export async function sendEmail({ to, subject, html }: EmailParams, options?: { timeoutMs: number }): Promise<boolean> {
+export async function sendEmail({ to, subject, html }: EmailParams, options?: { timeoutMs: number; unsubscribeUrl?: string; oneClickUnsubscribe?: boolean }): Promise<boolean> {
   if (!ENV.sendgridApiKey || !ENV.sendgridFromEmail) {
     console.error('[Email] SendGrid not configured - SENDGRID_API_KEY or SENDGRID_FROM_EMAIL missing');
     return false;
   }
 
   try {
+    if (options?.unsubscribeUrl) {
+      const unsubscribe = new URL(options.unsubscribeUrl);
+      const base = new URL(ENV.baseUrl || 'https://www.ologywood.com');
+      if (unsubscribe.origin !== base.origin || unsubscribe.pathname !== '/api/email/unsubscribe'
+        || !unsubscribe.searchParams.get('fanToken') || /[\r\n]/.test(options.unsubscribeUrl)) return false;
+    }
     console.log(`[Email] Sending to: ${to}, subject: ${subject}`);
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
@@ -48,7 +54,8 @@ export async function sendEmail({ to, subject, html }: EmailParams, options?: { 
           },
         ],
         headers: {
-          "List-Unsubscribe": `<${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}>`,
+          "List-Unsubscribe": `<${options?.unsubscribeUrl || `${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(to)}`}>`,
+          ...(options?.unsubscribeUrl && options.oneClickUnsubscribe ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
         },
       }),
     });

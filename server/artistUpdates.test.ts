@@ -65,7 +65,7 @@ describe('Artist Updates - Service Layer', () => {
 
   it('should include unsubscribe link in emails', () => {
     expect(serviceContent).toContain('unsubscribeUrl');
-    expect(serviceContent).toContain('/unsubscribe');
+    expect(serviceContent).toContain('fanEmailDeliveryOptions');
   });
 
   it('should include branded Ologywood email header', () => {
@@ -121,7 +121,7 @@ describe('Artist Updates - Router', () => {
   });
 
   it('should restrict to artist role', () => {
-    expect(routerContent).toContain("ctx.user.role !== \"artist\"");
+    expect(routerContent).toContain("assertFanEmailCreator(ctx.user.id)");
   });
 
   it('should check paid tier access via hasFeatureAccess', () => {
@@ -235,6 +235,6 @@ describe('Artist Updates - Frontend Components', () => {
 
   it('FansSection should only show Send Update for paid tier with followers', () => {
     const content = fs.readFileSync(fansSectionPath, 'utf-8');
-    expect(content).toContain('hasPaidAccess && followerCount > 0');
+    expect(content).toContain('hasPaidAccess && eligibleCount > 0');
   });
 });

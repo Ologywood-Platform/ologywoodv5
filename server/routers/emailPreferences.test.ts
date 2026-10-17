@@ -79,8 +79,8 @@ describe('Email Preferences', () => {
       const funcEnd = dbFile.indexOf('\n}', funcStart) + 2;
       const funcBody = dbFile.slice(funcStart, funcEnd);
       expect(funcBody).toContain('existing');
-      expect(funcBody).toContain('insert');
-      expect(funcBody).toContain('update');
+      expect(funcBody).toContain('INSERT INTO email_preferences');
+      expect(funcBody).toContain('UPDATE email_preferences');
     });
 
     it('exports deleteEmailPreferences as a real async function', () => {
@@ -100,12 +100,12 @@ describe('Email Preferences', () => {
       const funcStart = dbFile.indexOf('export async function createEmailPreferences');
       const funcEnd = dbFile.indexOf('\n}', funcStart) + 2;
       const funcBody = dbFile.slice(funcStart, funcEnd);
-      expect(funcBody).toContain("frequency: 'weekly'");
-      expect(funcBody).toContain('bookingUpdates: true');
-      expect(funcBody).toContain('newOpportunities: true');
-      expect(funcBody).toContain('platformNews: false');
-      expect(funcBody).toContain('weeklyDigest: true');
-      expect(funcBody).toContain('reminders: true');
+      expect(funcBody).toContain("'weekly'");
+      expect(funcBody).toContain('bookingUpdates');
+      expect(funcBody).toContain('newOpportunities');
+      expect(funcBody).toContain('platformNews');
+      expect(funcBody).toContain('weeklyDigest');
+      expect(funcBody).toContain('reminders');
     });
 
     it('no longer uses stubs for email preferences', () => {
@@ -171,14 +171,15 @@ describe('Email Preferences', () => {
       // Should not hardcode frequency to 'weekly'
       expect(content).not.toContain("handleFrequencyChange('weekly')");
       // Should use the actual frequency value
-      expect(content).toContain("freq as 'daily' | 'weekly' | 'never'");
+      expect(content).toContain('checked={localPreferences.frequency === frequency}');
+      expect(content).toContain('...current, frequency');
     });
 
     it('EmailPreferencesCenter correctly detects unsubscribed state', () => {
       const filePath = join(clientDir, 'components', 'EmailPreferencesCenter.tsx');
       const content = readFileSync(filePath, 'utf-8');
       // Should check for 'never', not 'weekly'
-      expect(content).toContain("frequency === 'never'");
+      expect(content).toMatch(/frequency === ["']never["']/);
     });
 
     it('Unsubscribe page uses real API call instead of setTimeout', () => {

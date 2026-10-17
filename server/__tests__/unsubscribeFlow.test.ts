@@ -2,75 +2,65 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-describe('Unsubscribe Page - Confirmation Flow', () => {
-  const unsubscribePage = readFileSync(
-    resolve(__dirname, '../../client/src/pages/Unsubscribe.tsx'),
-    'utf-8'
-  );
+describe('Unsubscribe Page - Confirmation and Scope', () => {
+  const page = readFileSync(resolve(__dirname, '../../client/src/pages/Unsubscribe.tsx'), 'utf-8');
+  const preferences = readFileSync(resolve(__dirname, '../../client/src/components/EmailPreferencesCenter.tsx'), 'utf-8');
 
-  it('should show confirmation step before unsubscribing (never auto-unsubscribe)', () => {
-    // The default state should be 'confirm', not auto-unsubscribe
-    expect(unsubscribePage).toContain("'confirm'");
-    expect(unsubscribePage).toContain('Are you sure you want to unsubscribe?');
-    expect(unsubscribePage).toContain('Before You Go');
+  it('requires confirmation and never auto-unsubscribes on page load', () => {
+    expect(page).toContain('useState<PageState>("confirm")');
+    expect(page).toContain('Confirm email preference');
+    expect(page).not.toMatch(/useEffect[\s\S]*handleUnsubscribe\(\)/);
   });
-
-  it('should NOT auto-unsubscribe authenticated users', () => {
-    // Should not call handleUnsubscribe in useEffect
-    expect(unsubscribePage).not.toMatch(/useEffect[\s\S]*handleUnsubscribe\(\)/);
+  it('explains that creator unsubscribe preserves following, global settings, and transactional scope', () => {
+    expect(page).toContain('It will not unfollow the creator');
+    expect(page).toContain('or stop booking and purchase emails');
+    expect(page).toContain('change your account-wide email settings');
   });
-
-  it('should warn users what they will miss', () => {
-    expect(unsubscribePage).toContain("You'll stop receiving");
-    expect(unsubscribePage).toContain('Booking requests and confirmations');
-    expect(unsubscribePage).toContain('New opportunity alerts');
-    expect(unsubscribePage).toContain('Event reminders');
+  it('provides an authenticated reduce-frequency option without opting into creator email', () => {
+    expect(page).toContain('handleReduceFrequency');
+    expect(page).toContain('Reduce my emails');
+    const reduce = page.slice(page.indexOf('const handleReduceFrequency'), page.indexOf('const handleSubmitFeedback'));
+    expect(reduce).not.toContain('fanUpdates: true');
   });
-
-  it('should offer "reduce frequency" alternative before full unsubscribe', () => {
-    expect(unsubscribePage).toContain('Prefer fewer emails instead?');
-    expect(unsubscribePage).toContain('Just Reduce My Emails');
-    expect(unsubscribePage).toContain('handleReduceFrequency');
+  it('links to existing account settings for granular control and account email restoration', () => {
+    expect(page).toContain('href="/settings"');
+    expect(page).toContain('Choose account email settings');
+    expect(preferences).toContain('Restore Account Emails');
+    expect(preferences).toContain('This does not add permission for any creator');
   });
-
-  it('should link to settings for granular control', () => {
-    expect(unsubscribePage).toContain('/settings');
-    expect(unsubscribePage).toContain('Choose Exactly What to Receive');
+  it('offers explicit creator and account confirmation actions with correct labels', () => {
+    expect(page).toContain('Yes, stop this creator’s updates');
+    expect(page).toContain('Yes, unsubscribe my account');
+    expect(page).toContain('border-red-300');
   });
-
-  it('should make unsubscribe button less prominent than alternatives', () => {
-    // Unsubscribe button uses outline/border style, not filled
-    expect(unsubscribePage).toContain('border-red-300');
-    expect(unsubscribePage).toContain('text-red-600');
-    expect(unsubscribePage).toContain('Yes, Unsubscribe from All Emails');
+  it('provides an escape route and a confirmed preference-updated result', () => {
+    expect(page).toContain('Never mind, take me back');
+    expect(page).toContain('Preference updated');
   });
-
-  it('should provide cancel/go-back option', () => {
-    expect(unsubscribePage).toContain('Never mind, take me back');
+  it('requires login only for legacy identifier links, never treats query identity as authority', () => {
+    expect(page).toContain('Sign in required');
+    expect(page).toContain('Sign In to Manage Preferences');
+    expect(page).not.toContain('params.get("email")');
+    expect(page).not.toContain('params.get("userId")');
   });
-
-  it('should show resubscribe option after unsubscribing', () => {
-    expect(unsubscribePage).toContain("Changed your mind?");
-    expect(unsubscribePage).toContain('Resubscribe');
-    expect(unsubscribePage).toContain('handleResubscribe');
+  it('uses public signed-token query then explicit token mutation for anonymous creator opt-out', () => {
+    expect(page).toContain('trpc.emailPreferences.getFanUnsubscribe.useQuery');
+    expect(page).toContain('trpc.emailPreferences.unsubscribeFan.useMutation');
+    expect(page).toContain('scope !== "creator_updates"');
   });
-
-  it('should have a resubscribed success state', () => {
-    expect(unsubscribePage).toContain('Welcome Back!');
-    expect(unsubscribePage).toContain("You're subscribed to emails again");
+  it('cannot fall back to global unsubscribe when a supplied fan token becomes invalid', () => {
+    expect(page).toContain('if (fanToken !== null)');
+    expect(page).toContain('if (!isFanTokenFlow || !fanToken) throw');
+    expect(page).toContain('params.has("fanToken") && !token?.trim()');
   });
-
-  it('should handle login-required state for unauthenticated users', () => {
-    expect(unsubscribePage).toContain('Sign In Required');
-    expect(unsubscribePage).toContain('Sign In to Manage Preferences');
+  it('has honest invalid/error states rather than reporting unconfirmed success', () => {
+    expect(page).toContain('Something went wrong');
+    expect(page).toContain('Try Again');
+    expect(page).toContain('No email preference was changed');
+    expect(page).toContain('No change was confirmed');
   });
-
-  it('should have error state with retry option', () => {
-    expect(unsubscribePage).toContain('Something Went Wrong');
-    expect(unsubscribePage).toContain('Try Again');
-  });
-
-  it('should mention transactional emails will still be sent', () => {
-    expect(unsubscribePage).toContain('transactional emails');
+  it('uses one root shared header and gives no scoped-token resubscribe authority', () => {
+    expect(page.match(/<SiteHeader\s*\/>/g)).toHaveLength(1);
+    expect(page).not.toContain('resubscribe.useMutation');
   });
 });

@@ -1,180 +1,233 @@
-import React, { useEffect, useState } from 'react';
-import { trpc } from '@/lib/trpc';
-import { useAuth } from '@/_core/hooks/useAuth';
-import { Mail, MailX, ArrowLeft, CheckCircle, AlertTriangle, RefreshCw, Settings, Bell, BellOff, MessageSquare, Send } from 'lucide-react';
+import { useEffect, useState } from "react";
+import SiteHeader from "@/components/SiteHeader";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import {
+  Mail,
+  MailX,
+  ArrowLeft,
+  CheckCircle,
+  AlertTriangle,
+  Settings,
+  Bell,
+  BellOff,
+  MessageSquare,
+  Send,
+  Loader2,
+} from "lucide-react";
 
-type PageState = 'confirm' | 'loading' | 'success' | 'resubscribed' | 'error' | 'login-required';
+type PageState =
+  | "confirm"
+  | "loading"
+  | "success"
+  | "error"
+  | "login-required"
+  | "invalid-token";
 
 const FEEDBACK_REASONS = [
-  { id: 'too_many_emails', label: 'Too many emails' },
-  { id: 'not_relevant', label: 'Content not relevant to me' },
-  { id: 'no_longer_using', label: 'No longer using the platform' },
-  { id: 'found_alternative', label: 'Found an alternative' },
-  { id: 'privacy_concerns', label: 'Privacy concerns' },
-  { id: 'other', label: 'Other' },
+  { id: "too_many_emails", label: "Too many emails" },
+  { id: "not_relevant", label: "Content not relevant to me" },
+  { id: "privacy_concerns", label: "Privacy concerns" },
+  { id: "other", label: "Other" },
 ] as const;
 
+/**
+ * A fan-token changes only the signed creator-update subscription it names.
+ * Query email/userId values are deliberately never used to choose a recipient.
+ */
 export function Unsubscribe() {
-  const [state, setState] = useState<PageState>('confirm');
-  const [email, setEmail] = useState('');
-  const { isAuthenticated, user } = useAuth();
-
-  // Feedback form state
+  const { isAuthenticated } = useAuth();
+  const [state, setState] = useState<PageState>("confirm");
+  const [fanToken, setFanToken] = useState<string | null>(null);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
-  const [feedbackComment, setFeedbackComment] = useState('');
-  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
-
-  const unsubscribeAllMutation = trpc.emailPreferences.unsubscribeAll.useMutation();
-  const resubscribeMutation = trpc.emailPreferences.resubscribe.useMutation();
-  const updatePrefsMutation = trpc.emailPreferences.updatePreferences.useMutation();
-  const submitFeedbackMutation = trpc.emailPreferences.submitUnsubscribeFeedback.useMutation();
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<
+    "idle" | "sending" | "sent"
+  >("idle");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const emailParam = params.get('email');
-    if (emailParam) setEmail(emailParam);
-
-    // Never auto-unsubscribe — always show confirmation first
-    if (!isAuthenticated && !emailParam) {
-      setState('login-required');
-    } else {
-      setState('confirm');
-    }
+    const token = params.get("fanToken");
+    // Ignore legacy identity-looking query parameters; they must never select a
+    // recipient. Without a signed fan token only the logged-in account is used.
+    setFanToken(params.has("fanToken") ? (token || "") : null);
+    if (params.has("fanToken") && !token?.trim()) setState("invalid-token");
+    else if (!params.has("fanToken") && !isAuthenticated) setState("login-required");
+    else setState("confirm");
   }, [isAuthenticated]);
 
+  const fanTokenQuery = trpc.emailPreferences.getFanUnsubscribe.useQuery(
+    { token: fanToken || "" },
+    { enabled: !!fanToken, retry: false }
+  );
+  const unsubscribeFanMutation = trpc.emailPreferences.unsubscribeFan.useMutation();
+  const unsubscribeAllMutation =
+    trpc.emailPreferences.unsubscribeAll.useMutation();
+  const updatePrefsMutation =
+    trpc.emailPreferences.updatePreferences.useMutation();
+  const submitFeedbackMutation =
+    trpc.emailPreferences.submitUnsubscribeFeedback.useMutation();
+
+  useEffect(() => {
+    if (!fanToken) return;
+    if (fanTokenQuery.isLoading) {
+      setState("loading");
+      return;
+    }
+    if (
+      fanTokenQuery.error ||
+      fanTokenQuery.data?.valid !== true ||
+      fanTokenQuery.data.scope !== "creator_updates"
+    ) {
+      setState("invalid-token");
+      return;
+    }
+    setState("confirm");
+  }, [
+    fanToken,
+    fanTokenQuery.data,
+    fanTokenQuery.error,
+    fanTokenQuery.isLoading,
+  ]);
+
+  const isFanTokenFlow =
+    !!fanToken &&
+    fanTokenQuery.data?.valid === true &&
+    fanTokenQuery.data.scope === "creator_updates";
+
   const handleUnsubscribe = async () => {
-    setState('loading');
+    setState("loading");
     try {
-      await unsubscribeAllMutation.mutateAsync();
-      setState('success');
-    } catch (error: any) {
-      if (error?.data?.code === 'UNAUTHORIZED') {
-        setState('login-required');
+      if (fanToken !== null) {
+        if (!isFanTokenFlow || !fanToken) throw new Error("Invalid creator unsubscribe link");
+        const result = await unsubscribeFanMutation.mutateAsync({
+          token: fanToken,
+        });
+        if (result.success !== true || result.scope !== "creator_updates")
+          throw new Error("Unable to unsubscribe");
       } else {
-        setState('error');
+        // This only affects the authenticated account; no query param identity is used.
+        await unsubscribeAllMutation.mutateAsync();
       }
+      setState("success");
+    } catch (error: any) {
+      if (error?.data?.code === "UNAUTHORIZED" && !isFanTokenFlow)
+        setState("login-required");
+      else if (fanToken !== null) setState("invalid-token");
+      else setState("error");
     }
   };
 
   const handleReduceFrequency = async () => {
-    setState('loading');
+    if (isFanTokenFlow) return;
+    setState("loading");
     try {
       await updatePrefsMutation.mutateAsync({
-        frequency: 'weekly',
+        frequency: "weekly",
         bookingUpdates: true,
         newOpportunities: false,
         platformNews: false,
         weeklyDigest: true,
         reminders: true,
       });
-      setState('success');
+      setState("success");
     } catch (error: any) {
-      if (error?.data?.code === 'UNAUTHORIZED') {
-        setState('login-required');
-      } else {
-        setState('error');
-      }
-    }
-  };
-
-  const handleResubscribe = async () => {
-    setState('loading');
-    try {
-      await resubscribeMutation.mutateAsync();
-      setState('resubscribed');
-    } catch {
-      setState('error');
+      setState(
+        error?.data?.code === "UNAUTHORIZED" ? "login-required" : "error"
+      );
     }
   };
 
   const handleSubmitFeedback = async () => {
-    if (!selectedReason) return;
-    setFeedbackStatus('sending');
+    if (!selectedReason || !isAuthenticated) {
+      setFeedbackStatus("sent");
+      return;
+    }
+    setFeedbackStatus("sending");
     try {
       await submitFeedbackMutation.mutateAsync({
         reason: selectedReason,
         comment: feedbackComment.trim() || undefined,
       });
-    } catch {
-      // Best-effort — don't block the user
+    } finally {
+      setFeedbackStatus("sent");
     }
-    setFeedbackStatus('sent');
   };
 
-  const displayEmail = email || user?.email || '';
+  const scopeCopy = isFanTokenFlow
+    ? "This will stop future creator update emails for this creator only. It will not unfollow the creator, change your account-wide email settings, or stop booking and purchase emails."
+    : "This will update email preferences for your signed-in account only. It will not change another person’s account.";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
+      <SiteHeader />
+      <main className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
-
-        {/* ========== CONFIRM STATE ========== */}
-        {state === 'confirm' && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            {/* Header */}
+        {state === "confirm" && (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
             <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
                 <Mail className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Before You Go...</h1>
-              <p className="text-purple-100 mt-2 text-sm">
-                Are you sure you want to unsubscribe?
+              <h1 className="text-2xl font-bold text-white">
+                Confirm email preference
+              </h1>
+              <p className="mt-2 text-sm text-purple-100">
+                Review this change before it is applied.
               </p>
             </div>
-
-            <div className="px-8 py-6 space-y-5">
-              {/* What you'll miss */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="space-y-5 px-6 py-6 sm:px-8">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                   <div>
-                    <p className="font-medium text-amber-900 text-sm">You'll stop receiving:</p>
-                    <ul className="mt-2 space-y-1 text-sm text-amber-800">
-                      <li>Booking requests and confirmations</li>
-                      <li>New opportunity alerts</li>
-                      <li>Event reminders</li>
-                      <li>Weekly activity digests</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {displayEmail && (
-                <p className="text-center text-sm text-slate-500">
-                  Unsubscribing: <span className="font-medium text-slate-700">{displayEmail}</span>
-                </p>
-              )}
-
-              {/* Alternative: Reduce frequency */}
-              <div className="border border-purple-200 bg-purple-50 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <Bell className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="font-medium text-purple-900 text-sm">Prefer fewer emails instead?</p>
-                    <p className="text-xs text-purple-700 mt-1">
-                      We'll only send you essential booking updates and a weekly digest — no marketing.
+                    <p className="text-sm font-medium text-amber-900">
+                      {isFanTokenFlow
+                        ? "Creator update emails only"
+                        : "Account email preferences"}
                     </p>
-                    <button
-                      onClick={handleReduceFrequency}
-                      className="mt-3 w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                    >
-                      Just Reduce My Emails
-                    </button>
+                    <p className="mt-1 text-sm text-amber-800">{scopeCopy}</p>
                   </div>
                 </div>
               </div>
-
-              {/* Manage preferences link */}
-              {isAuthenticated && (
-                <a
-                  href="/settings"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
-                >
-                  <Settings className="h-4 w-4" />
-                  Choose Exactly What to Receive
-                </a>
+              {isFanTokenFlow ? (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+                  This signed link does not reveal a recipient identity and
+                  works without signing in. It is scoped only to creator
+                  updates.
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+                    <div className="flex items-start gap-3">
+                      <Bell className="mt-0.5 h-5 w-5 shrink-0 text-purple-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-purple-900">
+                          Prefer fewer account emails?
+                        </p>
+                        <p className="mt-1 text-xs text-purple-700">
+                          Keep essential booking emails and a weekly digest
+                          while turning off opportunity and platform-news
+                          emails.
+                        </p>
+                        <button
+                          onClick={handleReduceFrequency}
+                          className="mt-3 w-full rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-purple-700"
+                        >
+                          Reduce my emails
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <a
+                    href="/settings"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Choose account email settings
+                  </a>
+                </>
               )}
-
-              {/* Divider */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200" />
@@ -183,22 +236,20 @@ export function Unsubscribe() {
                   <span className="bg-white px-3 text-slate-400">or</span>
                 </div>
               </div>
-
-              {/* Unsubscribe button - less prominent */}
               <button
                 onClick={handleUnsubscribe}
-                className="w-full px-4 py-2.5 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                className="w-full rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
               >
                 <span className="flex items-center justify-center gap-2">
                   <MailX className="h-4 w-4" />
-                  Yes, Unsubscribe from All Emails
+                  {isFanTokenFlow
+                    ? "Yes, stop this creator’s updates"
+                    : "Yes, unsubscribe my account"}
                 </span>
               </button>
-
-              {/* Cancel */}
               <a
                 href="/"
-                className="flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors py-1"
+                className="flex items-center justify-center gap-2 py-1 text-sm text-slate-500 transition-colors hover:text-slate-700"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Never mind, take me back
@@ -207,246 +258,204 @@ export function Unsubscribe() {
           </div>
         )}
 
-        {/* ========== LOADING STATE ========== */}
-        {state === 'loading' && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4" />
-            <p className="text-slate-600">Processing your request...</p>
+        {state === "loading" && (
+          <div className="rounded-2xl bg-white p-12 text-center shadow-lg">
+            <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-purple-600" />
+            <p className="text-slate-600">
+              Checking or processing your request…
+            </p>
           </div>
         )}
 
-        {/* ========== SUCCESS STATE (Unsubscribed) ========== */}
-        {state === 'success' && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        {state === "success" && (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
             <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
                 <CheckCircle className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Done!</h1>
-              <p className="text-green-100 mt-2 text-sm">
-                Your preferences have been updated
-              </p>
+              <h1 className="text-2xl font-bold text-white">
+                Preference updated
+              </h1>
             </div>
-
-            <div className="px-8 py-6 space-y-4">
-              <div className="bg-slate-50 rounded-xl p-4 text-center">
-                <p className="text-slate-700 text-sm">
-                  You may still receive essential transactional emails related to active bookings and your account security.
-                </p>
+            <div className="space-y-4 px-6 py-6 sm:px-8">
+              <div className="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-700">
+                {isFanTokenFlow
+                  ? "Future creator update sends and exports will no longer include this permission. Your following status and booking or purchase emails are unchanged."
+                  : "Your signed-in account email preferences have been updated. Active booking and account-security emails may still be required."}
               </div>
-
-              {/* ── Feedback Form ── */}
-              {feedbackStatus !== 'sent' ? (
-                <div className="border border-slate-200 rounded-xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
+              {isAuthenticated && feedbackStatus !== "sent" && (
+                <div className="rounded-xl border border-slate-200 p-5">
+                  <div className="mb-3 flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-slate-500" />
                     <p className="text-sm font-medium text-slate-800">
-                      Quick question — what made you unsubscribe?
+                      What made you unsubscribe? (optional)
                     </p>
                   </div>
-
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {FEEDBACK_REASONS.map((reason) => (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {FEEDBACK_REASONS.map(reason => (
                       <button
                         key={reason.id}
                         onClick={() => setSelectedReason(reason.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                          selectedReason === reason.id
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${selectedReason === reason.id ? "bg-purple-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                       >
                         {reason.label}
                       </button>
                     ))}
                   </div>
-
                   {selectedReason && (
                     <>
                       <textarea
                         value={feedbackComment}
-                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        onChange={event =>
+                          setFeedbackComment(event.target.value)
+                        }
                         placeholder="Anything else you'd like to share? (optional)"
                         maxLength={500}
                         rows={2}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-slate-400"
+                        className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                       <button
                         onClick={handleSubmitFeedback}
-                        disabled={feedbackStatus === 'sending'}
-                        className="mt-2 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+                        disabled={feedbackStatus === "sending"}
+                        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
                       >
                         <Send className="h-3.5 w-3.5" />
-                        {feedbackStatus === 'sending' ? 'Sending...' : 'Send Feedback'}
+                        {feedbackStatus === "sending"
+                          ? "Sending…"
+                          : "Send Feedback"}
                       </button>
                     </>
                   )}
-
                   <button
-                    onClick={() => setFeedbackStatus('sent')}
-                    className="mt-2 w-full text-xs text-slate-400 hover:text-slate-500 transition-colors"
+                    onClick={() => setFeedbackStatus("sent")}
+                    className="mt-2 w-full text-xs text-slate-400 hover:text-slate-500"
                   >
                     Skip
                   </button>
                 </div>
-              ) : (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
-                  <CheckCircle className="h-5 w-5 text-purple-600 mx-auto mb-1.5" />
-                  <p className="text-sm text-purple-800 font-medium">Thanks for your feedback!</p>
-                  <p className="text-xs text-purple-600 mt-1">It helps us improve Ologywood for everyone.</p>
+              )}
+              {feedbackStatus === "sent" && isAuthenticated && (
+                <div className="rounded-xl border border-purple-200 bg-purple-50 p-4 text-center text-sm text-purple-800">
+                  Thanks for your feedback.
                 </div>
               )}
-
-              {/* Changed your mind? */}
-              <div className="border border-blue-200 bg-blue-50 rounded-xl p-4 text-center">
-                <p className="text-sm text-blue-800 font-medium mb-3">Changed your mind?</p>
-                <button
-                  onClick={handleResubscribe}
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium inline-flex items-center gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Resubscribe
-                </button>
-              </div>
-
               <a
                 href="/"
-                className="flex items-center justify-center w-full px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                className="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Return to Home
               </a>
-
-              {isAuthenticated && (
+              {isAuthenticated && !isFanTokenFlow && (
                 <a
                   href="/settings"
-                  className="flex items-center justify-center gap-2 text-sm text-purple-600 hover:text-purple-700 transition-colors py-1"
+                  className="flex items-center justify-center gap-2 py-1 text-sm text-purple-600 hover:text-purple-700"
                 >
                   <Settings className="h-3.5 w-3.5" />
-                  Fine-tune your email preferences
+                  Fine-tune account email preferences
                 </a>
               )}
             </div>
           </div>
         )}
 
-        {/* ========== RESUBSCRIBED STATE ========== */}
-        {state === 'resubscribed' && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                <Bell className="h-8 w-8 text-white" />
+        {state === "invalid-token" && (
+          <div className="rounded-2xl bg-white p-8 shadow-lg">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Welcome Back!</h1>
-              <p className="text-purple-100 mt-2 text-sm">
-                You're subscribed to emails again
+              <h1 className="text-xl font-bold text-slate-900">
+                This link can’t be used
+              </h1>
+              <p className="mt-2 text-sm text-slate-600">
+                The creator-update link is malformed or no longer
+                current. No email preference was changed.
               </p>
             </div>
-
-            <div className="px-8 py-6 space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                <CheckCircle className="h-6 w-6 text-green-600 mx-auto mb-2" />
-                <p className="text-green-800 text-sm font-medium">
-                  You'll receive booking updates, opportunity alerts, and weekly digests.
-                </p>
-              </div>
-
+            <div className="space-y-3">
+              <a
+                href="/settings"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-purple-700"
+              >
+                <Settings className="h-4 w-4" />
+                Manage my account settings
+              </a>
               <a
                 href="/"
-                className="flex items-center justify-center w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                className="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Return to Home
               </a>
-
-              {isAuthenticated && (
-                <a
-                  href="/settings"
-                  className="flex items-center justify-center gap-2 text-sm text-purple-600 hover:text-purple-700 transition-colors py-1"
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                  Customize what you receive
-                </a>
-              )}
             </div>
           </div>
         )}
 
-        {/* ========== ERROR STATE ========== */}
-        {state === 'error' && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+        {state === "error" && (
+          <div className="rounded-2xl bg-white p-8 shadow-lg">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                 <AlertTriangle className="h-8 w-8 text-red-500" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900">Something Went Wrong</h1>
-              <p className="text-slate-600 text-sm mt-2">
-                We couldn't process your request. Please try again.
+              <h1 className="text-xl font-bold text-slate-900">
+                Something went wrong
+              </h1>
+              <p className="mt-2 text-sm text-slate-600">
+                We couldn’t process your request. No change was confirmed.
               </p>
             </div>
-
             <div className="space-y-3">
               <button
-                onClick={() => setState('confirm')}
-                className="w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                onClick={() => setState("confirm")}
+                className="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-purple-700"
               >
                 Try Again
               </button>
               <a
                 href="/"
-                className="flex items-center justify-center w-full px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                className="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Return to Home
               </a>
-              <p className="text-slate-500 text-xs text-center mt-4">
-                Having trouble? Contact us at{' '}
-                <a href="mailto:support@ologywood.com" className="text-purple-600 hover:underline">
-                  support@ologywood.com
-                </a>
-              </p>
             </div>
           </div>
         )}
 
-        {/* ========== LOGIN REQUIRED STATE ========== */}
-        {state === 'login-required' && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
+        {state === "login-required" && (
+          <div className="rounded-2xl bg-white p-8 shadow-lg">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
                 <BellOff className="h-8 w-8 text-purple-600" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900">Sign In Required</h1>
-              <p className="text-slate-600 text-sm mt-2">
-                Please sign in to manage your email preferences. This ensures we update the right account.
+              <h1 className="text-xl font-bold text-slate-900">
+                Sign in required
+              </h1>
+              <p className="mt-2 text-sm text-slate-600">
+                For legacy unsubscribe links, sign in to manage only your own
+                authenticated account. Email or user ID values in the link are
+                not used.
               </p>
             </div>
-
             <div className="space-y-3">
               <a
                 href="/api/login"
-                className="flex items-center justify-center w-full px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                className="flex w-full items-center justify-center rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-purple-700"
               >
                 Sign In to Manage Preferences
               </a>
               <a
                 href="/"
-                className="flex items-center justify-center w-full px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                className="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Return to Home
               </a>
-              <p className="text-slate-500 text-xs text-center mt-4">
-                Having trouble? Contact{' '}
-                <a href="mailto:support@ologywood.com" className="text-purple-600 hover:underline">
-                  support@ologywood.com
-                </a>
-              </p>
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <p className="text-center text-slate-400 text-xs mt-6">
-          © 2026 Ologywood. All rights reserved.
+        <p className="mt-6 text-center text-xs text-slate-400">
+          © 2026 OlogyWood. All rights reserved.
         </p>
       </div>
+      </main>
     </div>
   );
 }
