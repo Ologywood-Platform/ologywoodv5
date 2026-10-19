@@ -85,7 +85,7 @@ async function verifyOwner(connection: Pick<SqlConnection, 'execute'>, userId: n
   );
   const profile = profiles[0];
   const memberships = await rows(connection,
-    `SELECT id FROM artist_team_members WHERE userId=? AND role <> 'owner' LIMIT 1${suffix}`,
+    `SELECT id FROM artist_team_members WHERE userId=? AND teamRole <> 'owner' LIMIT 1${suffix}`,
     [userId],
   );
   if (!profile || Number(profile.userId) !== userId || memberships.length || /team member/i.test(String(profile.artistName ?? ''))) {

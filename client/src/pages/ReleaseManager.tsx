@@ -216,7 +216,22 @@ export default function ReleaseManager() {
       {/* Release List */}
       {!showCreateForm && !editingRelease && (
         <div className="space-y-4">
-          {releases.length === 0 ? (
+          {myReleasesQuery.isError ? (
+            <Card className="border-destructive/20" role="alert">
+              <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+                <AlertTriangle className="h-10 w-10 text-destructive" />
+                <h3 className="text-lg font-medium">Could not load your music releases</h3>
+                <p className="max-w-md text-sm text-muted-foreground">The release list is temporarily unavailable. This does not mean your songs were removed. Please try again.</p>
+                <Button variant="outline" onClick={() => void myReleasesQuery.refetch()} disabled={myReleasesQuery.isFetching}>
+                  {myReleasesQuery.isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Retry loading releases
+                </Button>
+              </CardContent>
+            </Card>
+          ) : myReleasesQuery.isLoading ? (
+            <div role="status" className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" /> Loading your music releases…
+            </div>
+          ) : releases.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Music className="h-16 w-16 text-muted-foreground/30 mb-4" />

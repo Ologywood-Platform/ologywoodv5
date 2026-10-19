@@ -6,9 +6,9 @@ const REQUIRED_COLUMNS = ['id', 'profileId', 'kind', 'orderedIds', 'revision', '
 let readyCheck: Promise<void> | null = null;
 
 /**
- * Checks only the additive migration-0118 metadata. This intentionally never
- * creates or changes schema: migration application remains an explicit deploy
- * operation rather than a request-path side effect.
+ * Checks migration-0118 in the actual application database. Managed migration
+ * tools may target a different database. Restore only this absent additive table;
+ * never alter an existing table, rewrite data, or apply unrelated migrations.
  */
 export async function ensureReleaseOrderSchema(executor?: SchemaExecutor): Promise<void> {
   if (executor) {
@@ -29,13 +29,38 @@ export async function ensureReleaseOrderSchema(executor?: SchemaExecutor): Promi
 }
 
 async function inspect(executor: SchemaExecutor): Promise<void> {
-  const [rows] = await executor.execute(
+  const readColumns = () => executor.execute(
     `SELECT column_name
        FROM information_schema.columns
       WHERE table_schema = DATABASE() AND table_name = ?`,
     ['profile_release_orders'],
   );
+  let [rows] = await readColumns();
   if (!Array.isArray(rows)) throw new Error('Could not inspect release-order schema');
+  if (rows.length === 0) {
+    const [tables] = await executor.execute(
+      'SELECT 1 FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? LIMIT 1',
+      ['profile_release_orders'],
+    );
+    if (!Array.isArray(tables)) throw new Error('Could not inspect release-order schema');
+    if (tables.length > 0) throw new Error('Release-order migration is not available');
+    try {
+      await executor.execute(`CREATE TABLE IF NOT EXISTS \`profile_release_orders\` (
+        \`id\` int AUTO_INCREMENT NOT NULL,
+        \`profileId\` int NOT NULL,
+        \`kind\` enum('music','content_singles') NOT NULL,
+        \`orderedIds\` json,
+        \`revision\` int NOT NULL DEFAULT 0,
+        \`updatedAt\` bigint NOT NULL,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uniq_profile_release_order_scope\` (\`profileId\`,\`kind\`)
+      )`);
+    } catch (error: any) {
+      if ((error?.code ?? error?.cause?.code) !== 'ER_TABLE_EXISTS_ERROR') throw error;
+    }
+    [rows] = await readColumns();
+    if (!Array.isArray(rows)) throw new Error('Could not inspect release-order schema');
+  }
   const columns = new Set(rows.map((row: any) => String(row.column_name ?? row.COLUMN_NAME ?? row.Field ?? row.field)));
   if (!REQUIRED_COLUMNS.every(column => columns.has(column))) {
     throw new Error('Release-order migration is not available');

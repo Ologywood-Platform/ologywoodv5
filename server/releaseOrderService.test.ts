@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { artistTeamMembers } from '../drizzle/schema';
 
 const mocks = vi.hoisted(() => ({ getDb: vi.fn(), getPool: vi.fn() }));
 vi.mock('./db', () => ({ getDb: mocks.getDb, getPool: mocks.getPool }));
@@ -54,7 +55,10 @@ function fixture(options: FixtureState = {}) {
     if (sql.startsWith('SET ')) return [[], []];
     if (sql.startsWith('SELECT id FROM users')) return [state.users.map(id => ({ id })), []];
     if (sql.includes('FROM artist_profiles')) return [state.profile ? [state.profile] : [], []];
-    if (sql.includes('FROM artist_team_members')) return [state.memberships, []];
+    if (sql.includes('FROM artist_team_members')) {
+      if (!sql.includes(`${artistTeamMembers.role.name} <> 'owner'`)) throw Object.assign(new Error('Unknown column'), { code: 'ER_BAD_FIELD_ERROR' });
+      return [state.memberships, []];
+    }
     if (sql.includes('FROM profile_release_orders')) return [state.order ? [{ orderedIds: state.order.orderedIds, revision: state.order.revision }] : [], []];
     if (sql.includes('FROM artist_releases')) return [state.music, []];
     if (sql.includes('FROM releases')) return [state.content, []];
@@ -83,6 +87,16 @@ beforeEach(() => {
 });
 
 describe('release order service', () => {
+  it('uses physical teamRole for both state reads and locked writes rather than the TypeScript property alias', async () => {
+    const read = fixture();
+    await getReleaseOrderStateForUser(1, 'music');
+    expect(artistTeamMembers.role.name).toBe('teamRole');
+    expect(read.calls.find(([sql]) => sql.includes('FROM artist_team_members'))?.[0]).toContain("teamRole <> 'owner'");
+    expect(read.calls.find(([sql]) => sql.includes('FROM artist_team_members'))?.[1]).toEqual([1]);
+    await saveReleaseOrderForUser(1, { kind: 'music', expectedRevision: 0, ids: [1, 2, 3] });
+    expect(read.calls.filter(([sql]) => sql.includes('FROM artist_team_members')).at(-1)?.[0]).toContain("teamRole <> 'owner' LIMIT 1 FOR UPDATE");
+  });
+
   it('returns newest-first state by default and custom ranks with new entries appended', async () => {
     fixture({ order: { orderedIds: [1, 2], revision: 4 } });
     await expect(getReleaseOrderStateForUser(1, 'music')).resolves.toEqual({
