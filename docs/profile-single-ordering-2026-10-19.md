@@ -1,7 +1,7 @@
 # Creator-controlled profile single ordering
 
 **Date:** October 19, 2026  
-**Status:** Original checkpoint 25f74a44 was published, then a real loading regression was reported and repaired. The runtime table has been restored and the live public music endpoint returns all nine uploaded songs. The ownership-query/UI repair still needs its new checkpoint published; authenticated production reorder saving is not claimed.
+**Status:** After repair checkpoint dccb4cb4, the owner confirmed "Its working thanks looks good" at 10:35:48. This records user-reported confirmation, not an independent authenticated production-save test. A new quick-guide update is validated and awaits its checkpoint publication. Earlier runtime/public checks returned all nine uploaded songs without changing records.
 
 ## User experience
 
@@ -41,7 +41,7 @@ Browser checks used synthetic admin-owner data and covered lazy reads, cancel du
 
 ## Publication
 
-Publish the new repair checkpoint, then verify the real Music Releases list and reorder opening. The runtime-only table restoration already recovered the deployed public music read (HTTP 200, nine songs), but the corrected protected ownership query and explicit list error UI require publication. Continue using non-mutating checks; do not save a real order merely to demonstrate the repair. The creator can then open the appropriate manager, choose Reorder Singles, arrange their real published singles, and Save Order. Local/mock tests are not claimed as authenticated production ordering or purchase verification. No real release order was changed merely to demonstrate the feature.
+Publish the latest quick-guide checkpoint, which retains the repaired ordering implementation. Verify How to reorder beside Reorder Singles, the visible dialog movement/save tips, and the full-guide Help link without saving a real order merely to demonstrate the UI. The owner already reported the repaired feature working; local/mock guide tests are not claimed as authenticated production saves or purchase verification. No real release order was changed during validation.
 
 ## Reported loading regression and repair — October 19, 2026
 
@@ -65,3 +65,22 @@ The Music Releases list now distinguishes pending, failed, and successfully empt
 | Hygiene | Scoped credential/conflict/artifact scan and diff checks clean; disposable diagnostic/browser fixtures removed |
 
 The original mocked tests passed because they always provided a complete order table and accepted any team-membership query. They did not verify the application’s actual runtime database. The new regressions cover absent-table recovery, upper-case mysql2/TiDB metadata, incomplete existing schema, concurrent creation, permission errors/retry, no broad/data-changing repair, the real teamRole column, and UI error ordering. A separate fan-contact load error seen in existing logs was not part of this release-order repair and was not modified here.
+
+## Artist quick guide — October 19, 2026
+
+At 10:35:48, after checkpoint dccb4cb4, the owner reported the repaired feature working and looking good. At 10:36:50 the owner requested a quick guide or tooltip. Added a reusable **How to reorder** control beside **Reorder Singles** in both existing managers. It opens a click/touch/keyboard-accessible popover rather than hover-only help. Its three steps cover opening the published-single list, desktop grip dragging or mobile/keyboard Move Up/Move Down, and explicit Save Order versus Cancel. It also explains confirmed published-single Reset to Newest, new singles following the saved order, owner-only saving, and unchanged prices/purchases/fan playlists.
+
+Opening the quick guide is entirely static: it triggers no order fetch, mutation, storage, or dismissal of a saved/local arrangement. The component stays within the existing owner gate. Visible movement/save tips inside the reorder dialog and movement-button hover titles reinforce the instructions without changing any existing load/move/save/cancel/reset callbacks or API/schema/security rules.
+
+The guide's full-article link opens Help in a separate tab with the known ordering FAQ selected, expanded, scrolled into view, and keyboard focused. Help resolves only IDs from its existing FAQ catalog and ignores unknown/malformed selectors; no redirect or arbitrary content rendering is introduced. Normal search/category/accordion controls remain functional, with accessible expanded/controlled-answer states. Updated the existing Help answer and deterministic AI guidance to point to the quick guide. No new primary navigation, assets, database changes, order writes, fees, checkout, emails, or real user/content mutations.
+
+| Quick-guide validation | Result |
+|---|---|
+| New permanent tests | 13 passed: touch/keyboard/static guide, owner gating, save/cancel/reset scope, Help-link safety, catalog selector cases, movement titles, AI discoverability |
+| Focused ordering/support suite | 100 passed across 9 files; zero failed |
+| Exact full platform suite | 3,406 passed, zero failed, 23 existing skipped; 3,429 total across 213 files |
+| TypeScript / production build | Passed; Vite 17.05 seconds |
+| Intercepted browser workflow | Both managers at 390px/1440px; actual phone tap, keyboard open/Escape/focus return, zero guide-triggered order reads, expanded in-view Help popup, dialog tips/local movement/Cancel, denied-account hidden guide, zero mutations/page errors/overflow |
+| Visual/hygiene | Mobile popover reviewed; diff/credential/conflict/artifact scan clean; disposable fixtures/screenshots removed |
+
+Publish the guide checkpoint before describing the new help UI as live. This release does not claim an authenticated production save; the owner confirmation for the previous repair and fully intercepted development checks for this addition are recorded separately.

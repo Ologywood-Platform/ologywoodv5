@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { GripVertical, Loader2, MoveDown, MoveUp, RotateCcw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import SingleOrderQuickGuide from "@/components/SingleOrderQuickGuide";
 import {
   Dialog,
   DialogContent,
@@ -202,6 +203,7 @@ export default function ReorderSingles({ ownerAccountId, kind, enabled }: Reorde
       <Button type="button" variant="outline" onClick={() => setDialogOpen(true)}>
         Reorder Singles
       </Button>
+      <SingleOrderQuickGuide kind={kind} />
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); }}>
         <DialogContent
           overlayClassName="z-[70]"
@@ -215,6 +217,10 @@ export default function ReorderSingles({ ownerAccountId, kind, enabled }: Reorde
             <DialogTitle>Reorder Singles</DialogTitle>
             <DialogDescription>{eligibleDescription}</DialogDescription>
           </DialogHeader>
+          <div className="rounded-md border bg-muted/40 p-3 text-sm text-foreground">
+            <p><strong>Quick tip:</strong> Drag the grip handle on desktop, or use <strong>Move Up</strong> / <strong>Move Down</strong> on mobile or with your keyboard.</p>
+            <p className="mt-1 text-muted-foreground">Choose <strong>Save Order</strong> to update your profile. <strong>Cancel</strong> discards unsaved moves.</p>
+          </div>
 
           {(!draft && (sourceLoading || orderQuery.isLoading)) && (
             <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
@@ -279,13 +285,13 @@ export default function ReorderSingles({ ownerAccountId, kind, enabled }: Reorde
                           title="Drag to reorder"
                         >
                           <GripVertical className="h-5 w-5" />
-                        </button>
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium">{item.title}</span>
-                        <div className="flex w-full justify-end gap-1 sm:w-auto sm:shrink-0">
-                          <Button type="button" size="sm" variant="ghost" onClick={() => moveItem(index, index - 1)} disabled={isPending || index === 0} aria-label={`Move ${item.title} up`}>
+                          </button>
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium">{item.title}</span>
+                          <div className="flex w-full justify-end gap-1 sm:w-auto sm:shrink-0">
+                          <Button type="button" size="sm" variant="ghost" onClick={() => moveItem(index, index - 1)} disabled={isPending || index === 0} aria-label={`Move ${item.title} up`} title="Move this single one position up">
                             <MoveUp className="mr-1 h-4 w-4" /> Move Up
                           </Button>
-                          <Button type="button" size="sm" variant="ghost" onClick={() => moveItem(index, index + 1)} disabled={isPending || index === draft.items.length - 1} aria-label={`Move ${item.title} down`}>
+                          <Button type="button" size="sm" variant="ghost" onClick={() => moveItem(index, index + 1)} disabled={isPending || index === draft.items.length - 1} aria-label={`Move ${item.title} down`} title="Move this single one position down">
                             <MoveDown className="mr-1 h-4 w-4" /> Move Down
                           </Button>
                         </div>

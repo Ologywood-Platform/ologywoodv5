@@ -284,7 +284,7 @@ const faqItems: FAQItem[] = [
     id: 'reorder-profile-singles',
     category: 'Content Releases',
     question: 'How do I change the order of singles on my profile?',
-    answer: 'Open Music Releases for uploaded songs, or Content Releases for externally hosted Singles, and choose Reorder Singles from the release list. Drag a single using its handle on desktop, or use Move Up and Move Down on mobile or with your keyboard. Choose Save Order to apply the arrangement to that section of your public profile. Cancel discards unsaved moves. Only published singles are included; drafts and other content types are not moved. Reset to Newest restores the default after confirmation. Newly published singles follow your saved selections until you arrange them. Only the actual creator profile owner can save an order. Changing presentation does not change prices, fees, purchases, previews, downloads, or fan playlists. If another edit or publication changes the list, reload the current order before saving again.',
+    answer: 'Open Music Releases for uploaded songs, or Content Releases for externally hosted Singles, and choose Reorder Singles from the release list. For a quick walkthrough, tap How to reorder beside that button; it opens on mobile or with a keyboard without loading or changing your order. Drag a single using its handle on desktop, or use Move Up and Move Down on mobile or with your keyboard. Choose Save Order to apply the arrangement to that section of your public profile. Cancel discards unsaved moves. Only published singles are included; drafts and other content types are not moved. Reset to Newest restores the default after confirmation. Newly published singles follow your saved selections until you arrange them. Only the actual creator profile owner can save an order. Changing presentation does not change prices, fees, purchases, previews, downloads, or fan playlists. If another edit or publication changes the list, reload the current order before saving again.',
   },
 
   // Subscription & Tier Limits
@@ -786,6 +786,11 @@ const faqItems: FAQItem[] = [
   },
 ];
 
+export function getRequestedHelpArticle(search: string): FAQItem | undefined {
+  const id = new URLSearchParams(search).get('article');
+  return faqItems.find(item => item.id === id);
+}
+
 export default function Help() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -794,6 +799,19 @@ export default function Help() {
   // Set SEO meta tags
   useEffect(() => {
     setMetaTags(pageMetaTags.help);
+  }, []);
+
+  useEffect(() => {
+    const article = getRequestedHelpArticle(window.location.search);
+    if (!article) return;
+    setSelectedCategory(article.category);
+    setExpandedId(article.id);
+    const frame = requestAnimationFrame(() => {
+      const element = document.getElementById(article.id);
+      element?.scrollIntoView({ block: 'start', behavior: 'auto' });
+      element?.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const categories = ['All', ...new Set(faqItems.map(item => item.category))];
@@ -865,8 +883,11 @@ export default function Help() {
         {filteredFAQs.length > 0 ? (
           <div className="space-y-3">
             {filteredFAQs.map(item => (
-              <div key={item.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div key={item.id} id={item.id} className="scroll-mt-24 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                 <button
+                  type="button"
+                  aria-expanded={expandedId === item.id}
+                  aria-controls={`${item.id}-answer`}
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                   className="w-full px-6 py-4 flex items-start justify-between text-left hover:bg-gray-50 transition-colors"
                 >
@@ -882,7 +903,7 @@ export default function Help() {
                   />
                 </button>
                 {expandedId === item.id && (
-                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div id={`${item.id}-answer`} className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <p className="text-gray-700 leading-relaxed">{item.answer}</p>
                   </div>
                 )}
