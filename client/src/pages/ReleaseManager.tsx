@@ -18,9 +18,11 @@ import {
 import { useToast } from "@/components/ErrorToast";
 import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SiteHeader } from "@/components/SiteHeader";
 import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
+import ReorderSingles from "@/components/ReorderSingles";
 import { getAiDisclosureFormValue, type AiDisclosureFormValue, type AiDisclosureRecord } from "@shared/aiDisclosure";
 
 type ReleaseStatus = "draft" | "published" | "archived";
@@ -59,12 +61,27 @@ function MusicReleasePageShell({ children }: { children: ReactNode }) {
 export default function ReleaseManager() {
   const toast = useToast();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingRelease, setEditingRelease] = useState<Release | null>(null);
 
   // Check if artist can create releases
   const canCreateQuery = trpc.release.canCreate.useQuery();
   const myReleasesQuery = trpc.release.getMyReleases.useQuery();
+  // A collaborator may manage other areas, but presentation order belongs only to
+  // the signed-in creator account. The service enforces that again on every call.
+  const isCreatorRole = user?.role === "artist" || user?.role === "admin";
+  const ownerProfileQuery = trpc.artist.getMyProfile.useQuery(undefined, { enabled: isCreatorRole, retry: false });
+  const teamContextQuery = trpc.team.getMyWorkspaceContext.useQuery(undefined, {
+    enabled: isCreatorRole,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const teamContext = teamContextQuery.data && teamContextQuery.data.role !== "owner"
+    ? teamContextQuery.data
+    : null;
+  const isCreatorOwner = isCreatorRole && ownerProfileQuery.isSuccess && ownerProfileQuery.data?.userId === user?.id &&
+    !/team member/i.test(ownerProfileQuery.data?.artistName || "") && teamContextQuery.isSuccess && !teamContext;
 
   const canCreate = canCreateQuery.data;
   const releases = myReleasesQuery.data || [];
@@ -161,10 +178,15 @@ export default function ReleaseManager() {
             </p>
           </div>
         </div>
-        {canCreate?.allowed && !showCreateForm && !editingRelease && (
-          <Button onClick={() => setShowCreateForm(true)} className="shrink-0 self-end sm:self-center">
-            <Plus className="h-4 w-4 mr-2" /> Upload a Song
-          </Button>
+        {!showCreateForm && !editingRelease && (
+          <div className="flex flex-wrap gap-2 self-end sm:self-center">
+            <ReorderSingles ownerAccountId={user?.id} kind="music" enabled={isCreatorOwner} />
+            {canCreate?.allowed && !showCreateForm && !editingRelease && (
+              <Button onClick={() => setShowCreateForm(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Upload a Song
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

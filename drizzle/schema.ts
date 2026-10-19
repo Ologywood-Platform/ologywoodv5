@@ -2252,6 +2252,25 @@ export type ContentRelease = typeof contentReleases.$inferSelect;
 export type InsertContentRelease = typeof contentReleases.$inferInsert;
 
 /**
+ * Creator-controlled presentation order for published release cards only.
+ * This deliberately does not model purchases, delivery, access, or publication.
+ */
+export const profileReleaseOrders = mysqlTable("profile_release_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  kind: mysqlEnum("kind", ["music", "content_singles"]).notNull(),
+  // NULL explicitly means the ordinary newest-first order has been restored.
+  orderedIds: json("orderedIds").$type<number[] | null>(),
+  revision: int("revision").default(0).notNull(),
+  // UTC epoch milliseconds; written by the order service, never by callers.
+  updatedAt: bigint("updatedAt", { mode: "number" }).notNull(),
+}, (table) => ({
+  profileKindUnique: unique("uniq_profile_release_order_scope").on(table.profileId, table.kind),
+}));
+export type ProfileReleaseOrder = typeof profileReleaseOrders.$inferSelect;
+export type InsertProfileReleaseOrder = typeof profileReleaseOrders.$inferInsert;
+
+/**
  * Content Release Purchases - tracks who has purchased/unlocked a content release
  */
 export const contentReleasePurchases = mysqlTable("content_release_purchases", {

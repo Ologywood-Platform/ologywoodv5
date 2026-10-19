@@ -352,8 +352,12 @@ export const releasesRouter = router({
           eq(releases.artistProfileId, input.artistProfileId),
           eq(releases.isPublished, true)
         ))
-        .orderBy(desc(releases.createdAt));
-      return results.map(release => contentReleasePublicView(release));
+        .orderBy(desc(releases.createdAt), desc(releases.id));
+      // Keep non-single content in its existing slots; only published singles
+      // are presentation-ranked. Dynamic import avoids a router/db service cycle.
+      const { applyContentSinglesReleaseOrder } = await import('../services/releaseOrderService');
+      const ordered = await applyContentSinglesReleaseOrder(input.artistProfileId, results);
+      return ordered.map(release => contentReleasePublicView(release));
     }),
 
   // Check if current user has access to a release

@@ -39,6 +39,7 @@ import { parsePortfolioVideoUrl, PORTFOLIO_VIDEO_URL_HELP } from '../shared/vide
 import { TALENT_TYPE_VALUES } from '../shared/talentTypes';
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
+import { releaseOrderRouter } from "./routers/releaseOrder";
 import { blogRouter } from "./routers/blog";
 import { stripeConnectRouter } from "./routers/stripeConnect";
 import { contactRouter } from "./routers/contact";
@@ -177,6 +178,7 @@ export const appRouter = router({
   nilCompliance: nilComplianceRouter,
   discoverySearch: discoverySearchRouter,
   complimentaryAccess: complimentaryAccessRouter,
+  releaseOrder: releaseOrderRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({

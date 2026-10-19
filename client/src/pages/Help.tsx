@@ -280,6 +280,13 @@ const faqItems: FAQItem[] = [
     answer: 'Music is the uploaded-song section, shown in the profile sidebar on wider screens. Fans preview a song and buy its audio download; purchases also appear in My Ology’s music library. Content Releases appear farther down the profile and provide free, paid, or membership-based access to content hosted on YouTube, Spotify, Vimeo or another creator-chosen platform. They do not include a downloadable music file. Project Previews are a separate promotional showcase of upcoming projects and track snippets, not purchase listings. Use Music Releases to sell an audio download and Content Releases to offer hosted access. These sections stay separate so existing purchases and access rights are preserved.',
   },
 
+  {
+    id: 'reorder-profile-singles',
+    category: 'Content Releases',
+    question: 'How do I change the order of singles on my profile?',
+    answer: 'Open Music Releases for uploaded songs, or Content Releases for externally hosted Singles, and choose Reorder Singles from the release list. Drag a single using its handle on desktop, or use Move Up and Move Down on mobile or with your keyboard. Choose Save Order to apply the arrangement to that section of your public profile. Cancel discards unsaved moves. Only published singles are included; drafts and other content types are not moved. Reset to Newest restores the default after confirmation. Newly published singles follow your saved selections until you arrange them. Only the actual creator profile owner can save an order. Changing presentation does not change prices, fees, purchases, previews, downloads, or fan playlists. If another edit or publication changes the list, reload the current order before saving again.',
+  },
+
   // Subscription & Tier Limits
   {
     id: 'tier-1',

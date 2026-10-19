@@ -2371,9 +2371,12 @@ export async function getReleasesByArtistId(artistId: number): Promise<ArtistRel
   const db = await getDb();
   if (!db) return [];
   await ensureArtistReleaseDisclosureSchema(db);
-  return await db.select().from(artistReleases)
+  const releases = await db.select().from(artistReleases)
     .where(eq(artistReleases.artistId, artistId))
-    .orderBy(desc(artistReleases.createdAt));
+    .orderBy(desc(artistReleases.createdAt), desc(artistReleases.id));
+  // Dynamic import avoids the db -> release-order-service -> db initialization cycle.
+  const { applyMusicReleaseOrder } = await import('./services/releaseOrderService');
+  return applyMusicReleaseOrder(artistId, releases);
 }
 
 /**
@@ -2383,12 +2386,15 @@ export async function getPublishedReleasesByArtistId(artistId: number): Promise<
   const db = await getDb();
   if (!db) return [];
   await ensureArtistReleaseDisclosureSchema(db);
-  return await db.select().from(artistReleases)
+  const releases = await db.select().from(artistReleases)
     .where(and(
       eq(artistReleases.artistId, artistId),
       eq(artistReleases.status, 'published')
     ))
-    .orderBy(desc(artistReleases.publishedAt));
+    .orderBy(desc(artistReleases.publishedAt), desc(artistReleases.id));
+  // Dynamic import avoids the db -> release-order-service -> db initialization cycle.
+  const { applyMusicReleaseOrder } = await import('./services/releaseOrderService');
+  return applyMusicReleaseOrder(artistId, releases);
 }
 
 /**

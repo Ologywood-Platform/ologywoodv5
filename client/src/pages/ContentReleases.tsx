@@ -25,6 +25,7 @@ import { EMPTY_AI_DISCLOSURE, getAiDisclosureFormValue, type AiDisclosureFormVal
 import { CONTENT_RELEASE_TYPES, getContentReleaseTypeLabel, getContentReleaseErrorMessage } from "@shared/contentReleaseTypes";
 import { ContentReleaseArtwork, ContentReleaseCoverUpload } from "@/components/ContentReleaseCoverArt";
 import { ContentReleasePreviewUpload } from "@/components/ContentReleasePreview";
+import ReorderSingles from "@/components/ReorderSingles";
 
 // Release type icons
 function getReleaseTypeIcon(type: string) {
@@ -80,6 +81,20 @@ export default function ContentReleases() {
 
   // Fetch options
   const { data: options } = trpc.contentRelease.getOptions.useQuery();
+  // Keep this owner-only in the UI too; releaseOrder separately authorizes the
+  // signed-in creator for its protected read and write procedures.
+  const isCreatorRole = user?.role === "artist" || user?.role === "admin";
+  const ownerProfileQuery = trpc.artist.getMyProfile.useQuery(undefined, { enabled: isCreatorRole, retry: false });
+  const teamContextQuery = trpc.team.getMyWorkspaceContext.useQuery(undefined, {
+    enabled: isCreatorRole,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const teamContext = teamContextQuery.data && teamContextQuery.data.role !== "owner"
+    ? teamContextQuery.data
+    : null;
+  const isCreatorOwner = isCreatorRole && ownerProfileQuery.isSuccess && ownerProfileQuery.data?.userId === user?.id &&
+    !/team member/i.test(ownerProfileQuery.data?.artistName || "") && teamContextQuery.isSuccess && !teamContext;
 
   // Mutations
   function onSaveError(err: { message: string; data?: { code?: string } | null }) {
@@ -427,9 +442,12 @@ export default function ContentReleases() {
             <h1 className="text-2xl font-bold">Content Releases</h1>
             <p className="text-sm text-muted-foreground">Monetize your content — singles, movies, albums, courses, and more</p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)} className="gap-2">
-            <Plus className="h-4 w-4" /> New Release
-          </Button>
+          <div className="flex flex-wrap gap-2 self-end sm:self-center">
+            <ReorderSingles ownerAccountId={user?.id} kind="content_singles" enabled={isCreatorOwner} />
+            <Button onClick={() => setShowCreateForm(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> New Release
+            </Button>
+          </div>
         </div>
 
         <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-950/30">
