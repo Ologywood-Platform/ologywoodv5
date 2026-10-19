@@ -287,6 +287,13 @@ const faqItems: FAQItem[] = [
     answer: 'Open Music Releases for uploaded songs, or Content Releases for externally hosted Singles, and choose Reorder Singles from the release list. For a quick walkthrough, tap How to reorder beside that button; it opens on mobile or with a keyboard without loading or changing your order. Drag a single using its handle on desktop, or use Move Up and Move Down on mobile or with your keyboard. Choose Save Order to apply the arrangement to that section of your public profile. Cancel discards unsaved moves. Only published singles are included; drafts and other content types are not moved. Reset to Newest restores the default after confirmation. Newly published singles follow your saved selections until you arrange them. Only the actual creator profile owner can save an order. Changing presentation does not change prices, fees, purchases, previews, downloads, or fan playlists. If another edit or publication changes the list, reload the current order before saving again.',
   },
 
+  {
+    id: 'edit-share-music-single',
+    category: 'Content Releases',
+    question: 'How do I edit a published single description or share an individual song?',
+    answer: 'Open Music Releases and choose Edit Description on the uploaded single. Add or revise up to 2,000 characters, then Save Description; clearing the text removes it, and Cancel discards unsaved changes. A published single stays live during a description edit: the song, price, purchases, release order, and fan playlists do not change. Only the actual creator profile owner can edit; team membership or admin status alone is not permission. If the description changed elsewhere, reload the saved description before retrying. The existing full Edit form is still for draft-release changes. For sharing, choose Share on a published single in Music Releases or on its public profile card. Copy its individual single-page link or open Facebook, X, LinkedIn, WhatsApp, Email, Text, or Device Share. For Instagram, use the copied link in your bio or a Story link sticker. Fans land on that song with its cover art, description, public preview of up to 30 seconds, and existing purchase options; no paid audio file or private download link is shared. Draft, archived, and taken-down singles cannot be shared publicly. Nothing is posted or emailed automatically, and social sites may retain an older cached preview until refreshed.',
+  },
+
   // Subscription & Tier Limits
   {
     id: 'tier-1',

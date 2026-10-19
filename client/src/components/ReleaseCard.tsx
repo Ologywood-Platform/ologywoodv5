@@ -14,6 +14,9 @@ import { useToast } from "@/components/ErrorToast";
 import { TrackReviewSection } from "@/components/TrackReviewSection";
 import { AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 import type { AiDisclosureRecord } from "@shared/aiDisclosure";
+import { MusicReleaseShareButton } from "@/components/MusicReleaseShareButton";
+import { musicReleasePath } from "@shared/musicReleaseShare";
+import { Link } from "wouter";
 
 const PREVIEW_MAX_SECONDS = 30;
 
@@ -21,6 +24,8 @@ interface ReleaseCardProps {
   release: AiDisclosureRecord & {
     id: number;
     title: string;
+    description?: string | null;
+    currency?: string;
     genre?: string | null;
     priceInCents: number;
     coverArtUrl?: string | null;
@@ -36,9 +41,11 @@ interface ReleaseCardProps {
   artistName: string;
   isOwner?: boolean;
   purchaseId?: number | null;
+  showDescription?: boolean;
+  showDetailsLink?: boolean;
 }
 
-export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }: ReleaseCardProps) {
+export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, showDescription = true, showDetailsLink = true }: ReleaseCardProps) {
   const toast = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -292,6 +299,7 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
           {/* Title */}
           <h3 className="font-semibold text-sm leading-snug break-words [overflow-wrap:anywhere]">{release.title}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{artistName}</p>
+          {showDescription && release.description && <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground [overflow-wrap:anywhere]">{release.description}</p>}
 
           {/* Price */}
           <div className="mt-1.5">
@@ -438,6 +446,10 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId }
                 }
               </Button>
             ) : null}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <MusicReleaseShareButton release={release} artistName={artistName} className="h-8 text-xs" />
+            {showDetailsLink && <Link href={musicReleasePath(release.title, release.id)} className="text-xs font-medium text-primary underline underline-offset-4">View single</Link>}
           </div>
 
           {/* Track Reviews Section */}

@@ -20,6 +20,11 @@ import {
   normalizeAiDisclosure,
 } from "../services/aiReleaseDisclosure";
 import { selectUniquePlayablePurchases } from "../services/myOlogyReleaseLibrary";
+import {
+  getMusicReleaseDescriptionForEditForUser,
+  updateMusicReleaseDescriptionForUser,
+} from "../services/musicReleaseDescriptionService";
+import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from "../services/musicReleasePublicService";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -63,6 +68,38 @@ const artistProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const releaseRouter = router({
+  /** Public-only single page, including for a signed-in owner; never returns paid media. */
+  getPublicSingle: publicProcedure
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
+    .query(async ({ input }) => {
+      try {
+        const release = await getPublicMusicSingle(input.id);
+        if (!release) throw new TRPCError({ code: 'NOT_FOUND', message: 'Release not found' });
+        return release;
+      } catch (error) {
+        if (error instanceof PublicMusicReleaseUnavailableError) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Release temporarily unavailable' });
+        throw error;
+      }
+    }),
+
+  /** Minimal, ownership-scoped description state for the post-release editor. */
+  getDescriptionForEdit: artistProcedure
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      return getMusicReleaseDescriptionForEditForUser(ctx.user.id, input.id);
+    }),
+
+  /** Description-only optimistic update; all release commerce/media fields are excluded. */
+  updateDescription: artistProcedure
+    .input(z.object({
+      id: z.number().int().safe().positive(),
+      description: z.string().max(2000),
+      expectedDescription: z.string().max(2000).nullable(),
+    }).strict())
+    .mutation(async ({ ctx, input }) => {
+      return updateMusicReleaseDescriptionForUser(ctx.user.id, input);
+    }),
+
   /**
    * Check if artist can create a new release (tier gating).
    */

@@ -11,6 +11,7 @@
  *   GET /api/og-image/merch/:id
  *   GET /api/og-image/portfolio-video/:id
  *   GET /api/og-image/sandbox-post/:id
+ *   GET /api/og-image/music/:id
  */
 
 import { Router, Request, Response } from 'express';
@@ -19,12 +20,15 @@ import { getDb } from '../db';
 import { artistProfiles, artistTeamMembers, merchItems, sandboxPosts, users, venueProfiles, videoPortfolio } from '../../drizzle/schema';
 import { and, eq, ne, or } from 'drizzle-orm';
 import { ensureSandboxPostSchema } from '../services/sandboxPostSchemaService';
+import { isTrustedMusicCoverSource } from '../services/musicCoverSource';
+import { getPublicMusicReleaseOgImage, PublicMusicReleaseUnavailableError } from '../services/musicReleasePublicService';
 
 const router = Router();
 
 // Cache converted images for 1 hour to avoid repeated conversions
 const IMAGE_CACHE_SECONDS = 3600;
 const MAX_SOURCE_IMAGE_BYTES = 15 * 1024 * 1024;
+const MAX_SOURCE_IMAGE_PIXELS = 40 * 1024 * 1024;
 
 // Default fallback image URL
 const DEFAULT_OG_IMAGE = 'https://www.ologywood.com/manus-storage/ologywood-platform-og-2026-10-10_f734dc76.png';
@@ -52,14 +56,15 @@ function setCachedImage(key: string, buffer: Buffer): void {
   imageCache.set(key, { buffer, timestamp: Date.now() });
 }
 
-async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
+async function fetchAndConvertToJpeg(imageUrl: string, fit: 'cover' | 'contain' = 'cover', rejectRedirects = false): Promise<Buffer | null> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     const publicOrigin = (process.env.BASE_URL || 'https://www.ologywood.com').replace(/\/$/, '');
     const resolvedImageUrl = imageUrl.startsWith('/') ? `${publicOrigin}${imageUrl}` : imageUrl;
     console.log(`[OG Image Proxy] Fetching: ${resolvedImageUrl}`);
     
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    timeout = setTimeout(() => controller.abort(), 10000); // Covers headers and body reads.
     
     const response = await fetch(resolvedImageUrl, {
       headers: {
@@ -67,10 +72,9 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
         'User-Agent': 'OlogywoodOGProxy/1.0',
       },
       signal: controller.signal,
+      redirect: rejectRedirects ? 'error' : 'follow',
     });
     
-    clearTimeout(timeout);
-
     if (!response.ok) {
       console.error(`[OG Image Proxy] Failed to fetch image: HTTP ${response.status} from ${resolvedImageUrl}`);
       return null;
@@ -93,6 +97,11 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    // The bounded remote read is complete; sharp conversion is local work.
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = undefined;
+    }
 
     if (buffer.length < 100) {
       console.error(`[OG Image Proxy] Image too small (${buffer.length} bytes), likely invalid: ${resolvedImageUrl}`);
@@ -103,11 +112,19 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
       return null;
     }
 
+    const metadata = await sharp(buffer, { limitInputPixels: MAX_SOURCE_IMAGE_PIXELS }).metadata();
+    if (!metadata.width || !metadata.height || metadata.width * metadata.height > MAX_SOURCE_IMAGE_PIXELS) {
+      console.error(`[OG Image Proxy] Source image exceeds pixel limits: ${resolvedImageUrl}`);
+      return null;
+    }
+
     // Convert to JPEG using sharp, resize to 1200x630 (standard OG image dimensions)
     const jpegBuffer = await sharp(buffer)
       .resize(1200, 630, {
-        fit: 'cover',
+        // Music covers are commonly square; contain preserves all artwork.
+        fit,
         position: 'center',
+        background: fit === 'contain' ? { r: 11, g: 14, b: 20, alpha: 1 } : undefined,
       })
       .jpeg({
         quality: 85,
@@ -124,6 +141,8 @@ async function fetchAndConvertToJpeg(imageUrl: string): Promise<Buffer | null> {
       console.error(`[OG Image Proxy] Error converting image from ${imageUrl}:`, error.message);
     }
     return null;
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -155,6 +174,50 @@ async function serveFallbackImage(res: Response, cacheKey: string): Promise<void
   res.setHeader('Cache-Control', 'public, max-age=60');
   res.send(pixel);
 }
+
+/**
+ * The public-service lookup happens before every cache lookup. A former
+ * published image can therefore never be served from memory after a release
+ * becomes draft, archived, or taken down.
+ */
+router.get('/music/:id', async (req: Request, res: Response) => {
+  const releaseId = Number(req.params.id);
+  if (!Number.isSafeInteger(releaseId) || releaseId <= 0) {
+    return res.status(404).send('Not found');
+  }
+
+  try {
+    const image = await getPublicMusicReleaseOgImage(releaseId);
+    if (!image) return res.status(404).send('Not found');
+
+    const cacheKey = image.cacheIdentity;
+    const cached = getCachedImage(cacheKey);
+    if (cached) {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+      return res.send(cached);
+    }
+
+    if (!image.sourceUrl) return serveFallbackImage(res, cacheKey);
+    if (!isTrustedMusicCoverSource(image.sourceUrl)) {
+      console.error('[OG Image Proxy] Refused untrusted music cover source');
+      return res.status(503).send('Service unavailable');
+    }
+
+    const jpegBuffer = await fetchAndConvertToJpeg(image.sourceUrl, 'contain', true);
+    if (!jpegBuffer) return serveFallbackImage(res, cacheKey);
+    setCachedImage(cacheKey, jpegBuffer);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', `public, max-age=${IMAGE_CACHE_SECONDS}`);
+    return res.send(jpegBuffer);
+  } catch (error) {
+    if (error instanceof PublicMusicReleaseUnavailableError) {
+      return res.status(503).send('Service unavailable');
+    }
+    console.error(`[OG Image Proxy] Error for music release ${releaseId}:`, error);
+    return res.status(503).send('Service unavailable');
+  }
+});
 
 router.get('/artist/:id', async (req: Request, res: Response) => {
   const artistId = parseInt(req.params.id, 10);

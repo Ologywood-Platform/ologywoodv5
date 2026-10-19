@@ -23,6 +23,8 @@ import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { SiteHeader } from "@/components/SiteHeader";
 import { AIUseDisclosureFields, AIUseDisclosureTag } from "@/components/AIUseDisclosure";
 import ReorderSingles from "@/components/ReorderSingles";
+import EditMusicDescription from "@/components/EditMusicDescription";
+import { MusicReleaseShareButton } from "@/components/MusicReleaseShareButton";
 import { getAiDisclosureFormValue, type AiDisclosureFormValue, type AiDisclosureRecord } from "@shared/aiDisclosure";
 
 type ReleaseStatus = "draft" | "published" | "archived";
@@ -248,6 +250,9 @@ export default function ReleaseManager() {
                 release={release}
                 onEdit={() => setEditingRelease(release)}
                 onRefresh={() => { myReleasesQuery.refetch(); canCreateQuery.refetch(); }}
+                descriptionEditingEnabled={isCreatorOwner}
+                artistName={ownerProfileQuery.data?.artistName || "OlogyWood Creator"}
+                shareEnabled={isCreatorOwner}
               />
             ))
           )}
@@ -774,10 +779,18 @@ function ReleaseListItem({
   release,
   onEdit,
   onRefresh,
+  descriptionEditingEnabled,
+  artistName,
+  shareEnabled,
 }: {
   release: Release;
   onEdit: () => void;
   onRefresh: () => void;
+  /** Description-only editing is deliberately stricter than the legacy card controls. */
+  descriptionEditingEnabled: boolean;
+  artistName: string;
+  /** Sharing from the manager is also limited to the actual creator-owner. */
+  shareEnabled: boolean;
 }) {
   const toast = useToast();
   const [, navigate] = useLocation();
@@ -858,7 +871,7 @@ function ReleaseListItem({
               <h3 className="font-semibold truncate">{release.title}</h3>
               {statusBadge[release.status as ReleaseStatus] || <Badge variant="outline">{release.status}</Badge>}
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <span>${(release.priceInCents / 100).toFixed(2)}</span>
               {release.genre && <span>{release.genre}</span>}
               <span>{release.totalSales} sales</span>
@@ -873,7 +886,13 @@ function ReleaseListItem({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+            <EditMusicDescription
+              releaseId={release.id}
+              releaseTitle={release.title}
+              enabled={descriptionEditingEnabled}
+              disabled={isActing}
+            />
             {release.status === "draft" && (
               <>
                 <Button
@@ -909,6 +928,7 @@ function ReleaseListItem({
             )}
             {release.status === "published" && (
               <>
+                {shareEnabled && <MusicReleaseShareButton release={release} artistName={artistName} />}
                 <Button
                   size="sm"
                   variant="outline"

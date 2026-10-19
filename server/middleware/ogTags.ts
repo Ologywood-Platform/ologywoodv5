@@ -4,7 +4,9 @@ import { artistProfiles, artistTeamMembers, sandboxPosts, users, venueProfiles, 
 import { and, eq, ne, or, sql } from 'drizzle-orm';
 import { portfolioVideoDescription, portfolioVideoPath } from '../../shared/portfolioVideoShare';
 import { sandboxPostDescription, sandboxPostPath } from '../../shared/sandboxPost';
+import { MUSIC_RELEASE_PUBLIC_ORIGIN, musicReleasePath, musicReleasePrice, parseMusicReleaseId } from '../../shared/musicReleaseShare';
 import { ensureSandboxPostSchema } from '../services/sandboxPostSchemaService';
+import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from '../services/musicReleasePublicService';
 import {
   generateArtistJsonLd,
   generateVenueJsonLd,
@@ -167,11 +169,53 @@ export function ogTagMiddleware() {
       return next();
     }
 
+    // Crawler HTML is only meaningful for safe retrieval methods. In normal
+    // Express requests method is always present; allowing an omitted method
+    // keeps the existing lightweight middleware tests backward compatible.
+    if (req.method && req.method !== 'GET' && req.method !== 'HEAD') {
+      return next();
+    }
+
     const pathname = req.path;
     let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
     baseUrl = baseUrl.replace(/\/$/, '');
 
     try {
+      // Match a public music single before generic SPA handling. The numeric
+      // ID is authoritative, so old/incorrect slugs safely canonicalize to
+      // the current title. Never use Host or BASE_URL for this share URL.
+      const musicMatch = pathname.match(/^\/music\/([^/]+)$/);
+      if (musicMatch) {
+        const releaseId = parseMusicReleaseId(musicMatch[1]);
+        if (releaseId === null) {
+          return res.status(404).set('Content-Type', 'text/plain').send('Not found');
+        }
+        try {
+          const release = await getPublicMusicSingle(releaseId);
+          if (!release) {
+            return res.status(404).set('Content-Type', 'text/plain').send('Not found');
+          }
+          const canonicalUrl = `${MUSIC_RELEASE_PUBLIC_ORIGIN}${musicReleasePath(release.title, release.id)}`;
+          const price = musicReleasePrice(release);
+          const description = `${release.title} by ${release.artistName} — ${price}. ${release.description || 'Preview this single and support its creator on OlogyWood.'}`
+            .slice(0, 240);
+          const html = generateOgHtml({
+            title: `${release.title} by ${release.artistName} — ${price} | OlogyWood`,
+            description,
+            image: `${MUSIC_RELEASE_PUBLIC_ORIGIN}/api/og-image/music/${release.id}`,
+            imageAlt: `Cover art for ${release.title} by ${release.artistName}`,
+            url: canonicalUrl,
+            type: 'product',
+          });
+          return res.status(200).set('Content-Type', 'text/html').send(html);
+        } catch (error) {
+          if (error instanceof PublicMusicReleaseUnavailableError) {
+            return res.status(503).set('Content-Type', 'text/plain').send('Service unavailable');
+          }
+          throw error;
+        }
+      }
+
       // Match homepage /
       if (pathname === '/') {
         const html = generateOgHtml({

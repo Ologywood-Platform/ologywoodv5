@@ -71,6 +71,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Following = lazy(() => import("./pages/Following"));
 const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const ArtistTaxReporting = lazy(() => import("./pages/ArtistTaxReporting"));
+const MusicSingle = lazy(() => import("./pages/MusicSingle"));
 const ReleaseManager = lazy(() => import("./pages/ReleaseManager"));
 const ContentReleases = lazy(() => import("./pages/ContentReleases"));
 const MyPurchases = lazy(() => import("./pages/MyPurchases"));
@@ -215,6 +216,7 @@ function Router() {
           <Route path="/tickets/accept/:code" component={AcceptTransfer} />
           
           {/* White Label Release */}
+          <Route path="/music/:slug">{() => <PageErrorBoundary><MusicSingle /></PageErrorBoundary>}</Route>
           <Route path="/releases">{() => <PageErrorBoundary><ReleaseManager /></PageErrorBoundary>}</Route>
           <Route path="/content-releases">{() => <PageErrorBoundary><ContentReleases /></PageErrorBoundary>}</Route>
           <Route path="/book/:artistId">{(params: any) => <PageErrorBoundary><ClientBooking {...params} /></PageErrorBoundary>}</Route>
