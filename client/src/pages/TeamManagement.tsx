@@ -6,6 +6,7 @@ import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -20,6 +21,8 @@ export function TeamManagement() {
   const { data: members, refetch: refetchMembers } = trpc.team.getMembers.useQuery();
   const { data: pendingInvitations, refetch: refetchInvitations } = trpc.team.getPendingInvitations.useQuery();
   const { data: activityLog } = trpc.team.getActivityLog.useQuery({ limit: 10 });
+  // Collaborators can inspect the team list, but only the account owner sees permission controls.
+  const isOwnerView = Boolean(members?.some((member) => member.userId === user?.id && member.role === 'owner'));
 
   const inviteMutation = trpc.team.invite.useMutation({
     onSuccess: () => {
@@ -55,6 +58,17 @@ export function TeamManagement() {
     },
     onError: (err) => {
       toast.error(err.message);
+    },
+  });
+
+  // Optional persisted field: absent flags intentionally render as false for existing members.
+  const setRiderPermissionMutation = trpc.team.setRiderPermission.useMutation({
+    onSuccess: () => {
+      toast.success('Rider permission updated');
+      refetchMembers();
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Unable to update rider permission');
     },
   });
 
@@ -179,7 +193,7 @@ export function TeamManagement() {
             ) : (
               <div className="space-y-3">
                 {members.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+                  <div key={member.id} className="flex flex-col gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3 min-w-0">
                       {member.userAvatar ? (
                         <img src={member.userAvatar} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
@@ -195,9 +209,21 @@ export function TeamManagement() {
                         <p className="text-xs text-muted-foreground truncate">{member.userEmail}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 self-end sm:self-center">
                       {getRoleBadge(member.role)}
                       {member.role !== 'owner' && (
+                        <>
+                          {isOwnerView && (
+                            <label className="flex items-center gap-2 rounded-md border px-2 py-1 text-xs font-medium" title="Lets this member open and manage private uploaded PDF riders for this artist.">
+                              <Switch
+                                checked={member.permissions?.manageRiders === true}
+                                onCheckedChange={(manageRiders) => setRiderPermissionMutation.mutate({ memberId: member.id, manageRiders })}
+                                disabled={setRiderPermissionMutation.isPending}
+                                aria-label={`Manage Riders permission for ${member.userName || 'team member'}`}
+                              />
+                              Manage Riders
+                            </label>
+                          )}
                         <div className="flex items-center gap-1">
                           <select
                             value={member.role}
@@ -220,6 +246,7 @@ export function TeamManagement() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
+                        </>
                       )}
                     </div>
                   </div>

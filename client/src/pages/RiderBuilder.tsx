@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useLocation, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -44,6 +44,7 @@ import {
   MapPin,
   Film,
   Video,
+  Upload,
 } from "lucide-react";
 import PageBreadcrumb from '@/components/PageBreadcrumb';
 import { HelperNote } from '@/components/HelperNote';
@@ -52,6 +53,7 @@ import { ContractFormProgress, FieldValidationMessage, NILComplianceChecklist } 
 import { useContractValidation } from '@/hooks/useContractValidation';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import { SiteHeader } from "@/components/SiteHeader";
+import { UploadedRiderLibrary, type UploadedRiderLibraryCapability } from "@/components/UploadedRiderLibrary";
 
 // ============= TYPE DEFINITIONS =============
 
@@ -156,7 +158,42 @@ function getTemplateIcon(iconName: string) {
 
 export default function RiderBuilder() {
   const [, navigate] = useLocation();
+  const search = useSearch();
   const { user, loading: authLoading } = useAuth();
+  const requestedOwnerValue = new URLSearchParams(search).get("ownerUserId");
+  const requestedOwnerUserId = requestedOwnerValue && /^\d+$/.test(requestedOwnerValue)
+    ? Number(requestedOwnerValue)
+    : undefined;
+  // An owner-scoped link to the signed-in owner is still the normal owner My Riders page.
+  const requestedTeamLibrary = requestedOwnerUserId !== undefined && requestedOwnerUserId !== user?.id;
+  const teamContextQuery = trpc.team.getMyWorkspaceContext.useQuery(undefined, {
+    // A target-owner URL is only valid after this signed-in user's own membership is resolved.
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: "always",
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const teamContextMatchesRequestedOwner = !!teamContextQuery.data
+    && teamContextQuery.data.artistUserId === requestedOwnerUserId
+    && teamContextQuery.data.role !== "owner"
+    // The flag is optional for existing memberships; only literal true grants access.
+    && teamContextQuery.data.permissions?.manageRiders === true;
+  const collaboratorLibraryReady = requestedTeamLibrary && teamContextQuery.isSuccess && teamContextMatchesRequestedOwner && !teamContextQuery.isFetching;
+  const isCollaborator = !!teamContextQuery.data && teamContextQuery.data.role !== "owner";
+  const ownLibraryReady = !!user && teamContextQuery.isSuccess && !teamContextQuery.isFetching && !requestedTeamLibrary && !isCollaborator;
+  useEffect(() => {
+    if (!requestedTeamLibrary && teamContextQuery.isSuccess && !teamContextQuery.isFetching && isCollaborator) {
+      navigate(`/rider-builder?ownerUserId=${teamContextQuery.data!.artistUserId}`, { replace: true });
+    }
+  }, [requestedTeamLibrary, teamContextQuery.isSuccess, teamContextQuery.isFetching, isCollaborator, teamContextQuery.data?.artistUserId, navigate]);
+  const [libraryCapability, setLibraryCapability] = useState<UploadedRiderLibraryCapability>({ ready: false, canUpload: false });
+  const [uploadRequestToken, setUploadRequestToken] = useState(0);
+  const handleLibraryCapability = useCallback((capability: UploadedRiderLibraryCapability) => {
+    setLibraryCapability((current) => (
+      current.ready === capability.ready && current.canUpload === capability.canUpload ? current : capability
+    ));
+  }, []);
 
   // State
   const [mode, setMode] = useState<"list" | "pick_template" | "edit">("list");
@@ -178,30 +215,30 @@ export default function RiderBuilder() {
 
   // Check for existing draft on mount
   useEffect(() => {
-    if (user?.id && mode === 'list' && autoSave.hasDraft()) {
+    if (ownLibraryReady && user?.id && mode === 'list' && autoSave.hasDraft()) {
       setShowDraftBanner(true);
     }
-  }, [user?.id, mode]);
+  }, [user?.id, mode, ownLibraryReady]);
 
   // Auto-save on form changes (only in edit mode)
   useEffect(() => {
-    if (mode === 'edit' && !editingTemplateId) {
+    if (ownLibraryReady && mode === 'edit' && !editingTemplateId) {
       autoSave.saveDraft(formData, riderName, selectedTemplateType);
     }
-  }, [formData, riderName, selectedTemplateType, mode, editingTemplateId]);
+  }, [formData, riderName, selectedTemplateType, mode, editingTemplateId, ownLibraryReady]);
 
   // Fetch artist profile to determine talent type
   const { data: artistProfile } = trpc.artist.getMyProfile.useQuery(undefined, {
-    enabled: !!user,
+    enabled: ownLibraryReady,
   });
 
   // tRPC
   const { data: myTemplates, refetch: refetchTemplates, isLoading: templatesLoading } =
-    trpc.rider.getMyTemplates.useQuery(undefined, { enabled: !!user });
+    trpc.rider.getMyTemplates.useQuery(undefined, { enabled: ownLibraryReady });
 
   const { data: defaultTemplate } = trpc.rider.getDefaultTemplate.useQuery(
     { templateType: selectedTemplateType },
-    { enabled: mode === "edit" && !templateStructure }
+    { enabled: ownLibraryReady && mode === "edit" && !templateStructure }
   );
 
   const createMutation = trpc.rider.createTemplate.useMutation({
@@ -565,6 +602,77 @@ export default function RiderBuilder() {
     );
   }
 
+  // A team-targeted URL is intentionally a different My Riders context: never render or request
+  // the signed-in collaborator's legacy templates while resolving another owner's private library.
+  if (requestedTeamLibrary) {
+    if (teamContextQuery.isLoading || teamContextQuery.isFetching) {
+      return (
+        <div className="min-h-screen bg-background">
+          <SiteHeader />
+          <div className="container mx-auto flex min-h-[55vh] max-w-3xl items-center justify-center px-4">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          </div>
+        </div>
+      );
+    }
+
+    if (!collaboratorLibraryReady) {
+      return (
+        <div className="min-h-screen bg-background">
+          <SiteHeader />
+          <main className="container mx-auto flex min-h-[55vh] max-w-3xl items-center justify-center px-4 py-8">
+            <Card className="w-full max-w-lg text-center">
+              <CardContent className="p-8">
+                <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
+                <h1 className="mt-4 text-xl font-bold">Rider library unavailable</h1>
+                <p className="mt-2 text-sm text-muted-foreground">This link is only available to a team member managing the selected artist’s riders.</p>
+                <Button className="mt-6" variant="outline" onClick={() => navigate("/workspace")}>Return to Team Workspace</Button>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <header className="border-b bg-background">
+          <div className="container mx-auto flex max-w-3xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/workspace")} className="shrink-0">
+                <ArrowLeft className="h-4 w-4 mr-1.5" /><span className="hidden sm:inline">Workspace</span>
+              </Button>
+              <div>
+                <h1 className="text-lg font-bold sm:text-xl">{teamContextQuery.data?.artistName || "Team"} Riders</h1>
+                <p className="text-xs text-muted-foreground sm:text-sm">Private PDF riders for the artist you support</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setUploadRequestToken((token) => token + 1)}
+              className="gap-2 self-end bg-purple-600 hover:bg-purple-700 sm:self-auto"
+              disabled={!libraryCapability.canUpload}
+            >
+              <Upload className="h-4 w-4" /> Upload PDF
+            </Button>
+          </div>
+        </header>
+        <main className="container mx-auto max-w-3xl px-4 py-6">
+          <UploadedRiderLibrary
+            ownerUserId={requestedOwnerUserId}
+            enabled={collaboratorLibraryReady}
+            uploadRequestToken={uploadRequestToken}
+            onCapabilityChange={handleLibraryCapability}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  if (!ownLibraryReady) {
+    return <div className="min-h-screen bg-background"><SiteHeader /><main className="container mx-auto max-w-3xl px-4 py-12 text-center">{teamContextQuery.isError ? "Rider access could not be checked. Refresh and try again." : "Checking your rider workspace…"}</main></div>;
+  }
+
   // ============= TEMPLATE PICKER MODE =============
 
   if (mode === "pick_template") {
@@ -584,7 +692,8 @@ export default function RiderBuilder() {
 
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
+        <SiteHeader />
+        <header className="border-b bg-background/95 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-3 flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={resetForm}>
               <ArrowLeft className="h-4 w-4" />
@@ -666,7 +775,7 @@ export default function RiderBuilder() {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
+        <header className="border-b bg-background/95 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={resetForm}>
@@ -790,7 +899,8 @@ export default function RiderBuilder() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
+      <SiteHeader />
+      <header className="border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="shrink-0">
@@ -804,6 +914,16 @@ export default function RiderBuilder() {
           </div>
           <div className="flex items-center gap-3 self-end sm:self-center">
             <HelperNotesToggle />
+            <Button
+              variant="outline"
+              onClick={() => setUploadRequestToken((token) => token + 1)}
+              disabled={!libraryCapability.canUpload}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">Upload PDF</span>
+              <span className="sm:hidden">Upload</span>
+            </Button>
             <Button onClick={startNew} className="gap-2 bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4" />
               New Rider
@@ -813,12 +933,19 @@ export default function RiderBuilder() {
       </header>
 
       <div className="container mx-auto px-4 py-6 max-w-3xl">
-                <PageBreadcrumb
+        <PageBreadcrumb
           className="mb-4"
           segments={[
             { label: 'Dashboard', href: '/dashboard' },
             { label: 'My Riders' },
           ]}
+        />
+
+        <UploadedRiderLibrary
+          ownerUserId={user.id}
+          enabled={ownLibraryReady}
+          uploadRequestToken={uploadRequestToken}
+          onCapabilityChange={handleLibraryCapability}
         />
 
         {/* Draft Restore Banner */}
@@ -852,7 +979,7 @@ export default function RiderBuilder() {
           <Card className="border-dashed border-2">
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="font-semibold text-lg mb-2">No riders yet</h3>
+              <h3 className="font-semibold text-lg mb-2">No built rider templates yet</h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
                 A rider tells clients what you need for your booking — logistics, compensation, requirements, and terms. Create one to attach to bookings.
               </p>

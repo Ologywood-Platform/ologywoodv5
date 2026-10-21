@@ -25,6 +25,7 @@ import { RiderAttach } from "@/components/RiderAttach";
 import { RiderRevisionPanel } from "@/components/RiderRevisionPanel";
 import { NILContractViewer } from "@/components/NILContractViewer";
 import { VenueContractSection } from "@/components/VenueContractSection";
+import { BookingRiderDocuments } from "@/components/BookingRiderDocuments";
 import { Star } from "lucide-react";
 import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { BookingDetailSkeleton } from "@/components/SkeletonLoader";
@@ -581,6 +582,8 @@ export default function BookingDetail() {
             hasRider={!!booking.riderTemplateId}
             onRiderAttached={() => refetch()}
           />
+
+          <BookingRiderDocuments bookingId={bookingId} />
 
           {/* Rider Contract & E-Signature */}
           {booking.riderTemplateId && (

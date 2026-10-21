@@ -2179,6 +2179,8 @@ export const artistTeamMembers = mysqlTable("artist_team_members", {
   permissions: json("permissions").$type<{
     editProfile: boolean;
     manageBookings: boolean;
+    /** Explicit persisted opt-in only; absent legacy permissions never grant rider access. */
+    manageRiders?: boolean;
     sendMessages: boolean;
     manageCalendar: boolean;
     uploadMedia: boolean;
@@ -2784,3 +2786,61 @@ export const scheduleReminderReceipts = mysqlTable("schedule_reminder_receipts",
   ownerSourceIdx: index("idx_schedule_receipts_owner_source").on(table.ownerUserId, table.source, table.sourceId),
 }));
 export type ScheduleReminderReceipt = typeof scheduleReminderReceipts.$inferSelect;
+
+/**
+ * Private uploaded rider library. The current-version pointer intentionally has
+ * no FK so a document can be created before its immutable first version is
+ * inserted in the same transaction.
+ */
+export const riderDocuments = mysqlTable("rider_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  currentVersionId: int("currentVersionId"),
+  revision: int("revision").default(1).notNull(),
+  isDefault: boolean("isDefault").default(false).notNull(),
+  archivedAt: timestamp("archivedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  ownerAvailabilityIdx: index("idx_rider_documents_owner_available").on(table.ownerUserId, table.archivedAt, table.isDefault),
+}));
+export type RiderDocument = typeof riderDocuments.$inferSelect;
+export type InsertRiderDocument = typeof riderDocuments.$inferInsert;
+
+/** Immutable encrypted-object records. Replacements only add a new row. */
+export const riderDocumentVersions = mysqlTable("rider_document_versions", {
+  id: int("id").autoincrement().primaryKey(),
+  documentId: int("documentId").notNull(),
+  ownerUserId: int("ownerUserId").notNull(),
+  versionNumber: int("versionNumber").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  storageKey: varchar("storageKey", { length: 1024 }).notNull(),
+  byteSize: int("byteSize").notNull(),
+  pageCount: int("pageCount").notNull(),
+  sha256: varchar("sha256", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  documentVersionUnique: unique("uniq_rider_document_versions_document_number").on(table.documentId, table.versionNumber),
+  documentIdx: index("idx_rider_document_versions_document").on(table.documentId),
+  ownerIdx: index("idx_rider_document_versions_owner").on(table.ownerUserId),
+}));
+export type RiderDocumentVersion = typeof riderDocumentVersions.$inferSelect;
+export type InsertRiderDocumentVersion = typeof riderDocumentVersions.$inferInsert;
+
+/** Frozen booking attachment snapshots; historical versions are never removed. */
+export const bookingRiderDocumentLinks = mysqlTable("booking_rider_document_links", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  documentId: int("documentId").notNull(),
+  versionId: int("versionId").notNull(),
+  titleSnapshot: varchar("titleSnapshot", { length: 255 }).notNull(),
+  attachedByUserId: int("attachedByUserId").notNull(),
+  attachedAt: timestamp("attachedAt").defaultNow().notNull(),
+}, (table) => ({
+  bookingVersionUnique: unique("uniq_booking_rider_document_link_version").on(table.bookingId, table.versionId),
+  bookingIdx: index("idx_booking_rider_document_links_booking").on(table.bookingId),
+  versionIdx: index("idx_booking_rider_document_links_version").on(table.versionId),
+}));
+export type BookingRiderDocumentLink = typeof bookingRiderDocumentLinks.$inferSelect;
+export type InsertBookingRiderDocumentLink = typeof bookingRiderDocumentLinks.$inferInsert;

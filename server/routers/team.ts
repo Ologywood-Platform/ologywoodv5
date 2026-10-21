@@ -6,6 +6,7 @@ import { artistTeamMembers, artistTeamInvitations, artistTeamActivityLog, users,
 import { eq, and, desc } from "drizzle-orm";
 import * as db from "../db";
 import crypto from "crypto";
+import { setTeamRiderPermission } from "../services/riderTeamPermissionService";
 // Email sending is done via dynamic import of '../email'
 
 // Default permissions by role
@@ -18,6 +19,7 @@ const DEFAULT_PERMISSIONS = {
     uploadMedia: true,
     viewEarnings: true,
     manageTeam: true,
+    manageRiders: true,
   },
   manager: {
     editProfile: true,
@@ -27,6 +29,7 @@ const DEFAULT_PERMISSIONS = {
     uploadMedia: true,
     viewEarnings: true,
     manageTeam: false,
+    manageRiders: true,
   },
   team_member: {
     editProfile: false,
@@ -36,6 +39,7 @@ const DEFAULT_PERMISSIONS = {
     uploadMedia: true,
     viewEarnings: false,
     manageTeam: false,
+    manageRiders: false,
   },
 };
 
@@ -56,6 +60,11 @@ const teamAccessProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const teamRouter = router({
+  // Existing members without this persisted flag remain denied until the owner grants it.
+  setRiderPermission: protectedProcedure
+    .input(z.object({ memberId: z.number().int().safe().positive(), manageRiders: z.boolean() }).strict())
+    .mutation(({ ctx, input }) => setTeamRiderPermission(ctx.user.id, input.memberId, input.manageRiders)),
+
   // Resolve only the signed-in user's own collaborator context for the shared Workspace.
   getMyWorkspaceContext: protectedProcedure.query(async ({ ctx }) => {
     const database = await getDb();

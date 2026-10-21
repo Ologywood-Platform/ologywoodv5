@@ -60,7 +60,13 @@ const faqItems: FAQItem[] = [
     id: 'booking-4',
     category: 'Booking & Contracts',
     question: 'What is a rider and how do I create one?',
-    answer: 'A rider is a document listing technical requirements (sound, lighting, stage specs), hospitality needs, and special requests. Artists can build rider templates using the Rider Builder in their Dashboard. Choose from structured templates or create custom ones. When a booking is confirmed, attach your rider so the venue knows exactly what you need. Available on Starter and Professional plans.',
+    answer: 'A rider lists technical requirements, hospitality needs, and special requests. In My Riders, talent can keep using the existing Rider Builder or upload their own PDF. Creating or uploading riders requires Starter or higher. Uploaded PDFs can be selected as a default for future bookings or attached as supplemental requirements; uploading does not automatically sign a contract or change booking prices. Existing structured rider contracts and e-signatures remain separate.',
+  },
+  {
+    id: 'rider-upload-guide',
+    category: 'Booking & Contracts',
+    question: 'How do I upload my own rider and let my manager manage it?',
+    answer: 'Open My Riders and choose Upload My Rider. Name it, select a PDF up to 10 MB and 100 pages, then save. Password-protected, malformed, or unsafe interactive PDFs are rejected; export a plain PDF and retry. Owners and authorized team members can preview/download privately. In Team Management, the talent owner can enable Manage Riders for an existing member; role or Upload Media permission alone is not enough. A manager uses the talent’s Team Workspace and the talent’s plan, not a separate artist account. Replacing a PDF saves a new version; versions already attached to bookings remain unchanged. Removing a rider from the library archives it for future use and does not erase historical booking attachments. Choose Set as default for future bookings or Attach PDF in a booking; its participants receive access to that frozen version. Starter or higher is required for uploads, replacement, defaults, and new attachments, while existing authorized documents remain viewable after a downgrade. Uploading a rider does not sign, accept, or price a contract.',
   },
   {
     id: 'booking-5',

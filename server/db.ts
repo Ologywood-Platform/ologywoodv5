@@ -828,15 +828,8 @@ export async function deleteRiderTemplate(id: number): Promise<void> {
 
 export async function createBooking(data: InsertBooking): Promise<Booking> {
   await ensureScheduleSchema();
-  const db = await getDb();
-  if (!db) {
-    throw new Error('Database not available');
-  }
-
-  const result = await db.insert(bookings).values(data);
-  const bookingId = (result as any)[0].insertId;
-  const booking = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
-  return booking[0] as Booking;
+  const { createBookingWithRiderDocument } = await import('./services/bookingRiderCreationService');
+  return createBookingWithRiderDocument(data);
 }
 
 export async function getBookingById(id: number): Promise<Booking | undefined> {

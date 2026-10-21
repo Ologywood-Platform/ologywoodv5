@@ -86,6 +86,11 @@ export default function Workspace() {
   const events: any[] = eventsQuery.data || [];
   const profileSlug = isCreator && profile?.artistName ? toSlug(profile.artistName) : null;
   const scheduleOwnerUserId = role === 'team' ? teamContextQuery.data?.artistUserId : undefined;
+  // Existing invitations may not have the optional rider flag; missing remains denied by default.
+  const canManageTeamRiders = role === 'team' && teamContextQuery.data?.permissions?.manageRiders === true;
+  const teamRiderHref = canManageTeamRiders && teamContextQuery.data?.artistUserId
+    ? `/rider-builder?ownerUserId=${teamContextQuery.data.artistUserId}`
+    : null;
 
   const attentionItems = useMemo<AttentionItem[]>(() => {
     if (!user) return [];
@@ -163,6 +168,7 @@ export default function Workspace() {
     { label: `${teamContextQuery.data?.artistName || 'Creator'} profile`, description: 'Open the public profile connected to your team access', href: teamContextQuery.data?.artistName ? `/artist/${toSlug(teamContextQuery.data.artistName)}` : '/team', icon: UserRound },
     { label: 'Messages', description: 'Continue conversations for the creator account you support', href: '/messages', icon: MessageCircle },
     { label: 'Team access', description: 'Review your membership and the permissions the account owner granted', href: '/team', icon: Users },
+    ...(teamRiderHref ? [{ label: 'My Riders', description: 'Manage the owner’s private uploaded PDF rider library', href: teamRiderHref, icon: ClipboardList }] : []),
   ] : [
     { label: 'My Ology', description: 'Open your tickets, purchases, bookings, library, and follows', href: '/my-ology', icon: UserRound },
   ];

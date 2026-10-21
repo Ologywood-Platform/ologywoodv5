@@ -27,6 +27,8 @@ import { emailTestingRouter } from "./routers/emailTesting";
 import { pricingRouter } from "./routers/pricing";
 import { riderRouter } from "./routers/rider";
 import { riderContractRouter } from "./routers/riderContract";
+import { bookingRiderDocumentsRouter } from "./routers/bookingRiderDocuments";
+import { riderDocumentsRouter } from "./routers/riderDocuments";
 import { venueContractRouter } from "./routers/venueContract";
 import { followsRouter } from "./routers/follows";
 import { eventsRouter } from "./routers/events";
@@ -162,6 +164,8 @@ export const appRouter = router({
   schedule: scheduleRouter,
   pricing: pricingRouter,
   rider: riderRouter,
+  bookingRiderDocuments: bookingRiderDocumentsRouter,
+  riderDocuments: riderDocumentsRouter,
   follows: followsRouter,
   artistUpdates: artistUpdatesRouter,
   payout: payoutRouter,
