@@ -4966,3 +4966,13 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] No real profile/user/booking/rider/contract/payment/permission writes, checkout/signature/email during validation. Only one unreferenced synthetic encrypted storage object created, never attached to a record; disposable scripts/images removed before checkpoint.
 - [ ] Publish the latest validated checkpoint, then verify live controls/Help/privacy non-mutatively. Real owner upload/manager grant/booking attachment requires the user's own action; authenticated production behavior is not claimed by local/mocked checks.
 - Implementation record: `docs/uploaded-riders-implementation-2026-10-20.md`.
+
+## UPLOADED RIDER HOW THIS WORKS QUICK GUIDE (Oct 20, 2026)
+- [x] Static accessible How this works beside Upload PDF for existing owner/authorized manager libraries; exact upload/save/default/attach/archive steps, PDF limits/plain export, owner plan, Manage Riders/Team Workspace, private access and frozen versions. No new primary destination or data calls from opening help.
+- [x] Link directly to existing expanded rider-upload-guide Help article in safe labeled new tab; align Help/AI with Upload PDF/Save Upload/Set default/Archive and deterministic rider help/guide questions.
+- [x] Fix real short-phone popup clipping using viewport plus available Radix height/internal scrolling; preserve existing context gates and above-Terms layering. Global onboarding unchanged; dismissed only in synthetic fixtures.
+- [x] Exact checks: 85 focused/12 files; full 3,566 passed, 23 existing skipped, zero failed (3,589 total/232 files); TypeScript/build passed (16.92s); scoped hygiene clean; 8 new permanent guide regressions.
+- [x] Fully intercepted 320x620/390x900/1440x900 owner/manager touch/keyboard/Escape/focus, reachable Help/new-tab/expanded article, no guide rider calls, downgrade guide and denied no-fetch checks passed; zero real mutations/page errors/overflow; mobile screenshots inspected and disposable files removed before checkpoint.
+- [x] No changes to rider storage/encryption, permission or plan behavior, booking attachments/contracts, fees/payments, navigation or real records.
+- [ ] Publish the latest combined rider/guide checkpoint and verify live guide/Help/AI non-mutatively; production availability is not asserted by local/mocked checks.
+- Record: `docs/uploaded-riders-implementation-2026-10-20.md`.

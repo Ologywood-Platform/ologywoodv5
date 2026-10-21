@@ -48,3 +48,17 @@ No real account, profile, booking, rider, contract, payment, consent, or permiss
 ## Publication and production check
 
 Publish the validated checkpoint, then verify My Riders/Team Management/booking PDF controls, Help and assistant guidance, and signed-out privacy boundaries on production. Authenticated production upload, owner permission grant, and real booking attachment are not asserted by local/mocked checks and should be performed only at the user’s initiative. Existing uploaded files depend on retaining the configured encryption key.
+
+## “How this works” quick guide — October 20, 2026
+
+Added a static, touch- and keyboard-accessible popover beside **Upload PDF** in the existing owner/authorized-manager Uploaded Riders card. It explains plain-PDF preparation and 10 MB/100-page limits, Upload PDF/Save Upload, Set default versus Attach PDF, the owner’s Starter-or-higher plan, exact Manage Riders permission and Team Workspace, immutable booking versions, Archive, private access, and non-signing behavior. Its **Read the full guide** link opens the existing `rider-upload-guide` Help article expanded in a safely isolated new tab. No new page or primary navigation destination was added.
+
+Help and deterministic AI instructions now use the actual Upload PDF, Save Upload, Set default and Archive labels; rider help/guide questions resolve to those instructions without a model call. Opening the popover makes no rider read, upload, or mutation call. The existing context/ownership guards remain unchanged, and authorized downgraded users can access the guide while paid upload controls remain disabled.
+
+The first short-phone test caught a real anchored-popup clipping issue. The final popup is bounded by both the viewport and Radix’s available popup height, scrolls internally, and stays above the existing Terms notice. The independent global onboarding overlay was dismissed only in synthetic test contexts; product onboarding was not modified.
+
+**Exact final checks:** 85 focused tests across 12 files; full platform **3,566 passed, 23 existing skipped, zero failed** (3,589 total, 232 files); TypeScript and production build passed (16.92 seconds), and scoped diff/credential/conflict/artifact checks passed. Eight new permanent quick-guide regressions cover copy, static behavior, context gating, responsive bounds, safe article linking, and deterministic support routing.
+
+Fully intercepted browser checks passed at 320×620, 390×900 and 1440×900 for owner and authorized-manager contexts, real touch, keyboard Enter/Escape/focus return, scrolling to the reachable Help link, expanded correct Help article in a new tab, unchanged source page, zero extra rider calls from opening the guide, downgraded guide availability, and denied-context non-fetch/non-display. Zero real API mutations, page errors or horizontal overflow. Final short-phone and mobile screenshots were visually inspected.
+
+Only the new static component, its library mount, Help/AI copy/routing, regression tests, and documentation changed. Rider upload/storage/encryption, permissions, plans, booking attachments, contracts, payments, fees, and real records were not modified. **The latest combined rider/guide checkpoint still needs publication and non-mutating production verification.**

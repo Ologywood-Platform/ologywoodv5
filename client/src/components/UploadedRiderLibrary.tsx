@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import RiderUploadQuickGuide from "@/components/RiderUploadQuickGuide";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -446,9 +447,12 @@ export function UploadedRiderLibrary({
               Private PDF riders for {context.artistName}. Current versions can be attached to new bookings.
             </CardDescription>
           </div>
-          <Button type="button" size="sm" className="w-full shrink-0 gap-2 sm:w-auto" onClick={() => setUploadOpen(true)} disabled={isBusy || !context.planAllowed}>
-            <Upload className="h-4 w-4" /> Upload PDF
-          </Button>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+            <RiderUploadQuickGuide />
+            <Button type="button" size="sm" className="grow shrink-0 gap-2 sm:grow-0" onClick={() => setUploadOpen(true)} disabled={isBusy || !context.planAllowed}>
+              <Upload className="h-4 w-4" /> Upload PDF
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {!context.planAllowed && (
