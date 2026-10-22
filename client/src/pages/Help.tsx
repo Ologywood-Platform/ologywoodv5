@@ -36,6 +36,12 @@ const faqItems: FAQItem[] = [
     question: 'How do I set up my artist profile?',
     answer: 'After selecting the Artist role, complete the onboarding form with your bio, genres, location, and pricing. Upload a professional profile photo. Then visit Edit Profile from your Dashboard to add social links, tip links (Cash App, Venmo, etc.), and media. Set your availability calendar so venues can see when you are free.',
   },
+  {
+    id: 'video-portfolio-manage-guide',
+    category: 'Getting Started',
+    question: 'How do I correct a saved video title or rearrange my Video Portfolio?',
+    answer: 'Open Artist Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the text, and choose Save Title; no re-upload is needed. Choose Reorder Videos to arrange clips with the desktop drag handle or Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or reorder; an admin role or team membership alone does not grant access. If the saved title or list changed elsewhere, your draft is retained: reload the current version before retrying and confirm before discarding your draft. Preparing videos can be arranged, but are not publicly playable until existing processing finishes. Editing a title or order never changes the video file, thumbnail, category, share link, or moderation status. Existing active videos stay visible; this feature does not add pre-screening. Viewer reports and review against the platform guidelines remain the moderation process.',
+  },
 
   // Booking & Contracts
   {

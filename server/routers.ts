@@ -38,6 +38,7 @@ import { venueRouter } from "./routers/venue";
 import { notifyFansProfileUpdate } from "./services/fanNotificationService";
 import { ensureVideoPortfolioSchema } from './services/videoPortfolioSchemaService';
 import { parsePortfolioVideoUrl, PORTFOLIO_VIDEO_URL_HELP } from '../shared/videoPortfolio';
+import { videoPortfolioManagementRouter } from './routers/videoPortfolioManagement';
 import { TALENT_TYPE_VALUES } from '../shared/talentTypes';
 import { artistUpdatesRouter } from "./routers/artistUpdates";
 import { releaseRouter } from "./routers/release";
@@ -183,6 +184,7 @@ export const appRouter = router({
   discoverySearch: discoverySearchRouter,
   complimentaryAccess: complimentaryAccessRouter,
   releaseOrder: releaseOrderRouter,
+  videoPortfolioManagement: videoPortfolioManagementRouter,
 
   // Contract dashboard - list all contracts for the current user
   contractDashboard: router({
@@ -906,7 +908,7 @@ export const appRouter = router({
         if (!pool) return [];
         await ensureVideoPortfolioSchema(pool as any);
         const [rows] = await pool.execute(
-          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status = ? ORDER BY sortOrder ASC, createdAt DESC',
+          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status = ? ORDER BY sortOrder ASC, createdAt DESC, id DESC',
           [input.artistProfileId, 'active']
         );
         return (rows as any[]) || [];
@@ -939,7 +941,11 @@ export const appRouter = router({
       }),
 
     getMyVideoPortfolio: artistProcedure
-      .query(async ({ ctx }) => {
+      .input(z.object({ ownerAccountId: z.number().int().safe().positive() }).strict().optional())
+      .query(async ({ ctx, input }) => {
+        if (input && input.ownerAccountId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Video portfolio account does not match this session.' });
+        }
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) return [];
         const { getPool } = await import('./db');
@@ -947,7 +953,7 @@ export const appRouter = router({
         if (!pool) return [];
         await ensureVideoPortfolioSchema(pool as any);
         const [rows] = await pool.execute(
-          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status != ? ORDER BY sortOrder ASC, createdAt DESC',
+          'SELECT * FROM video_portfolio WHERE artistProfileId = ? AND status != ? ORDER BY sortOrder ASC, createdAt DESC, id DESC',
           [profile.id, 'removed']
         );
         return (rows as any[]) || [];

@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,10 @@ import {
   startPortfolioUpload,
   uploadPortfolioChunk,
 } from '@/lib/portfolioVideoUpload';
+import EditPortfolioVideoTitle from '@/components/EditPortfolioVideoTitle';
+import ReorderPortfolioVideos from '@/components/ReorderPortfolioVideos';
+import VideoPortfolioQuickGuide from '@/components/VideoPortfolioQuickGuide';
+import type { VideoPortfolioManagementContext } from '@shared/videoPortfolioManagement';
 
 const VIDEO_CATEGORIES = [
   { value: 'highlights', label: 'Highlights', color: 'bg-amber-100 text-amber-800' },
@@ -54,6 +59,25 @@ const AUTHOR_VIDEO_CATEGORIES = [
 
 type VideoCategory = typeof VIDEO_CATEGORIES[number]['value'];
 
+/** The older list endpoint returns loose SQL rows, so safely narrow them locally. */
+type PortfolioVideoListItem = {
+  id: number;
+  title: string;
+  category: string;
+  thumbnailUrl?: string | null;
+  status?: string;
+};
+
+function isPortfolioVideoListItem(value: unknown): value is PortfolioVideoListItem {
+  if (!value || typeof value !== 'object') return false;
+  const row = value as Record<string, unknown>;
+  return Number.isSafeInteger(row.id)
+    && typeof row.title === 'string'
+    && typeof row.category === 'string'
+    && (row.thumbnailUrl === undefined || row.thumbnailUrl === null || typeof row.thumbnailUrl === 'string')
+    && (row.status === undefined || typeof row.status === 'string');
+}
+
 export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addMode, setAddMode] = useState<'url' | 'upload'>('url');
@@ -67,7 +91,47 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
-  const { data: videos = [], isLoading } = trpc.artist.getMyVideoPortfolio.useQuery();
+  const { user, isAuthenticated } = useAuth();
+  const currentAccountId = typeof user?.id === 'number' ? user.id : null;
+  // Context verifies the signed-in profile owner. No protected management state
+  // requests are rendered until this has positively resolved for this account.
+  const managementContextQuery = trpc.videoPortfolioManagement.context.useQuery(undefined, {
+    enabled: isAuthenticated && currentAccountId !== null,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
+
+  useEffect(() => {
+    // The endpoint has no input key, therefore drop/refetch it when the session
+    // account changes so a former owner's context never becomes reusable.
+    void utils.videoPortfolioManagement.context.invalidate();
+    if (currentAccountId !== null) void managementContextQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAccountId]);
+
+  const managementContext: VideoPortfolioManagementContext | null =
+    !managementContextQuery.isError && !managementContextQuery.isFetching
+      && managementContextQuery.data
+      && managementContextQuery.data.ownerAccountId === currentAccountId
+      && managementContextQuery.data.artistProfileId > 0
+      ? managementContextQuery.data
+      : null;
+
+  // The optional owner input is checked against the session by the existing API.
+  // It also gives each account a distinct private-list cache key.
+  const videoListInput = useMemo(
+    () => currentAccountId === null ? undefined : { ownerAccountId: currentAccountId },
+    [currentAccountId],
+  );
+  const videoListQuery = trpc.artist.getMyVideoPortfolio.useQuery(
+    videoListInput,
+    { enabled: Boolean(managementContext), staleTime: 0, refetchOnMount: 'always', retry: false },
+  );
+  const videoList = managementContext && !videoListQuery.isError && Array.isArray(videoListQuery.data)
+    ? (videoListQuery.data as unknown[]).filter(isPortfolioVideoListItem)
+    : [];
 
   const addVideo = trpc.artist.addPortfolioVideo.useMutation({
     onSuccess: () => {
@@ -287,25 +351,47 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Video className="h-5 w-5 text-primary" />
             <CardTitle className="text-lg">Video Portfolio</CardTitle>
-            <Badge variant="secondary" className="text-xs">{(videos as any[]).length}/10</Badge>
+            <Badge variant="secondary" className="text-xs">{videoList.length}/10</Badge>
           </div>
-          {!showAddForm && (videos as any[]).length < 10 && (
-            <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} className="gap-1">
-              <Plus className="h-4 w-4" /> Add Video
-            </Button>
-          )}
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
+            {managementContext && !showAddForm && (
+              <>
+                <ReorderPortfolioVideos context={managementContext} />
+                <VideoPortfolioQuickGuide />
+              </>
+            )}
+            {managementContext && !showAddForm && videoList.length < 10 && (
+              <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} className="gap-1">
+                <Plus className="h-4 w-4" /> Add Video
+              </Button>
+            )}
+          </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           Add up to 10 short clips (2 minutes or less) to showcase your work. Paste a YouTube or Vimeo link, or upload MP4, MOV, WebM, AVI, or MKV.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isAuthenticated && currentAccountId !== null && managementContextQuery.isError && (
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+            <span>Video title and ordering controls could not be verified. Your videos have not changed.</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void managementContextQuery.refetch()}
+              disabled={managementContextQuery.isFetching}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
         {/* Add Form */}
-        {showAddForm && (
+        {managementContext && showAddForm && (
           <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
             <input
               ref={fileInputRef}
@@ -437,19 +523,27 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
         )}
 
         {/* Video List */}
-        {isLoading ? (
+        {videoListQuery.isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading videos...</div>
-        ) : (videos as any[]).length === 0 ? (
+        ) : videoListQuery.isError ? (
+          <div role="alert" className="space-y-3 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <p>We could not load your video portfolio. This does not mean your videos were removed.</p>
+            <Button type="button" size="sm" variant="outline" onClick={() => void videoListQuery.refetch()} disabled={videoListQuery.isFetching}>
+              {videoListQuery.isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Retry
+            </Button>
+          </div>
+        ) : videoList.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Video className="h-10 w-10 mx-auto mb-2 opacity-40" />
             <p className="text-sm">No videos yet. Add your first clip to get started.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {(videos as any[]).map((video: any) => {
+            {videoList.map((video) => {
               const catInfo = getCategoryInfo(video.category);
               return (
-                <div key={video.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                <div key={video.id} className="flex flex-wrap items-center gap-3 p-3 border rounded-lg sm:flex-nowrap">
                   <div className="flex-shrink-0 w-16 h-12 bg-black rounded overflow-hidden">
                     {video.thumbnailUrl ? (
                       <img src={video.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -459,12 +553,16 @@ export function VideoPortfolioManager({ talentType }: { talentType?: string }) {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{video.title}</div>
-                    <Badge className={`text-[10px] mt-1 ${catInfo.color}`} variant="secondary">
-                      {catInfo.label}
-                    </Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="break-words text-sm font-medium">{video.title}</div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <Badge className={`text-[10px] ${catInfo.color}`} variant="secondary">
+                        {catInfo.label}
+                      </Badge>
+                      {video.status === 'processing' && <Badge variant="outline" className="text-[10px]">Preparing</Badge>}
+                    </div>
                   </div>
+                  {managementContext && <EditPortfolioVideoTitle context={managementContext} videoId={video.id} />}
                   <Button
                     size="icon"
                     variant="ghost"
