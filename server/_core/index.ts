@@ -36,6 +36,7 @@ import { premiereRemindersHandler } from '../routes/scheduledPremiereReminders';
 import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
 import { sessionRemindersHandler } from '../handlers/sessionReminders';
+import { assertProductionNodeRuntime, runtimeHealthHandler } from '../services/runtimeSecurityService';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -57,6 +58,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  assertProductionNodeRuntime();
   console.log('[Server] Starting Ologywood server...');
   const app = express();
   const server = createServer(app);
@@ -113,11 +115,8 @@ async function startServer() {
   
   // Health check endpoints (must be before rate limiting)
   // /health works in dev, /api/health works in production (CDN catches non-/api paths)
-  const healthHandler = (req: any, res: any) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-  };
-  app.get('/health', healthHandler);
-  app.get('/api/health', healthHandler);
+  app.get('/health', runtimeHealthHandler);
+  app.get('/api/health', runtimeHealthHandler);
 
   // Sitemap and robots.txt routes (BEFORE Vite setup)
   app.use('/', sitemapRoutes);

@@ -103,6 +103,8 @@ const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) =
 });
 
 export const appRouter = router({
+  system: systemRouter,
+
   // Debug endpoint for testing input parsing
   debug: router({
     testPublicInput: publicProcedure

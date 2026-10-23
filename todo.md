@@ -4987,3 +4987,12 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] No real video/profile/user/moderation/payment/permission record changes or actual uploads, removals, playback, or external shares during validation.
 - [ ] Publish the latest validated checkpoint, then verify deployed owner controls and Help non-mutatively. Authenticated production edits/reorders remain the creator's own action; local/mocked validation is not a production-save claim.
 - Implementation record: `docs/video-portfolio-title-and-ordering-2026-10-22.md`.
+
+## NODE.JS 22.23.4 PRODUCTION SECURITY UPDATE (Oct 23, 2026)
+- [x] Owner authorized exact production update; pin existing official Node 22.23.4 bookworm-slim image by manifest digest, preserve FFmpeg/certificates/pnpm/server command, add matching .nvmrc.
+- [x] Fail production startup before serving on any other actual Node version; non-cached minimal public runtimeVerified health response and administrator-only actual-version query, registered in the real app router. No public environment/version/secret/path exposure.
+- [x] Official binary checksum verified; native Sharp/bcrypt smoke passed; full exact suite under Node22.23.4: 3,617 passed, 23 existing skipped, zero failed (3,640 total); TypeScript/build passed. Runtime and existing FFmpeg regressions strengthened; scoped hygiene clean.
+- [x] Compiled local production mode HTTP200/runtimeVerified true/no-store; anonymous exact-version HTTP403; old22.13.0 production startup rejected before serving. Synthetic local server stopped; no real data/key/payment/permission writes.
+- [x] User reports no suspicious Stripe activity in seven days; not a proof of no exposure. Stripe API keys/webhook settings unchanged; no forensic host-cleanup claim or unrelated sandbox process replacement.
+- [ ] Publish this checkpoint through the project UI (no direct Publish tool in this session), then verify fresh live health, private exact-version denial, and non-mutating homepage/profile/Shop. Live Node22.23.4 not claimed until observed.
+- Deployment record: `docs/node-runtime-security-update-2026-10-23.md`.

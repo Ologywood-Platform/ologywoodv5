@@ -218,7 +218,7 @@ describe('Video Portfolio authenticated chunk sessions', () => {
     const dockerfile = readFileSync(resolve(process.cwd(), 'Dockerfile'), 'utf8');
     const manager = readFileSync(resolve(process.cwd(), 'client/src/components/VideoPortfolioManager.tsx'), 'utf8');
     const conversion = readFileSync(resolve(process.cwd(), 'server/services/videoPortfolioConversion.ts'), 'utf8');
-    expect(dockerfile).toContain('FROM node:22-slim');
+    expect(dockerfile).toMatch(/^FROM node:22\.23\.4-bookworm-slim@sha256:[a-f0-9]{64}$/m);
     expect(dockerfile).toContain('ffmpeg ca-certificates');
     expect(dockerfile).toContain('corepack pnpm run build');
     expect(dockerfile).toContain('CMD ["node", "dist/index.js"]');
