@@ -16,13 +16,15 @@ The exact final full suite passed **3,617 tests**, with **23 existing skipped te
 
 A compiled production-mode local server returned HTTP 200 with `runtimeVerified: true` and no-cache health headers. An anonymous request to the exact-version API returned HTTP 403. Starting the same production bundle with Node.js 22.13.0 failed before serving. The temporary production-mode server was stopped after the checks; no user, profile, booking, contract, appointment, release, payment, or permission record was edited.
 
-## Publication status and live checks
+## Verified production deployment
 
-**The code is validated and ready for publication. Live production Node.js 22.23.4 is not yet asserted.** This session exposes checkpoint creation but no direct production Publish action. The owner has authorized the deployment; the remaining operational step is to click Publish for this checkpoint in the project interface.
+**Checkpoint `635e737c` was published by the owner and verified live on October 23, 2026. Production is running the required Node.js 22.23.4 runtime.** The public verification value is computed from the actual process version and is true only when it exactly equals `22.23.4`; it is not a configured version string.
 
-Before publication, the normal production browser returned HTTP 200 from `/api/health` with only the old `status` and `timestamp` response. `system.runtime` was absent with HTTP 404. After publication, verify fresh `/api/health` responses on the production domains show `runtimeVerified: true`; verify anonymous exact-version access returns HTTP 403. With an authorized administrator session, the protected query can additionally show the actual version as `22.23.4`. Also verify the public homepage, a talent profile, and Shop load without performing checkout, upload, signup, or other real record mutations.
+Before publication, `/api/health` had only the old `status` and `timestamp` fields and `system.runtime` was absent with HTTP 404. After publication, fresh normal-browser requests on `www.ologywood.com` returned HTTP 200, `runtimeVerified: true`, and `Cache-Control: no-store, max-age=0` at 15:43:12 and 15:43:13 UTC. The managed `ologywood-mp6flm6c.manus.space` domain returned the same verified result at 15:44:41 UTC. Anonymous `system.runtime` requests returned HTTP 403 on both domains. No administrator login or private version response was needed for this exact-version verification.
 
-No production container build or live-runtime result is claimed by local validation. Existing development service processes were not globally restarted by installing the isolated validation binary. A successful production check confirms the newly deployed application process, not all historical environments or a forensic clean bill of health.
+The public homepage, Adonis profile, and Shop rendered after deployment. The profile's music finished loading with no displayed music error, its Creator Shop was visible, and it had one shared header. No checkout, upload, signup, playback, purchase, external share, or record mutation was performed. The closeout changes only this documentation and the tracker; deployed application code remains the fully tested checkpoint.
+
+Live verification is separate from the local tests and confirms the newly deployed application process, not all historical environments or a forensic clean bill of health. Existing development service processes were not globally restarted by installing the isolated validation binary. This deployment task is complete; no further publication is required for the documentation-only closeout.
 
 ## Stripe and incident boundary
 
