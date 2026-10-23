@@ -28,7 +28,7 @@ Live verification is separate from the local tests and confirms the newly deploy
 
 ## Stripe and incident boundary
 
-The owner reports seeing no suspicious Stripe activity during the last seven days. This is useful but does not prove credentials were never exposed. No Stripe API keys, webhook secrets, payment settings, or account records were changed in this task. API-key rotation remains a separate coordinated action. Keep the working webhook URL and its mode-specific signature verification intact. Preserve production evidence before any incident cleanup; this runtime update is not a host-forensics investigation.
+The owner reports seeing no suspicious Stripe activity during the last seven days. This is useful but does not prove credentials were never exposed. This runtime-update task itself did not change Stripe credentials or payment settings. The subsequent default test-client repair, test/live signing correction, sandbox purchase and real test-event delivery are now closed; see [the credential verification record](stripe-test-key-update-2026-10-23.md). Do not repeat those completed actions. Only replacement default production API-key usage and old live API-key retirement remain separately unverified in the tracker. Keep the working webhook URL and mode-specific signature verification intact. This completed runtime update is not a host-forensics investigation or a forensic clean bill of health.
 
 ## References
 

@@ -1,85 +1,74 @@
-# Stripe test credentials and default-client repair — October 23, 2026
+# Stripe credential repair and webhook verification — October 23, 2026
 
-## Status
+## Closed work — do not reopen
 
-The owner correctly updated **`VITE_STRIPE_PUBLISHABLE_KEY`, `STRIPE_TEST_SECRET_KEY`, and `STRIPE_TEST_WEBHOOK_SECRET`**. The request to duplicate the new values into protected default fields was based on an incorrect assumption about which settings the owner had saved; those duplicate updates are no longer required for this repair.
+**The default test-client repair, test/live webhook signing correction, sandbox purchase check, and Stripe-originated test delivery are complete.** The owner published checkpoint `f186c97b`; production verification was recorded in documentation-only checkpoint `9df30408`. No additional publication, secret entry, purchase, or event replay is required for these completed issues.
 
-Read-only Stripe account/balance requests accept the dedicated test API key and identify the intended OlogyWood account in test mode. The configured publishable key has test publishable-key format. Local cryptographic tests accept the new test signing secret and reject cross-mode claims; read-only Stripe metadata confirms an enabled test destination using the existing webhook URL.
+Both production domains accept their corrected test and live signing secrets with HTTP 200 and `{received: true}`. Stripe Workbench records the existing sandbox Checkout event as **200 OK — Delivered** at **14:33:44 EDT**, and the independent test event API reports **zero pending webhooks**. Wrong-mode signatures remain rejected with HTTP 400.
 
-The legacy default test API key is rejected by Stripe with HTTP 401. The app previously instantiated ten default Stripe client paths from that legacy value even though verified test webhook follow-ups already preferred the dedicated test key. This was a client-selection mismatch, not an environment synchronization problem or an error in the owner's three field names.
+Earlier failed deliveries and temporary deployment responses are historical evidence, not outstanding work. The successful final delivery supersedes the earlier signature-mismatch attempts. Do not repeat the completed setup or testing merely because older Stripe logs retain failed attempts.
 
-**Current status, 14:36 EDT: the owner published fresh checkpoint f186c97b. Both production domains now acknowledge corrected live and test signatures with HTTP 200. The existing $0.50 sandbox Checkout event was retried once after that fresh publication; Stripe Workbench records “200 OK — Delivered” at 14:33:44 EDT with `{received: true}`, and the read-only event API reports zero pending webhooks. The signing-secret mismatch and provider-delivery check are resolved. No second purchase or real-money charge occurred; all synthetic fixture row checks remain zero. This verifies the sandbox payment, isolated purchase/library behavior and real Stripe-to-production test delivery, not real-money purchase fulfillment, creator payout, inbox delivery, default production API-key usage or retirement of old live API keys.**
+## Repairs implemented
 
-## Minimal repair
+The owner saved the dedicated test API key, test signing secret and test publishable key in the correct project settings. The initial request to duplicate these into protected default fields was withdrawn. The actual test-client defect was that ten default Stripe constructors still used the rejected legacy test API key.
 
-`getDefaultStripeApiKey` preserves the existing primary mode. If that primary mode is test, it uses the already-configured dedicated `STRIPE_TEST_SECRET_KEY`. If the primary mode is live, it retains the original primary live key exactly; a separate live webhook API override cannot change default live account selection. Missing/unknown primary mode and wrong-mode dedicated test credentials fail closed. Existing same-mode legacy fallback remains only when no dedicated test key is configured; an invalid configured dedicated key or provider authentication failure does not trigger fallback or a mode switch.
+`getDefaultStripeApiKey` now uses the dedicated rotated test key when the existing primary mode is test. It preserves the exact original primary live key when the primary mode is live. Missing, unknown or wrong-mode configuration fails closed without switching modes or falling back after authentication failure. All ten constructor integrations retain their API versions, request payloads, Connect routing and business rules. The separate explicit webhook-mode API selector remains unchanged.
 
-All ten raw default client constructors now call that resolver. Their Stripe API-version options, request payloads, account/destination lookups, authorization, subscription products, and transaction behavior are unchanged. The existing explicit webhook-mode client resolver remains separate and unchanged. Hosted Content Release paths already using that explicit selector for test mode remain untouched.
+Mode-specific signing secrets supersede generic secrets for the same mode. The existing cross-mode ambiguity guard rejects identical test/live signing values; event `livemode` must match the verified signing mode. With the owner's separate approvals, the signing values were corrected through secure forms and matched to their exact Stripe destinations through one-way comparisons. No plaintext secret was printed or committed, and the secret display was hidden after comparison.
 
-When a dedicated signing secret exists for a mode, it supersedes the generic signing secret for that same mode. An old generic test signature is therefore no longer accepted after the test-secret rotation. The same precedence rule applies to an explicit live signing secret, while generic live support remains when no explicit live secret exists. Configuring the same signing value for test and live is rejected rather than silently deduplicated. Event `livemode` enforcement remains intact.
+The final matching configuration became accepted in production after the fresh checkpoint publication. The precise internal cause of the preceding deployment/configuration difference was not independently established; do not invent a confirmed caching or hosting root cause.
 
-No protected environment value was overwritten in code or through a `.env` file. No secret value was logged, returned by an endpoint, asserted in a real-key test, or committed.
+## Sandbox purchase and real provider delivery
 
-## Existing commerce preserved
+| Item | Verified result |
+|---|---|
+| Actual Stripe-hosted Checkout | $0.50 USD, Stripe public fake card, explicitly test mode |
+| Session / PaymentIntent | Paid / succeeded; no real-money charge |
+| Application test harness | Actual single Checkout, webhook, library and stream code; in-memory database, captured email and local test audio |
+| Isolated fulfillment | One receipt and one library item; sequential replay did not duplicate the receipt |
+| Stream access | Unauthorized streaming denied; test audio returned |
+| Production provider delivery | Stripe-originated `checkout.session.completed`, HTTP 200, response `{received: true}` |
+| Pending webhook count | Zero after the successful retry |
+| Real application fixture rows | Zero matching release, profile, user and purchase records after successful delivery |
 
-Stripe Connect account and transfer routing are unchanged. Existing platform-fee amounts—including the existing 1% single-release/pay-what-you-want mechanism—and subscription, Fan Club, booking, merch, ticketing, tips, and Ology Live business rules are not rewritten. The payment-module diff is exclusively a resolver import and constructor argument replacement. There are no schema changes or account/customer/creator data writes.
+The harness did not create real creator/profile/purchase records. Its synthetic payment is intentionally absent from real My Ology. The owner-approved retries reused the same event; no second purchase, live charge, refund, customer, Connect transfer, payout or actual email send occurred. The temporary customer/event-subscription proposal was never performed.
 
-The test-client code repair did not modify live credential values or default live selection. The owner subsequently saved live replacements; the read-only and synthetic verification below does not prove the deployed default Checkout client uses the replacement API key or that the old live API key is revoked. The previously published Node.js 22.23.4 production patch is unchanged.
+The test destination remains `we_1TYHyTAjAqXCmw11dOtjgZK7`; the live destination remains `we_1TXZ7SAjAqXCmw11rLDR7XYp`. Both retain `https://ologywood-mp6flm6c.manus.space/api/stripe/webhook` and their eleven original subscribed events. Fees, schemas, account permissions, publication rules and application payment logic were not changed during the signing correction.
 
-## Exact validation
+### Retained audit identifiers
+
+- Session: `cs_test_b1aupw8Uhne6MTcPTaAcOzTNJxMv5zCnQIwK8IF6r1P3ki6wlTeEGFmbpq`
+- Event: `evt_1UTmgRAjAqXCmw11pSWngVGu`
+- Successful delivery attempt: `wc_1UTnHgAjAqXCmw11aeOZwBup`
+- Delivered: October 23, 2026, 14:33:44 EDT
+- Published corrected configuration: `f186c97b`
+- Verified delivery closeout: `9df30408`
+
+## Validation evidence
 
 | Check | Result |
 |---|---|
 | Focused client/selection/webhook/configuration regressions | 29 passed, zero failed |
-| Explicit read-only real test credential validation | 4 passed, zero failed |
-| Full platform suite | 3,633 passed, 23 existing skipped, zero failed; 3,656 total |
+| Explicit read-only/signature configuration validation | 4 passed, zero failed |
+| Full platform suite for unchanged repair code | 3,633 passed, 23 existing skipped, zero failed; 3,656 total |
 | TypeScript | Passed |
 | Production build under Node.js 22.23.4 | Passed, 17.84 seconds |
-| Repaired development health | HTTP 200 |
-| Constructor-only payment diff and scoped credential/conflict hygiene | Passed |
+| Corrected test and live signature probes | HTTP 200 on both production domains |
+| Wrong-mode signature probes | HTTP 400 |
+| Primary-domain normal-browser health | HTTP 200, status `ok`, `runtimeVerified: true` |
+| Credential/diff hygiene and real fixture isolation | Passed |
 
-The real-credential test is opt-in. Ordinary test runs make no external requests or real-secret reads through this test. Validation covers effective default-key equality with the dedicated test key, intended account/test mode, retired generic signing rejection, mode isolation, unchanged live selection, all constructor integrations, and actual shared-client construction with synthetic mocks.
+The real-credential validator is opt-in; its ordinary tests do not make external requests. Saved test and live API keys passed read-only intended-account/mode validation. The Node.js 22.23.4 deployment remains unchanged and verified; see [the runtime deployment record](node-runtime-security-update-2026-10-23.md).
 
-Local signing proves the app accepts its configured secret; it does **not** prove that Stripe uses that secret for the destination. No provider-originated event was delivered as part of these tests. Deployed new-key usage and a real purchase are not asserted.
+A Python outbound health request received HTTP 403, while the independent normal-browser health check succeeded. That client-path response is not an unresolved application outage. Documentation-only maintenance does not require repeating the completed application test suite or redeploying the application.
 
-## Production verification and live/test boundary
+## Separate verification limits — not reopened defects
 
-After publication, normal-browser checks confirmed homepage, public artist music/merch sections, Shop and Pricing render. The primary domain's uncached health returned HTTP 200 and `runtimeVerified: true`, preserving the Node.js 22.23.4 guard. Both production domains accepted an unsupported test probe signed with the new dedicated test signing secret with HTTP 200; both rejected the retired generic test signature with HTTP 400. The unsupported event reaches no financial or application-data writer.
+These checks do not establish real-money purchase fulfillment, creator payout, inbox delivery, concurrent retry safety, exact replacement publishable-key equality, or use of the replacement API key by the default production Checkout client. They also do not prove retirement of the old live API key. The remaining security follow-up is explicitly separate in `todo.md`.
 
-Production's loaded Pricing helper contains a live publishable key, not the saved development test publishable key. This is a frontend-mode observation, not proof of the production server's current secret-key value or successful live-secret rotation. No production mode switch was made. Read-only Stripe metadata confirms the existing test destination is enabled with its original eleven event selections, but the test account returned no retained events to resend. The proposed temporary test customer/event-subscription change has not been approved or performed.
+Do not mark those facts verified without evidence. Do not rotate or revoke further keys, replay unrelated events, change fees/URLs/event selections, create another purchase, or issue a refund automatically. A later real-money purchase requires its own authorization. The completed webhook/signing/sandbox work must not be reopened to answer that separate question.
 
-Test and live credentials are separate. Replacing test keys does not rotate a potentially exposed live secret key. Stripe recommends rotating potentially compromised secret keys and confirming requests use the replacement before retiring the old key. Webhook signing secrets are separate from API keys; replace the live signing setting if its particular endpoint secret was rolled. A purchase through live Checkout uses real money and may incur processing/platform fees; it is not a sandbox test and does not by itself prove credential retirement. Sources: [Stripe API keys](https://docs.stripe.com/keys) and [Stripe compromised-key response](https://support.stripe.com/questions/protecting-against-compromised-api-keys).
+## Sources
 
-## Live credential follow-up — October 23, 2026, 13:42 EDT
-
-The saved `STRIPE_LIVE_SECRET_KEY` passed real read-only account and balance requests: intended OlogyWood account and `livemode: true`. Read-only metadata confirms an enabled live webhook destination at the existing OlogyWood URL. No balance amounts, customer details, secret values or request headers were printed. Live and test signing values are distinct.
-
-Initial production probes returned HTTP 404, and the custom-domain browser showed a Manus not-found page. A subsequent managed deployment-success notification was observed, followed by recovered custom and managed domains. Fresh unsupported probes signed with the saved live secret and saved test secret each returned HTTP 200 with `{received: true}` on both domains. The current Pricing page renders, its loaded assets contain a live publishable key and no test publishable key, and uncached production health returns HTTP 200 with `runtimeVerified: true`. Exact equality of the deployed publishable key with the owner's replacement is not asserted because the development environment exposes its separate test setting.
-
-Existing client/selection/webhook/configuration regressions were rerun under Node.js 22.23.4: 29 passed, zero failed or skipped. No application-source code was changed in this follow-up; previous full-suite, typecheck and build results apply to the unchanged code. The synthetic ignored event verifies signing configuration, not Stripe-originated delivery or payment fulfillment. No temporary customer was created and no webhook event selections were changed.
-
-## Controlled sandbox purchase and signing correction — 13:47–14:25 EDT
-
-The owner authorized a test purchase, followed by correction of the test signing secret and replay of only the resulting isolated event, then separately authorized correction of the live signing secret. The actual hosted Stripe Checkout processed $0.50 USD using Stripe's public fake card. Both the session and PaymentIntent were explicitly verified as test mode; payment status is paid and the PaymentIntent succeeded. No real card, live charge, refund, payout, customer, or Connect transfer was created.
-
-The harness invoked the actual uploaded-Music-Single Checkout route, webhook handler and purchase/library/stream procedures, but replaced application database, email and media dependencies with in-memory fixtures and local test audio. It produced one isolated receipt and one library item, denied unauthorized streaming, returned playable test audio, and captured rather than sent the email. Replaying the retained event sequentially did not duplicate the receipt. This is not proof of concurrent retry safety, real My Ology persistence, creator payout or inbox delivery. All four synthetic release/profile/user/purchase row checks remained zero in the real runtime database after the actual provider event.
-
-Session: `cs_test_b1aupw8Uhne6MTcPTaAcOzTNJxMv5zCnQIwK8IF6r1P3ki6wlTeEGFmbpq`. Event: `evt_1UTmgRAjAqXCmw11pSWngVGu`. Stripe Workbench showed HTTP 400 and “No signatures found matching the expected signature for payload” for the test endpoint, including the approved manual retry at 14:22:16 EDT. Stripe's event retained one pending webhook. No unrelated financial events were replayed, and there was no second purchase.
-
-The test destination is `we_1TYHyTAjAqXCmw11dOtjgZK7`; the live destination is `we_1TXZ7SAjAqXCmw11rLDR7XYp`. Each remains at `https://ologywood-mp6flm6c.manus.space/api/stripe/webhook` with eleven original subscribed events. One-way in-browser comparisons proved the entered test secret matches the test destination. That value had also been stored as the live secret, which correctly triggered the cross-mode ambiguity guard. After a rejected duplicate entry, the approved live correction was independently matched to the actual live destination. Secret plaintext was not returned or committed, and the secret display was hidden after comparison. No API key, publishable key, URL, event selection, fee, schema or application-source change was made during this correction.
-
-Final local checks: opt-in read-only/signature validator 4 passed; existing credential/signature/client tests 29 passed; actual development HTTP probes acknowledge both corrected modes with 200. Production probes on both domains still return signature-mismatch 400 after the owner-reported publication and managed deployment-success notification. The raw-body route is correctly registered before JSON parsing. This establishes a development/production difference; the precise deployed configuration-loading cause is not yet proven. Do not weaken signing, accept retired/wrong-mode secrets, or claim the deployment fixed until a fresh checkpoint is published and provider delivery succeeds.
-
-## Successful fresh deployment and provider delivery — 14:32–14:36 EDT
-
-The owner confirmed publication of fresh checkpoint `f186c97b`, and a managed deployment-success notification followed. Fresh record-free probes on both production domains returned HTTP 200 and `{received: true}` for each corrected signing mode. Read-only live account/balance validation still identifies the intended account in live mode. These results establish successful corrected-configuration deployment; they do not independently establish the internals of the previous stale deployment or cache.
-
-After checking the sandbox event had not yet succeeded, performed one owner-authorized retry of that same event, with no new Checkout or payment. Stripe Workbench records delivery attempt `wc_1UTnHgAjAqXCmw11aeOZwBup` at **14:33:44 EDT** as **200 OK — Delivered**, with response body `{received: true}`. Independently retrieved the event through the test API: `pending_webhooks: 0`, `livemode: false`, type `checkout.session.completed`, still bound to the original test session. The session remains paid for $0.50; test destination URL and eleven-event count remain unchanged. Earlier failed attempts remain historical entries, not the final delivery status.
-
-Cross-mode negative probes are still rejected with HTTP 400: a live-claimed payload signed with the test secret, and a test-claimed payload signed with the live secret. Signature verification was not loosened. Read-only runtime SQL confirms zero matching synthetic release, profile, user and purchase records after successful delivery, including a purchase lookup by the actual test session ID. The synthetic payment is intentionally absent from real My Ology. No second payment, refund, customer, transfer, payout, creator/profile mutation or email send occurred.
-
-A fresh normal-browser primary-domain health request returned HTTP 200, status `ok` and `runtimeVerified: true`. A Python outbound health request had received HTTP 403; that client-path result was not treated as an application outage, and the normal-browser check confirmed health independently. Prior 4/4 opt-in configuration and 29/29 regression results apply; deployed application source was unchanged throughout this signing correction and documentation closeout. The earlier full-suite/typecheck/build results remain the code-validation evidence. This closeout adds only documentation and tracker updates and does not require another application publication.
-
-## Next steps
-
-The approved sandbox purchase/signing/delivery verification is complete. No further publish or replay is needed for this fix. Confirm replacement default production API-key usage and old-key retirement separately before declaring the original security response fully closed; sandbox testing does not prove these. A later live purchase is the owner's own money-moving action and requires its own authorization before any assistant payment or refund. Do not replay unrelated events, create additional purchases, change fees/URLs/subscribed events or revoke further keys automatically.
+- [Stripe API keys and rotation](https://docs.stripe.com/keys)
+- [Stripe guidance for potentially compromised API keys](https://support.stripe.com/questions/protecting-against-compromised-api-keys)
