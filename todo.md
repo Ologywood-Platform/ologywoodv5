@@ -4996,3 +4996,11 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] User reports no suspicious Stripe activity in seven days; not a proof of no exposure. Stripe API keys/webhook settings unchanged; no forensic host-cleanup claim or unrelated sandbox process replacement.
 - [x] Owner published checkpoint635e737c; fresh normal-browser WWW and managed-domain health HTTP200/runtimeVerified true/no-store confirms actualNode22.23.4; anonymous exact-version API HTTP403 on both. Homepage/Adonis profile/settled music/Creator Shop/Shop render without mutations. Documentation-only closeout; runtime deployment task complete, no further publication required.
 - Deployment record: `docs/node-runtime-security-update-2026-10-23.md`.
+
+## STRIPE TEST CREDENTIAL ROTATION INTAKE (Oct 23, 2026)
+- [x] Securely save dedicated STRIPE_TEST_SECRET_KEY and STRIPE_TEST_WEBHOOK_SECRET; no values printed or committed. Protected default API/publishable requests rejected without changes.
+- [x] Real read-only API key proof matches existing OlogyWood account/test mode; local test signature and live-mode mismatch checks pass; enabled test destination metadata matches existing webhook URL. Three explicit credential tests passed; no provider-originated delivery claim.
+- [x] Gated validation test only; normal suites never call Stripe/read real credentials through this test. Exact 14 focused and 3,618 full tests pass, 23 existing skipped, zero failures; TypeScript/build pass under22.23.4; scoped hygiene clean. Stripe Connect, fees, subscriptions, payments, live credentials and real records unchanged.
+- [ ] Owner must save matching test STRIPE_SECRET_KEY, VITE_STRIPE_PUBLISHABLE_KEY and STRIPE_WEBHOOK_SECRET in protected Settings → Secrets fields, or identify non-editable controls; last API-key alignment check differed. Do not treat rotation as complete or revoke old default automatically.
+- [ ] Verify protected-field alignment, publish/reload correct credentials/browser build, and inspect Stripe-originated test delivery. No actual purchase/refund/payout/customer/token/event dispatch or key revocation performed.
+- Record: `docs/stripe-test-key-update-2026-10-23.md`.
