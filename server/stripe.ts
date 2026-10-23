@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from './services/stripeWebhookMode';
 import Stripe from 'stripe';
 import { SUBSCRIPTION_PRODUCTS, PLAN_SLUG_MAP, type SubscriptionProductKey, type BillingInterval } from '../shared/products';
 
@@ -5,7 +6,7 @@ import { SUBSCRIPTION_PRODUCTS, PLAN_SLUG_MAP, type SubscriptionProductKey, type
 let stripe: Stripe | null = null;
 
 if (process.env.STRIPE_SECRET_KEY) {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  stripe = new Stripe(getDefaultStripeApiKey());
 } else {
   console.warn('[Stripe] WARNING: STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
 }

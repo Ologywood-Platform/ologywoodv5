@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Release Router — White Label Release feature
  * tRPC endpoints for managing single-track releases.
@@ -26,7 +27,7 @@ import {
 } from "../services/musicReleaseDescriptionService";
 import { getPublicMusicSingle, PublicMusicReleaseUnavailableError } from "../services/musicReleasePublicService";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
 });
 

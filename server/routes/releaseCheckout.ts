@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Release Checkout Route — Express endpoint for creating Stripe Checkout sessions
  * for release purchases. Uses Stripe Connect to pay artists directly with 1% platform fee.
@@ -11,7 +12,7 @@ import { getDb } from "../db";
 import { stripeConnectAccounts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
 });
 

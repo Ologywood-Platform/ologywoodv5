@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from './stripeWebhookMode';
 /**
  * Booking Cancellation Service
  * 
@@ -15,7 +16,7 @@ import { bookings } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import type { ScheduleConnection } from './scheduleService';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 

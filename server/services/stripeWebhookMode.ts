@@ -29,15 +29,25 @@ function getApiKeyMode(key?: string): StripeWebhookMode | null {
 function getWebhookSecretCandidates(env: StripeWebhookEnvironment) {
   const candidates: Array<{ mode: StripeWebhookMode; secret: string }> = [];
   const primaryMode = getApiKeyMode(env.STRIPE_SECRET_KEY);
+  const explicitPrimarySecret = primaryMode === 'live'
+    ? env.STRIPE_LIVE_WEBHOOK_SECRET
+    : primaryMode === 'test' ? env.STRIPE_TEST_WEBHOOK_SECRET : undefined;
 
   if (env.STRIPE_LIVE_WEBHOOK_SECRET) {
     candidates.push({ mode: 'live', secret: env.STRIPE_LIVE_WEBHOOK_SECRET });
   }
-  if (env.STRIPE_WEBHOOK_SECRET && primaryMode) {
+  // A configured mode-specific secret supersedes the legacy generic secret.
+  // Never keep a rotated generic secret accepted for that same mode.
+  if (env.STRIPE_WEBHOOK_SECRET && primaryMode && !explicitPrimarySecret) {
     candidates.push({ mode: primaryMode, secret: env.STRIPE_WEBHOOK_SECRET });
   }
   if (env.STRIPE_TEST_WEBHOOK_SECRET) {
     candidates.push({ mode: 'test', secret: env.STRIPE_TEST_WEBHOOK_SECRET });
+  }
+
+  if (candidates.some(candidate => candidates.some(other =>
+    candidate.secret === other.secret && candidate.mode !== other.mode))) {
+    throw new Error('Stripe webhook signing secrets must be distinct across modes');
   }
 
   return candidates.filter((candidate, index, all) =>
@@ -101,6 +111,18 @@ export function getStripeApiKeyForWebhookMode(
     throw new Error('Stripe live-mode API key is not configured');
   }
   return liveKey;
+}
+
+/** Preserve the existing primary mode; a rotated dedicated test key wins only in test mode. */
+export function getDefaultStripeApiKey(
+  env: StripeWebhookEnvironment = process.env as StripeWebhookEnvironment,
+): string {
+  const primaryMode = getApiKeyMode(env.STRIPE_SECRET_KEY);
+  if (primaryMode === 'test') return getStripeApiKeyForWebhookMode('test', env);
+  // Default live requests retain the original primary live account/key.
+  // The separate live-webhook override must not change default payment routing.
+  if (primaryMode === 'live') return env.STRIPE_SECRET_KEY!;
+  throw new Error('Stripe default API mode is not configured');
 }
 
 export function getStripeClientForWebhookMode(mode: StripeWebhookMode) {

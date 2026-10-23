@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Promote Router — AI Ad Assistant + Boost My Event
  * Option A: AI-powered ad copy, hashtags, targeting, and budget calculator
@@ -12,7 +13,7 @@ import { promotionRequests } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
 });
 

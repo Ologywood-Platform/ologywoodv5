@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 import { router, protectedProcedure } from "../_core/trpc";
 import { z } from "zod";
 import { getDb } from "../db";
@@ -1358,7 +1359,7 @@ return { success: true, payoutId: input.payoutId };
         throw new Error('Stripe is not configured');
       }
 
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      const stripe = new Stripe(getDefaultStripeApiKey(), {
         apiVersion: '2025-12-15.clover' as any,
       });
 

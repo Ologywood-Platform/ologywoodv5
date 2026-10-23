@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Tip Router - Stripe-powered tipping for artists
  * 100% of tips go to the artist (no platform fee)
@@ -9,7 +10,7 @@ import { stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 

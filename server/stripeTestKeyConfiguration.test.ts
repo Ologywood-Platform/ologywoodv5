@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import Stripe from 'stripe';
-import { getStripeApiKeyForWebhookMode, verifyStripeWebhookEvent } from './services/stripeWebhookMode';
+import { getDefaultStripeApiKey, getStripeApiKeyForWebhookMode, verifyStripeWebhookEvent } from './services/stripeWebhookMode';
 
 const validateConfiguredKey = process.env.VALIDATE_STRIPE_TEST_CONFIGURATION === '1';
 const expectedAccountId = 'acct_1SpHkMAjAqXCmw11';
@@ -70,6 +70,14 @@ describe('Stripe test credential configuration', () => {
         try { verifyStripeWebhookEvent(wrongModePayload, wrongModeSignature); } catch { mismatchRejected = true; }
         expect(mismatchRejected).toBe(true);
 
+        const legacy = process.env.STRIPE_WEBHOOK_SECRET;
+        if (legacy && legacy !== secret && process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
+          const retiredSignature = client.webhooks.generateTestHeaderString({ payload, secret: legacy });
+          let retiredRejected = false;
+          try { verifyStripeWebhookEvent(payload, retiredSignature); } catch { retiredRejected = true; }
+          expect(retiredRejected).toBe(true);
+        }
+
         let endpoints: Stripe.ApiList<Stripe.WebhookEndpoint>;
         try { endpoints = await client.webhookEndpoints.list({ limit: 100 }); }
         catch { throw new Error('Read-only Stripe test webhook endpoint metadata check failed.'); }
@@ -83,8 +91,9 @@ describe('Stripe test credential configuration', () => {
     }
 
     if (process.env.REQUIRE_STRIPE_TEST_ALIGNMENT === '1') {
-      it('confirms the managed default and dedicated test key are aligned and valid', async () => {
-        const primary = process.env.STRIPE_SECRET_KEY;
+      it('confirms effective default requests use the rotated dedicated test key without switching modes', async () => {
+        expect(process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')).toBe(true);
+        const primary = getDefaultStripeApiKey();
         const dedicated = process.env.STRIPE_TEST_SECRET_KEY;
         expect(hasTestSecretFormat(primary)).toBe(true);
         expect(!!primary && primary === dedicated).toBe(true);
@@ -92,9 +101,7 @@ describe('Stripe test credential configuration', () => {
         expect(!!publishable && /^pk_test_[A-Za-z0-9]+$/.test(publishable)
           && publishable.length > 30).toBe(true);
         if (process.env.VALIDATE_STRIPE_TEST_WEBHOOK === '1') {
-          const defaultSigningSecret = process.env.STRIPE_WEBHOOK_SECRET;
-          expect(!!defaultSigningSecret
-            && defaultSigningSecret === process.env.STRIPE_TEST_WEBHOOK_SECRET).toBe(true);
+          expect(process.env.STRIPE_TEST_WEBHOOK_SECRET?.startsWith('whsec_')).toBe(true);
         }
         const proof = await validateTestKey(primary!);
         expect(proof.expectedAccount).toBe(true);

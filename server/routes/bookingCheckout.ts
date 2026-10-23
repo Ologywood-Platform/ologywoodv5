@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Booking Checkout Route — handles deposit and final payment for bookings.
  * 
@@ -17,7 +18,7 @@ import { getDb } from '../db';
 import { bookings, stripeConnectAccounts, artistProfiles } from '../../drizzle/schema';
 import { eq, and } from 'drizzle-orm';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 

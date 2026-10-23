@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 /**
  * Stripe Connect Router — handles artist Stripe Connect account management.
  * Artists connect their own Stripe accounts to receive payments directly.
@@ -11,7 +12,7 @@ import { getDb } from '../db';
 import { stripeConnectAccounts } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 

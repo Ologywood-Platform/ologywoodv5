@@ -1,3 +1,4 @@
+import { getDefaultStripeApiKey } from '../services/stripeWebhookMode';
 import Stripe from 'stripe';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
@@ -21,7 +22,7 @@ import {
 import { isEbook } from '../../shared/bookCommerce';
 import { ensureMerchItemsSchema } from '../services/merchSchemaService';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 
