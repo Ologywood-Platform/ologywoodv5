@@ -27,7 +27,8 @@ function buildUploadUrl(baseUrl: string, relKey: string): URL {
 async function buildDownloadUrl(
   baseUrl: string,
   relKey: string,
-  apiKey: string
+  apiKey: string,
+  signal?: AbortSignal
 ): Promise<string> {
   const downloadApiUrl = new URL(
     "v1/storage/downloadUrl",
@@ -37,7 +38,9 @@ async function buildDownloadUrl(
   const response = await fetch(downloadApiUrl, {
     method: "GET",
     headers: buildAuthHeaders(apiKey),
+    signal,
   });
+  if (!response.ok) throw new Error('Storage download URL temporarily unavailable');
   return (await response.json()).url;
 }
 
@@ -70,7 +73,8 @@ function buildAuthHeaders(apiKey: string): HeadersInit {
 export async function storagePut(
   relKey: string,
   data: Buffer | Uint8Array | string,
-  contentType = "application/octet-stream"
+  contentType = "application/octet-stream",
+  options: { signal?: AbortSignal } = {}
 ): Promise<{ key: string; url: string }> {
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
@@ -80,23 +84,21 @@ export async function storagePut(
     method: "POST",
     headers: buildAuthHeaders(apiKey),
     body: formData,
+    signal: options.signal,
   });
 
   if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(
-      `Storage upload failed (${response.status} ${response.statusText}): ${message}`
-    );
+    throw Object.assign(new Error('Storage upload temporarily unavailable'), { status: response.status });
   }
   const url = (await response.json()).url;
   return { key, url };
 }
 
-export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
+export async function storageGet(relKey: string, options: { signal?: AbortSignal } = {}): Promise<{ key: string; url: string; }> {
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
   return {
     key,
-    url: await buildDownloadUrl(baseUrl, key, apiKey),
+    url: await buildDownloadUrl(baseUrl, key, apiKey, options.signal),
   };
 }

@@ -12,6 +12,7 @@ import sitemapRoutes from "../routes/sitemapRoutes";
 import emailRoutes from "../routes/emailRoutes";
 import eventRoutes from "../routes/events";
 import releaseUploadRoutes from "../routes/releaseUpload";
+import mediaUploadRoutes from "../routes/mediaUploads";
 import releaseDownloadRoutes from "../routes/releaseDownload";
 import releaseCheckoutRoutes from "../routes/releaseCheckout";
 import bookingCheckoutRoutes from '../routes/bookingCheckout';
@@ -104,6 +105,9 @@ async function startServer() {
   // Stripe webhook MUST be registered before express.json() for signature verification
   const { handleStripeWebhook } = await import('../webhooks/stripe');
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+  // Media bytes use bounded raw chunks; start metadata never enters the 50 MB JSON parser.
+  app.use('/api/media-uploads', express.json({ limit: '16kb' }), mediaUploadRoutes);
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));

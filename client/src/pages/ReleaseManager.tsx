@@ -26,6 +26,8 @@ import ReorderSingles from "@/components/ReorderSingles";
 import EditMusicDescription from "@/components/EditMusicDescription";
 import { MusicReleaseShareButton } from "@/components/MusicReleaseShareButton";
 import { getAiDisclosureFormValue, type AiDisclosureFormValue, type AiDisclosureRecord } from "@shared/aiDisclosure";
+import { uploadMedia } from "@/lib/mediaUpload";
+import { getSafeUploadErrorMessage, UploadResponseError } from "@/lib/uploadResponse";
 
 type ReleaseStatus = "draft" | "published" | "archived";
 
@@ -360,39 +362,24 @@ function ReleaseForm({
         audio.src = objectUrl;
       });
 
-      // Read file as base64 (backend expects JSON with base64 data)
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+      const data = await uploadMedia(file, {
+        purpose: "music-audio",
+        releaseId: release?.id,
       });
-
-      const response = await fetch("/api/release/upload/audio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileData: base64Data,
-          fileName: file.name,
-          mimeType: file.type || "audio/mpeg",
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setAudioFileKey(data.fileKey);
-        setAudioFileName(file.name);
-        setDurationSeconds(audioDuration);
-        setFileFormat(data.fileFormat || file.name.split(".").pop()?.toUpperCase() || "MP3");
-        setFileSizeBytes(data.fileSizeBytes || file.size);
-        toast.addSuccess("Audio uploaded", `${file.name} uploaded successfully.`);
-      } else {
-        toast.addError("Upload failed", data.error || "Failed to upload audio file.");
+      if (data.success !== true || !data.fileKey || !data.url || !data.fileFormat) {
+        throw new UploadResponseError(200, "The upload service returned an invalid response. Please try again.");
       }
-    } catch {
-      toast.addError("Upload failed", "Network error. Please try again.");
+      setAudioFileKey(data.fileKey);
+      setAudioFileName(file.name);
+      setDurationSeconds(audioDuration);
+      setFileFormat(data.fileFormat || file.name.split(".").pop()?.toUpperCase() || "MP3");
+      setFileSizeBytes(data.fileSizeBytes || file.size);
+      toast.addSuccess("Audio uploaded", `${file.name} uploaded successfully.`);
+    } catch (error) {
+      toast.addError("Upload failed", getSafeUploadErrorMessage(error));
+    } finally {
+      setIsUploadingAudio(false);
     }
-    setIsUploadingAudio(false);
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -411,36 +398,21 @@ function ReleaseForm({
 
     setIsUploadingCover(true);
     try {
-      // Read file as base64 (backend expects JSON with base64 data)
-      const base64Data = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+      const data = await uploadMedia(file, {
+        purpose: "music-cover",
+        releaseId: release?.id,
       });
-
-      const response = await fetch("/api/release/upload/cover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileData: base64Data,
-          fileName: file.name,
-          mimeType: file.type || "image/jpeg",
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setCoverArtKey(data.fileKey);
-        setCoverArtPreview(data.url || URL.createObjectURL(file));
-        toast.addSuccess("Cover uploaded", "Cover art uploaded successfully.");
-      } else {
-        toast.addError("Upload failed", data.error || "Failed to upload cover art.");
+      if (data.success !== true || !data.fileKey || !data.url) {
+        throw new UploadResponseError(200, "The upload service returned an invalid response. Please try again.");
       }
-    } catch {
-      toast.addError("Upload failed", "Network error. Please try again.");
+      setCoverArtKey(data.fileKey);
+      setCoverArtPreview(data.url);
+      toast.addSuccess("Cover uploaded", "Cover art uploaded successfully.");
+    } catch (error) {
+      toast.addError("Upload failed", getSafeUploadErrorMessage(error));
+    } finally {
+      setIsUploadingCover(false);
     }
-    setIsUploadingCover(false);
   };
 
   const validateForm = (): boolean => {

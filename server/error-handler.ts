@@ -53,7 +53,11 @@ export const globalErrorHandler = (
   let message = 'An unexpected error occurred';
 
   // Handle known error types
-  if (err instanceof AppError) {
+  if ((err as Error & {type?:string}).type === 'entity.too.large') {
+    statusCode = 413;
+    code = 'PAYLOAD_TOO_LARGE';
+    message = 'The upload request is too large. Use the file upload control and the displayed file-size limit.';
+  } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     code = err.code;
     message = err.message;
@@ -99,8 +103,8 @@ export const globalErrorHandler = (
     statusCode,
     path: req.path,
     method: req.method,
-    error: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    // Do not log parser bodies, storage provider responses, SQL, or credential-bearing messages.
+    errorType: err.name,
   });
 
   // Build error response

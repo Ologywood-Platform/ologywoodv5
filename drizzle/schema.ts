@@ -2844,3 +2844,60 @@ export const bookingRiderDocumentLinks = mysqlTable("booking_rider_document_link
 }));
 export type BookingRiderDocumentLink = typeof bookingRiderDocumentLinks.$inferSelect;
 export type InsertBookingRiderDocumentLink = typeof bookingRiderDocumentLinks.$inferInsert;
+
+/**
+ * Private, resumable upload sessions. These rows deliberately describe only a
+ * transient upload and its processed result; they never attach media to a
+ * release, profile, purchase, or published record.
+ */
+export const mediaUploadJobs = mysqlTable("media_upload_jobs", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerUserId: int("ownerUserId").notNull(),
+  requestId: varchar("requestId", { length: 36 }).notNull(),
+  fingerprint: varchar("fingerprint", { length: 64 }).notNull(),
+  /** Never serialized to clients; protects private source-object paths. */
+  storageNonce: varchar("storageNonce", { length: 36 }).notNull(),
+  purpose: mysqlEnum("purpose", ["content-preview", "content-cover", "music-audio", "music-cover"]).notNull(),
+  releaseId: int("releaseId"),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  fileSizeBytes: int("fileSizeBytes").notNull(),
+  chunkBytes: int("chunkBytes").notNull(),
+  chunkCount: int("chunkCount").notNull(),
+  state: mysqlEnum("state", ["uploading", "queued", "processing", "done", "failed"]).default("uploading").notNull(),
+  attempts: int("attempts").default(0).notNull(),
+  leaseToken: varchar("leaseToken", { length: 36 }),
+  leaseExpiresAt: timestamp("leaseExpiresAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  result: json("result").$type<Record<string, unknown> | null>(),
+  error: varchar("error", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  ownerRequestUnique: unique("uniq_media_upload_owner_request").on(table.ownerUserId, table.requestId),
+  ownerStateIdx: index("idx_media_upload_jobs_owner_state").on(table.ownerUserId, table.state),
+  leaseIdx: index("idx_media_upload_jobs_lease").on(table.state, table.leaseExpiresAt),
+}));
+export type MediaUploadJob = typeof mediaUploadJobs.$inferSelect;
+export type InsertMediaUploadJob = typeof mediaUploadJobs.$inferInsert;
+
+/** A committed SHA-256 receipt is the only authoritative record of a chunk. */
+export const mediaUploadChunkReceipts = mysqlTable("media_upload_chunk_receipts", {
+  id: int("id").autoincrement().primaryKey(),
+  uploadId: varchar("uploadId", { length: 36 }).notNull(),
+  chunkIndex: int("chunkIndex").notNull(),
+  sha256: varchar("sha256", { length: 64 }).notNull(),
+  byteSize: int("byteSize").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => ({
+  uploadChunkUnique: unique("uniq_media_upload_chunk").on(table.uploadId, table.chunkIndex),
+  uploadIdx: index("idx_media_upload_chunk_upload").on(table.uploadId),
+}));
+export type MediaUploadChunkReceipt = typeof mediaUploadChunkReceipts.$inferSelect;
+
+/** One global media-processor lease, independent of business records. */
+export const mediaUploadWorkerSlots = mysqlTable("media_upload_worker_slots", {
+  id: int("id").primaryKey(),
+  leaseToken: varchar("leaseToken", { length: 36 }),
+  leaseExpiresAt: timestamp("leaseExpiresAt"),
+});

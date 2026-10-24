@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { exchangeSessionTokenFromHash } from "./lib/sessionTokenExchange";
+import { normalizeTrpcResponse } from "./lib/uploadResponse";
 
 import "./index.css";
 
@@ -138,26 +139,8 @@ const trpcClient = trpc.createClient({
           ...(init ?? {}),
           credentials: "include",
         }).then((response) => {
-          // Guard against HTML responses (SPA fallback during server restart or network issues)
-          const contentType = response.headers.get('content-type') || '';
-          if (contentType.includes('text/html') && !contentType.includes('application/json')) {
-            return new Response(
-              JSON.stringify({
-                error: {
-                  json: {
-                    message: 'Server temporarily unavailable',
-                    code: -32603,
-                    data: { code: 'INTERNAL_SERVER_ERROR', httpStatus: response.status },
-                  },
-                },
-              }),
-              {
-                status: 503,
-                headers: { 'content-type': 'application/json' },
-              }
-            );
-          }
-          return response;
+          // Proxies can return HTML or plain text. tRPC must always receive JSON.
+          return normalizeTrpcResponse(response);
         });
       },
     }),

@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createHash, createHmac, timingSafeEqual, randomUUID } from 'node:crypto';
-import { mkdtemp, readFile, writeFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm, stat, open } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { TRPCError } from '@trpc/server';
@@ -33,18 +33,24 @@ async function probe(path: string) {
  if(!formats.some(format=>['mp3','wav','flac','aac','mov','mp4','m4a','3gp','3g2','mj2','matroska','webm','ogg'].includes(format)) || !streams?.length || !Number.isFinite(duration) || duration <= 0) throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});
  return {duration,streams};
 }
-/** Only local, validated bytes reach FFmpeg. Never pass a user URL or full paid URL to a public player. */
-export async function clipReleasePreview(source: Buffer, options: {audioOnly?:boolean;maxBytes?:number;maxInputSeconds?:number} = {}) {
- if (!source.length || source.length > (options.maxBytes ?? PREVIEW_INPUT_BYTES)) throw new TRPCError({code:'BAD_REQUEST',message:'Preview source is too large or empty.'});
+type PreviewClipOptions = {audioOnly?:boolean;maxBytes?:number;maxInputSeconds?:number};
+/** Only trusted local paths assembled by the upload service reach this encoder. */
+export async function clipReleasePreviewFile(input: string, options: PreviewClipOptions = {}) {
+ if (!input.startsWith(tmpdir() + '/') || input.includes('\0')) throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});
+ const inputStat = await stat(input);
+ if (!inputStat.isFile() || !inputStat.size || inputStat.size > (options.maxBytes ?? PREVIEW_INPUT_BYTES)) throw new TRPCError({code:'BAD_REQUEST',message:'Preview source is too large or empty.'});
+ const handle = await open(input,'r');
+ const header = Buffer.alloc(512);
+ let bytesRead: number;
+ try { ({bytesRead} = await handle.read(header,0,512,0)); } finally { await handle.close(); }
  // Reject text playlists and SVG before FFmpeg can interpret local-file references.
- const prefix = source.subarray(0,512).toString('utf8').trimStart();
+ const prefix = header.subarray(0,bytesRead).toString('utf8').trimStart();
  if (/^(#EXTM3U|\[playlist\]|<|file |ffconcat)/i.test(prefix)) throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});
  if(active) throw new TRPCError({code:'TOO_MANY_REQUESTS',message:'Another preview is being prepared. Please retry in a moment.'});
  active = true;
  let folder: string | undefined;
  try {
   folder = await mkdtemp(join(tmpdir(),'ology-release-preview-'));
-  const input = join(folder,'source');await writeFile(input,source,{mode:0o600});
   const info = await probe(input);
   if(info.duration > (options.maxInputSeconds ?? MAX_INPUT_SECONDS)) throw new TRPCError({code:'BAD_REQUEST',message:'Use a preview source no longer than five minutes. The first 30 seconds will be used.'});
   const video = info.streams.find(s=>s.codec_type==='video');const audio = info.streams.some(s=>s.codec_type==='audio');
@@ -52,7 +58,7 @@ export async function clipReleasePreview(source: Buffer, options: {audioOnly?:bo
   if(video && ((video.width??0)*(video.height??0)>16_777_216 || (video.width??0)<1 || (video.height??0)<1)) throw new TRPCError({code:'BAD_REQUEST',message:'Use a preview video at 4K resolution or lower.'});
   const kind:PreviewKind = options.audioOnly || !video ? 'audio':'video';
   const output = join(folder,kind==='audio'?'preview.mp3':'preview.mp4');
-  const args = ['-nostdin','-hide_banner','-loglevel','error','-y','-protocol_whitelist','file,pipe','-format_whitelist','mp3,wav,flac,aac,mov,matroska,webm,ogg','-i',input,'-t',String(PREVIEW_SECONDS),'-map_metadata','-1','-sn','-dn','-threads','1','-filter_threads','1'];
+  const args = ['-nostdin','-hide_banner','-loglevel','error','-y','-protocol_whitelist','file,pipe','-format_whitelist','mp3,wav,flac,aac,mov,matroska,webm,ogg','-threads','1','-i',input,'-t',String(PREVIEW_SECONDS),'-map_metadata','-1','-sn','-dn','-threads','1','-filter_threads','1'];
   if(kind==='audio') args.push('-map','0:a:0','-vn','-c:a','libmp3lame','-b:a','128k','-ar','44100','-ac','2');
   else args.push('-map','0:v:0','-map','0:a:0?','-vf','scale=w=min(1280\\,iw):h=min(1280\\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2,format=yuv420p','-c:v','libx264','-preset','veryfast','-crf','26','-maxrate','2M','-bufsize','4M','-c:a','aac','-b:a','96k','-movflags','+faststart');
   args.push('-fs',String(PREVIEW_INPUT_BYTES),output);await run('ffmpeg',args);
@@ -61,6 +67,16 @@ export async function clipReleasePreview(source: Buffer, options: {audioOnly?:bo
   if(outputInfo.duration>PREVIEW_SECONDS+0.1 || size<1 || size>PREVIEW_INPUT_BYTES) throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});
   return {data:await readFile(output),kind,durationSeconds:Math.min(PREVIEW_SECONDS,outputInfo.duration),mimeType:kind==='audio'?'audio/mpeg':'video/mp4',extension:kind==='audio'?'mp3':'mp4'};
  } finally {active=false;if(folder)await rm(folder,{recursive:true,force:true}).catch(()=>undefined);}
+}
+/** Legacy caller compatibility; new binary uploads avoid allocating a full source Buffer. */
+export async function clipReleasePreview(source: Buffer, options: PreviewClipOptions = {}) {
+ if (!source.length || source.length > (options.maxBytes ?? PREVIEW_INPUT_BYTES)) throw new TRPCError({code:'BAD_REQUEST',message:'Preview source is too large or empty.'});
+ const folder = await mkdtemp(join(tmpdir(),'ology-preview-source-'));
+ try {
+  const input = join(folder,'source');
+  await writeFile(input,source,{mode:0o600});
+  return await clipReleasePreviewFile(input,options);
+ } finally { await rm(folder,{recursive:true,force:true}).catch(()=>undefined); }
 }
 export function decodePreviewUpload(fileData:string):Buffer {
  const base64 = fileData.includes(',') ? fileData.slice(fileData.indexOf(',')+1):fileData;

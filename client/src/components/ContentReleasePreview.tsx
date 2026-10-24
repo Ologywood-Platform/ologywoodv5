@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2, Play, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { trpc } from '@/lib/trpc';
+import { uploadMedia } from '@/lib/mediaUpload';
+import { getSafeUploadErrorMessage } from '@/lib/uploadResponse';
 import { toast } from 'sonner';
 import {
   MAX_SECONDS as RELEASE_PREVIEW_MAX_SECONDS,
   MAX_INPUT_SECONDS,
   RELEASE_PREVIEW_ACCEPT,
-  getReleasePreviewMimeType,
   validateReleasePreviewFile,
   type ReleasePreviewKind,
 } from '@shared/releasePreview';
@@ -107,10 +108,13 @@ export function ContentReleasePreviewUpload({
   const input = useRef<HTMLInputElement>(null);
   const mounted = useRef(true);
   const onBusyChangeRef = useRef(onBusyChange);
+  const onChangeRef = useRef(onChange);
+  const uploadAbortController = useRef<AbortController | null>(null);
+  const operationGeneration = useRef(0);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ stage: 'uploading' | 'processing'; percent: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewSource | null>(null);
-  const upload = trpc.contentRelease.uploadPreview.useMutation();
   // Existing preview URLs are signed and fetched only if the owner asks to play one.
   const currentPreview = trpc.contentRelease.getPreview.useQuery(
     { releaseId: releaseId ?? 0 },
@@ -118,22 +122,27 @@ export function ContentReleasePreviewUpload({
   );
 
   useEffect(() => { onBusyChangeRef.current = onBusyChange; }, [onBusyChange]);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
   useEffect(() => {
     mounted.current = true;
     return () => {
+      operationGeneration.current += 1;
+      uploadAbortController.current?.abort();
+      uploadAbortController.current = null;
       mounted.current = false;
       onBusyChangeRef.current(false);
     };
   }, []);
-
-  async function readDataUrl(file: File): Promise<string> {
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Preview read failed'));
-      reader.onerror = () => reject(new Error('Preview read failed'));
-      reader.readAsDataURL(file);
-    });
-  }
+  // A changed release or cleared draft is a new scope. Abort before its previous
+  // request can update this form with a token belonging to the old draft.
+  useEffect(() => {
+    operationGeneration.current += 1;
+    uploadAbortController.current?.abort();
+    uploadAbortController.current = null;
+    setUploading(false);
+    setProgress(null);
+    onBusyChangeRef.current(false);
+  }, [releaseId, previewMedia]);
 
   async function chooseFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -146,32 +155,43 @@ export function ContentReleasePreviewUpload({
       toast.error(validationError);
       return;
     }
-    const mimeType = getReleasePreviewMimeType(file);
-    if (!mimeType) return;
 
+    const generation = ++operationGeneration.current;
+    const controller = new AbortController();
+    uploadAbortController.current?.abort();
+    uploadAbortController.current = controller;
     setUploading(true);
+    setProgress({ stage: 'uploading', percent: 0 });
     onBusyChangeRef.current(true);
     try {
-      const fileData = await readDataUrl(file);
-      if (!mounted.current) return;
-      const result = await upload.mutateAsync({ fileData, mimeType, releaseId });
-      if (!mounted.current) return;
-      onChange(result.previewMedia);
+      const result = await uploadMedia(file, {
+        purpose: 'content-preview',
+        releaseId,
+        signal: controller.signal,
+        onProgress: (nextProgress) => {
+          if (mounted.current && operationGeneration.current === generation) setProgress(nextProgress);
+        },
+      });
+      if (!mounted.current || operationGeneration.current !== generation) return;
+      // uploadMedia only resolves after a purpose-shaped done status.
+      onChangeRef.current(result.previewMedia!);
       // Use the returned signed preview URL immediately; never construct a URL from the opaque token.
-      setPreview({ previewUrl: result.previewUrl, kind: result.kind, durationSeconds: result.durationSeconds });
+      setPreview({ previewUrl: result.previewUrl!, kind: result.kind!, durationSeconds: result.durationSeconds! });
       setError(null);
       toast.success('Preview uploaded. Save your release to apply it.');
     } catch (cause) {
-      if (!mounted.current) return;
+      if (!mounted.current || operationGeneration.current !== generation || controller.signal.aborted) return;
       // Do not clear previewMedia or an already playable signed URL when a replacement fails.
-      const message = safePreviewError(cause);
+      const message = getSafeUploadErrorMessage(cause);
       setError(message);
       toast.error(message);
     } finally {
-      if (mounted.current) {
+      if (mounted.current && operationGeneration.current === generation) {
         setUploading(false);
+        setProgress(null);
         onBusyChangeRef.current(false);
       }
+      if (uploadAbortController.current === controller) uploadAbortController.current = null;
     }
   }
 
@@ -224,7 +244,11 @@ export function ContentReleasePreviewUpload({
         </Button>
       )}
     </div>
-    {uploading && <p role="status" className="text-xs text-muted-foreground">Uploading preview. Please wait before saving.</p>}
+    {uploading && <p role="status" className="text-xs text-muted-foreground">
+      {progress?.stage === 'processing'
+        ? 'Preparing preview. This can take a moment. Please wait before saving.'
+        : `Uploading preview${progress ? ` (${progress.percent}%)` : ''}. Please wait before saving.`}
+    </p>}
     {preview && <ReleasePreviewPlayer preview={preview} title="Your release" onError={() => {setPreview(null);setError('Preview playback failed. Try opening the current preview again or re-uploading your sample.');}} />}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>;

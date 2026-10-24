@@ -35,8 +35,12 @@ describe('Downloadable music upload navigation', () => {
     expect(manager).toContain('>Music Releases</h1>');
     expect(manager).toContain('Upload a Song');
     expect(manager).toContain('canCreate?.allowed && !showCreateForm && !editingRelease');
-    expect(manager).toContain('/api/release/upload/audio');
-    expect(manager).toContain('/api/release/upload/cover');
+    expect(manager).toMatch(/purpose:\s*["']music-audio["']/);
+    expect(manager).toMatch(/purpose:\s*["']music-cover["']/);
+    expect(manager).not.toContain('readAsDataURL');
+    const legacy = fs.readFileSync(new URL('./routes/releaseUpload.ts', import.meta.url), 'utf8');
+    expect(legacy).toMatch(/router\.post\(["']\/audio["']/);
+    expect(legacy).toMatch(/router\.post\(["']\/cover["']/);
     expect(manager).toContain('Create Draft');
     expect(manager).toContain('publishMutation.mutate({ id: release.id })');
     expect(manager).toContain('rightsCertified');

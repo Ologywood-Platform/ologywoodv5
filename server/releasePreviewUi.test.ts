@@ -29,7 +29,10 @@ describe('Content Release 30-second preview client contract', () => {
     const form = readFileSync('client/src/pages/ContentReleases.tsx', 'utf8');
     const publicCards = readFileSync('client/src/components/ContentReleasesDisplay.tsx', 'utf8');
 
-    expect(player).toContain('trpc.contentRelease.uploadPreview.useMutation()');
+    expect(player).toContain("purpose: 'content-preview'");
+    expect(player).toContain('await uploadMedia(file,');
+    expect(player).not.toContain('readAsDataURL');
+    expect(player).not.toContain('trpc.contentRelease.uploadPreview.useMutation()');
     expect(player).toContain('trpc.contentRelease.getPreview.useQuery');
     expect(player).toContain('{ enabled: false, retry: false }');
     expect(player).toContain('src: preview.previewUrl');

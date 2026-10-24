@@ -1,5 +1,14 @@
 import type { Express } from "express";
 import { ENV } from "./env";
+import { posix } from 'node:path';
+
+export function isPrivateMediaUploadKey(key: string): boolean {
+  let decoded = key;
+  try { for (let i = 0; i < 3; i++) { const next = decodeURIComponent(decoded); if (next === decoded) break; decoded = next; } }
+  catch { return true; }
+  const normalized = posix.normalize('/' + decoded.replace(/\\/g, '/')).replace(/^\/+/, '');
+  return normalized === 'media-uploads/private' || normalized.startsWith('media-uploads/private/');
+}
 
 // In-memory cache for small assets (badges, icons) to avoid repeated fetches
 const assetCache = new Map<string, { buffer: Buffer; contentType: string; expires: number }>();
@@ -10,6 +19,11 @@ export function registerStorageProxy(app: Express) {
     const key = (req.params as any)[0] as string;
     if (!key) {
       res.status(400).send("Missing storage key");
+      return;
+    }
+    // Original upload chunks are never public assets, including for signed-in owners.
+    if (isPrivateMediaUploadKey(key)) {
+      res.set('Cache-Control', 'no-store').status(404).json({ error: 'Not found' });
       return;
     }
     if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
@@ -36,8 +50,7 @@ export function registerStorageProxy(app: Express) {
         headers: { Authorization: `Bearer ${ENV.forgeApiKey}` },
       });
       if (!forgeResp.ok) {
-        const body = await forgeResp.text().catch(() => "");
-        console.error(`[StorageProxy] forge error: ${forgeResp.status} ${body}`);
+        console.error(`[StorageProxy] forge error: ${forgeResp.status}`);
         res.status(502).send("Storage backend error");
         return;
       }
@@ -72,7 +85,7 @@ export function registerStorageProxy(app: Express) {
       res.set("Cache-Control", "public, max-age=3600");
       res.send(buffer);
     } catch (err) {
-      console.error("[StorageProxy] failed:", err);
+      console.error("[StorageProxy] failed", { code: (err as { code?: unknown })?.code });
       res.status(502).send("Storage proxy error");
     }
   });

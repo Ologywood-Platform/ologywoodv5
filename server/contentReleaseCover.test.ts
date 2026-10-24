@@ -133,6 +133,6 @@ describe('Content Release owner-protected cover upload', () => {
     expect(form).toContain('setThumbnailUrl(release.thumbnailUrl');expect(form).toContain('thumbnailUrl,');expect(form).toContain('disabled={isUploadingCover');
     expect(readFileSync('client/src/components/ContentReleasesDisplay.tsx','utf8')).toContain('url={release.thumbnailUrl}');
     const upload=readFileSync('client/src/components/ContentReleaseCoverArt.tsx','utf8');
-    expect(upload).toContain("event.target.value = ''");expect(upload).toContain('finally');expect(upload).toContain('if (!mounted.current) return');expect(upload).toContain('object-contain');
+    expect(upload).toContain("event.target.value = ''");expect(upload).toContain('finally');expect(upload).toContain('operationGeneration.current !== generation');expect(upload).toContain("purpose: 'content-cover'");expect(upload).not.toContain('readAsDataURL');expect(upload).toContain('object-contain');
   });
 });
