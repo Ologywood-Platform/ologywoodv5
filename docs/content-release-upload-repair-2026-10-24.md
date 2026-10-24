@@ -1,6 +1,6 @@
 # Content Release media upload repair
 
-**Status:** implemented and validated locally; checkpoint publication and an owner-driven production upload remain required. Existing creator content, purchases, publication state and fees were not modified during validation.
+**Status: closed after owner-confirmed live success.** The repair checkpoint is `1d6f60df`. On October 23, 2026 at 10:49 PM EDT, the owner reported: “It worked!” after retrying the upload. This is owner-confirmed production behavior, distinct from the earlier local/mocked tests. Existing creator content, purchases, publication state and fees were not modified by the assistant during validation or closeout.
 
 ## What caused the error
 
@@ -69,8 +69,12 @@ Original files were preserved. Final file-based encoder Node peak RSS was 109,95
 - **Schema:** additive `0120_shiny_sleepwalker.sql` reviewed; three new metadata tables installed idempotently through managed SQL and the narrow runtime guard. Actual runtime required columns, private nonce and unique job/chunk/global-slot keys were verified. No historical migrations or business-row backfills ran.
 - **Hygiene:** diff checks and changed-file credential/conflict/artifact scan passed. No real profile/release/purchase/payment/permission rows, uploads to an existing profile, checkout, email or external share were changed during validation.
 
-## Publication and remaining checks
+## Production closeout and future reference
 
-Publish the validated checkpoint, then confirm the live bundle uses binary uploads, small metadata and progress controls. Non-mutating checks should confirm JSON errors, privacy gates, unchanged public profile/Shop/preview pages and healthy runtime on both domains.
+The owner-confirmed successful live upload closes the reported issue. Additional non-mutating checks on October 24, 2026 around 02:50–02:51 UTC confirmed that the primary production health endpoint returned HTTP 200 JSON with `status: ok` and `runtimeVerified: true`, the public Help page rendered, and the deployed Content Releases dependency bundles contained both `/api/media-uploads` and `application/octet-stream`. No upload, save, playback, purchase or credential change was performed by the assistant during closeout.
 
-An authenticated production upload cannot be claimed from local encoding or mocked browser workflows. The owner should retry `mm_video.mp4` or `mm_video(4).mp4` in New Release → Preview, observe transfer then Preparing preview, and explicitly save only the intended release. The other three need compression/trimming below 20 MiB before that preview control accepts them. If production still returns a service error, capture its request time/status/request ID and hosting logs; do not bypass authentication, inflate global body limits, or fabricate success.
+The owner did not specify the exact filename, release saved or subsequent playback result. Do not manufacture those details or treat one successful upload as proof of every file, device, interrupted-job or offline scenario. The original production 503's underlying cause and the request-driven worker limitation described above remain accurately qualified; they are not reasons to reopen this completed repair without a new symptom.
+
+For future recurrence, retain bounded binary transport, idempotent chunks, safe response handling and the existing encoder. Keep the preview input below 20 MiB and distinguish Preview samples from externally hosted full content. Capture request time/status/request ID and relevant hosting logs before diagnosing a new service failure. Do not bypass authentication, raise global JSON limits, fabricate success, repeat the owner's upload, or replace the video system as a workaround.
+
+This closeout changes documentation and the tracker only. The original 3,686 passing tests, TypeScript and production build validation apply to the unchanged published implementation. A documentation-only restore point does not require another production publication.
