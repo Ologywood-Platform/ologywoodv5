@@ -37,6 +37,12 @@ const faqItems: FAQItem[] = [
     answer: 'After selecting the Artist role, complete the onboarding form with your bio, genres, location, and pricing. Upload a professional profile photo. Then visit Edit Profile from your Dashboard to add social links, tip links (Cash App, Venmo, etc.), and media. Set your availability calendar so venues can see when you are free.',
   },
   {
+    id: 'profile-photos-and-sections',
+    category: 'Getting Started',
+    question: 'How do I view full portfolio photos or show all music and videos on a profile?',
+    answer: 'Click or tap a photo in the Portfolio gallery to open the full original image without cropping. Use Previous photo, Next photo, or the left/right arrow keys to browse the loaded photos. Close photo viewer, Escape, or the dark backdrop returns you to the profile. The first 12 photos load together; Load more photos makes additional uploaded photos available without loading a huge gallery at once. Music starts with three songs and Video Portfolio with six clips. Choose Show all to expand a longer section and Show less to shorten it again. These viewing controls do not change the creator’s saved order, uploads, prices, purchases, sharing links, or publication. Extra music previews stop through the existing player cleanup when their cards are collapsed.',
+  },
+  {
     id: 'video-portfolio-manage-guide',
     category: 'Getting Started',
     question: 'How do I correct a saved video title or rearrange my Video Portfolio?',

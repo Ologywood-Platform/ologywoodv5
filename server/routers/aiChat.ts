@@ -2,6 +2,8 @@ import { z } from "zod";
 import { router, publicProcedure } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
 
+export const PROFILE_GALLERY_GUIDANCE = 'On a public talent profile, click or tap a Portfolio photo to view the full original image without cropping. Previous photo, Next photo and left/right arrow keys browse loaded photos; Close photo viewer, Escape or the dark backdrop returns to the profile. Load more photos brings in additional uploaded photos in small pages. Music initially shows three songs and Video Portfolio six clips; Show all expands longer lists and Show less shortens them. Viewing does not change saved creator order, uploads, publication, prices, purchases, or sharing links. Collapsing extra music cards stops their previews through existing cleanup. For changing a video title/order, use Artist Dashboard → Video Portfolio; for arranging singles, use the existing Reorder Singles control.';
+
 export const VIDEO_PORTFOLIO_MANAGEMENT_GUIDANCE = 'Open Artist Dashboard → Video Portfolio. Choose Edit Title beside a saved clip, correct the spelling, and Save Title; no re-upload is needed. Choose Reorder Videos, drag the handle on desktop or use Move Up and Move Down on a phone or keyboard, then Save Order. Cancel discards unsaved changes. How this works opens the quick guide. Only the actual talent profile owner can edit or arrange clips; admin or team-member status alone is not permission. If the title or list changed elsewhere, your draft stays available; reload the current version and confirm before discarding it. Preparing clips can be arranged but follow existing processing before playback. Only titles and display order change: video files, thumbnails, categories, existing share links, playback and moderation status stay unchanged. Active clips remain visible; no new pre-screening is added. Viewer reports and review against platform guidelines remain the moderation workflow.';
 
 const SYSTEM_PROMPT = `You are Ologywood's AI support assistant. You help users navigate the Ologywood platform — an artist booking and entertainment platform for artists, athletes, creators, venues, and fans.
@@ -264,6 +266,7 @@ export const RIDER_UPLOAD_GUIDANCE = 'In My Riders → Uploaded Riders, choose U
 
 export function getCanonicalNavigationAnswer(message: string): string | null {
   const normalized = message.trim().toLowerCase();
+  if ((/\b(photo|photos|image|images|gallery)\b/.test(normalized) && /\b(portfolio|profile)\b/.test(normalized)) || (/\b(show all|show less|scroll|collapse|expand)\b/.test(normalized) && /\b(music|videos?|songs?|profile)\b/.test(normalized))) return PROFILE_GALLERY_GUIDANCE;
   if (/\bvideo\s+portfolio\b|\bportfolio\s+videos?\b/.test(normalized) && /\b(edit|title|spelling|rename|reorder|arrange|order|move|guide|help)\b/.test(normalized)) return VIDEO_PORTFOLIO_MANAGEMENT_GUIDANCE;
   if (/\b(riders?|ryders?)\b/.test(normalized) && /\b(upload|pdf|manager|team|replace|document|private|default|permission|guide|help)\b/.test(normalized)) return RIDER_UPLOAD_GUIDANCE;
   if (/\b(singles?|songs?|music|releases?)\b/.test(normalized) && (/\b(shar(?:e|ing))\b/.test(normalized) || /\b(edit|update|change|add|clear)\b.*\bdescription\b/.test(normalized))) return MUSIC_SINGLE_MANAGEMENT_GUIDANCE;

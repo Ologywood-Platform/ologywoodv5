@@ -1,7 +1,13 @@
 import { router, publicProcedure, protectedProcedure } from '../_core/trpc';
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import * as db from '../db';
 import { notifyFansNewEvent } from '../services/fanNotificationService';
+import {
+  getPortfolioPhotos,
+  PORTFOLIO_PHOTO_DEFAULT_LIMIT,
+  PORTFOLIO_PHOTO_MAX_LIMIT,
+} from '../services/portfolioPhotoService';
 import { EVENT_TYPE_VALUES } from '../../shared/eventTypes';
 
 // Input validation schemas
@@ -623,12 +629,37 @@ export const eventsRouter = router({
       }
     }),
 
+  // Get every portfolio photo across an artist's event-history entries.
+  getPortfolioPhotos: publicProcedure
+    .input(z.object({
+      artistId: z.number().int().positive(),
+      cursor: z.number().int().positive().optional(),
+      // tRPC v11 adds this field to useInfiniteQuery requests.
+      direction: z.literal('forward').optional(),
+      limit: z.number().int().min(1).max(PORTFOLIO_PHOTO_MAX_LIMIT).default(PORTFOLIO_PHOTO_DEFAULT_LIMIT),
+    }).strict())
+    .query(async ({ input }) => {
+      try {
+        return await getPortfolioPhotos(input);
+      } catch {
+        // Do not expose database state or return a false empty result on outage.
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Portfolio photos are temporarily unavailable. Please try again.',
+        });
+      }
+    }),
+
   // Get recent portfolio photos for artist profile preview
   getRecentPhotos: publicProcedure
     .input(z.object({ artistId: z.number().int().positive(), limit: z.number().int().optional() }))
     .query(async ({ input }) => {
       try {
-        return await db.getArtistRecentPhotos(input.artistId, input.limit || 3);
+        // Keep omitted/zero limits backward compatible while bounding large requests.
+        return await db.getArtistRecentPhotos(input.artistId, Math.min(
+          PORTFOLIO_PHOTO_MAX_LIMIT,
+          Math.max(1, input.limit || 3),
+        ));
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to fetch recent photos');
       }

@@ -56,6 +56,8 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
   const [previewDuration, setPreviewDuration] = useState(PREVIEW_MAX_SECONDS);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
+  const previewAbortRef = useRef<AbortController | null>(null);
 
   const priceFormatted = (release.priceInCents / 100).toFixed(2);
   const minPrice = release.priceInCents / 100;
@@ -78,7 +80,11 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
 
   // Cleanup on unmount
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      previewAbortRef.current?.abort();
+      previewAbortRef.current = null;
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
@@ -146,9 +152,12 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
 
     // Load preview from server
     setIsLoadingPreview(true);
+    const controller = new AbortController();
+    previewAbortRef.current = controller;
     try {
-      const response = await fetch(`/api/release/download/preview/${release.id}`);
+      const response = await fetch(`/api/release/download/preview/${release.id}`, { signal: controller.signal });
       const data = await response.json();
+      if (!mountedRef.current || controller.signal.aborted) return;
       if (data.success && data.previewUrl) {
 
         const audio = new Audio(data.previewUrl);
@@ -171,14 +180,23 @@ export function ReleaseCard({ release, artistName, isOwner = false, purchaseId, 
         };
 
         await audio.play();
+        if (!mountedRef.current || controller.signal.aborted) {
+          audio.pause();
+          audio.src = "";
+          return;
+        }
         setIsPlaying(true);
       } else {
         toast.addError("Preview unavailable", data.error || "No preview available");
       }
     } catch {
-      toast.addError("Preview unavailable", "Could not load audio preview");
+      if (mountedRef.current && !controller.signal.aborted) {
+        toast.addError("Preview unavailable", "Could not load audio preview");
+      }
+    } finally {
+      if (previewAbortRef.current === controller) previewAbortRef.current = null;
+      if (mountedRef.current) setIsLoadingPreview(false);
     }
-    setIsLoadingPreview(false);
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {

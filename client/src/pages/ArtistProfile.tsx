@@ -27,7 +27,7 @@ import { ReviewSystem } from "@/components/ReviewSystem";
 import { MerchDisplay } from "@/components/MerchDisplay";
 import { ContentReleasesDisplay } from "@/components/ContentReleasesDisplay";
 import { ProjectPreviewDisplay } from "@/components/ProjectPreviewDisplay";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Share2, Flag } from "lucide-react";
 import { ReportContentModal } from "@/components/ReportContentModal";
 import { TipQRSection } from "@/components/TipQRCode";
@@ -50,6 +50,8 @@ import { CrmBadge } from "@/components/CrmBadge";
 import { parsePortfolioVideoUrl, type PortfolioVideoKind } from '@shared/videoPortfolio';
 import { getTalentTypeLabel } from '@shared/talentTypes';
 import { portfolioVideoUrl } from '@shared/portfolioVideoShare';
+import { PROFILE_MUSIC_PREVIEW_COUNT, PROFILE_VIDEO_PREVIEW_COUNT, visibleProfileItems, uniquePortfolioPhotos } from '@shared/profileSections';
+import { PortfolioPhotoViewer } from '@/components/PortfolioPhotoViewer';
 
 export default function ArtistProfile() {
   const { id: idParam } = useParams();
@@ -121,10 +123,16 @@ export default function ArtistProfile() {
     { artistId: resolvedArtistId },
     { enabled: resolvedArtistId > 0 }
   );
-  const { data: recentPhotos = [] } = trpc.events.getRecentPhotos.useQuery(
-    { artistId: resolvedArtistId, limit: 4 },
-    { enabled: resolvedArtistId > 0 }
+  const portfolioPhotoInput = useMemo(() => ({ artistId: resolvedArtistId, limit: 12 }), [resolvedArtistId]);
+  const portfolioPhotosQuery = trpc.events.getPortfolioPhotos.useInfiniteQuery(
+    portfolioPhotoInput,
+    { enabled: resolvedArtistId > 0 && !!artist, getNextPageParam: page => page.nextCursor ?? undefined }
   );
+  const portfolioPhotos = useMemo(() => (
+    portfolioPhotosQuery.isError && !portfolioPhotosQuery.isFetchNextPageError
+      ? []
+      : uniquePortfolioPhotos(portfolioPhotosQuery.data?.pages ?? [])
+  ), [portfolioPhotosQuery.data, portfolioPhotosQuery.isError, portfolioPhotosQuery.isFetchNextPageError]);
 
   const { data: portfolioStats } = trpc.events.getPortfolioStats.useQuery(
     { artistId: resolvedArtistId },
@@ -187,6 +195,20 @@ export default function ArtistProfile() {
     : '';
 
   const heroRef = useRef<HTMLDivElement>(null);
+  const photoTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<number | null>(null);
+  const [showAllMusic, setShowAllMusic] = useState(false);
+  const [showAllVideos, setShowAllVideos] = useState(false);
+  useEffect(() => {
+    setSelectedPhotoId(null);
+    setShowAllMusic(false);
+    setShowAllVideos(false);
+  }, [resolvedArtistId]);
+  useEffect(() => {
+    if (selectedPhotoId !== null && !portfolioPhotos.some(photo => photo.id === selectedPhotoId)) {
+      setSelectedPhotoId(null);
+    }
+  }, [portfolioPhotos, selectedPhotoId]);
   
   const toggleRiderExpanded = (riderId: number) => {
     setExpandedRiders(prev => {
@@ -974,11 +996,13 @@ export default function ArtistProfile() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(videoPortfolio as any[]).map((video: any) => (
-                      <div
+                  <div id="profile-video-list" className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {visibleProfileItems(videoPortfolio as any[], showAllVideos, PROFILE_VIDEO_PREVIEW_COUNT).map((video: any) => (
+                      <button
+                        type="button"
                         key={video.id}
-                        className="rounded-lg overflow-hidden border cursor-pointer group hover:ring-2 hover:ring-primary/50 transition-all"
+                        aria-label={`Play ${video.title}`}
+                        className="min-w-0 text-left rounded-lg overflow-hidden border cursor-pointer group hover:ring-2 hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-primary transition-all"
                         onClick={() => {
                           const source = parsePortfolioVideoUrl(video.videoUrl);
                           setActiveVideo({
@@ -1027,9 +1051,14 @@ export default function ArtistProfile() {
                             {(video.category || '').replace('_', ' ')}
                           </span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
+                  {(videoPortfolio as any[]).length > PROFILE_VIDEO_PREVIEW_COUNT && (
+                    <Button type="button" variant="outline" size="sm" className="mt-4 w-full whitespace-normal" aria-expanded={showAllVideos} aria-controls="profile-video-list" onClick={() => setShowAllVideos(value => !value)}>
+                      {showAllVideos ? 'Show less videos' : `Show all ${(videoPortfolio as any[]).length} videos`}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1375,13 +1404,20 @@ export default function ArtistProfile() {
                   <CardDescription>Preview songs, then buy the audio download. Purchased tracks are available in My Ology.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {releases.map((release: any) => (
-                    <ReleaseCard
-                      key={release.id}
-                      release={release}
-                      artistName={artist?.artistName || ""}
-                    />
-                  ))}
+                  <div id="profile-music-list" className="space-y-3">
+                    {visibleProfileItems(releases, showAllMusic, PROFILE_MUSIC_PREVIEW_COUNT).map((release: any) => (
+                      <ReleaseCard
+                        key={release.id}
+                        release={release}
+                        artistName={artist?.artistName || ""}
+                      />
+                    ))}
+                  </div>
+                  {releases.length > PROFILE_MUSIC_PREVIEW_COUNT && (
+                    <Button type="button" variant="outline" size="sm" className="w-full whitespace-normal" aria-expanded={showAllMusic} aria-controls="profile-music-list" onClick={() => setShowAllMusic(value => !value)}>
+                      {showAllMusic ? 'Show less music' : `Show all ${releases.length} songs`}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1631,28 +1667,35 @@ export default function ArtistProfile() {
                   <CardTitle>Portfolio</CardTitle>
                   <CardDescription>
                     {portfolioStats
-                      ? `${portfolioStats.historyCount} portfolio entries · ${portfolioStats.photoCount} photos`
+                      ? `${portfolioStats.historyCount} portfolio ${portfolioStats.historyCount === 1 ? 'entry' : 'entries'} · ${portfolioPhotosQuery.data?.pages[0]?.totalCount ?? portfolioStats.photoCount} photos`
                       : 'Selected work, projects, appearances, and creative highlights'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Recent photo thumbnails */}
-                  {recentPhotos.length > 0 ? (
-                    <div className="grid grid-cols-4 gap-2 mb-4">
-                      {recentPhotos.map((photo: any) => (
-                        <div key={photo.id} className="aspect-square rounded-md overflow-hidden bg-muted">
-                          <img
-                            src={photo.photoUrl}
-                            alt={photo.caption || 'Portfolio image'}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
+                  {/* Every stored photo is reachable; larger galleries load in bounded pages. */}
+                  {portfolioPhotosQuery.isLoading ? (
+                    <p role="status" className="text-sm text-muted-foreground mb-4">Loading portfolio photos…</p>
+                  ) : portfolioPhotosQuery.isError && !portfolioPhotosQuery.isFetchNextPageError ? (
+                    <div className="mb-4"><p role="alert" className="text-sm text-muted-foreground mb-2">Portfolio photos could not be loaded.</p><Button type="button" size="sm" variant="outline" onClick={() => portfolioPhotosQuery.refetch()}>Retry photos</Button></div>
+                  ) : portfolioPhotos.length > 0 ? (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2">Click a photo to view the full image.</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4" aria-label="Portfolio photo gallery">
+                        {portfolioPhotos.map((photo, index) => (
+                          <button type="button" key={photo.id} aria-label={`Open portfolio photo ${index + 1}`} className="aspect-square min-w-0 rounded-md overflow-hidden bg-muted focus-visible:ring-2 focus-visible:ring-primary" onClick={event => { photoTriggerRef.current = event.currentTarget; setSelectedPhotoId(photo.id); }}>
+                            <img src={photo.photoUrl} alt={photo.caption || `Portfolio photo ${index + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                      {portfolioPhotosQuery.isFetchNextPageError && <p role="alert" className="text-sm text-muted-foreground mb-2">More photos could not be loaded. Your current photos remain available.</p>}
+                      {portfolioPhotosQuery.hasNextPage && (
+                        <Button type="button" variant="outline" size="sm" className="mb-3 w-full whitespace-normal" disabled={portfolioPhotosQuery.isFetchingNextPage} onClick={() => portfolioPhotosQuery.fetchNextPage()}>
+                          {portfolioPhotosQuery.isFetchingNextPage ? 'Loading more photos…' : portfolioPhotosQuery.isFetchNextPageError ? 'Retry more photos' : 'Load more photos'}
+                        </Button>
+                      )}
+                    </>
                   ) : (
-                    <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">
-                      Explore previous work and professional experience from this creator.
-                    </p>
+                    <p className="text-sm text-slate-500 dark:text-gray-400 mb-4">Explore previous work and professional experience from this creator.</p>
                   )}
                   <Button
                     variant="outline"
@@ -1710,6 +1753,8 @@ export default function ArtistProfile() {
           heroRef={heroRef}
         />
       )}
+
+      <PortfolioPhotoViewer photos={portfolioPhotos} selectedId={selectedPhotoId} onClose={() => setSelectedPhotoId(null)} onSelect={setSelectedPhotoId} returnFocusRef={photoTriggerRef} />
 
       {/* Share Profile Modal */}
       {artist && (
