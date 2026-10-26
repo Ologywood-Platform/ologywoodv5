@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented and validated locally; publication and the owner's actual payouts-link retry remain pending. This is a new default-live credential defect, not a reopening of the completed October 23 webhook signing and sandbox-delivery work.
+**Closed.** The owner confirmed “Its working.” on October 25, 2026 at 21:01:48 EDT after receiving repair checkpoint `901bc88a` and instructions to publish and retry the payouts button. Record this as owner-confirmed working payouts-link behavior, not an independently inspected Stripe session or payout. This is a new default-live credential defect, not a reopening of the completed October 23 webhook signing and sandbox-delivery work.
 
 ## Confirmed cause
 
@@ -41,6 +41,6 @@ Existing webhook signature, live/test separation and fee regressions passed. All
 
 ## Publication and closeout
 
-Publish the latest validated checkpoint, then the owner should retry **Creator Shop Orders → Open Stripe payouts**. A successful redirect verifies the actual connected-account login-link path; it does not constitute a payout or verify payout availability, settlement, or a real purchase. Until that retry is observed, authenticated production link generation remains unconfirmed.
+The owner reported that **Open Stripe payouts** is now working. The expired-key link repair is complete; no additional secret entry, account reconnection, purchase, webhook replay or repeated payouts-link test is required. This confirmation does not establish payout availability, completed settlement, bank changes or real-money purchase fulfillment.
 
-The module-level clients are reconstructed on deployment/startup. Saving code without publishing cannot replace an already-running production client's credential. Do not repeat the completed webhook/signing setup or rotate further keys to address this selector bug.
+The module-level clients are reconstructed on deployment/startup. The implementation retains its 3,735 passing tests, TypeScript and production-build validation. This closeout changes only the implementation record and tracker; no application code or financial records were changed and no new financial operation was performed. No further publication is needed for this documentation-only closeout. Do not repeat the completed webhook/signing setup or rotate further keys to address this closed selector bug.
