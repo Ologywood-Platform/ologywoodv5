@@ -11,6 +11,7 @@ import Stripe from 'stripe';
 import { getDb } from '../db';
 import { stripeConnectAccounts } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
+import { TRPCError } from '@trpc/server';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
@@ -84,7 +85,7 @@ export const stripeConnectRouter = router({
         currentlyDue: (stripeAccount as any).requirements?.currently_due || [],
       };
     } catch (error: any) {
-      console.error('[Stripe Connect] Error fetching account:', error.message);
+      console.error('[Stripe Connect] Could not refresh account status');
       return {
         connected: true,
         status: account.status,
@@ -179,23 +180,40 @@ export const stripeConnectRouter = router({
    * Get a Stripe Express dashboard login link for the artist
    */
   getDashboardLink: protectedProcedure.mutation(async ({ ctx }: any) => {
-    const userId = ctx.user.id;
-    const db = await getDb();
-    if (!db) throw new Error('Database not available');
+    try {
+      const userId = ctx.user.id;
+      const db = await getDb();
+      if (!db) throw new Error('Database not available');
 
-    const accounts = await db
-      .select()
-      .from(stripeConnectAccounts)
-      .where(eq(stripeConnectAccounts.artistId, userId))
-      .limit(1);
+      const accounts = await db
+        .select()
+        .from(stripeConnectAccounts)
+        .where(eq(stripeConnectAccounts.artistId, userId))
+        .limit(1);
 
-    if (!accounts.length) {
-      throw new Error('No Stripe Connect account found. Please connect your account first.');
+      if (!accounts.length) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No Stripe Connect account found. Please connect your account first.',
+        });
+      }
+
+      const loginLink = await stripe.accounts.createLoginLink(accounts[0].stripeAccountId);
+
+      return { url: loginLink.url };
+    } catch (error) {
+      if (error instanceof TRPCError && error.code === 'NOT_FOUND'
+          && error.message === 'No Stripe Connect account found. Please connect your account first.') {
+        throw error;
+      }
+      // Stripe authentication errors can contain API key fragments. Never return
+      // or log the provider message, request headers, or raw error object.
+      console.error('[Stripe Connect] Could not prepare the payouts dashboard link');
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Stripe payouts are temporarily unavailable. Please try again later or contact OlogyWood support.',
+      });
     }
-
-    const loginLink = await stripe.accounts.createLoginLink(accounts[0].stripeAccountId);
-
-    return { url: loginLink.url };
   }),
 
   /**

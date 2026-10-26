@@ -17,15 +17,27 @@ const env = {
   STRIPE_LIVE_SECRET_KEY: 'sk_live_existing_override', STRIPE_LIVE_WEBHOOK_SECRET: 'whsec_existing_live',
 };
 
-describe('default Stripe credential rotation without mode/account changes', () => {
+describe('default Stripe credential rotation without mode/settings changes', () => {
   it('uses the dedicated rotated API key while the primary configuration remains test', () => {
     expect(getDefaultStripeApiKey(env)).toBe(env.STRIPE_TEST_SECRET_KEY);
     expect(getDefaultStripeApiKey(env)).toBe(getStripeApiKeyForWebhookMode('test', env));
   });
-  it('preserves primary live account selection even with separate test/live overrides configured', () => {
+  it('uses the configured rotated live key without switching the default to test', () => {
     const live = { ...env, STRIPE_SECRET_KEY: 'sk_live_primary_existing_account' };
-    expect(getDefaultStripeApiKey(live)).toBe(live.STRIPE_SECRET_KEY);
+    expect(getDefaultStripeApiKey(live)).toBe(env.STRIPE_LIVE_SECRET_KEY);
+    expect(getDefaultStripeApiKey(live)).not.toBe(env.STRIPE_TEST_SECRET_KEY);
     expect(getStripeApiKeyForWebhookMode('live', live)).toBe(env.STRIPE_LIVE_SECRET_KEY);
+  });
+  it('retains the primary live key only when no dedicated live replacement is configured', () => {
+    expect(getDefaultStripeApiKey({ STRIPE_SECRET_KEY: 'sk_live_legacy',
+      STRIPE_TEST_SECRET_KEY: 'sk_test_other' })).toBe('sk_live_legacy');
+  });
+  it.each(['sk_test_wrong', 'mk_key_record_id', ' invalid_live_key'])('fails closed for malformed live replacement %s', (replacement) => {
+    expect(() => getDefaultStripeApiKey({ ...env, STRIPE_SECRET_KEY: 'sk_live_primary',
+      STRIPE_LIVE_SECRET_KEY: replacement })).toThrow('live-mode API key');
+  });
+  it('does not infer live default mode from a dedicated key alone', () => {
+    expect(() => getDefaultStripeApiKey({ STRIPE_LIVE_SECRET_KEY: 'sk_live_rotated' })).toThrow('default API mode');
   });
   it('retains the legacy test API fallback when no dedicated key is configured', () => {
     expect(getDefaultStripeApiKey({ STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY })).toBe(env.STRIPE_SECRET_KEY);

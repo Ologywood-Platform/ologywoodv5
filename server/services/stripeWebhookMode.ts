@@ -113,15 +113,19 @@ export function getStripeApiKeyForWebhookMode(
   return liveKey;
 }
 
-/** Preserve the existing primary mode; a rotated dedicated test key wins only in test mode. */
+/** Preserve the existing primary mode and prefer its configured rotated key. */
 export function getDefaultStripeApiKey(
   env: StripeWebhookEnvironment = process.env as StripeWebhookEnvironment,
 ): string {
   const primaryMode = getApiKeyMode(env.STRIPE_SECRET_KEY);
   if (primaryMode === 'test') return getStripeApiKeyForWebhookMode('test', env);
-  // Default live requests retain the original primary live account/key.
-  // The separate live-webhook override must not change default payment routing.
-  if (primaryMode === 'live') return env.STRIPE_SECRET_KEY!;
+  if (primaryMode === 'live') {
+    // A malformed configured replacement must not silently revive a retired key.
+    if (env.STRIPE_LIVE_SECRET_KEY && !env.STRIPE_LIVE_SECRET_KEY.startsWith('sk_live_')) {
+      throw new Error('Stripe live-mode API key is not configured');
+    }
+    return getStripeApiKeyForWebhookMode('live', env);
+  }
   throw new Error('Stripe default API mode is not configured');
 }
 
