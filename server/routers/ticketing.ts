@@ -8,6 +8,7 @@ import { stripe } from '../stripe';
 import { TRPCError } from '@trpc/server';
 import { randomUUID } from 'crypto';
 import { formatDateOnly } from '../../shared/dateOnly';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 async function getDatabase() {
   const instance = await getDb();
@@ -25,41 +26,41 @@ function generateOrderNumber(): string {
 
 // Input schemas
 const createTierSchema = z.object({
-  eventId: z.number().int().positive(),
-  name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  price: z.number().int().min(0), // in cents, 0 = free
-  quantity: z.number().int().min(1),
+  eventId: z.number().int().safe().positive(),
+  name: z.string().trim().min(1).max(100),
+  description: z.string().trim().max(1000).optional(),
+  price: z.number().int().min(0).max(10_000_000), // in cents, 0 = free
+  quantity: z.number().int().min(1).max(1_000_000),
   maxPerOrder: z.number().int().min(1).max(50).default(10),
   salesStartDate: z.date().optional(),
   salesEndDate: z.date().optional(),
-  sortOrder: z.number().int().default(0),
-});
+  sortOrder: z.number().int().min(0).max(10_000).default(0),
+}).strict();
 
 const updateTierSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().min(1).max(100).optional(),
-  description: z.string().optional(),
-  price: z.number().int().min(0).optional(),
-  quantity: z.number().int().min(1).optional(),
+  id: z.number().int().safe().positive(),
+  name: z.string().trim().min(1).max(100).optional(),
+  description: z.string().trim().max(1000).optional(),
+  price: z.number().int().min(0).max(10_000_000).optional(),
+  quantity: z.number().int().min(1).max(1_000_000).optional(),
   maxPerOrder: z.number().int().min(1).max(50).optional(),
   salesStartDate: z.date().nullable().optional(),
   salesEndDate: z.date().nullable().optional(),
-  sortOrder: z.number().int().optional(),
+  sortOrder: z.number().int().min(0).max(10_000).optional(),
   isActive: z.boolean().optional(),
-});
+}).strict();
 
 const purchaseSchema = z.object({
-  eventId: z.number().int().positive(),
+  eventId: z.number().int().safe().positive(),
   items: z.array(z.object({
-    tierId: z.number().int().positive(),
+    tierId: z.number().int().safe().positive(),
     quantity: z.number().int().min(1).max(50),
-  })).min(1),
-  buyerName: z.string().optional(),
-  buyerEmail: z.string().email().optional(),
-  buyerPhone: z.string().optional(),
-  promoCode: z.string().max(50).optional(),
-});
+  }).strict()).min(1).max(20),
+  buyerName: z.string().trim().max(255).optional(),
+  buyerEmail: z.string().trim().email().max(320).optional(),
+  buyerPhone: z.string().trim().max(30).optional(),
+  promoCode: z.string().trim().min(2).max(50).regex(/^[A-Za-z0-9 _-]+$/).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')).refine(v => v.length >= 2).optional(),
+}).strict();
 
 export const ticketingRouter = router({
   // ==================== TIER MANAGEMENT (Event Organizers) ====================
@@ -77,6 +78,9 @@ export const ticketingRouter = router({
       const artistProfile = await getArtistProfileByUserId(ctx.user.id);
       if (!artistProfile || artistProfile.id !== event.artistId) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only add tickets to your own events' });
+      }
+      if (input.salesStartDate && input.salesEndDate && input.salesStartDate >= input.salesEndDate) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ticket sales must end after they start.' });
       }
 
       const [tier] = await (await getDatabase()).insert(ticketTiers).values({
@@ -115,6 +119,11 @@ export const ticketingRouter = router({
       if (input.quantity !== undefined && input.quantity < tier.quantitySold) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: `Cannot reduce quantity below ${tier.quantitySold} (already sold)` });
       }
+      const effectiveStart = input.salesStartDate === undefined ? tier.salesStartDate : input.salesStartDate;
+      const effectiveEnd = input.salesEndDate === undefined ? tier.salesEndDate : input.salesEndDate;
+      if (effectiveStart && effectiveEnd && new Date(effectiveStart) >= new Date(effectiveEnd)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ticket sales must end after they start.' });
+      }
 
       const updateData: any = {};
       if (input.name !== undefined) updateData.name = input.name;
@@ -133,7 +142,7 @@ export const ticketingRouter = router({
 
   // Delete a ticket tier (only if no tickets sold)
   deleteTier: protectedProcedure
-    .input(z.object({ id: z.number().int().positive() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ input, ctx }) => {
       const [tier] = await (await getDatabase()).select().from(ticketTiers).where(eq(ticketTiers.id, input.id)).limit(1);
       if (!tier) throw new TRPCError({ code: 'NOT_FOUND', message: 'Ticket tier not found' });
@@ -158,7 +167,7 @@ export const ticketingRouter = router({
 
   // Get all tiers for an event (public - for ticket purchase page)
   getTiers: publicProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const tiers = await (await getDatabase()).select().from(ticketTiers)
         .where(and(eq(ticketTiers.eventId, input.eventId), eq(ticketTiers.isActive, true)))
@@ -175,7 +184,7 @@ export const ticketingRouter = router({
 
   // Get all tiers for management (includes inactive, sold counts)
   getManagementTiers: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input, ctx }) => {
       // Verify ownership
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
@@ -316,15 +325,18 @@ export const ticketingRouter = router({
 
       // Create order record
       const orderNumber = generateOrderNumber();
-      const buyerEmail = input.buyerEmail || (ctx.user as any)?.email || '';
-      const buyerName = input.buyerName || (ctx.user as any)?.name || '';
+      const buyerEmail = (input.buyerEmail || (ctx.user as any)?.email || '').trim().toLowerCase();
+      const buyerName = (input.buyerName || (ctx.user as any)?.name || '').trim();
+      if (!buyerEmail) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Enter an email address to receive your tickets.' });
+      }
 
       const [order] = await (await getDatabase()).insert(ticketOrders).values({
         eventId: input.eventId,
         buyerUserId: (ctx.user as any)?.id || null,
         buyerEmail,
         buyerName,
-        buyerPhone: input.buyerPhone || null,
+        buyerPhone: input.buyerPhone?.trim() || null,
         status: 'pending',
         totalAmount: totalAmount - promoDiscount + platformFee,
         platformFee,
@@ -351,7 +363,7 @@ export const ticketingRouter = router({
       }
 
       // Create Stripe Checkout Session
-      const origin = (ctx.req as any)?.headers?.origin || process.env.BASE_URL || 'https://www.ologywood.com';
+      const origin = trustedCheckoutOrigin(process.env.BASE_URL, (ctx.req as any)?.headers?.origin);
       const sessionParams: any = {
         mode: 'payment',
         line_items: lineItems,
@@ -421,9 +433,9 @@ export const ticketingRouter = router({
   // Get order by order number (for confirmation page)
   getOrderByNumber: publicProcedure
     .input(z.object({
-      orderNumber: z.string().min(1).max(100),
-      sessionId: z.string().min(10).max(255).optional(),
-    }))
+      orderNumber: z.string().trim().regex(/^OLG-\d{8}-[A-Z0-9]{4}$/),
+      sessionId: z.string().trim().max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/).optional(),
+    }).strict())
     .query(async ({ input, ctx }) => {
       const [order] = await (await getDatabase()).select().from(ticketOrders)
         .where(eq(ticketOrders.orderNumber, input.orderNumber)).limit(1);
@@ -471,7 +483,7 @@ export const ticketingRouter = router({
   getMyTickets: protectedProcedure
     .input(z.object({
       status: z.enum(['upcoming', 'past', 'all']).default('upcoming'),
-    }))
+    }).strict())
     .query(async ({ input, ctx }) => {
       const orders = await (await getDatabase()).select().from(ticketOrders)
         .where(and(
@@ -523,7 +535,7 @@ export const ticketingRouter = router({
 
   // Get sales summary for an event
   getSalesSummary: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input, ctx }) => {
       // Verify ownership
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
@@ -589,7 +601,7 @@ export const ticketingRouter = router({
 
   // Validate a ticket by code (QR scan)
   validateTicket: protectedProcedure
-    .input(z.object({ ticketCode: z.string() }))
+    .input(z.object({ ticketCode: z.string().trim().uuid() }).strict())
     .mutation(async ({ input, ctx }) => {
       const [ticket] = await (await getDatabase()).select().from(ticketItems)
         .where(eq(ticketItems.ticketCode, input.ticketCode)).limit(1);
@@ -645,7 +657,7 @@ export const ticketingRouter = router({
 
   // Get check-in stats for an event
   getCheckInStats: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input, ctx }) => {
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
@@ -673,7 +685,7 @@ export const ticketingRouter = router({
 
   // Check if an event has ticketing enabled
   hasTicketing: publicProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const tiers = await (await getDatabase()).select().from(ticketTiers)
         .where(and(eq(ticketTiers.eventId, input.eventId), eq(ticketTiers.isActive, true)))
@@ -686,14 +698,14 @@ export const ticketingRouter = router({
   // Create a promo code for an event
   createPromoCode: protectedProcedure
     .input(z.object({
-      eventId: z.number().int().positive(),
-      code: z.string().min(2).max(50).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')),
+      eventId: z.number().int().safe().positive(),
+      code: z.string().trim().min(2).max(50).regex(/^[A-Za-z0-9 _-]+$/).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')).refine(v => v.length >= 2),
       discountType: z.enum(['percentage', 'fixed']),
-      discountValue: z.number().int().positive(), // percentage (1-100) or cents
-      maxUses: z.number().int().positive().optional(),
-      minTickets: z.number().int().min(1).default(1),
+      discountValue: z.number().int().positive().max(10_000_000), // percentage (1-100) or cents
+      maxUses: z.number().int().positive().max(1_000_000).optional(),
+      minTickets: z.number().int().min(1).max(1_000).default(1),
       expiresAt: z.date().optional(),
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
@@ -731,7 +743,7 @@ export const ticketingRouter = router({
 
   // Get promo codes for an event (organizer only)
   getPromoCodes: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId: z.number().int().safe().positive() }).strict())
     .query(async ({ input, ctx }) => {
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
@@ -749,7 +761,7 @@ export const ticketingRouter = router({
 
   // Delete a promo code
   deletePromoCode: protectedProcedure
-    .input(z.object({ id: z.number().int().positive() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ input, ctx }) => {
       const [promo] = await (await getDatabase()).select().from(ticketPromoCodes).where(eq(ticketPromoCodes.id, input.id)).limit(1);
       if (!promo) throw new TRPCError({ code: 'NOT_FOUND', message: 'Promo code not found' });
@@ -770,10 +782,10 @@ export const ticketingRouter = router({
   // Validate a promo code (public - for buyers)
   validatePromoCode: publicProcedure
     .input(z.object({
-      eventId: z.number().int().positive(),
-      code: z.string().transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')),
-      ticketCount: z.number().int().min(1),
-    }))
+      eventId: z.number().int().safe().positive(),
+      code: z.string().trim().min(2).max(50).regex(/^[A-Za-z0-9 _-]+$/).transform(v => v.toUpperCase().replace(/[^A-Z0-9]/g, '')).refine(v => v.length >= 2),
+      ticketCount: z.number().int().min(1).max(1_000),
+    }).strict())
     .query(async ({ input }) => {
       const [promo] = await (await getDatabase()).select().from(ticketPromoCodes)
         .where(and(
@@ -816,11 +828,11 @@ export const ticketingRouter = router({
   // Initiate a ticket transfer
   transferTicket: protectedProcedure
     .input(z.object({
-      ticketItemId: z.number().int().positive(),
-      toEmail: z.string().email(),
-      toName: z.string().min(1).max(255).optional(),
-      message: z.string().max(500).optional(),
-    }))
+      ticketItemId: z.number().int().safe().positive(),
+      toEmail: z.string().trim().email().max(320),
+      toName: z.string().trim().min(1).max(255).optional(),
+      message: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const [ticket] = await (await getDatabase()).select().from(ticketItems)
         .where(eq(ticketItems.id, input.ticketItemId)).limit(1);
@@ -915,7 +927,7 @@ export const ticketingRouter = router({
 
   // Accept a ticket transfer
   acceptTransfer: publicProcedure
-    .input(z.object({ transferCode: z.string() }))
+    .input(z.object({ transferCode: z.string().trim().uuid() }).strict())
     .mutation(async ({ input, ctx }) => {
       const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
         .where(eq(ticketTransfers.transferCode, input.transferCode)).limit(1);
@@ -957,7 +969,7 @@ export const ticketingRouter = router({
 
   // Cancel a pending transfer
   cancelTransfer: protectedProcedure
-    .input(z.object({ transferId: z.number().int().positive() }))
+    .input(z.object({ transferId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ input, ctx }) => {
       const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
         .where(eq(ticketTransfers.id, input.transferId)).limit(1);
@@ -987,8 +999,16 @@ export const ticketingRouter = router({
 
   // Get pending transfers for a ticket
   getTransferStatus: protectedProcedure
-    .input(z.object({ ticketItemId: z.number().int().positive() }))
+    .input(z.object({ ticketItemId: z.number().int().safe().positive() }).strict())
     .query(async ({ input, ctx }) => {
+      const [ticket] = await (await getDatabase()).select().from(ticketItems)
+        .where(eq(ticketItems.id, input.ticketItemId)).limit(1);
+      if (!ticket) throw new TRPCError({ code: 'NOT_FOUND', message: 'Ticket not found' });
+      const [order] = await (await getDatabase()).select().from(ticketOrders)
+        .where(eq(ticketOrders.id, ticket.orderId)).limit(1);
+      if (!order || order.buyerUserId !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only view transfers for your own tickets' });
+      }
       const transfers = await (await getDatabase()).select().from(ticketTransfers)
         .where(eq(ticketTransfers.ticketItemId, input.ticketItemId))
         .orderBy(desc(ticketTransfers.createdAt));
@@ -998,7 +1018,7 @@ export const ticketingRouter = router({
 
   // Get transfer details by code (for accept page)
   getTransferByCode: publicProcedure
-    .input(z.object({ transferCode: z.string() }))
+    .input(z.object({ transferCode: z.string().trim().uuid() }).strict())
     .query(async ({ input }) => {
       const [transfer] = await (await getDatabase()).select().from(ticketTransfers)
         .where(eq(ticketTransfers.transferCode, input.transferCode)).limit(1);
@@ -1014,7 +1034,10 @@ export const ticketingRouter = router({
         : [null];
 
       return {
-        ...transfer,
+        status: transfer.status,
+        fromEmail: transfer.fromEmail,
+        message: transfer.message,
+        createdAt: transfer.createdAt,
         event: event ? {
           title: event.eventTitle,
           date: event.eventDate,

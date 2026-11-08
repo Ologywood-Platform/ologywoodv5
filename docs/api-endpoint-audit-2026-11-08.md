@@ -90,6 +90,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Merch item mutations now scope ownership by both user ID and active seller type. Reorder lists reject duplicates, are bounded, and are prechecked against owned items. Image uploads require bounded base64, allowlisted MIME, matching data-URL MIME when present, and MIME-derived storage extensions. Checkout/session/variant/address/order fields are strict and bounded, and fulfillment IDs are safe positive integers.
    - Merch/book/schema/security regressions pass 29/29, with TypeScript and production build validation passing. No merch items, orders, image uploads, Stripe sessions, emails, or records were changed.
 
+16. **Ticketing checkout and transfer boundaries — resolved in this increment.**
+   - Ticket tier, purchase, promo, ticket-code, and transfer inputs are bounded and strict. Buyer email is required before ticket-order creation, Stripe return URLs use the approved checkout-origin helper rather than the request `Origin`, transfer-history reads require ownership of the underlying ticket, and public transfer lookups return only acceptance-page fields. UUID/session/order formats are validated.
+   - Ticketing/security/mobile regressions pass 60/60, with TypeScript and production build validation passing. No tickets, orders, promo codes, transfers, emails, Stripe sessions, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
