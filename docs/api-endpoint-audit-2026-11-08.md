@@ -7,7 +7,7 @@
 
 The active runtime is `server/_core/index.ts`. It mounts the Stripe webhook before JSON parsing, bounded media-upload parsers, event CRUD/search, release upload/download/checkout, booking checkout, contract PDFs, video uploads, eBook files, rider PDFs, calendar feeds/sync, OAuth, OG endpoints, rate-limited tRPC, and scheduled handlers.
 
-The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The critical follow-ups—OAuth state/redirect integrity, release-checkout input/origin handling, legacy event validation/ownership, test-email authorization/validation/rate limiting, legacy video duration/extension handling, and release-preview MIME/data-URL normalization—have now been hardened and regression-tested. Remaining findings include the unmounted legacy test module's cleanup review, the local-only nature of the current in-memory email limiter, the release-download preview route's local positive-ID check, sensitive-value log redaction, and the broader endpoint coverage items listed below.
+The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The critical follow-ups—OAuth state/redirect integrity, release-checkout input/origin handling, legacy event validation/ownership, test-email authorization/validation/rate limiting, legacy video duration/extension handling, release-preview MIME/data-URL normalization, release-download preview ID parsing, and identified sensitive-log redaction—have now been hardened and regression-tested. Remaining findings include the unmounted legacy test module's cleanup review, the local-only nature of the current in-memory email limiter, and broader endpoint coverage items listed below.
 
 ## Verified protections
 
@@ -69,6 +69,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 
 10. **Sensitive identifiers in the identified OAuth/PDF paths — resolved in this increment.**
    - Google/Spotify no longer log provider email, provider IDs, response bodies, session-linked open IDs, or redirect targets; Contract PDF no longer logs booking/profile/contract IDs, filenames, raw exception messages, or stacks. Focused `sensitiveLogSafety`/OAuth/private-data tests pass 17/17. A broader inventory of non-sensitive operational IDs and production log-retention policy remains outside this route-focused audit.
+
+11. **Booking rider and message boundaries — resolved in this increment.**
+   - Booking deposit, rider, unread-message, and message inputs now require finite positive integer IDs/amounts with bounded payment-intent identifiers. Booking riders are party-scoped, and message/send-rider recipients are resolved from the booking's participant profile IDs rather than the sender's profile, preventing cross-booking recipient confusion for artists and venues.
+   - Runtime booking/message integration, authorization, notification, and input-boundary tests pass 25/25; TypeScript validation passes. No booking, message, notification, payment, or rider record was created or modified during validation.
 
 ## Audit limitations
 

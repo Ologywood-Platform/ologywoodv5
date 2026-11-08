@@ -1968,8 +1968,8 @@ export const appRouter = router({
     // Create deposit payment intent
     createDepositPayment: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-        depositAmount: z.number().positive(),
+        bookingId: z.number().int().positive(),
+        depositAmount: z.number().finite().positive().max(1_000_000),
       }))
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
@@ -2011,8 +2011,8 @@ export const appRouter = router({
     // Confirm deposit payment
     confirmDepositPayment: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-        paymentIntentId: z.string(),
+        bookingId: z.number().int().positive(),
+        paymentIntentId: z.string().min(1).max(255),
       }))
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
@@ -2064,8 +2064,8 @@ export const appRouter = router({
     // Attach rider template to an existing booking
     attachRider: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-        riderTemplateId: z.number(),
+        bookingId: z.number().int().positive(),
+        riderTemplateId: z.number().int().positive(),
       }))
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
@@ -2092,10 +2092,18 @@ export const appRouter = router({
     
     // Get rider for a booking
     getRider: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) return null;
+
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtistParty = artistProfile && booking.artistId === artistProfile.id;
+        const isVenueParty = venueProfile && booking.venueId === venueProfile.id;
+        if (!isArtistParty && !isVenueParty && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this booking rider' });
+        }
         
         if (!booking.riderTemplateId) return null;
         
@@ -2147,9 +2155,11 @@ export const appRouter = router({
         if (!isArtistParty && !isVenueParty) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
         }
+        const bookingVenueProfile = isArtistParty ? await db.getVenueProfileById(booking.venueId) : null;
+        const bookingArtistProfile = isVenueParty ? await db.getArtistProfileById(booking.artistId) : null;
         const allowedRecipientIds = [
-          isArtistParty ? venueProfile?.userId : null,
-          isVenueParty ? artistProfile?.userId : null,
+          bookingVenueProfile?.userId,
+          bookingArtistProfile?.userId,
         ].filter((id): id is number => typeof id === 'number');
         if (!allowedRecipientIds.includes(input.receiverId)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Messages can only be sent to the other booking participant' });
@@ -2194,9 +2204,11 @@ export const appRouter = router({
         if (!isArtistParty && !isVenueParty) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
         }
+        const bookingVenueProfile = isArtistParty ? await db.getVenueProfileById(booking.venueId) : null;
+        const bookingArtistProfile = isVenueParty ? await db.getArtistProfileById(booking.artistId) : null;
         const allowedRecipientIds = [
-          isArtistParty ? venueProfile?.userId : null,
-          isVenueParty ? artistProfile?.userId : null,
+          bookingVenueProfile?.userId,
+          bookingArtistProfile?.userId,
         ].filter((id): id is number => typeof id === 'number');
         if (!allowedRecipientIds.includes(input.receiverId)) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Messages can only be sent to the other booking participant' });
@@ -2258,7 +2270,7 @@ export const appRouter = router({
     
     // Get unread message count for a specific booking
     getUnreadCount: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         const count = await db.getUnreadMessageCountByBooking(input.bookingId, ctx.user.id);
         return { count };

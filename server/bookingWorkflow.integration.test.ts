@@ -93,6 +93,7 @@ import { appRouter } from './routers';
 
 const venueContext = { user: { id: 5, role: 'venue', email: 'venue@test.invalid', name: 'Venue User' }, req: { headers: {} }, res: {} } as any;
 const artistContext = { user: { id: 7, role: 'artist', email: 'artist@test.invalid', name: 'Artist User' }, req: { headers: {} }, res: {} } as any;
+const outsiderContext = { user: { id: 999, role: 'artist', email: 'outsider@test.invalid', name: 'Outsider User' }, req: { headers: {} }, res: {} } as any;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -109,10 +110,10 @@ beforeEach(() => {
     bookingSource: 'venue',
     venueName: 'The Test Room',
   });
-  state.getVenueProfileByUserId.mockResolvedValue({ id: 20, userId: 5, organizationName: 'The Test Room', location: 'Atlanta' });
+  state.getVenueProfileByUserId.mockImplementation(async (userId: number) => userId === 5 ? ({ id: 20, userId: 5, organizationName: 'The Test Room', location: 'Atlanta' }) : null);
   state.getVenueProfileById.mockResolvedValue({ id: 20, userId: 5, organizationName: 'The Test Room', location: 'Atlanta' });
   state.getArtistProfileById.mockResolvedValue({ id: 7, userId: 7, artistName: 'Test Artist' });
-  state.getArtistProfileByUserId.mockResolvedValue({ id: 7, userId: 7, artistName: 'Test Artist' });
+  state.getArtistProfileByUserId.mockImplementation(async (userId: number) => userId === 7 ? ({ id: 7, userId: 7, artistName: 'Test Artist' }) : null);
   state.getUserById.mockImplementation(async (id: number) => ({ id, name: id === 7 ? 'Artist User' : 'Venue User', email: id === 7 ? 'artist@test.invalid' : 'venue@test.invalid' }));
   state.getSubscriptionByUserId.mockResolvedValue({ tier: 'professional' });
   state.ensureScheduleSchema.mockResolvedValue(undefined);
@@ -206,5 +207,16 @@ describe('booking workflow runtime integration', () => {
     await expect(artistCaller.message.send({ bookingId: 501, receiverId: 999, messageText: 'This must not be delivered.' })).rejects.toThrow('other booking participant');
     expect(state.createMessage).not.toHaveBeenCalled();
     expect(state.notifyNewMessage).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid payment/message IDs before database access', async () => {
+    const caller = appRouter.createCaller(artistContext);
+    await expect(caller.booking.createDepositPayment({ bookingId: 0, depositAmount: 100 })).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    await expect(caller.message.getUnreadCount({ bookingId: 0 })).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(state.getBookingById).not.toHaveBeenCalled();
+  });
+
+  it('does not expose a booking rider to an authenticated non-party', async () => {
+    await expect(appRouter.createCaller(outsiderContext).booking.getRider({ bookingId: 501 })).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });

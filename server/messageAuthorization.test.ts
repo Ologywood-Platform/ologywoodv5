@@ -13,8 +13,10 @@ describe('booking message authorization', () => {
     );
 
     expect(sendBlock).toContain('const allowedRecipientIds = [');
-    expect(sendBlock).toContain('venueProfile?.userId');
-    expect(sendBlock).toContain('artistProfile?.userId');
+    expect(sendBlock).toContain('const bookingVenueProfile = isArtistParty ? await db.getVenueProfileById(booking.venueId) : null;');
+    expect(sendBlock).toContain('const bookingArtistProfile = isVenueParty ? await db.getArtistProfileById(booking.artistId) : null;');
+    expect(sendBlock).toContain('bookingVenueProfile?.userId');
+    expect(sendBlock).toContain('bookingArtistProfile?.userId');
     expect(sendBlock).toContain("Messages can only be sent to the other booking participant");
     expect(sendBlock).toContain('allowedRecipientIds.includes(input.receiverId)');
   });
