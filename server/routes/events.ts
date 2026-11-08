@@ -36,6 +36,18 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
 
 const router = Router();
 
+const NUMERIC_EVENT_PARAMS = ['id', 'artistId', 'eventId', 'historyId', 'photoId'] as const;
+for (const parameter of NUMERIC_EVENT_PARAMS) {
+  router.param(parameter, (req, res, next, value) => {
+    const parsed = Number(value);
+    if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+      return res.status(400).json({ error: `Invalid ${parameter}` });
+    }
+    req.params[parameter] = String(parsed);
+    next();
+  });
+}
+
 // ============= EVENT CRUD ROUTES =============
 
 /**
@@ -58,6 +70,11 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid event type' });
     }
 
+    const parsedCapacity = capacity === undefined || capacity === '' ? undefined : Number(capacity);
+    if (parsedCapacity !== undefined && (!Number.isSafeInteger(parsedCapacity) || parsedCapacity < 0)) {
+      return res.status(400).json({ error: 'Capacity must be a non-negative whole number' });
+    }
+
     const event = await createEvent({
       artistId: user.id,
       eventTitle,
@@ -66,7 +83,7 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
       eventTime,
       eventEndTime,
       location,
-      capacity: capacity ? parseInt(capacity) : undefined,
+      capacity: parsedCapacity,
       audienceType,
       rate: rate ? parseFloat(rate).toString() : undefined,
       description,
