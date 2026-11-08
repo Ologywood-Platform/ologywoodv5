@@ -1164,9 +1164,13 @@ export const appRouter = router({
     // Get availability for an artist
     getForArtist: publicProcedure
       .input(z.object({
-        artistId: z.number(),
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
+        artistId: artistProfileId,
+        startDate: scheduleDateSchema.optional(),
+        endDate: scheduleDateSchema.optional(),
+      }).strict().superRefine((input, ctx) => {
+        if (input.startDate && input.endDate && input.endDate < input.startDate) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'End date must be after start date' });
+        }
       }))
       .query(async ({ input }) => {
         return await db.getAvailabilityByArtistId(input.artistId);
@@ -1178,8 +1182,8 @@ export const appRouter = router({
         date: scheduleDateSchema,
         timezone: scheduleTimezoneSchema.default("UTC"),
         status: z.enum(['available', 'booked', 'unavailable']),
-        notes: z.string().optional(),
-      }))
+        notes: z.string().trim().max(2_000).optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1211,7 +1215,7 @@ export const appRouter = router({
     
     // Delete availability
     delete: artistProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().safe().positive() }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) throw new TRPCError({code:'NOT_FOUND',message:'Artist profile not found'});
@@ -1226,7 +1230,7 @@ export const appRouter = router({
         toDate: scheduleDateSchema,
         status: z.enum(['available', 'booked', 'unavailable']),
         timezone: scheduleTimezoneSchema.default('UTC'),
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1263,7 +1267,7 @@ export const appRouter = router({
       .input(z.object({
         fromDate: scheduleDateSchema,
         toDate: scheduleDateSchema,
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {

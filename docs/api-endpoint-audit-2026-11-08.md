@@ -150,6 +150,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Public artist profile IDs/slugs and profile mutation fields are bounded and strict, including social/tip links, fees with minimum/maximum consistency, athlete stats/achievements/NIL data, and profile party size. Profile/gallery/event media uploads validate allowlisted MIME/data URLs, filenames, base64 syntax, and decoded size; profile photos use the shared validated image handler. Performance and portfolio video uploads validate MIME, duration, and size, derive storage extensions from MIME, bind performance upload keys to the authenticated artist, and keep portfolio edits/removals owner-scoped with bounded ordering.
    - Artist profile/photo/performance/portfolio suites pass 93/93, with TypeScript and production build validation passing. No profiles, media, moderation records, emails, or application records were changed.
 
+31. **Legacy artist availability boundaries — resolved in this increment.**
+   - Public artist IDs require safe positive integers; optional availability windows use the shared schedule-date validator with end-after-start ordering; availability mutation objects are strict; notes are capped at 2,000 characters; delete IDs are safe positive integers; and the existing maximum-90-day range guards remain before writes.
+   - Availability security/calendar regressions pass 6/6, with TypeScript and production build validation passing. No availability rows, notifications, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
