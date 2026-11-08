@@ -126,7 +126,7 @@
 - [x] Smoke-check homepage same-origin links only; 40 unique anchors fetched non-mutating with zero failures, including canonical navigation, artist/venue slugs, browse tabs, shop/events/Ology Live, Help, Terms, Privacy, and footer destinations. Platform-wide, external, mailto, authenticated, and deep-link coverage remains open.
 - [ ] Verify all images are displaying
 - [ ] Check email templates
-- [x] Audit homepage image loading only; current browser DOM contained 11 image elements, 9 with non-zero natural dimensions, and 2 SuggestedFollows lazy-image placeholders with no `src` yet (`Darnell “TrumpetDude” Phillips` and `Joe Watts`). After scrolling to the page bottom and waiting 1.2 seconds they remained placeholders, so this is recorded for a focused lazy-image investigation rather than classified as a broken URL; no data or image records were changed.
+- [x] Audit and repair the homepage SuggestedFollows lazy-image boundary; the two observed no-`src` placeholders were traced to an unsized `LazyImage` container that could prevent intersection loading. Added `containerClassName="w-full h-full"` while preserving the initials fallback. Focused OG/image tests pass 134/134 and TypeScript validation passes. Full image audit across every platform page remains open.
 - [x] Validate branded email-template source only; the approved shared neon Ologywood logo URL/alt text is present and retired logo sources are rejected across the email implementation, while the booking, reset, welcome, payment, support, and notification template suite passes 16/16. No email was sent during this check; delivery/inbox rendering remains open.
 
 ---

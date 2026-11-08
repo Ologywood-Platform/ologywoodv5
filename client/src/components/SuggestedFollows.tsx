@@ -134,6 +134,7 @@ export const SuggestedFollows: React.FC = () => {
                     <LazyImage
                       src={artist.profilePhotoUrl}
                       alt={artist.artistName}
+                      containerClassName="w-full h-full"
                       className="w-full h-full object-cover cursor-pointer"
                     />
                   ) : (
