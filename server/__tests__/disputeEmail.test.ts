@@ -128,4 +128,37 @@ describe("Dispute Email Notifications", () => {
       expect(routerSource).toContain("[Dispute] Failed to send email notification");
     });
   });
+
+  describe("Dispute router security boundaries", () => {
+    it("uses strict identifiers and bounded evidence/admin inputs", async () => {
+      const fs = await import("fs");
+      const routerSource = fs.readFileSync(
+        require("path").join(__dirname, "../routers/dispute.ts"),
+        "utf-8"
+      );
+
+      expect(routerSource).not.toMatch(/(bookingId|disputeId|id):\s*z\.number\(\)(?!\.)/);
+      expect(routerSource).toContain('fileData: disputeFileDataSchema');
+      expect(routerSource).toContain('mimeType: disputeEvidenceMimeSchema');
+      expect(routerSource).toContain('z.array(z.string().url().max(2_048)).max(10).optional()');
+      expect(routerSource).toContain('resolution: z.string().trim().max(10_000).optional()');
+      expect(routerSource).toContain('adminNotes: z.string().trim().max(10_000).optional()');
+    });
+
+    it("requires the booking party before creating or checking a dispute", async () => {
+      const fs = await import("fs");
+      const routerSource = fs.readFileSync(
+        require("path").join(__dirname, "../routers/dispute.ts"),
+        "utf-8"
+      );
+
+      const createBlock = routerSource.slice(routerSource.indexOf('create: protectedProcedure'), routerSource.indexOf('getMyDisputes: protectedProcedure'));
+      const checkBlock = routerSource.slice(routerSource.indexOf('checkBookingDispute: protectedProcedure'));
+      expect(createBlock).toContain('db.getArtistProfileByUserId(ctx.user.id)');
+      expect(createBlock).toContain('db.getVenueProfileByUserId(ctx.user.id)');
+      expect(createBlock).toContain('Only artists and venues can file disputes');
+      expect(checkBlock).toContain('Not authorized for this booking');
+      expect(checkBlock).toContain('ctx.user.role !== "admin"');
+    });
+  });
 });

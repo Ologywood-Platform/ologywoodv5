@@ -5,6 +5,22 @@ import * as db from "../db";
 import { storagePut } from "../storage";
 import { sendDisputeStatusUpdate, sendDisputeFiled } from "../email";
 
+const disputeTypeSchema = z.enum([
+  "payment_issue",
+  "no_show",
+  "contract_violation",
+  "quality_issue",
+  "cancellation_dispute",
+  "harassment",
+  "other",
+]);
+const disputeStatusSchema = z.enum(["open", "under_review", "resolved", "dismissed"]);
+const disputeEvidenceMimeSchema = z.enum(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+const disputeFileDataSchema = z.string().min(1).max(20_000_000).refine((value) => {
+  const payload = (value.includes(",") ? value.slice(value.indexOf(",") + 1) : value).replace(/\s/g, "");
+  return payload.length > 0 && /^[A-Za-z0-9+/]*={0,2}$/.test(payload);
+}, "Evidence must be base64 data");
+
 export const disputeRouter = router({
   /**
    * Create a new dispute for a booking
@@ -12,19 +28,11 @@ export const disputeRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        bookingId: z.number(),
-        type: z.enum([
-          "payment_issue",
-          "no_show",
-          "contract_violation",
-          "quality_issue",
-          "cancellation_dispute",
-          "harassment",
-          "other",
-        ]),
-        description: z.string().min(20, "Please provide at least 20 characters describing the issue"),
-        evidenceUrls: z.array(z.string()).optional(),
-      })
+        bookingId: z.number().int().positive(),
+        type: disputeTypeSchema,
+        description: z.string().trim().min(20, "Please provide at least 20 characters describing the issue").max(10_000),
+        evidenceUrls: z.array(z.string().url().max(2_048)).max(10).optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       // Get the booking to verify the user is a party to it
@@ -33,11 +41,12 @@ export const disputeRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
       }
 
-      // Determine if user is artist or venue side
-      const isArtist = ctx.user.role === "artist";
-      const isVenue = ctx.user.role === "venue";
-
-      if (!isArtist && !isVenue && ctx.user.role !== "admin") {
+      // Determine if the authenticated user is actually a party to this booking.
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile?.id === booking.artistId;
+      const isVenue = venueProfile?.id === booking.venueId;
+      if (!isArtist && !isVenue) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Only artists and venues can file disputes" });
       }
 
@@ -51,18 +60,18 @@ export const disputeRouter = router({
       let respondentId: number;
       if (isVenue) {
         // Venue is reporting — respondent is the artist's user ID
-        const artistProfile = await db.getArtistProfileById(booking.artistId);
-        if (!artistProfile) {
+        const bookingArtistProfile = await db.getArtistProfileById(booking.artistId);
+        if (!bookingArtistProfile) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Artist not found" });
         }
-        respondentId = artistProfile.userId;
+        respondentId = bookingArtistProfile.userId;
       } else {
         // Artist is reporting — respondent is the venue's user ID
-        const venueProfile = await db.getVenueProfileById(booking.venueId);
-        if (!venueProfile) {
+        const bookingVenueProfile = await db.getVenueProfileById(booking.venueId);
+        if (!bookingVenueProfile) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Venue not found" });
         }
-        respondentId = venueProfile.userId;
+        respondentId = bookingVenueProfile.userId;
       }
 
       const dispute = await db.createDispute({
@@ -143,7 +152,7 @@ export const disputeRouter = router({
    * Get dispute by ID
    */
   getById: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const dispute = await db.getDisputeById(input.id);
       if (!dispute) {
@@ -188,11 +197,11 @@ export const disputeRouter = router({
   uploadEvidence: protectedProcedure
     .input(
       z.object({
-        disputeId: z.number(),
-        fileData: z.string(),
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        disputeId: z.number().int().positive(),
+        fileData: disputeFileDataSchema,
+        fileName: z.string().trim().min(1).max(255).regex(/^[^\\/\0]+$/, "Invalid file name"),
+        mimeType: disputeEvidenceMimeSchema,
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const dispute = await db.getDisputeById(input.disputeId);
@@ -203,11 +212,20 @@ export const disputeRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Only the reporter can upload evidence" });
       }
 
-      const base64Data = input.fileData.split(",")[1] || input.fileData;
+      const dataUrlMatch = input.fileData.match(/^data:([^;,]+);base64,([\s\S]+)$/);
+      if (dataUrlMatch && dataUrlMatch[1].toLowerCase() !== input.mimeType) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Evidence MIME type does not match its data" });
+      }
+      const base64Data = dataUrlMatch ? dataUrlMatch[2] : input.fileData;
       const buffer = Buffer.from(base64Data, "base64");
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(7);
-      const ext = input.fileName.split(".").pop() || "jpg";
+      const ext = ({
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "application/pdf": "pdf",
+      } as const)[input.mimeType];
       const fileKey = `dispute-evidence/${dispute.id}/${timestamp}-${randomSuffix}.${ext}`;
 
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
@@ -237,7 +255,7 @@ export const disputeRouter = router({
    * Admin: Get all disputes
    */
   adminGetAll: protectedProcedure
-    .input(z.object({ status: z.string().optional() }).optional())
+    .input(z.object({ status: disputeStatusSchema.optional() }).strict().optional())
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
@@ -277,11 +295,11 @@ export const disputeRouter = router({
   adminResolve: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.number().int().positive(),
         status: z.enum(["under_review", "resolved", "dismissed"]),
-        resolution: z.string().optional(),
-        adminNotes: z.string().optional(),
-      })
+        resolution: z.string().trim().max(10_000).optional(),
+        adminNotes: z.string().trim().max(10_000).optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
@@ -333,7 +351,7 @@ export const disputeRouter = router({
             ...commonParams,
             recipientRole: 'reporter',
           });
-          console.log(`[Dispute] Email sent to reporter ${reporter.email} for dispute #${dispute.id} -> ${input.status}`);
+          console.log(`[Dispute] Email sent to reporter for dispute #${dispute.id} -> ${input.status}`);
         }
 
         // Notify the respondent
@@ -344,7 +362,7 @@ export const disputeRouter = router({
             recipientEmail: respondent.email,
             recipientName: respondent.name || 'User',
           });
-          console.log(`[Dispute] Email sent to respondent ${respondent.email} for dispute #${dispute.id} -> ${input.status}`);
+          console.log(`[Dispute] Email sent to respondent for dispute #${dispute.id} -> ${input.status}`);
         }
       } catch (emailError) {
         // Don't fail the mutation if email fails — log and continue
@@ -358,8 +376,16 @@ export const disputeRouter = router({
    * Check if a dispute exists for a booking
    */
   checkBookingDispute: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
-    .query(async ({ input }) => {
+    .input(z.object({ bookingId: z.number().int().positive() }).strict())
+    .query(async ({ ctx, input }) => {
+      const booking = await db.getBookingById(input.bookingId);
+      if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isParty = artistProfile?.id === booking.artistId || venueProfile?.id === booking.venueId;
+      if (!isParty && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized for this booking" });
+      }
       const dispute = await db.getDisputeByBookingId(input.bookingId);
       return { hasDispute: !!dispute, dispute: dispute || null };
     }),

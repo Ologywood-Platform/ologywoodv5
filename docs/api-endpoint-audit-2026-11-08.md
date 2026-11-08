@@ -78,6 +78,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Rider-contract booking, contract, and revision identifiers now require positive integers; performance fees, signature payloads, signer names, revision labels/field counts, and rejection reasons are bounded. Rider previews and contract verification now require the authenticated booking artist/venue or an admin before returning rendered content or signatures.
    - Rider-contract and NIL readiness regressions pass 33/33, and the combined booking/message regression suite passes 25/25. TypeScript and production build validation pass; no contracts, signatures, riders, payments, or notifications were changed.
 
+13. **Dispute ownership and evidence boundaries — resolved in this increment.**
+   - Dispute creation and booking-existence checks now require an actual artist/venue party to the booking. Dispute/status/ID inputs, evidence URL lists, base64 evidence payloads, MIME types, filenames, resolution text, and admin notes are bounded; evidence storage extensions derive from validated MIME and mismatched data-URL MIME is rejected.
+   - Dispute/admin/critical-gap regressions pass 35/35, with rider-contract regressions 19/19; TypeScript and production build validation pass. No disputes, evidence, emails, payments, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
