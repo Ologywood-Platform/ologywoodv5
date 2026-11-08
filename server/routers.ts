@@ -119,6 +119,26 @@ const artistTipLinks = z.object({
   paypal: artistShortText.optional(),
   zelle: artistShortText.optional(),
 }).strict();
+const artistSearchInput = z.object({
+  genre: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  location: z.string().trim().max(200).optional(),
+  city: z.string().trim().max(200).optional(),
+  state: z.string().trim().max(100).optional(),
+  region: z.string().trim().max(200).optional(),
+  minFee: z.number().finite().min(0).max(10_000_000).optional(),
+  maxFee: z.number().finite().min(0).max(10_000_000).optional(),
+  availableFrom: scheduleDateSchema.optional(),
+  availableTo: scheduleDateSchema.optional(),
+  availableDate: scheduleDateSchema.optional(),
+  verifiedOnly: z.boolean().optional(),
+}).strict().superRefine((input, refinement) => {
+  if (input.minFee !== undefined && input.maxFee !== undefined && input.minFee > input.maxFee) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['maxFee'], message: 'Maximum fee must be at least the minimum fee' });
+  }
+  if (input.availableFrom && input.availableTo && input.availableFrom > input.availableTo) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['availableTo'], message: 'Available-to date must not be before available-from date' });
+  }
+});
 const artistStats = z.array(z.object({
   label: z.string().trim().min(1).max(100),
   value: z.string().trim().max(200),
@@ -514,21 +534,22 @@ export const appRouter = router({
           const freshUser = await db.getUserById(opts.ctx.user.id);
           userData = freshUser || opts.ctx.user;
         }
-        // Add hasPassword flag and strip passwordHash for security
-        const { passwordHash, ...safeUser } = userData as any;
+        // Return only the account fields the client needs; never expose password,
+        // email-verification, or provider-specific credential identifiers.
+        const { passwordHash, id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn } = userData as any;
         // Check if user has admin access (role === 'admin' OR is site owner)
         const OWNER_OPEN_ID = process.env.OWNER_OPEN_ID || '';
         const OWNER_NAME = process.env.OWNER_NAME || '';
-        const OWNER_EMAIL = 'garychisolm30@gmail.com';
-        const isAdmin = safeUser.role === 'admin' || 
-          (OWNER_OPEN_ID && safeUser.openId === OWNER_OPEN_ID) ||
-          (OWNER_NAME && safeUser.openId === OWNER_NAME) ||
-          (safeUser.email && safeUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase());
-        return { ...safeUser, hasPassword: !!passwordHash, isAdmin: !!isAdmin };
+        const OWNER_EMAIL = process.env.OWNER_EMAIL || '';
+        const isAdmin = role === 'admin' || 
+          (OWNER_OPEN_ID && openId === OWNER_OPEN_ID) ||
+          (OWNER_NAME && openId === OWNER_NAME) ||
+          (OWNER_EMAIL && email && email.toLowerCase() === OWNER_EMAIL.toLowerCase());
+        return { id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn, hasPassword: !!passwordHash, isAdmin: !!isAdmin };
       } catch (error) {
-        console.error('[Auth.me] Error:', error);
-        const { passwordHash, ...safeUser } = opts.ctx.user as any;
-        return { ...safeUser, hasPassword: !!passwordHash, isAdmin: false };
+        console.error('[Auth.me] Error');
+        const { passwordHash, id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn } = opts.ctx.user as any;
+        return { id, openId, name, email, loginMethod, role, emailVerified, oauthProvider, avatarUrl, customAvatarUrl, createdAt, updatedAt, lastSignedIn, hasPassword: !!passwordHash, isAdmin: false };
       }
     }),
     logout: protectedProcedure.mutation(({ ctx }) => {
@@ -760,19 +781,7 @@ export const appRouter = router({
     
     // Search artists
     search: publicProcedure
-      .input(z.object({
-        genre: z.array(z.string()).optional(),
-        location: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        region: z.string().optional(),
-        minFee: z.number().optional(),
-        maxFee: z.number().optional(),
-        availableFrom: z.string().optional(),
-        availableTo: z.string().optional(),
-        availableDate: z.string().optional(),
-        verifiedOnly: z.boolean().optional(),
-      }).optional().default({}))
+      .input(artistSearchInput.optional().default({}))
       .query(async ({ input }) => {
         return await db.searchArtists(input || {});
       }),

@@ -145,7 +145,7 @@ describe('linkEmailPassword endpoint', () => {
     const inputSchema = procedure._def.inputs[0];
     const result = inputSchema.safeParse({ email: 'Gary@Test.COM', password: 'SecurePass1' });
     expect(result.success).toBe(true);
-    // The endpoint normalizes internally, but the schema accepts it
-    expect(result.data.email).toBe('Gary@Test.COM');
+    // The schema canonicalizes email before persistence.
+    expect(result.data.email).toBe('gary@test.com');
   });
 });

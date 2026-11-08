@@ -437,9 +437,8 @@ export function AccountSettings() {
                                 password: newPassword,
                               });
                             } else {
-                              // OAuth user with email but no password — use setPassword
+                              // OAuth user with email but no password — set the signed-in account's password
                               await setPasswordMutation.mutateAsync({
-                                email: user.email,
                                 password: newPassword,
                               });
                             }

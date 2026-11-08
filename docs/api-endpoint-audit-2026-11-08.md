@@ -176,6 +176,11 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - The legacy `auth.setUserRole` mutation is administrator-only with strict target IDs; ordinary public review reads return sanitized fields without booking/reviewer identifiers and hide unfinished booking reviews; protected venue/artist review lists and booking details require the owning profile, a completed booking party, or admin before returning sanitized rows.
    - Legacy-content/role/review/router regressions pass 36/36 executed (21 legacy router tests remain intentionally skipped), with TypeScript and production build validation passing. No templates, newsletter subscriptions, roles, reviews, emails, or records were changed.
 
+37. **Authentication projection, public artist search, and credential recovery — resolved in this increment.**
+   - `auth.me` now returns an explicit client-safe user projection without password hashes, email-verification tokens, OAuth-provider IDs, or a hardcoded owner email; owner recognition uses configured environment values only. Public artist search uses a strict bounded schema for genre, location, fee, and availability filters, including minimum/maximum and date-range checks.
+   - OAuth password setup is protected and bound to the authenticated user ID rather than an arbitrary email; public email lookup helpers only respond for the signed-in account, credentials/tokens/avatar payloads are bounded, reset-email names are HTML-escaped, and auth recovery responses/logs no longer expose account existence or raw exceptions.
+   - Auth/search/recovery/security/account-link regressions pass 79/79, with TypeScript and production build validation passing. No passwords, tokens, avatars, emails, accounts, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

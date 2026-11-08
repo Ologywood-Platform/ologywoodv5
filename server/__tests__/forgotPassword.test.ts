@@ -50,7 +50,7 @@ describe('Forgot Password Flow', () => {
     });
 
     it('should validate token and newPassword in resetPassword input', () => {
-      expect(authContent).toContain("token: z.string().min(1, 'Token is required')");
+      expect(authContent).toContain('token: authTokenSchema');
       expect(authContent).toContain("newPassword: passwordSchema");
     });
 

@@ -14,6 +14,7 @@ import { getUserSubscription, setTrialForBetaUser } from '../services/pricingTie
 import { TRPCError } from '@trpc/server';
 import { signupLimiter, loginLimiter, loginEmailLimiter, resendEmailLimiter, forgotPasswordLimiter } from '../utils/rateLimiter';
 import { sendEmail } from '../email';
+import { escapeFanEmailHtml } from '../services/fanEmailFormatting';
 
 /** Extract client IP from tRPC context */
 function getClientIp(ctx: any): string {
@@ -25,6 +26,7 @@ function getClientIp(ctx: any): string {
 // Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number
 const passwordSchema = z.string()
   .min(8, 'Password must be at least 8 characters')
+  .max(256, 'Password must be 256 characters or fewer')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
   .regex(/[0-9]/, 'Password must contain at least one number');
@@ -32,20 +34,26 @@ const passwordSchema = z.string()
 const BCRYPT_ROUNDS = 12;
 
 const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').trim().toLowerCase().max(320),
   password: passwordSchema,
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-});
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(200),
+}).strict();
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string(),
-});
+  email: z.string().email('Invalid email address').trim().toLowerCase().max(320),
+  password: z.string().min(1).max(256),
+}).strict();
+
+const authEmailSchema = z.string().email('Invalid email address').trim().toLowerCase().max(320);
+const authTokenSchema = z.string().trim().min(1, 'Token is required').max(256);
+const avatarDataSchema = z.string().min(1).max(2_800_000);
+const avatarFileNameSchema = z.string().trim().min(1).max(255).regex(/^[^\\/\u0000]+$/, 'Invalid avatar filename');
+const avatarMimeSchema = z.enum(['image/jpeg', 'image/png', 'image/webp']);
 
 export const authRouter = router({
   // Verify email confirmation token
   verifyEmail: publicProcedure
-    .input(z.object({ token: z.string() }))
+    .input(z.object({ token: authTokenSchema }).strict())
     .mutation(async ({ input }) => {
       try {
         const result = await emailConfirmationService.verifyConfirmationToken(input.token);
@@ -71,13 +79,14 @@ export const authRouter = router({
           email: result.email,
         };
       } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Email verification failed');
+        console.error('[Auth] Email verification failed');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid or expired confirmation token' });
       }
     }),
 
   // Resend confirmation email
   resendConfirmationEmail: publicProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(z.object({ email: authEmailSchema }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 3 resend attempts per 15 min per IP
       const ipCheck = resendEmailLimiter.check(`ip:${getClientIp(ctx)}`);
@@ -116,12 +125,10 @@ export const authRouter = router({
         const user = userResult[0];
 
         // Check if already verified
-        if (user?.emailVerified) {
-          return {
-            success: false,
-            message: 'Email is already verified',
-          };
-        }
+        if (user?.emailVerified) return {
+          success: true,
+          message: 'If an account exists with that email, a verification link has been sent.',
+        };
 
         const token = await emailConfirmationService.generateConfirmationToken(input.email, user.id);
         const frontendUrl = process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -139,7 +146,11 @@ export const authRouter = router({
           message: 'Confirmation email sent successfully',
         };
       } catch (error) {
-        throw new Error(error instanceof Error ? error.message : 'Failed to resend confirmation email');
+        console.error('[Auth] Resend confirmation failed');
+        return {
+          success: true,
+          message: 'If an account exists with that email, a verification link has been sent.',
+        };
       }
     }),
 
@@ -207,7 +218,7 @@ export const authRouter = router({
 
           newUserId = userToLink.id;
           newUser = await db.select().from(users).where(eq(users.id, newUserId)).limit(1);
-          console.log(`[Auth] Linked OAuth account ${newUserId} with email ${input.email}`);
+          console.log('[Auth] Linked OAuth account');
         } else {
           // Create brand new user
           const result = await db.insert(users).values({
@@ -246,7 +257,7 @@ export const authRouter = router({
             expiresIn: '24 hours',
           });
         } catch (emailError) {
-          console.error('Failed to send confirmation email:', emailError);
+          console.error('Failed to send confirmation email');
           // Don't fail signup if email fails, but log it
         }
 
@@ -288,10 +299,10 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Signup error:', error);
+        console.error('[Auth] Signup error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Signup failed',
+          message: 'Signup failed',
         });
       }
     }),
@@ -383,24 +394,19 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Login error details:', {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          name: error instanceof Error ? error.name : undefined,
-        });
+        console.error('[Auth] Login error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: `Login failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          message: 'Login failed',
         });
       }
     }),
 
   // Set password for existing OAuth users
-  setPassword: publicProcedure
+  setPassword: protectedProcedure
     .input(z.object({
-      email: z.string().email('Invalid email address'),
       password: passwordSchema,
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: same as login
       const ipCheck = loginLimiter.check(`ip:setpw:${getClientIp(ctx)}`);
@@ -417,10 +423,10 @@ export const authRouter = router({
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
         }
 
-        // Find user by email (case-insensitive)
-        const userResult = await db.select().from(users).where(eq(users.email, input.email.toLowerCase().trim())).limit(1);
+        // Only the authenticated account may set its own password.
+        const userResult = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
         if (userResult.length === 0) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'No account found with this email.' });
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found.' });
         }
 
         const user = userResult[0];
@@ -461,7 +467,7 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Set password error:', error);
+        console.error('[Auth] Set password error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to set password',
@@ -516,7 +522,7 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Change password error:', error);
+        console.error('[Auth] Change password error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to change password',
@@ -527,9 +533,9 @@ export const authRouter = router({
   // Link Email + Password for OAuth users who have no email set
   linkEmailPassword: protectedProcedure
     .input(z.object({
-      email: z.string().email('Invalid email address'),
+      email: authEmailSchema,
       password: passwordSchema,
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         const db = await getDb();
@@ -568,7 +574,7 @@ export const authRouter = router({
           lastSignedIn: new Date(),
         }).where(eq(users.id, userId));
 
-        console.log(`[Auth] linkEmailPassword: User ${userId} linked email ${normalizedEmail}`);
+        console.log('[Auth] linkEmailPassword: email linked');
 
         return {
           success: true,
@@ -576,7 +582,7 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Link email/password error:', error);
+        console.error('[Auth] Link email/password error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to link email and password',
@@ -586,7 +592,7 @@ export const authRouter = router({
 
   // Forgot Password - send reset link
   forgotPassword: publicProcedure
-    .input(z.object({ email: z.string().email('Invalid email address') }))
+    .input(z.object({ email: authEmailSchema }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 3 per 15 min per IP and email
       const ipCheck = forgotPasswordLimiter.check(`ip:forgot:${getClientIp(ctx)}`);
@@ -614,7 +620,7 @@ export const authRouter = router({
 
         // Always return success to prevent email enumeration
         if (userResult.length === 0) {
-          console.log(`[Auth] Forgot password: no account found for ${input.email.toLowerCase()}`);
+          console.log('[Auth] Forgot password: account not found');
           return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
         }
 
@@ -642,7 +648,7 @@ export const authRouter = router({
               <h1 style="color: white; margin: 0; font-size: 28px;">Reset Your Password</h1>
             </div>
             <div style="padding: 30px; background-color: #f9f9f9;">
-              <p style="font-size: 16px; margin: 0 0 20px 0;">Hi ${user.name || 'there'},</p>
+              <p style="font-size: 16px; margin: 0 0 20px 0;">Hi ${escapeFanEmailHtml(user.name || 'there')},</p>
               <p style="font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
                 We received a request to reset your password for your Ologywood account. Click the button below to set a new password.
               </p>
@@ -675,7 +681,7 @@ export const authRouter = router({
         return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Forgot password error:', error);
+        console.error('[Auth] Forgot password error');
         // Don't reveal internal errors
         return { success: true, message: 'If an account exists with that email, a password reset link has been sent.' };
       }
@@ -684,9 +690,9 @@ export const authRouter = router({
   // Reset Password - verify token and set new password
   resetPassword: publicProcedure
     .input(z.object({
-      token: z.string().min(1, 'Token is required'),
+      token: authTokenSchema,
       newPassword: passwordSchema,
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         const db = await getDb();
@@ -753,7 +759,7 @@ export const authRouter = router({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        console.error('[Auth] Reset password error:', error);
+        console.error('[Auth] Reset password error');
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to reset password. Please try again.',
@@ -763,8 +769,9 @@ export const authRouter = router({
 
   // Check if email exists
   checkEmail: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .query(async ({ input }) => {
+    .input(z.object({ email: authEmailSchema }).strict())
+    .query(async ({ input, ctx }) => {
+      if (!ctx.user?.email || ctx.user.email.toLowerCase() !== input.email) return { exists: false };
       try {
         const db = await getDb();
         if (!db) {
@@ -783,8 +790,9 @@ export const authRouter = router({
 
   // Get user by email (for verification)
   getUserByEmail: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .query(async ({ input }) => {
+    .input(z.object({ email: authEmailSchema }).strict())
+    .query(async ({ input, ctx }) => {
+      if (!ctx.user?.email || ctx.user.email.toLowerCase() !== input.email) return null;
       try {
         const db = await getDb();
         if (!db) {
@@ -816,10 +824,10 @@ export const authRouter = router({
   // Upload custom profile picture (overrides OAuth avatar)
   uploadCustomAvatar: protectedProcedure
     .input(z.object({
-      fileData: z.string(), // base64 encoded image
-      fileName: z.string(),
-      mimeType: z.string(),
-    }))
+      fileData: avatarDataSchema, // base64 encoded image
+      fileName: avatarFileNameSchema,
+      mimeType: avatarMimeSchema,
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const { handlePhotoUpload } = await import('../handlers/imageUploadHandler');
       const { url } = await handlePhotoUpload(input, ctx.user.id, 'user-avatars');
