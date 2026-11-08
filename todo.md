@@ -74,12 +74,14 @@
 - [ ] Check payment history
 - [x] Verify the narrow test-mode payment/webhook handshake; the approved sandbox Checkout reached paid/succeeded status and the existing Stripe-originated event was acknowledged by OlogyWood. This does not claim real-money settlement or production fulfillment.
 - [x] Validate the narrow My Ology release-history/library path; protected real-router validation returned two purchase records for one release and one unique playable library item. Cross-domain payment-history coverage remains open.
+- [x] Validate non-mutating refund handling across release purchases, eBooks, Ology Live, booking payment state, and Stripe webhook dispatch; full-refund events preserve receipts, revoke digital access or release capacity where appropriate, reject wrong-mode/refund-before-success replays, and cannot resurrect refunded records. Covered by existing content-release/Ology Live/schedule/webhook regression suites; no Stripe refund was created during validation.
 
 ### Messaging
 - [ ] Test message sending between users
 - [ ] Verify message notifications
 - [ ] Check message history
 - [x] Harden booking-message authorization; ordinary and rider messages now accept only the other booking participant as recipient, single-message reads require the recipient, and bulk reads require a booking party/admin and scope updates by recipient. Focused source regression tests pass 4/4 and TypeScript validation passes. The broader send/notification/history checklist remains open for end-to-end browser testing.
+- [x] Harden message input boundaries; booking/message/recipient/rider-template IDs require positive integers and rider template names are bounded to 1–200 characters. Focused messaging authorization/input tests pass 5/5; the broader all-procedure input-validation audit remains open.
 
 ---
 

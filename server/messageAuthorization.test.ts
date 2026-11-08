@@ -55,4 +55,13 @@ describe('booking message authorization', () => {
     expect(dbReadBlock).toContain('recipientUserId?: number');
     expect(dbReadBlock).toContain('messages.recipientId');
   });
+
+  it('rejects malformed identifiers and unbounded rider names at the procedure boundary', () => {
+    const messageBlock = routerSource.slice(
+      routerSource.indexOf('  message: router({'),
+      routerSource.indexOf('  // Subscription Management'),
+    );
+    expect(messageBlock.match(/z\.number\(\)\.int\(\)\.positive\(\)/g)?.length).toBeGreaterThanOrEqual(7);
+    expect(messageBlock).toContain('riderTemplateName: z.string().min(1).max(200)');
+  });
 });

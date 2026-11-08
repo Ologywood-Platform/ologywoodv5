@@ -2109,7 +2109,7 @@ export const appRouter = router({
   message: router({
     // Get messages for a booking
     getForBooking: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().positive() }))
       .query(async ({ ctx, input }) => {
         // Ownership check: verify user is a party to this booking
         const booking = await db.getBookingById(input.bookingId);
@@ -2130,8 +2130,8 @@ export const appRouter = router({
     // Send message
     send: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-        receiverId: z.number(),
+        bookingId: z.number().int().positive(),
+        receiverId: z.number().int().positive(),
         messageText: z.string().min(1).max(5000),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -2175,10 +2175,10 @@ export const appRouter = router({
     // Send rider template as a message
     sendRider: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-        receiverId: z.number(),
-        riderTemplateId: z.number(),
-        riderTemplateName: z.string(),
+        bookingId: z.number().int().positive(),
+        receiverId: z.number().int().positive(),
+        riderTemplateId: z.number().int().positive(),
+        riderTemplateName: z.string().min(1).max(200),
         riderTemplateData: z.record(z.string(), z.any()),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -2224,7 +2224,7 @@ export const appRouter = router({
 
     // Mark message as read
     markAsRead: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const message = await db.getMessageById(input.id);
         if (!message) {
@@ -2239,7 +2239,7 @@ export const appRouter = router({
     
     // Mark all messages in a booking as read
     markBookingAsRead: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().positive() }))
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
