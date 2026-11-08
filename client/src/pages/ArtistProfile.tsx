@@ -117,7 +117,7 @@ export default function ArtistProfile() {
   );
   const { data: artistReviews } = trpc.artistReview.getByArtist.useQuery(
     { artistId: resolvedArtistId },
-    { enabled: resolvedArtistId > 0 }
+    { enabled: isAuthenticated && resolvedArtistId > 0 }
   );
   const { data: artistAvgRating } = trpc.artistReview.getAverageRating.useQuery(
     { artistId: resolvedArtistId },

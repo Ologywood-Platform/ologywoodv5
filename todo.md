@@ -53,7 +53,7 @@
 - [x] Verify filtering works correctly; the focused suite asserts genre OR matching, location and state/region fields, combined genre+location and all-filter behavior, server-side `verifiedOnly` input, and event-search filters.
 - [x] Check featured artists carousel; confirmed real artist data and clean slug profile links, responsive 1/2/3-card behavior, fallback imagery and empty state, verified/CRM badges, accessible previous/next and slide indicators, wraparound navigation, and mobile View All. Focused carousel/homepage tests pass 12/12 and TypeScript validation passes.
 - [x] Test pagination; Browse now renders artist results in bounded 12-card pages, resets to page one when search/filter state changes, preserves the total result count, and exposes accessible disabled Previous/Next controls. Focused pagination test passes 3/3, the broader discovery suite passes 50/50, and TypeScript validation passes.
-- [ ] Verify artist profiles display correctly
+- [x] Verify artist profiles display correctly; browser-verified the live preview at both `/artist/adonis` and legacy `/artist/11`, with the rendered hero, verified/CRM signals, booking/follow/share actions, Sandbox post, performance/video portfolio, Connect/support, music, merch, fan-club entry, and release purchase controls all present. An unknown slug renders the clear Artist not found/Browse Artists state. Fixed two anonymous-only protected-query errors (`artistReview.getByArtist` and `artist.hasUserFlaggedVideo`) by gating them on authentication; a fresh reload remained fully rendered. Focused profile/media tests pass 17/17 and TypeScript validation passes.
 
 ### Booking Workflow
 - [ ] Test complete booking creation flow

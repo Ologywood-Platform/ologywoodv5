@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Flag, X } from 'lucide-react';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 interface ReportVideoButtonProps {
   artistProfileId: number;
@@ -12,10 +13,11 @@ export function ReportVideoButton({ artistProfileId, isOwnProfile }: ReportVideo
   const [reason, setReason] = useState<'inappropriate' | 'copyright' | 'spam' | 'other'>('inappropriate');
   const [details, setDetails] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const hasFlaggedQuery = trpc.artist.hasUserFlaggedVideo.useQuery(
     { artistProfileId },
-    { enabled: !isOwnProfile }
+    { enabled: isAuthenticated && !isOwnProfile }
   );
 
   const reportMutation = trpc.artist.reportVideo.useMutation({
