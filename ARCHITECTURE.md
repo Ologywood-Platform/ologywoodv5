@@ -278,3 +278,68 @@ These directories contain infrastructure or generated code and should not be mod
 | Stripe | Payments & subscriptions | `STRIPE_*` env vars |
 | SendGrid | Email delivery | `SENDGRID_*` env vars |
 | Manus OAuth | Authentication | `OAUTH_*` env vars |
+
+
+---
+
+## 2026 Cleanup and Compatibility Addendum
+
+The existing architecture above remains the source of the platform map. The following rules reflect the current hardened implementation and should be applied during cleanup or new feature work.
+
+### Canonical feature flow
+
+New creator or fan features should follow:
+
+```text
+React page/component
+  → tRPC hook (`client/src/lib/trpc.ts`)
+  → feature router (`server/routers/*.ts`) or a small root-router procedure
+  → reusable service (`server/services/`) when transactional or shared
+  → query helper (`server/db.ts`)
+  → Drizzle schema/table or parameterized SQL
+```
+
+Use an Express route only when the contract requires a crawler-facing HTML response, binary/download streaming, webhook signature handling, scheduled heartbeat entry point, or another non-tRPC protocol. New primary navigation destinations are not permitted beyond the approved six; creator operations belong in Workspace or account/menu contexts.
+
+### Cleanup findings and compatibility boundaries
+
+A cleanup audit found no deprecated-folder imports, no unmounted legacy router that can be safely removed, and no current runtime mount for `scripts/legacy/`. The legacy scripts document a previous self-hosted backup/cron setup and are not used by the current managed deployment. Before deleting any other candidate, search imports, route mounts, client deep links, scheduled-task configuration, migration history, and production compatibility.
+
+The following are intentional compatibility layers rather than dead code:
+
+- `server/routes/releaseUpload.ts` legacy JSON/base64 endpoints remain for older clients; new large media uses the binary chunked pipeline.
+- Numeric and slug-ID artist, venue, and event URLs remain readable while clean slugs are canonical.
+- Legacy rider-template aliases and legacy OAuth/private-data reads remain only for backward-compatible reads; new writes use current formats.
+- `legacyOpenId`/`OWNER_NAME` owner fallbacks remain narrowly scoped for compatibility.
+- Legacy schema fallbacks in commerce routers remain read-only compatibility paths and must not become a second canonical write path.
+
+### Safe simplification rules
+
+1. Keep database access in `server/db.ts` or a clearly named domain service; do not duplicate the same query in pages and routers.
+2. Keep authorization and input validation at the procedure/service boundary; do not rely on hidden UI controls.
+3. Keep payment fulfillment webhook-driven and idempotent; never simplify by trusting a browser success redirect.
+4. Keep schedule, booking, and Ology Live conflicts in the shared schedule model; do not create a second calendar implementation.
+5. Keep media uploads on the chunked/private pipeline; do not restore large base64 JSON uploads.
+6. Prefer a focused regression test before deleting duplicate presentation or query code.
+7. Operational scripts that touch private data must be dry-run by default, aggregate-only unless explicitly approved, and require a separate apply gate.
+
+### Off-limit cleanup areas
+
+Do not delete test/fixture users or production records without explicit owner confirmation and a reversible record-specific plan. Do not remove payment, webhook, payout, fee, moderation, authorization, schedule, or encryption behavior as part of cosmetic cleanup. Do not expose secrets, private emails, tokens, signature payloads, or raw provider errors in logs, tests, screenshots, or documentation. Do not edit generated build output, `node_modules/`, `drizzle/*.sql`, or framework infrastructure under `server/_core/` unless the change is explicitly an infrastructure fix.
+
+### Verification baseline
+
+Before checkpointing cleanup work, run the focused Vitest suites for the changed boundary, `pnpm run check`, `pnpm run build`, `git diff --check`, and a repository scan for credential literals and unintended generated artifacts. Record what was verified, what was only source-audited, and what still requires a user-controlled production publication or destructive-data approval.
+
+
+### Navigation cleanup audit — 2026-11-08
+
+The active runtime is `server/_core/index.ts`, as confirmed by the `dev`, `build`, and `start` scripts. `server/index.ts` is retained as historical compatibility/test context; it is not the active managed entrypoint. The audit found no safe route-module deletion candidate.
+
+Three confirmed stale client targets were corrected without changing navigation architecture:
+
+- `Ctrl/Cmd+D` now navigates to the registered `/dashboard` route instead of removed `/dashboard-v2`.
+- Terms-of-Service DMCA links now use the registered `/dmca` route instead of `/dmca-policy`.
+- Signed-out My Bookings and Client Booking actions now use the existing `/api/login` server login endpoint instead of an unregistered `/login` SPA path.
+
+The cleanup regression suite passes 3/3, the focused route/image/OG set passes 10/10, TypeScript passes, and the production build succeeds. The route inventory still contains intentional compatibility and role-specific destinations; broad deletion is not justified by static repetition alone.

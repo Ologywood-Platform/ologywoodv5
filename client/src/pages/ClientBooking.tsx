@@ -182,7 +182,7 @@ export default function ClientBooking() {
             Create a free account or sign in to book this artist for your event.
           </p>
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => { window.location.href = "/api/login"; }}
             className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition"
           >
             Sign In

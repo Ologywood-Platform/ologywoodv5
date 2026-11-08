@@ -614,7 +614,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">18. DMCA and Copyright Compliance</h2>
             <p className="text-base leading-relaxed">
-              Ologywood respects the intellectual property rights of others and expects users to do the same. We comply with the Digital Millennium Copyright Act (DMCA) and will respond to valid notices of alleged copyright infringement. Our full DMCA policy, including instructions for submitting takedown notices and counter-notices, is available at <Link href="/dmca-policy" className="text-primary hover:underline">www.ologywood.com/dmca-policy</Link>.
+              Ologywood respects the intellectual property rights of others and expects users to do the same. We comply with the Digital Millennium Copyright Act (DMCA) and will respond to valid notices of alleged copyright infringement. Our full DMCA policy, including instructions for submitting takedown notices and counter-notices, is available at <Link href="/dmca" className="text-primary hover:underline">www.ologywood.com/dmca</Link>.
             </p>
             <p className="text-base leading-relaxed mt-4">
               Repeat infringers will have their accounts terminated in accordance with our repeat infringer policy.
@@ -694,7 +694,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-bold mt-8 mb-4">25. General Provisions</h2>
             <p className="text-base leading-relaxed">
-              <strong>Entire Agreement:</strong> These Terms, together with our <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>, <Link href="/cookies" className="text-primary hover:underline">Cookie Policy</Link>, <Link href="/dmca-policy" className="text-primary hover:underline">DMCA Policy</Link>, and any rider contracts or booking agreements entered into through the Platform, constitute the entire agreement between you and Ologywood regarding your use of the Platform.
+              <strong>Entire Agreement:</strong> These Terms, together with our <Link href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</Link>, <Link href="/cookies" className="text-primary hover:underline">Cookie Policy</Link>, <Link href="/dmca" className="text-primary hover:underline">DMCA Policy</Link>, and any rider contracts or booking agreements entered into through the Platform, constitute the entire agreement between you and Ologywood regarding your use of the Platform.
             </p>
             <p className="text-base leading-relaxed mt-4">
               <strong>Severability:</strong> If any provision of these Terms is held to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable while preserving its original intent.
@@ -765,7 +765,7 @@ export default function TermsOfService() {
                 Cookie Policy
               </Button>
             </Link>
-            <Link href="/dmca-policy">
+            <Link href="/dmca">
               <Button variant="outline" className="w-full sm:w-auto">
                 DMCA Policy
               </Button>

@@ -26,7 +26,7 @@ export function useKeyboardShortcuts() {
     {
       key: 'd',
       ctrl: true,
-      action: () => navigate('/dashboard-v2'),
+      action: () => navigate('/dashboard'),
       description: 'Go to dashboard'
     },
     {

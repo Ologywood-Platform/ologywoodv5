@@ -5052,3 +5052,14 @@ Completed tasks have been removed from the active checklist. Keep the following 
 - [x] No real bank/profile/user/order/payment/payout/Connect records changed; no real Express login link, charge, transfer, payout, refund, webhook replay, key rotation or secret setting changes during validation. Previously completed webhook/signing/delivery work stays closed.
 - [x] Owner confirmed “Its working.” Oct25at21:01:48EDT after repair901bc88a delivery/publish instructions. Payouts-link repair closed; confirmation is owner-reported, not assistant inspection or a payout/settlement/real-purchase test. Documentation-only closeout changes no financial records and needs no additional publication; do not reopen without a new symptom.
 - Record: `docs/stripe-payouts-expired-key-repair-2026-10-25.md`.
+
+
+## NAVIGATION AND CLEANUP AUDIT (Nov 8, 2026)
+- [x] Confirm the active production entrypoint is `server/_core/index.ts`; package `dev`, `build`, and `start` scripts all use this runtime. No safe unmounted route-module deletion was identified.
+- [x] Fix the confirmed stale dashboard keyboard shortcut (`/dashboard-v2` → `/dashboard`).
+- [x] Fix Terms-of-Service DMCA links (`/dmca-policy` → registered `/dmca`).
+- [x] Fix signed-out My Bookings and Client Booking login actions (`/login` → existing `/api/login`).
+- [x] Add `server/navigationCleanup.test.ts`; focused cleanup, route-input, SuggestedFollows-image, and clean-OG tests pass 10/10; TypeScript and production build pass.
+- [x] Add the cleanup/compatibility findings and safe-deletion rules to `ARCHITECTURE.md`.
+- [ ] Review remaining repeated authorization/email-template presentation blocks for intentional shared-template extraction; do not deduplicate by text similarity alone.
+- [ ] Publish this cleanup checkpoint and verify the corrected links on the deployed domains.
