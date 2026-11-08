@@ -114,6 +114,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Package/application/sponsor/message/public IDs are safe integers; price strings are positive USD values with at most two decimals; package capacity cannot be lowered below active sponsors; package/application text and HTTPS URLs are bounded; application date windows are validated; approval package lookup is venue-scoped; browse pagination is bounded; message reads/sends remain applicant/venue-party scoped; and sponsor-dashboard venue joins use stored venue user IDs.
    - Venue sponsorship/security/schema/enhancement/admin regressions pass 26/26, with TypeScript and production build validation passing. No packages, applications, sponsors, messages, emails, payments, or records were changed.
 
+22. **Stripe tip boundaries — resolved in this increment.**
+   - Artist profile IDs and tip amounts require safe integers; payer name/message fields are bounded and strict; both public eligibility and PaymentIntent creation require active Connect accounts with charges and payouts enabled; and operational logs no longer expose connected-account or PaymentIntent identifiers.
+   - Tip/Stripe credential/Tip QR/link regressions pass 42/42, with TypeScript and production build validation passing. No PaymentIntents, charges, transfers, tips, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

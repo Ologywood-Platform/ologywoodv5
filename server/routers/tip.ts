@@ -14,12 +14,15 @@ const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 
+const artistProfileId = z.number().int().safe().positive();
+const tipAmount = z.number().int().min(100).max(50000);
+
 export const tipRouter = router({
   /**
    * Check if an artist can receive tips (has active Stripe Connect)
    */
   canReceiveTips: publicProcedure
-    .input(z.object({ artistId: z.number() }))
+    .input(z.object({ artistId: artistProfileId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return { canReceive: false };
@@ -38,7 +41,7 @@ export const tipRouter = router({
         .where(eq(stripeConnectAccounts.artistId, artist.userId))
         .limit(1);
 
-      if (!account || account.status !== 'active' || !account.chargesEnabled) {
+      if (!account || account.status !== 'active' || !account.chargesEnabled || !account.payoutsEnabled) {
         return { canReceive: false };
       }
 
@@ -51,11 +54,11 @@ export const tipRouter = router({
    */
   createTipPayment: publicProcedure
     .input(z.object({
-      artistId: z.number(),
-      amount: z.number().min(100).max(50000),
-      tipperName: z.string().optional(),
-      message: z.string().max(200).optional(),
-    }))
+      artistId: artistProfileId,
+      amount: tipAmount,
+      tipperName: z.string().trim().max(255).optional(),
+      message: z.string().trim().max(200).optional(),
+    }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error('Database not available');
@@ -74,11 +77,11 @@ export const tipRouter = router({
         .where(eq(stripeConnectAccounts.artistId, artist.userId))
         .limit(1);
 
-      if (!account || account.status !== 'active' || !account.chargesEnabled) {
+      if (!account || account.status !== 'active' || !account.chargesEnabled || !account.payoutsEnabled) {
         throw new Error('Artist is not set up to receive tips. They need to connect their Stripe account first.');
       }
 
-      console.log(`[Tip] Creating PaymentIntent for artist ${artist.artistName} (${account.stripeAccountId}), amount: ${input.amount}`);
+      console.log(`[Tip] Creating PaymentIntent for artist profile ${input.artistId}, amount: ${input.amount}`);
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: input.amount,
@@ -100,7 +103,7 @@ export const tipRouter = router({
         description: `Tip for ${artist.artistName}`,
       });
 
-      console.log(`[Tip] PaymentIntent created: ${paymentIntent.id}, clientSecret exists: ${!!paymentIntent.client_secret}`);
+      console.log(`[Tip] PaymentIntent created; clientSecret exists: ${!!paymentIntent.client_secret}`);
 
       if (!paymentIntent.client_secret) {
         throw new Error('Failed to create payment. Please try again.');
