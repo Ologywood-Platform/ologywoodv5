@@ -158,7 +158,7 @@ describe('Rate Limiting on Public Endpoints', () => {
     });
 
     it('applies rate limiting to testTemplate', () => {
-      const section = emailTestingContent.split('testTemplate: publicProcedure')[1];
+      const section = emailTestingContent.split('testTemplate: adminProcedure')[1];
       expect(section).toContain('emailTestingLimiter.check');
     });
 

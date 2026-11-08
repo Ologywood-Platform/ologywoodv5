@@ -1,4 +1,4 @@
-import { publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { testAllEmailTemplates, getSummary } from "../emailTestingService";
@@ -14,10 +14,10 @@ export const emailTestingRouter = router({
   /**
    * Test all email templates and send to specified email
    */
-  testAllTemplates: publicProcedure
+  testAllTemplates: adminProcedure
     .input(z.object({
-      testEmail: z.string().email("Invalid email address"),
-    }))
+      testEmail: z.string().trim().toLowerCase().email("Invalid email address").max(320),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 5 test runs per 15 min per IP
       const ipCheck = emailTestingLimiter.check(`ip:${getClientIp(ctx)}`);
@@ -40,22 +40,22 @@ export const emailTestingRouter = router({
           success: true,
           summary,
           results,
-          message: `Email test suite completed. ${summary.successful}/${summary.total} templates sent successfully to ${testEmail}`,
+          message: `Email test suite completed. ${summary.successful}/${summary.total} templates processed successfully`,
         };
       } catch (error) {
-        console.error("[Email Testing] Error:", error);
-        throw new Error(`Email testing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error("[Email Testing] Test suite failed");
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Email testing failed' });
       }
     }),
 
   /**
    * Test a specific email template
    */
-  testTemplate: publicProcedure
+  testTemplate: adminProcedure
     .input(z.object({
-      templateName: z.string(),
-      testEmail: z.string().email("Invalid email address"),
-    }))
+      templateName: z.string().trim().min(1).max(100),
+      testEmail: z.string().trim().toLowerCase().email("Invalid email address").max(320),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       // Rate limit: 5 test runs per 15 min per IP
       const ipCheck = emailTestingLimiter.check(`ip:${getClientIp(ctx)}`);
@@ -73,11 +73,10 @@ export const emailTestingRouter = router({
         return {
           success: true,
           message: `Template test initiated for ${templateName}`,
-          testEmail,
         };
       } catch (error) {
-        console.error("[Email Testing] Error:", error);
-        throw new Error(`Template test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error("[Email Testing] Template test failed");
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Template test failed' });
       }
     }),
 });

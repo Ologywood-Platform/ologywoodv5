@@ -181,6 +181,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - OAuth password setup is protected and bound to the authenticated user ID rather than an arbitrary email; public email lookup helpers only respond for the signed-in account, credentials/tokens/avatar payloads are bounded, reset-email names are HTML-escaped, and auth recovery responses/logs no longer expose account existence or raw exceptions.
    - Auth/search/recovery/security/account-link regressions pass 79/79, with TypeScript and production build validation passing. No passwords, tokens, avatars, emails, accounts, or records were changed.
 
+38. **Email-testing exposure — resolved in this increment.**
+   - Both test-all and single-template email procedures are administrator-only rather than publicly callable; recipient and template inputs are normalized, strict, and bounded, success payloads omit recipient addresses, and failure logs/errors no longer include raw exception details.
+   - Email-testing/public-endpoint/email-route/legacy-content regressions pass 45/45, with TypeScript and production build validation passing. No test emails, templates, accounts, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
