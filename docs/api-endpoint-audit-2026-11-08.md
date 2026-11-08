@@ -171,6 +171,11 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Legacy deposit/full-payment Checkout creation and payment history/refund routes require safe booking IDs and booking-party authorization; cancelled/completed/refunded states and positive finite amounts are rejected, Checkout return URLs use the approved-origin helper, paid-session fallback verification requires a matching paid Stripe session and trusted amount, duplicate refunds are rejected, and connected-account logs omit account identifiers.
    - Legacy-router, booking/security/workflow, availability/calendar, and follow regressions pass 50/50 executed, with TypeScript and production build validation passing. No templates, favorites, reminder emails, bookings, PaymentIntents, Checkout sessions, refunds, or records were changed.
 
+36. **Legacy content, role, and review-read boundaries — resolved in this increment.**
+   - The duplicate inline rider-template router now uses safe positive IDs, bounded strict names/data, and schema-safe update fields; newsletter email/name/source payloads are normalized and bounded, and subscriber addresses are not written to operational error logs.
+   - The legacy `auth.setUserRole` mutation is administrator-only with strict target IDs; ordinary public review reads return sanitized fields without booking/reviewer identifiers and hide unfinished booking reviews; protected venue/artist review lists and booking details require the owning profile, a completed booking party, or admin before returning sanitized rows.
+   - Legacy-content/role/review/router regressions pass 36/36 executed (21 legacy router tests remain intentionally skipped), with TypeScript and production build validation passing. No templates, newsletter subscriptions, roles, reviews, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

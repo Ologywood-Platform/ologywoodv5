@@ -188,6 +188,55 @@ const bookingCalendarRange = z.object({
   startDate: scheduleDateSchema,
   endDate: scheduleDateSchema,
 }).strict().refine(({ startDate, endDate }) => startDate <= endDate, 'End date must not be before start date');
+const legacyRiderTemplateId = z.number().int().safe().positive();
+const legacyRiderTemplateName = z.string().trim().min(1).max(200);
+const legacyRiderTemplateData = z.record(z.string().trim().min(1).max(100), z.unknown()).superRefine((value, refinement) => {
+  if (Object.keys(value).length > 100) {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data has too many fields' });
+  }
+  try {
+    if (JSON.stringify(value).length > 500_000) {
+      refinement.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data is too large' });
+    }
+  } catch {
+    refinement.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data is invalid' });
+  }
+});
+
+async function isBookingParty(user: { id: number; role: string }, booking: { venueId: number; artistId: number; bookingSource?: string | null }): Promise<boolean> {
+  if (user.role === 'admin') return true;
+  const venueProfile = await db.getVenueProfileByUserId(user.id);
+  const artistProfile = await db.getArtistProfileByUserId(user.id);
+  return Boolean(
+    (venueProfile && booking.venueId === venueProfile.id)
+    || (artistProfile && booking.artistId === artistProfile.id)
+    || (booking.bookingSource === 'client_booking' && booking.venueId === user.id)
+  );
+}
+
+function toPublicReview(review: any) {
+  if (!review) return null;
+  return {
+    id: review.id,
+    artistId: review.artistId,
+    venueId: review.venueId,
+    rating: review.rating,
+    comment: review.comment,
+    reviewText: review.reviewText ?? review.comment,
+    professionalismRating: review.professionalismRating,
+    soundQualityRating: review.soundQualityRating,
+    greenRoomRating: review.greenRoomRating,
+    paymentTimelinessRating: review.paymentTimelinessRating,
+    reliabilityRating: review.reliabilityRating,
+    stagePresenceRating: review.stagePresenceRating,
+    crowdEngagementRating: review.crowdEngagementRating,
+    artistResponse: review.artistResponse,
+    venueResponse: review.venueResponse,
+    respondedAt: review.respondedAt,
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt,
+  };
+}
 
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -449,7 +498,7 @@ export const appRouter = router({
   stripeConnect: stripeConnectRouter,
   contact: contactRouter,
   auth: router({
-    setUserRole: publicProcedure.input(z.object({ userId: z.number(), role: z.enum(['artist', 'venue']) })).mutation(async ({ input }) => {
+    setUserRole: adminProcedure.input(z.object({ userId: z.number().int().safe().positive(), role: z.enum(['artist', 'venue']) }).strict()).mutation(async ({ input }) => {
       await db.updateUserRole(input.userId, input.role);
       return { success: true };
     }),
@@ -2557,17 +2606,19 @@ export const appRouter = router({
         try {
           reviews = await db.getReviewsByArtistId(input.artistId);
         } catch (error) {
-          console.error('Error getting reviews:', error);
+          console.error('Error getting artist reviews');
         }
-        return reviews || [];
+        return (reviews || []).map(toPublicReview).filter((review): review is NonNullable<typeof review> => review !== null);
       }),
     
     // Get review for a specific booking
     getByBooking: publicProcedure
       .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking || booking.status !== 'completed') return null;
         const review = await db.getReviewByBookingId(input.bookingId);
-        return review || null;
+        return toPublicReview(review);
       }),
     
     // Get average rating for an artist
@@ -2695,17 +2746,31 @@ export const appRouter = router({
     // Get venue reviews by venue ID
     getByVenue: protectedProcedure
       .input(z.object({ venueId: artistProfileId }).strict())
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+          const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+          const hasCompletedBooking = artistProfile
+            ? (await db.getBookingsByArtistId(artistProfile.id)).some((booking) => booking.venueId === input.venueId && booking.status === 'completed')
+            : false;
+          if ((!venueProfile || venueProfile.id !== input.venueId) && !hasCompletedBooking) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to view these venue reviews' });
+          }
+        }
         const reviews = await db.getVenueReviewsByVenueId(input.venueId);
-        return reviews || [];
+        return (reviews || []).map(toPublicReview).filter((review): review is NonNullable<typeof review> => review !== null);
       }),
     
     // Get venue review by booking ID
     getByBooking: protectedProcedure
       .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking || !(await isBookingParty(ctx.user, booking))) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to view this booking review' });
+        }
         const review = await db.getVenueReviewByBookingId(input.bookingId);
-        return review || null;
+        return toPublicReview(review);
       }),
     
     // Get average rating for venue
@@ -2809,15 +2874,30 @@ export const appRouter = router({
     // Get artist reviews by artist ID
     getByArtist: protectedProcedure
       .input(z.object({ artistId: artistProfileId }).strict())
-      .query(async ({ input }) => {
-        return await db.getArtistReviewsByArtistId(input.artistId);
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') {
+          const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+          const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+          const hasCompletedBooking = venueProfile
+            ? (await db.getBookingsByVenueId(venueProfile.id)).some((booking) => booking.artistId === input.artistId && booking.status === 'completed')
+            : false;
+          if ((!artistProfile || artistProfile.id !== input.artistId) && !hasCompletedBooking) {
+            throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to view these artist reviews' });
+          }
+        }
+        const reviews = await db.getArtistReviewsByArtistId(input.artistId);
+        return (reviews || []).map(toPublicReview).filter((review): review is NonNullable<typeof review> => review !== null);
       }),
 
     // Get artist review by booking ID
     getByBooking: protectedProcedure
       .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
-      .query(async ({ input }) => {
-        return await db.getArtistReviewByBookingId(input.bookingId) || null;
+      .query(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking || !(await isBookingParty(ctx.user, booking))) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized to view this booking review' });
+        }
+        return toPublicReview(await db.getArtistReviewByBookingId(input.bookingId));
       }),
 
     // Get average rating for artist (public so profile pages can show it)
@@ -3998,7 +4078,7 @@ export const appRouter = router({
     
     // Get specific rider template
     get: artistProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: legacyRiderTemplateId }).strict())
       .query(async ({ ctx, input }) => {
         const template = await db.getRiderTemplateById(input.id);
         if (!template || template.artistId !== ctx.user.id) {
@@ -4010,9 +4090,9 @@ export const appRouter = router({
     // Create new rider template
     create: artistProcedure
       .input(z.object({
-        templateName: z.string().min(1),
-        templateData: z.record(z.string(), z.any()).optional(),
-      }))
+        templateName: legacyRiderTemplateName,
+        templateData: legacyRiderTemplateData.optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const template = await db.createRiderTemplate({
           artistId: ctx.user.id,
@@ -4025,25 +4105,25 @@ export const appRouter = router({
     // Update rider template
     update: artistProcedure
       .input(z.object({
-        templateId: z.number(),
-        templateName: z.string().optional(),
-        templateData: z.record(z.string(), z.any()).optional(),
-      }))
+        templateId: legacyRiderTemplateId,
+        templateName: legacyRiderTemplateName.optional(),
+        templateData: legacyRiderTemplateData.optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const template = await db.getRiderTemplateById(input.templateId);
         if (!template || template.artistId !== ctx.user.id) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' });
         }
-        await db.updateRiderTemplate(input.templateId, {
-          templateName: input.templateName,
-          templateData: input.templateData,
-        });
+        const updates: { templateName?: string; templateData?: Record<string, unknown> } = {};
+        if (input.templateName !== undefined) updates.templateName = input.templateName;
+        if (input.templateData !== undefined) updates.templateData = input.templateData;
+        await db.updateRiderTemplate(input.templateId, updates);
         return { success: true };
       }),
     
     // Delete rider template
     delete: artistProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: legacyRiderTemplateId }).strict())
       .mutation(async ({ ctx, input }) => {
         const template = await db.getRiderTemplateById(input.id);
         if (!template || template.artistId !== ctx.user.id) {
@@ -4067,10 +4147,10 @@ export const appRouter = router({
   newsletter: router({
     subscribe: publicProcedure
       .input(z.object({
-        email: z.string().email('Invalid email address'),
-        name: z.string().optional(),
-        source: z.string().optional(),
-      }))
+        email: z.string().trim().toLowerCase().email('Invalid email address').max(320),
+        name: z.string().trim().max(200).optional(),
+        source: z.string().trim().max(100).optional(),
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Rate limit by IP
         const clientIp = ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
@@ -4093,14 +4173,14 @@ export const appRouter = router({
           });
         }
         try {
-          const emailSent = await email.sendNewsletterSubscriptionEmail(input.email);
-          if (!emailSent) {
-            console.error('[Newsletter] Email sending failed for:', input.email);
+           const emailSent = await email.sendNewsletterSubscriptionEmail(input.email);
+           if (!emailSent) {
+             console.error('[Newsletter] Email sending failed');
             throw new Error('Email service failed');
           }
           return { success: true, message: 'Successfully subscribed to newsletter! Check your email for confirmation.' };
-        } catch (error) {
-          console.error('[Newsletter] Subscription error:', error);
+         } catch (error) {
+           console.error('[Newsletter] Subscription error');
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'Failed to subscribe to newsletter. Please try again later.',
