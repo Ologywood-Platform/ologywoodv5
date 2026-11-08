@@ -1612,8 +1612,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Create ReportIssueDialog component on BookingDetail page
 - [x] Create MyDisputes page at /disputes for tracking disputes
 - [x] Register dispute route in App.tsx
-- [ ] Add admin dispute review tab to AdminDashboard (future)
-- [ ] Send email notifications when dispute is filed and resolved (future)
+- [x] Add admin dispute review tab to AdminDashboard (future); the later Admin Disputes Tab section records the implemented list, filters, detail view, status actions, notes, resolution form, and count badge.
+- [x] Send email notifications when dispute is filed and resolved (future); `dispute.create` sends reporter/respondent filing notifications and `dispute.adminResolve` sends status updates to both parties, with regression coverage recorded below.
 
 ### Critical Gap 3: Calendar Integration
 - [x] Auto-block artist availability dates when booking is confirmed (already implemented)
