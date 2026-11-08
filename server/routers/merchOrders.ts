@@ -122,6 +122,9 @@ export const merchOrdersRouter = router({
       if (digitalDelivery && (!item.ebookFileKey || !item.ebookRightsConfirmed)) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'This eBook is not ready for purchase yet.' });
       }
+      if (digitalDelivery && !ctx.user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sign in before purchasing an eBook so your secure access can be attached to your account.' });
+      }
       if (ctx.user?.id === item.userId) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot purchase your own product.' });
       }

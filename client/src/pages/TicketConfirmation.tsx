@@ -12,9 +12,10 @@ import SiteHeader from '@/components/SiteHeader';
 export default function TicketConfirmation() {
   const { orderNumber } = useParams();
   const [, navigate] = useLocation();
+  const sessionId = new URLSearchParams(window.location.search).get('session_id') || undefined;
 
   const { data: order, isLoading, error } = trpc.ticketing.getOrderByNumber.useQuery(
-    { orderNumber: orderNumber || '' },
+    { orderNumber: orderNumber || '', sessionId },
     { enabled: !!orderNumber }
   );
 

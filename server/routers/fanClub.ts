@@ -159,6 +159,24 @@ export const fanClubRouter = router({
       return tiers;
     }),
 
+  getDiscoverableClubs: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select({
+      id: fanClubTiers.id,
+      talentUserId: fanClubTiers.talentUserId,
+      name: fanClubTiers.name,
+      priceMonthly: fanClubTiers.priceMonthly,
+      priceCents: fanClubTiers.priceCents,
+      artistName: artistProfiles.artistName,
+      profilePhotoUrl: artistProfiles.profilePhotoUrl,
+    })
+      .from(fanClubTiers)
+      .leftJoin(artistProfiles, eq(artistProfiles.userId, fanClubTiers.talentUserId))
+      .where(eq(fanClubTiers.isActive, true))
+      .orderBy(asc(fanClubTiers.talentUserId), asc(fanClubTiers.priceCents));
+  }),
+
   getMyMembership: protectedProcedure
     .input(z.object({ talentUserId: z.number() }))
     .query(async ({ ctx, input }) => {
@@ -287,12 +305,14 @@ export const fanClubRouter = router({
         });
       }
 
+      // Stripe cancels at the end of the current period. Keep the local
+      // membership active so the fan retains access until the paid period
+      // ends; the subscription.deleted webhook will mark it cancelled.
       await db.update(fanClubMemberships).set({
-        status: 'cancelled',
-        cancelledAt: new Date(),
+        cancelledAt: membership.cancelledAt || new Date(),
       }).where(eq(fanClubMemberships.id, membership.id));
 
-      return { success: true };
+      return { success: true, currentPeriodEnd: membership.currentPeriodEnd };
     }),
 
   getMemberCount: publicProcedure

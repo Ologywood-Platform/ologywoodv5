@@ -139,6 +139,7 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier: any) => {
             const isCurrentTier = membership?.tierId === tier.id && membership?.status === "active";
+            const cancellationScheduled = isCurrentTier && Boolean(membership?.cancelledAt);
             const price = tier.priceCents || tier.priceMonthly || 0;
             return (
               <Card key={tier.id} className={isCurrentTier ? "border-primary ring-1 ring-primary/20" : ""}>
@@ -190,6 +191,16 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
                   )}
                   <div className="border-t pt-3">
                     {isCurrentTier ? (
+                      cancellationScheduled ? (
+                        <div className="space-y-2">
+                          <Button variant="outline" size="sm" className="w-full" disabled>
+                            Cancellation scheduled
+                          </Button>
+                          <p className="text-xs text-center text-muted-foreground">
+                            Access continues{membership?.currentPeriodEnd ? ` through ${new Date(membership.currentPeriodEnd).toLocaleDateString()}` : ' through the end of this billing period'}.
+                          </p>
+                        </div>
+                      ) : (
                       <Button
                         variant="outline"
                         size="sm"
@@ -203,6 +214,7 @@ export function FanClubSection({ artistUserId, artistName, talentType }: FanClub
                       >
                         Cancel Membership
                       </Button>
+                      )
                     ) : (
                       <Button
                         size="sm"

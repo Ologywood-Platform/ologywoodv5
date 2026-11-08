@@ -65,6 +65,7 @@ export function TicketPurchase({ eventId, eventTitle }: TicketPurchaseProps) {
         items,
         buyerEmail: user?.email || undefined,
         buyerName: user?.name || undefined,
+        promoCode: appliedPromo?.code,
       });
 
       if (result.checkoutUrl) {

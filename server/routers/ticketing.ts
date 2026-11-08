@@ -58,6 +58,7 @@ const purchaseSchema = z.object({
   buyerName: z.string().optional(),
   buyerEmail: z.string().email().optional(),
   buyerPhone: z.string().optional(),
+  promoCode: z.string().max(50).optional(),
 });
 
 export const ticketingRouter = router({
@@ -205,6 +206,9 @@ export const ticketingRouter = router({
       const [event] = await (await getDatabase()).select().from(events).where(eq(events.id, input.eventId)).limit(1);
       if (!event) throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       if (!event.isPublic) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Tickets not available for this event' });
+      if (new Set(input.items.map((item) => item.tierId)).size !== input.items.length) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Each ticket tier may appear only once per checkout.' });
+      }
 
       // Validate all tiers and check availability
       const tierIds = input.items.map(i => i.tierId);
@@ -253,6 +257,47 @@ export const ticketingRouter = router({
         });
       }
 
+      let promoDiscount = 0;
+      let appliedPromoCode: string | null = null;
+      if (input.promoCode?.trim()) {
+        const normalizedPromoCode = input.promoCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const [promo] = await (await getDatabase()).select().from(ticketPromoCodes)
+          .where(and(
+            eq(ticketPromoCodes.eventId, input.eventId),
+            eq(ticketPromoCodes.code, normalizedPromoCode),
+            eq(ticketPromoCodes.isActive, true),
+          ))
+          .limit(1);
+        if (!promo) throw new TRPCError({ code: 'BAD_REQUEST', message: 'This promo code is no longer valid.' });
+        if (promo.maxUses && promo.currentUses >= promo.maxUses) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This promo code has reached its usage limit.' });
+        }
+        if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This promo code has expired.' });
+        }
+        if (totalTickets < promo.minTickets) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `Minimum ${promo.minTickets} tickets required for this promo code.` });
+        }
+        promoDiscount = promo.discountType === 'percentage'
+          ? Math.round(totalAmount * (promo.discountValue / 100))
+          : Math.min(promo.discountValue, totalAmount);
+        appliedPromoCode = promo.code;
+        // Stripe does not accept a client-only discount. Replace the ticket
+        // price lines with one discounted subtotal and keep the service fee
+        // as its own line item.
+        lineItems.splice(0, lineItems.length, {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${event.eventTitle} tickets (${promo.code})`,
+              description: `${totalTickets} ticket${totalTickets === 1 ? '' : 's'} after promo discount`,
+            },
+            unit_amount: totalAmount - promoDiscount,
+          },
+          quantity: 1,
+        });
+      }
+
       // Platform fee: $0.99 per ticket
       const platformFee = totalTickets * 99; // 99 cents per ticket
 
@@ -281,7 +326,7 @@ export const ticketingRouter = router({
         buyerName,
         buyerPhone: input.buyerPhone || null,
         status: 'pending',
-        totalAmount: totalAmount + platformFee,
+        totalAmount: totalAmount - promoDiscount + platformFee,
         platformFee,
         orderNumber,
       }).$returningId();
@@ -320,10 +365,26 @@ export const ticketingRouter = router({
           totalTickets: totalTickets.toString(),
           items: JSON.stringify(input.items),
           buyerUserId: (ctx.user as any)?.id?.toString() || '',
+          promoCode: appliedPromoCode || '',
+          promoDiscount: promoDiscount.toString(),
         },
         success_url: `${origin}/tickets/confirmation/${orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/events/${input.eventId}?checkout=cancelled`,
         allow_promotion_codes: true,
+      };
+      const paymentIntentMetadata = {
+        type: 'ticket_purchase',
+        orderId: order.id.toString(),
+        orderNumber,
+        eventId: input.eventId.toString(),
+        eventTitle: event.eventTitle,
+        totalTickets: totalTickets.toString(),
+        items: JSON.stringify(input.items),
+        buyerUserId: (ctx.user as any)?.id?.toString() || '',
+        customer_email: buyerEmail,
+        customer_name: buyerName,
+        promoCode: appliedPromoCode || '',
+        promoDiscount: promoDiscount.toString(),
       };
 
       // Route ticket revenue to artist's connected Stripe account (platform keeps service fee)
@@ -333,9 +394,11 @@ export const ticketingRouter = router({
         sessionParams.payment_intent_data = {
           application_fee_amount: platformFee, // Platform keeps the service fee
           transfer_data: { destination: connectAccountId },
+          metadata: paymentIntentMetadata,
         };
         console.log(`[Ticketing] Using Stripe Connect: ${connectAccountId}, platform fee: ${platformFee}c`);
       } else {
+        sessionParams.payment_intent_data = { metadata: paymentIntentMetadata };
         console.log(`[Ticketing] No Connect account for artist ${event.artistId}, payment goes to platform`);
       }
 
@@ -357,11 +420,21 @@ export const ticketingRouter = router({
 
   // Get order by order number (for confirmation page)
   getOrderByNumber: publicProcedure
-    .input(z.object({ orderNumber: z.string() }))
-    .query(async ({ input }) => {
+    .input(z.object({
+      orderNumber: z.string().min(1).max(100),
+      sessionId: z.string().min(10).max(255).optional(),
+    }))
+    .query(async ({ input, ctx }) => {
       const [order] = await (await getDatabase()).select().from(ticketOrders)
         .where(eq(ticketOrders.orderNumber, input.orderNumber)).limit(1);
       if (!order) throw new TRPCError({ code: 'NOT_FOUND', message: 'Order not found' });
+      const isAuthenticatedBuyer = Boolean(ctx.user && order.buyerUserId === ctx.user.id);
+      const isBoundCheckoutSession = Boolean(
+        input.sessionId && order.stripeCheckoutSessionId && input.sessionId === order.stripeCheckoutSessionId,
+      );
+      if (!isAuthenticatedBuyer && !isBoundCheckoutSession) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Open this confirmation from the checkout receipt link.' });
+      }
 
       // Get ticket items
       const items = await (await getDatabase()).select().from(ticketItems)

@@ -16,7 +16,7 @@ interface MerchCheckoutDialogProps {
 }
 
 export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutDialogProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [buyerName, setBuyerName] = useState('');
@@ -63,6 +63,14 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
   });
 
   function startCheckout() {
+    if (isDigitalBook && authLoading) {
+      toast.info('Checking your sign-in status. Please try again in a moment.');
+      return;
+    }
+    if (isDigitalBook && !user) {
+      toast.error('Sign in before purchasing an eBook so secure access can be added to your OlogyWood account.');
+      return;
+    }
     if (!buyerName.trim() || !buyerEmail.trim()) {
       toast.error('Enter your name and email.');
       return;
@@ -138,7 +146,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
           {isDigitalBook ? (
             <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 flex gap-3">
               <Download className="h-5 w-5 text-purple-700 shrink-0" />
-              <div><p className="font-medium text-sm">Secure digital delivery</p><p className="text-xs text-muted-foreground mt-1">Sign in with this purchase email to access the author-supplied eBook from your OlogyWood orders. Five downloads are included.</p></div>
+              <div><p className="font-medium text-sm">Secure digital delivery</p><p className="text-xs text-muted-foreground mt-1">{user ? 'Your eBook access will appear in My Ology and Creator Shop Orders after verified payment. Five downloads are included.' : 'Sign in before checkout so the author-supplied eBook can be attached to your OlogyWood account. Five downloads are included.'}</p></div>
             </div>
           ) : (
             <div className="space-y-2">
@@ -183,7 +191,7 @@ export function MerchCheckoutDialog({ item, open, onOpenChange }: MerchCheckoutD
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={startCheckout} disabled={checkoutMutation.isPending} className="bg-purple-700 hover:bg-purple-800">
+          <Button onClick={startCheckout} disabled={checkoutMutation.isPending || (isDigitalBook && authLoading)} className="bg-purple-700 hover:bg-purple-800">
             {checkoutMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Continue to secure payment
           </Button>

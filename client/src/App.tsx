@@ -124,6 +124,8 @@ const Promote = lazy(() => import("./pages/Promote"));
 const TeamManagement = lazy(() => import("./pages/TeamManagement").then(m => ({ default: m.TeamManagement })));
 const AcceptTeamInvite = lazy(() => import("./pages/AcceptTeamInvite").then(m => ({ default: m.AcceptTeamInvite })));
 const FanClubManager = lazy(() => import("./pages/FanClubManager"));
+const FanClubDiscovery = lazy(() => import("./pages/FanClubDiscovery"));
+const FanClubCheckoutResult = lazy(() => import("./pages/FanClubCheckoutResult"));
 const OlogyLiveDashboard = lazy(() => import("./pages/OlogyLiveDashboard"));
 const OlogyLiveBrowse = lazy(() => import("./pages/OlogyLiveBrowse"));
 const OlogyLiveExperience = lazy(() => import("./pages/OlogyLiveExperience"));
@@ -223,6 +225,9 @@ function Router() {
           <Route path="/my-bookings" component={MyBookings} />
           <Route path="/my-purchases" component={MyPurchases} />
           <Route path="/my-music" component={MyMusic} />
+          <Route path="/fan-club/success">{() => <PageErrorBoundary><FanClubCheckoutResult /></PageErrorBoundary>}</Route>
+          <Route path="/fan-club/cancelled">{() => <PageErrorBoundary><FanClubCheckoutResult cancelled /></PageErrorBoundary>}</Route>
+          <Route path="/fan-club-discovery">{() => <PageErrorBoundary><FanClubDiscovery /></PageErrorBoundary>}</Route>
           <Route path="/fan-club" component={FanClubManager} />
           
           {/* Ology Live */}

@@ -15,6 +15,7 @@ import {
   handleOlogyLiveCheckoutRefund,
   handleOlogyLiveCheckoutTerminal,
 } from '../services/ologyLiveCheckoutService';
+import { syncFanClubMembershipFromSubscription } from '../services/fanClubMembershipService';
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
@@ -43,7 +44,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         if (session.metadata?.type === 'ology_live_booking') {
           await handleOlogyLiveCheckout(session);
         } else {
-          await handleCheckoutSessionCompleted(session);
+          await handleCheckoutSessionCompleted(session, getStripeClientForWebhookMode(mode));
         }
         break;
       }
@@ -52,6 +53,8 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.metadata?.type === 'ology_live_booking') {
           await handleOlogyLiveCheckout(session);
+        } else if (session.metadata?.type === 'fan_club_subscription') {
+          await handleCheckoutSessionCompleted(session, getStripeClientForWebhookMode(mode));
         }
         break;
       }
@@ -154,8 +157,44 @@ export function createMerchCheckoutSessionFromPaymentIntent(
   } as Stripe.Checkout.Session;
 }
 
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+export function createTicketCheckoutSessionFromPaymentIntent(
+  paymentIntent: Stripe.PaymentIntent,
+): Stripe.Checkout.Session | null {
+  if (paymentIntent.metadata?.type !== 'ticket_purchase' || !paymentIntent.metadata?.orderId) {
+    return null;
+  }
+
+  return {
+    id: `payment_intent:${paymentIntent.id}`,
+    metadata: paymentIntent.metadata,
+    payment_intent: paymentIntent.id,
+    amount_total: paymentIntent.amount_received || paymentIntent.amount,
+  } as Stripe.Checkout.Session;
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, stripeClient?: Stripe) {
   if(session.metadata?.type==='content_release_purchase'){await fulfillContentReleaseCheckout(session);return;}
+  if (session.metadata?.type === 'fan_club_subscription') {
+    if (session.payment_status && session.payment_status !== 'paid') {
+      console.log(`[Stripe Webhook] Fan Club checkout ${session.id} is not paid yet; waiting for a successful payment event`);
+      return;
+    }
+    const subscriptionId = typeof session.subscription === 'string'
+      ? session.subscription
+      : session.subscription?.id;
+    if (!subscriptionId) {
+      console.error(`[Stripe Webhook] Fan Club checkout ${session.id} has no subscription ID`);
+      return;
+    }
+    const subscription = await (stripeClient || getStripeClientForWebhookMode('test')).subscriptions.retrieve(subscriptionId);
+    const result = await syncFanClubMembershipFromSubscription(subscription, session.metadata);
+    if (!result.synced) {
+      console.error(`[Stripe Webhook] Fan Club checkout ${session.id} could not be synced: ${result.reason}`);
+    } else {
+      console.log(`[Stripe Webhook] Fan Club membership ${result.status} for subscription ${subscription.id}`);
+    }
+    return;
+  }
   const userId = session.metadata?.userId;
   const bookingId = session.metadata?.bookingId;
   const paymentType = session.metadata?.paymentType; // 'deposit', 'final_payment', or undefined for full payment
@@ -354,6 +393,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  if (subscription.metadata?.type === 'fan_club_subscription') {
+    const result = await syncFanClubMembershipFromSubscription(subscription);
+    if (!result.synced) {
+      console.error(`[Stripe Webhook] Fan Club subscription ${subscription.id} could not be synced: ${result.reason}`);
+    }
+    return;
+  }
   const customerId = subscription.customer as string;
   const userId = subscription.metadata?.userId;
 
@@ -467,6 +513,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  if (subscription.metadata?.type === 'fan_club_subscription') {
+    const result = await syncFanClubMembershipFromSubscription(subscription);
+    if (!result.synced) {
+      console.error(`[Stripe Webhook] Deleted Fan Club subscription ${subscription.id} could not be synced: ${result.reason}`);
+    }
+    return;
+  }
   const userId = subscription.metadata?.userId;
 
   if (!userId) {
@@ -532,6 +585,13 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, stripeClient:
     
     // Get subscription to find userId
     const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
+    if (subscription.metadata?.type === 'fan_club_subscription') {
+      const result = await syncFanClubMembershipFromSubscription(subscription);
+      if (!result.synced) {
+        console.error(`[Stripe Webhook] Failed Fan Club subscription ${subscription.id} could not be synced: ${result.reason}`);
+      }
+      return;
+    }
     const userId = subscription.metadata?.userId;
 
     if (userId) {
@@ -563,6 +623,12 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   const merchCheckoutSession = createMerchCheckoutSessionFromPaymentIntent(paymentIntent);
   if (merchCheckoutSession) {
     await handleMerchPurchaseCompleted(merchCheckoutSession);
+    return;
+  }
+
+  const ticketCheckoutSession = createTicketCheckoutSessionFromPaymentIntent(paymentIntent);
+  if (ticketCheckoutSession) {
+    await handleTicketPurchaseCompleted(ticketCheckoutSession);
     return;
   }
 
@@ -651,6 +717,21 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
     }).where(and(
       eq(merchOrders.id, parseInt(paymentIntent.metadata.orderId)),
       inArray(merchOrders.paymentStatus, ['pending', 'failed']),
+    ));
+    return;
+  }
+
+  if (paymentIntent.metadata?.type === 'ticket_purchase' && paymentIntent.metadata?.orderId) {
+    const database = await db.getDb();
+    if (!database) return;
+    const { ticketOrders } = await import('../../drizzle/schema');
+    const { and, eq } = await import('drizzle-orm');
+    await database.update(ticketOrders).set({
+      status: 'cancelled',
+      stripePaymentIntentId: paymentIntent.id,
+    }).where(and(
+      eq(ticketOrders.id, parseInt(paymentIntent.metadata.orderId)),
+      eq(ticketOrders.status, 'pending'),
     ));
     return;
   }
@@ -1004,7 +1085,7 @@ async function handleMerchPurchaseCompleted(session: Stripe.Checkout.Session) {
 
 async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
   const { getDb } = await import('../db');
-  const { ticketOrders, ticketItems, ticketTiers } = await import('../../drizzle/schema');
+  const { ticketOrders, ticketItems, ticketTiers, ticketPromoCodes } = await import('../../drizzle/schema');
   const { and, eq, sql } = await import('drizzle-orm');
   const { randomUUID } = await import('crypto');
 
@@ -1066,6 +1147,15 @@ async function handleTicketPurchaseCompleted(session: Stripe.Checkout.Session) {
         await tx.update(ticketTiers).set({
           quantitySold: sql`${ticketTiers.quantitySold} + ${quantity}`,
         }).where(eq(ticketTiers.id, tierId));
+      }
+      const promoCode = session.metadata?.promoCode?.trim();
+      if (promoCode) {
+        await tx.update(ticketPromoCodes).set({
+          currentUses: sql`${ticketPromoCodes.currentUses} + 1`,
+        }).where(and(
+          eq(ticketPromoCodes.eventId, parseInt(eventId)),
+          eq(ticketPromoCodes.code, promoCode),
+        ));
       }
     });
 
