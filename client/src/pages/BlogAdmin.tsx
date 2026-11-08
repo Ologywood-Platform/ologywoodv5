@@ -24,6 +24,11 @@ interface BlogForm {
   status: 'draft' | 'published';
 }
 
+type BlogImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+const getBlogImageMime = (file: File): BlogImageMime | null => (
+  ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
+).includes(file.type as BlogImageMime) ? file.type as BlogImageMime : null;
+
 const EMPTY_FORM: BlogForm = {
   title: '', slug: '', excerpt: '', content: '', coverImageUrl: '',
   category: 'announcement', tags: '', status: 'draft',
@@ -172,6 +177,7 @@ export default function BlogAdmin() {
   } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingCoverUpload = useRef<{ fileData: string; fileName: string; mimeType: BlogImageMime } | null>(null);
 
   const utils = trpc.useUtils();
   const postsQuery = trpc.blog.adminList.useQuery({ limit: 100, status: statusFilter });
@@ -225,6 +231,8 @@ export default function BlogAdmin() {
     onSuccess: (data) => {
       setForm(prev => ({ ...prev, coverImageUrl: data.url }));
       setIsUploadingCover(false);
+      void utils.blog.adminList.invalidate();
+      void utils.blog.list.invalidate();
       setToast({ message: 'Cover image uploaded', type: 'success' });
     },
     onError: () => {
@@ -265,8 +273,9 @@ export default function BlogAdmin() {
   };
 
   const handleCoverImageSelect = async (file: File, postId?: number) => {
-    if (!file.type.startsWith('image/')) {
-      setToast({ message: 'Please select an image file', type: 'error' });
+    const mimeType = getBlogImageMime(file);
+    if (!mimeType) {
+      setToast({ message: 'Please select a JPEG, PNG, WebP, or GIF image', type: 'error' });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -279,9 +288,9 @@ export default function BlogAdmin() {
       setCoverPreview(base64);
       if (postId) {
         setIsUploadingCover(true);
-        uploadCoverMutation.mutate({ postId, fileData: base64, fileName: file.name, mimeType: file.type });
+        uploadCoverMutation.mutate({ postId, fileData: base64, fileName: file.name, mimeType });
       } else {
-        updateForm({ coverImageUrl: base64 });
+        pendingCoverUpload.current = { fileData: base64, fileName: file.name, mimeType };
       }
     };
     reader.readAsDataURL(file);
@@ -297,11 +306,18 @@ export default function BlogAdmin() {
       setToast({ message: 'Please fill in all required fields', type: 'error' });
       return;
     }
-    createMutation.mutate({
+    void createMutation.mutateAsync({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      coverImageUrl: form.coverImageUrl || undefined,
-    });
+      coverImageUrl: undefined,
+    }).then(({ postId }) => {
+      const pending = pendingCoverUpload.current;
+      pendingCoverUpload.current = null;
+      if (pending) {
+        setIsUploadingCover(true);
+        uploadCoverMutation.mutate({ postId, ...pending });
+      }
+    }).catch(() => undefined);
   };
 
   const handleUpdate = () => {

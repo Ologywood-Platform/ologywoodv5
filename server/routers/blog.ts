@@ -19,6 +19,17 @@ const blogAccess = protectedProcedure.use(async (opts) => {
   return opts.next();
 });
 
+const blogPostId = z.number().int().safe().positive();
+const blogLimit = z.number().int().min(1).max(100);
+const blogOffset = z.number().int().min(0).max(1_000_000);
+const blogSlug = z.string().trim().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens");
+const blogText = z.string().trim().min(1);
+const blogTags = z.array(z.string().trim().min(1).max(50)).max(20).default([]);
+const blogImageMime = z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const blogImageData = z.string().min(1).max(15_000_000);
+const blogImageFileName = z.string().trim().min(1).max(255).regex(/^[^/\\]+$/, "Invalid image filename");
+const blogImageUrl = z.string().trim().url().max(2_000).refine((value) => /^https?:\/\//i.test(value), "Cover image URL must use HTTP(S)");
+
 export const blogRouter = router({
   /**
    * List published blog posts (public)
@@ -26,10 +37,10 @@ export const blogRouter = router({
   list: publicProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(50).default(10),
-        offset: z.number().min(0).default(0),
+        limit: blogLimit.default(10),
+        offset: blogOffset.default(0),
         category: z.enum(["announcement", "guide", "news", "update", "tutorial"]).optional(),
-      })
+      }).strict()
     )
     .query(async ({ input }) => {
       const db = await getDb();
@@ -73,7 +84,7 @@ export const blogRouter = router({
    * Get a single blog post by slug (public)
    */
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
+    .input(z.object({ slug: blogSlug }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -93,10 +104,10 @@ export const blogRouter = router({
   adminList: blogAccess
     .input(
       z.object({
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: blogLimit.default(50),
+        offset: blogOffset.default(0),
         status: z.enum(["draft", "published", "archived"]).optional(),
-      })
+      }).strict()
     )
     .query(async ({ input }) => {
       const db = await getDb();
@@ -140,7 +151,7 @@ export const blogRouter = router({
    * Get a single blog post by ID for admin editing
    */
   adminGetById: blogAccess
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: blogPostId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -160,15 +171,15 @@ export const blogRouter = router({
   create: blogAccess
     .input(
       z.object({
-        title: z.string().min(1).max(500),
-        slug: z.string().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase with hyphens"),
-        excerpt: z.string().min(1).max(1000),
-        content: z.string().min(1),
-        coverImageUrl: z.string().optional(),
+        title: blogText.max(500),
+        slug: blogSlug,
+        excerpt: blogText.max(2_000),
+        content: blogText.max(200_000),
+        coverImageUrl: blogImageUrl.optional(),
         category: z.enum(["announcement", "guide", "news", "update", "tutorial"]).default("announcement"),
-        tags: z.array(z.string()).default([]),
+        tags: blogTags,
         status: z.enum(["draft", "published"]).default("draft"),
-      })
+      }).strict()
     )
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -176,14 +187,18 @@ export const blogRouter = router({
 
       const publishedAt = input.status === "published" ? new Date() : null;
 
-      await db.insert(blogPosts).values({
+      const result = await db.insert(blogPosts).values({
         ...input,
         authorId: ctx.user.id,
         authorName: ctx.user.name || "Ologywood Team",
         publishedAt,
       });
 
-      return { success: true };
+      const postId = Number((result as any).insertId);
+      if (!Number.isSafeInteger(postId) || postId < 1) {
+        throw new Error("Blog post was created but its identifier could not be confirmed.");
+      }
+      return { success: true, postId };
     }),
 
   /**
@@ -192,15 +207,15 @@ export const blogRouter = router({
   update: blogAccess
     .input(
       z.object({
-        id: z.number(),
-        title: z.string().min(1).max(500).optional(),
-        slug: z.string().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-        excerpt: z.string().min(1).max(1000).optional(),
-        content: z.string().min(1).optional(),
-        coverImageUrl: z.string().nullable().optional(),
+        id: blogPostId,
+        title: blogText.max(500).optional(),
+        slug: blogSlug.optional(),
+        excerpt: blogText.max(2_000).optional(),
+        content: blogText.max(200_000).optional(),
+        coverImageUrl: blogImageUrl.nullable().optional(),
         category: z.enum(["announcement", "guide", "news", "update", "tutorial"]).optional(),
-        tags: z.array(z.string()).optional(),
-      })
+        tags: blogTags.optional(),
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -218,9 +233,9 @@ export const blogRouter = router({
   setStatus: blogAccess
     .input(
       z.object({
-        id: z.number(),
+        id: blogPostId,
         status: z.enum(["draft", "published", "archived"]),
-      })
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -248,11 +263,11 @@ export const blogRouter = router({
   uploadCoverImage: blogAccess
     .input(
       z.object({
-        postId: z.number(),
-        fileData: z.string(), // base64 encoded image
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        postId: blogPostId,
+        fileData: blogImageData, // base64 encoded image
+        fileName: blogImageFileName,
+        mimeType: blogImageMime,
+      }).strict()
     )
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -265,12 +280,27 @@ export const blogRouter = router({
         .where(eq(blogPosts.id, input.postId));
       if (!post) throw new Error("Post not found");
 
-      // Upload to S3
-      const base64Data = input.fileData.split(',')[1] || input.fileData;
+      // Upload to S3 only after validating the encoded payload and decoded size.
+      const dataUrlMatch = input.fileData.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
+      if (dataUrlMatch && dataUrlMatch[1].toLowerCase() !== input.mimeType) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Image MIME type does not match the data URL.' });
+      }
+      const base64Data = dataUrlMatch ? dataUrlMatch[2].replace(/\s/g, '') : input.fileData.replace(/\s/g, '');
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Data) || base64Data.length % 4 === 1) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid base64 image data.' });
+      }
       const buffer = Buffer.from(base64Data, 'base64');
+      if (buffer.length < 1 || buffer.length > 10_000_000) {
+        throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Cover image must be between 1 byte and 10 MB.' });
+      }
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(7);
-      const fileExtension = input.fileName.split('.').pop() || 'jpg';
+      const fileExtension = ({
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+      } as const)[input.mimeType];
       const fileKey = `blog-covers/${input.postId}/${timestamp}-${randomSuffix}.${fileExtension}`;
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
 
@@ -284,7 +314,7 @@ export const blogRouter = router({
    * Delete a blog post (admin only)
    */
   delete: blogAccess
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: blogPostId }).strict())
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");

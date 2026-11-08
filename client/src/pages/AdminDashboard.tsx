@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { trpc } from '../lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
@@ -7,6 +7,11 @@ import { getTalentTypeLabel } from '@shared/talentTypes';
 import { AIChatTrigger } from '@/components/AIChatWidget';
 import { AdminComplimentaryAccess } from '@/components/AdminComplimentaryAccess';
 import { AdminUserProfileLink } from '@/components/AdminUserProfileLink';
+
+type BlogImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+const getBlogImageMime = (file: File): BlogImageMime | null => (
+  ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
+).includes(file.type as BlogImageMime) ? file.type as BlogImageMime : null;
 export function AdminDashboard() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -946,16 +951,19 @@ function BlogTab() {
   });
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const pendingCoverUpload = useRef<{ fileData: string; fileName: string; mimeType: BlogImageMime } | null>(null);
   const uploadCoverMutation = trpc.blog.uploadCoverImage.useMutation({
     onSuccess: (data) => {
       setForm(prev => ({ ...prev, coverImageUrl: data.url }));
       setIsUploadingCover(false);
+      void postsQuery.refetch();
     },
     onError: () => setIsUploadingCover(false),
   });
 
   const handleCoverImageSelect = async (file: File, postId?: number) => {
-    if (!file.type.startsWith('image/')) return;
+    const mimeType = getBlogImageMime(file);
+    if (!mimeType) { alert('Please select a JPEG, PNG, WebP, or GIF image'); return; }
     if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
 
     // Show preview immediately
@@ -971,11 +979,11 @@ function BlogTab() {
           postId,
           fileData: base64,
           fileName: file.name,
-          mimeType: file.type,
+          mimeType,
         });
       } else {
-        // For new posts, store base64 in form for upload after creation
-        setForm(prev => ({ ...prev, coverImageUrl: base64 }));
+        // For new posts, upload after the server returns the newly created post ID.
+        pendingCoverUpload.current = { fileData: base64, fileName: file.name, mimeType };
       }
     };
     reader.readAsDataURL(file);
@@ -989,11 +997,18 @@ function BlogTab() {
   const resetForm = () => { setForm({ title: '', slug: '', excerpt: '', content: '', coverImageUrl: '', category: 'announcement', tags: '', status: 'draft' }); setCoverPreview(null); };
 
   const handleCreate = () => {
-    createMutation.mutate({
+    void createMutation.mutateAsync({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      coverImageUrl: form.coverImageUrl || undefined,
-    });
+      coverImageUrl: undefined,
+    }).then(({ postId }) => {
+      const pending = pendingCoverUpload.current;
+      pendingCoverUpload.current = null;
+      if (pending) {
+        setIsUploadingCover(true);
+        uploadCoverMutation.mutate({ postId, ...pending });
+      }
+    }).catch(() => undefined);
   };
 
   const handleUpdate = () => {

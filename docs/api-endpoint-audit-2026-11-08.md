@@ -134,6 +134,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Send payloads remain trimmed and bounded with strict objects; history limit/offset values require integers with a capped offset; and the consent-gated email renderer escapes subject, body, name, and link values before delivery.
    - Artist-update/fan-email/consent regressions pass 99/99, with TypeScript and production build validation passing. No broadcasts, emails, fan records, or records were changed.
 
+27. **Blog publishing and cover-upload boundaries — resolved in this increment.**
+   - Post IDs and public/admin pagination are safe bounded integers; slugs, title/excerpt/content/tags/status objects are strict and bounded; cover URLs are HTTP(S)-only; cover uploads validate allowlisted MIME/data URLs/base64/decoded size and derive extensions from MIME; and both blog-admin clients narrow browser MIME strings and upload new-post covers only after the server returns the post ID.
+   - Blog/content/security regressions pass 95/95, with TypeScript and production build validation passing. No posts, cover uploads, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
