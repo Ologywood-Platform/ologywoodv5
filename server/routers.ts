@@ -88,6 +88,77 @@ const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next({ ctx });
 });
 
+const artistProfileId = z.number().int().safe().positive();
+const artistName = z.string().trim().min(1).max(200);
+const artistShortText = z.string().trim().max(500);
+const artistBio = z.string().trim().max(10_000);
+const artistUrl = z.string().trim().max(2_048).refine((value) => value === '' || /^https?:\/\//i.test(value), 'URL must use HTTP(S)');
+const artistOptionalUrl = artistUrl.optional().or(z.literal(''));
+const artistGenres = z.array(z.string().trim().min(1).max(100)).max(20);
+const artistFee = z.number().finite().min(0).max(10_000_000);
+const artistPartySize = z.number().int().min(1).max(100);
+const artistImageMime = z.string().trim().refine((value) => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(value), 'Unsupported image format');
+const artistVideoMime = z.string().trim().refine((value) => ['video/mp4', 'video/quicktime', 'video/webm'].includes(value), 'Unsupported video format');
+const artistFileName = z.string().trim().min(1).max(255).regex(/^[^/\\]+$/, 'Invalid filename');
+const artistBase64Data = z.string().min(1).max(700_000_000);
+const artistSocialLinks = z.object({
+  instagram: artistOptionalUrl,
+  facebook: artistOptionalUrl,
+  youtube: artistOptionalUrl,
+  spotify: artistOptionalUrl,
+  twitter: artistOptionalUrl,
+  appleMusic: artistOptionalUrl,
+  tidal: artistOptionalUrl,
+  soundcloud: artistOptionalUrl,
+  otherStreaming: artistOptionalUrl,
+}).strict();
+const artistTipLinks = z.object({
+  cashapp: artistShortText.optional(),
+  venmo: artistShortText.optional(),
+  paypal: artistShortText.optional(),
+  zelle: artistShortText.optional(),
+}).strict();
+const artistStats = z.array(z.object({
+  label: z.string().trim().min(1).max(100),
+  value: z.string().trim().max(200),
+}).strict()).max(8);
+const artistAchievements = z.array(z.object({
+  title: z.string().trim().min(1).max(200),
+  year: z.string().trim().max(20).optional(),
+  description: z.string().trim().max(1_000).optional(),
+}).strict()).max(20);
+const artistNilDeals = z.array(z.object({
+  brand: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(1_000).optional(),
+  logoUrl: artistOptionalUrl,
+  active: z.boolean().optional(),
+}).strict()).max(20);
+const portfolioVideoCategory = z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']);
+const portfolioVideoDuration = z.number().finite().min(0).max(300).optional();
+const portfolioSortOrder = z.number().int().min(0).max(99).optional();
+
+function decodeArtistBase64(fileData: string, mimeType: string, maxBytes: number): Buffer {
+  const dataUrl = fileData.match(/^data:([^;]+);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (dataUrl && dataUrl[1].toLowerCase() !== mimeType.toLowerCase()) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'File MIME type does not match the data URL.' });
+  }
+  const base64 = (dataUrl ? dataUrl[2] : fileData).replace(/\s/g, '');
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 === 1) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid base64 file data.' });
+  }
+  const decodedSize = Math.floor(base64.length * 3 / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
+  if (decodedSize < 1 || decodedSize > maxBytes) {
+    throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: `File must be no larger than ${Math.floor(maxBytes / (1024 * 1024))} MB.` });
+  }
+  return Buffer.from(base64, 'base64');
+}
+
+const videoExtensionByMime: Record<string, string> = {
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'video/webm': 'webm',
+};
+
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const subscription = await db.getSubscriptionByUserId(ctx.user.id);
@@ -406,13 +477,13 @@ export const appRouter = router({
     
     // Get any artist profile by ID (public)
     getProfile: publicProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: artistProfileId }).strict())
       .query(async ({ input }) => {
         return (await db.getArtistProfileById(input.id)) ?? null;
       }),
     
     getProfileBySlug: publicProcedure
-      .input(z.object({ slug: z.string() }))
+      .input(z.object({ slug: z.string().trim().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid artist slug') }).strict())
       .query(async ({ input }) => {
         const database = await db.getDb();
         if (!database) return null;
@@ -432,18 +503,12 @@ export const appRouter = router({
        // Upload and set profile photo
     uploadProfilePhoto: artistProcedure
       .input(z.object({
-        fileData: z.string(),
-        fileName: z.string(),
-        mimeType: z.string(),
-      }))
+        fileData: artistBase64Data,
+        fileName: artistFileName,
+        mimeType: artistImageMime,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
-        const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(7);
-        const fileExtension = input.fileName.split('.').pop() || 'jpg';
-        const fileKey = `artist-profile-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
-        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        const { url } = await handlePhotoUpload(input, ctx.user.id, 'artist-profile-photos');
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
@@ -455,43 +520,32 @@ export const appRouter = router({
     // Update artist profile information
     updateProfile: artistProcedure
       .input(z.object({
-        artistName: z.string().min(1).optional(),
+        artistName: artistName.optional(),
         talentType: z.enum(TALENT_TYPE_VALUES).optional(),
-        bio: z.string().optional(),
-        genre: z.array(z.string()).optional(),
-        location: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        country: z.string().optional(),
-        feeRangeMin: z.number().optional(),
-        feeRangeMax: z.number().optional(),
-        touringPartySize: z.number().optional(),
-        sportCategory: z.string().nullable().optional(),
-        sportPosition: z.string().nullable().optional(),
-        sportTeam: z.string().nullable().optional(),
-        athleteStats: z.array(z.object({ label: z.string(), value: z.string() })).nullable().optional(),
-        athleteAchievements: z.array(z.object({ title: z.string(), year: z.string().optional(), description: z.string().optional() })).nullable().optional(),
-        nilDeals: z.array(z.object({ brand: z.string(), description: z.string().optional(), logoUrl: z.string().optional(), active: z.boolean().optional() })).nullable().optional(),
-        websiteUrl: z.string().nullable().optional(),
-        socialLinks: z.object({
-          instagram: z.string().optional(),
-          facebook: z.string().optional(),
-          youtube: z.string().optional(),
-          spotify: z.string().optional(),
-          twitter: z.string().optional(),
-          appleMusic: z.string().optional(),
-          tidal: z.string().optional(),
-          soundcloud: z.string().optional(),
-          otherStreaming: z.string().optional(),
-        }).optional(),
-        tipLinks: z.object({
-          cashapp: z.string().optional(),
-          venmo: z.string().optional(),
-          paypal: z.string().optional(),
-          zelle: z.string().optional(),
-        }).optional(),
-        profilePhotoUrl: z.string().optional(),
+        bio: artistBio.optional(),
+        genre: artistGenres.optional(),
+        location: artistShortText.optional(),
+        city: artistShortText.optional(),
+        state: artistShortText.optional(),
+        country: artistShortText.optional(),
+        feeRangeMin: artistFee.optional(),
+        feeRangeMax: artistFee.optional(),
+        touringPartySize: artistPartySize.optional(),
+        sportCategory: artistShortText.nullable().optional(),
+        sportPosition: artistShortText.nullable().optional(),
+        sportTeam: artistShortText.nullable().optional(),
+        athleteStats: artistStats.nullable().optional(),
+        athleteAchievements: artistAchievements.nullable().optional(),
+        nilDeals: artistNilDeals.nullable().optional(),
+        websiteUrl: artistOptionalUrl.nullable().optional(),
+        socialLinks: artistSocialLinks.optional(),
+        tipLinks: artistTipLinks.optional(),
+        profilePhotoUrl: artistOptionalUrl,
         crmSupporter: z.boolean().optional(),
+      }).strict().superRefine((input, ctx) => {
+        if (input.feeRangeMin !== undefined && input.feeRangeMax !== undefined && input.feeRangeMin > input.feeRangeMax) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['feeRangeMax'], message: 'Maximum fee must be at least the minimum fee' });
+        }
       }))
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
@@ -516,10 +570,10 @@ export const appRouter = router({
     // Upload profile photo
     uploadPhoto: artistProcedure
       .input(z.object({
-        fileData: z.string(), // base64 encoded image
-        fileName: z.string(),
-        mimeType: z.string(),
-      }))
+        fileData: artistBase64Data, // base64 encoded image
+        fileName: artistFileName,
+        mimeType: artistImageMime,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Upload and optimize the photo
         const result = await handlePhotoUpload(input, ctx.user.id, "artist-photos");
@@ -536,35 +590,30 @@ export const appRouter = router({
     // Create artist profile
     createProfile: artistProcedure
       .input(z.object({
-        artistName: z.string(),
+        artistName,
         talentType: z.enum(TALENT_TYPE_VALUES).optional(),
-        sportCategory: z.string().optional(),
-        sportPosition: z.string().optional(),
-        sportTeam: z.string().optional(),
-        athleteStats: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
-        athleteAchievements: z.array(z.object({ title: z.string(), year: z.string().optional(), description: z.string().optional() })).optional(),
-        nilDeals: z.array(z.object({ brand: z.string(), description: z.string().optional(), logoUrl: z.string().optional(), active: z.boolean().optional() })).optional(),
-        location: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        country: z.string().optional(),
-        bio: z.string().optional(),
-        genre: z.array(z.string()).optional(),
-        feeRangeMin: z.number().optional(),
-        feeRangeMax: z.number().optional(),
-        touringPartySize: z.number(),
-        websiteUrl: z.string().optional(),
-        profilePhotoUrl: z.string().optional(),
-        socialLinks: z.object({
-          instagram: z.string().optional(),
-          facebook: z.string().optional(),
-          youtube: z.string().optional(),
-          spotify: z.string().optional(),
-          appleMusic: z.string().optional(),
-          tidal: z.string().optional(),
-          soundcloud: z.string().optional(),
-          otherStreaming: z.string().optional(),
-        }).optional(),
+        sportCategory: artistShortText.optional(),
+        sportPosition: artistShortText.optional(),
+        sportTeam: artistShortText.optional(),
+        athleteStats: artistStats.optional(),
+        athleteAchievements: artistAchievements.optional(),
+        nilDeals: artistNilDeals.optional(),
+        location: artistShortText.optional(),
+        city: artistShortText.optional(),
+        state: artistShortText.optional(),
+        country: artistShortText.optional(),
+        bio: artistBio.optional(),
+        genre: artistGenres.optional(),
+        feeRangeMin: artistFee.optional(),
+        feeRangeMax: artistFee.optional(),
+        touringPartySize: artistPartySize,
+        websiteUrl: artistOptionalUrl,
+        profilePhotoUrl: artistOptionalUrl,
+        socialLinks: artistSocialLinks.optional(),
+      }).strict().superRefine((input, ctx) => {
+        if (input.feeRangeMin !== undefined && input.feeRangeMax !== undefined && input.feeRangeMin > input.feeRangeMax) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['feeRangeMax'], message: 'Maximum fee must be at least the minimum fee' });
+        }
       }))
       .mutation(async ({ ctx, input }) => {
         // Block profile creation if email is not verified
@@ -590,14 +639,18 @@ export const appRouter = router({
     // Create artist profile
     create: protectedProcedure
       .input(z.object({
-        artistName: z.string().min(1),
-        bio: z.string().optional(),
-        genre: z.array(z.string()).optional(),
-        location: z.string().optional(),
-        feeRangeMin: z.number().optional(),
-        feeRangeMax: z.number().optional(),
-        socialLinks: z.any().optional(),
-        profilePhotoUrl: z.string().optional(),
+        artistName,
+        bio: artistBio.optional(),
+        genre: artistGenres.optional(),
+        location: artistShortText.optional(),
+        feeRangeMin: artistFee.optional(),
+        feeRangeMax: artistFee.optional(),
+        socialLinks: artistSocialLinks.optional(),
+        profilePhotoUrl: artistOptionalUrl,
+      }).strict().superRefine((input, ctx) => {
+        if (input.feeRangeMin !== undefined && input.feeRangeMax !== undefined && input.feeRangeMin > input.feeRangeMax) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['feeRangeMax'], message: 'Maximum fee must be at least the minimum fee' });
+        }
       }))
       .mutation(async ({ ctx, input }) => {
         // Note: Profile creation is allowed without subscription for onboarding
@@ -613,14 +666,14 @@ export const appRouter = router({
     // Upload media (profile photo or gallery)
     uploadMedia: artistProcedure
       .input(z.object({
-        fileName: z.string(),
-        fileData: z.string(), // base64
-        fileType: z.string(),
-      }))
+        fileName: artistFileName,
+        fileData: artistBase64Data, // base64
+        fileType: artistImageMime,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
-        const buffer = Buffer.from(input.fileData, 'base64');
+        const buffer = decodeArtistBase64(input.fileData, input.fileType, 10 * 1024 * 1024);
         const randomSuffix = Math.random().toString(36).substring(7);
-        const fileKey = `artists/${ctx.user.id}/${input.fileName}-${randomSuffix}`;
+        const fileKey = `artists/${ctx.user.id}/${Date.now()}-${randomSuffix}.${input.fileType.split('/')[1]}`;
         
         const { url } = await storagePut(fileKey, buffer, input.fileType);
         return { url };
@@ -665,14 +718,13 @@ export const appRouter = router({
     // Add photo to gallery
     addGalleryPhoto: artistProcedure
       .input(z.object({
-        fileData: z.string(), // base64 encoded image
-        fileName: z.string(),
-        mimeType: z.string(),
-      }))
+        fileData: artistBase64Data, // base64 encoded image
+        fileName: artistFileName,
+        mimeType: artistImageMime,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Convert base64 to buffer
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        const buffer = decodeArtistBase64(input.fileData, input.mimeType, 10 * 1024 * 1024);
         
         // Generate unique file key
         const timestamp = Date.now();
@@ -707,8 +759,8 @@ export const appRouter = router({
     // Remove photo from gallery
     removeGalleryPhoto: artistProcedure
       .input(z.object({
-        photoUrl: z.string(),
-      }))
+        photoUrl: artistUrl,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -734,11 +786,11 @@ export const appRouter = router({
     // Step 1: Get a server-side upload URL for the video (validates tier, returns upload details)
     getVideoUploadUrl: artistProcedure
       .input(z.object({
-        fileName: z.string(),
-        mimeType: z.string(),
-        fileSizeBytes: z.number().max(500 * 1024 * 1024, 'Video file must be under 500MB'),
-        durationSeconds: z.number().max(300, 'Video must be 5 minutes or less'),
-      }))
+        fileName: artistFileName,
+        mimeType: artistVideoMime,
+        fileSizeBytes: z.number().int().safe().min(1).max(500 * 1024 * 1024, 'Video file must be under 500MB'),
+        durationSeconds: z.number().finite().min(0).max(300, 'Video must be 5 minutes or less'),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -759,7 +811,7 @@ export const appRouter = router({
         }
 
         const timestamp = Date.now();
-        const ext = input.fileName.split('.').pop() || 'mp4';
+        const ext = videoExtensionByMime[input.mimeType];
         const fileKey = `performance-videos/${ctx.user.id}/${timestamp}.${ext}`;
 
         return { fileKey, mimeType: input.mimeType, durationSeconds: input.durationSeconds };
@@ -768,20 +820,22 @@ export const appRouter = router({
     // Step 2: Upload the video file via server proxy to S3 (avoids base64, streams the file)
     uploadPerformanceVideo: artistProcedure
       .input(z.object({
-        fileKey: z.string(),
-        mimeType: z.string(),
-        durationSeconds: z.number().max(300, 'Video must be 5 minutes or less'),
-        fileData: z.string(), // base64 encoded — kept as fallback for smaller files
-      }))
+        fileKey: z.string().trim().min(1).max(255).regex(/^performance-videos\/\d+\/\d+\.(?:mp4|mov|webm)$/),
+        mimeType: artistVideoMime,
+        durationSeconds: z.number().finite().min(0).max(300, 'Video must be 5 minutes or less'),
+        fileData: artistBase64Data, // base64 encoded — kept as fallback for smaller files
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
         }
+        if (!input.fileKey.startsWith(`performance-videos/${ctx.user.id}/`)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Upload key does not belong to this artist' });
+        }
 
         // Upload to S3 via storage helper
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        const buffer = decodeArtistBase64(input.fileData, input.mimeType, 500 * 1024 * 1024);
         const { url } = await storagePut(input.fileKey, buffer, input.mimeType);
 
         // Update artist profile
@@ -806,7 +860,7 @@ export const appRouter = router({
 
     // Add or replace the main Performance Video with a supported hosted URL.
     setPerformanceVideoByUrl: artistProcedure
-      .input(z.object({ videoUrl: z.string().trim().min(1).max(2048) }))
+      .input(z.object({ videoUrl: z.string().trim().min(1).max(2048) }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -873,10 +927,10 @@ export const appRouter = router({
     // Report/flag a performance video (any logged-in user)
     reportVideo: protectedProcedure
       .input(z.object({
-        artistProfileId: z.number(),
+        artistProfileId,
         reason: z.enum(['inappropriate', 'copyright', 'spam', 'other']),
-        details: z.string().optional(),
-      }))
+        details: z.string().trim().max(2_000).optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         // Can't flag your own video
         const myProfile = await db.getArtistProfileByUserId(ctx.user.id);
@@ -896,14 +950,14 @@ export const appRouter = router({
 
     // Check if current user has already flagged a video
     hasUserFlaggedVideo: protectedProcedure
-      .input(z.object({ artistProfileId: z.number() }))
+      .input(z.object({ artistProfileId }).strict())
       .query(async ({ ctx, input }) => {
         return await db.hasUserFlaggedVideo(input.artistProfileId, ctx.user.id);
       }),
 
     // === VIDEO PORTFOLIO (multi-video, up to 10 clips) ===
     getVideoPortfolio: publicProcedure
-      .input(z.object({ artistProfileId: z.number() }))
+      .input(z.object({ artistProfileId }).strict())
       .query(async ({ input }) => {
         const { getPool } = await import('./db');
         const pool = getPool();
@@ -917,7 +971,7 @@ export const appRouter = router({
       }),
 
     getPortfolioVideo: publicProcedure
-      .input(z.object({ videoId: z.number().int().positive() }))
+      .input(z.object({ videoId: artistProfileId }).strict())
       .query(async ({ input }) => {
         const { getPool } = await import('./db');
         const pool = getPool();
@@ -963,12 +1017,12 @@ export const appRouter = router({
 
     addPortfolioVideo: artistProcedure
       .input(z.object({
-        title: z.string().min(1).max(255),
+        title: z.string().trim().min(1).max(255),
         videoUrl: z.string().trim().min(1).max(2048),
-        thumbnailUrl: z.string().optional(),
-        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']),
-        duration: z.number().optional(),
-      }))
+        thumbnailUrl: artistOptionalUrl,
+        category: portfolioVideoCategory,
+        duration: portfolioVideoDuration,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1000,11 +1054,11 @@ export const appRouter = router({
 
     updatePortfolioVideo: artistProcedure
       .input(z.object({
-        id: z.number(),
-        title: z.string().min(1).max(255).optional(),
-        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']).optional(),
-        sortOrder: z.number().optional(),
-      }))
+        id: artistProfileId,
+        title: z.string().trim().min(1).max(255).optional(),
+        category: portfolioVideoCategory.optional(),
+        sortOrder: portfolioSortOrder,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1035,7 +1089,7 @@ export const appRouter = router({
       }),
 
     removePortfolioVideo: artistProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: artistProfileId }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1059,13 +1113,13 @@ export const appRouter = router({
 
     uploadPortfolioVideo: artistProcedure
       .input(z.object({
-        title: z.string().min(1).max(255),
-        category: z.enum(['highlights', 'training', 'game_day', 'behind_the_scenes', 'live_performance', 'studio', 'music_video', 'other']),
-        fileName: z.string(),
-        mimeType: z.string(),
-        fileData: z.string(), // base64
-        duration: z.number().optional(),
-      }))
+        title: z.string().trim().min(1).max(255),
+        category: portfolioVideoCategory,
+        fileName: artistFileName,
+        mimeType: artistVideoMime,
+        fileData: artistBase64Data, // base64
+        duration: portfolioVideoDuration,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -1085,16 +1139,11 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Maximum 10 videos allowed. Remove one to add another.' });
         }
         // Validate file type
-        const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
-        if (!allowedTypes.includes(input.mimeType)) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only MP4, MOV, and WebM videos are allowed' });
-        }
+        const extension = videoExtensionByMime[input.mimeType];
         // Upload to S3
         const timestamp = Date.now();
-        const ext = input.fileName.split('.').pop() || 'mp4';
-        const fileKey = `video-portfolio/${ctx.user.id}/${timestamp}.${ext}`;
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        const fileKey = `video-portfolio/${ctx.user.id}/${timestamp}.${extension}`;
+        const buffer = decodeArtistBase64(input.fileData, input.mimeType, 500 * 1024 * 1024);
         const { url } = await storagePut(fileKey, buffer, input.mimeType);
         // Insert into DB
         const [result] = await pool.execute(

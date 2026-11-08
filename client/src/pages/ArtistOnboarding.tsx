@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
+import { trpc } from '@/lib/trpc';
+
+type ArtistImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+const getArtistImageMime = (value: string): ArtistImageMime => {
+  if ((['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const).includes(value as ArtistImageMime)) {
+    return value as ArtistImageMime;
+  }
+  return 'image/jpeg';
+};
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -284,7 +292,7 @@ export default function ArtistOnboarding() {
           const result = await uploadPhoto.mutateAsync({
             fileData: reader.result as string,
             fileName: profilePhoto.name,
-            mimeType: profilePhoto.type,
+            mimeType: getArtistImageMime(profilePhoto.type),
           });
           resolve(result.url);
         } catch (err) {

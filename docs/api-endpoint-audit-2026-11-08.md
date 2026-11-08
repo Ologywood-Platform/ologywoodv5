@@ -146,6 +146,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Event titles/descriptions/locations/times/rates/capacities/status/category/URLs are strict and bounded; public event reads exclude private events; search filters and pagination are finite; venue event artists must match confirmed booking artists; generic event update/delete and recurrence writes are owner/admin scoped; history references are artist-owned; direct photo add/delete/upload operations are owner-scoped; photo URLs/MIME/data/decoded sizes and history metadata are validated; and recent-photo limits remain backward-compatible while capped.
    - Event security/category/date/route/portfolio regressions pass 55/55, with TypeScript and production build validation passing. No events, history entries, photos, notifications, emails, or records were changed.
 
+30. **Artist profile and legacy media boundaries — resolved in this increment.**
+   - Public artist profile IDs/slugs and profile mutation fields are bounded and strict, including social/tip links, fees with minimum/maximum consistency, athlete stats/achievements/NIL data, and profile party size. Profile/gallery/event media uploads validate allowlisted MIME/data URLs, filenames, base64 syntax, and decoded size; profile photos use the shared validated image handler. Performance and portfolio video uploads validate MIME, duration, and size, derive storage extensions from MIME, bind performance upload keys to the authenticated artist, and keep portfolio edits/removals owner-scoped with bounded ordering.
+   - Artist profile/photo/performance/portfolio suites pass 93/93, with TypeScript and production build validation passing. No profiles, media, moderation records, emails, or application records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

@@ -42,7 +42,7 @@ describe('Artist Profile Photo Upload Fix', () => {
       const startIdx = routersContent.indexOf('uploadProfilePhoto: artistProcedure');
       const uploadProfilePhotoSection = routersContent.slice(startIdx, startIdx + 1200);
       
-      expect(uploadProfilePhotoSection).toContain('storagePut');
+      expect(uploadProfilePhotoSection).toContain('handlePhotoUpload');
       expect(uploadProfilePhotoSection).toContain('updateArtistProfile');
       expect(uploadProfilePhotoSection).toContain('profilePhotoUrl');
     });
