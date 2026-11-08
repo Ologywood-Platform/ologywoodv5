@@ -7,7 +7,7 @@
 
 The active runtime is `server/_core/index.ts`. It mounts the Stripe webhook before JSON parsing, bounded media-upload parsers, event CRUD/search, release upload/download/checkout, booking checkout, contract PDFs, video uploads, eBook files, rider PDFs, calendar feeds/sync, OAuth, OG endpoints, rate-limited tRPC, and scheduled handlers.
 
-The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The audit also found several remaining issues that should be handled in a follow-up implementation pass, especially OAuth state/redirect integrity, an active release-checkout input/origin boundary, and insufficient validation/authorization in the legacy event router.
+The audit confirmed strong protections in several sensitive areas: Stripe signature ordering, authenticated eBook/rider delivery, owner-bound signed video-upload sessions, strict positive-ID parsers on recently hardened legacy routes, generic error responses on the audited endpoints, and private/no-store rider PDFs. The critical follow-ups—OAuth state/redirect integrity, release-checkout input/origin handling, legacy event validation/ownership, test-email authorization/validation, and legacy video duration/extension handling—have now been hardened and regression-tested. Remaining findings include unmounted test-route safety, email-test rate limiting, and release-preview parser normalization.
 
 ## Verified protections
 
@@ -23,40 +23,35 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 
 ### High priority
 
-1. **OAuth callback state is unsigned and its redirect target is trusted.**
-   - Files: `server/routes/googleAuth.ts` and `server/routes/spotifyAuth.ts`.
-   - The `state` value is only base64-encoded JSON. The callback accepts a caller-supplied state, trusts `stateObj.origin` and `stateObj.returnPath`, and does not verify the generated CSRF value against a server-side or signed value.
-   - Impact: tampered state can enable open redirects and weakens OAuth login CSRF/account-linking protection. Calendar sync has a related issue: an unsigned state carries `userId` and the callback does not bind it to the initiating session.
-   - Recommended fix: use a short-lived signed/HMAC state envelope (or server-side nonce) containing the initiating user/session identity; derive the redirect origin from a configured allowlist; allow only same-origin relative return paths that begin with one `/` and reject `//`, backslashes, absolute URLs, and overlong values. Do not trust callback-provided origin.
+1. **OAuth state and redirect integrity — resolved in this increment.**
+   - Files: `server/services/oauthState.ts`, `server/routes/googleAuth.ts`, `server/routes/spotifyAuth.ts`, and `server/routes/googleCalendarSync.ts`.
+   - Google and Spotify now use a short-lived HMAC-signed state envelope with version/issued-at checks and safe same-origin relative return paths. Calendar Sync signs the initiating user ID and requires the callback session to match it. Provider error text is mapped to fixed client-safe codes, and Google token/userinfo requests have bounded timeouts.
+   - Regression coverage: signed round-trip, tamper rejection, expiry, path normalization, route wiring, fixed error codes, and TypeScript/build validation all pass; no OAuth flow was completed during validation.
 
-2. **Legacy event routes accept broad bodies and have authorization gaps.**
-   - File: `server/routes/events.ts`.
-   - Create/update/history/photo inputs lack comprehensive type, length, date, URL, and numeric validation. `PUT /api/events/:id` spreads the entire request body into `updateEvent`, allowing fields beyond an explicit allowlist. `DELETE /api/events/photos/:photoId` authenticates but does not verify that the caller owns the photo/event history. Photo creation likewise verifies authentication but not event-history ownership. `bookingId`/`venueId`/`attendeeCount` in history are not strictly validated.
-   - Impact: malformed data and potential cross-user event-photo mutation.
-   - Recommended fix: define route-specific schemas, allowlist update fields, enforce length/date/rate/capacity bounds, validate URLs, and verify event-history ownership for photo add/delete.
+2. **Legacy event routes — resolved in this increment.**
+   - Files: `server/routes/events.ts`, `server/routes/eventInput.ts`, and `server/db.ts`.
+   - Create/update/history/recurrence/photo bodies now use explicit validators for allowlisted fields, lengths, dates/times, rates, capacities, references, recurrence values, and HTTP(S) photo URLs. Event updates no longer spread arbitrary request fields. Photo add/delete requires the authenticated artist who owns the event history; deletion performs a read-only photo/history ownership lookup before mutation.
+   - Regression coverage: 17 event-route/schema/calendar/search tests pass, plus TypeScript and production build validation. No event, history, photo, or user record was created or modified during validation.
 
-3. **Release checkout has permissive numeric parsing and trusts the request Origin.**
+3. **Release checkout input/origin boundary — resolved in this increment.**
    - File: `server/routes/releaseCheckout.ts`.
-   - `parseInt(releaseId)` and `parseInt(customAmountCents)` accept values such as `12junk`; custom amounts are not explicitly required to be finite safe integers when supplied. `req.headers.origin` is used directly to construct Stripe success/cancel URLs.
-   - Impact: malformed input reaches the database/price logic, and a caller-controlled Origin can influence redirect destinations.
-   - Recommended fix: use the shared positive integer parser and explicit integer/currency bounds; construct URLs from a configured same-origin allowlist (`BASE_URL`/approved domains), never arbitrary request headers.
+   - `releaseId` now uses the shared strict positive-ID parser. Supplied custom amounts must be positive safe integers, at least the release base price and Stripe's $0.50 minimum, and no more than $100,000; custom pricing is rejected when the release does not allow it. Success/cancel URLs use a configured `BASE_URL`, or a strict allowlist of Ologywood, localhost, and Manus preview origins.
+   - Regression coverage: four release-checkout security tests pass, plus TypeScript and production build validation. No checkout session or charge was created.
 
 ### Medium priority
 
-4. **Unauthenticated payment-testing module can mutate booking status if mounted.**
+4. **Payment-testing module — unreachable from active runtime; mount guard added.**
    - File: `server/routes/paymentTestingRoutes.ts` and `server/services/paymentTestingService.ts`.
-   - The routes do not authenticate or authorize the booking party, while service methods directly change booking status to confirmed/cancelled/pending. The current active runtime entrypoint does not mount this module, so it is not presently reachable through `server/_core/index.ts`; it should not be deleted blindly because legacy entrypoints/tests may reference it.
-   - Recommended fix: remove from runtime or make it an owner/admin-only test tool behind an explicit non-production guard and POST-only semantics. Add a mount inventory test so it cannot become reachable accidentally.
+   - The routes remain legacy test code and are not mounted by the active `server/_core/index.ts`, so they are not presently reachable. `server/routeMountInventory.test.ts` now asserts the module and `/api/payment-test` mount are absent while intended media/email/Stripe mounts remain present. No deletion or payment-state mutation occurred; legacy entrypoints/tests still require separate cleanup review.
 
-5. **Unauthenticated email-test endpoint can send arbitrary mail.**
+5. **Email-test endpoint — authorization and validation resolved; rate limiting remains.**
    - File: `server/routes/emailRoutes.ts`.
-   - `POST /api/email/test` checks only whether the string contains `@`, sends to the submitted address, and echoes that address. There is no visible authentication, admin authorization, rate limit, or strict email schema in the route.
-   - Recommended fix: restrict to authenticated owner/admin or remove from production, add strict schema/rate limiting, and avoid reflecting addresses unnecessarily.
+   - `POST /api/email/test` now requires an authenticated admin, trims/lowercases the address, enforces a 320-character maximum and strict email shape, and leaves the public unsubscribe router independent. Focused route-security tests pass 2/2; no email was sent.
+   - Remaining follow-up: add a deployment-appropriate per-admin/IP rate limit before treating this endpoint as fully abuse-hardened.
 
-6. **Legacy video upload duration and filename validation is weaker than direct upload.**
+6. **Legacy video upload — duration and extension validation resolved.**
    - File: `server/routes/videoUpload.ts`, legacy `POST /upload`.
-   - `parseFloat(req.body.durationSeconds || '0')` checks only `> 300`; `NaN`, negative, and non-finite values can pass and be stored. The extension is derived from the original filename without an allowlist.
-   - Recommended fix: require a finite duration in `[0, 300]` with an explicit policy for zero, and derive a fixed extension from the validated MIME type.
+   - Duration is now converted with `Number`, rejected when non-finite/negative/over 300 seconds, and explicitly treats omitted/empty duration as zero for backward compatibility. Storage extension is selected from the validated MIME allowlist (`mp4`, `mov`, `webm`) rather than the client filename. Focused video/email/event tests pass 9/9 and TypeScript validation passes.
 
 ### Low priority / consistency
 

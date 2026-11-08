@@ -41,6 +41,12 @@ import {
 
 const router = Router();
 
+const VIDEO_EXTENSION_BY_MIME: Record<string, 'mp4' | 'mov' | 'webm'> = {
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'video/webm': 'webm',
+};
+
 async function getPortfolioUploadContext(req: Request) {
   let user;
   try {
@@ -146,14 +152,18 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
     }
 
     // Get duration from form data
-    const durationSeconds = parseFloat(req.body.durationSeconds || '0');
-    if (durationSeconds > 300) {
-      return res.status(400).json({ error: 'Video must be 5 minutes or less' });
+    const rawDuration = req.body?.durationSeconds;
+    const durationSeconds = rawDuration === undefined || rawDuration === '' ? 0 : Number(rawDuration);
+    if (!Number.isFinite(durationSeconds) || durationSeconds < 0 || durationSeconds > 300) {
+      return res.status(400).json({ error: 'Video duration must be a finite number between 0 and 300 seconds' });
     }
 
     // Upload to S3
     const timestamp = Date.now();
-    const ext = file.originalname.split('.').pop() || 'mp4';
+    const ext = VIDEO_EXTENSION_BY_MIME[file.mimetype];
+    if (!ext) {
+      return res.status(400).json({ error: 'Unsupported video format' });
+    }
     const fileKey = `performance-videos/${user.id}/${timestamp}.${ext}`;
     const { url } = await storagePut(fileKey, file.buffer, file.mimetype);
 

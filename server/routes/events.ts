@@ -16,6 +16,7 @@ import {
   getArtistEventHistory,
   addEventPhoto,
   getEventPhotos,
+  getEventPhotoById,
   deleteEventPhoto,
   saveEvent,
   getUserSavedEvents,
@@ -23,7 +24,8 @@ import {
   removeSavedEvent,
 } from '../db';
 import { dateOnlyToUtcDate } from '../../shared/dateOnly';
-import { EVENT_TYPE_VALUES, type EventTypeValue } from '../../shared/eventTypes';
+import type { EventTypeValue } from '../../shared/eventTypes';
+import { validateEventBody, validateHistoryBody, validatePhotoBody, validateRecurrenceBody } from './eventInput';
 
 // Middleware to check if user is authenticated
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -61,33 +63,23 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Only artists can create events' });
     }
 
-    const { eventTitle, eventType, eventDate, eventTime, eventEndTime, location, capacity, audienceType, rate, description, isPublic } = req.body;
-
-    if (!eventTitle || !eventType || !eventDate) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    if (!EVENT_TYPE_VALUES.includes(eventType as EventTypeValue)) {
-      return res.status(400).json({ error: 'Invalid event type' });
-    }
-
-    const parsedCapacity = capacity === undefined || capacity === '' ? undefined : Number(capacity);
-    if (parsedCapacity !== undefined && (!Number.isSafeInteger(parsedCapacity) || parsedCapacity < 0)) {
-      return res.status(400).json({ error: 'Capacity must be a non-negative whole number' });
-    }
+    const validated = validateEventBody(req.body);
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const input = validated.value!;
 
     const event = await createEvent({
       artistId: user.id,
-      eventTitle,
-      eventType,
-      eventDate: dateOnlyToUtcDate(eventDate),
-      eventTime,
-      eventEndTime,
-      location,
-      capacity: parsedCapacity,
-      audienceType,
-      rate: rate ? parseFloat(rate).toString() : undefined,
-      description,
-      isPublic: isPublic || false,
+      eventTitle: input.eventTitle as string,
+      eventType: input.eventType as EventTypeValue,
+      eventDate: dateOnlyToUtcDate(input.eventDate as string),
+      eventTime: input.eventTime as string | null | undefined,
+      eventEndTime: input.eventEndTime as string | null | undefined,
+      location: input.location as string | null | undefined,
+      capacity: input.capacity as number | null | undefined,
+      audienceType: input.audienceType as string | null | undefined,
+      rate: input.rate as string | null | undefined,
+      description: input.description as string | null | undefined,
+      isPublic: input.isPublic as boolean,
     });
 
     res.json(event);
@@ -196,12 +188,12 @@ router.put('/api/events/:id', requireAuth, async (req: Request, res: Response) =
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    if (req.body.eventType && !EVENT_TYPE_VALUES.includes(req.body.eventType as EventTypeValue)) {
-      return res.status(400).json({ error: 'Invalid event type' });
-    }
+    const validated = validateEventBody(req.body, true);
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const input = validated.value!;
     const updatedEvent = await updateEvent(parseInt(id), {
-      ...req.body,
-      ...(req.body.eventDate ? { eventDate: dateOnlyToUtcDate(req.body.eventDate) } : {}),
+      ...input,
+      ...(input.eventDate ? { eventDate: dateOnlyToUtcDate(input.eventDate as string) } : {}),
     });
     res.json(updatedEvent);
   } catch (error) {
@@ -245,7 +237,9 @@ router.post('/api/events/:eventId/recurrence', requireAuth, async (req: Request,
   try {
     const user = (req as any).user;
     const { eventId } = req.params;
-    const { frequency, daysOfWeek, endDate } = req.body;
+    const validated = validateRecurrenceBody(req.body);
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const { frequency, daysOfWeek, endDate } = validated.value!;
 
     // Verify ownership
     const event = await getEventById(parseInt(eventId));
@@ -255,9 +249,9 @@ router.post('/api/events/:eventId/recurrence', requireAuth, async (req: Request,
 
     const recurrence = await createEventRecurrence({
       eventId: parseInt(eventId),
-      frequency,
-      daysOfWeek,
-      endDate: endDate ? new Date(endDate) : undefined,
+      frequency: frequency as any,
+      daysOfWeek: daysOfWeek as string | null,
+      endDate: endDate ? dateOnlyToUtcDate(endDate as string) : undefined,
     });
 
     res.json(recurrence);
@@ -312,7 +306,9 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
   try {
     const user = (req as any).user;
     const { eventId } = req.params;
-    const { bookingId, venueId, eventDate, attendeeCount, notes } = req.body;
+    const validated = validateHistoryBody(req.body);
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const { bookingId, venueId, eventDate, attendeeCount, notes } = validated.value!;
 
     // Verify ownership
     const event = await getEventById(parseInt(eventId));
@@ -322,12 +318,12 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
 
     const history = await createEventHistory({
       eventId: parseInt(eventId),
-      bookingId,
+      bookingId: bookingId as number | null | undefined,
       artistId: user.id,
-      venueId,
-      eventDate: dateOnlyToUtcDate(eventDate),
-      attendeeCount,
-      notes,
+      venueId: venueId as number | null | undefined,
+      eventDate: dateOnlyToUtcDate(eventDate as string),
+      attendeeCount: attendeeCount as number | null | undefined,
+      notes: notes as string | null | undefined,
     });
 
     res.json(history);
@@ -378,16 +374,18 @@ router.get('/api/artists/:artistId/history', async (req: Request, res: Response)
 router.post('/api/events/history/:historyId/photos', requireAuth, async (req: Request, res: Response) => {
   try {
     const { historyId } = req.params;
-    const { photoUrl, caption } = req.body;
-
-    if (!photoUrl) {
-      return res.status(400).json({ error: 'Photo URL is required' });
+    const history = await getEventHistoryById(parseInt(historyId));
+    if (!history || history.artistId !== (req as any).user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
     }
+    const validated = validatePhotoBody(req.body);
+    if (validated.error) return res.status(400).json({ error: validated.error });
+    const { photoUrl, caption } = validated.value!;
 
     const photo = await addEventPhoto({
       eventHistoryId: parseInt(historyId),
-      photoUrl,
-      caption,
+      photoUrl: photoUrl as string,
+      caption: caption as string | null | undefined,
       uploadedBy: (req as any).user.id,
     });
 
@@ -418,6 +416,12 @@ router.get('/api/events/history/:historyId/photos', async (req: Request, res: Re
 router.delete('/api/events/photos/:photoId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { photoId } = req.params;
+    const photo = await getEventPhotoById(parseInt(photoId));
+    if (!photo) return res.status(404).json({ error: 'Photo not found' });
+    const history = await getEventHistoryById(photo.eventHistoryId);
+    if (!history || history.artistId !== (req as any).user.id) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
     const success = await deleteEventPhoto(parseInt(photoId));
     res.json({ success });
   } catch (error) {

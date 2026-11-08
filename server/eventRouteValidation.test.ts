@@ -47,6 +47,7 @@ describe('event route input validation', () => {
     const source = await import('node:fs/promises').then((fs) => fs.readFile('server/routes/events.ts', 'utf8'));
     expect(source).toContain("router.param(parameter");
     expect(source).toContain('Number.isSafeInteger(parsed)');
-    expect(source).toContain('Capacity must be a non-negative whole number');
+    expect(source).toContain('validateEventBody(req.body)');
+    expect(await import('node:fs/promises').then((fs) => fs.readFile('server/routes/eventInput.ts', 'utf8'))).toContain('capacity must be a non-negative whole number');
   });
 });

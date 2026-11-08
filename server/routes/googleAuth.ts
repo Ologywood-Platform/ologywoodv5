@@ -8,13 +8,14 @@ import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
 import { persistAvatarToS3 } from '../utils/persistAvatar';
-import crypto from 'crypto';
+import { createOAuthState, safeOAuthReturnPath, verifyOAuthState } from '../services/oauthState';
 
 const router = Router();
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
+const GOOGLE_REQUEST_TIMEOUT_MS = 5_000;
 
 function getGoogleClientId(): string {
   return process.env.GOOGLE_CLIENT_ID || '';
@@ -35,13 +36,8 @@ function getRedirectUri(req: Request): string {
 }
 
 function getOrigin(req: Request): string {
-  // In production, always use BASE_URL for consistent redirects
-  if (process.env.BASE_URL) {
-    return process.env.BASE_URL;
-  }
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-  return `${proto}://${host}`;
+  // Production uses the configured public origin; local/dev callbacks use relative redirects.
+  return process.env.BASE_URL || '';
 }
 
 /**
@@ -55,15 +51,8 @@ router.get('/google', (req: Request, res: Response) => {
   }
 
   const redirectUri = getRedirectUri(req);
-  const returnPath = (req.query.returnPath as string) || '/';
-  
-  // Generate a state parameter for CSRF protection
-  const state = JSON.stringify({
-    csrf: crypto.randomBytes(16).toString('hex'),
-    returnPath,
-    origin: getOrigin(req),
-  });
-  const encodedState = Buffer.from(state).toString('base64url');
+  const returnPath = safeOAuthReturnPath(req.query.returnPath);
+  const encodedState = createOAuthState({ returnPath });
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -88,24 +77,14 @@ router.get('/google/callback', async (req: Request, res: Response) => {
   const stateParam = req.query.state as string;
   const error = req.query.error as string;
 
-  // Parse state to get return path and origin
-  let returnPath = '/';
-  let origin = getOrigin(req);
-  
-  if (stateParam) {
-    try {
-      const decoded = Buffer.from(stateParam, 'base64url').toString('utf-8');
-      const stateObj = JSON.parse(decoded);
-      returnPath = stateObj.returnPath || '/';
-      origin = stateObj.origin || origin;
-    } catch {
-      // Ignore state parse errors
-    }
-  }
+  const state = verifyOAuthState(stateParam);
+  const origin = getOrigin(req);
+  if (!state) return res.redirect(302, `${origin}/get-started?oauth_error=INVALID_STATE`);
+  const returnPath = safeOAuthReturnPath(state.returnPath);
 
   if (error) {
-    console.error('[Google OAuth] Error from Google:', error);
-    return res.redirect(302, `${origin}/get-started?oauth_error=${error}`);
+    console.error('[Google OAuth] Provider denied authorization');
+    return res.redirect(302, `${origin}/get-started?oauth_error=PROVIDER_DENIED`);
   }
 
   if (!code) {
@@ -126,6 +105,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
       }),
+      signal: AbortSignal.timeout(GOOGLE_REQUEST_TIMEOUT_MS),
     });
 
     if (!tokenResponse.ok) {
@@ -139,6 +119,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     // Get user info from Google
     const userInfoResponse = await fetch(GOOGLE_USERINFO_URL, {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
+      signal: AbortSignal.timeout(GOOGLE_REQUEST_TIMEOUT_MS),
     });
 
     if (!userInfoResponse.ok) {

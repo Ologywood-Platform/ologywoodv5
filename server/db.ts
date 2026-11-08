@@ -1948,6 +1948,13 @@ export async function getEventPhotos(eventHistoryId: number): Promise<EventPhoto
   return await db.select().from(eventPhotos).where(eq(eventPhotos.eventHistoryId, eventHistoryId));
 }
 
+export async function getEventPhotoById(photoId: number): Promise<EventPhoto | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(eventPhotos).where(eq(eventPhotos.id, photoId)).limit(1);
+  return result[0] ?? null;
+}
+
 /**
  * Add a photo to an event history entry.
  */

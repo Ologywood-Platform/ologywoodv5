@@ -14,10 +14,10 @@ import { Router, Request, Response } from 'express';
 import { getDb } from '../db';
 import { googleCalendarIntegrations, availability } from '../../drizzle/schema';
 import { eq, and } from 'drizzle-orm';
-import crypto from 'crypto';
 import { sdk } from '../_core/sdk';
 import { setScheduledAvailability } from '../services/bookingScheduleService';
 import { decryptOAuthToken, encryptOAuthToken } from '../services/oauthTokenEncryption';
+import { createOAuthState, verifyOAuthState } from '../services/oauthState';
 import { artistProfiles } from '../../drizzle/schema';
 import { TRPCError } from '@trpc/server';
 
@@ -65,12 +65,7 @@ router.get('/google/connect', async (req: Request, res: Response) => {
 
   const redirectUri = getRedirectUri(req);
 
-  // Store userId in state for the callback
-  const state = JSON.stringify({
-    csrf: crypto.randomBytes(16).toString('hex'),
-    userId,
-  });
-  const encodedState = Buffer.from(state).toString('base64url');
+  const encodedState = createOAuthState({ userId });
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -95,25 +90,28 @@ router.get('/google/callback', async (req: Request, res: Response) => {
   const stateParam = req.query.state as string;
   const error = req.query.error as string;
 
-  const origin = process.env.BASE_URL || `${req.protocol}://${req.headers.host}`;
+  const state = verifyOAuthState(stateParam);
+  const userId = state?.userId;
+  if (!Number.isSafeInteger(userId) || (userId as number) <= 0) {
+    return res.redirect('/dashboard?gcal=error&reason=invalid_state');
+  }
 
   if (error) {
-    console.error('[Google Calendar Sync] OAuth error:', error);
-    return res.redirect(`${origin}/dashboard?gcal=error&reason=${encodeURIComponent(error)}`);
+    console.error('[Google Calendar Sync] OAuth provider error');
+    return res.redirect('/dashboard?gcal=error&reason=provider_denied');
   }
 
-  if (!code || !stateParam) {
-    return res.redirect(`${origin}/dashboard?gcal=error&reason=missing_code`);
+  if (!code) {
+    return res.redirect('/dashboard?gcal=error&reason=missing_code');
   }
 
-  // Parse state to get userId
-  let userId: number;
   try {
-    const decoded = Buffer.from(stateParam, 'base64url').toString('utf-8');
-    const stateObj = JSON.parse(decoded);
-    userId = stateObj.userId;
+    const callbackUser = await sdk.authenticateRequest(req);
+    if (callbackUser.id !== userId) {
+      return res.redirect('/dashboard?gcal=error&reason=invalid_state');
+    }
   } catch {
-    return res.redirect(`${origin}/dashboard?gcal=error&reason=invalid_state`);
+    return res.redirect('/dashboard?gcal=error&reason=authentication_required');
   }
 
   try {
@@ -133,7 +131,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     if (!tokenResponse.ok) {
       const errBody = await tokenResponse.text();
       console.error('[Google Calendar Sync] Token exchange failed:', errBody);
-      return res.redirect(`${origin}/dashboard?gcal=error&reason=token_exchange_failed`);
+      return res.redirect('/dashboard?gcal=error&reason=token_exchange_failed');
     }
 
     const tokens = await tokenResponse.json() as {
@@ -144,7 +142,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     };
 
     if (!tokens.access_token) {
-      return res.redirect(`${origin}/dashboard?gcal=error&reason=no_access_token`);
+      return res.redirect('/dashboard?gcal=error&reason=no_access_token');
     }
 
     // Get the user's Google email from the calendar API
@@ -161,7 +159,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
 
     const database = await getDb();
     if (!database) {
-      return res.redirect(`${origin}/dashboard?gcal=error&reason=db_unavailable`);
+      return res.redirect('/dashboard?gcal=error&reason=db_unavailable');
     }
 
     // Get artist profile ID from userId
@@ -173,7 +171,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       .limit(1);
 
     if (!artistProfile) {
-      return res.redirect(`${origin}/dashboard?gcal=error&reason=not_an_artist`);
+      return res.redirect('/dashboard?gcal=error&reason=not_an_artist');
     }
 
     const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
@@ -213,10 +211,10 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     // Trigger initial sync
     await syncGoogleCalendarForArtist(artistProfile.id);
 
-    return res.redirect(`${origin}/dashboard?gcal=connected`);
+    return res.redirect('/dashboard?gcal=connected');
   } catch (err: any) {
     console.error('[Google Calendar Sync] Callback error:', err);
-    return res.redirect(`${origin}/dashboard?gcal=error&reason=unknown`);
+    return res.redirect('/dashboard?gcal=error&reason=unknown');
   }
 });
 

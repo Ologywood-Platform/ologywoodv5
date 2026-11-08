@@ -8,7 +8,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from '@shared/const';
 import { FreeTrialService } from '../services/freeTrialService';
 import { getUserSubscription } from '../services/pricingTierService';
 import { persistAvatarToS3 } from '../utils/persistAvatar';
-import crypto from 'crypto';
+import { createOAuthState, safeOAuthReturnPath, verifyOAuthState } from '../services/oauthState';
 
 const router = Router();
 
@@ -36,13 +36,8 @@ function getRedirectUri(req: Request): string {
 }
 
 function getOrigin(req: Request): string {
-  // In production, always use BASE_URL for consistent redirects
-  if (process.env.BASE_URL) {
-    return process.env.BASE_URL;
-  }
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-  return `${proto}://${host}`;
+  // Production uses the configured public origin; local/dev callbacks use relative redirects.
+  return process.env.BASE_URL || '';
 }
 
 /**
@@ -56,15 +51,8 @@ router.get('/spotify', (req: Request, res: Response) => {
   }
 
   const redirectUri = getRedirectUri(req);
-  const returnPath = (req.query.returnPath as string) || '/';
-
-  // Generate a state parameter for CSRF protection
-  const state = JSON.stringify({
-    csrf: crypto.randomBytes(16).toString('hex'),
-    returnPath,
-    origin: getOrigin(req),
-  });
-  const encodedState = Buffer.from(state).toString('base64url');
+  const returnPath = safeOAuthReturnPath(req.query.returnPath);
+  const encodedState = createOAuthState({ returnPath });
 
   const scopes = ['user-read-email', 'user-read-private'];
 
@@ -90,24 +78,14 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
   const stateParam = req.query.state as string;
   const error = req.query.error as string;
 
-  // Parse state to get return path and origin
-  let returnPath = '/';
-  let origin = getOrigin(req);
-
-  if (stateParam) {
-    try {
-      const decoded = Buffer.from(stateParam, 'base64url').toString('utf-8');
-      const stateObj = JSON.parse(decoded);
-      returnPath = stateObj.returnPath || '/';
-      origin = stateObj.origin || origin;
-    } catch {
-      // Ignore state parse errors
-    }
-  }
+  const state = verifyOAuthState(stateParam);
+  const origin = getOrigin(req);
+  if (!state) return res.redirect(302, `${origin}/get-started?oauth_error=INVALID_STATE`);
+  const returnPath = safeOAuthReturnPath(state.returnPath);
 
   if (error) {
-    console.error('[Spotify OAuth] Error from Spotify:', error);
-    return res.redirect(302, `${origin}/get-started?oauth_error=${error}`);
+    console.error('[Spotify OAuth] Provider denied authorization');
+    return res.redirect(302, `${origin}/get-started?oauth_error=PROVIDER_DENIED`);
   }
 
   if (!code) {

@@ -11,6 +11,8 @@ import { sdk } from "../_core/sdk";
 import { getDb } from "../db";
 import { stripeConnectAccounts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { positiveRouteId } from './routeInput';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
@@ -54,12 +56,13 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const { releaseId, customAmountCents } = req.body;
 
-    if (!releaseId) {
-      return res.status(400).json({ error: "releaseId is required" });
+    const parsedReleaseId = positiveRouteId(releaseId);
+    if (parsedReleaseId === null) {
+      return res.status(400).json({ error: "releaseId must be a positive integer" });
     }
 
     // Get the release
-    const release = await db.getReleaseById(parseInt(releaseId));
+    const release = await db.getReleaseById(parsedReleaseId);
     if (!release) {
       return res.status(404).json({ error: "Release not found" });
     }
@@ -84,12 +87,20 @@ router.post("/", async (req: Request, res: Response) => {
 
     // Determine the final price (support pay-what-you-want)
     let finalPriceCents = release.priceInCents;
-    if (release.allowPayWhatYouWant && customAmountCents) {
-      const customAmount = parseInt(customAmountCents);
-      // Must be at least the base price and at least $0.50 (Stripe minimum)
-      if (customAmount >= release.priceInCents && customAmount >= 50) {
-        finalPriceCents = customAmount;
+    if (customAmountCents !== undefined && customAmountCents !== null && customAmountCents !== '') {
+      const amountText = typeof customAmountCents === 'number' ? String(customAmountCents) : customAmountCents;
+      if (typeof amountText !== 'string' || !/^[1-9]\d*$/.test(amountText)) {
+        return res.status(400).json({ error: "customAmountCents must be a positive integer" });
       }
+      const customAmount = Number(amountText);
+      // Must be at least the base price and at least $0.50 (Stripe minimum), within safe integer bounds.
+      if (!Number.isSafeInteger(customAmount) || customAmount < release.priceInCents || customAmount < 50 || customAmount > 10_000_000) {
+        return res.status(400).json({ error: "customAmountCents is outside the allowed range" });
+      }
+      if (!release.allowPayWhatYouWant) {
+        return res.status(400).json({ error: "This release does not allow custom pricing" });
+      }
+      finalPriceCents = customAmount;
     }
 
     // Calculate platform fee (1%, minimum 1 cent)
@@ -99,7 +110,7 @@ router.post("/", async (req: Request, res: Response) => {
     const artistStripeAccountId = await getArtistStripeAccountId(artistProfile.userId);
 
     // Build the checkout session
-    const origin = req.headers.origin || process.env.BASE_URL || "https://www.ologywood.com";
+    const origin = trustedCheckoutOrigin(process.env.BASE_URL, req.headers.origin);
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
