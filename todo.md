@@ -28,6 +28,7 @@
 - [x] Add error boundaries to React components (page/section/component levels)
 - [ ] Implement proper error handling in all API routes
 - [ ] Add input validation to all endpoints
+- [x] Harden booking checkout inputs: both `/api/booking-checkout` and `/api/booking-payment-status/:bookingId` now reject non-positive, non-safe-integer IDs before database or Stripe work. Focused checkout/workflow tests pass 59/59 and TypeScript validation passes; the broader all-endpoints validation audit remains open.
 
 ---
 

@@ -110,6 +110,12 @@ describe('Follow-up 2: Stripe Deposit/Payment for Client Bookings', () => {
       expect(bookingCheckoutSrc).toContain('Cannot pay for a cancelled booking');
     });
 
+    it('rejects malformed booking IDs before database or Stripe work', () => {
+      expect(bookingCheckoutSrc).toContain('Number(rawBookingId)');
+      expect(bookingCheckoutSrc).toContain('Number.isSafeInteger(bookingId)');
+      expect(bookingCheckoutSrc).toContain("return res.status(400).json({ error: 'Invalid booking ID' })");
+    });
+
     it('validates minimum fee amount', () => {
       expect(bookingCheckoutSrc).toContain('totalFeeCents < 50');
     });

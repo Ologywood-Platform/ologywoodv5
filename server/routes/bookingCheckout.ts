@@ -34,9 +34,10 @@ const bookingCheckoutRouter = Router();
  */
 bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
   try {
-    const { bookingId, paymentType } = req.body;
+    const { bookingId: rawBookingId, paymentType } = req.body;
+    const bookingId = Number(rawBookingId);
 
-    if (!bookingId || !paymentType || !['deposit', 'final'].includes(paymentType)) {
+    if (!Number.isSafeInteger(bookingId) || bookingId <= 0 || !paymentType || !['deposit', 'final'].includes(paymentType)) {
       return res.status(400).json({ error: 'Missing bookingId or invalid paymentType (deposit|final)' });
     }
 
@@ -183,7 +184,10 @@ bookingCheckoutRouter.post('/api/booking-checkout', async (req, res) => {
  */
 bookingCheckoutRouter.get('/api/booking-payment-status/:bookingId', async (req, res) => {
   try {
-    const bookingId = parseInt(req.params.bookingId);
+    const bookingId = Number(req.params.bookingId);
+    if (!Number.isSafeInteger(bookingId) || bookingId <= 0) {
+      return res.status(400).json({ error: 'Invalid booking ID' });
+    }
     const userId = (req as any).user?.id;
     
     if (!userId) {
