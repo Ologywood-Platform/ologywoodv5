@@ -48,6 +48,7 @@
 - [x] Add database indexes for common queries (70 indexes across 20+ tables)
 - [ ] Optimize slow queries
 - [ ] Test database with production load
+- [x] Optimize a verified query hotspot: `getFavoritesByVenue` now fetches all favorite artist profiles in one deduplicated `IN` query and maps results in memory, preserving favorite order, duplicate rows, missing-profile filtering, and response shape. Focused optimization/data-quality/discovery tests pass 11/11 and TypeScript validation passes. Full production-load testing remains open.
 
 ---
 

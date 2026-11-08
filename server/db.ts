@@ -1577,14 +1577,16 @@ export async function getFavoritesByVenue(venueId: number) {
   const db = await getDb();
   if (!db) return [];
   const favs = await db.select().from(favorites).where(eq(favorites.venueId, venueId));
-  // Join with artist profiles to get full artist info
-  const results = await Promise.all(
-    favs.map(async (fav) => {
-      const artist = await db.select().from(artistProfiles).where(eq(artistProfiles.id, fav.artistId)).limit(1);
-      const parsed = artist[0] ? parseArtistProfile(artist[0]) : null;
-      return parsed ? { ...fav, ...parsed, favoriteId: fav.id, id: parsed.id } : null;
-    })
-  );
+  if (favs.length === 0) return [];
+
+  // Batch the profile lookup instead of issuing one query per favorite.
+  const artistIds = [...new Set(favs.map(fav => fav.artistId))];
+  const artistRows = await db.select().from(artistProfiles).where(inArray(artistProfiles.id, artistIds));
+  const artistsById = new Map(artistRows.map(row => [row.id, parseArtistProfile(row)]));
+  const results = favs.map((fav) => {
+    const parsed = artistsById.get(fav.artistId);
+    return parsed ? { ...fav, ...parsed, favoriteId: fav.id, id: parsed.id } : null;
+  });
   return results.filter((r): r is NonNullable<typeof r> => r !== null);
 }
 
