@@ -37,8 +37,9 @@
 ### Data Quality
 - [ ] Remove test data (4 test artists)
 - [ ] Verify 6 production artists are correct
-- [ ] Check for duplicate records
-- [ ] Validate email addresses in database
+- [ ] Check for duplicate records; the reusable read-only audit covers 29 natural-key checks across users, artist/venue profiles, events, bookings, follows/favorites/saved records, releases/purchases, tickets, merch, fan-club memberships, invitations, and schedules. It found no valid-identity collisions, but did find five legacy `favorites` rows sharing the sentinel pair `venueId=0, artistId=0`; review/removal remains open and no records were changed.
+- [x] Validate email addresses in database; the reusable audit inspected all 26 schema columns whose names are `email` or end in `Email` and found 0 malformed/blank non-null values. It reports repeated historical addresses separately (email logs, purchases, audit history, and merch orders) without treating those expected rows as invalid or changing data.
+- [x] Add reusable read-only data-quality audit script at `scripts/data-quality-audit.ts`; it performs aggregate-only duplicate-key and email-format checks, prints only counts/candidate scopes, and never writes or deletes records.
 
 ### Performance
 - [x] Add database indexes for common queries (70 indexes across 20+ tables)
