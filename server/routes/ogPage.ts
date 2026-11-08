@@ -152,20 +152,32 @@ function generateOgHtml(opts: {
  * The og:url points to the canonical /artist/25 URL.
  */
 
-// Artist pages — supports /artist/:slug (e.g., joe-watts-25) or /artist/:id (e.g., 25)
+// Artist pages — supports /artist/:slug (e.g., joe-watts), /artist/:slug-ID, or /artist/:id.
 router.get('/artist/:slug', async (req: Request, res: Response) => {
-  const artistId = extractIdFromSlug(req.params.slug);
-  if (artistId === null) {
-    return res.status(400).json({ error: 'Invalid artist URL. Use format: /api/og-page/artist/artist-name-ID' });
-  }
-
+  const requestedSlug = req.params.slug;
+  let artistId = extractIdFromSlug(requestedSlug);
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
   baseUrl = baseUrl.replace(/\/$/, '');
-  const canonicalUrl = `${baseUrl}/artist/${artistId}`;
+  let canonicalUrl = `${baseUrl}/artist/${requestedSlug}`;
 
   try {
     const database = await getDb();
     if (database) {
+      // Clean public profile URLs do not contain an ID. Resolve those slugs
+      // against the stored display name, while keeping the numeric legacy
+      // route and slug-ID share links backwards compatible.
+      if (artistId === null) {
+        const candidates = await database
+          .select({ id: artistProfiles.id, artistName: artistProfiles.artistName })
+          .from(artistProfiles);
+        const match = candidates.find((candidate) => toSlug(candidate.artistName) === requestedSlug);
+        artistId = match?.id ?? null;
+      }
+
+      if (artistId === null) {
+        return res.status(404).json({ error: 'Artist not found' });
+      }
+
       const [artist] = await database
         .select({
           id: artistProfiles.id,
@@ -181,6 +193,7 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
 
       if (artist) {
         const correctSlug = `${toSlug(artist.artistName)}-${artistId}`;
+        canonicalUrl = `${baseUrl}/artist/${toSlug(artist.artistName)}`;
 
         const genres = Array.isArray(artist.genre) ? artist.genre.join(', ') : '';
         const locationStr = artist.location ? ` based in ${artist.location}` : '';
@@ -217,20 +230,29 @@ router.get('/artist/:slug', async (req: Request, res: Response) => {
   return res.redirect(302, canonicalUrl);
 });
 
-// Venue pages — supports /venue/:slug or /venue/:id
+// Venue pages — supports /venue/:slug, /venue/:slug-ID, or /venue/:id.
 router.get('/venue/:slug', async (req: Request, res: Response) => {
-  const venueId = extractIdFromSlug(req.params.slug);
-  if (venueId === null) {
-    return res.status(400).json({ error: 'Invalid venue URL' });
-  }
-
+  const requestedSlug = req.params.slug;
+  let venueId = extractIdFromSlug(requestedSlug);
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
   baseUrl = baseUrl.replace(/\/$/, '');
-  const canonicalUrl = `${baseUrl}/venue/${venueId}`;
+  let canonicalUrl = `${baseUrl}/venue/${requestedSlug}`;
 
   try {
     const database = await getDb();
     if (database) {
+      if (venueId === null) {
+        const candidates = await database
+          .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+          .from(venueProfiles);
+        const match = candidates.find((candidate) => toSlug(candidate.organizationName) === requestedSlug);
+        venueId = match?.id ?? null;
+      }
+
+      if (venueId === null) {
+        return res.status(404).json({ error: 'Venue not found' });
+      }
+
       const [venue] = await database
         .select({
           id: venueProfiles.id,
@@ -249,6 +271,7 @@ router.get('/venue/:slug', async (req: Request, res: Response) => {
 
       if (venue) {
         const correctSlug = `${toSlug(venue.organizationName)}-${venueId}`;
+        canonicalUrl = `${baseUrl}/venue/${toSlug(venue.organizationName)}`;
         
         const typeStr = venue.venueType ? `${venue.venueType} venue` : 'Venue';
         const locationStr = venue.location ? ` in ${venue.location}` : '';

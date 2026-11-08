@@ -127,14 +127,15 @@
 - [ ] Verify all images are displaying
 - [ ] Check email templates
 - [x] Audit homepage image loading only; current browser DOM contained 11 image elements, 9 with non-zero natural dimensions, and 2 SuggestedFollows lazy-image placeholders with no `src` yet (`Darnell “TrumpetDude” Phillips` and `Joe Watts`). After scrolling to the page bottom and waiting 1.2 seconds they remained placeholders, so this is recorded for a focused lazy-image investigation rather than classified as a broken URL; no data or image records were changed.
+- [x] Validate branded email-template source only; the approved shared neon Ologywood logo URL/alt text is present and retired logo sources are rejected across the email implementation, while the booking, reset, welcome, payment, support, and notification template suite passes 16/16. No email was sent during this check; delivery/inbox rendering remains open.
 
 ---
 
 ## Phase 6: Final Production Readiness
 
 ### Deployment
-- [ ] Verify custom domain is configured
-- [ ] Check SSL certificate
+- [x] Verify custom domain is configured; `https://www.ologywood.com/` returned HTTP 200 over HTTPS and served the current Ologywood document, while the managed domain also returned HTTP 200. No redirect or configuration change was made.
+- [x] Check SSL certificate; non-mutating curl probes verified certificate validation result 0 on both custom and managed HTTPS domains, HTTP/2 responses, one-year preload HSTS, and the health response `runtimeVerified: true`. Certificate renewal ownership/alerting remains outside this probe.
 - [ ] Test auto-scaling
 - [ ] Verify backups are enabled
 
@@ -190,6 +191,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - FIX: Added `Allow: /api/og-page/` and `Allow: /api/og-image/` BEFORE the Disallow rule
   - In robots.txt, more specific rules take precedence over general ones
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
+- [x] Verify preview OG responses with a Facebook crawler user-agent; clean artist slug `/api/og-page/artist/adonis` and clean venue slug `/api/og-page/venue/the-velvet-room-jazz-lounge` each returned HTTP 200 with entity-specific titles and clean canonical/`og:url` values. Unknown artist/venue slugs returned safe JSON 404s. Production custom-domain verification and Facebook/Messenger cache refresh remain open until this checkpoint is published.
 
 ## URGENT ISSUES
 
