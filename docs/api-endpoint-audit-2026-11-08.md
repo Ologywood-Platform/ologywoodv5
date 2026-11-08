@@ -162,6 +162,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Review IDs, booking/profile IDs, and rating fields are strict and safe; ratings are integer values from 1–5; titles, bodies, and responses are trimmed and bounded. Profile reviews require an authenticated venue profile; completed booking reviews verify both booking parties and the target profile before writing; artist and venue response mutations retain owner checks.
    - Review security/persistence/workflow regressions pass 60/60 executed (21 legacy router tests remain intentionally skipped), with TypeScript and production build validation passing. No reviews, responses, notifications, emails, or records were changed.
 
+34. **Subscription checkout and sync boundaries — resolved in this increment.**
+   - Success/cancel URLs are strict bounded HTTP(S) values and must resolve to the approved application origin; plan/interval/credit inputs are strict; referral-credit coupons are capped at the selected configured plan total; and subscription sync logs no longer expose customer/subscription IDs or account email.
+   - Subscription/security/billing/management/pause/pricing/mobile regressions pass 151/151, with TypeScript and production build validation passing. No checkout sessions, coupons, subscription records, emails, or Stripe mutations changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

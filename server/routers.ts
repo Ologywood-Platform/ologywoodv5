@@ -18,6 +18,7 @@ import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail } fr
 import * as emailService from "./services/emailService";
 import { getSubscriptionStatus, cancelSubscription, reactivateSubscription, stripe } from "./stripe";
 import { updateSubscriptionStatus } from "./db";
+import { trustedCheckoutOrigin } from './services/trustedOrigin';
 import * as imageOptimization from "./imageOptimization";
 import { handlePhotoUpload } from "./handlers/imageUploadHandler";
 // ===== MVP ROUTERS ONLY =====
@@ -170,6 +171,13 @@ const reviewRating = z.number().int().min(1).max(5);
 const reviewTitle = z.string().trim().min(1).max(200);
 const reviewBody = z.string().trim().max(2_000).optional();
 const reviewResponse = z.string().trim().min(1).max(2_000);
+const subscriptionReturnUrl = z.string().trim().max(2_048).url().refine((value) => {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+}, 'Return URL must use HTTP(S)');
 
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -2842,14 +2850,27 @@ export const appRouter = router({
     // Create checkout session for subscription
     createCheckoutSession: paidSubscriptionProcedure
       .input(z.object({
-        successUrl: z.string(),
-        cancelUrl: z.string(),
+        successUrl: subscriptionReturnUrl,
+        cancelUrl: subscriptionReturnUrl,
         plan: z.enum(['starter', 'professional', 'enterprise']).optional().default('professional'),
         interval: z.enum(['month', 'year']).optional().default('month'),
         useCredits: z.boolean().optional().default(false),
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const { getOrCreateStripeCustomer, createSubscriptionCheckoutSession, stripe: stripeClient } = await import('./stripe');
+        const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
+        const origin = trustedCheckoutOrigin(process.env.BASE_URL, (ctx.req as any)?.headers?.origin);
+        const isApprovedReturnUrl = (value: string) => {
+          try {
+            const parsed = new URL(value);
+            return parsed.origin === origin && !parsed.username && !parsed.password;
+          } catch {
+            return false;
+          }
+        };
+        if (!isApprovedReturnUrl(input.successUrl) || !isApprovedReturnUrl(input.cancelUrl)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Checkout return URLs must use the approved application origin' });
+        }
         
         // Get or create Stripe customer
         const customerId = await getOrCreateStripeCustomer({
@@ -2865,7 +2886,7 @@ export const appRouter = router({
           const { referralCredits } = await import('../drizzle/schema');
           const { eq } = await import('drizzle-orm');
           const { getDb: getDatabase } = await import('./db');
-            const database = await getDatabase();
+          const database = await getDatabase();
           if (database) {
             // Calculate available credit balance
             const credits = await database
@@ -2881,14 +2902,22 @@ export const appRouter = router({
               .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
             const balance = earned - redeemed;
 
-            if (balance > 0) {
+            const selectedProduct = input.plan === 'starter'
+              ? SUBSCRIPTION_PRODUCTS.ARTIST_STARTER
+              : input.plan === 'enterprise'
+                ? SUBSCRIPTION_PRODUCTS.ARTIST_ENTERPRISE
+                : SUBSCRIPTION_PRODUCTS.ARTIST_PROFESSIONAL;
+            const planTotalCents = input.interval === 'year'
+              ? selectedProduct.priceYearly
+              : selectedProduct.priceMonthly;
+            const amountOff = Math.min(Math.round(balance * 100), planTotalCents);
+            if (amountOff > 0) {
               // Create a one-time Stripe coupon for the credit amount (in cents)
-              const amountOff = Math.round(balance * 100);
               const coupon = await stripeClient.coupons.create({
                 amount_off: amountOff,
                 currency: 'usd',
                 duration: 'once',
-                name: `Referral Credit ($${balance.toFixed(2)})`,
+                  name: `Referral Credit ($${(amountOff / 100).toFixed(2)})`,
                 metadata: {
                   userId: ctx.user.id.toString(),
                   type: 'referral_credit',
@@ -2899,7 +2928,7 @@ export const appRouter = router({
               // Record the credit redemption
               await database.insert(referralCredits).values({
                 userId: ctx.user.id,
-                amount: String(balance),
+                amount: String(amountOff / 100),
                 type: 'redeemed',
                 description: `Applied $${balance.toFixed(2)} credit to subscription checkout`,
               });
@@ -3151,7 +3180,7 @@ export const appRouter = router({
     // Self-service: sync subscription from Stripe (when webhook missed)
     syncFromStripe: protectedProcedure
       .mutation(async ({ ctx }) => {
-        console.log('[SyncFromStripe] Starting sync for user:', ctx.user.id, ctx.user.email);
+        console.log('[SyncFromStripe] Starting subscription sync');
         const { SUBSCRIPTION_PRODUCTS } = await import('../shared/products');
         const { stripe: stripeClient } = await import('./stripe');
 
@@ -3168,7 +3197,6 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
         }
 
-        console.log('[SyncFromStripe] Searching Stripe for customer with email:', ctx.user.email);
         const customers = await stripe.customers.list({ email: ctx.user.email, limit: 1 });
         console.log('[SyncFromStripe] Found customers:', customers.data.length);
         if (customers.data.length === 0) {
@@ -3177,7 +3205,6 @@ export const appRouter = router({
         }
 
         const customerId = customers.data[0].id;
-        console.log('[SyncFromStripe] Customer ID:', customerId);
 
         // Get subscriptions
         const subscriptions = await stripe.subscriptions.list({
@@ -3186,7 +3213,7 @@ export const appRouter = router({
           limit: 5,
           expand: ['data.items.data.price'],
         });
-        console.log('[SyncFromStripe] Found subscriptions:', subscriptions.data.length, subscriptions.data.map(s => ({ id: s.id, status: s.status })));
+        console.log('[SyncFromStripe] Found subscriptions:', subscriptions.data.length, subscriptions.data.map(s => ({ status: s.status })));
 
         if (subscriptions.data.length === 0) {
           console.log('[SyncFromStripe] No subscriptions found');
@@ -3195,14 +3222,13 @@ export const appRouter = router({
 
         const activeSub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing')
           || subscriptions.data[0];
-        console.log('[SyncFromStripe] Using subscription:', activeSub.id, 'status:', activeSub.status);
+        console.log('[SyncFromStripe] Using subscription status:', activeSub.status);
 
         // Determine tier
         const priceItem = (activeSub as any).items?.data?.[0]?.price;
         const priceAmount = priceItem?.unit_amount;
         const lookupKey = priceItem?.lookup_key;
         const planMetadata = activeSub.metadata?.plan;
-        console.log('[SyncFromStripe] Price info:', { priceAmount, lookupKey, planMetadata });
 
         let tier: 'free' | 'starter' | 'professional' | 'enterprise' = 'professional';
         if (planMetadata === 'ARTIST_ENTERPRISE' ||
@@ -3230,7 +3256,7 @@ export const appRouter = router({
           ? new Date((activeSub as any).current_period_end * 1000)
           : undefined;
 
-        console.log('[SyncFromStripe] Upserting subscription:', { userId: ctx.user.id, tier, status, currentPeriodEnd });
+        console.log('[SyncFromStripe] Upserting subscription:', { tier, status, currentPeriodEnd });
 
         // Upsert using the top-level db import
         await db.upsertSubscription({
@@ -3242,7 +3268,7 @@ export const appRouter = router({
           currentPeriodEnd,
         });
 
-        console.log('[SyncFromStripe] Success! Tier:', tier, 'Status:', status);
+        console.log('[SyncFromStripe] Sync succeeded');
         return { success: true, tier, status };
       }),
   }),
