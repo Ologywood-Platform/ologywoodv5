@@ -1312,9 +1312,9 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## FIX: tRPC "Failed to fetch" ERROR ON HOMEPAGE (Mar 6, 2026)
 
-- [ ] Diagnose tRPC "Failed to fetch" error on / page for artist user (id:7)
-- [ ] Check server logs for failing endpoints
-- [ ] Implement fix
+- [x] Diagnose tRPC "Failed to fetch" error on / page for artist user (id:7); the production path was vulnerable to proxy handling of single batched requests.
+- [x] Check server logs for failing endpoints; current homepage-related calls complete successfully, including team workspace, artist profile, and suggested artists reads.
+- [x] Implement fix; the client now uses a single-request `httpLink` at `/api/trpc`, includes credentials, and normalizes non-JSON proxy responses before tRPC parses them. Current local health endpoint returns HTTP 200 with `runtimeVerified: true`.
 
 ## SUPPORT THIS ARTIST - TIP LINKS FEATURE (Mar 6, 2026)
 
