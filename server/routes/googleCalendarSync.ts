@@ -17,6 +17,7 @@ import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { sdk } from '../_core/sdk';
 import { setScheduledAvailability } from '../services/bookingScheduleService';
+import { decryptOAuthToken, encryptOAuthToken } from '../services/oauthTokenEncryption';
 import { artistProfiles } from '../../drizzle/schema';
 import { TRPCError } from '@trpc/server';
 
@@ -188,8 +189,8 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       await database
         .update(googleCalendarIntegrations)
         .set({
-          accessToken: tokens.access_token,
-          refreshToken: tokens.refresh_token || existing.refreshToken,
+          accessToken: encryptOAuthToken(tokens.access_token),
+          refreshToken: tokens.refresh_token ? encryptOAuthToken(tokens.refresh_token) : encryptOAuthToken(existing.refreshToken),
           tokenExpiresAt,
           googleEmail,
           syncEnabled: true,
@@ -199,8 +200,8 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       await database.insert(googleCalendarIntegrations).values({
         artistId: artistProfile.id,
         googleEmail,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token || '',
+        accessToken: encryptOAuthToken(tokens.access_token),
+        refreshToken: tokens.refresh_token ? encryptOAuthToken(tokens.refresh_token) : '',
         tokenExpiresAt,
         calendarId: 'primary',
         syncEnabled: true,
@@ -230,7 +231,7 @@ async function refreshAccessToken(integration: any): Promise<string | null> {
       body: new URLSearchParams({
         client_id: getGoogleClientId(),
         client_secret: getGoogleClientSecret(),
-        refresh_token: integration.refreshToken,
+        refresh_token: decryptOAuthToken(String(integration.refreshToken || '')),
         grant_type: 'refresh_token',
       }),
     });
@@ -247,7 +248,7 @@ async function refreshAccessToken(integration: any): Promise<string | null> {
     if (database) {
       await database
         .update(googleCalendarIntegrations)
-        .set({ accessToken: tokens.access_token, tokenExpiresAt })
+        .set({ accessToken: encryptOAuthToken(tokens.access_token), tokenExpiresAt })
         .where(eq(googleCalendarIntegrations.id, integration.id));
     }
 
@@ -280,7 +281,7 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
   }
 
   // Check if token needs refresh
-  let accessToken = integration.accessToken;
+  let accessToken = decryptOAuthToken(String(integration.accessToken || ''));
   if (integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < new Date()) {
     const refreshed = await refreshAccessToken(integration);
     if (!refreshed) {

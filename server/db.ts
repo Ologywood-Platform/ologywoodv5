@@ -55,6 +55,7 @@ import { eventSearchPattern } from '../shared/eventSearch';
 import { eq, ne, sql, and, or, gte, lte, like, desc, asc, inArray, getTableColumns } from "drizzle-orm";
 import { ensureArtistReleaseDisclosureSchema } from './services/artistReleaseSchemaService';
 import { ensureScheduleSchema } from './services/scheduleSchemaService';
+import { decryptPrivateData, encryptPrivateData } from './services/privateDataEncryption';
 
 // Re-export User type for use in other modules
 export type { User, InsertUser };
@@ -118,36 +119,51 @@ export async function updateContract(id: number, data: Partial<InsertContract>):
 
 // ============= SIGNATURE FUNCTIONS =============
 
+function decryptSignature(signature: Signature): Signature {
+  return { ...signature, signatureData: decryptPrivateData(signature.signatureData) };
+}
+
+function decryptVenueContractSignature(signature: VenueContractSignature): VenueContractSignature {
+  return { ...signature, signatureData: decryptPrivateData(signature.signatureData) };
+}
+
 export async function createSignature(data: InsertSignature): Promise<Signature> {
   const db = await getDb();
   if (!db) {
     throw new Error('Database not available');
   }
 
-  const result = await db.insert(signatures).values(data);
+  const result = await db.insert(signatures).values({
+    ...data,
+    signatureData: encryptPrivateData(data.signatureData),
+  });
   const signatureId = (result as any)[0].insertId;
   const signature = await db.select().from(signatures).where(eq(signatures.id, signatureId)).limit(1);
-  return signature[0] as Signature;
+  return decryptSignature(signature[0] as Signature);
 }
 
 export async function getSignatureById(id: number): Promise<Signature | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(signatures).where(eq(signatures.id, id)).limit(1);
-  return result[0];
+  return result[0] ? decryptSignature(result[0]) : undefined;
 }
 
 export async function getSignaturesByContractId(contractId: number): Promise<Signature[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(signatures).where(eq(signatures.contractId, contractId));
+  const rows = await db.select().from(signatures).where(eq(signatures.contractId, contractId));
+  return rows.map(decryptSignature);
 }
 
 export async function updateSignature(id: number, data: Partial<InsertSignature>): Promise<Signature | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   
-  await db.update(signatures).set(data).where(eq(signatures.id, id));
+  await db.update(signatures).set({
+    ...data,
+    ...(data.signatureData !== undefined ? { signatureData: encryptPrivateData(data.signatureData) } : {}),
+  }).where(eq(signatures.id, id));
   return await getSignatureById(id);
 }
 
@@ -3433,16 +3449,20 @@ export async function deleteVenueContract(id: number): Promise<boolean> {
 export async function createVenueContractSignature(data: InsertVenueContractSignature): Promise<VenueContractSignature> {
   const db = await getDb();
   if (!db) throw new Error('Database not available');
-  const result = await db.insert(venueContractSignatures).values(data);
+  const result = await db.insert(venueContractSignatures).values({
+    ...data,
+    signatureData: encryptPrivateData(data.signatureData),
+  });
   const id = (result as any)[0].insertId;
   const row = await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.id, id)).limit(1);
-  return row[0] as VenueContractSignature;
+  return decryptVenueContractSignature(row[0] as VenueContractSignature);
 }
 
 export async function getVenueContractSignatures(venueContractId: number): Promise<VenueContractSignature[]> {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.venueContractId, venueContractId));
+  const rows = await db.select().from(venueContractSignatures).where(eq(venueContractSignatures.venueContractId, venueContractId));
+  return rows.map(decryptVenueContractSignature);
 }
 
 
