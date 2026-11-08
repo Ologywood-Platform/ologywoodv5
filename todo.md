@@ -1446,10 +1446,10 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## ARTIST PROFILE RELEASES & EMAIL DELIVERY (Mar 10, 2026)
 
-- [ ] Investigate why releases/downloads are not visible on artist profile page
-- [ ] Investigate why purchase confirmation emails are still not being received
-- [ ] Trace email delivery path end-to-end (SendGrid/Forge API)
-- [ ] Verify release purchase flow works on production
+- [x] Investigate why releases/downloads are not visible on artist profile page; public ArtistProfile renders the real Music and Content Releases sections with loading/error/retry states, and the release/profile repair records confirm the visibility path.
+- [x] Investigate why purchase confirmation emails are still not being received; the webhook's premature `userId` guard was corrected so release purchases identified by `buyerUserId` and `releaseId` continue to fulfillment/email.
+- [x] Trace email delivery path end-to-end (SendGrid/Forge API); branded purchase confirmation is sent by the verified release-purchase fallback and includes download instructions and unsubscribe handling.
+- [x] Verify release purchase flow works on production; the production closeout records successful protected stream delivery and purchase/library validation without new assistant-created transactions.
 
 
 ## PURCHASE FLOW BUG - WEBHOOK NOT FIRING (Mar 10, 2026)
