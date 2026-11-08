@@ -86,6 +86,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Release lifecycle, review, library, stream, and purchase identifiers now require safe positive integers; release media keys, duration, file size, price, currency, descriptions, and review/session fields are bounded and strict. The Stripe fallback verifier now requires a paid payment-mode session with a payment intent, signed-in buyer ownership, a published release, matching release/artist metadata, supported currency, and an amount consistent with the release price/PWYW rule before creating a purchase.
    - Release/public-media/commerce/description/library regressions pass 57/57, with TypeScript and production build validation passing. No purchases, downloads, Stripe sessions, emails, or records were changed.
 
+15. **Creator Shop and merch-order boundaries — resolved in this increment.**
+   - Merch item mutations now scope ownership by both user ID and active seller type. Reorder lists reject duplicates, are bounded, and are prechecked against owned items. Image uploads require bounded base64, allowlisted MIME, matching data-URL MIME when present, and MIME-derived storage extensions. Checkout/session/variant/address/order fields are strict and bounded, and fulfillment IDs are safe positive integers.
+   - Merch/book/schema/security regressions pass 29/29, with TypeScript and production build validation passing. No merch items, orders, image uploads, Stripe sessions, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

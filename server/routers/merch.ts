@@ -11,7 +11,7 @@ import { router, protectedProcedure, publicProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { artistProfiles, merchItems, stripeConnectAccounts, venueProfiles } from "../../drizzle/schema";
-import { eq, and, asc, desc, sql } from "drizzle-orm";
+import { eq, and, asc, desc, sql, inArray } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { getUserSubscription, PRICING_TIERS, type PricingTier } from "../services/pricingTierService";
 import { ensureMerchItemsSchema } from "../services/merchSchemaService";
@@ -26,6 +26,11 @@ import {
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 const MAX_IMAGES_PER_ITEM = 2;
+const merchImageMimeSchema = z.enum(["image/jpeg", "image/png", "image/webp"]);
+const merchImageDataSchema = z.string().min(1).max(3_000_000).refine((value) => {
+  const payload = (value.includes(",") ? value.slice(value.indexOf(",") + 1) : value).replace(/\s/g, "");
+  return payload.length > 0 && /^[A-Za-z0-9+/]*={0,2}$/.test(payload);
+}, "Image must be base64 data");
 
 const variantsSchema = z.array(z.object({
   name: z.string().min(1).max(50),
@@ -167,7 +172,7 @@ export const merchRouter = router({
    * Public: Get one active merch item with seller context for its shareable page.
    */
   getPublicItem: publicProcedure
-    .input(z.object({ itemId: z.number().int().positive() }))
+    .input(z.object({ itemId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
@@ -297,10 +302,10 @@ export const merchRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        title: z.string().min(1).max(200),
+        title: z.string().trim().min(1).max(200),
         description: z.string().max(500).optional(),
         sellingMethod: z.enum(["ologywood", "external"]).default("external"),
-        priceDisplay: z.string().max(50).optional(),
+        priceDisplay: z.string().trim().max(50).optional(),
         priceInCents: z.number().int().min(50).max(10_000_000).optional(),
         externalUrl: optionalUrlSchema,
         variants: variantsSchema,
@@ -309,19 +314,19 @@ export const merchRouter = router({
         shippingAvailable: z.boolean().default(true),
         pickupAvailable: z.boolean().default(false),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).default(0),
-        fulfillmentTime: z.string().max(100).optional(),
+        fulfillmentTime: z.string().trim().max(100).optional(),
         isActive: z.boolean().default(true),
         productCategory: z.enum(PRODUCT_CATEGORY_VALUES).default("merch"),
         bookFormat: z.enum(BOOK_FORMAT_VALUES).optional(),
         isbn: z.string().max(32).optional(),
-        publisher: z.string().max(255).optional(),
+        publisher: z.string().trim().max(255).optional(),
         publicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        edition: z.string().max(100).optional(),
+        edition: z.string().trim().max(100).optional(),
         pageCount: z.number().int().min(1).max(100_000).optional(),
-        language: z.string().max(100).optional(),
+        language: z.string().trim().max(100).optional(),
         isSigned: z.boolean().default(false),
         ebookRightsConfirmed: z.boolean().default(false),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -416,11 +421,11 @@ export const merchRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number().int().positive(),
-        title: z.string().min(1).max(200).optional(),
+        id: z.number().int().safe().positive(),
+        title: z.string().trim().min(1).max(200).optional(),
         description: z.string().max(500).optional(),
         sellingMethod: z.enum(["ologywood", "external"]).optional(),
-        priceDisplay: z.string().min(1).max(50).optional(),
+        priceDisplay: z.string().trim().min(1).max(50).optional(),
         priceInCents: z.number().int().min(50).max(10_000_000).optional().nullable(),
         externalUrl: optionalUrlSchema,
         variants: variantsSchema.optional(),
@@ -429,19 +434,19 @@ export const merchRouter = router({
         shippingAvailable: z.boolean().optional(),
         pickupAvailable: z.boolean().optional(),
         shippingAmountCents: z.number().int().min(0).max(1_000_000).optional(),
-        fulfillmentTime: z.string().max(100).optional().nullable(),
+        fulfillmentTime: z.string().trim().max(100).optional().nullable(),
         isActive: z.boolean().optional(),
         productCategory: z.enum(PRODUCT_CATEGORY_VALUES).optional(),
         bookFormat: z.enum(BOOK_FORMAT_VALUES).optional().nullable(),
         isbn: z.string().max(32).optional().nullable(),
-        publisher: z.string().max(255).optional().nullable(),
+        publisher: z.string().trim().max(255).optional().nullable(),
         publicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
-        edition: z.string().max(100).optional().nullable(),
+        edition: z.string().trim().max(100).optional().nullable(),
         pageCount: z.number().int().min(1).max(100_000).optional().nullable(),
-        language: z.string().max(100).optional().nullable(),
+        language: z.string().trim().max(100).optional().nullable(),
         isSigned: z.boolean().optional(),
         ebookRightsConfirmed: z.boolean().optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -449,10 +454,11 @@ export const merchRouter = router({
       await ensureMerchItemsSchema(db);
 
       // Verify ownership
+      const userType = ctx.user.role === "venue" ? "venue" : "artist";
       const [item] = await db
         .select()
         .from(merchItems)
-        .where(and(eq(merchItems.id, input.id), eq(merchItems.userId, ctx.user.id)))
+        .where(and(eq(merchItems.id, input.id), eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
         .limit(1);
 
       if (!item) {
@@ -558,16 +564,17 @@ export const merchRouter = router({
    * Delete a merch item
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.number().int().positive() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
       // Verify ownership
+      const userType = ctx.user.role === "venue" ? "venue" : "artist";
       const [item] = await db
         .select()
         .from(merchItems)
-        .where(and(eq(merchItems.id, input.id), eq(merchItems.userId, ctx.user.id)))
+        .where(and(eq(merchItems.id, input.id), eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
         .limit(1);
 
       if (!item) {
@@ -585,29 +592,22 @@ export const merchRouter = router({
   uploadImage: protectedProcedure
     .input(
       z.object({
-        itemId: z.number().int().positive(),
-        fileData: z.string(), // base64
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        itemId: z.number().int().safe().positive(),
+        fileData: merchImageDataSchema,
+        fileName: z.string().trim().min(1).max(255).regex(/^[^\\/\0]+$/, "Invalid file name"),
+        mimeType: merchImageMimeSchema,
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
-      // Validate MIME type
-      if (!ALLOWED_MIME_TYPES.includes(input.mimeType)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Only JPEG, PNG, and WebP images are allowed.",
-        });
-      }
-
       // Verify ownership
+      const userType = ctx.user.role === "venue" ? "venue" : "artist";
       const [item] = await db
         .select()
         .from(merchItems)
-        .where(and(eq(merchItems.id, input.itemId), eq(merchItems.userId, ctx.user.id)))
+        .where(and(eq(merchItems.id, input.itemId), eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
         .limit(1);
 
       if (!item) {
@@ -624,7 +624,11 @@ export const merchRouter = router({
       }
 
       // Decode and validate size
-      const base64Data = input.fileData.split(",")[1] || input.fileData;
+      const dataUrlMatch = input.fileData.match(/^data:([^;,]+);base64,([\s\S]+)$/);
+      if (dataUrlMatch && dataUrlMatch[1].toLowerCase() !== input.mimeType) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Image MIME type does not match its data" });
+      }
+      const base64Data = dataUrlMatch ? dataUrlMatch[2] : input.fileData;
       const buffer = Buffer.from(base64Data, "base64");
 
       if (buffer.length > MAX_IMAGE_SIZE_BYTES) {
@@ -637,7 +641,7 @@ export const merchRouter = router({
       // Upload to S3
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(7);
-      const fileExtension = input.fileName.split(".").pop() || "jpg";
+      const fileExtension = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" } as const)[input.mimeType];
       const fileKey = `merch/${ctx.user.id}/${input.itemId}/${timestamp}-${randomSuffix}.${fileExtension}`;
 
       const { url } = await storagePut(fileKey, buffer, input.mimeType);
@@ -655,19 +659,20 @@ export const merchRouter = router({
   deleteImage: protectedProcedure
     .input(
       z.object({
-        itemId: z.number().int().positive(),
-        imageUrl: z.string(),
-      })
+        itemId: z.number().int().safe().positive(),
+        imageUrl: z.string().url().max(2048),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
       // Verify ownership
+      const userType = ctx.user.role === "venue" ? "venue" : "artist";
       const [item] = await db
         .select()
         .from(merchItems)
-        .where(and(eq(merchItems.id, input.itemId), eq(merchItems.userId, ctx.user.id)))
+        .where(and(eq(merchItems.id, input.itemId), eq(merchItems.userId, ctx.user.id), eq(merchItems.userType, userType)))
         .limit(1);
 
       if (!item) {
@@ -688,12 +693,22 @@ export const merchRouter = router({
   reorder: protectedProcedure
     .input(
       z.object({
-        itemIds: z.array(z.number().int().positive()),
-      })
+        itemIds: z.array(z.number().int().safe().positive()).min(1).max(100).refine((ids) => new Set(ids).size === ids.length, "Duplicate merch item IDs are not allowed"),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+
+      const userType = ctx.user.role === "venue" ? "venue" : "artist";
+      const ownedItems = await db.select({ id: merchItems.id }).from(merchItems).where(and(
+        eq(merchItems.userId, ctx.user.id),
+        eq(merchItems.userType, userType),
+        inArray(merchItems.id, input.itemIds),
+      ));
+      if (ownedItems.length !== input.itemIds.length) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "One or more merch items were not found" });
+      }
 
       // Update sort order for each item
       for (let i = 0; i < input.itemIds.length; i++) {
@@ -712,9 +727,9 @@ export const merchRouter = router({
   getPublicItems: publicProcedure
     .input(
       z.object({
-        userId: z.number().int().positive(),
+        userId: z.number().int().safe().positive(),
         userType: z.enum(["artist", "venue"]),
-      })
+      }).strict()
     )
     .query(async ({ input }) => {
       const db = await getDb();

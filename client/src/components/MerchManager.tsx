@@ -334,7 +334,7 @@ export function MerchManager({ userType }: MerchManagerProps) {
       itemId,
       fileData: reader.result as string,
       fileName: file.name,
-      mimeType: file.type,
+      mimeType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
     });
     reader.readAsDataURL(file);
   }

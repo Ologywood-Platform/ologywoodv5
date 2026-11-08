@@ -27,15 +27,17 @@ const stripe = new Stripe(getDefaultStripeApiKey(), {
 });
 
 const addressSchema = z.object({
-  line1: z.string().min(1).max(255),
-  line2: z.string().max(255).optional(),
-  city: z.string().min(1).max(120),
-  state: z.string().min(1).max(120),
-  postalCode: z.string().min(1).max(30),
-  country: z.string().min(2).max(120),
-});
+  line1: z.string().trim().min(1).max(255),
+  line2: z.string().trim().max(255).optional(),
+  city: z.string().trim().min(1).max(120),
+  state: z.string().trim().min(1).max(120),
+  postalCode: z.string().trim().min(1).max(30),
+  country: z.string().trim().min(2).max(120),
+}).strict();
 
-const selectedVariantsSchema = z.record(z.string(), z.string()).default({});
+const selectedVariantsSchema = z.record(z.string().trim().min(1).max(50), z.string().trim().min(1).max(50))
+  .refine((variants) => Object.keys(variants).length <= 3, 'Too many selected variants')
+  .default({});
 
 const orderStatusSchema = z.enum([
   'new',
@@ -92,16 +94,16 @@ export const merchOrdersRouter = router({
   /** Create a Stripe Checkout session for one native OlogyWood merch item. */
   createCheckout: publicProcedure
     .input(z.object({
-      merchItemId: z.number().int().positive(),
+      merchItemId: z.number().int().safe().positive(),
       quantity: z.number().int().min(1).max(10).default(1),
       selectedVariants: selectedVariantsSchema,
-      buyerName: z.string().min(1).max(255),
-      buyerEmail: z.string().email().max(320),
-      buyerPhone: z.string().max(30).optional(),
+      buyerName: z.string().trim().min(1).max(255),
+      buyerEmail: z.string().trim().email().max(320),
+      buyerPhone: z.string().trim().max(30).optional(),
       fulfillmentMethod: z.enum(['shipping', 'pickup', 'digital']),
       shippingAddress: addressSchema.optional(),
-      customerNote: z.string().max(500).optional(),
-    }))
+      customerNote: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -279,7 +281,7 @@ export const merchOrdersRouter = router({
 
   /** Limited success-page data, accessible only with the unguessable Stripe session ID. */
   getCheckoutResult: publicProcedure
-    .input(z.object({ sessionId: z.string().min(10).max(255) }))
+    .input(z.object({ sessionId: z.string().trim().max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, 'Invalid Stripe checkout session ID') }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -371,14 +373,14 @@ export const merchOrdersRouter = router({
   /** Creator fulfillment updates with guarded status transitions. */
   updateFulfillment: protectedProcedure
     .input(z.object({
-      orderId: z.number().int().positive(),
+      orderId: z.number().int().safe().positive(),
       status: orderStatusSchema,
-      trackingNumber: z.string().max(255).optional(),
-      trackingCarrier: z.string().max(100).optional(),
+      trackingNumber: z.string().trim().max(255).optional(),
+      trackingCarrier: z.string().trim().max(100).optional(),
       trackingUrl: z.string().url().max(2048).optional().or(z.literal('')),
-      pickupNotes: z.string().max(1000).optional(),
-      fulfillmentNotes: z.string().max(1000).optional(),
-    }))
+      pickupNotes: z.string().trim().max(1000).optional(),
+      fulfillmentNotes: z.string().trim().max(1000).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
