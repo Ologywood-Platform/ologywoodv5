@@ -15,11 +15,11 @@ describe('Contact Venue Feature', () => {
     });
 
     it('should accept required input fields', () => {
-      expect(venueRouterContent).toContain('venueId: z.number()');
+      expect(venueRouterContent).toContain('venueId: venueProfileId');
       expect(venueRouterContent).toContain("inquiryType: z.enum(['booking', 'general', 'availability', 'pricing'])");
-      expect(venueRouterContent).toContain('subject: z.string().min(1).max(200)');
-      expect(venueRouterContent).toContain('message: z.string().min(10).max(2000)');
-      expect(venueRouterContent).toContain('preferredDate: z.string().optional()');
+      expect(venueRouterContent).toContain('subject: z.string().trim().min(1).max(200)');
+      expect(venueRouterContent).toContain('message: z.string().trim().min(10).max(2_000)');
+      expect(venueRouterContent).toContain('preferredDate: calendarDate.optional()');
     });
 
     it('should look up the venue profile by ID', () => {

@@ -10,6 +10,49 @@ import { sendVenueVerificationEmail, sendVenueVerificationConfirmationEmail, sen
 import * as notif from "../services/notificationService";
 import { venueProfileViews, bookings } from "../../drizzle/schema";
 import { eq, and, gte, sql, desc } from "drizzle-orm";
+import { escapeFanEmailHtml as escapeHtml } from '../services/fanEmailFormatting';
+
+const venueProfileId = z.number().int().safe().positive();
+const venueLimit = z.number().int().min(1).max(100);
+const venueOffset = z.number().int().min(0).max(1_000_000);
+const boundedVenueText = z.string().trim().max(500);
+const boundedVenueBio = z.string().trim().max(10_000);
+const venueImageMime = z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const venueImageData = z.string().min(1).max(15_000_000);
+const venueImageFileName = z.string().trim().min(1).max(255).regex(/^[^/\\]+$/, 'Invalid image filename');
+const venuePhotoId = z.string().trim().min(1).max(100).regex(/^[A-Za-z0-9-]+$/, 'Invalid photo ID');
+const timeValue = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Time must use HH:MM');
+const operatingDay = z.object({ open: timeValue, close: timeValue, closed: z.boolean() }).strict();
+const operatingHours = z.object({
+  monday: operatingDay, tuesday: operatingDay, wednesday: operatingDay,
+  thursday: operatingDay, friday: operatingDay, saturday: operatingDay, sunday: operatingDay,
+}).strict();
+const amenities = z.record(z.string().trim().min(1).max(80), z.boolean()).refine((value) => Object.keys(value).length <= 100, 'Too many amenities');
+const httpUrl = z.string().trim().url().max(2_000).refine((value) => /^https?:\/\//i.test(value), 'URL must use HTTP(S)');
+const calendarDate = scheduleDateSchema;
+const publicCalendarUrl = httpUrl.refine((value) => {
+  const hostname = new URL(value).hostname.toLowerCase();
+  return hostname !== 'localhost' && hostname !== '::1' && hostname !== '0.0.0.0' &&
+    !hostname.endsWith('.local') && !hostname.startsWith('127.') && !hostname.startsWith('10.') &&
+    !hostname.startsWith('192.168.') && !/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) && !hostname.startsWith('169.254.');
+}, 'Calendar URL must point to a public host');
+
+function decodeVenueImage(fileData: string, mimeType: z.infer<typeof venueImageMime>) {
+  const dataUrlMatch = fileData.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (dataUrlMatch && dataUrlMatch[1].toLowerCase() !== mimeType) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Image MIME type does not match the data URL.' });
+  }
+  const base64Data = dataUrlMatch ? dataUrlMatch[2].replace(/\s/g, '') : fileData.replace(/\s/g, '');
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Data) || base64Data.length % 4 === 1) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid base64 image data.' });
+  }
+  const buffer = Buffer.from(base64Data, 'base64');
+  if (buffer.length < 1 || buffer.length > 10_000_000) {
+    throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Venue image must be between 1 byte and 10 MB.' });
+  }
+  const extension = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' } as const)[mimeType];
+  return { buffer, extension };
+}
 
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -26,14 +69,14 @@ export const venueRouter = router({
   search: publicProcedure
     .input(
       z.object({
-        location: z.string().optional(),
-        searchQuery: z.string().optional(),
-        venueType: z.string().optional(),
-        minCapacity: z.number().optional(),
-        maxCapacity: z.number().optional(),
-        limit: z.number().default(20),
-        offset: z.number().default(0),
-      })
+        location: boundedVenueText.optional(),
+        searchQuery: boundedVenueText.optional(),
+        venueType: boundedVenueText.optional(),
+        minCapacity: z.number().int().min(0).max(2_000_000).optional(),
+        maxCapacity: z.number().int().min(0).max(2_000_000).optional(),
+        limit: venueLimit.default(20),
+        offset: venueOffset.default(0),
+      }).strict().refine((value) => value.minCapacity === undefined || value.maxCapacity === undefined || value.minCapacity <= value.maxCapacity, 'Minimum capacity cannot exceed maximum capacity')
     )
     .query(async ({ input }) => {
       try {
@@ -99,7 +142,7 @@ export const venueRouter = router({
    * Get venue profile by ID (public)
    */
   getById: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: venueProfileId }).strict())
     .query(async ({ input }) => {
       try {
         const profile = await db.getVenueProfileById(input.id);
@@ -117,7 +160,7 @@ export const venueRouter = router({
    * Get venue profile by slug (public)
    */
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
+    .input(z.object({ slug: z.string().trim().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid venue slug') }).strict())
     .query(async ({ input }) => {
       try {
         const database = await getDb();
@@ -147,28 +190,20 @@ export const venueRouter = router({
   createProfile: venueProcedure
     .input(
       z.object({
-        organizationName: z.string().min(1, 'Organization name is required'),
-        contactName: z.string().optional(),
-        contactPhone: z.string().optional(),
-        location: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        country: z.string().optional(),
-        bio: z.string().optional(),
-        venueType: z.string().optional(),
-        capacity: z.number().int().positive().optional(),
-        email: z.string().email().optional(),
-        amenities: z.record(z.string(), z.any()).optional(),
-        operatingHours: z.object({
-          monday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          tuesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          wednesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          thursday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          friday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          saturday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          sunday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-        }).optional(),
-      })
+        organizationName: z.string().trim().min(1, 'Organization name is required').max(200),
+        contactName: boundedVenueText.optional(),
+        contactPhone: z.string().trim().max(40).optional(),
+        location: boundedVenueText.optional(),
+        city: boundedVenueText.optional(),
+        state: boundedVenueText.max(100).optional(),
+        country: z.string().trim().length(2).regex(/^[A-Za-z]{2}$/).optional(),
+        bio: boundedVenueBio.optional(),
+        venueType: boundedVenueText.max(100).optional(),
+        capacity: z.number().int().safe().positive().max(2_000_000).optional(),
+        email: z.string().trim().email().max(320).optional(),
+        amenities: amenities.optional(),
+        operatingHours: operatingHours.optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -226,29 +261,21 @@ export const venueRouter = router({
   updateProfile: venueProcedure
     .input(
       z.object({
-        organizationName: z.string().optional(),
-        contactName: z.string().optional(),
-        contactPhone: z.string().optional(),
-        location: z.string().optional(),
-        city: z.string().optional().nullable(),
-        state: z.string().optional().nullable(),
-        country: z.string().optional().nullable(),
-        bio: z.string().optional(),
-        profilePhotoUrl: z.string().optional(),
-        venueType: z.string().optional(),
-        capacity: z.number().int().positive().optional().nullable(),
-        email: z.string().email().optional().nullable(),
-        amenities: z.record(z.string(), z.any()).optional().nullable(),
-        operatingHours: z.object({
-          monday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          tuesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          wednesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          thursday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          friday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          saturday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-          sunday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-        }).optional().nullable(),
-      })
+        organizationName: z.string().trim().min(1).max(200).optional(),
+        contactName: boundedVenueText.optional(),
+        contactPhone: z.string().trim().max(40).optional(),
+        location: boundedVenueText.optional(),
+        city: boundedVenueText.optional().nullable(),
+        state: boundedVenueText.max(100).optional().nullable(),
+        country: z.string().trim().length(2).regex(/^[A-Za-z]{2}$/).optional().nullable(),
+        bio: boundedVenueBio.optional(),
+        profilePhotoUrl: httpUrl.optional(),
+        venueType: boundedVenueText.max(100).optional(),
+        capacity: z.number().int().safe().positive().max(2_000_000).optional().nullable(),
+        email: z.string().trim().email().max(320).optional().nullable(),
+        amenities: amenities.optional().nullable(),
+        operatingHours: operatingHours.optional().nullable(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -279,10 +306,10 @@ export const venueRouter = router({
   uploadProfilePhoto: venueProcedure
     .input(
       z.object({
-        fileData: z.string(),
-        fileName: z.string(),
-        mimeType: z.string(),
-      })
+        fileData: venueImageData,
+        fileName: venueImageFileName,
+        mimeType: venueImageMime,
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -294,14 +321,11 @@ export const venueRouter = router({
           });
         }
 
-        // Convert base64 to buffer
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        const { buffer, extension: fileExtension } = decodeVenueImage(input.fileData, input.mimeType);
 
         // Generate unique file key
         const timestamp = Date.now();
         const randomSuffix = Math.random().toString(36).substring(7);
-        const fileExtension = input.fileName.split('.').pop() || 'jpg';
         const fileKey = `venue-profile-photos/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
 
         // Upload to S3
@@ -328,11 +352,11 @@ export const venueRouter = router({
   uploadGalleryPhoto: venueProcedure
     .input(
       z.object({
-        fileData: z.string(),
-        fileName: z.string(),
-        mimeType: z.string(),
-        caption: z.string().optional(),
-      })
+        fileData: venueImageData,
+        fileName: venueImageFileName,
+        mimeType: venueImageMime,
+        caption: z.string().trim().max(500).optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -347,14 +371,11 @@ export const venueRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Maximum 20 gallery photos allowed' });
         }
 
-        // Convert base64 to buffer
-        const base64Data = input.fileData.split(',')[1] || input.fileData;
-        const buffer = Buffer.from(base64Data, 'base64');
+        const { buffer, extension: fileExtension } = decodeVenueImage(input.fileData, input.mimeType);
 
         // Generate unique file key
         const timestamp = Date.now();
         const randomSuffix = Math.random().toString(36).substring(7);
-        const fileExtension = input.fileName.split('.').pop() || 'jpg';
         const fileKey = `venue-gallery/${ctx.user.id}/${timestamp}-${randomSuffix}.${fileExtension}`;
 
         // Upload to S3
@@ -385,7 +406,7 @@ export const venueRouter = router({
    * Delete a gallery photo (venue only)
    */
   deleteGalleryPhoto: venueProcedure
-    .input(z.object({ photoId: z.string() }))
+    .input(z.object({ photoId: venuePhotoId }).strict())
     .mutation(async ({ ctx, input }) => {
       try {
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -416,7 +437,7 @@ export const venueRouter = router({
    * Update gallery photo caption (venue only)
    */
   updateGalleryCaption: venueProcedure
-    .input(z.object({ photoId: z.string(), caption: z.string() }))
+    .input(z.object({ photoId: venuePhotoId, caption: z.string().trim().max(500) }).strict())
     .mutation(async ({ ctx, input }) => {
       try {
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -445,7 +466,7 @@ export const venueRouter = router({
    * Reorder gallery photos (venue only)
    */
   reorderGalleryPhotos: venueProcedure
-    .input(z.object({ photoIds: z.array(z.string()) }))
+    .input(z.object({ photoIds: z.array(venuePhotoId).max(20).refine((ids) => new Set(ids).size === ids.length, 'Duplicate photo IDs are not allowed') }).strict())
     .mutation(async ({ ctx, input }) => {
       try {
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -479,7 +500,7 @@ export const venueRouter = router({
    * Get gallery photos for a venue (public)
    */
   getGallery: publicProcedure
-    .input(z.object({ venueId: z.number() }))
+    .input(z.object({ venueId: venueProfileId }).strict())
     .query(async ({ input }) => {
       try {
         const profile = await db.getVenueProfileById(input.venueId);
@@ -553,7 +574,7 @@ export const venueRouter = router({
    * Verify venue email with token (public)
    */
   verifyEmail: publicProcedure
-    .input(z.object({ token: z.string() }))
+    .input(z.object({ token: z.string().trim().min(32).max(512) }).strict())
     .mutation(async ({ input }) => {
       try {
         const profile = await db.getVenueProfileByToken(input.token);
@@ -592,12 +613,12 @@ export const venueRouter = router({
    */
   contactVenue: protectedProcedure
     .input(z.object({
-      venueId: z.number(),
+      venueId: venueProfileId,
       inquiryType: z.enum(['booking', 'general', 'availability', 'pricing']),
-      subject: z.string().min(1).max(200),
-      message: z.string().min(10).max(2000),
-      preferredDate: z.string().optional(),
-    }))
+      subject: z.string().trim().min(1).max(200),
+      message: z.string().trim().min(10).max(2_000),
+      preferredDate: calendarDate.optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       try {
         // Get venue profile
@@ -681,16 +702,16 @@ export const venueRouter = router({
                   <h1 style="color: white; margin: 0; font-size: 20px;">New ${inquiryLabel}</h1>
                 </div>
                 <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-                  <p style="color: #374151; margin: 0 0 16px;">Hi ${venueProfile.organizationName || 'there'},</p>
-                  <p style="color: #374151; margin: 0 0 16px;"><strong>${senderName}</strong> has sent you a ${inquiryLabel.toLowerCase()} on Ologywood.</p>
+                  <p style="color: #374151; margin: 0 0 16px;">Hi ${escapeHtml(venueProfile.organizationName || 'there')},</p>
+                  <p style="color: #374151; margin: 0 0 16px;"><strong>${escapeHtml(senderName)}</strong> has sent you a ${inquiryLabel.toLowerCase()} on Ologywood.</p>
                   <div style="background: #f9fafb; border-left: 4px solid #7c3aed; padding: 16px; margin: 16px 0; border-radius: 0 8px 8px 0;">
                     <p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Subject</p>
-                    <p style="color: #111827; margin: 0 0 12px; font-weight: 600;">${input.subject}</p>
-                    ${input.preferredDate ? `<p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Preferred Date</p><p style="color: #111827; margin: 0 0 12px;">${input.preferredDate}</p>` : ''}
+                    <p style="color: #111827; margin: 0 0 12px; font-weight: 600;">${escapeHtml(input.subject)}</p>
+                    ${input.preferredDate ? `<p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Preferred Date</p><p style="color: #111827; margin: 0 0 12px;">${escapeHtml(input.preferredDate)}</p>` : ''}
                     <p style="color: #6b7280; margin: 0 0 4px; font-size: 12px; text-transform: uppercase;">Message</p>
-                    <p style="color: #111827; margin: 0; white-space: pre-wrap;">${input.message}</p>
+                    <p style="color: #111827; margin: 0; white-space: pre-wrap;">${escapeHtml(input.message)}</p>
                   </div>
-                  <a href="${process.env.BASE_URL || 'https://www.ologywood.com'}/messages/${booking.id}" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px;">View & Reply</a>
+                  <a href="${escapeHtml(process.env.BASE_URL || 'https://www.ologywood.com')}/messages/${booking.id}" style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px;">View & Reply</a>
                   <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">You received this because someone contacted your venue on Ologywood.</p>
                 </div>
               </div>
@@ -714,9 +735,9 @@ export const venueRouter = router({
    */
   getBlockedDates: venueProcedure
     .input(z.object({
-      startDate: z.string().optional(), // YYYY-MM-DD
-      endDate: z.string().optional(),
-    }).optional())
+      startDate: calendarDate.optional(),
+      endDate: calendarDate.optional(),
+    }).strict().optional())
     .query(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -730,8 +751,8 @@ export const venueRouter = router({
     .input(z.object({
       dates: z.array(scheduleDateSchema).min(1).max(91), // Whole-day blocks
       timezone: scheduleTimezoneSchema.default('UTC'),
-      reason: z.string().max(255).optional(),
-    }))
+      reason: z.string().trim().max(255).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -744,10 +765,10 @@ export const venueRouter = router({
    */
   getBlockedDatesPublic: publicProcedure
     .input(z.object({
-      venueId: z.number(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-    }))
+      venueId: venueProfileId,
+      startDate: calendarDate.optional(),
+      endDate: calendarDate.optional(),
+    }).strict())
     .query(async ({ input }) => {
       const explicitDates = await db.getVenueBlockedDates(input.venueId, input.startDate, input.endDate);
       const recurringBlocks = await db.getVenueRecurringBlocks(input.venueId);
@@ -765,7 +786,7 @@ export const venueRouter = router({
     .input(z.object({
       dates: z.array(scheduleDateSchema).min(1).max(91), // Whole-day blocks
       timezone: scheduleTimezoneSchema.default('UTC'),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -785,8 +806,8 @@ export const venueRouter = router({
   addRecurringBlock: venueProcedure
     .input(z.object({
       dayOfWeek: z.number().int().min(0).max(6), // 0=Sunday, 6=Saturday
-      reason: z.string().max(255).optional(),
-    }))
+      reason: z.string().trim().max(255).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -797,7 +818,7 @@ export const venueRouter = router({
   removeRecurringBlock: venueProcedure
     .input(z.object({
       dayOfWeek: z.number().int().min(0).max(6),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -806,7 +827,7 @@ export const venueRouter = router({
     }),
 
   getRecurringBlocksPublic: publicProcedure
-    .input(z.object({ venueId: z.number() }))
+    .input(z.object({ venueId: venueProfileId }).strict())
     .query(async ({ input }) => {
       return await db.getVenueRecurringBlocks(input.venueId);
     }),
@@ -816,8 +837,8 @@ export const venueRouter = router({
    */
   importCalendarBlocked: venueProcedure
     .input(z.object({
-      icalUrl: z.string().url(),
-    }))
+      icalUrl: publicCalendarUrl,
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
       if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -892,7 +913,7 @@ export const venueRouter = router({
    * Track a venue profile view (public)
    */
   trackProfileView: publicProcedure
-    .input(z.object({ venueId: z.number() }))
+    .input(z.object({ venueId: venueProfileId }).strict())
     .mutation(async ({ input }) => {
       try {
         const database = await getDb();
@@ -911,7 +932,7 @@ export const venueRouter = router({
   getBookingFunnel: venueProcedure
     .input(z.object({
       days: z.enum(['7', '30', '90']).default('30'),
-    }).optional())
+    }).strict().optional())
     .query(async ({ ctx, input }) => {
       const database = await getDb();
       if (!database) {
@@ -984,7 +1005,7 @@ export const venueRouter = router({
    * Returns whether each venue has open dates in the next 30 days
    */
   getAvailabilitySummary: publicProcedure
-    .input(z.object({ venueIds: z.array(z.number()).max(50) }))
+    .input(z.object({ venueIds: z.array(venueProfileId).min(1).max(50).refine((ids) => new Set(ids).size === ids.length, 'Duplicate venue IDs are not allowed') }).strict())
     .query(async ({ input }) => {
       await getDb();
       const pool = getPool();
@@ -1036,7 +1057,7 @@ export const venueRouter = router({
    * Returns top venues by review count and rating
    */
   getFeatured: publicProcedure
-    .input(z.object({ limit: z.number().default(8) }).optional().default({ limit: 8 }))
+    .input(z.object({ limit: z.number().int().min(1).max(50).default(8) }).strict().optional().default({ limit: 8 }))
     .query(async ({ input }) => {
       const database = await getDb();
       if (!database) return [];

@@ -29,6 +29,11 @@ import BookingFunnel from '../components/BookingFunnel';
 import { LocationInput } from '../components/LocationInput';
 import { OperatingHoursEditor } from '../components/OperatingHoursEditor';
 
+type VenueImageMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+const getVenueImageMime = (file: File): VenueImageMime | null => (
+  ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
+).includes(file.type as VenueImageMime) ? file.type as VenueImageMime : null;
+
 export function VenueDashboard() {
   const [, navigate] = useLocation();
   const { user, loading } = useAuth();
@@ -835,6 +840,11 @@ export function VenueDashboard() {
                         setUploadingGallery(true);
                         let successCount = 0;
                         for (const file of Array.from(files)) {
+                          const mimeType = getVenueImageMime(file);
+                          if (!mimeType) {
+                            toast.error(`${file.name} is not a supported image format (JPEG, PNG, WebP, or GIF)`);
+                            continue;
+                          }
                           if (file.size > 10 * 1024 * 1024) {
                             toast.error(`${file.name} is too large (max 10MB)`);
                             continue;
@@ -848,7 +858,7 @@ export function VenueDashboard() {
                             await uploadGalleryPhoto.mutateAsync({
                               fileData,
                               fileName: file.name,
-                              mimeType: file.type,
+                              mimeType,
                             });
                             successCount++;
                           } catch (err: any) {
@@ -893,6 +903,11 @@ export function VenueDashboard() {
                               setUploadingGallery(true);
                               let successCount = 0;
                               for (const file of Array.from(files)) {
+                                const mimeType = getVenueImageMime(file);
+                                if (!mimeType) {
+                                  toast.error(`${file.name} is not a supported image format (JPEG, PNG, WebP, or GIF)`);
+                                  continue;
+                                }
                                 if (file.size > 10 * 1024 * 1024) {
                                   toast.error(`${file.name} is too large (max 10MB)`);
                                   continue;
@@ -906,7 +921,7 @@ export function VenueDashboard() {
                                   await uploadGalleryPhoto.mutateAsync({
                                     fileData,
                                     fileName: file.name,
-                                    mimeType: file.type,
+                                    mimeType,
                                   });
                                   successCount++;
                                 } catch (err: any) {
