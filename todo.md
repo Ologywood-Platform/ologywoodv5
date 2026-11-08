@@ -83,8 +83,8 @@
 ## Phase 4: Security & Performance
 
 ### Security
-- [ ] Verify HTTPS enforcement
-- [ ] Check for SQL injection vulnerabilities
+- [x] Verify HTTPS enforcement; the actual `server/_core/index.ts` entrypoint now installs the HTTPS middleware before routes. Runtime tests verify production insecure GET redirects preserve host/path/query, non-GET API requests are not redirected, forwarded HTTPS is accepted, development does not redirect, and the deployed security-header middleware defines one-year HSTS while hiding `x-powered-by`. Focused runtime HTTPS tests pass 4/4 and TypeScript validation passes.
+- [x] Check for SQL injection vulnerabilities; completed a production-server scan covering every non-test TypeScript source file for direct `execute/query` template interpolation of request-controlled values and `sql.raw` request interpolation, with zero offenders. Reviewed dynamic identifier/placeholder boundaries in booking cancellation, rider locks, schema inspection, schedule queries, and Ology Live conditions; user values remain bound parameters and structural fragments are internal allowlists or generated placeholders. Comprehensive SQL/HTTPS/XSS/messaging audit tests pass 16/16 and TypeScript validation passes.
 - [ ] Validate all user inputs
 - [ ] Check for XSS vulnerabilities
 - [ ] Verify sensitive data is encrypted

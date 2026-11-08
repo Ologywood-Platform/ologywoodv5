@@ -26,6 +26,7 @@ import { createRateLimiter, RATE_LIMIT_CONFIGS, startRateLimitCleanup } from "..
 import { cacheManager } from "../middleware/cacheManager";
 import { globalErrorHandler, notFoundHandler } from "../error-handler";
 import { securityHeadersMiddleware } from "../middleware/securityHeaders";
+import { installHttpsRedirect } from "../middleware/httpsRedirect";
 import { ogTagMiddleware } from "../middleware/ogTags";
 import ogImageProxyRouter from '../middleware/ogImageProxy';
 import { registerStorageProxy } from "./storageProxy";
@@ -63,6 +64,10 @@ async function startServer() {
   console.log('[Server] Starting Ologywood server...');
   const app = express();
   const server = createServer(app);
+
+  // Enforce HTTPS in the actual runtime entrypoint before any route can serve
+  // a browser response. Non-GET API requests are intentionally not redirected.
+  installHttpsRedirect(app);
   
   // Start rate limit cleanup
   startRateLimitCleanup(60000);
