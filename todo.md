@@ -1560,8 +1560,8 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 
 ## ARTIST NOT FOUND - STILL BROKEN AFTER PUBLISH (Mar 11, 2026)
 
-- [ ] Email "View Profile" link still leads to "Artist not found" after publishing fix
-- [ ] Deep investigate: check actual URL generated, DB artist_profiles data, ArtistProfile.tsx lookup logic
+- [x] Email "View Profile" link still leads to "Artist not found" after publishing fix; legacy email links use `/artist/{artistProfileId}`, which remains a supported route and resolves through `artist.getProfile`.
+- [x] Deep investigate: actual URL generation uses the persisted artist profile ID, `ArtistProfile.tsx` supports both numeric IDs and clean name slugs through separate queries, and production `/artist/11` returned the artist-specific page/OG metadata. Focused route/OG tests passed 27/27.
 
 
 ## EMAIL NOTIFICATION COMPREHENSIVE AUDIT (Mar 11, 2026)
