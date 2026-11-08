@@ -118,6 +118,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Artist profile IDs and tip amounts require safe integers; payer name/message fields are bounded and strict; both public eligibility and PaymentIntent creation require active Connect accounts with charges and payouts enabled; and operational logs no longer expose connected-account or PaymentIntent identifiers.
    - Tip/Stripe credential/Tip QR/link regressions pass 42/42, with TypeScript and production build validation passing. No PaymentIntents, charges, transfers, tips, emails, or records were changed.
 
+23. **Follow/social graph and fan-email list boundaries — resolved in this increment.**
+   - Follow targets, public stats, mutual counts, and consent IDs require safe user IDs; follow/list/recommendation objects are strict; personal and fan-email pagination is capped with bounded offsets; recommendations/suggestions have finite limits; and consent revisions are bounded while paid-tier creator/CSV protections remain intact.
+   - Follow/fan-email/suggestion regressions pass 101/101, with TypeScript and production build validation passing. No follows, consent records, emails, exports, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

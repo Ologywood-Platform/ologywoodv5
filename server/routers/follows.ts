@@ -14,6 +14,11 @@ import { assertFanEmailCreator } from '../services/fanEmailAccessService';
 import { getFanEmailConsent, setFanEmailConsent, getEligibleFanEmailCount, FanEmailConsentConflictError, FanEmailConsentEligibilityError } from '../services/fanEmailConsentService';
 import { fanEmailCsvCell } from '../services/fanEmailFormatting';
 
+const safeUserId = z.number().int().safe().positive();
+const listLimit = z.number().int().min(1).max(100);
+const listOffset = z.number().int().min(0).max(1_000_000);
+const recommendationLimit = z.number().int().min(1).max(50);
+
 export const followsRouter = router({
   /**
    * Follow an artist or venue (free for all logged-in users)
@@ -21,9 +26,9 @@ export const followsRouter = router({
   follow: protectedProcedure
     .input(
       z.object({
-        followingId: z.number().int().positive(),
+        followingId: safeUserId,
         followingType: z.enum(["artist", "venue"]),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }: any) => {
       const success = await followService.followUser(
@@ -45,9 +50,9 @@ export const followsRouter = router({
   unfollow: protectedProcedure
     .input(
       z.object({
-        followingId: z.number().int().positive(),
+        followingId: safeUserId,
         followingType: z.enum(["artist", "venue"]),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }: any) => {
       const success = await followService.unfollowUser(
@@ -68,7 +73,7 @@ export const followsRouter = router({
     .input(z.object({ followingId: z.number().int().positive() }).strict())
     .query(({ ctx, input }) => getFanEmailConsent(ctx.user.id, input.followingId)),
   setEmailConsent: protectedProcedure
-    .input(z.object({ followingId: z.number().int().positive(), optIn: z.boolean(), expectedRevision: z.number().int().nonnegative() }).strict())
+    .input(z.object({ followingId: safeUserId, optIn: z.boolean(), expectedRevision: z.number().int().min(0).max(1_000_000_000) }).strict())
     .mutation(async ({ ctx, input }) => {
       try { return await setFanEmailConsent(ctx.user.id, input.followingId, { optIn: input.optIn, expectedRevision: input.expectedRevision }); }
       catch (error) {
@@ -82,7 +87,7 @@ export const followsRouter = router({
    * Get follow statistics for a user (public - no auth required for follower count)
    */
   getStats: publicProcedure
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: safeUserId }).strict())
     .query(async ({ ctx, input }: any) => {
       const currentUserId = ctx.user?.id;
       const stats = await followService.getFollowStats(input.userId, currentUserId);
@@ -95,10 +100,10 @@ export const followsRouter = router({
   getFollowing: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        limit: z.number().int().min(1).max(100).default(50),
-        offset: z.number().int().nonnegative().default(0),
-      })
+        userId: safeUserId,
+        limit: listLimit.default(50),
+        offset: listOffset.default(0),
+      }).strict()
     )
     .query(async ({ ctx, input }: any) => {
       if (input.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Open your own following list." });
@@ -116,10 +121,10 @@ export const followsRouter = router({
   getFollowers: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        limit: z.number().int().min(1).max(100).default(50),
-        offset: z.number().int().nonnegative().default(0),
-      })
+        userId: safeUserId,
+        limit: listLimit.default(50),
+        offset: listOffset.default(0),
+      }).strict()
     )
     .query(async ({ input }: any) => {
       const followers = await followService.getFollowers(
@@ -137,9 +142,9 @@ export const followsRouter = router({
   getFanEmails: protectedProcedure
     .input(
       z.object({
-        limit: z.number().int().min(1).max(100).default(100),
-        offset: z.number().int().nonnegative().default(0),
-      })
+        limit: listLimit.default(100),
+        offset: listOffset.default(0),
+      }).strict()
     )
     .query(async ({ ctx, input }: any) => {
       await assertFanEmailCreator(ctx.user.id);
@@ -202,7 +207,7 @@ export const followsRouter = router({
    * Get follow recommendations for current user
    */
   getRecommendations: protectedProcedure
-    .input(z.object({ limit: z.number().default(10) }))
+    .input(z.object({ limit: recommendationLimit.default(10) }).strict())
     .query(async ({ ctx, input }: any) => {
       const recommendations = await followService.getFollowRecommendations(
         ctx.user.id,
@@ -217,9 +222,9 @@ export const followsRouter = router({
   isFollowing: protectedProcedure
     .input(
       z.object({
-        followingId: z.number().int().positive(),
+        followingId: safeUserId,
         followingType: z.enum(["artist", "venue"]).optional(),
-      })
+      }).strict()
     )
     .query(async ({ ctx, input }: any) => {
       const following = await followService.isFollowing(
@@ -234,7 +239,7 @@ export const followsRouter = router({
    * Get mutual followers between two users
    */
   getMutualFollowers: protectedProcedure
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: safeUserId }).strict())
     .query(async ({ ctx, input }: any) => {
       const mutualCount = await followService.getMutualFollowers(
         ctx.user.id,
@@ -250,8 +255,8 @@ export const followsRouter = router({
     .input(
       z.object({
         followingType: z.enum(["artist", "venue"]),
-        limit: z.number().default(10),
-      })
+        limit: recommendationLimit.default(10),
+      }).strict()
     )
     .query(async ({ input }: any) => {
       const trending = await followService.getTrendingUsers(
@@ -269,7 +274,7 @@ export const followsRouter = router({
    * Always excludes artists the current user already follows.
    */
   getSuggestedArtists: publicProcedure
-    .input(z.object({ limit: z.number().default(8) }).optional().default({ limit: 8 }))
+    .input(z.object({ limit: z.number().int().min(1).max(24).default(8) }).strict().optional().default({ limit: 8 }))
     .query(async ({ ctx, input }: any) => {
       const currentUserId = ctx.user?.id;
       const limit = input?.limit ?? 8;
