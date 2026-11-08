@@ -5063,3 +5063,14 @@ Completed tasks have been removed from the active checklist. Keep the following 
 - [x] Add the cleanup/compatibility findings and safe-deletion rules to `ARCHITECTURE.md`.
 - [ ] Review remaining repeated authorization/email-template presentation blocks for intentional shared-template extraction; do not deduplicate by text similarity alone.
 - [ ] Publish this cleanup checkpoint and verify the corrected links on the deployed domains.
+
+
+## READ-ONLY API ENDPOINT AUDIT (Nov 8, 2026)
+- [x] Audit the active Express route inventory and error/input boundaries without mutating records, payments, OAuth integrations, or external settings. Report: `docs/api-endpoint-audit-2026-11-08.md`.
+- [x] Confirm strong protections in eBook/rider delivery, media/video direct uploads, Stripe webhook ordering, route error redaction, HTTPS/security headers, and recent strict-ID helpers.
+- [ ] Fix OAuth state integrity and redirect allowlisting in Google, Spotify, and Calendar Sync callbacks.
+- [ ] Harden legacy event body schemas and event-photo ownership checks.
+- [ ] Harden release checkout IDs/amounts and derive redirect URLs only from an approved origin allowlist.
+- [ ] Remove or admin-gate the unmounted payment-testing mutators; add a mount inventory regression.
+- [ ] Admin-gate/rate-limit the email test route and use strict email validation.
+- [ ] Tighten legacy video duration/filename validation and normalize the release-preview parser.
