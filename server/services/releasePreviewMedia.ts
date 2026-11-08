@@ -12,6 +12,18 @@ export const PREVIEW_INPUT_BYTES = MAX_BYTES;
 export const PREVIEW_ERROR = 'We could not prepare this preview. Please use a valid audio or video file and try again.';
 type PreviewKind = 'audio' | 'video';
 type PreviewReference = { version: 1; userId: number; key: string; kind: PreviewKind; durationSeconds: number };
+const PREVIEW_MIME_ALIASES: Record<string, string> = {
+ 'audio/mp3': 'audio/mpeg',
+ 'audio/x-wav': 'audio/wav',
+ 'audio/wave': 'audio/wav',
+ 'audio/x-flac': 'audio/flac',
+ 'audio/x-m4a': 'audio/mp4',
+ 'audio/m4a': 'audio/mp4',
+};
+const PREVIEW_MIME_TYPES = new Set([
+ 'audio/mpeg', 'audio/wav', 'audio/flac', 'audio/aac', 'audio/mp4',
+ 'video/mp4', 'video/quicktime', 'video/webm',
+]);
 let active = false;
 
 async function run(command: 'ffmpeg' | 'ffprobe', args: string[], timeout = 45_000): Promise<string> {
@@ -78,10 +90,31 @@ export async function clipReleasePreview(source: Buffer, options: PreviewClipOpt
   return await clipReleasePreviewFile(input,options);
  } finally { await rm(folder,{recursive:true,force:true}).catch(()=>undefined); }
 }
-export function decodePreviewUpload(fileData:string):Buffer {
- const base64 = fileData.includes(',') ? fileData.slice(fileData.indexOf(',')+1):fileData;
+export function normalizePreviewMimeType(value: unknown): string | null {
+ const reported = typeof value === 'string' ? value.trim().toLowerCase() : '';
+ const normalized = PREVIEW_MIME_ALIASES[reported] || reported;
+ return PREVIEW_MIME_TYPES.has(normalized) ? normalized : null;
+}
+export function decodePreviewUpload(fileData:string, expectedMimeType?: string):Buffer {
+ const trimmed = typeof fileData === 'string' ? fileData.trim() : '';
+ let base64 = trimmed;
+ let dataUrlMime: string | null = null;
+ if (trimmed.startsWith('data:')) {
+  const match = /^data:([^;,]+);base64,([A-Za-z0-9+/]*={0,2})$/i.exec(trimmed);
+  if (!match) throw new TRPCError({code:'BAD_REQUEST',message:'Use a valid audio or video file up to 20 MB.'});
+  dataUrlMime = normalizePreviewMimeType(match[1]);
+  base64 = match[2];
+  if (!dataUrlMime) throw new TRPCError({code:'BAD_REQUEST',message:'Use a valid audio or video file up to 20 MB.'});
+ }
+ const normalizedExpected = expectedMimeType === undefined ? null : normalizePreviewMimeType(expectedMimeType);
+ if ((expectedMimeType !== undefined && !normalizedExpected) || (dataUrlMime && normalizedExpected && dataUrlMime !== normalizedExpected)) {
+  throw new TRPCError({code:'BAD_REQUEST',message:'Use a valid audio or video file up to 20 MB.'});
+ }
  if(!base64 || base64.length>Math.ceil(PREVIEW_INPUT_BYTES/3)*4+4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) throw new TRPCError({code:'BAD_REQUEST',message:'Use a valid audio or video file up to 20 MB.'});
- const buffer=Buffer.from(base64,'base64');if(buffer.toString('base64')!==base64)throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});return buffer;
+ const buffer=Buffer.from(base64,'base64');
+ const canonical = buffer.toString('base64');
+ if(!buffer.length || canonical.replace(/=+$/, '') !== base64.replace(/=+$/, '')) throw new TRPCError({code:'BAD_REQUEST',message:PREVIEW_ERROR});
+ return buffer;
 }
 function secret(){const value=process.env.JWT_SECRET;if(!value)throw new TRPCError({code:'INTERNAL_SERVER_ERROR',message:PREVIEW_ERROR});return value;}
 export function signPreviewReference(reference:PreviewReference):string {
@@ -99,7 +132,9 @@ export function readPreviewReference(token:string,userId?:number):PreviewReferen
  } catch {throw new TRPCError({code:'BAD_REQUEST',message:'Please upload this release preview from your own account again.'});}
 }
 export async function uploadHostedPreview(userId:number,fileData:string,mimeType:string) {
- const clipped=await clipReleasePreview(decodePreviewUpload(fileData),{audioOnly:mimeType.startsWith('audio/')});
+ const normalizedMimeType = normalizePreviewMimeType(mimeType);
+ if (!normalizedMimeType) throw new TRPCError({code:'BAD_REQUEST',message:'Use a valid audio or video file up to 20 MB.'});
+ const clipped=await clipReleasePreview(decodePreviewUpload(fileData, normalizedMimeType),{audioOnly:normalizedMimeType.startsWith('audio/')});
  const key=`release-previews/hosted/${userId}/${randomUUID()}.${clipped.extension}`;
  const uploaded=await storagePut(key,clipped.data,clipped.mimeType);
  return {previewMedia:signPreviewReference({version:1,userId,key,kind:clipped.kind,durationSeconds:clipped.durationSeconds}),previewUrl:uploaded.url,kind:clipped.kind,durationSeconds:clipped.durationSeconds};

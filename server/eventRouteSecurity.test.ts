@@ -14,6 +14,7 @@ describe('legacy event route security boundaries', () => {
     expect(validateEventBody({ eventTitle: 'Show', eventType: 'concert', eventDate: '2026-12-01', capacity: '12.5', isPublic: false }).error).toContain('capacity');
     expect(validateEventBody({ eventTitle: 'Show', eventType: 'concert', eventDate: '2026-12-01', rate: '9.999', isPublic: false }).error).toContain('rate');
     expect(validateEventBody({ eventTitle: 'Show', eventType: 'concert', eventDate: '2026-12-01', isPublic: 'yes' }).error).toContain('isPublic');
+    expect(validateEventBody({ eventTitle: 'Show', eventType: 'concert', eventDate: '2026-12-01', capacity: 0, isPublic: false }).value?.capacity).toBe(0);
   });
 
   it('validates history references and photo URLs before database writes', () => {
@@ -21,12 +22,16 @@ describe('legacy event route security boundaries', () => {
     expect(validateHistoryBody({ eventDate: '2026-12-01', attendeeCount: 12.5 }).error).toContain('attendeeCount');
     expect(validatePhotoBody({ photoUrl: 'javascript:alert(1)' }).error).toContain('HTTP or HTTPS');
     expect(validatePhotoBody({ photoUrl: 'https://cdn.example/photo.jpg', caption: 'Live show' }).value).toMatchObject({ photoUrl: 'https://cdn.example/photo.jpg' });
+    expect(validateHistoryBody({ eventDate: '2026-12-01', attendeeCount: 0 }).value?.attendeeCount).toBe(0);
+    expect(validateHistoryBody({ eventDate: '2026-12-01', privateField: 'x' }).error).toContain('Unsupported history field');
+    expect(validatePhotoBody({ photoUrl: 'https://cdn.example/photo.jpg', extra: 'x' }).error).toContain('Unsupported photo field');
   });
 
   it('validates recurrence frequency, date, and bounded days', () => {
     expect(validateRecurrenceBody({ frequency: 'hourly' }).error).toContain('frequency');
     expect(validateRecurrenceBody({ frequency: 'weekly', endDate: '2026-02-31' }).error).toContain('endDate');
     expect(validateRecurrenceBody({ frequency: 'weekly', daysOfWeek: 'MON,WED' }).error).toBeUndefined();
+    expect(validateRecurrenceBody({ frequency: 'weekly', ignored: true }).error).toContain('Unsupported recurrence field');
   });
 
   it('keeps event update and photo mutations ownership-scoped in the route source', () => {

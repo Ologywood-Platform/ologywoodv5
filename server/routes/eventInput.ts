@@ -23,6 +23,13 @@ function positiveInteger(value: unknown, maximum = Number.MAX_SAFE_INTEGER): num
   return Number.isSafeInteger(parsed) && parsed <= maximum ? parsed : null;
 }
 
+function nonNegativeInteger(value: unknown, maximum = Number.MAX_SAFE_INTEGER): number | null {
+  const text = typeof value === 'number' ? String(value) : value;
+  if (typeof text !== 'string' || !/^\d+$/.test(text)) return null;
+  const parsed = Number(text);
+  return Number.isSafeInteger(parsed) && parsed <= maximum ? parsed : null;
+}
+
 function boundedText(value: unknown, field: string, max: number, required = false): string | null | { error: string } {
   if (value === undefined) return required ? { error: `${field} is required` } : null;
   if (value === null && !required) return null;
@@ -69,7 +76,7 @@ export function validateEventBody(body: unknown, partial = false): { value?: Rec
   }
 
   if (input.capacity !== undefined && input.capacity !== null && input.capacity !== '') {
-    const capacity = positiveInteger(input.capacity, 10_000_000);
+    const capacity = nonNegativeInteger(input.capacity, 10_000_000);
     if (capacity === null) return { error: 'capacity must be a non-negative whole number of 10000000 or less' };
     value.capacity = capacity;
   } else if (input.capacity !== undefined) value.capacity = null;
@@ -93,6 +100,8 @@ export function validateEventBody(body: unknown, partial = false): { value?: Rec
 export function validateHistoryBody(body: unknown): { value?: Record<string, unknown>; error?: string } {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'History body must be an object' };
   const input = body as Record<string, unknown>;
+  const unknown = Object.keys(input).filter((key) => !['eventDate', 'bookingId', 'venueId', 'attendeeCount', 'notes'].includes(key));
+  if (unknown.length) return { error: `Unsupported history field: ${unknown[0]}` };
   if (!validDateOnly(input.eventDate)) return { error: 'eventDate must be a valid YYYY-MM-DD date' };
   const value: Record<string, unknown> = { eventDate: input.eventDate };
   for (const field of ['bookingId', 'venueId'] as const) {
@@ -103,8 +112,8 @@ export function validateHistoryBody(body: unknown): { value?: Record<string, unk
     }
   }
   if (input.attendeeCount !== undefined && input.attendeeCount !== null && input.attendeeCount !== '') {
-    const parsed = positiveInteger(input.attendeeCount, 10_000_000);
-    if (parsed === null) return { error: 'attendeeCount must be a positive whole number of 10000000 or less' };
+    const parsed = nonNegativeInteger(input.attendeeCount, 10_000_000);
+    if (parsed === null) return { error: 'attendeeCount must be a non-negative whole number of 10000000 or less' };
     value.attendeeCount = parsed;
   }
   const notes = boundedText(input.notes, 'notes', 10000);
@@ -116,6 +125,8 @@ export function validateHistoryBody(body: unknown): { value?: Record<string, unk
 export function validatePhotoBody(body: unknown): { value?: Record<string, unknown>; error?: string } {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Photo body must be an object' };
   const input = body as Record<string, unknown>;
+  const unknown = Object.keys(input).filter((key) => !['photoUrl', 'caption'].includes(key));
+  if (unknown.length) return { error: `Unsupported photo field: ${unknown[0]}` };
   if (typeof input.photoUrl !== 'string' || input.photoUrl.length > 2048) return { error: 'photoUrl is required and must be 2048 characters or fewer' };
   try {
     const url = new URL(input.photoUrl);
@@ -131,6 +142,8 @@ export function validatePhotoBody(body: unknown): { value?: Record<string, unkno
 export function validateRecurrenceBody(body: unknown): { value?: Record<string, unknown>; error?: string } {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'Recurrence body must be an object' };
   const input = body as Record<string, unknown>;
+  const unknown = Object.keys(input).filter((key) => !['frequency', 'daysOfWeek', 'endDate'].includes(key));
+  if (unknown.length) return { error: `Unsupported recurrence field: ${unknown[0]}` };
   if (typeof input.frequency !== 'string' || !RECURRENCE_FREQUENCIES.has(input.frequency)) return { error: 'Invalid recurrence frequency' };
   if (input.daysOfWeek !== undefined && input.daysOfWeek !== null && (typeof input.daysOfWeek !== 'string' || input.daysOfWeek.length > 50)) return { error: 'daysOfWeek is invalid' };
   if (input.endDate !== undefined && input.endDate !== null && !validDateOnly(input.endDate)) return { error: 'endDate must be a valid YYYY-MM-DD date' };

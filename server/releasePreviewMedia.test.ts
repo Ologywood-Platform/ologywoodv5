@@ -20,6 +20,7 @@ import {
   PREVIEW_INPUT_BYTES,
   clipReleasePreview,
   decodePreviewUpload,
+  normalizePreviewMimeType,
   getMusicPreview,
   readPreviewReference,
   signPreviewReference,
@@ -224,6 +225,12 @@ describe.sequential('release preview media', () => {
     expect(decodePreviewUpload(`data:audio/mpeg;base64,${shortAudio.toString('base64')}`)).toEqual(shortAudio);
     expect(() => decodePreviewUpload('data:audio/mpeg;base64,a')).toThrow(/valid audio or video file|prepare this preview/i);
     expect(() => decodePreviewUpload('not base64!')).toThrow(/valid audio or video file/i);
+    expect(normalizePreviewMimeType('audio/x-m4a')).toBe('audio/mp4');
+    expect(normalizePreviewMimeType('video/mp4')).toBe('video/mp4');
+    expect(normalizePreviewMimeType('video/x-msvideo')).toBeNull();
+    expect(decodePreviewUpload(`data:audio/x-m4a;base64,${shortAudio.toString('base64')}`, 'audio/mp4')).toEqual(shortAudio);
+    expect(() => decodePreviewUpload(`data:text/plain;base64,${shortAudio.toString('base64')}`, 'audio/mpeg')).toThrow(/valid audio or video file/i);
+    expect(() => decodePreviewUpload(`data:audio/mpeg;base64,${shortAudio.toString('base64')}`, 'video/mp4')).toThrow(/valid audio or video file/i);
   });
 
   it('round-trips a signed preview reference only for its owner and rejects tampering', () => {

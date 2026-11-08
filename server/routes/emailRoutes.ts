@@ -5,9 +5,17 @@
 
 import { Router } from 'express';
 import { sendTestEmail } from '../email/emailService';
+import { emailTestingLimiter } from '../utils/rateLimiter';
 import unsubscribeRoutes from './unsubscribeRoutes';
 
 const router = Router();
+
+function getClientIp(req: any): string {
+  const forwarded = req.headers?.['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) return forwarded.split(',')[0].trim();
+  if (Array.isArray(forwarded) && forwarded[0]) return String(forwarded[0]).trim();
+  return String(req.ip || req.socket?.remoteAddress || 'unknown');
+}
 
 const requireAdmin = (req: any, res: any, next: any) => {
   if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -21,6 +29,11 @@ const requireAdmin = (req: any, res: any, next: any) => {
  */
 router.post('/test', requireAdmin, async (req, res) => {
   try {
+    const ipCheck = emailTestingLimiter.check(`express-ip:${getClientIp(req)}`);
+    if (!ipCheck.allowed) {
+      res.set('Retry-After', String(Math.max(1, Math.ceil(ipCheck.retryAfterMs / 1000))));
+      return res.status(429).json({ success: false, message: 'Too many test-email requests. Please try again later.' });
+    }
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
 
     if (!email || email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
@@ -28,6 +41,12 @@ router.post('/test', requireAdmin, async (req, res) => {
         success: false,
         message: 'Valid email address is required',
       });
+    }
+
+    const emailCheck = emailTestingLimiter.check(`express-email:${email}`);
+    if (!emailCheck.allowed) {
+      res.set('Retry-After', String(Math.max(1, Math.ceil(emailCheck.retryAfterMs / 1000))));
+      return res.status(429).json({ success: false, message: 'Too many test-email requests. Please try again later.' });
     }
 
     const success = await sendTestEmail(email);
