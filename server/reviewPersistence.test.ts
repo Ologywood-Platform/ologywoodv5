@@ -17,11 +17,11 @@ describe('Review Persistence Feature', () => {
       expect(routersContent).toContain('createFromProfile');
     });
 
-    it('should accept artistId, rating, title, and reviewText inputs', () => {
-      expect(routersContent).toContain("artistId: z.number()");
-      expect(routersContent).toContain("rating: z.number().min(1).max(5)");
-      expect(routersContent).toContain("title: z.string().min(1).max(200)");
-      expect(routersContent).toContain("reviewText: z.string().min(1).max(2000)");
+    it('should accept strictly validated artistId, rating, title, and reviewText inputs', () => {
+      expect(routersContent).toContain('artistId: artistProfileId');
+      expect(routersContent).toContain('rating: reviewRating');
+      expect(routersContent).toContain('title: reviewTitle');
+      expect(routersContent).toContain('reviewText: z.string().trim().min(1).max(2_000)');
     });
 
     it('should be a venue-only procedure', () => {
@@ -42,11 +42,13 @@ describe('Review Persistence Feature', () => {
       expect(routersContent).toContain('r.reviewerUserId === ctx.user.id');
     });
 
-    it('should use reviewerUserId instead of requiring venue profile', () => {
+    it('should attribute the review to the authenticated venue profile', () => {
       const startIdx = routersContent.indexOf('createFromProfile');
       const createFromProfileSection = routersContent.slice(startIdx, startIdx + 1500);
       expect(createFromProfileSection).toContain('reviewerUserId');
       expect(createFromProfileSection).toContain('ctx.user.id');
+      expect(createFromProfileSection).toContain('Only venues can leave profile reviews');
+      expect(createFromProfileSection).toContain('venueId: venueProfile.id');
     });
 
     it('should store title and review text as combined comment', () => {

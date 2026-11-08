@@ -166,6 +166,10 @@ const bookingText = z.string().trim().max(10_000).optional();
 const bookingAddress = z.string().trim().max(1_000).optional();
 const bookingPhone = z.string().trim().max(50).optional();
 const bookingEmail = z.string().trim().toLowerCase().email().max(320);
+const reviewRating = z.number().int().min(1).max(5);
+const reviewTitle = z.string().trim().min(1).max(200);
+const reviewBody = z.string().trim().max(2_000).optional();
+const reviewResponse = z.string().trim().min(1).max(2_000);
 
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -2422,11 +2426,11 @@ export const appRouter = router({
     // Create review (venue only, for completed bookings)
     create: venueProcedure
       .input(z.object({
-        bookingId: z.number(),
-        artistId: z.number(),
-        rating: z.number().min(1).max(5),
-        reviewText: z.string().optional(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        artistId: artistProfileId,
+        rating: reviewRating,
+        reviewText: reviewBody,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Check if booking exists and is completed
         const booking = await db.getBookingById(input.bookingId);
@@ -2447,6 +2451,9 @@ export const appRouter = router({
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave reviews' });
+        }
+        if (booking.venueId !== venueProfile.id || booking.artistId !== input.artistId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only review an artist from your completed booking' });
         }
         
         await db.createReview({
@@ -2473,11 +2480,11 @@ export const appRouter = router({
     // Create review from artist profile page (venue only, no booking required)
     createFromProfile: venueProcedure
       .input(z.object({
-        artistId: z.number(),
-        rating: z.number().min(1).max(5),
-        title: z.string().min(1).max(200),
-        reviewText: z.string().min(1).max(2000),
-      }))
+        artistId: artistProfileId,
+        rating: reviewRating,
+        title: reviewTitle,
+        reviewText: z.string().trim().min(1).max(2_000),
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Check if artist exists
         const artist = await db.getArtistProfileById(input.artistId);
@@ -2494,13 +2501,16 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'You have already reviewed this artist' });
         }
         
-        // Try to get venue profile for venueId, but don't require it
+        // A profile review is still attributed to the submitting venue.
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (!venueProfile) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave profile reviews' });
+        }
         
         await db.createReview({
           bookingId: null as any,
           artistId: input.artistId,
-          venueId: venueProfile?.id || null as any,
+          venueId: venueProfile.id,
           reviewerUserId: ctx.user.id,
           rating: input.rating,
           comment: `${input.title}\n\n${input.reviewText}`,
@@ -2510,7 +2520,7 @@ export const appRouter = router({
         if (reviewedArtistProfile) {
           notif.notifyNewReview({
             recipientUserId: reviewedArtistProfile.userId,
-            reviewerName: venueProfile?.organizationName || 'A venue',
+            reviewerName: venueProfile.organizationName || 'A venue',
             rating: input.rating,
           }).catch(() => {});
         }
@@ -2520,7 +2530,7 @@ export const appRouter = router({
 
     // Get reviews for an artist (public)
     getByArtist: publicProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .query(async ({ input }) => {
         let reviews: any[] = [];
         try {
@@ -2533,7 +2543,7 @@ export const appRouter = router({
     
     // Get review for a specific booking
     getByBooking: publicProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
         const review = await db.getReviewByBookingId(input.bookingId);
         return review || null;
@@ -2541,7 +2551,7 @@ export const appRouter = router({
     
     // Get average rating for an artist
     getAverageRating: publicProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .query(async ({ input }) => {
         const rating = await db.getAverageRatingForArtist(input.artistId);
         return rating || { averageRating: 0, reviewCount: 0 };
@@ -2550,9 +2560,9 @@ export const appRouter = router({
     // Respond to a review (artist only)
     respondToReview: artistProcedure
       .input(z.object({
-        reviewId: z.number(),
-        response: z.string().min(1).max(1000),
-      }))
+        reviewId: z.number().int().safe().positive(),
+        response: reviewResponse,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Get the review
         const review = await db.getReviewById(input.reviewId);
@@ -2596,15 +2606,15 @@ export const appRouter = router({
     // Create venue review (artist only, for completed bookings)
     create: artistProcedure
       .input(z.object({
-        bookingId: z.number(),
-        venueId: z.number(),
-        rating: z.number().min(1).max(5),
-        professionalismRating: z.number().min(1).max(5).optional(),
-        soundQualityRating: z.number().min(1).max(5).optional(),
-        greenRoomRating: z.number().min(1).max(5).optional(),
-        paymentTimelinessRating: z.number().min(1).max(5).optional(),
-        reviewText: z.string().optional(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        venueId: artistProfileId,
+        rating: reviewRating,
+        professionalismRating: reviewRating.optional(),
+        soundQualityRating: reviewRating.optional(),
+        greenRoomRating: reviewRating.optional(),
+        paymentTimelinessRating: reviewRating.optional(),
+        reviewText: reviewBody,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Check if booking exists and is completed
         const booking = await db.getBookingById(input.bookingId);
@@ -2625,6 +2635,9 @@ export const appRouter = router({
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!artistProfile) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Only artists can leave venue reviews' });
+        }
+        if (booking.artistId !== artistProfile.id || booking.venueId !== input.venueId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only review a venue from your completed booking' });
         }
         
         await db.createVenueReview({
@@ -2660,7 +2673,7 @@ export const appRouter = router({
     
     // Get venue reviews by venue ID
     getByVenue: protectedProcedure
-      .input(z.object({ venueId: z.number() }))
+      .input(z.object({ venueId: artistProfileId }).strict())
       .query(async ({ input }) => {
         const reviews = await db.getVenueReviewsByVenueId(input.venueId);
         return reviews || [];
@@ -2668,7 +2681,7 @@ export const appRouter = router({
     
     // Get venue review by booking ID
     getByBooking: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
         const review = await db.getVenueReviewByBookingId(input.bookingId);
         return review || null;
@@ -2676,7 +2689,7 @@ export const appRouter = router({
     
     // Get average rating for venue
     getAverageRating: protectedProcedure
-      .input(z.object({ venueId: z.number() }))
+      .input(z.object({ venueId: artistProfileId }).strict())
       .query(async ({ input }) => {
         const rating = await db.getAverageRatingForVenue(input.venueId);
         return rating || { averageRating: 0, reviewCount: 0 };
@@ -2685,9 +2698,9 @@ export const appRouter = router({
     // Venue responds to review
     respondToReview: venueProcedure
       .input(z.object({
-        reviewId: z.number(),
-        response: z.string().min(1).max(1000),
-      }))
+        reviewId: z.number().int().safe().positive(),
+        response: reviewResponse,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         // Get the review
         const review = await db.getVenueReviewById(input.reviewId);
@@ -2715,15 +2728,15 @@ export const appRouter = router({
     // Create artist review (venue only, for completed bookings)
     create: venueProcedure
       .input(z.object({
-        bookingId: z.number(),
-        artistId: z.number(),
-        rating: z.number().min(1).max(5),
-        reliabilityRating: z.number().min(1).max(5).optional(),
-        stagePresenceRating: z.number().min(1).max(5).optional(),
-        crowdEngagementRating: z.number().min(1).max(5).optional(),
-        professionalismRating: z.number().min(1).max(5).optional(),
-        reviewText: z.string().optional(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        artistId: artistProfileId,
+        rating: reviewRating,
+        reliabilityRating: reviewRating.optional(),
+        stagePresenceRating: reviewRating.optional(),
+        crowdEngagementRating: reviewRating.optional(),
+        professionalismRating: reviewRating.optional(),
+        reviewText: reviewBody,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
@@ -2739,6 +2752,9 @@ export const appRouter = router({
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Only venues can leave artist reviews' });
+        }
+        if (booking.venueId !== venueProfile.id || booking.artistId !== input.artistId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only review an artist from your completed booking' });
         }
         await db.createArtistReview({
           bookingId: input.bookingId,
@@ -2771,21 +2787,21 @@ export const appRouter = router({
 
     // Get artist reviews by artist ID
     getByArtist: protectedProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .query(async ({ input }) => {
         return await db.getArtistReviewsByArtistId(input.artistId);
       }),
 
     // Get artist review by booking ID
     getByBooking: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
+      .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
         return await db.getArtistReviewByBookingId(input.bookingId) || null;
       }),
 
     // Get average rating for artist (public so profile pages can show it)
     getAverageRating: publicProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .query(async ({ input }) => {
         return await db.getAverageRatingForArtist(input.artistId);
       }),
@@ -2793,9 +2809,9 @@ export const appRouter = router({
     // Artist responds to review
     respondToReview: artistProcedure
       .input(z.object({
-        reviewId: z.number(),
-        response: z.string().min(1).max(1000),
-      }))
+        reviewId: z.number().int().safe().positive(),
+        response: reviewResponse,
+      }).strict())
       .mutation(async ({ input, ctx }) => {
         const review = await db.getArtistReviewById(input.reviewId);
         if (!review) {

@@ -158,6 +158,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Venue/client/artist booking creation fields use safe profile IDs, parseable dates, bounded names/addresses/details/contacts, strict objects, and finite money/percentage bounds. Private booking reads reject unrelated authenticated users while preserving client-booker access; status, counter-offer, venue-response, saved-artist, settlement, and rider inputs are strict and safe. Deposit creation/confirmation require a booking party, cap against the agreed deposit, bind confirmation to the stored Stripe PaymentIntent and booking metadata, and check the received amount.
    - Booking security/workflow/calendar/message/notification regressions pass 31/31, with TypeScript and production build validation passing. No bookings, PaymentIntents, payments, notifications, emails, or records were changed.
 
+33. **Review trust boundaries — resolved in this increment.**
+   - Review IDs, booking/profile IDs, and rating fields are strict and safe; ratings are integer values from 1–5; titles, bodies, and responses are trimmed and bounded. Profile reviews require an authenticated venue profile; completed booking reviews verify both booking parties and the target profile before writing; artist and venue response mutations retain owner checks.
+   - Review security/persistence/workflow regressions pass 60/60 executed (21 legacy router tests remain intentionally skipped), with TypeScript and production build validation passing. No reviews, responses, notifications, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
