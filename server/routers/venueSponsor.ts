@@ -6,6 +6,17 @@ import { venueSponsorPackages, venueSponsorApplications, venueActiveSponsors, ve
 import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
 import { notifySponsorApplicationReceived, notifySponsorApplicationApproved, notifySponsorApplicationRejected, notifySponsorMessage } from "../services/notificationService";
 
+const safeId = z.number().int().safe().positive();
+const httpsUrl = z.string().trim().url().max(512).refine((value) => /^https?:\/\//i.test(value), 'Only HTTP(S) URLs are allowed');
+const dateValue = z.string().trim().min(1).max(40).refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date');
+const priceValue = z.string().trim().regex(/^(?:0|[1-9]\d{0,7})(?:\.\d{1,2})?$/, 'Price must be a positive USD amount with at most two decimals').refine((value) => Number(value) > 0, 'Price must be greater than zero');
+
+function validateDateRange(startDate: string, endDate?: string | null) {
+  if (endDate && new Date(startDate).getTime() > new Date(endDate).getTime()) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'End date must be on or after the start date.' });
+  }
+}
+
 // Helper to check if user is a venue
 const venueProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== 'venue' && ctx.user.role !== 'admin') {
@@ -38,17 +49,17 @@ export const venueSponsorRouter = router({
    */
   createPackage: venueProcedure
     .input(z.object({
-      name: z.string().min(1).max(200),
-      description: z.string().max(2000).optional(),
+      name: z.string().trim().min(1).max(200),
+      description: z.string().trim().max(2000).optional(),
       packageType: z.enum(["title_sponsor", "stage_sponsor", "bar_sponsor", "digital_signage", "event_mention", "custom"]),
-      price: z.string(), // decimal as string
+      price: priceValue, // decimal as string
       duration: z.enum(["per_event", "weekly", "monthly", "quarterly", "yearly"]),
-      benefits: z.array(z.string().max(200)).max(10).optional(),
-      maxSlots: z.number().min(1).max(50).default(1),
-      imageUrl: z.string().url().max(512).optional(),
+      benefits: z.array(z.string().trim().min(1).max(200)).max(10).optional(),
+      maxSlots: z.number().int().min(1).max(50).default(1),
+      imageUrl: httpsUrl.optional(),
       tier: z.enum(["bronze", "silver", "gold", "platinum", "custom"]).default("custom"),
-      category: z.string().max(100).optional(),
-    }))
+      category: z.string().trim().max(100).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -75,19 +86,19 @@ export const venueSponsorRouter = router({
    */
   updatePackage: venueProcedure
     .input(z.object({
-      id: z.number(),
-      name: z.string().min(1).max(200).optional(),
-      description: z.string().max(2000).optional().nullable(),
+      id: safeId,
+      name: z.string().trim().min(1).max(200).optional(),
+      description: z.string().trim().max(2000).optional().nullable(),
       packageType: z.enum(["title_sponsor", "stage_sponsor", "bar_sponsor", "digital_signage", "event_mention", "custom"]).optional(),
-      price: z.string().optional(),
+      price: priceValue.optional(),
       duration: z.enum(["per_event", "weekly", "monthly", "quarterly", "yearly"]).optional(),
-      benefits: z.array(z.string().max(200)).max(10).optional(),
-      maxSlots: z.number().min(1).max(50).optional(),
+      benefits: z.array(z.string().trim().min(1).max(200)).max(10).optional(),
+      maxSlots: z.number().int().min(1).max(50).optional(),
       isActive: z.boolean().optional(),
-      imageUrl: z.string().url().max(512).optional().nullable(),
+      imageUrl: httpsUrl.optional().nullable(),
       tier: z.enum(["bronze", "silver", "gold", "platinum", "custom"]).optional(),
-      category: z.string().max(100).optional().nullable(),
-    }))
+      category: z.string().trim().max(100).optional().nullable(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -101,6 +112,10 @@ export const venueSponsorRouter = router({
 
       if (existing.length === 0) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Package not found' });
+      }
+
+      if (input.maxSlots !== undefined && input.maxSlots < existing[0].filledSlots) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Maximum slots cannot be lower than the number of active sponsors.' });
       }
 
       const { id, ...updateData } = input;
@@ -120,7 +135,7 @@ export const venueSponsorRouter = router({
    * Delete a sponsor package
    */
   deletePackage: venueProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: safeId }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -158,7 +173,7 @@ export const venueSponsorRouter = router({
   getMyApplications: venueProcedure
     .input(z.object({
       status: z.enum(["pending", "approved", "rejected", "expired"]).optional(),
-    }).optional())
+    }).strict().optional())
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -182,14 +197,15 @@ export const venueSponsorRouter = router({
    */
   approveApplication: venueProcedure
     .input(z.object({
-      applicationId: z.number(),
-      startDate: z.string(), // ISO date
-      endDate: z.string().optional(),
-      reviewNotes: z.string().max(500).optional(),
-    }))
+      applicationId: safeId,
+      startDate: dateValue, // ISO date
+      endDate: dateValue.optional(),
+      reviewNotes: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
+      validateDateRange(input.startDate, input.endDate);
 
       // Verify ownership and get application
       const [application] = await db
@@ -213,7 +229,10 @@ export const venueSponsorRouter = router({
       const [pkg] = await db
         .select()
         .from(venueSponsorPackages)
-        .where(eq(venueSponsorPackages.id, application.packageId))
+        .where(and(
+          eq(venueSponsorPackages.id, application.packageId),
+          eq(venueSponsorPackages.venueId, ctx.user.id),
+        ))
         .limit(1);
 
       if (!pkg) {
@@ -282,9 +301,9 @@ export const venueSponsorRouter = router({
    */
   rejectApplication: venueProcedure
     .input(z.object({
-      applicationId: z.number(),
-      reviewNotes: z.string().max(500).optional(),
-    }))
+      applicationId: safeId,
+      reviewNotes: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -349,7 +368,7 @@ export const venueSponsorRouter = router({
    * Deactivate an active sponsor
    */
   deactivateSponsor: venueProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: safeId }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -390,7 +409,7 @@ export const venueSponsorRouter = router({
    * Get active sponsor packages for a venue (public - for potential sponsors to browse)
    */
   getPublicPackages: publicProcedure
-    .input(z.object({ venueId: z.number() }))
+    .input(z.object({ venueId: safeId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
@@ -420,7 +439,7 @@ export const venueSponsorRouter = router({
    * Get active sponsors displayed on a venue profile (public)
    */
   getPublicSponsors: publicProcedure
-    .input(z.object({ venueId: z.number() }))
+    .input(z.object({ venueId: safeId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
@@ -446,16 +465,16 @@ export const venueSponsorRouter = router({
    */
   submitApplication: publicProcedure
     .input(z.object({
-      packageId: z.number(),
-      companyName: z.string().min(1).max(200),
-      contactName: z.string().min(1).max(200),
-      contactEmail: z.string().email().max(320),
-      contactPhone: z.string().max(50).optional(),
-      companyWebsite: z.string().url().max(512).optional(),
-      companyLogoUrl: z.string().url().max(512).optional(),
-      promoMaterialUrls: z.array(z.string().url()).max(5).optional(),
-      message: z.string().max(2000).optional(),
-    }))
+      packageId: safeId,
+      companyName: z.string().trim().min(1).max(200),
+      contactName: z.string().trim().min(1).max(200),
+      contactEmail: z.string().trim().email().max(320),
+      contactPhone: z.string().trim().max(50).optional(),
+      companyWebsite: httpsUrl.optional(),
+      companyLogoUrl: httpsUrl.optional(),
+      promoMaterialUrls: z.array(httpsUrl).max(5).optional(),
+      message: z.string().trim().max(2000).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -506,9 +525,9 @@ export const venueSponsorRouter = router({
   browseOpportunities: publicProcedure
     .input(z.object({
       packageType: z.enum(["title_sponsor", "stage_sponsor", "bar_sponsor", "digital_signage", "event_mention", "custom"]).optional(),
-      limit: z.number().min(1).max(50).default(20),
-      offset: z.number().min(0).default(0),
-    }).optional())
+      limit: z.number().int().min(1).max(50).default(20),
+      offset: z.number().int().min(0).max(1_000_000).default(0),
+    }).strict().optional())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return { opportunities: [], total: 0 };
@@ -626,7 +645,7 @@ export const venueSponsorRouter = router({
    * Get messages for a specific application
    */
   getMessages: protectedProcedure
-    .input(z.object({ applicationId: z.number() }))
+    .input(z.object({ applicationId: safeId }).strict())
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -644,11 +663,6 @@ export const venueSponsorRouter = router({
 
       // Check if user is the venue owner or the applicant
       const isApplicant = application.applicantUserId === ctx.user.id;
-      const [venueProfile] = await db
-        .select()
-        .from(venueProfiles)
-        .where(eq(venueProfiles.id, application.packageId))
-        .limit(1);
 
       // Get the package to find the venue
       const [pkg] = await db
@@ -677,9 +691,9 @@ export const venueSponsorRouter = router({
    */
   sendMessage: protectedProcedure
     .input(z.object({
-      applicationId: z.number(),
-      content: z.string().min(1).max(2000),
-    }))
+      applicationId: safeId,
+      content: z.string().trim().min(1).max(2000),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
@@ -756,9 +770,9 @@ export const venueSponsorRouter = router({
     // Get venue names
     const venueIds = [...new Set(packages.map(p => p.venueId))];
     const venues = venueIds.length > 0 ? await db
-      .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+      .select({ id: venueProfiles.userId, organizationName: venueProfiles.organizationName })
       .from(venueProfiles)
-      .where(inArray(venueProfiles.id, venueIds)) : [];
+      .where(inArray(venueProfiles.userId, venueIds)) : [];
     const venueMap = new Map(venues.map(v => [v.id, v.organizationName]));
 
     return applications.map(app => {
@@ -809,9 +823,9 @@ export const venueSponsorRouter = router({
 
     const venueIds = [...new Set(packages.map(p => p.venueId))];
     const venues = venueIds.length > 0 ? await db
-      .select({ id: venueProfiles.id, organizationName: venueProfiles.organizationName })
+      .select({ id: venueProfiles.userId, organizationName: venueProfiles.organizationName })
       .from(venueProfiles)
-      .where(inArray(venueProfiles.id, venueIds)) : [];
+      .where(inArray(venueProfiles.userId, venueIds)) : [];
     const venueMap = new Map(venues.map(v => [v.id, v.organizationName]));
 
     return active.map(s => {

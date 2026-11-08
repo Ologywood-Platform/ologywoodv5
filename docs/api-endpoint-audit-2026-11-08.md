@@ -110,6 +110,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Public/profile IDs, sponsor IDs/order/date/text fields, HTTPS logo/site URLs, analytics windows, media-kit metrics/contacts/URLs, and nested social-stat objects are bounded and strict. Public analytics now resolve profile identifiers and verify that an active sponsor slot belongs to the claimed artist before writing an impression/click. The event-page client field mismatch was corrected.
    - Sponsor/security/ecosystem/sitemap regressions pass 62/62, with TypeScript and production build validation passing. No sponsors, analytics, media kits, emails, or records were changed.
 
+21. **Venue sponsorship packages and applications — resolved in this increment.**
+   - Package/application/sponsor/message/public IDs are safe integers; price strings are positive USD values with at most two decimals; package capacity cannot be lowered below active sponsors; package/application text and HTTPS URLs are bounded; application date windows are validated; approval package lookup is venue-scoped; browse pagination is bounded; message reads/sends remain applicant/venue-party scoped; and sponsor-dashboard venue joins use stored venue user IDs.
+   - Venue sponsorship/security/schema/enhancement/admin regressions pass 26/26, with TypeScript and production build validation passing. No packages, applications, sponsors, messages, emails, payments, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
