@@ -75,6 +75,16 @@ describe('Admin user profile navigation', () => {
   await expect(adminRouter.createCaller({ user: { id: 9, role: 'user' }, req: {}, res: {} } as any).getUsers({ limit: 50, offset: 0 })).rejects.toThrow('Admin access required');
   expect(mock.getDb).not.toHaveBeenCalled();
  });
+ it('rejects invalid admin pagination before reaching the database', async () => {
+  const caller = adminRouter.createCaller({ user: { id: 1, role: 'admin' }, req: {}, res: {} } as any);
+  await expect(caller.getUsers({ limit: 0, offset: -1 })).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  expect(mock.getDb).not.toHaveBeenCalled();
+ });
+ it('rejects non-positive admin target IDs before reaching the database', async () => {
+  const caller = adminRouter.createCaller({ user: { id: 1, role: 'admin' }, req: {}, res: {} } as any);
+  await expect(caller.getUser({ userId: 0 })).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  expect(mock.getDb).not.toHaveBeenCalled();
+ });
  it('renders a keyboard-accessible name anchor in a separate tab with profile name context', () => {
   const profile = resolveAdminProfileNavigation({ id: 7, role: 'artist' }, [artist], [], empty);
   const html = renderToStaticMarkup(createElement(AdminUserProfileLink, { name: 'Owner legal name', profile }));

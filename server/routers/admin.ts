@@ -135,6 +135,10 @@ const adminOnly = protectedProcedure.use(async (opts) => {
   return opts.next({ ctx: { ...opts.ctx, isOwner } });
 });
 
+const adminPositiveId = z.number().int().positive();
+const adminLimit = z.number().int().min(1).max(500).default(50);
+const adminOffset = z.number().int().min(0).max(1_000_000).default(0);
+
 export const adminRouter = router({
   // ============ USER MANAGEMENT ============
 
@@ -146,8 +150,8 @@ export const adminRouter = router({
       z.object({
         search: z.string().optional(),
         role: z.enum(["user", "admin", "artist", "venue", "blogger"]).optional(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        limit: adminLimit,
+        offset: adminOffset,
       })
     )
     .query(async ({ input }) => {
@@ -194,7 +198,7 @@ export const adminRouter = router({
    * Get single user details with profile
    */
   getUser: adminOnly
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: adminPositiveId }))
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -257,7 +261,7 @@ export const adminRouter = router({
   verifyArtist: adminOnly
     .input(
       z.object({
-        userId: z.number(),
+        userId: adminPositiveId,
         verified: z.boolean(),
       })
     )
@@ -289,7 +293,7 @@ export const adminRouter = router({
    * Suspend or unsuspend a user
    */
   adminResendVerification: adminOnly
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: adminPositiveId }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -332,7 +336,7 @@ export const adminRouter = router({
     }),
 
   adminManualVerify: adminOnly
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: adminPositiveId }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -352,7 +356,7 @@ export const adminRouter = router({
   toggleUserStatus: adminOnly
     .input(
       z.object({
-        userId: z.number(),
+        userId: adminPositiveId,
         suspended: z.boolean(),
         reason: z.string().optional(),
       })
@@ -375,7 +379,7 @@ return { success: true, userId: input.userId };
    * @deprecated Use changeRole instead
    */
   promoteToAdmin: adminOnly
-    .input(z.object({ userId: z.number() }))
+    .input(z.object({ userId: adminPositiveId }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
@@ -411,7 +415,7 @@ return { success: true, userId: input.userId };
    */
   demoteFromAdmin: adminOnly
     .input(z.object({
-      userId: z.number(),
+      userId: adminPositiveId,
       restoreRole: z.enum(['artist', 'venue', 'user']).default('user'),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -470,7 +474,7 @@ return { success: true, userId: input.userId };
    */
   changeRole: adminOnly
     .input(z.object({
-      userId: z.number(),
+      userId: adminPositiveId,
       newRole: z.enum(['admin', 'artist', 'venue', 'user', 'blogger']),
     }))
     .mutation(async ({ input, ctx }) => {
@@ -617,8 +621,8 @@ return { success: true, userId: input.userId };
         status: z
           .enum(["pending", "confirmed", "completed", "cancelled"])
           .optional(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        limit: adminLimit,
+        offset: adminOffset,
       })
     )
     .query(async ({ input }) => {
@@ -732,8 +736,8 @@ return { success: true, bookingId: input.bookingId };
     .input(
       z.object({
         status: z.enum(["pending", "completed", "failed"]).optional(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        limit: adminLimit,
+        offset: adminOffset,
       })
     )
     .query(async ({ input }) => {
@@ -1157,7 +1161,7 @@ return { success: true, payoutId: input.payoutId };
   getActivityLog: adminOnly
     .input(z.object({
       page: z.number().default(1),
-      limit: z.number().default(50),
+      limit: adminLimit,
       category: z.enum(["all", "users", "bookings", "payouts", "blog", "disputes", "releases", "settings"]).default("all"),
       search: z.string().default(""),
     }))
@@ -1348,7 +1352,7 @@ return { success: true, payoutId: input.payoutId };
    */
   syncSubscriptionFromStripe: adminOnly
     .input(z.object({
-      userId: z.number(),
+      userId: adminPositiveId,
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();

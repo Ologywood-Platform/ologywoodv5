@@ -15,6 +15,7 @@ const state = vi.hoisted(() => {
   } as any;
   return {
     booking,
+    messages: [] as any[],
     getVenueProfileByUserId: vi.fn(),
     getVenueProfileById: vi.fn(),
     getArtistProfileById: vi.fn(),
@@ -24,6 +25,11 @@ const state = vi.hoisted(() => {
     createBooking: vi.fn(),
     getBookingById: vi.fn(),
     updateBooking: vi.fn(),
+    createMessage: vi.fn(),
+    getMessagesByBookingId: vi.fn(),
+    getMessageById: vi.fn(),
+    markMessageAsRead: vi.fn(),
+    markMessagesAsRead: vi.fn(),
     ensureScheduleSchema: vi.fn(),
     checkBookingScheduleRequest: vi.fn(),
     confirmScheduledBooking: vi.fn(),
@@ -37,6 +43,7 @@ const state = vi.hoisted(() => {
     notifyBookingRequest: vi.fn(),
     notifyBookingConfirmed: vi.fn(),
     notifyBookingCancelled: vi.fn(),
+    notifyNewMessage: vi.fn(),
   };
 });
 
@@ -50,6 +57,11 @@ vi.mock('./db', () => ({
   createBooking: state.createBooking,
   getBookingById: state.getBookingById,
   updateBooking: state.updateBooking,
+  createMessage: state.createMessage,
+  getMessagesByBookingId: state.getMessagesByBookingId,
+  getMessageById: state.getMessageById,
+  markMessageAsRead: state.markMessageAsRead,
+  markMessagesAsRead: state.markMessagesAsRead,
 }));
 vi.mock('./services/scheduleSchemaService', () => ({ ensureScheduleSchema: state.ensureScheduleSchema }));
 vi.mock('./services/bookingScheduleService', () => ({
@@ -73,8 +85,8 @@ vi.mock('./services/notificationService', () => ({
   notifyBookingRequest: state.notifyBookingRequest,
   notifyBookingConfirmed: state.notifyBookingConfirmed,
   notifyBookingCancelled: state.notifyBookingCancelled,
+  notifyNewMessage: state.notifyNewMessage,
   notifyBookingCompleted: vi.fn(),
-  notifyNewMessage: vi.fn(),
 }));
 
 import { appRouter } from './routers';
@@ -84,6 +96,7 @@ const artistContext = { user: { id: 7, role: 'artist', email: 'artist@test.inval
 
 beforeEach(() => {
   vi.clearAllMocks();
+  state.messages.splice(0, state.messages.length);
   Object.assign(state.booking, {
     id: 501,
     artistId: 7,
@@ -107,10 +120,26 @@ beforeEach(() => {
   state.createBooking.mockImplementation(async (data: any) => ({ ...state.booking, ...data, id: 501 }));
   state.getBookingById.mockResolvedValue(state.booking);
   state.updateBooking.mockImplementation(async (_id: number, updates: any) => Object.assign(state.booking, updates));
+  state.createMessage.mockImplementation(async (data: any) => {
+    const message = { id: state.messages.length + 1, createdAt: new Date(), isRead: false, ...data };
+    state.messages.push(message);
+    return message;
+  });
+  state.getMessagesByBookingId.mockImplementation(async (bookingId: number) => state.messages.filter((message) => message.bookingId === bookingId));
+  state.getMessageById.mockImplementation(async (messageId: number) => state.messages.find((message) => message.id === messageId));
+  state.markMessageAsRead.mockImplementation(async (messageId: number) => {
+    const message = state.messages.find((item) => item.id === messageId);
+    if (message) message.isRead = true;
+  });
+  state.markMessagesAsRead.mockImplementation(async (bookingId: number, recipientUserId: number) => {
+    for (const message of state.messages) {
+      if (message.bookingId === bookingId && message.recipientId === recipientUserId) message.isRead = true;
+    }
+  });
   state.confirmScheduledBooking.mockImplementation(async () => { state.booking.status = 'confirmed'; return { changed: true }; });
   state.cancelScheduledBooking.mockImplementation(async () => { state.booking.status = 'cancelled'; return { changed: true }; });
   state.riderDefault.mockResolvedValue({ id: 88 });
-  for (const fn of [state.sendBookingRequestEmail, state.sendClientBookingNotificationToArtist, state.sendClientBookingConfirmationEmail, state.sendBookingConfirmationEmail, state.notifyBookingRequest, state.notifyBookingConfirmed, state.notifyBookingCancelled]) fn.mockResolvedValue(undefined);
+  for (const fn of [state.sendBookingRequestEmail, state.sendClientBookingNotificationToArtist, state.sendClientBookingConfirmationEmail, state.sendBookingConfirmationEmail, state.notifyBookingRequest, state.notifyBookingConfirmed, state.notifyBookingCancelled, state.notifyNewMessage]) fn.mockResolvedValue(undefined);
 });
 
 describe('booking workflow runtime integration', () => {
@@ -151,5 +180,31 @@ describe('booking workflow runtime integration', () => {
     expect(state.cancelScheduledBooking).toHaveBeenCalledWith(501, 7, 'artist');
     expect(state.notifyBookingCancelled).toHaveBeenCalledWith(expect.objectContaining({ bookingId: 501, cancelledBy: 'Artist' }));
     expect(state.notifyBookingCancelled).toHaveBeenCalledTimes(2);
+  });
+
+  it('sends, retrieves, and marks a booking message read through the real router', async () => {
+    const artistCaller = appRouter.createCaller(artistContext);
+    const venueCaller = appRouter.createCaller(venueContext);
+
+    await expect(artistCaller.message.send({ bookingId: 501, receiverId: 5, messageText: 'Please confirm the load-in time.' })).resolves.toEqual({ success: true });
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toMatchObject({ bookingId: 501, senderId: 7, recipientId: 5, content: 'Please confirm the load-in time.' });
+    expect(state.notifyNewMessage).toHaveBeenCalledWith(expect.objectContaining({ recipientUserId: 5, bookingId: 501, preview: 'Please confirm the load-in time.' }));
+
+    const thread = await venueCaller.message.getForBooking({ bookingId: 501 });
+    expect(thread).toHaveLength(1);
+    expect(thread[0]).toMatchObject({ senderId: 7, recipientId: 5 });
+
+    await expect(venueCaller.message.markAsRead({ id: state.messages[0].id })).resolves.toEqual({ success: true });
+    expect(state.messages[0].isRead).toBe(true);
+    await expect(venueCaller.message.markBookingAsRead({ bookingId: 501 })).resolves.toEqual({ success: true });
+    expect(state.markMessagesAsRead).toHaveBeenCalledWith(501, 5);
+  });
+
+  it('rejects a message recipient who is not the other booking participant', async () => {
+    const artistCaller = appRouter.createCaller(artistContext);
+    await expect(artistCaller.message.send({ bookingId: 501, receiverId: 999, messageText: 'This must not be delivered.' })).rejects.toThrow('other booking participant');
+    expect(state.createMessage).not.toHaveBeenCalled();
+    expect(state.notifyNewMessage).not.toHaveBeenCalled();
   });
 });

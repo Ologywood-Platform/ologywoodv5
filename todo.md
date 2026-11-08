@@ -28,6 +28,7 @@
 - [x] Add error boundaries to React components (page/section/component levels)
 - [ ] Implement proper error handling in all API routes
 - [ ] Add input validation to all endpoints
+- [x] Harden admin user-management input boundaries; user target IDs now require positive integers and user-list pagination requires integer `limit` 1–500 and non-negative `offset` capped at 1,000,000. Invalid values fail before database access. Admin/route/email/event validation tests pass 28/28 and TypeScript validation passes; the broader all-endpoints audit remains open.
 - [x] Harden discovered API route error responses; scheduled contract/premiere jobs, payment testing, socket metrics, test email, eBook upload, video upload, and Google Calendar sync now return stable client-safe messages instead of raw exception text, stack traces, URLs, or cron tokens. Typed upload-validation messages remain available for actionable client errors. Route-safety/security tests pass 68/68 and TypeScript validation passes; a full endpoint-by-endpoint error audit remains open.
 - [x] Harden booking checkout inputs: both `/api/booking-checkout` and `/api/booking-payment-status/:bookingId` now reject non-positive, non-safe-integer IDs before database or Stripe work. Focused checkout/workflow tests pass 59/59 and TypeScript validation passes; the broader all-endpoints validation audit remains open.
 - [x] Harden legacy event API inputs: all event, artist, history, and photo route parameters now reject malformed, non-positive, or unsafe integers via one router-level guard, and event creation rejects non-whole/negative capacity before the database path. Event-route/discovery/calendar tests pass 12/12 and TypeScript validation passes; the broader all-endpoints validation audit remains open.
@@ -84,6 +85,7 @@
 - [ ] Check message history
 - [x] Harden booking-message authorization; ordinary and rider messages now accept only the other booking participant as recipient, single-message reads require the recipient, and bulk reads require a booking party/admin and scope updates by recipient. Focused source regression tests pass 4/4 and TypeScript validation passes. The broader send/notification/history checklist remains open for end-to-end browser testing.
 - [x] Harden message input boundaries; booking/message/recipient/rider-template IDs require positive integers and rider template names are bounded to 1–200 characters. Focused messaging authorization/input tests pass 5/5; the broader all-procedure input-validation audit remains open.
+- [x] Runtime-test the message send/read/history contract through `appRouter` with isolated stateful database and notification mocks: artist send creates a recipient-bound message and `notifyNewMessage` payload, venue retrieves the thread, recipient marks one/all messages read, and a non-party receiver is rejected before create/notify. Booking/message/notification integration tests pass 23/23 with no real messages or notifications created.
 
 ---
 
