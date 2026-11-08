@@ -130,6 +130,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Profile IDs are safe integers; date windows require parseable dates with end-after-start validation; regions, tour types, windows, and notes are bounded; discovery filters are trimmed and capped; and batch touring-status requests are limited to 100 unique IDs.
    - Touring/search/portfolio regressions pass 64/64, with TypeScript and production build validation passing. No touring records, emails, or records were changed.
 
+26. **Artist fan-update boundaries — resolved in this increment.**
+   - Send payloads remain trimmed and bounded with strict objects; history limit/offset values require integers with a capped offset; and the consent-gated email renderer escapes subject, body, name, and link values before delivery.
+   - Artist-update/fan-email/consent regressions pass 99/99, with TypeScript and production build validation passing. No broadcasts, emails, fan records, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

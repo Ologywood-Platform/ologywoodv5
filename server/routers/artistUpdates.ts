@@ -54,7 +54,7 @@ export const artistUpdatesRouter = router({
       z.object({
         subject: z.string().trim().min(1, "Subject is required").max(200, "Subject too long"),
         body: z.string().trim().min(1, "Body is required").max(5000, "Body too long (max 5000 characters)"),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }: any) => {
       await assertFanEmailCreator(ctx.user.id);
@@ -100,9 +100,9 @@ export const artistUpdatesRouter = router({
   getHistory: protectedProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(50).default(20),
-        offset: z.number().min(0).default(0),
-      })
+        limit: z.number().int().min(1).max(50).default(20),
+        offset: z.number().int().min(0).max(1_000_000).default(0),
+      }).strict()
     )
     .query(async ({ ctx, input }: any) => {
       await assertFanEmailCreator(ctx.user.id);
