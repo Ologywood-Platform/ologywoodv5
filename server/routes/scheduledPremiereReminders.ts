@@ -86,6 +86,6 @@ export async function premiereRemindersHandler(req: Request, res: Response) {
     });
   } catch (error: any) {
     console.error('[Premiere Reminders] Error:', error);
-    return res.status(500).json({ error: error.message || 'Internal error' });
+    return res.status(500).json({ error: 'Unable to process scheduled premiere reminders' });
   }
 }

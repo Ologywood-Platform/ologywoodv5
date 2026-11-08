@@ -70,7 +70,7 @@ router.post('/upload/:itemId', ebookUpload.single('ebook'), async (req: Request,
   } catch (error: any) {
     console.error('[Book File Upload Error]', error);
     if (error.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'eBook files must be under 25 MB' });
-    return res.status(500).json({ error: error.message || 'eBook upload failed' });
+    return res.status(500).json({ error: 'eBook upload failed' });
   }
 });
 

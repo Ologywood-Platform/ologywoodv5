@@ -146,10 +146,7 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
   } catch (error: any) {
     console.error('[Scheduled] Contract expiry check failed:', error);
     res.status(500).json({
-      error: error.message,
-      stack: error.stack,
-      context: { url: req.url, taskUid: req.headers['x-manus-cron-task-uid'] },
-      timestamp: new Date().toISOString(),
+      error: 'Unable to complete scheduled contract reminder processing',
     });
   }
 }

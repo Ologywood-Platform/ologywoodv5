@@ -33,7 +33,7 @@ router.get('/success/:bookingId', async (req: Request, res: Response) => {
     console.error('[PaymentTestingRoutes] Error testing payment success:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to test payment success flow',
     });
   }
 });
@@ -63,7 +63,7 @@ router.get('/failure/:bookingId', async (req: Request, res: Response) => {
     console.error('[PaymentTestingRoutes] Error testing payment failure:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to test payment failure flow',
     });
   }
 });
@@ -93,7 +93,7 @@ router.get('/retry/:bookingId', async (req: Request, res: Response) => {
     console.error('[PaymentTestingRoutes] Error testing payment retry:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to test payment retry flow',
     });
   }
 });
@@ -128,7 +128,7 @@ router.get('/all/:bookingId', async (req: Request, res: Response) => {
     console.error('[PaymentTestingRoutes] Error running all payment tests:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to run payment tests',
     });
   }
 });
@@ -175,7 +175,7 @@ router.post('/verify-urls', async (req: Request, res: Response) => {
     console.error('[PaymentTestingRoutes] Error verifying URLs:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to verify payment redirect URLs',
     });
   }
 });

@@ -43,7 +43,7 @@ router.post('/test', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Error sending test email',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to send test email',
     });
   }
 });

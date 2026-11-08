@@ -366,7 +366,7 @@ export async function syncGoogleCalendarForArtist(artistId: number): Promise<{ s
     return { synced };
   } catch (err: any) {
     console.error('[Google Calendar Sync] Sync error:', err);
-    return { synced: 0, error: err.message };
+    return { synced: 0, error: 'Unable to sync Google Calendar availability' };
   }
 }
 

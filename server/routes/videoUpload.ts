@@ -172,7 +172,7 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Video file must be under 500MB' });
     }
-    return res.status(500).json({ error: err.message || 'Upload failed' });
+    return res.status(500).json({ error: 'Video upload failed' });
   }
 });
 
@@ -197,7 +197,7 @@ router.post('/performance/start', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Performance Video Start Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not start the Performance Video upload' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not start the Performance Video upload' });
   }
 });
 
@@ -219,7 +219,7 @@ router.post('/performance/chunk', express.raw({ type: 'application/octet-stream'
   } catch (err: any) {
     console.error('[Performance Video Chunk Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not upload the Performance Video chunk' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not upload the Performance Video chunk' });
   }
 });
 
@@ -272,7 +272,7 @@ router.post('/performance/finalize', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Performance Video Finalize Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not finish the Performance Video upload' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not finish the Performance Video upload' });
   }
 });
 
@@ -298,7 +298,7 @@ router.post('/portfolio/start', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Portfolio Video Start Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not start the video upload' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not start the video upload' });
   }
 });
 
@@ -325,7 +325,7 @@ router.post('/portfolio/chunk', portfolioChunkBody, async (req: Request, res: Re
   } catch (err: any) {
     console.error('[Portfolio Video Chunk Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not upload the video chunk' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not upload the video chunk' });
   }
 });
 
@@ -382,7 +382,7 @@ router.post('/portfolio/finalize', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Portfolio Video Finalize Error]', err);
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
-    return res.status(status).json({ error: err.message || 'Could not finish the video upload' });
+    return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not finish the video upload' });
   }
 });
 
@@ -457,7 +457,7 @@ router.post('/portfolio', portfolioUpload.fields([
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Portfolio video must be under 100MB' });
     }
-    return res.status(500).json({ error: err.message || 'Portfolio video upload failed' });
+    return res.status(500).json({ error: 'Portfolio video upload failed' });
   }
 });
 

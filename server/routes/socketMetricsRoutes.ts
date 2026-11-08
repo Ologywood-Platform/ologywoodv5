@@ -59,7 +59,7 @@ router.post('/metrics/update', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error updating metrics:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to update socket metrics',
     });
   }
 });
@@ -85,7 +85,7 @@ router.post('/metrics/connection', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error recording connection:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to record socket connection',
     });
   }
 });
@@ -109,7 +109,7 @@ router.post('/metrics/disconnection', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error recording disconnection:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to record socket disconnection',
     });
   }
 });
@@ -143,7 +143,7 @@ router.post('/metrics/message', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error recording message:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to record socket message',
     });
   }
 });
@@ -164,7 +164,7 @@ router.post('/metrics/notification', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error recording notification:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to record socket notification',
     });
   }
 });
@@ -196,7 +196,7 @@ router.post('/metrics/reset', (req: Request, res: Response) => {
     console.error('[SocketMetricsRoutes] Error resetting metrics:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Unable to reset socket metrics',
     });
   }
 });

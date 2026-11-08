@@ -28,6 +28,7 @@
 - [x] Add error boundaries to React components (page/section/component levels)
 - [ ] Implement proper error handling in all API routes
 - [ ] Add input validation to all endpoints
+- [x] Harden discovered API route error responses; scheduled contract/premiere jobs, payment testing, socket metrics, test email, eBook upload, video upload, and Google Calendar sync now return stable client-safe messages instead of raw exception text, stack traces, URLs, or cron tokens. Typed upload-validation messages remain available for actionable client errors. Route-safety/security tests pass 68/68 and TypeScript validation passes; a full endpoint-by-endpoint error audit remains open.
 - [x] Harden booking checkout inputs: both `/api/booking-checkout` and `/api/booking-payment-status/:bookingId` now reject non-positive, non-safe-integer IDs before database or Stripe work. Focused checkout/workflow tests pass 59/59 and TypeScript validation passes; the broader all-endpoints validation audit remains open.
 
 ---
