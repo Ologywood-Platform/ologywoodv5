@@ -28,7 +28,7 @@ export const riderContractRouter = router({
    * Returns the contract with its current signatures
    */
   getForBooking: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking) {
@@ -95,7 +95,7 @@ export const riderContractRouter = router({
    */
   createContract: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
+      bookingId: z.number().int().positive(),
     }))
     .mutation(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
@@ -148,9 +148,9 @@ export const riderContractRouter = router({
    */
   sign: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      signatureData: z.string().min(1, "Signature is required"),
-      signerName: z.string().min(1, "Name is required"),
+      bookingId: z.number().int().positive(),
+      signatureData: z.string().min(1, "Signature is required").max(8_000_000, "Signature is too large"),
+      signerName: z.string().trim().min(1, "Name is required").max(200, "Name is too long"),
       signatureType: z.enum(["drawn", "typed"]),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -446,11 +446,19 @@ export const riderContractRouter = router({
    * Get the rendered rider HTML for preview/PDF
    */
   getRiderPreview: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking || !booking.riderTemplateId) {
         return null;
+      }
+
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+      if (!isArtist && !isVenue && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized to view this rider preview" });
       }
 
       const riderTemplate = await getRiderTemplate(booking.riderTemplateId);
@@ -490,11 +498,23 @@ export const riderContractRouter = router({
    * Verify a contract's signature integrity
    */
   verify: protectedProcedure
-    .input(z.object({ contractId: z.number() }))
+    .input(z.object({ contractId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const contract = await db.getContractById(input.contractId);
       if (!contract) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Contract not found" });
+      }
+
+      const booking = await db.getBookingById(contract.bookingId);
+      if (!booking) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      }
+      const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+      const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+      const isArtist = artistProfile && booking.artistId === artistProfile.id;
+      const isVenue = venueProfile && booking.venueId === venueProfile.id;
+      if (!isArtist && !isVenue && ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized to verify this contract" });
       }
 
       const signatures = await db.getSignaturesByContractId(input.contractId);
@@ -532,12 +552,14 @@ export const riderContractRouter = router({
    */
   proposeRevision: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      changes: z.record(z.string(), z.object({
+      bookingId: z.number().int().positive(),
+      changes: z.record(z.string().min(1).max(100), z.object({
         oldValue: z.any(),
         newValue: z.any(),
-        label: z.string(),
-      })),
+        label: z.string().trim().min(1).max(200),
+      }).strict()).refine((changes) => Object.keys(changes).length <= 100, {
+        message: "A revision may contain at most 100 changed fields",
+      }),
     }))
     .mutation(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
@@ -647,7 +669,7 @@ export const riderContractRouter = router({
    * Get all revisions for a booking
    */
   getRevisions: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking) {
@@ -680,7 +702,7 @@ export const riderContractRouter = router({
    * Approve a proposed revision — applies changes to the rider template data
    */
   approveRevision: protectedProcedure
-    .input(z.object({ revisionId: z.number() }))
+    .input(z.object({ revisionId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       const revision = await db.getRiderRevisionById(input.revisionId);
       if (!revision) {
@@ -774,8 +796,8 @@ export const riderContractRouter = router({
    */
   rejectRevision: protectedProcedure
     .input(z.object({
-      revisionId: z.number(),
-      reason: z.string().optional(),
+      revisionId: z.number().int().positive(),
+      reason: z.string().trim().max(2_000).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const revision = await db.getRiderRevisionById(input.revisionId);
@@ -845,7 +867,7 @@ export const riderContractRouter = router({
    * Returns base64-encoded PDF data
    */
   downloadPdf: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking || !booking.riderTemplateId) {
@@ -906,8 +928,8 @@ export const riderContractRouter = router({
    */
   setPerformanceFee: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      performanceFee: z.number().min(1, 'Fee must be at least $1'),
+      bookingId: z.number().int().positive(),
+      performanceFee: z.number().finite().min(1, 'Fee must be at least $1').max(1_000_000),
     }))
     .mutation(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
@@ -943,7 +965,7 @@ export const riderContractRouter = router({
    * Generate a full NIL Engagement Contract from booking + rider data
    */
   generateNILContract: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking) {
@@ -1000,7 +1022,7 @@ export const riderContractRouter = router({
    * Download NIL contract as PDF
    */
   downloadNILContractPdf: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       const booking = await db.getBookingById(input.bookingId);
       if (!booking) {

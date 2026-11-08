@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Mock the db module
 vi.mock('./db', () => ({
@@ -30,6 +32,7 @@ import { getRiderTemplate } from './services/riderTemplateService';
 
 const mockDb = db as any;
 const mockGetRiderTemplate = getRiderTemplate as any;
+const riderContractSource = readFileSync(resolve(process.cwd(), 'server/routers/riderContract.ts'), 'utf8');
 
 describe('Rider Contract E-Signature Logic', () => {
   beforeEach(() => {
@@ -285,6 +288,33 @@ describe('Rider Contract E-Signature Logic', () => {
       expect(validTypes).toContain('drawn');
       expect(validTypes).toContain('typed');
       expect(validTypes).not.toContain('stamp');
+    });
+  });
+
+  describe('Router Input and Access Boundaries', () => {
+    it('uses strict positive IDs and bounded contract inputs', () => {
+      expect(riderContractSource).not.toMatch(/bookingId:\s*z\.number\(\)(?!\.)/);
+      expect(riderContractSource).not.toMatch(/contractId:\s*z\.number\(\)(?!\.)/);
+      expect(riderContractSource).not.toMatch(/revisionId:\s*z\.number\(\)(?!\.)/);
+      expect(riderContractSource).toContain('signatureData: z.string().min(1, "Signature is required").max(8_000_000, "Signature is too large")');
+      expect(riderContractSource).toContain('signerName: z.string().trim().min(1, "Name is required").max(200, "Name is too long")');
+      expect(riderContractSource).toContain('Object.keys(changes).length <= 100');
+      expect(riderContractSource).toContain('reason: z.string().trim().max(2_000).optional()');
+    });
+
+    it('party-scopes rider previews and contract verification', () => {
+      const previewBlock = riderContractSource.slice(
+        riderContractSource.indexOf('getRiderPreview:'),
+        riderContractSource.indexOf('verify: protectedProcedure'),
+      );
+      const verifyBlock = riderContractSource.slice(
+        riderContractSource.indexOf('verify: protectedProcedure'),
+        riderContractSource.indexOf('// ============= RIDER REVISION FLOW ============='),
+      );
+      expect(previewBlock).toContain('Not authorized to view this rider preview');
+      expect(previewBlock).toContain('db.getArtistProfileByUserId(ctx.user.id)');
+      expect(verifyBlock).toContain('Not authorized to verify this contract');
+      expect(verifyBlock).toContain('db.getBookingById(contract.bookingId)');
     });
   });
 

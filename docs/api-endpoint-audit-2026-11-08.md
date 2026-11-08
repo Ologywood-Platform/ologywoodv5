@@ -71,8 +71,12 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Google/Spotify no longer log provider email, provider IDs, response bodies, session-linked open IDs, or redirect targets; Contract PDF no longer logs booking/profile/contract IDs, filenames, raw exception messages, or stacks. Focused `sensitiveLogSafety`/OAuth/private-data tests pass 17/17. A broader inventory of non-sensitive operational IDs and production log-retention policy remains outside this route-focused audit.
 
 11. **Booking rider and message boundaries — resolved in this increment.**
-   - Booking deposit, rider, unread-message, and message inputs now require finite positive integer IDs/amounts with bounded payment-intent identifiers. Booking riders are party-scoped, and message/send-rider recipients are resolved from the booking's participant profile IDs rather than the sender's profile, preventing cross-booking recipient confusion for artists and venues.
+   - Booking deposit, rider, unread-message, and message/send-rider inputs now require finite positive integer IDs/amounts with bounded payment-intent identifiers. Booking riders are party-scoped, and message/send-rider recipients are resolved from the booking's participant profile IDs rather than the sender's profile, preventing cross-booking recipient confusion for artists and venues.
    - Runtime booking/message integration, authorization, notification, and input-boundary tests pass 25/25; TypeScript validation passes. No booking, message, notification, payment, or rider record was created or modified during validation.
+
+12. **Rider-contract private reads and signing inputs — resolved in this increment.**
+   - Rider-contract booking, contract, and revision identifiers now require positive integers; performance fees, signature payloads, signer names, revision labels/field counts, and rejection reasons are bounded. Rider previews and contract verification now require the authenticated booking artist/venue or an admin before returning rendered content or signatures.
+   - Rider-contract and NIL readiness regressions pass 33/33, and the combined booking/message regression suite passes 25/25. TypeScript and production build validation pass; no contracts, signatures, riders, payments, or notifications were changed.
 
 ## Audit limitations
 
