@@ -2147,6 +2147,13 @@ export const appRouter = router({
         if (!isArtistParty && !isVenueParty) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
         }
+        const allowedRecipientIds = [
+          isArtistParty ? venueProfile?.userId : null,
+          isVenueParty ? artistProfile?.userId : null,
+        ].filter((id): id is number => typeof id === 'number');
+        if (!allowedRecipientIds.includes(input.receiverId)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Messages can only be sent to the other booking participant' });
+        }
         await db.createMessage({
           bookingId: input.bookingId,
           senderId: ctx.user.id,
@@ -2187,6 +2194,13 @@ export const appRouter = router({
         if (!isArtistParty && !isVenueParty) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have permission to send messages for this booking' });
         }
+        const allowedRecipientIds = [
+          isArtistParty ? venueProfile?.userId : null,
+          isVenueParty ? artistProfile?.userId : null,
+        ].filter((id): id is number => typeof id === 'number');
+        if (!allowedRecipientIds.includes(input.receiverId)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Messages can only be sent to the other booking participant' });
+        }
         await db.createMessage({
           bookingId: input.bookingId,
           senderId: ctx.user.id,
@@ -2211,7 +2225,14 @@ export const appRouter = router({
     // Mark message as read
     markAsRead: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
+        const message = await db.getMessageById(input.id);
+        if (!message) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Message not found' });
+        }
+        if (message.recipientId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the message recipient can mark it as read' });
+        }
         await db.markMessageAsRead(input.id);
         return { success: true };
       }),
@@ -2220,7 +2241,18 @@ export const appRouter = router({
     markBookingAsRead: protectedProcedure
       .input(z.object({ bookingId: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        await db.markMessagesAsRead(input.bookingId);
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const isArtistParty = artistProfile && booking.artistId === artistProfile.id;
+        const isVenueParty = venueProfile && booking.venueId === venueProfile.id;
+        if (!isArtistParty && !isVenueParty && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this booking\'s messages' });
+        }
+        await db.markMessagesAsRead(input.bookingId, ctx.user.id);
         return { success: true };
       }),
     

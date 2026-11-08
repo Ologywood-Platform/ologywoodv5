@@ -5,10 +5,24 @@
  *
  * Shared between BlogPost (public) and BlogAdmin (preview).
  */
+import DOMPurify from 'dompurify';
+
+function escapeMarkdownSource(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function renderMarkdown(md: string): string {
+  // Escape raw HTML before converting Markdown so authored tags cannot become
+  // executable markup in either the public post or the admin live preview.
+  const safeMarkdown = escapeMarkdownSource(md);
   // First, extract and convert Markdown tables to HTML
   const tableRegex = /^(\|.+\|\n)(\|[-: |]+\|\n)((?:\|.+\|\n?)+)/gm;
-  let processed = md.replace(tableRegex, (_match, headerRow: string, _separatorRow: string, bodyRows: string) => {
+  let processed = safeMarkdown.replace(tableRegex, (_match, headerRow: string, _separatorRow: string, bodyRows: string) => {
     const parseRow = (row: string) =>
       row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c: string) => c.trim());
     const headers = parseRow(headerRow);
@@ -89,5 +103,14 @@ export function renderMarkdown(md: string): string {
     })
     .join("\n");
 
-  return html;
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'a', 'blockquote', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'hr',
+      'img', 'li', 'ol', 'p', 'pre', 'strong', 'table', 'tbody', 'td',
+      'th', 'thead', 'tr', 'ul',
+    ],
+    ALLOWED_ATTR: ['alt', 'class', 'href', 'rel', 'src', 'target'],
+    FORBID_TAGS: ['form', 'iframe', 'input', 'object', 'script', 'style', 'svg'],
+    ALLOW_DATA_ATTR: false,
+  });
 }

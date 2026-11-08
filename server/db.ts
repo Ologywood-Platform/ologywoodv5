@@ -1614,10 +1614,13 @@ export async function markMessageAsRead(messageId: number): Promise<void> {
   await db.update(messages).set({ isRead: true }).where(eq(messages.id, messageId));
 }
 
-export async function markMessagesAsRead(bookingId: number): Promise<void> {
+export async function markMessagesAsRead(bookingId: number, recipientUserId?: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.update(messages).set({ isRead: true }).where(eq(messages.bookingId, bookingId));
+  const condition = recipientUserId === undefined
+    ? eq(messages.bookingId, bookingId)
+    : and(eq(messages.bookingId, bookingId), eq(messages.recipientId, recipientUserId));
+  await db.update(messages).set({ isRead: true }).where(condition);
 }
 
 export async function getTotalUnreadMessageCount(userId: number): Promise<number> {

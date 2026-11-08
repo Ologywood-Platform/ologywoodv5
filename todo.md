@@ -65,15 +65,18 @@
 - [x] Check booking notifications; runtime assertions verify request, client confirmation, artist notification, confirmation, and cancellation payloads; the notification regression suite also covers payment, contract, message, CRUD, and safe failure behavior. Combined runtime suite passes 59/59.
 
 ### Payments (Stripe)
-- [ ] Test Stripe integration in test mode
+- [x] Test Stripe integration in test mode; corrected test/live signing configuration was verified against the existing test destination, and Stripe Workbench recorded the reused sandbox Checkout event as HTTP 200 Delivered with zero pending webhooks. No new customer, charge, refund, or application fixture was created.
 - [ ] Verify payment processing
 - [ ] Test refund functionality
 - [ ] Check payment history
+- [x] Verify the narrow test-mode payment/webhook handshake; the approved sandbox Checkout reached paid/succeeded status and the existing Stripe-originated event was acknowledged by OlogyWood. This does not claim real-money settlement or production fulfillment.
+- [x] Validate the narrow My Ology release-history/library path; protected real-router validation returned two purchase records for one release and one unique playable library item. Cross-domain payment-history coverage remains open.
 
 ### Messaging
 - [ ] Test message sending between users
 - [ ] Verify message notifications
 - [ ] Check message history
+- [x] Harden booking-message authorization; ordinary and rider messages now accept only the other booking participant as recipient, single-message reads require the recipient, and bulk reads require a booking party/admin and scope updates by recipient. Focused source regression tests pass 4/4 and TypeScript validation passes. The broader send/notification/history checklist remains open for end-to-end browser testing.
 
 ---
 
@@ -85,6 +88,7 @@
 - [ ] Validate all user inputs
 - [ ] Check for XSS vulnerabilities
 - [ ] Verify sensitive data is encrypted
+- [x] Harden the discovered blog Markdown XSS boundary; raw Markdown is escaped before conversion and the final fragment passes an explicit DOMPurify allowlist with scripts, forms, frames, SVG, styles, and data attributes blocked. Public blog and admin preview both use the shared renderer. Focused XSS/message tests pass 7/7 and the production build succeeds; the broader application-wide XSS audit remains open.
 
 ### Performance
 - [ ] Measure page load times
