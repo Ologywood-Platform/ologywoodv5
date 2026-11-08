@@ -8,6 +8,16 @@ import { getUserSubscription } from "../services/pricingTierService";
 import type { SponsorSlot, SponsorAnalytic, MediaKit } from "../../drizzle/schema";
 
 const MAX_SPONSOR_SLOTS = 5;
+const safeId = z.number().int().safe().positive();
+const sponsorUrl = z.string().trim().url().max(512).refine((value) => /^https?:\/\//i.test(value), 'Only HTTP(S) URLs are allowed');
+const sponsorDate = z.string().trim().min(1).max(40).refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date');
+const optionalSponsorDate = sponsorDate.optional().nullable();
+
+function validateDateRange(startDate?: string | null, endDate?: string | null) {
+  if (startDate && endDate && new Date(startDate).getTime() > new Date(endDate).getTime()) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Sponsor end date must be on or after the start date.' });
+  }
+}
 
 /**
  * Verify the user has an enterprise subscription
@@ -46,7 +56,7 @@ export const sponsorRouter = router({
    * Get active sponsors for a public artist profile (no auth required)
    */
   getPublicSponsors: publicProcedure
-    .input(z.object({ artistId: z.number() }))
+    .input(z.object({ artistId: safeId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
@@ -74,7 +84,7 @@ export const sponsorRouter = router({
    * Get active sponsors by artist profile ID (for event pages where we have profileId not userId)
    */
   getPublicSponsorsByProfileId: publicProcedure
-    .input(z.object({ profileId: z.number() }))
+    .input(z.object({ profileId: safeId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
@@ -112,15 +122,20 @@ export const sponsorRouter = router({
    */
   create: protectedProcedure
     .input(z.object({
-      sponsorName: z.string().min(1).max(200),
-      sponsorLogoUrl: z.string().url().max(512),
-      sponsorWebsite: z.string().url().max(512).optional(),
-      sponsorDescription: z.string().max(500).optional(),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
+      sponsorName: z.string().trim().min(1).max(200),
+      sponsorLogoUrl: sponsorUrl,
+      sponsorWebsite: sponsorUrl.optional(),
+      sponsorDescription: z.string().trim().max(500).optional(),
+      startDate: sponsorDate.optional(),
+      endDate: sponsorDate.optional(),
+    }).strict().superRefine((value, ctx) => {
+      if (value.startDate && value.endDate && new Date(value.startDate).getTime() > new Date(value.endDate).getTime()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'Sponsor end date must be on or after the start date.' });
+      }
     }))
     .mutation(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
+      validateDateRange(input.startDate, input.endDate);
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
 
@@ -162,18 +177,23 @@ export const sponsorRouter = router({
    */
   update: protectedProcedure
     .input(z.object({
-      id: z.number(),
-      sponsorName: z.string().min(1).max(200).optional(),
-      sponsorLogoUrl: z.string().url().max(512).optional(),
-      sponsorWebsite: z.string().url().max(512).optional().nullable(),
-      sponsorDescription: z.string().max(500).optional().nullable(),
+      id: safeId,
+      sponsorName: z.string().trim().min(1).max(200).optional(),
+      sponsorLogoUrl: sponsorUrl.optional(),
+      sponsorWebsite: sponsorUrl.optional().nullable(),
+      sponsorDescription: z.string().trim().max(500).optional().nullable(),
       isActive: z.boolean().optional(),
-      displayOrder: z.number().optional(),
-      startDate: z.string().optional().nullable(),
-      endDate: z.string().optional().nullable(),
+      displayOrder: z.number().int().min(1).max(MAX_SPONSOR_SLOTS).optional(),
+      startDate: optionalSponsorDate,
+      endDate: optionalSponsorDate,
+    }).strict().superRefine((value, ctx) => {
+      if (value.startDate && value.endDate && new Date(value.startDate).getTime() > new Date(value.endDate).getTime()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'Sponsor end date must be on or after the start date.' });
+      }
     }))
     .mutation(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
+      validateDateRange(input.startDate, input.endDate);
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
 
@@ -209,7 +229,7 @@ export const sponsorRouter = router({
    * Delete a sponsor slot
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: safeId }).strict())
     .mutation(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
       const db = await getDb();
@@ -239,8 +259,8 @@ export const sponsorRouter = router({
    */
   reorder: protectedProcedure
     .input(z.object({
-      orderedIds: z.array(z.number()),
-    }))
+      orderedIds: z.array(safeId).max(MAX_SPONSOR_SLOTS).refine((ids) => new Set(ids).size === ids.length, 'Duplicate sponsor IDs are not allowed'),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
       const db = await getDb();
@@ -263,20 +283,39 @@ export const sponsorRouter = router({
    */
   trackEvent: publicProcedure
     .input(z.object({
-      sponsorSlotId: z.number(),
-      artistId: z.number(),
+      sponsorSlotId: safeId,
+      artistId: safeId.optional(),
+      artistProfileId: safeId.optional(),
       eventType: z.enum(['impression', 'click']),
-      source: z.string().max(100).optional(),
-    }))
+      source: z.enum(['profile', 'event', 'ticket_confirmation', 'media_kit']).default('profile'),
+    }).strict().refine((value) => Boolean(value.artistId) !== Boolean(value.artistProfileId), 'Provide exactly one artist identifier'))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) return { success: false };
 
+      const artistId = input.artistId ?? (await db
+        .select({ userId: artistProfiles.userId })
+        .from(artistProfiles)
+        .where(eq(artistProfiles.id, input.artistProfileId!))
+        .limit(1))[0]?.userId;
+      if (!artistId) return { success: false };
+
+      const [slot] = await db
+        .select({ id: sponsorSlots.id })
+        .from(sponsorSlots)
+        .where(and(
+          eq(sponsorSlots.id, input.sponsorSlotId),
+          eq(sponsorSlots.artistId, artistId),
+          eq(sponsorSlots.isActive, true),
+        ))
+        .limit(1);
+      if (!slot) return { success: false };
+
       await db.insert(sponsorAnalytics).values({
         sponsorSlotId: input.sponsorSlotId,
-        artistId: input.artistId,
+        artistId,
         eventType: input.eventType,
-        source: input.source || 'profile',
+        source: input.source,
       });
 
       return { success: true };
@@ -287,8 +326,8 @@ export const sponsorRouter = router({
    */
   getAnalytics: protectedProcedure
     .input(z.object({
-      days: z.number().min(1).max(365).optional().default(30),
-    }))
+      days: z.number().int().min(1).max(365).optional().default(30),
+    }).strict())
     .query(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
       const db = await getDb();
@@ -382,7 +421,7 @@ export const sponsorRouter = router({
    * Get public media kit for an artist (if they've made it public)
    */
   getPublicMediaKit: publicProcedure
-    .input(z.object({ artistId: z.number() }))
+    .input(z.object({ artistId: safeId }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
@@ -401,23 +440,23 @@ export const sponsorRouter = router({
    */
   updateMediaKit: protectedProcedure
     .input(z.object({
-      bio: z.string().max(2000).optional().nullable(),
-      pressPhotos: z.array(z.string().url()).max(10).optional(),
+      bio: z.string().trim().max(2000).optional().nullable(),
+      pressPhotos: z.array(sponsorUrl).max(10).optional(),
       socialStats: z.array(z.object({
-        platform: z.string(),
-        followers: z.number(),
-        url: z.string(),
-      })).max(10).optional(),
-      achievements: z.array(z.string().max(200)).max(20).optional(),
-      genres: z.array(z.string().max(50)).max(10).optional(),
-      monthlyListeners: z.number().optional().nullable(),
-      totalStreams: z.number().optional().nullable(),
-      averageEventAttendance: z.number().optional().nullable(),
-      contactEmail: z.string().email().max(320).optional().nullable(),
-      managementContact: z.string().max(320).optional().nullable(),
-      bookingContact: z.string().max(320).optional().nullable(),
+        platform: z.string().trim().min(1).max(50),
+        followers: z.number().int().min(0).max(2_000_000_000),
+        url: sponsorUrl,
+      }).strict()).max(10).optional(),
+      achievements: z.array(z.string().trim().min(1).max(200)).max(20).optional(),
+      genres: z.array(z.string().trim().min(1).max(50)).max(10).optional(),
+      monthlyListeners: z.number().int().min(0).max(2_000_000_000).optional().nullable(),
+      totalStreams: z.number().int().min(0).max(2_000_000_000).optional().nullable(),
+      averageEventAttendance: z.number().int().min(0).max(2_000_000_000).optional().nullable(),
+      contactEmail: z.string().trim().email().max(320).optional().nullable(),
+      managementContact: z.string().trim().max(320).optional().nullable(),
+      bookingContact: z.string().trim().max(320).optional().nullable(),
       isPublic: z.boolean().optional(),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       await requireEnterprise(ctx.user.id);
       const db = await getDb();

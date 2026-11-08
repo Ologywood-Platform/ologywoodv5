@@ -25,7 +25,8 @@ export function EventSponsorShowcase({ artistProfileId, eventId }: EventSponsorS
     if (sponsors && sponsors.length > 0) {
       sponsors.forEach((sponsor: any) => {
         trackMutation.mutate({
-          sponsorId: sponsor.id,
+          sponsorSlotId: sponsor.id,
+          artistProfileId,
           eventType: 'impression',
           source: 'event',
         });
@@ -35,7 +36,8 @@ export function EventSponsorShowcase({ artistProfileId, eventId }: EventSponsorS
 
   const handleSponsorClick = (sponsor: any) => {
     trackMutation.mutate({
-      sponsorId: sponsor.id,
+      sponsorSlotId: sponsor.id,
+      artistProfileId,
       eventType: 'click',
       source: 'event',
     });

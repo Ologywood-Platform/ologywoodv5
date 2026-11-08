@@ -106,6 +106,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - AI/budget fields, campaign budgets, goals/audience/notes/timelines, platform selections, admin status/report inputs, and edit IDs are bounded and strict. Optional event/release/profile targets are safe integers and, when supplied, are resolved to the submitting artist before a Stripe PaymentIntent is created. The promotion client state now matches the server’s platform enum.
    - Promotion/admin/Stripe credential regressions pass 45/45, with TypeScript and production build validation passing. No promotion requests, PaymentIntents, emails, or records were changed.
 
+20. **Artist sponsor and media-kit boundaries — resolved in this increment.**
+   - Public/profile IDs, sponsor IDs/order/date/text fields, HTTPS logo/site URLs, analytics windows, media-kit metrics/contacts/URLs, and nested social-stat objects are bounded and strict. Public analytics now resolve profile identifiers and verify that an active sponsor slot belongs to the claimed artist before writing an impression/click. The event-page client field mismatch was corrected.
+   - Sponsor/security/ecosystem/sitemap regressions pass 62/62, with TypeScript and production build validation passing. No sponsors, analytics, media kits, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
