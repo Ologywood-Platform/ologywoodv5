@@ -49,8 +49,8 @@
 ## Phase 3: Critical Features Testing
 
 ### Artist Discovery & Browsing
-- [ ] Test artist search functionality
-- [ ] Verify filtering works correctly
+- [x] Test artist search functionality; event artist search, homepage search, and discovery search regression suites pass 47/47. Assertions cover exact/starts-with/word-start/substring ranking, case-insensitive partial names, event artist-name search, and state/region Browse wiring.
+- [x] Verify filtering works correctly; the focused suite asserts genre OR matching, location and state/region fields, combined genre+location and all-filter behavior, server-side `verifiedOnly` input, and event-search filters.
 - [ ] Check featured artists carousel
 - [ ] Test pagination
 - [ ] Verify artist profiles display correctly

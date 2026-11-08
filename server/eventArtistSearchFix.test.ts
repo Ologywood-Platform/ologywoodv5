@@ -2,10 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { eventSearchPattern, normalizeEventSearchQuery } from '../shared/eventSearch';
+import { discoveryMatchScore } from './routers/discoverySearch';
 
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 
 describe('event artist-name search', () => {
+  it('prioritizes exact and starts-with artist matches', () => {
+    expect(discoveryMatchScore('Dawud Anyabwile', 'dawud')).toBe(1);
+    expect(discoveryMatchScore('Anyabwile Dawud', 'dawud')).toBe(2);
+    expect(discoveryMatchScore('The xDawud Project', 'dawud')).toBe(3);
+    expect(discoveryMatchScore('Dawud', 'Dawud')).toBe(0);
+  });
+
   it('normalizes full and partial artist names case-insensitively', () => {
     expect(normalizeEventSearchQuery('  DAWUD   Anyabwile ')).toBe('dawud anyabwile');
     expect(eventSearchPattern('Dawud')).toBe('%dawud%');
@@ -46,5 +54,16 @@ describe('event artist-name search', () => {
     expect(profile).toContain('const resolvedArtistId = Number(artist?.id || artistId)');
     expect(profile).toContain('{ artistId: resolvedArtistId }');
     expect(profile).toContain('{ enabled: resolvedArtistId > 0 }');
+  });
+
+  it('keeps Browse starts-with, state/region, and verified filter wiring intact', () => {
+    const browse = source('client/src/pages/Browse.tsx');
+    const router = source('server/routers.ts');
+    expect(browse).toContain("name.startsWith(q)");
+    expect(browse).toContain("state?: string");
+    expect(browse).toContain("region?: string");
+    expect(browse).toContain("filters.state");
+    expect(browse).toContain("filters.region");
+    expect(router).toContain("verifiedOnly: z.boolean().optional()");
   });
 });
