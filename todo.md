@@ -2569,8 +2569,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Write vitest tests for OAuth fix (17 tests passing)
 
 ## Bugs
-
-- [ ] Fix yearly subscription checkout button not working (Go Professional does nothing when yearly is selected)
+- [x] Fix yearly subscription checkout button not working (Go Professional does nothing when yearly is selected); annual interval is passed from Pricing and Subscription Management through the protected router into Stripe's yearly lookup-key/price resolver, with plan/interval metadata and safe annual trial behavior. Verified by 94 annual-pricing, subscription-display, and Stripe integration tests plus the passing production build.
 - [x] Fix "Next billing" showing today's date during trial — now shows "First billing" with trial end date (Jun 5, 2026)
 - [x] Fix subscription price display showing "$29/month" instead of "$290/year" after yearly checkout
   - Updated SubscriptionManagement.tsx to read billing interval from Stripe status (stripeStatus.interval)
@@ -3107,7 +3106,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Display Start and End dates on same line with unified Availability pattern (matching Artists filter)
 
 ## EVENTS SEARCH - NO RESULTS BEFORE SEARCH (Jun 14, 2026)
-- [ ] Fix: Do not display event results on Search Events screen until user applies search criteria
+- [x] Fix: Do not display event results on Search Events screen until user applies search criteria; EventDiscovery keeps the query disabled until Apply Filters sets appliedFilters and hasSearched, with an explicit initial search state and reset behavior.
 
 ## EVENTS BOOKING FLOW FIXES (Jun 14, 2026)
 - [x] Fix: Wire up onBook handler in EventDiscovery so Book Now actually creates a booking request
