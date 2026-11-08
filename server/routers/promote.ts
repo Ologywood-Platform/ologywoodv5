@@ -33,14 +33,14 @@ export const promoteRouter = router({
   generateAdCopy: artistProcedure
     .input(z.object({
       type: z.enum(["event", "release", "profile"]),
-      name: z.string().min(1),
-      description: z.string().optional(),
-      genre: z.string().optional(),
-      location: z.string().optional(),
-      date: z.string().optional(),
+      name: z.string().trim().min(1).max(255),
+      description: z.string().trim().max(5000).optional(),
+      genre: z.string().trim().max(100).optional(),
+      location: z.string().trim().max(255).optional(),
+      date: z.string().trim().max(100).optional(),
       platform: z.enum(["instagram", "facebook", "tiktok", "youtube", "twitter"]),
       tone: z.enum(["hype", "professional", "casual", "urgent"]).default("hype"),
-    }))
+    }).strict())
     .mutation(async ({ input }) => {
       const { type, name, description, genre, location, date, platform, tone } = input;
 
@@ -155,11 +155,11 @@ Generate compelling, ready-to-use ad copy.`;
    */
   calculateBudget: artistProcedure
     .input(z.object({
-      dailyBudget: z.number().min(5).max(1000), // $5-$1000/day
-      days: z.number().min(1).max(90),
+      dailyBudget: z.number().min(5).max(1000).refine((value) => Number.isInteger(value * 100), 'Budget must have at most two decimal places'), // $5-$1000/day
+      days: z.number().int().min(1).max(90),
       platform: z.enum(["instagram", "facebook", "tiktok", "youtube", "twitter"]),
-      location: z.string().optional(),
-    }))
+      location: z.string().trim().max(255).optional(),
+    }).strict())
     .query(({ input }) => {
       const { dailyBudget, days, platform, location } = input;
       const totalBudget = dailyBudget * days;
@@ -220,18 +220,35 @@ Generate compelling, ready-to-use ad copy.`;
   submitBoostRequest: artistProcedure
     .input(z.object({
       type: z.enum(["event", "release", "profile"]),
-      targetId: z.number().optional(),
-      targetName: z.string().min(1),
-      budget: z.number().min(5000), // minimum $50 in cents
-      goals: z.string().min(10),
-      targetAudience: z.string().optional(),
-      platforms: z.array(z.string()).min(1),
-      timeline: z.string().optional(),
-      additionalNotes: z.string().optional(),
-    }))
+      targetId: z.number().int().safe().positive().optional(),
+      targetName: z.string().trim().min(1).max(255),
+      budget: z.number().int().min(5000).max(10_000_000), // minimum $50 in cents
+      goals: z.string().trim().min(10).max(5000),
+      targetAudience: z.string().trim().max(1000).optional(),
+      platforms: z.array(z.enum(["instagram", "facebook", "tiktok", "youtube", "twitter"])).min(1).max(5).refine((items) => new Set(items).size === items.length, 'Duplicate platforms are not allowed'),
+      timeline: z.string().trim().max(100).optional(),
+      additionalNotes: z.string().trim().max(2000).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await db.getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+
+      if (input.targetId !== undefined) {
+        const targetProfile = input.type === 'profile'
+          ? await db.getArtistProfileById(input.targetId)
+          : input.type === 'release'
+            ? await (async () => {
+              const release = await db.getReleaseById(input.targetId!);
+              return release ? await db.getArtistProfileById(release.artistId) : null;
+            })()
+            : await (async () => {
+              const event = await db.getEventById(input.targetId!);
+              return event ? await db.getArtistProfileById(event.artistId) : null;
+            })();
+        if (!targetProfile || targetProfile.userId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only promote your own content.' });
+        }
+      }
 
       // Create Stripe payment intent for the service fee (budget amount)
       const paymentIntent = await stripe.paymentIntents.create({
@@ -308,11 +325,11 @@ Generate compelling, ready-to-use ad copy.`;
    */
   updateRequestStatus: protectedProcedure
     .input(z.object({
-      requestId: z.number(),
+      requestId: z.number().int().safe().positive(),
       status: z.enum(["in_review", "in_progress", "completed", "cancelled"]),
-      adminNotes: z.string().optional(),
-      reportUrl: z.string().optional(),
-    }))
+      adminNotes: z.string().trim().max(5000).optional(),
+      reportUrl: z.string().trim().url().max(2048).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
@@ -337,13 +354,13 @@ Generate compelling, ready-to-use ad copy.`;
   /** Edit a pending boost request (only if status is 'submitted') */
   editBoostRequest: artistProcedure
     .input(z.object({
-      requestId: z.number(),
-      budget: z.number().min(5000).optional(),
-      goals: z.string().min(10).optional(),
-      targetAudience: z.string().optional(),
-      timeline: z.string().optional(),
-      additionalNotes: z.string().optional(),
-    }))
+      requestId: z.number().int().safe().positive(),
+      budget: z.number().int().min(5000).max(10_000_000).optional(),
+      goals: z.string().trim().min(10).max(5000).optional(),
+      targetAudience: z.string().trim().max(1000).optional(),
+      timeline: z.string().trim().max(100).optional(),
+      additionalNotes: z.string().trim().max(2000).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await db.getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });

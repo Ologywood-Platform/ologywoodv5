@@ -38,6 +38,9 @@ type AdCopyResult = {
   alternateVersions: string[];
 };
 
+type PromotionPlatform = "instagram" | "facebook" | "tiktok" | "youtube" | "twitter";
+const PROMOTION_PLATFORMS = ["instagram", "facebook", "tiktok", "youtube", "twitter"] as const;
+
 export default function Promote() {
   const [, navigate] = useLocation();
   const toast = useToast();
@@ -66,7 +69,7 @@ export default function Promote() {
   const [boostBudget, setBoostBudget] = useState(100);
   const [boostGoals, setBoostGoals] = useState("");
   const [boostAudience, setBoostAudience] = useState("");
-  const [boostPlatforms, setBoostPlatforms] = useState<string[]>(["instagram"]);
+  const [boostPlatforms, setBoostPlatforms] = useState<PromotionPlatform[]>(["instagram"]);
   const [boostTimeline, setBoostTimeline] = useState("7 days");
   const [boostNotes, setBoostNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -516,7 +519,7 @@ export default function Promote() {
                 <div>
                   <Label>Platforms to advertise on *</Label>
                   <div className="flex flex-wrap gap-3 mt-2">
-                    {["instagram", "facebook", "tiktok", "youtube", "twitter"].map((p) => (
+                    {PROMOTION_PLATFORMS.map((p) => (
                       <label key={p} className="flex items-center gap-2 cursor-pointer">
                         <Checkbox
                           checked={boostPlatforms.includes(p)}

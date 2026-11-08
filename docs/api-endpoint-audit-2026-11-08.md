@@ -102,6 +102,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Experience pricing is cents-safe; descriptions, tags, URLs, recurring schedules, notes, reasons, and join links are bounded and validated. Management, slot, booking, and browse IDs/pagination are safe integers with strict status/capacity values. Paused experiences are excluded from public detail reads, while checkout remains tied to the locked reservation participants and self-booking is rejected.
    - Ology Live security/checkout/lock/schedule/phase regressions pass 227/227, with TypeScript and production build validation passing. No experiences, slots, bookings, payments, Stripe sessions, or records were changed.
 
+19. **Managed promotion boundaries — resolved in this increment.**
+   - AI/budget fields, campaign budgets, goals/audience/notes/timelines, platform selections, admin status/report inputs, and edit IDs are bounded and strict. Optional event/release/profile targets are safe integers and, when supplied, are resolved to the submitting artist before a Stripe PaymentIntent is created. The promotion client state now matches the server’s platform enum.
+   - Promotion/admin/Stripe credential regressions pass 45/45, with TypeScript and production build validation passing. No promotion requests, PaymentIntents, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
