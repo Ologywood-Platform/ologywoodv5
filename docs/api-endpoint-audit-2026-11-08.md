@@ -126,6 +126,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Template IDs/types/names require safe bounded formats; template-data keys, top-level count, and serialized size are capped; all template inputs are strict; athlete templates retain owner gating; and user-controlled legacy rider values are HTML-escaped before preview generation.
    - Rider/template/athlete/contract regressions pass 74/74, with TypeScript and production build validation passing. No rider templates, previews, exports, records, or emails were changed.
 
+25. **Touring availability and discovery boundaries — resolved in this increment.**
+   - Profile IDs are safe integers; date windows require parseable dates with end-after-start validation; regions, tour types, windows, and notes are bounded; discovery filters are trimmed and capped; and batch touring-status requests are limited to 100 unique IDs.
+   - Touring/search/portfolio regressions pass 64/64, with TypeScript and production build validation passing. No touring records, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

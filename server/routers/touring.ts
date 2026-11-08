@@ -11,20 +11,28 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "../db";
 
+const safeProfileId = z.number().int().safe().positive();
+const dateValue = z.string().trim().min(1).max(40).refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date');
 const dateWindowSchema = z.object({
-  start: z.string(), // ISO date string
-  end: z.string(),   // ISO date string
+  start: dateValue, // ISO date string
+  end: dateValue,   // ISO date string
+}).strict().superRefine((value, ctx) => {
+  if (new Date(value.end).getTime() <= new Date(value.start).getTime()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['end'], message: "Each date window's end date must be after its start date" });
+  }
 });
+
+const boundedLabel = z.string().trim().min(1).max(100);
 
 const tourAvailabilityInput = z.object({
   isAvailable: z.boolean(),
-  targetRegions: z.array(z.string()).optional().default([]),
-  homeBase: z.string().optional().nullable(),
+  targetRegions: z.array(boundedLabel).max(20).optional().default([]),
+  homeBase: z.string().trim().max(200).optional().nullable(),
   travelRadius: z.enum(["local", "regional", "national", "international"]).optional().default("regional"),
-  tourTypes: z.array(z.string()).optional().default([]),
-  dateWindows: z.array(dateWindowSchema).optional().default([]),
-  notes: z.string().optional().nullable(),
-});
+  tourTypes: z.array(boundedLabel).max(20).optional().default([]),
+  dateWindows: z.array(dateWindowSchema).max(20).optional().default([]),
+  notes: z.string().trim().max(2000).optional().nullable(),
+}).strict();
 
 export const touringRouter = router({
   /**
@@ -60,17 +68,6 @@ export const touringRouter = router({
       }
 
       // Validate date windows: end must be after start
-      if (input.dateWindows && input.dateWindows.length > 0) {
-        for (const window of input.dateWindows) {
-          if (new Date(window.end) <= new Date(window.start)) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Each date window's end date must be after its start date",
-            });
-          }
-        }
-      }
-
       const result = await db.upsertTourAvailability({
         artistProfileId: artistProfile.id,
         isAvailable: input.isAvailable,
@@ -89,7 +86,7 @@ export const touringRouter = router({
    * Get touring availability for a specific artist (public)
    */
   getArtistTouring: publicProcedure
-    .input(z.object({ artistProfileId: z.number() }))
+    .input(z.object({ artistProfileId: safeProfileId }).strict())
     .query(async ({ input }: any) => {
       const touring = await db.getTourAvailability(input.artistProfileId);
       if (!touring || !touring.isAvailable) {
@@ -104,10 +101,10 @@ export const touringRouter = router({
   getAvailableArtists: publicProcedure
     .input(
       z.object({
-        region: z.string().optional(),
+        region: z.string().trim().max(100).optional(),
         travelRadius: z.enum(["local", "regional", "national", "international"]).optional(),
-        tourType: z.string().optional(),
-      }).optional().default({})
+        tourType: boundedLabel.optional(),
+      }).strict().optional().default({})
     )
     .query(async ({ input }: any) => {
       const artists = await db.getAvailableTouringArtists({
@@ -139,7 +136,7 @@ export const touringRouter = router({
    * Batch check touring status for multiple artists (for browse page badges)
    */
   getTouringStatus: publicProcedure
-    .input(z.object({ artistProfileIds: z.array(z.number()) }))
+    .input(z.object({ artistProfileIds: z.array(safeProfileId).min(1).max(100).refine((ids) => new Set(ids).size === ids.length, 'Duplicate artist profile IDs are not allowed') }).strict())
     .query(async ({ input }: any) => {
       const statusMap = await db.getTouringStatusForArtists(input.artistProfileIds);
       // Convert Map to plain object for serialization
