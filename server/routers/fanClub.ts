@@ -16,6 +16,32 @@ function getStripe() {
   return stripe;
 }
 
+async function assertFanClubPostAccess(db: any, postId: number, viewerId?: number) {
+  const [post] = await db.select().from(fanClubPosts).where(eq(fanClubPosts.id, postId)).limit(1);
+  if (!post) throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+  if (post.visibility === 'public' || viewerId === post.artistUserId) return post;
+  if (!viewerId) throw new TRPCError({ code: 'FORBIDDEN', message: 'Fan Club membership required' });
+
+  const [membership] = await db.select().from(fanClubMemberships).where(and(
+    eq(fanClubMemberships.fanUserId, viewerId),
+    eq(fanClubMemberships.artistUserId, post.artistUserId),
+    eq(fanClubMemberships.status, 'active'),
+  )).limit(1);
+  if (!membership) throw new TRPCError({ code: 'FORBIDDEN', message: 'Fan Club membership required' });
+  if (!post.requiredTierId) return post;
+
+  const [memberTier] = await db.select({ priceCents: fanClubTiers.priceCents, priceMonthly: fanClubTiers.priceMonthly })
+    .from(fanClubTiers).where(eq(fanClubTiers.id, membership.tierId)).limit(1);
+  const [requiredTier] = await db.select({ priceCents: fanClubTiers.priceCents, priceMonthly: fanClubTiers.priceMonthly })
+    .from(fanClubTiers).where(and(eq(fanClubTiers.id, post.requiredTierId), eq(fanClubTiers.artistUserId, post.artistUserId))).limit(1);
+  const memberPrice = Number(memberTier?.priceCents ?? memberTier?.priceMonthly ?? 0);
+  const requiredPrice = Number(requiredTier?.priceCents ?? requiredTier?.priceMonthly ?? 0);
+  if (!requiredTier || memberPrice < requiredPrice) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'A higher Fan Club tier is required for this post' });
+  }
+  return post;
+}
+
 // Helper: check if user is talent (artist role)
 const talentProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') {
@@ -38,11 +64,11 @@ export const fanClubRouter = router({
 
   createTier: talentProcedure
     .input(z.object({
-      name: z.string().min(1).max(100),
-      priceMonthly: z.number().min(100).max(100000), // $1 to $1000 in cents
-      description: z.string().max(500).optional(),
-      perks: z.array(z.string()).max(10).optional(),
-    }))
+      name: z.string().trim().min(1).max(100),
+      priceMonthly: z.number().int().min(100).max(100000), // $1 to $1000 in cents
+      description: z.string().trim().max(500).optional(),
+      perks: z.array(z.string().trim().min(1).max(200)).max(10).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -78,6 +104,7 @@ export const fanClubRouter = router({
         talentUserId: ctx.user.id,
         artistUserId: ctx.user.id,
         name: input.name,
+        description: input.description || null,
         priceMonthly: input.priceMonthly,
         priceCents: input.priceMonthly,
         perks: input.perks || [],
@@ -91,12 +118,12 @@ export const fanClubRouter = router({
 
   updateTier: talentProcedure
     .input(z.object({
-      tierId: z.number(),
-      name: z.string().min(1).max(100).optional(),
-      description: z.string().max(500).optional(),
-      perks: z.array(z.string()).max(10).optional(),
+      tierId: z.number().int().safe().positive(),
+      name: z.string().trim().min(1).max(100).optional(),
+      description: z.string().trim().max(500).optional(),
+      perks: z.array(z.string().trim().min(1).max(200)).max(10).optional(),
       isActive: z.boolean().optional(),
-    }))
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -119,7 +146,7 @@ export const fanClubRouter = router({
     }),
 
   deleteTier: talentProcedure
-    .input(z.object({ tierId: z.number() }))
+    .input(z.object({ tierId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -149,7 +176,7 @@ export const fanClubRouter = router({
   // ===== MEMBERSHIP (Fan Side) =====
 
   getTalentTiers: publicProcedure
-    .input(z.object({ talentUserId: z.number() }))
+    .input(z.object({ talentUserId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -178,7 +205,7 @@ export const fanClubRouter = router({
   }),
 
   getMyMembership: protectedProcedure
-    .input(z.object({ talentUserId: z.number() }))
+    .input(z.object({ talentUserId: z.number().int().safe().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -212,7 +239,7 @@ export const fanClubRouter = router({
   }),
 
   subscribe: protectedProcedure
-    .input(z.object({ tierId: z.number() }))
+    .input(z.object({ tierId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -224,6 +251,12 @@ export const fanClubRouter = router({
 
       // Check if already subscribed to this talent
       const talentId = tier.artistUserId ?? tier.talentUserId;
+      if (!talentId || talentId === ctx.user.id) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'You cannot subscribe to your own Fan Club.' });
+      }
+      if (!tier.stripePriceId) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'This Fan Club tier is not ready for subscriptions yet.' });
+      }
       const [existing] = await db.select().from(fanClubMemberships)
         .where(and(
           eq(fanClubMemberships.fanUserId, ctx.user.id),
@@ -242,19 +275,19 @@ export const fanClubRouter = router({
       let connectAccountId: string | null = null;
       const [connectAccount] = await db.select().from(stripeConnectAccounts)
         .where(eq(stripeConnectAccounts.artistId, talentId));
-      if (connectAccount && connectAccount.status === 'active' && connectAccount.chargesEnabled) {
+      if (connectAccount && connectAccount.status === 'active' && connectAccount.chargesEnabled && connectAccount.payoutsEnabled) {
         connectAccountId = connectAccount.stripeAccountId;
       }
 
       const sessionParams: any = {
         mode: 'subscription',
-        line_items: [{ price: tier.stripePriceId!, quantity: 1 }],
+        line_items: [{ price: tier.stripePriceId, quantity: 1 }],
         success_url: `${baseUrl}/fan-club/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/fan-club/cancelled`,
         metadata: {
           type: 'fan_club_subscription',
           fanUserId: String(ctx.user.id),
-          talentUserId: String(tier.artistUserId),
+          talentUserId: String(talentId),
           tierId: String(tier.id),
           platformFeePercent: String(PLATFORM_FEE_PERCENT),
         },
@@ -262,7 +295,7 @@ export const fanClubRouter = router({
           metadata: {
             type: 'fan_club_subscription',
             fanUserId: String(ctx.user.id),
-            talentUserId: String(tier.artistUserId),
+            talentUserId: String(talentId),
             tierId: String(tier.id),
           },
         },
@@ -275,7 +308,7 @@ export const fanClubRouter = router({
         console.log(`[FanClub] Subscribe: routing to ${connectAccountId}, ${PLATFORM_FEE_PERCENT}% platform fee`);
       } else {
         // No Connect account — all revenue goes to platform until talent connects Stripe
-        console.log(`[FanClub] Subscribe: No Connect account for talent ${tier.artistUserId}, revenue stays on platform`);
+        console.log(`[FanClub] Subscribe: No Connect account for talent ${talentId}, revenue stays on platform`);
       }
 
       const session = await s.checkout.sessions.create(sessionParams);
@@ -284,7 +317,7 @@ export const fanClubRouter = router({
     }),
 
   cancelMembership: protectedProcedure
-    .input(z.object({ talentUserId: z.number() }))
+    .input(z.object({ talentUserId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -316,7 +349,7 @@ export const fanClubRouter = router({
     }),
 
   getMemberCount: publicProcedure
-    .input(z.object({ talentUserId: z.number() }))
+    .input(z.object({ talentUserId: z.number().int().safe().positive() }).strict())
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return { count: 0 };
@@ -344,13 +377,14 @@ export const fanClubRouter = router({
 
   createPost: talentProcedure
     .input(z.object({
-      title: z.string().min(1).max(255),
+      title: z.string().trim().min(1).max(255),
       content: z.string().max(5000).optional(),
-      mediaUrl: z.string().optional(),
+      mediaUrl: z.string().url().max(2048).optional().or(z.literal("")),
       mediaType: z.enum(['image', 'video', 'audio', 'none']).default('none'),
       visibility: z.enum(['public', 'members_only']).default('members_only'),
-      requiredTierId: z.number().optional(),
-    }))
+      requiredTierId: z.number().int().safe().positive().optional(),
+      contentCategory: z.string().trim().max(50).optional(),
+    }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -371,6 +405,8 @@ export const fanClubRouter = router({
         content: input.content || "",
         mediaUrl: input.mediaUrl || null,
         visibility: input.visibility,
+        requiredTierId: input.requiredTierId || null,
+        contentCategory: input.contentCategory || null,
       }).$returningId();
 
       return { id: post.id };
@@ -386,7 +422,7 @@ export const fanClubRouter = router({
   }),
 
   deletePost: talentProcedure
-    .input(z.object({ postId: z.number() }))
+    .input(z.object({ postId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -401,7 +437,7 @@ export const fanClubRouter = router({
 
   // Public feed for a talent's profile (respects visibility)
   getTalentFeed: publicProcedure
-    .input(z.object({ talentUserId: z.number(), limit: z.number().min(1).max(50).default(20) }))
+    .input(z.object({ talentUserId: z.number().int().safe().positive(), limit: z.number().int().min(1).max(50).default(20) }).strict())
     .query(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) return [];
@@ -412,6 +448,7 @@ export const fanClubRouter = router({
 
       // Check if viewer has membership
       let membershipTierId: number | null = null;
+      let membershipTierPrice = 0;
       if (ctx.user) {
         const [membership] = await db.select().from(fanClubMemberships)
           .where(and(
@@ -421,14 +458,27 @@ export const fanClubRouter = router({
           ));
         if (membership) {
           membershipTierId = membership.tierId;
+          const [membershipTier] = await db.select({ priceCents: fanClubTiers.priceCents, priceMonthly: fanClubTiers.priceMonthly })
+            .from(fanClubTiers)
+            .where(and(eq(fanClubTiers.id, membership.tierId), eq(fanClubTiers.artistUserId, input.talentUserId)))
+            .limit(1);
+          membershipTierPrice = Number(membershipTier?.priceCents ?? membershipTier?.priceMonthly ?? 0);
         }
       }
+
+      const requiredTierIds = [...new Set(posts.map((post) => post.requiredTierId).filter((id): id is number => id !== null))];
+      const requiredTiers = requiredTierIds.length > 0
+        ? await db.select({ id: fanClubTiers.id, priceCents: fanClubTiers.priceCents, priceMonthly: fanClubTiers.priceMonthly })
+          .from(fanClubTiers)
+          .where(and(eq(fanClubTiers.artistUserId, input.talentUserId), inArray(fanClubTiers.id, requiredTierIds)))
+        : [];
+      const requiredTierPrices = new Map(requiredTiers.map((tier) => [tier.id, Number(tier.priceCents ?? tier.priceMonthly ?? 0)]));
 
       // Filter posts based on visibility and membership
       return posts.map((post: typeof fanClubPosts.$inferSelect) => {
         const canView = post.visibility === 'public' ||
-          (post.visibility === 'members_only' && membershipTierId !== null) ||
-          (post.visibility === 'members_only' && membershipTierId === null) ||
+          (post.visibility === 'members_only' && membershipTierId !== null &&
+            (!post.requiredTierId || (requiredTierPrices.has(post.requiredTierId) && membershipTierPrice >= (requiredTierPrices.get(post.requiredTierId) || 0)))) ||
           (ctx.user && ctx.user.id === input.talentUserId); // talent can always see their own
 
         return {
@@ -442,9 +492,10 @@ export const fanClubRouter = router({
 
   // Like a post
   likePost: protectedProcedure
-    .input(z.object({ postId: z.number() }))
+    .input(z.object({ postId: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = (await getDb())!;
+      await assertFanClubPostAccess(db, input.postId, ctx.user.id);
       // Check if already liked
       const existing = await db.select().from(fanClubPostLikes)
         .where(and(eq(fanClubPostLikes.postId, input.postId), eq(fanClubPostLikes.userId, ctx.user.id)))
@@ -461,7 +512,7 @@ export const fanClubRouter = router({
 
   // Get likes for posts
   getPostLikes: publicProcedure
-    .input(z.object({ postIds: z.array(z.number()) }))
+    .input(z.object({ postIds: z.array(z.number().int().safe().positive()).max(100).refine((ids) => new Set(ids).size === ids.length, 'Duplicate post IDs are not allowed') }).strict())
     .query(async ({ ctx, input }) => {
       if (input.postIds.length === 0) return {};
       const db = (await getDb())!;
@@ -492,9 +543,15 @@ export const fanClubRouter = router({
 
   // Add comment to a post
   addComment: protectedProcedure
-    .input(z.object({ postId: z.number(), content: z.string().min(1).max(500), parentId: z.number().optional() }))
+    .input(z.object({ postId: z.number().int().safe().positive(), content: z.string().trim().min(1).max(500), parentId: z.number().int().safe().positive().optional() }).strict())
     .mutation(async ({ ctx, input }) => {
       const db = (await getDb())!;
+      await assertFanClubPostAccess(db, input.postId, ctx.user.id);
+      if (input.parentId) {
+        const [parent] = await db.select({ id: fanClubPostComments.id }).from(fanClubPostComments)
+          .where(and(eq(fanClubPostComments.id, input.parentId), eq(fanClubPostComments.postId, input.postId))).limit(1);
+        if (!parent) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Parent comment does not belong to this post' });
+      }
       const [result] = await db.insert(fanClubPostComments).values({
         postId: input.postId,
         userId: ctx.user.id,
@@ -507,9 +564,10 @@ export const fanClubRouter = router({
 
   // Get comments for a post
   getPostComments: publicProcedure
-    .input(z.object({ postId: z.number() }))
-    .query(async ({ input }) => {
+    .input(z.object({ postId: z.number().int().safe().positive() }).strict())
+    .query(async ({ ctx, input }) => {
       const db = (await getDb())!;
+      await assertFanClubPostAccess(db, input.postId, ctx.user?.id);
       return await db.select().from(fanClubPostComments)
         .where(eq(fanClubPostComments.postId, input.postId))
         .orderBy(desc(fanClubPostComments.createdAt))

@@ -94,6 +94,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Ticket tier, purchase, promo, ticket-code, and transfer inputs are bounded and strict. Buyer email is required before ticket-order creation, Stripe return URLs use the approved checkout-origin helper rather than the request `Origin`, transfer-history reads require ownership of the underlying ticket, and public transfer lookups return only acceptance-page fields. UUID/session/order formats are validated.
    - Ticketing/security/mobile regressions pass 60/60, with TypeScript and production build validation passing. No tickets, orders, promo codes, transfers, emails, Stripe sessions, or records were changed.
 
+17. **Fan Club access and subscription boundaries — resolved in this increment.**
+   - Members-only feed access no longer falls through to unauthenticated viewers. Selected minimum tiers are persisted and enforced by tier price; post likes/comments require access to the post and parent comments must belong to the same post. Tier, membership, post, like, comment, and subscription inputs are strict and bounded; self-subscription and missing Stripe price IDs are rejected; connected payout routing requires charges and payouts enabled.
+   - Fan Club/security/commerce/owner-access regressions pass 34/34, with TypeScript and production build validation passing. No memberships, posts, comments, likes, Stripe sessions, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
