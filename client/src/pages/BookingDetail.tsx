@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Calendar,
+  CalendarPlus,
   MapPin,
   DollarSign,
   Clock,
@@ -34,6 +35,7 @@ import ReportIssueDialog from "@/components/ReportIssueDialog";
 import { useParams, useLocation } from "wouter";
 import { useEffect, useRef } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { buildBookingIcs } from "@shared/bookingCalendar";
 
 type BookingScheduleDisplay = {
   startAt: number;
@@ -262,6 +264,30 @@ export default function BookingDetail() {
   const scheduleSpansDates = Boolean(
     schedule && scheduleStartsDate !== scheduleEndsDate
   );
+  const handleAddToCalendar = () => {
+    const ics = buildBookingIcs({
+      id: bookingId,
+      venueName: booking.venueName,
+      venueAddress: booking.venueAddress,
+      eventDetails: booking.eventDetails,
+      status: booking.status,
+      scheduleStartAt: schedule?.startAt,
+      scheduleEndAt: schedule?.endAt,
+      scheduleTimezone: schedule?.timezone,
+      scheduleAllDay: schedule?.allDay,
+      eventDate: eventDate,
+    });
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ologywood-booking-${bookingId}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Calendar file downloaded");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-teal-50 py-12">
@@ -407,6 +433,22 @@ export default function BookingDetail() {
                     <p className="font-medium">${booking.totalFee}</p>
                   </div>
                 </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddToCalendar}
+                disabled={booking.status === "cancelled"}
+                title={booking.status === "cancelled" ? "Cancelled bookings cannot be added to a calendar" : undefined}
+              >
+                <CalendarPlus className="h-4 w-4 mr-2" />
+                Add to Calendar
+              </Button>
+              {booking.status === "cancelled" && (
+                <span className="text-sm text-muted-foreground">Cancelled bookings are not added to calendars.</span>
               )}
             </div>
 

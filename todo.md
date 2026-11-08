@@ -1621,7 +1621,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
 - [x] Build iCal feed endpoint at /api/calendar/:artistId/bookings.ics with HMAC token auth
 - [x] Create CalendarSync UI component on artist dashboard (Google Calendar, Apple/Outlook, copy URL)
 - [x] Add getCalendarFeedUrl tRPC endpoint for generating secure feed URLs
-- [ ] Add "Add to Calendar" button on individual booking detail pages (future)
+- [x] Add "Add to Calendar" button on individual booking detail pages (future); BookingDetail now downloads a per-booking RFC 5545 `.ics` file for scheduled, all-day, and legacy date-only bookings, while disabling the action for cancelled bookings. Three focused export tests pass and the production build succeeds.
 
 ## HIGH PRIORITY GAPS — Significantly Impacts User Experience (Mar 11, 2026)
 
