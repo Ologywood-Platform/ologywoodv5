@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TRPCError } from '@trpc/server';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const mocks = vi.hoisted(() => ({
   getDb: vi.fn(),
@@ -360,5 +362,19 @@ describe('music release public media access', () => {
       previewUrl: 'https://media.example.test/music/private/preview-track.mp3',
     });
     expect(mocks.storageGet).toHaveBeenCalledWith('music/private/full-track.mp3');
+  });
+});
+
+describe('music release paid-content input boundaries', () => {
+  it('uses strict positive IDs and bounds release media/pricing inputs', () => {
+    const source = readFileSync(resolve(__dirname, './routers/release.ts'), 'utf8');
+    expect(source).not.toMatch(/\.input\(z\.object\(\{ (?:id|artistId|releaseId|reviewId|purchaseId): z\.number\(\) \}\)/);
+    expect(source).toContain('priceInCents: z.number().int().min(50, "Minimum price is $0.50").max(10_000_000)');
+    expect(source).toContain('fileSizeBytes: z.number().int().nonnegative().max(500_000_000).default(0)');
+    expect(source).toContain('sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/');
+    expect(source).toContain('const releaseId = parsePositiveMetadataId(session.metadata?.releaseId);');
+    expect(source).toContain("session.payment_status !== 'paid' || session.mode !== 'payment' || !session.payment_intent");
+    expect(source).toContain("release.status !== 'published'");
+    expect(source).toContain('metadataArtistId !== release.artistId');
   });
 });

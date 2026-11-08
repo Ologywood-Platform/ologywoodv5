@@ -82,6 +82,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Dispute creation and booking-existence checks now require an actual artist/venue party to the booking. Dispute/status/ID inputs, evidence URL lists, base64 evidence payloads, MIME types, filenames, resolution text, and admin notes are bounded; evidence storage extensions derive from validated MIME and mismatched data-URL MIME is rejected.
    - Dispute/admin/critical-gap regressions pass 35/35, with rider-contract regressions 19/19; TypeScript and production build validation pass. No disputes, evidence, emails, payments, or records were changed.
 
+14. **Music-release lifecycle and paid-content fallback — resolved in this increment.**
+   - Release lifecycle, review, library, stream, and purchase identifiers now require safe positive integers; release media keys, duration, file size, price, currency, descriptions, and review/session fields are bounded and strict. The Stripe fallback verifier now requires a paid payment-mode session with a payment intent, signed-in buyer ownership, a published release, matching release/artist metadata, supported currency, and an amount consistent with the release price/PWYW rule before creating a purchase.
+   - Release/public-media/commerce/description/library regressions pass 57/57, with TypeScript and production build validation passing. No purchases, downloads, Stripe sessions, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

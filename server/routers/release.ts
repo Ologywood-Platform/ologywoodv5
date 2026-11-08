@@ -31,6 +31,12 @@ const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: "2025-12-15.clover",
 });
 
+function parsePositiveMetadataId(value: string | undefined): number | null {
+  if (!value || !/^[1-9]\d*$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 // Helper to resolve S3 keys to presigned URLs for a release
 async function withUrls(release: any) {
   const result = { ...release, coverArtUrl: null as string | null, previewUrl: null as string | null, audioUrl: null as string | null };
@@ -135,19 +141,19 @@ export const releaseRouter = router({
         title: z.string().min(1, "Title is required").max(255),
         description: z.string().max(2000).optional(),
         genre: z.string().max(100).optional(),
-        audioFileKey: z.string().min(1, "Audio file is required"),
-        previewFileKey: z.string().optional(),
-        coverArtKey: z.string().min(1, "Cover art is required"),
-        durationSeconds: z.number().int().nonnegative().default(0),
-        fileFormat: z.string().max(10),
-        fileSizeBytes: z.number().int().nonnegative().default(0),
-        priceInCents: z.number().int().min(50, "Minimum price is $0.50"),
-        currency: z.string().default("usd"),
+        audioFileKey: z.string().trim().min(1, "Audio file is required").max(1024),
+        previewFileKey: z.string().trim().max(1024).optional(),
+        coverArtKey: z.string().trim().min(1, "Cover art is required").max(1024),
+        durationSeconds: z.number().int().nonnegative().max(3_600).default(0),
+        fileFormat: z.string().trim().max(10),
+        fileSizeBytes: z.number().int().nonnegative().max(500_000_000).default(0),
+        priceInCents: z.number().int().min(50, "Minimum price is $0.50").max(10_000_000),
+        currency: z.string().trim().length(3).regex(/^[A-Za-z]{3}$/).default("usd"),
         allowPayWhatYouWant: z.boolean().default(false),
         rightsCertified: z.boolean(),
-        rightsCertifiedAt: z.string().optional(),
+        rightsCertifiedAt: z.string().trim().max(100).optional(),
         ...aiDisclosureInputShape,
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       // Verify artist profile
@@ -221,20 +227,20 @@ export const releaseRouter = router({
   update: artistProcedure
     .input(
       z.object({
-        id: z.number(),
-        title: z.string().min(1).max(255).optional(),
+        id: z.number().int().safe().positive(),
+        title: z.string().trim().min(1).max(255).optional(),
         description: z.string().max(2000).optional(),
-        genre: z.string().max(100).optional(),
-        audioFileKey: z.string().optional(),
-        previewFileKey: z.string().optional(),
-        coverArtKey: z.string().optional(),
-        durationSeconds: z.number().int().positive().optional(),
-        fileFormat: z.string().max(10).optional(),
-        fileSizeBytes: z.number().int().positive().optional(),
-        priceInCents: z.number().int().min(50).optional(),
+        genre: z.string().trim().max(100).optional(),
+        audioFileKey: z.string().trim().min(1).max(1024).optional(),
+        previewFileKey: z.string().trim().max(1024).optional(),
+        coverArtKey: z.string().trim().min(1).max(1024).optional(),
+        durationSeconds: z.number().int().positive().max(3_600).optional(),
+        fileFormat: z.string().trim().max(10).optional(),
+        fileSizeBytes: z.number().int().positive().max(500_000_000).optional(),
+        priceInCents: z.number().int().min(50).max(10_000_000).optional(),
         allowPayWhatYouWant: z.boolean().optional(),
         ...aiDisclosureInputShape,
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
@@ -276,7 +282,7 @@ export const releaseRouter = router({
    * Publish a draft release (makes it visible on profile and purchasable).
    */
   publish: artistProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -327,7 +333,7 @@ export const releaseRouter = router({
    * Unpublish a release (returns to draft, removes from profile).
    */
   unpublish: artistProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -358,7 +364,7 @@ export const releaseRouter = router({
    * Archive a release (soft delete — keeps purchase records intact).
    */
   archive: artistProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -378,7 +384,7 @@ export const releaseRouter = router({
    * Delete a draft release (hard delete — only for drafts with no sales).
    */
   delete: artistProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .mutation(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -425,7 +431,7 @@ export const releaseRouter = router({
    * Get a single release by ID (for editing or detail view).
    */
   getById: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.number().int().safe().positive() }).strict())
     .query(async ({ ctx, input }) => {
       const release = await db.getReleaseById(input.id);
       if (!release) {
@@ -441,7 +447,7 @@ export const releaseRouter = router({
    * Get published releases for an artist (public profile view).
    */
   getByArtist: publicProcedure
-    .input(z.object({ artistId: z.number() }))
+    .input(z.object({ artistId: z.number().int().safe().positive() }))
     .query(async ({ input }) => {
       const releases = await db.getPublishedReleasesByArtistId(input.artistId);
       return await Promise.all(releases.map(publicReleaseView));
@@ -463,7 +469,7 @@ export const releaseRouter = router({
    * Get purchases for a specific release (artist sales view).
    */
   getPurchases: artistProcedure
-    .input(z.object({ releaseId: z.number() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }))
     .query(async ({ ctx, input }) => {
       const profile = await db.getArtistProfileByUserId(ctx.user.id);
       if (!profile) {
@@ -486,7 +492,7 @@ export const releaseRouter = router({
    * Returns reviews with reviewer info and aggregate stats.
    */
   getReviews: publicProcedure
-    .input(z.object({ releaseId: z.number() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }))
     .query(async ({ input }) => {
       const [reviews, stats] = await Promise.all([
         db.getReviewsByReleaseId(input.releaseId),
@@ -515,7 +521,7 @@ export const releaseRouter = router({
    * Check if the current user can review a release (has purchased + hasn't reviewed yet).
    */
   canReview: protectedProcedure
-    .input(z.object({ releaseId: z.number() }))
+    .input(z.object({ releaseId: z.number().int().safe().positive() }))
     .query(async ({ ctx, input }) => {
       const hasPurchased = await db.hasUserPurchasedRelease(ctx.user.id, input.releaseId);
       if (!hasPurchased) {
@@ -536,7 +542,7 @@ export const releaseRouter = router({
   createReview: protectedProcedure
     .input(
       z.object({
-        releaseId: z.number(),
+        releaseId: z.number().int().safe().positive(),
         rating: z.number().int().min(1).max(5),
         reviewText: z.string().max(280).optional(),
       })
@@ -576,7 +582,7 @@ export const releaseRouter = router({
   updateReview: protectedProcedure
     .input(
       z.object({
-        reviewId: z.number(),
+        reviewId: z.number().int().safe().positive(),
         rating: z.number().int().min(1).max(5).optional(),
         reviewText: z.string().max(280).optional(),
       })
@@ -602,7 +608,7 @@ export const releaseRouter = router({
    * Delete your own review (or artist can delete reviews on their releases).
    */
   deleteReview: protectedProcedure
-    .input(z.object({ reviewId: z.number() }))
+    .input(z.object({ reviewId: z.number().int().safe().positive() }))
     .mutation(async ({ ctx, input }) => {
       const review = await db.getTrackReviewById(input.reviewId);
       if (!review) {
@@ -667,11 +673,14 @@ export const releaseRouter = router({
    * If the webhook hasn't processed the event yet, this queries Stripe directly.
    */
   verifyPurchase: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
+    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }))
     .mutation(async ({ ctx, input }) => {
       // First check if purchase already exists
       const existing = await db.getPurchaseBySessionId(input.sessionId);
       if (existing) {
+        const isOwner = existing.buyerUserId === ctx.user.id ||
+          (ctx.user.email && existing.buyerEmail?.toLowerCase() === ctx.user.email.toLowerCase());
+        if (!isOwner) return { status: 'not_found' as const, purchaseId: null };
         return { status: 'already_exists' as const, purchaseId: existing.id };
       }
 
@@ -679,13 +688,22 @@ export const releaseRouter = router({
       try {
         const session = await stripe.checkout.sessions.retrieve(input.sessionId);
         
-        if (session.payment_status !== 'paid') {
+        if (session.payment_status !== 'paid' || session.mode !== 'payment' || !session.payment_intent) {
           return { status: 'not_paid' as const, purchaseId: null };
         }
 
-        const releaseId = session.metadata?.releaseId ? parseInt(session.metadata.releaseId) : null;
+        const releaseId = parsePositiveMetadataId(session.metadata?.releaseId);
         if (!releaseId || session.metadata?.type !== 'release_purchase') {
           return { status: 'not_release_purchase' as const, purchaseId: null };
+        }
+
+        const metadataBuyerId = parsePositiveMetadataId(session.metadata?.buyerUserId);
+        if (metadataBuyerId && metadataBuyerId !== ctx.user.id) {
+          return { status: 'not_found' as const, purchaseId: null };
+        }
+        const metadataBuyerEmail = session.metadata?.buyerEmail?.trim().toLowerCase();
+        if (!metadataBuyerId && metadataBuyerEmail && metadataBuyerEmail !== ctx.user.email?.toLowerCase()) {
+          return { status: 'not_found' as const, purchaseId: null };
         }
 
         // Double-check idempotency
@@ -695,11 +713,24 @@ export const releaseRouter = router({
         }
 
         const release = await db.getReleaseById(releaseId);
-        if (!release) {
+        if (!release || release.status !== 'published') {
           return { status: 'release_not_found' as const, purchaseId: null };
         }
 
-        const amountPaid = session.amount_total || release.priceInCents;
+        if (session.amount_total === null) {
+          return { status: 'invalid_payment' as const, purchaseId: null };
+        }
+        const amountPaid = session.amount_total;
+        const expectedCurrency = (release.currency || 'usd').toLowerCase();
+        if (!Number.isSafeInteger(amountPaid) || amountPaid < release.priceInCents || amountPaid < 50 || amountPaid > 10_000_000 ||
+          (session.currency && session.currency.toLowerCase() !== expectedCurrency) ||
+          (!release.allowPayWhatYouWant && amountPaid !== release.priceInCents)) {
+          return { status: 'invalid_payment' as const, purchaseId: null };
+        }
+        const metadataArtistId = parsePositiveMetadataId(session.metadata?.artistId);
+        if (metadataArtistId !== release.artistId) {
+          return { status: 'invalid_payment' as const, purchaseId: null };
+        }
         const platformFeeCents = Math.max(1, Math.round(amountPaid * 0.01));
 
         // Create the purchase record
@@ -717,7 +748,7 @@ export const releaseRouter = router({
         // Increment sales counters
         await db.incrementReleaseSales(releaseId, amountPaid);
 
-        console.log(`[Release VerifyPurchase] Fallback purchase created: release=${releaseId}, amount=$${(amountPaid / 100).toFixed(2)}`);
+        console.log(`[Release VerifyPurchase] Fallback purchase created for release ${releaseId}`);
 
         // Send purchase confirmation email
         try {
@@ -772,7 +803,7 @@ export const releaseRouter = router({
     }),
 
   purchaseBySession: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
+    .input(z.object({ sessionId: z.string().trim().min(1).max(255).regex(/^cs_(?:test|live)_[A-Za-z0-9]+$/, "Invalid Stripe checkout session ID") }))
     .query(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseBySessionIdWithRelease(input.sessionId);
       if (!purchase) return null;
@@ -850,7 +881,7 @@ export const releaseRouter = router({
    * Get a streaming URL for a purchased track (presigned S3 URL).
    */
   getStreamUrl: protectedProcedure
-    .input(z.object({ purchaseId: z.number() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
     .query(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
@@ -873,7 +904,7 @@ export const releaseRouter = router({
    * Hide a purchase from the music library (soft delete).
    */
   hideFromLibrary: protectedProcedure
-    .input(z.object({ purchaseId: z.number() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
     .mutation(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
@@ -892,7 +923,7 @@ export const releaseRouter = router({
    * Restore a hidden purchase back to the music library.
    */
   restoreToLibrary: protectedProcedure
-    .input(z.object({ purchaseId: z.number() }))
+    .input(z.object({ purchaseId: z.number().int().safe().positive() }))
     .mutation(async ({ ctx, input }) => {
       const purchase = await db.getPurchaseById(input.purchaseId);
       if (!purchase) {
