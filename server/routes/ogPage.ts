@@ -12,6 +12,7 @@ import {
   generateWebSiteJsonLd,
   jsonLdToScriptTag,
 } from '../utils/jsonLd';
+import { positiveRouteId } from './routeInput';
 
 const router = Router();
 
@@ -40,16 +41,16 @@ function toSlug(name: string): string {
  */
 function extractIdFromSlug(slug: string): number | null {
   // Try: "25" (just an ID)
-  const directId = parseInt(slug, 10);
-  if (!isNaN(directId) && String(directId) === slug) {
+  const directId = positiveRouteId(slug);
+  if (directId !== null) {
     return directId;
   }
   // Try: "joe-watts-25" (slug with ID at the end)
   const lastHyphen = slug.lastIndexOf('-');
   if (lastHyphen !== -1) {
     const idPart = slug.substring(lastHyphen + 1);
-    const id = parseInt(idPart, 10);
-    if (!isNaN(id) && String(id) === idPart) {
+    const id = positiveRouteId(idPart);
+    if (id !== null) {
       return id;
     }
   }
@@ -475,8 +476,8 @@ router.get('/pricing', async (req: Request, res: Response) => {
 
 // Project Preview pages — /api/og-page/project/:id
 router.get('/project/:id', async (req: Request, res: Response) => {
-  const projectId = parseInt(req.params.id, 10);
-  if (isNaN(projectId)) {
+  const projectId = positiveRouteId(req.params.id);
+  if (projectId === null) {
     return res.status(400).json({ error: 'Invalid project ID' });
   }
 

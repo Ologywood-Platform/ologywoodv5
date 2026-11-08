@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { PaymentTestingService } from '../services/paymentTestingService';
+import { positiveRouteId } from './routeInput';
 
 const router = Router();
 
@@ -14,9 +15,9 @@ const router = Router();
  */
 router.get('/success/:bookingId', async (req: Request, res: Response) => {
   try {
-    const bookingId = parseInt(req.params.bookingId, 10);
+    const bookingId = positiveRouteId(req.params.bookingId);
 
-    if (isNaN(bookingId)) {
+    if (bookingId === null) {
       return res.status(400).json({
         success: false,
         error: 'Invalid booking ID',
@@ -44,9 +45,9 @@ router.get('/success/:bookingId', async (req: Request, res: Response) => {
  */
 router.get('/failure/:bookingId', async (req: Request, res: Response) => {
   try {
-    const bookingId = parseInt(req.params.bookingId, 10);
+    const bookingId = positiveRouteId(req.params.bookingId);
 
-    if (isNaN(bookingId)) {
+    if (bookingId === null) {
       return res.status(400).json({
         success: false,
         error: 'Invalid booking ID',
@@ -74,9 +75,9 @@ router.get('/failure/:bookingId', async (req: Request, res: Response) => {
  */
 router.get('/retry/:bookingId', async (req: Request, res: Response) => {
   try {
-    const bookingId = parseInt(req.params.bookingId, 10);
+    const bookingId = positiveRouteId(req.params.bookingId);
 
-    if (isNaN(bookingId)) {
+    if (bookingId === null) {
       return res.status(400).json({
         success: false,
         error: 'Invalid booking ID',
@@ -104,9 +105,9 @@ router.get('/retry/:bookingId', async (req: Request, res: Response) => {
  */
 router.get('/all/:bookingId', async (req: Request, res: Response) => {
   try {
-    const bookingId = parseInt(req.params.bookingId, 10);
+    const bookingId = positiveRouteId(req.params.bookingId);
 
-    if (isNaN(bookingId)) {
+    if (bookingId === null) {
       return res.status(400).json({
         success: false,
         error: 'Invalid booking ID',

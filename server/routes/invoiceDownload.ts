@@ -3,6 +3,7 @@ import { getDb } from '../db';
 import { bookings, users, artistProfiles, venueProfiles } from '../../drizzle/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { generateInvoicePDF } from '../invoice-service';
+import { positiveRouteId } from './routeInput';
 
 const router = Router();
 
@@ -14,8 +15,8 @@ const router = Router();
  */
 router.get('/:bookingId/download', async (req: Request, res: Response) => {
   try {
-    const bookingId = parseInt(req.params.bookingId, 10);
-    if (isNaN(bookingId)) {
+    const bookingId = positiveRouteId(req.params.bookingId);
+    if (bookingId === null) {
       return res.status(400).json({ error: 'Invalid booking ID' });
     }
 

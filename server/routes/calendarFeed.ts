@@ -17,6 +17,7 @@ import { bookings, artistProfiles, venueProfiles } from '../../drizzle/schema';
 import crypto from 'crypto';
 import { bookingCalendarDateLines } from '../services/bookingCalendarFormatting';
 import { ensureScheduleSchema } from '../services/scheduleSchemaService';
+import { positiveRouteId } from './routeInput';
 
 const router = Router();
 
@@ -76,10 +77,10 @@ function escapeICalText(text: string): string {
  */
 router.get('/:artistId/bookings.ics', async (req: Request, res: Response) => {
   try {
-    const artistId = parseInt(req.params.artistId, 10);
+    const artistId = positiveRouteId(req.params.artistId);
     const token = req.query.token as string;
 
-    if (!artistId || isNaN(artistId)) {
+    if (artistId === null) {
       return res.status(400).send('Invalid artist ID');
     }
 
@@ -244,10 +245,10 @@ function validateVenueCalendarToken(venueId: number, token: string): boolean {
  */
 router.get('/venue/:venueId/events.ics', async (req: Request, res: Response) => {
   try {
-    const venueId = parseInt(req.params.venueId, 10);
+    const venueId = positiveRouteId(req.params.venueId);
     const token = req.query.token as string;
 
-    if (!venueId || isNaN(venueId)) {
+    if (venueId === null) {
       return res.status(400).send('Invalid venue ID');
     }
 

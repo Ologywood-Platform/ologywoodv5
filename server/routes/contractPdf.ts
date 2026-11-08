@@ -3,6 +3,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import * as db from "../db";
 import { getRiderTemplate } from "../services/riderTemplateService";
 import { sdk } from "../_core/sdk";
+import { positiveRouteId } from "./routeInput";
 
 const router = Router();
 
@@ -14,8 +15,8 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
   try {
     console.log("[Contract PDF] Request received for booking:", req.params.bookingId);
     
-    const bookingId = parseInt(req.params.bookingId);
-    if (isNaN(bookingId)) {
+    const bookingId = positiveRouteId(req.params.bookingId);
+    if (bookingId === null) {
       return res.status(400).json({ error: "Invalid booking ID" });
     }
 

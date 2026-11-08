@@ -9,6 +9,7 @@ import { storageGet } from "../storage";
 import * as db from "../db";
 import { sdk } from "../_core/sdk";
 import { getMusicPreview } from "../services/releasePreviewMedia";
+import { positiveRouteId } from "./routeInput";
 
 const router = Router();
 
@@ -27,8 +28,8 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const purchaseId = parseInt(req.params.purchaseId);
-    if (isNaN(purchaseId)) {
+    const purchaseId = positiveRouteId(req.params.purchaseId);
+    if (purchaseId === null) {
       return res.status(400).json({ error: "Invalid purchase ID" });
     }
 
