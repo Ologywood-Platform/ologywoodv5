@@ -122,6 +122,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Follow targets, public stats, mutual counts, and consent IDs require safe user IDs; follow/list/recommendation objects are strict; personal and fan-email pagination is capped with bounded offsets; recommendations/suggestions have finite limits; and consent revisions are bounded while paid-tier creator/CSV protections remain intact.
    - Follow/fan-email/suggestion regressions pass 101/101, with TypeScript and production build validation passing. No follows, consent records, emails, exports, or records were changed.
 
+24. **Legacy rider-template boundaries — resolved in this increment.**
+   - Template IDs/types/names require safe bounded formats; template-data keys, top-level count, and serialized size are capped; all template inputs are strict; athlete templates retain owner gating; and user-controlled legacy rider values are HTML-escaped before preview generation.
+   - Rider/template/athlete/contract regressions pass 74/74, with TypeScript and production build validation passing. No rider templates, previews, exports, records, or emails were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

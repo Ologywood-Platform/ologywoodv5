@@ -620,6 +620,14 @@ export function validateRiderData(
   return { valid: errors.length === 0, errors };
 }
 
+const escapeRiderHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character] || character));
+
 export function generateRiderHTML(
   templateId: string,
   data: Record<string, any>
@@ -632,8 +640,8 @@ export function generateRiderHTML(
   let html = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 700px; margin: 0 auto; padding: 32px 20px; color: #1a1a2e;">
       <div style="text-align: center; margin-bottom: 32px; border-bottom: 2px solid #6c5ce7; padding-bottom: 16px;">
-        <h1 style="margin: 0 0 6px 0; color: #6c5ce7; font-size: 24px;">${data.artist_name || 'Artist'} — Booking Rider</h1>
-        <p style="margin: 0; color: #636e72; font-size: 14px;">${data.event_name || 'Performance'} · ${data.event_date || 'TBD'}</p>
+        <h1 style="margin: 0 0 6px 0; color: #6c5ce7; font-size: 24px;">${escapeRiderHtml(data.artist_name || 'Artist')} — Booking Rider</h1>
+        <p style="margin: 0; color: #636e72; font-size: 14px;">${escapeRiderHtml(data.event_name || 'Performance')} · ${escapeRiderHtml(data.event_date || 'TBD')}</p>
       </div>
   `;
 
@@ -643,7 +651,7 @@ export function generateRiderHTML(
 
     html += `
       <div style="margin-bottom: 24px;">
-        <h2 style="background: #6c5ce7; color: white; padding: 8px 14px; margin: 0 0 12px 0; font-size: 14px; font-weight: 600; border-radius: 4px;">${section.title}</h2>
+        <h2 style="background: #6c5ce7; color: white; padding: 8px 14px; margin: 0 0 12px 0; font-size: 14px; font-weight: 600; border-radius: 4px;">${escapeRiderHtml(section.title)}</h2>
         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
     `;
 
@@ -661,8 +669,8 @@ export function generateRiderHTML(
 
       html += `
         <tr style="border-bottom: 1px solid #f0f0f0;">
-          <td style="padding: 6px 8px; font-weight: 600; color: #555; width: 40%; vertical-align: top;">${field.label}</td>
-          <td style="padding: 6px 8px; color: #1a1a2e; white-space: pre-line;">${displayValue}</td>
+          <td style="padding: 6px 8px; font-weight: 600; color: #555; width: 40%; vertical-align: top;">${escapeRiderHtml(field.label)}</td>
+          <td style="padding: 6px 8px; color: #1a1a2e; white-space: pre-line;">${escapeRiderHtml(displayValue)}</td>
         </tr>
       `;
     }

@@ -25,6 +25,21 @@ import {
 import { hasOwnedAthleteProfile, requireOwnedAthleteProfile } from "../services/nilComplianceService";
 
 const isAthleteTemplate = (templateType: string | null | undefined) => templateType?.startsWith("athlete_") === true;
+const templateId = z.number().int().safe().positive();
+const templateType = z.string().trim().min(1).max(80).regex(/^[A-Za-z0-9_-]+$/, 'Invalid template type');
+const templateName = z.string().trim().min(1).max(255);
+const templateData = z.record(z.string().trim().min(1).max(100), z.any()).superRefine((value, ctx) => {
+  if (Object.keys(value).length > 100) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data has too many top-level fields' });
+  }
+  try {
+    if (JSON.stringify(value).length > 250_000) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data is too large' });
+    }
+  } catch {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Template data must be JSON-serializable' });
+  }
+});
 
 export const riderRouter = router({
   /**
@@ -42,7 +57,7 @@ export const riderRouter = router({
    * Get a specific rider template
    */
   getTemplate: protectedProcedure
-    .input(z.object({ templateId: z.number() }))
+    .input(z.object({ templateId }).strict())
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
@@ -60,10 +75,10 @@ export const riderRouter = router({
   createTemplate: protectedProcedure
     .input(
       z.object({
-        templateName: z.string().min(1).max(255),
-        templateData: z.record(z.string(), z.any()),
-        templateType: z.string().optional(),
-      })
+        templateName,
+        templateData,
+        templateType: templateType.optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
@@ -101,9 +116,9 @@ export const riderRouter = router({
   createFromDefault: protectedProcedure
     .input(
       z.object({
-        templateType: z.string(),
-        customName: z.string().optional(),
-      })
+        templateType,
+        customName: templateName.optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
@@ -124,10 +139,10 @@ export const riderRouter = router({
   updateTemplate: protectedProcedure
     .input(
       z.object({
-        templateId: z.number(),
-        templateName: z.string().optional(),
-        templateData: z.record(z.string(), z.any()).optional(),
-      })
+        templateId,
+        templateName: templateName.optional(),
+        templateData: templateData.optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
@@ -155,7 +170,7 @@ export const riderRouter = router({
    * Delete a rider template
    */
   deleteTemplate: protectedProcedure
-    .input(z.object({ templateId: z.number() }))
+    .input(z.object({ templateId }).strict())
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
@@ -168,9 +183,9 @@ export const riderRouter = router({
   duplicateTemplate: protectedProcedure
     .input(
       z.object({
-        templateId: z.number(),
-        newName: z.string().optional(),
-      })
+        templateId,
+        newName: templateName.optional(),
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
@@ -184,9 +199,9 @@ export const riderRouter = router({
   validateTemplate: protectedProcedure
     .input(
       z.object({
-        templateType: z.string(),
-        data: z.record(z.string(), z.any()),
-      })
+        templateType,
+        data: templateData,
+      }).strict()
     )
     .query(async ({ input, ctx }) => {
       if (isAthleteTemplate(input.templateType)) await requireOwnedAthleteProfile(ctx.user.id);
@@ -197,7 +212,7 @@ export const riderRouter = router({
    * Generate HTML preview of a rider template
    */
   generatePreview: protectedProcedure
-    .input(z.object({ templateId: z.number() }))
+    .input(z.object({ templateId }).strict())
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
@@ -208,7 +223,7 @@ export const riderRouter = router({
    * Export rider template as JSON
    */
   exportAsJSON: protectedProcedure
-    .input(z.object({ templateId: z.number() }))
+    .input(z.object({ templateId }).strict())
     .query(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
@@ -228,7 +243,7 @@ export const riderRouter = router({
    * Get default template structure by type
    */
   getDefaultTemplate: protectedProcedure
-    .input(z.object({ templateType: z.string() }))
+    .input(z.object({ templateType }).strict())
     .query(async ({ input, ctx }) => {
       if (isAthleteTemplate(input.templateType)) await requireOwnedAthleteProfile(ctx.user.id);
       return getDefaultTemplate(input.templateType);
@@ -247,7 +262,7 @@ export const riderRouter = router({
    * Set a rider template as the default for auto-attach to new bookings
    */
   setDefault: protectedProcedure
-    .input(z.object({ templateId: z.number() }))
+    .input(z.object({ templateId }).strict())
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       if (!userId) throw new Error("Unauthorized");
