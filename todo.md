@@ -49,6 +49,8 @@
 - [ ] Optimize slow queries
 - [ ] Test database with production load
 - [x] Optimize a verified query hotspot: `getFavoritesByVenue` now fetches all favorite artist profiles in one deduplicated `IN` query and maps results in memory, preserving favorite order, duplicate rows, missing-profile filtering, and response shape. Focused optimization/data-quality/discovery tests pass 11/11 and TypeScript validation passes. Full production-load testing remains open.
+- [x] Measure preview page load times; non-mutating browser Performance API samples on the current preview recorded homepage response 63 ms, DOMContentLoaded 740 ms, load 778 ms, 198 resources, 6 images, and artist-profile load 71 ms response / 829 ms DOMContentLoaded / 865 ms load. These are preview-browser baselines, not production SLA measurements.
+- [x] Capture preview Core Web Vitals-style metrics; homepage sample recorded TTFB 19.2 ms, FCP 1,104 ms, CLS 0, and load 778 ms. LCP was unavailable from the already-completed navigation buffer, so production and repeat-sample CWV validation remain open.
 
 ---
 
@@ -99,7 +101,7 @@
 - [x] Harden the discovered blog Markdown XSS boundary; raw Markdown is escaped before conversion and the final fragment passes an explicit DOMPurify allowlist with scripts, forms, frames, SVG, styles, and data attributes blocked. Public blog and admin preview both use the shared renderer. Focused XSS/message tests pass 7/7 and the production build succeeds; the broader application-wide XSS audit is now closed by the sink scan above.
 
 ### Performance
-- [ ] Measure page load times
+- [x] Measure page load times; the preview baseline is recorded below. Production SLA/load-test validation remains a separate open item.
 - [ ] Check Core Web Vitals
 - [ ] Optimize images
 - [ ] Minify CSS/JS
@@ -114,12 +116,17 @@
 - [ ] Test on tablets (768px - 1024px)
 - [ ] Test on desktop (1024px+)
 - [ ] Verify touch interactions work
+- [x] Capture a non-mutating responsive preview review at requested 320px, 375px, 768px, and 1280px sizes; the saved captures show the homepage sections and controls rendered at each requested breakpoint. This is visual evidence only—the screenshot service reported narrower content rasters after capture chrome, and runtime mobile/touch interaction testing remains open.
+- [x] Exercise homepage runtime controls in the managed browser at the current viewport; menu opened/closed, typing `Adonis` produced the matching listbox result and “See all results” option, and the featured-artist Next control changed the cards to Ulysee A.D., Legacy, and Brass Collective without navigation or mutation.
 
 ### Content
 - [ ] Verify all text is correct and complete
 - [ ] Check all links are working
+- [x] Verify homepage copy only; 5,505 rendered characters had no `Lorem ipsum`, TODO, Coming soon, undefined, or NaN placeholders, and the approved hero text plus Join as Talent CTA were present. Platform-wide editorial/state review remains open.
+- [x] Smoke-check homepage same-origin links only; 40 unique anchors fetched non-mutating with zero failures, including canonical navigation, artist/venue slugs, browse tabs, shop/events/Ology Live, Help, Terms, Privacy, and footer destinations. Platform-wide, external, mailto, authenticated, and deep-link coverage remains open.
 - [ ] Verify all images are displaying
 - [ ] Check email templates
+- [x] Audit homepage image loading only; current browser DOM contained 11 image elements, 9 with non-zero natural dimensions, and 2 SuggestedFollows lazy-image placeholders with no `src` yet (`Darnell “TrumpetDude” Phillips` and `Joe Watts`). After scrolling to the page bottom and waiting 1.2 seconds they remained placeholders, so this is recorded for a focused lazy-image investigation rather than classified as a broken URL; no data or image records were changed.
 
 ---
 
