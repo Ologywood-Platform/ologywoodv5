@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { scheduleTimingSchema, scheduleDateSchema, scheduleTimezoneSchema, addCalendarDays } from "../shared/schedule";
 import { scheduleRouter } from "./routers/schedule";
@@ -178,6 +178,16 @@ const subscriptionReturnUrl = z.string().trim().max(2_048).url().refine((value) 
     return false;
   }
 }, 'Return URL must use HTTP(S)');
+const favoriteArtistId = z.number().int().safe().positive();
+const bookingIdInput = z.number().int().safe().positive();
+const bookingTemplateId = z.number().int().safe().positive();
+const bookingTemplateName = z.string().trim().min(1).max(255);
+const bookingTemplateText = z.string().trim().max(10_000).optional();
+const bookingTemplateMoney = z.number().finite().min(0).max(100_000_000).optional();
+const bookingCalendarRange = z.object({
+  startDate: scheduleDateSchema,
+  endDate: scheduleDateSchema,
+}).strict().refine(({ startDate, endDate }) => startDate <= endDate, 'End date must not be before start date');
 
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -198,17 +208,17 @@ export const appRouter = router({
 
   // Debug endpoint for testing input parsing
   debug: router({
-    testPublicInput: publicProcedure
-      .input(z.object({ id: z.number() }))
+    testPublicInput: adminProcedure
+      .input(z.object({ id: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
         return { received: input, type: typeof input };
       }),
-    testProtectedInput: protectedProcedure
-      .input(z.object({ id: z.number() }))
+    testProtectedInput: adminProcedure
+      .input(z.object({ id: z.number().int().safe().positive() }).strict())
       .query(async ({ input }) => {
         return { received: input, type: typeof input };
       }),
-    testDatabase: publicProcedure.query(async () => {
+    testDatabase: adminProcedure.query(async () => {
       try {
         const database = await db.getDb();
         if (!database) {
@@ -2065,9 +2075,12 @@ export const appRouter = router({
           || Boolean(artistProfile && booking.artistId === artistProfile.id)
           || (booking.bookingSource === 'client_booking' && booking.venueId === ctx.user.id);
         if (!isBookingParty) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        if (booking.status === 'cancelled' || booking.status === 'completed' || booking.paymentStatus === 'refunded') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This booking is not accepting a deposit' });
+        }
         const agreedDeposit = booking.depositAmount ? Number(booking.depositAmount) : null;
-        if (agreedDeposit !== null && Number.isFinite(agreedDeposit) && input.depositAmount > agreedDeposit) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Deposit cannot exceed the agreed booking deposit' });
+        if (agreedDeposit !== null && Number.isFinite(agreedDeposit) && input.depositAmount !== agreedDeposit) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Deposit must match the agreed booking deposit' });
         }
         
         // Create Stripe payment intent
@@ -2127,7 +2140,7 @@ export const appRouter = router({
         const expectedDepositCents = agreedDeposit !== null && Number.isFinite(agreedDeposit)
           ? Math.round(agreedDeposit * 100)
           : null;
-        if (expectedDepositCents !== null && typeof paymentIntent.amount_received === 'number' && paymentIntent.amount_received < expectedDepositCents) {
+        if (expectedDepositCents !== null && (typeof paymentIntent.amount_received !== 'number' || paymentIntent.amount_received < expectedDepositCents)) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payment amount is below the agreed deposit' });
         }
         
@@ -3276,13 +3289,13 @@ export const appRouter = router({
   // Favorites router
   favorite: router({
     add: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: favoriteArtistId }).strict())
       .mutation(async ({ ctx, input }) => {
         return await db.addFavorite(ctx.user.id, input.artistId);
       }),
     
     remove: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: favoriteArtistId }).strict())
       .mutation(async ({ ctx, input }) => {
         await db.removeFavorite(ctx.user.id, input.artistId);
         return { success: true };
@@ -3294,13 +3307,13 @@ export const appRouter = router({
       }),
     
     isFavorited: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: favoriteArtistId }).strict())
       .query(async ({ ctx, input }) => {
         return await db.isFavorited(ctx.user.id, input.artistId);
       }),
     
     getCount: publicProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: favoriteArtistId }).strict())
       .query(async ({ input }) => {
         return await db.getFavoriteCount(input.artistId);
       }),
@@ -3310,20 +3323,45 @@ export const appRouter = router({
   bookingTemplate: router({
     create: venueProcedure
       .input(z.object({
-        templateName: z.string(),
-        venueName: z.string().optional(),
-        venueAddress: z.string().optional(),
-        venueCapacity: z.number().optional(),
-        eventType: z.string().optional(),
-        budgetMin: z.number().optional(),
-        budgetMax: z.number().optional(),
-        standardRequirements: z.string().optional(),
-        additionalNotes: z.string().optional(),
+        templateName: bookingTemplateName,
+        eventDetails: bookingTemplateText,
+        totalFee: bookingTemplateMoney,
+        depositAmount: bookingTemplateMoney,
+        venueName: z.string().trim().max(255).optional(),
+        venueAddress: z.string().trim().max(1_000).optional(),
+        venueCapacity: z.number().int().min(1).max(1_000_000).optional(),
+        eventType: z.string().trim().max(100).optional(),
+        budgetMin: bookingTemplateMoney,
+        budgetMax: bookingTemplateMoney,
+        standardRequirements: bookingTemplateText,
+        additionalNotes: bookingTemplateText,
+      }).strict().superRefine((input, refinement) => {
+        if (input.budgetMin !== undefined && input.budgetMax !== undefined && input.budgetMin > input.budgetMax) {
+          refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['budgetMax'], message: 'Budget maximum must be at least the budget minimum' });
+        }
+        if (input.totalFee !== undefined && input.depositAmount !== undefined && input.depositAmount > input.totalFee) {
+          refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['depositAmount'], message: 'Deposit cannot exceed total fee' });
+        }
       }))
       .mutation(async ({ ctx, input }) => {
+        const { templateName, eventDetails, totalFee, depositAmount, venueName, venueAddress, venueCapacity, eventType, budgetMin, budgetMax, standardRequirements, additionalNotes } = input;
+        const legacyDetails = [
+          eventDetails,
+          venueName && `Venue: ${venueName}`,
+          venueAddress && `Address: ${venueAddress}`,
+          venueCapacity !== undefined && `Capacity: ${venueCapacity}`,
+          eventType && `Event type: ${eventType}`,
+          budgetMin !== undefined && `Budget minimum: ${budgetMin}`,
+          budgetMax !== undefined && `Budget maximum: ${budgetMax}`,
+          standardRequirements && `Requirements: ${standardRequirements}`,
+          additionalNotes && `Additional notes: ${additionalNotes}`,
+        ].filter(Boolean).join('\n');
         return await db.createBookingTemplate({
           venueId: ctx.user.id,
-          ...input,
+          templateName,
+          eventDetails: legacyDetails || null,
+          totalFee: totalFee !== undefined ? String(totalFee) : budgetMax !== undefined ? String(budgetMax) : null,
+          depositAmount: depositAmount !== undefined ? String(depositAmount) : null,
         });
       }),
     
@@ -3333,33 +3371,71 @@ export const appRouter = router({
       }),
     
     getById: venueProcedure
-      .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getBookingTemplateById(input.id);
+      .input(z.object({ id: bookingTemplateId }).strict())
+      .query(async ({ ctx, input }) => {
+        const template = await db.getBookingTemplateById(input.id);
+        if (!template || (ctx.user.role !== 'admin' && template.venueId !== ctx.user.id)) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking template not found' });
+        }
+        return template;
       }),
     
     update: venueProcedure
       .input(z.object({
-        id: z.number(),
-        templateName: z.string().optional(),
-        venueName: z.string().optional(),
-        venueAddress: z.string().optional(),
-        venueCapacity: z.number().optional(),
-        eventType: z.string().optional(),
-        budgetMin: z.number().optional(),
-        budgetMax: z.number().optional(),
-        standardRequirements: z.string().optional(),
-        additionalNotes: z.string().optional(),
+        id: bookingTemplateId,
+        templateName: bookingTemplateName.optional(),
+        eventDetails: bookingTemplateText,
+        totalFee: bookingTemplateMoney,
+        depositAmount: bookingTemplateMoney,
+        venueName: z.string().trim().max(255).optional(),
+        venueAddress: z.string().trim().max(1_000).optional(),
+        venueCapacity: z.number().int().min(1).max(1_000_000).optional(),
+        eventType: z.string().trim().max(100).optional(),
+        budgetMin: bookingTemplateMoney,
+        budgetMax: bookingTemplateMoney,
+        standardRequirements: bookingTemplateText,
+        additionalNotes: bookingTemplateText,
+      }).strict().superRefine((input, refinement) => {
+        if (input.budgetMin !== undefined && input.budgetMax !== undefined && input.budgetMin > input.budgetMax) {
+          refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['budgetMax'], message: 'Budget maximum must be at least the budget minimum' });
+        }
+        if (input.totalFee !== undefined && input.depositAmount !== undefined && input.depositAmount > input.totalFee) {
+          refinement.addIssue({ code: z.ZodIssueCode.custom, path: ['depositAmount'], message: 'Deposit cannot exceed total fee' });
+        }
       }))
       .mutation(async ({ ctx, input }) => {
-        const { id, ...updates } = input;
+        const existing = await db.getBookingTemplateById(input.id);
+        if (!existing || (ctx.user.role !== 'admin' && existing.venueId !== ctx.user.id)) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking template not found' });
+        }
+        const { id, templateName, eventDetails, totalFee, depositAmount, venueName, venueAddress, venueCapacity, eventType, budgetMin, budgetMax, standardRequirements, additionalNotes } = input;
+        const legacyDetails = [
+          eventDetails,
+          venueName && `Venue: ${venueName}`,
+          venueAddress && `Address: ${venueAddress}`,
+          venueCapacity !== undefined && `Capacity: ${venueCapacity}`,
+          eventType && `Event type: ${eventType}`,
+          budgetMin !== undefined && `Budget minimum: ${budgetMin}`,
+          budgetMax !== undefined && `Budget maximum: ${budgetMax}`,
+          standardRequirements && `Requirements: ${standardRequirements}`,
+          additionalNotes && `Additional notes: ${additionalNotes}`,
+        ].filter(Boolean).join('\n');
+        const updates: Partial<schema.InsertBookingTemplate> = {};
+        if (templateName !== undefined) updates.templateName = templateName;
+        if (legacyDetails) updates.eventDetails = legacyDetails;
+        if (totalFee !== undefined || budgetMax !== undefined) updates.totalFee = String(totalFee ?? budgetMax);
+        if (depositAmount !== undefined) updates.depositAmount = String(depositAmount);
         await db.updateBookingTemplate(id, updates);
         return { success: true };
       }),
     
     delete: venueProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
+      .input(z.object({ id: bookingTemplateId }).strict())
+      .mutation(async ({ ctx, input }) => {
+        const existing = await db.getBookingTemplateById(input.id);
+        if (!existing || (ctx.user.role !== 'admin' && existing.venueId !== ctx.user.id)) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking template not found' });
+        }
         await db.deleteBookingTemplate(input.id);
         return { success: true };
       }),
@@ -3368,11 +3444,8 @@ export const appRouter = router({
   // Analytics router - profile views and stats moved to analytics router
   profileAnalytics: router({
     trackView: publicProcedure
-      .input(z.object({
-        artistId: z.number(),
-        ipAddress: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
+      .input(z.object({ artistId: artistProfileId }).strict())
+      .mutation(async ({ input }) => {
         try {
           await db.trackProfileView({
             artistId: input.artistId,
@@ -3385,7 +3458,7 @@ export const appRouter = router({
       }),
     
     getProfileViews: artistProcedure
-      .input(z.object({ days: z.number().optional() }))
+      .input(z.object({ days: z.number().int().min(1).max(365).optional() }).strict())
       .query(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -3404,7 +3477,7 @@ export const appRouter = router({
       }),
     
     getRevenueByMonth: artistProcedure
-      .input(z.object({ months: z.number().optional() }))
+      .input(z.object({ months: z.number().int().min(1).max(120).optional() }).strict())
       .query(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -3463,7 +3536,7 @@ export const appRouter = router({
   
   // Reminders router (for testing/manual trigger)
   reminders: router({
-    checkAndSend: publicProcedure
+    checkAndSend: adminProcedure
       .mutation(async () => {
         // This endpoint can be called manually or by a cron job
         const bookingsNeedingReminders = await db.getBookingsNeedingReminders();
@@ -3520,10 +3593,7 @@ export const appRouter = router({
   // Calendar router
   calendar: router({
     getVenueBookings: venueProcedure
-      .input(z.object({
-        startDate: z.string(),
-        endDate: z.string(),
-      }))
+      .input(bookingCalendarRange)
       .query(async ({ ctx, input }) => {
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!profile) {
@@ -3537,10 +3607,7 @@ export const appRouter = router({
       }),
     
     getFavoritedArtistsAvailability: venueProcedure
-      .input(z.object({
-        startDate: z.string(),
-        endDate: z.string(),
-      }))
+      .input(bookingCalendarRange)
       .query(async ({ ctx, input }) => {
         const startDate = new Date(input.startDate);
         const endDate = new Date(input.endDate);
@@ -3554,13 +3621,18 @@ export const appRouter = router({
   payment: router({
     // Create checkout session for deposit
     createDepositCheckout: venueProcedure
-      .input(z.object({
-        bookingId: z.number(),
-      }))
+      .input(z.object({ bookingId: bookingIdInput }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (ctx.user.role !== 'admin' && (!venueProfile || booking.venueId !== venueProfile.id)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        if (booking.status === 'cancelled' || booking.status === 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This booking is not accepting a deposit' });
         }
         
         // Calculate deposit: use stored amount or default to 50% of total fee
@@ -3570,13 +3642,13 @@ export const appRouter = router({
             ? Math.round(Number(booking.totalFee) / 2 * 100) / 100 
             : null;
         
-        if (!depositAmount || depositAmount <= 0) {
+        if (!depositAmount || depositAmount <= 0 || !Number.isFinite(depositAmount) || depositAmount > 100_000_000) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'No deposit amount could be determined. Please set a total fee for this booking.' });
         }
         
         // Create Stripe checkout session with Connect routing
         if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
-        const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
+        const origin = trustedCheckoutOrigin(process.env.BASE_URL, ctx.req.headers.origin);
         const amountCents = Math.round(depositAmount * 100);
         const platformFeeCents = Math.max(1, Math.round(amountCents * 0.01)); // 1% platform fee
 
@@ -3607,7 +3679,7 @@ export const appRouter = router({
               currency: 'usd',
               product_data: {
                 name: `Booking Deposit - ${booking.eventDetails || 'Event'}`,
-                description: booking.eventDetails || 'Event booking deposit',
+                description: (booking.eventDetails || 'Event booking deposit').slice(0, 2_000),
               },
               unit_amount: amountCents,
             },
@@ -3637,9 +3709,9 @@ export const appRouter = router({
             application_fee_amount: platformFeeCents,
             transfer_data: { destination: connectAccountId },
           };
-          console.log(`[DepositCheckout] Using Stripe Connect: ${connectAccountId}, fee: ${platformFeeCents}c`);
+          console.log(`[DepositCheckout] Using Stripe Connect, fee: ${platformFeeCents}c`);
         } else {
-          console.log(`[DepositCheckout] No Connect account for artist ${booking.artistId}, payment goes to platform`);
+          console.log('[DepositCheckout] No connected artist account; payment goes to platform');
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams);
@@ -3649,13 +3721,18 @@ export const appRouter = router({
     
     // Create checkout session for full payment
     createFullPaymentCheckout: venueProcedure
-      .input(z.object({
-        bookingId: z.number(),
-      }))
+      .input(z.object({ bookingId: bookingIdInput }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (ctx.user.role !== 'admin' && (!venueProfile || booking.venueId !== venueProfile.id)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        if (booking.status === 'cancelled') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This booking is cancelled' });
         }
         
         if (!booking.totalFee) {
@@ -3666,9 +3743,12 @@ export const appRouter = router({
         const remainingAmount = booking.paymentStatus === 'deposit_paid' 
           ? Number(booking.totalFee) - Number(booking.depositAmount || 0)
           : Number(booking.totalFee);
+        if (!Number.isFinite(remainingAmount) || remainingAmount <= 0 || remainingAmount > 100_000_000) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Remaining payment amount is invalid' });
+        }
         
         if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
-        const origin = ctx.req.headers.origin || process.env.BASE_URL || '';
+        const origin = trustedCheckoutOrigin(process.env.BASE_URL, ctx.req.headers.origin);
         const amountCents = Math.round(remainingAmount * 100);
         const platformFeeCents = Math.max(1, Math.round(amountCents * 0.01)); // 1% platform fee
 
@@ -3699,7 +3779,7 @@ export const appRouter = router({
               currency: 'usd',
               product_data: {
                 name: `Remaining Balance - ${booking.eventDetails || 'Event'}`,
-                description: booking.eventDetails || 'Event booking payment',
+                description: (booking.eventDetails || 'Event booking payment').slice(0, 2_000),
               },
               unit_amount: amountCents,
             },
@@ -3729,9 +3809,9 @@ export const appRouter = router({
             application_fee_amount: platformFeeCents,
             transfer_data: { destination: connectAccountId },
           };
-          console.log(`[FullPaymentCheckout] Using Stripe Connect: ${connectAccountId}, fee: ${platformFeeCents}c`);
+          console.log(`[FullPaymentCheckout] Using Stripe Connect, fee: ${platformFeeCents}c`);
         } else {
-          console.log(`[FullPaymentCheckout] No Connect account for artist ${booking.artistId}, payment goes to platform`);
+          console.log('[FullPaymentCheckout] No connected artist account; payment goes to platform');
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams);
@@ -3742,12 +3822,20 @@ export const appRouter = router({
     // Verify payment after returning from Stripe checkout (webhook fallback)
     verifyPayment: protectedProcedure
       .input(z.object({
-        bookingId: z.number(),
-      }))
+        bookingId: bookingIdInput,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const isBookingParty = ctx.user.role === 'admin'
+          || Boolean(venueProfile && booking.venueId === venueProfile.id)
+          || Boolean(artistProfile && booking.artistId === artistProfile.id);
+        if (!isBookingParty) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
         }
         
         // If fully paid, nothing more to do
@@ -3764,9 +3852,26 @@ export const appRouter = router({
           });
           
           // Find ALL completed sessions for this booking (sorted newest first by Stripe)
-          const bookingSessions = sessions.data.filter(
-            (s) => s.metadata?.bookingId === input.bookingId.toString() && s.payment_status === 'paid'
-          );
+          const totalFeeCents = booking.totalFee && Number.isFinite(Number(booking.totalFee))
+            ? Math.round(Number(booking.totalFee) * 100)
+            : null;
+          const depositCents = booking.depositAmount && Number.isFinite(Number(booking.depositAmount))
+            ? Math.round(Number(booking.depositAmount) * 100)
+            : null;
+          const remainingCents = totalFeeCents === null
+            ? null
+            : Math.max(0, totalFeeCents - (depositCents || 0));
+          const bookingSessions = sessions.data.filter((s) => {
+            if (s.metadata?.bookingId !== input.bookingId.toString() || s.payment_status !== 'paid') return false;
+            const sessionAmount = s.amount_total;
+            const paymentType = s.metadata?.paymentType;
+            const expected = paymentType === 'deposit'
+              ? depositCents
+              : paymentType === 'final_payment'
+                ? remainingCents
+                : totalFeeCents;
+            return typeof sessionAmount === 'number' && sessionAmount > 0 && (expected === null || sessionAmount >= expected);
+          });
           
           if (bookingSessions.length === 0) {
             return { status: booking.paymentStatus || 'unpaid', updated: false };
@@ -3826,8 +3931,16 @@ export const appRouter = router({
     
     // Get payment history
     getHistory: protectedProcedure
-      .input(z.object({ bookingId: z.number() }))
-      .query(async ({ input }) => {
+      .input(z.object({ bookingId: bookingIdInput }).strict())
+      .query(async ({ ctx, input }) => {
+        const booking = await db.getBookingById(input.bookingId);
+        if (!booking) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (ctx.user.role !== 'admin'
+          && !((venueProfile && booking.venueId === venueProfile.id) || (artistProfile && booking.artistId === artistProfile.id))) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
         // Return empty payment history for now
         return [];
       }),
@@ -3835,13 +3948,20 @@ export const appRouter = router({
     // Request refund
     requestRefund: venueProcedure
       .input(z.object({
-        bookingId: z.number(),
-        reason: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
+        bookingId: bookingIdInput,
+        reason: z.string().trim().max(1_000).optional(),
+      }).strict())
+      .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        }
+        const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        if (ctx.user.role !== 'admin' && (!venueProfile || booking.venueId !== venueProfile.id)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        }
+        if (booking.paymentStatus === 'refunded') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'This booking has already been refunded' });
         }
         
         if (!booking.stripePaymentIntentId) {

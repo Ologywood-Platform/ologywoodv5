@@ -25,7 +25,7 @@ describe('legacy booking security boundaries', () => {
     expect(source).toContain("if (booking.stripePaymentIntentId !== input.paymentIntentId)");
     expect(source).toContain("paymentIntent.metadata?.bookingId !== String(input.bookingId)");
     expect(source).toContain("paymentIntentId: z.string().trim().regex(/^pi_[A-Za-z0-9]+$/");
-    expect(source).toContain("message: 'Deposit cannot exceed the agreed booking deposit'");
+    expect(source).toContain("message: 'Deposit must match the agreed booking deposit'");
     expect(source).toContain("message: 'Payment amount is below the agreed deposit'");
   });
 });

@@ -166,6 +166,11 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Success/cancel URLs are strict bounded HTTP(S) values and must resolve to the approved application origin; plan/interval/credit inputs are strict; referral-credit coupons are capped at the selected configured plan total; and subscription sync logs no longer expose customer/subscription IDs or account email.
    - Subscription/security/billing/management/pause/pricing/mobile regressions pass 151/151, with TypeScript and production build validation passing. No checkout sessions, coupons, subscription records, emails, or Stripe mutations changed.
 
+35. **Legacy favorites, booking templates, diagnostics, calendar, and payment boundaries — resolved in this increment.**
+   - Favorite artist IDs, analytics IDs/windows, calendar date ranges, and booking-template IDs/fields are strict and bounded; template reads/updates/deletes are venue-scoped, and persistence is limited to schema-backed fields. Unused debug/database probes and the legacy manual reminder trigger are administrator-only rather than public.
+   - Legacy deposit/full-payment Checkout creation and payment history/refund routes require safe booking IDs and booking-party authorization; cancelled/completed/refunded states and positive finite amounts are rejected, Checkout return URLs use the approved-origin helper, paid-session fallback verification requires a matching paid Stripe session and trusted amount, duplicate refunds are rejected, and connected-account logs omit account identifiers.
+   - Legacy-router, booking/security/workflow, availability/calendar, and follow regressions pass 50/50 executed, with TypeScript and production build validation passing. No templates, favorites, reminder emails, bookings, PaymentIntents, Checkout sessions, refunds, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
