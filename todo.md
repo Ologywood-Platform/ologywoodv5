@@ -51,7 +51,7 @@
 ### Artist Discovery & Browsing
 - [x] Test artist search functionality; event artist search, homepage search, and discovery search regression suites pass 47/47. Assertions cover exact/starts-with/word-start/substring ranking, case-insensitive partial names, event artist-name search, and state/region Browse wiring.
 - [x] Verify filtering works correctly; the focused suite asserts genre OR matching, location and state/region fields, combined genre+location and all-filter behavior, server-side `verifiedOnly` input, and event-search filters.
-- [ ] Check featured artists carousel
+- [x] Check featured artists carousel; confirmed real artist data and clean slug profile links, responsive 1/2/3-card behavior, fallback imagery and empty state, verified/CRM badges, accessible previous/next and slide indicators, wraparound navigation, and mobile View All. Focused carousel/homepage tests pass 12/12 and TypeScript validation passes.
 - [ ] Test pagination
 - [ ] Verify artist profiles display correctly
 
