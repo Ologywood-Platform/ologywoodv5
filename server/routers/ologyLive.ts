@@ -41,31 +41,35 @@ const talentProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   return next({ ctx });
 });
 
-const experienceInputSchema = z.object({
-  title: z.string().trim().min(1).max(255),
-  description: z.string().max(2000).optional(),
-  duration: z.number().int().min(15).max(180),
-  price: z.number().min(0).max(10000),
-  capacityType: z.enum(['one_on_one', 'small_group', 'broadcast']),
-  maxAttendees: z.number().int().min(1).max(1000).optional(),
-  platform: z.string().trim().min(1).max(50),
-  platformLink: z.string().max(512).optional(),
-  linkSentAfterBooking: z.boolean().optional(),
-  category: z.string().trim().min(1).max(50),
-  tags: z.array(z.string()).max(10).optional(),
-  coverImageUrl: z.string().max(512).optional(),
-  recurringSchedule: z.unknown().optional(),
-});
-
 const recurringScheduleSchema = z.object({
-  dayOfWeek: z.array(z.number().int().min(0).max(6)).min(1),
+  dayOfWeek: z.array(z.number().int().min(0).max(6)).min(1).max(7).refine((days) => new Set(days).size === days.length, 'Duplicate days are not allowed'),
   startHour: z.number().int().min(0).max(23),
   startMinute: z.number().int().min(0).max(59),
   endHour: z.number().int().min(0).max(23),
   endMinute: z.number().int().min(0).max(59),
-  timezone: z.string().max(100).default('America/New_York'),
+  timezone: z.string().trim().min(1).max(100).default('America/New_York'),
   weeksAhead: z.number().int().min(1).max(8).default(4),
+}).superRefine((value, ctx) => {
+  const start = value.startHour * 60 + value.startMinute;
+  const end = value.endHour * 60 + value.endMinute;
+  if (end <= start) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Recurring schedule must end after it starts.' });
 });
+
+const experienceInputSchema = z.object({
+  title: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(2000).optional(),
+  duration: z.number().int().min(15).max(180),
+  price: z.number().min(0).max(10000).refine((value) => Number.isInteger(value * 100), 'Price must have at most two decimal places'),
+  capacityType: z.enum(['one_on_one', 'small_group', 'broadcast']),
+  maxAttendees: z.number().int().min(1).max(1000).optional(),
+  platform: z.string().trim().min(1).max(50),
+  platformLink: z.string().trim().url().max(512).optional().or(z.literal('')),
+  linkSentAfterBooking: z.boolean().optional(),
+  category: z.string().trim().min(1).max(50),
+  tags: z.array(z.string().trim().min(1).max(50)).max(10).optional(),
+  coverImageUrl: z.string().trim().url().max(512).optional().or(z.literal('')),
+  recurringSchedule: recurringScheduleSchema.optional(),
+}).strict();
 
 function asTrpc(error: unknown): never {
   if (error instanceof TRPCError) throw error;
@@ -147,7 +151,7 @@ export const ologyLiveRouter = router({
   }),
 
   updateExperience: talentProcedure
-    .input(z.object({ id: z.number() }).merge(experienceInputSchema.partial()))
+    .input(z.object({ id: z.number().int().safe().positive() }).merge(experienceInputSchema.partial()).strict())
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -170,7 +174,7 @@ export const ologyLiveRouter = router({
       return { success: true };
     }),
 
-  toggleActive: talentProcedure.input(z.object({ id: z.number(), isActive: z.boolean() })).mutation(async ({ ctx, input }) => {
+  toggleActive: talentProcedure.input(z.object({ id: z.number().int().safe().positive(), isActive: z.boolean() }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         const experience = await requireLiveExperience(conn, input.id, ctx.user.id);
@@ -197,7 +201,7 @@ export const ologyLiveRouter = router({
     } catch (error) { return asTrpc(error); }
   }),
 
-  deleteExperience: talentProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+  deleteExperience: talentProcedure.input(z.object({ id: z.number().int().safe().positive() }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         await requireLiveExperience(conn, input.id, ctx.user.id);
@@ -219,7 +223,7 @@ export const ologyLiveRouter = router({
     return db.select().from(ologyLiveExperiences).where(eq(ologyLiveExperiences.talentId, ctx.user.id)).orderBy(desc(ologyLiveExperiences.createdAt));
   }),
 
-  getMyBookingsAsTalent: talentProcedure.input(z.object({ status: z.string().optional() }).optional()).query(async ({ ctx, input }) => {
+  getMyBookingsAsTalent: talentProcedure.input(z.object({ status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no_show']).optional() }).strict().optional()).query(async ({ ctx, input }) => {
     await reconcileOlogyLiveReservations({ userId: ctx.user.id });
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -230,11 +234,11 @@ export const ologyLiveRouter = router({
 
   // ===== TALENT: Time Slot Management =====
   addTimeSlot: talentProcedure.input(z.object({
-    experienceId: z.number(),
-    startTime: z.string(),
-    endTime: z.string(),
-    scheduleTimezone: z.string().max(100).optional(),
-  })).mutation(async ({ ctx, input }) => {
+    experienceId: z.number().int().safe().positive(),
+    startTime: z.string().trim().min(1).max(64),
+    endTime: z.string().trim().min(1).max(64),
+    scheduleTimezone: z.string().trim().min(1).max(100).optional(),
+  }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         const experience = await requireLiveExperience(conn, input.experienceId, ctx.user.id);
@@ -251,7 +255,7 @@ export const ologyLiveRouter = router({
     } catch (error) { return asTrpc(error); }
   }),
 
-  removeTimeSlot: talentProcedure.input(z.object({ slotId: z.number() })).mutation(async ({ ctx, input }) => {
+  removeTimeSlot: talentProcedure.input(z.object({ slotId: z.number().int().safe().positive() }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         const slot = await getLockedLiveSlot(conn, input.slotId, ctx.user.id);
@@ -267,7 +271,7 @@ export const ologyLiveRouter = router({
     } catch (error) { return asTrpc(error); }
   }),
 
-  getMyTimeSlots: talentProcedure.input(z.object({ experienceId: z.number().optional() }).optional()).query(async ({ ctx, input }) => {
+  getMyTimeSlots: talentProcedure.input(z.object({ experienceId: z.number().int().safe().positive().optional() }).strict().optional()).query(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
     const conditions = [eq(ologyLiveTimeSlots.talentId, ctx.user.id)];
@@ -276,21 +280,24 @@ export const ologyLiveRouter = router({
   }),
 
   // ===== FAN: Browse & Book =====
-  getTalentExperiences: publicProcedure.input(z.object({ talentId: z.number() })).query(async ({ input }) => {
+  getTalentExperiences: publicProcedure.input(z.object({ talentId: z.number().int().safe().positive() }).strict()).query(async ({ input }) => {
     const db = await getDb();
     if (!db) return [];
     return db.select().from(ologyLiveExperiences).where(and(eq(ologyLiveExperiences.talentId, input.talentId), eq(ologyLiveExperiences.isActive, true))).orderBy(asc(ologyLiveExperiences.createdAt));
   }),
 
-  getExperienceById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getExperienceById: publicProcedure.input(z.object({ id: z.number().int().safe().positive() }).strict()).query(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-    const [experience] = await db.select().from(ologyLiveExperiences).where(eq(ologyLiveExperiences.id, input.id)).limit(1);
+    const [experience] = await db.select().from(ologyLiveExperiences).where(and(
+      eq(ologyLiveExperiences.id, input.id),
+      eq(ologyLiveExperiences.isActive, true),
+    )).limit(1);
     if (!experience) throw new TRPCError({ code: 'NOT_FOUND', message: 'Experience not found' });
     return experience;
   }),
 
-  getAvailableSlots: publicProcedure.input(z.object({ experienceId: z.number() })).query(async ({ input }) => {
+  getAvailableSlots: publicProcedure.input(z.object({ experienceId: z.number().int().safe().positive() }).strict()).query(async ({ input }) => {
     await reconcileOlogyLiveReservations({ experienceId: input.experienceId });
     const db = await getDb();
     if (!db) return [];
@@ -302,10 +309,10 @@ export const ologyLiveRouter = router({
   }),
 
   bookExperience: protectedProcedure.input(z.object({
-    experienceId: z.number(),
-    slotId: z.number(),
-    notes: z.string().max(500).optional(),
-  })).mutation(async ({ ctx, input }) => {
+    experienceId: z.number().int().safe().positive(),
+    slotId: z.number().int().safe().positive(),
+    notes: z.string().trim().max(500).optional(),
+  }).strict()).mutation(async ({ ctx, input }) => {
     let reservation: { bookingId: number; talentId: number; price: number; experience: LiveExperienceRow; slot: LiveSlotRow };
     try {
       reservation = await withLockedLiveTalentForReservation(input.experienceId, input.slotId, ctx.user.id, input.notes || null);
@@ -391,7 +398,7 @@ export const ologyLiveRouter = router({
     return db.select().from(ologyLiveBookings).where(eq(ologyLiveBookings.fanId, ctx.user.id)).orderBy(desc(ologyLiveBookings.scheduledAt));
   }),
 
-  cancelBooking: protectedProcedure.input(z.object({ bookingId: z.number(), reason: z.string().max(500).optional() })).mutation(async ({ ctx, input }) => {
+  cancelBooking: protectedProcedure.input(z.object({ bookingId: z.number().int().safe().positive(), reason: z.string().trim().max(500).optional() }).strict()).mutation(async ({ ctx, input }) => {
     let participants: Awaited<ReturnType<typeof getLiveBookingParticipants>>;
     try { participants = await getLiveBookingParticipants(input.bookingId); } catch (error) { return asTrpc(error); }
     if (!participants) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
@@ -418,7 +425,7 @@ export const ologyLiveRouter = router({
     } catch (error) { return asTrpc(error); }
   }),
 
-  confirmBooking: talentProcedure.input(z.object({ bookingId: z.number(), joinLink: z.string().max(512).optional() })).mutation(async ({ ctx, input }) => {
+  confirmBooking: talentProcedure.input(z.object({ bookingId: z.number().int().safe().positive(), joinLink: z.string().trim().url().max(512).optional().or(z.literal('')) }).strict()).mutation(async ({ ctx, input }) => {
     try {
       const participants = await getLiveBookingParticipants(input.bookingId);
       if (!participants || participants.talentId !== ctx.user.id) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found.' });
@@ -448,9 +455,9 @@ export const ologyLiveRouter = router({
 
   // ===== PUBLIC: Browse All Experiences =====
   browseExperiences: publicProcedure.input(z.object({
-    category: z.string().optional(), capacityType: z.string().optional(),
-    limit: z.number().min(1).max(50).default(20), offset: z.number().min(0).default(0),
-  }).optional()).query(async ({ input }) => {
+    category: z.string().trim().max(50).optional(), capacityType: z.enum(['one_on_one', 'small_group', 'broadcast']).optional(),
+    limit: z.number().int().min(1).max(50).default(20), offset: z.number().int().min(0).max(1_000_000).default(0),
+  }).strict().optional()).query(async ({ input }) => {
     const db = await getDb();
     if (!db) return [];
     const conditions = [eq(ologyLiveExperiences.isActive, true)];
@@ -460,7 +467,7 @@ export const ologyLiveRouter = router({
   }),
 
   // ===== RECURRING AVAILABILITY =====
-  setRecurringSchedule: talentProcedure.input(z.object({ experienceId: z.number(), schedule: recurringScheduleSchema })).mutation(async ({ ctx, input }) => {
+  setRecurringSchedule: talentProcedure.input(z.object({ experienceId: z.number().int().safe().positive(), schedule: recurringScheduleSchema }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         const experience = await requireLiveExperience(conn, input.experienceId, ctx.user.id);
@@ -472,7 +479,7 @@ export const ologyLiveRouter = router({
   }),
 
   // Explicit user action only; no worker, startup, or cron invokes recurrence.
-  regenerateSlots: talentProcedure.input(z.object({ experienceId: z.number() })).mutation(async ({ ctx, input }) => {
+  regenerateSlots: talentProcedure.input(z.object({ experienceId: z.number().int().safe().positive() }).strict()).mutation(async ({ ctx, input }) => {
     try {
       return await withLockedLiveTalent(ctx.user.id, async conn => {
         const experience = await requireLiveExperience(conn, input.experienceId, ctx.user.id);

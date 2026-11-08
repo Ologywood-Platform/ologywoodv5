@@ -98,6 +98,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Members-only feed access no longer falls through to unauthenticated viewers. Selected minimum tiers are persisted and enforced by tier price; post likes/comments require access to the post and parent comments must belong to the same post. Tier, membership, post, like, comment, and subscription inputs are strict and bounded; self-subscription and missing Stripe price IDs are rejected; connected payout routing requires charges and payouts enabled.
    - Fan Club/security/commerce/owner-access regressions pass 34/34, with TypeScript and production build validation passing. No memberships, posts, comments, likes, Stripe sessions, emails, or records were changed.
 
+18. **Ology Live paid-session boundaries — resolved in this increment.**
+   - Experience pricing is cents-safe; descriptions, tags, URLs, recurring schedules, notes, reasons, and join links are bounded and validated. Management, slot, booking, and browse IDs/pagination are safe integers with strict status/capacity values. Paused experiences are excluded from public detail reads, while checkout remains tied to the locked reservation participants and self-booking is rejected.
+   - Ology Live security/checkout/lock/schedule/phase regressions pass 227/227, with TypeScript and production build validation passing. No experiences, slots, bookings, payments, Stripe sessions, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
