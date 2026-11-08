@@ -53,6 +53,8 @@ export default function Browse() {
     crmOnly?: boolean;
   }>({});
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false);
+  const [artistPage, setArtistPage] = useState(1);
+  const artistPageSize = 12;
   
   // Collapsible filters state
   const [showFilters, setShowFilters] = useState(false);
@@ -309,6 +311,16 @@ export default function Browse() {
     return matchesSearch;
   });
 
+  const artistTotalPages = Math.max(1, Math.ceil((filteredArtists?.length || 0) / artistPageSize));
+  const paginatedArtists = filteredArtists?.slice(
+    (artistPage - 1) * artistPageSize,
+    artistPage * artistPageSize,
+  );
+
+  useEffect(() => {
+    setArtistPage(1);
+  }, [searchQuery, talentTypeFilter, filters]);
+
   // Auto-scroll to no-results message when search yields zero results
   useEffect(() => {
     if (filteredArtists && filteredArtists.length === 0 && searchQuery && noResultsRef.current) {
@@ -522,6 +534,7 @@ export default function Browse() {
               <div ref={resultsRef} className="mb-4 scroll-mt-4">
                 <p className="text-sm text-muted-foreground">
                   Showing <strong>{filteredArtists.length}</strong> profile{filteredArtists.length !== 1 ? "s" : ""}
+                  {artistTotalPages > 1 && <span> · Page {artistPage} of {artistTotalPages}</span>}
                 </p>
               </div>
             )}
@@ -547,7 +560,7 @@ export default function Browse() {
             {/* Artists Grid */}
             {!artistsLoading && (hasAppliedFilters || searchQuery.length > 0) && filteredArtists && filteredArtists.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredArtists.map(artist => (
+                {paginatedArtists?.map(artist => (
                   <Link key={artist.id} href={`/artist/${toSlug(artist.artistName || '')}`}>
                     <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
                       {/* Always show image area — with photo or placeholder */}
@@ -664,6 +677,18 @@ export default function Browse() {
                   </Link>
                 ))}
               </div>
+            )}
+
+            {!artistsLoading && (hasAppliedFilters || searchQuery.length > 0) && artistTotalPages > 1 && (
+              <nav className="flex items-center justify-center gap-3 mt-6" aria-label="Artist results pagination">
+                <Button type="button" variant="outline" size="sm" onClick={() => setArtistPage(page => Math.max(1, page - 1))} disabled={artistPage === 1}>
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground" aria-live="polite">Page {artistPage} of {artistTotalPages}</span>
+                <Button type="button" variant="outline" size="sm" onClick={() => setArtistPage(page => Math.min(artistTotalPages, page + 1))} disabled={artistPage === artistTotalPages}>
+                  Next
+                </Button>
+              </nav>
             )}
 
             {/* Initial State - No search/filter applied yet */}
