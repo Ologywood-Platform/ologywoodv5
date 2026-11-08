@@ -12,7 +12,7 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 ## Verified protections
 
 - `server/routes/bookFiles.ts`: positive integer item/access IDs, authenticated upload/download, owner/email entitlement checks, rights confirmation, MIME/size limits, private storage keys, bounded download counts, and client-safe errors.
-- `server/routes/releaseDownload.ts`: authenticated ownership checks for purchased downloads, strict purchase IDs, published-only public previews, and generic provider errors. The public preview route still uses a local numeric guard and should be normalized to the shared route-ID parser in a follow-up.
+- `server/routes/releaseDownload.ts`: authenticated ownership checks for purchased downloads, strict purchase IDs, published-only public previews, generic provider errors, and the shared positive route-ID parser on both download and preview paths.
 - `server/routes/riderDocuments.ts`: authenticated access, strict version/booking IDs, owner or booking-party authorization, transaction/rollback handling, encrypted document retrieval, no storage URL exposure, private no-store headers, safe content-disposition handling, and generic errors.
 - `server/routes/mediaUploads.ts`: authentication occurs before raw-body allocation; metadata, content type, content length, chunk size, and chunk index are bounded; service errors are mapped to stable client-safe codes.
 - `server/routes/videoUpload.ts`: owner/profile and plan checks, signed owner-bound upload sessions for direct uploads, bounded chunk sizes, source-format validation, conversion validation, and client-safe validation errors. The legacy `/upload` path has a separate duration-validation gap noted below.
@@ -55,9 +55,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 
 ### Low priority / consistency
 
-7. **Public release preview should use the shared route-ID parser.**
+7. **Public release preview route-ID parser — resolved in this increment.**
    - File: `server/routes/releaseDownload.ts`, `/preview/:releaseId`.
-   - It has a local positive integer check that is functionally close to the shared helper. Normalize it to the shared helper to prevent parser drift.
+   - The local `Number`/`Number.isInteger` guard now uses `positiveRouteId`, preventing parser drift. `server/releaseDownloadInput.test.ts`, route-input tests, and release-preview API tests pass; no download or payment was created.
 
 8. **Release-preview MIME/data-URL parser — resolved in this increment.**
    - File: `server/services/releasePreviewMedia.ts`.
@@ -67,8 +67,8 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - File: `server/routes/googleAuth.ts`.
    - Google token/userinfo fetches now use bounded timeouts and fixed provider-error mapping, aligned with the Spotify route. Covered by the OAuth regression suite; no provider flow was completed.
 
-10. **Sensitive identifiers are logged in OAuth/PDF paths.**
-   - Google/Spotify log provider email and IDs; contract PDF logs booking/profile/contract IDs. These are not returned to clients, but production log retention should be treated as sensitive. Prefer stable internal correlation IDs and redact personal email/provider identifiers.
+10. **Sensitive identifiers in the identified OAuth/PDF paths — resolved in this increment.**
+   - Google/Spotify no longer log provider email, provider IDs, response bodies, session-linked open IDs, or redirect targets; Contract PDF no longer logs booking/profile/contract IDs, filenames, raw exception messages, or stacks. Focused `sensitiveLogSafety`/OAuth/private-data tests pass 17/17. A broader inventory of non-sensitive operational IDs and production log-retention policy remains outside this route-focused audit.
 
 ## Audit limitations
 

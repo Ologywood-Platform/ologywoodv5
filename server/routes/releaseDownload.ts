@@ -94,8 +94,8 @@ router.get("/:purchaseId", async (req: Request, res: Response) => {
  */
 router.get("/preview/:releaseId", async (req: Request, res: Response) => {
   try {
-    const releaseId = Number(req.params.releaseId);
-    if (!Number.isInteger(releaseId) || releaseId < 1) {
+    const releaseId = positiveRouteId(req.params.releaseId);
+    if (releaseId === null) {
       return res.status(400).json({ error: "Invalid release ID" });
     }
 

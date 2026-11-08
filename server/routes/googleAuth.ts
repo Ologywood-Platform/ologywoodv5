@@ -109,8 +109,8 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     });
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('[Google OAuth] Token exchange failed:', errorData);
+      await tokenResponse.text();
+      console.error('[Google OAuth] Token exchange failed');
       return res.redirect(302, `${origin}/get-started?oauth_error=TOKEN_EXCHANGE_FAILED`);
     }
 
@@ -135,7 +135,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
       verified_email?: boolean;
     };
 
-    console.log(`[Google OAuth] User info received: ${googleUser.email}, id: ${googleUser.id}`);
+    console.log('[Google OAuth] User info received');
 
     const db = await getDb();
     if (!db) {
@@ -163,7 +163,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
         lastSignedIn: new Date(),
         avatarUrl: avatarUrl || user.avatarUrl,
       }).where(eq(users.id, user.id));
-      console.log(`[Google OAuth] Existing user login: ${user.email} (id: ${user.id})`);
+      console.log('[Google OAuth] Existing user login');
     } else {
       // Check if there's an existing account with the same email (account linking)
       const existingEmailUser = await db.select().from(users)
@@ -180,7 +180,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
           emailVerified: true, // Google verified the email
           lastSignedIn: new Date(),
         }).where(eq(users.id, user.id));
-        console.log(`[Google OAuth] Linked Google to existing account: ${user.email} (id: ${user.id})`);
+        console.log('[Google OAuth] Linked Google to existing account');
       } else {
         // Create brand new user
         const openId = `google_${googleUser.id}`;
@@ -207,7 +207,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
         // Check if user is eligible for free trial
         await FreeTrialService.assignFreeTrialIfEligible(newUserId);
 
-        console.log(`[Google OAuth] New user created: ${user.email} (id: ${user.id})`);
+        console.log('[Google OAuth] New user created');
       }
     }
 
@@ -224,7 +224,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log(`[Google OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
+    console.log('[Google OAuth] Login successful; setting cookie and redirecting');
 
     // Include session token in URL hash as fallback for mobile browsers where
     // Set-Cookie may not persist across OAuth redirect chains (Android Spotify app, etc.)
@@ -236,7 +236,7 @@ router.get('/google/callback', async (req: Request, res: Response) => {
 <script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
 </body></html>`);
   } catch (error) {
-    console.error('[Google OAuth] Callback error:', error);
+    console.error('[Google OAuth] Callback error', { error: error instanceof Error ? error.name : 'UnknownError' });
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);
   }
 });

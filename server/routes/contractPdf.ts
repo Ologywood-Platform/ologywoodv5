@@ -13,7 +13,7 @@ const router = Router();
  */
 router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
   try {
-    console.log("[Contract PDF] Request received for booking:", req.params.bookingId);
+    console.log("[Contract PDF] Request received");
     
     const bookingId = positiveRouteId(req.params.bookingId);
     if (bookingId === null) {
@@ -24,9 +24,9 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
     let user;
     try {
       user = await sdk.authenticateRequest(req);
-      console.log("[Contract PDF] Authenticated user:", user.id);
+      console.log("[Contract PDF] Authentication succeeded");
     } catch (authErr: any) {
-      console.error("[Contract PDF] Auth failed:", authErr?.message || authErr);
+      console.error("[Contract PDF] Authentication failed", { error: authErr instanceof Error ? authErr.name : "UnknownError" });
       return res.status(401).json({ error: "Authentication required" });
     }
     const userId = user.id;
@@ -36,7 +36,7 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
-    console.log("[Contract PDF] Found booking:", bookingId, "artistId:", booking.artistId, "venueId:", booking.venueId);
+    console.log("[Contract PDF] Booking found");
 
     // Verify user is involved in this booking
     const artistProfile = await db.getArtistProfileByUserId(userId);
@@ -52,7 +52,7 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
     const signatures = contract ? await db.getSignaturesByContractId(contract.id) : [];
     const artistSig = signatures.find((s) => s.signerRole === "artist");
     const venueSig = signatures.find((s) => s.signerRole === "venue");
-    console.log("[Contract PDF] Contract:", contract?.id, "Status:", contract?.status, "Signatures:", signatures.length);
+    console.log("[Contract PDF] Contract loaded", { status: contract?.status || "missing", signatureCount: signatures.length });
 
     // Get rider template data
     let riderData: Record<string, any> = {};
@@ -67,7 +67,7 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
           templateName = riderTemplate.templateName || "Performance Rider";
         }
       } catch (err) {
-        console.error("[Contract PDF] Error loading rider template:", err);
+        console.error("[Contract PDF] Error loading rider template", { error: err instanceof Error ? err.name : "UnknownError" });
       }
     }
 
@@ -549,7 +549,7 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
     const pdfBytes = await pdfDoc.save();
     const filename = `rider-contract-booking-${bookingId}-${new Date().toISOString().split("T")[0]}.pdf`;
 
-    console.log("[Contract PDF] Generated PDF:", filename, "Size:", pdfBytes.length, "bytes");
+    console.log("[Contract PDF] Generated PDF", { byteLength: pdfBytes.length });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
@@ -557,7 +557,7 @@ router.get("/:bookingId/pdf", async (req: Request, res: Response) => {
     res.send(Buffer.from(pdfBytes));
 
   } catch (error: any) {
-    console.error("[Contract PDF] Error generating PDF:", error?.message || error, error?.stack);
+    console.error("[Contract PDF] Error generating PDF", { error: error instanceof Error ? error.name : "UnknownError" });
     res.status(500).json({ error: "Failed to generate PDF" });
   }
 });

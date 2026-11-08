@@ -21,7 +21,8 @@ describe('OAuth state security', () => {
     process.env.JWT_SECRET = 'oauth-state-test-secret';
     const state = createOAuthState({ returnPath: '/dashboard' });
     const [payload, signature] = state.split('.');
-    expect(verifyOAuthState(`${payload}.${signature.slice(0, -1)}x`)).toBeNull();
+    const tamperedSignature = `${signature[0] === 'a' ? 'b' : 'a'}${signature.slice(1)}`;
+    expect(verifyOAuthState(`${payload}.${tamperedSignature}`)).toBeNull();
 
     const expiredPayload = Buffer.from(JSON.stringify({ version: 1, issuedAt: Date.now() - OAUTH_STATE_TTL_MS - 1, returnPath: '/dashboard' })).toString('base64url');
     const expiredSignature = crypto.createHmac('sha256', process.env.JWT_SECRET).update(expiredPayload).digest('base64url');

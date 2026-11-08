@@ -114,13 +114,13 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
         signal: AbortSignal.timeout(SPOTIFY_REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
-      console.error('[Spotify OAuth] Token exchange request failed:', error);
+      console.error('[Spotify OAuth] Token exchange request failed', { error: error instanceof Error ? error.name : 'UnknownError' });
       return res.redirect(302, `${origin}/get-started?oauth_error=TOKEN_EXCHANGE_FAILED`);
     }
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('[Spotify OAuth] Token exchange failed:', errorData);
+      await tokenResponse.text();
+      console.error('[Spotify OAuth] Token exchange failed');
       return res.redirect(302, `${origin}/get-started?oauth_error=TOKEN_EXCHANGE_FAILED`);
     }
 
@@ -134,7 +134,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
         signal: AbortSignal.timeout(SPOTIFY_REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
-      console.error('[Spotify OAuth] User info request failed:', error);
+      console.error('[Spotify OAuth] User info request failed', { error: error instanceof Error ? error.name : 'UnknownError' });
       return res.redirect(302, `${origin}/get-started?oauth_error=USERINFO_FAILED`);
     }
 
@@ -150,7 +150,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
       images?: Array<{ url: string; height: number; width: number }>;
     };
 
-    console.log(`[Spotify OAuth] User info received: ${spotifyUser.email}, id: ${spotifyUser.id}`);
+    console.log('[Spotify OAuth] User info received');
 
     const db = await getDb();
     if (!db) {
@@ -181,7 +181,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
         lastSignedIn: new Date(),
         avatarUrl: avatarUrl || user.avatarUrl,
       }).where(eq(users.id, user.id));
-      console.log(`[Spotify OAuth] Existing user login: ${user.email} (id: ${user.id})`);
+      console.log('[Spotify OAuth] Existing user login');
     } else {
       // Check if there's an existing account with the same email (account linking)
       const normalizedEmail = spotifyUser.email?.toLowerCase();
@@ -200,7 +200,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
             emailVerified: true,
             lastSignedIn: new Date(),
           }).where(eq(users.id, user.id));
-          console.log(`[Spotify OAuth] Linked Spotify to existing account: ${user.email} (id: ${user.id})`);
+          console.log('[Spotify OAuth] Linked Spotify to existing account');
         } else {
           // Create brand new user
           const openId = `spotify_${spotifyUser.id}`;
@@ -227,7 +227,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
           // Check if user is eligible for free trial
           await FreeTrialService.assignFreeTrialIfEligible(newUserId);
 
-          console.log(`[Spotify OAuth] New user created: ${user.email} (id: ${user.id})`);
+          console.log('[Spotify OAuth] New user created');
         }
       } else {
         // No email from Spotify (rare) — create user without email
@@ -250,7 +250,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
         await getUserSubscription(newUserId);
         await FreeTrialService.assignFreeTrialIfEligible(newUserId);
 
-        console.log(`[Spotify OAuth] New user created (no email): ${spotifyUser.display_name} (id: ${user.id})`);
+        console.log('[Spotify OAuth] New user created without email');
       }
     }
 
@@ -266,7 +266,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log(`[Spotify OAuth] Login successful, setting cookie and redirecting to: ${origin}${returnPath}`);
+    console.log('[Spotify OAuth] Login successful; setting cookie and redirecting');
 
     // Android fix: On Android, the Spotify app may intercept the OAuth flow and open
     // the callback in a new browser context (Custom Tab or new tab). This can cause
@@ -281,7 +281,7 @@ router.get('/spotify/callback', async (req: Request, res: Response) => {
 <script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
 </body></html>`);
   } catch (error) {
-    console.error('[Spotify OAuth] Callback error:', error);
+    console.error('[Spotify OAuth] Callback error', { error: error instanceof Error ? error.name : 'UnknownError' });
     return res.redirect(302, `${origin}/get-started?oauth_error=UNKNOWN_ERROR`);
   }
 });
@@ -311,10 +311,10 @@ router.post('/exchange-token', async (req: Request, res: Response) => {
     const cookieOptions = getSessionCookieOptions(req);
     res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-    console.log(`[Auth] Token exchange successful for user: ${verified.openId}`);
+    console.log('[Auth] Token exchange successful');
     return res.json({ success: true });
   } catch (error) {
-    console.error('[Auth] Token exchange failed:', error);
+    console.error('[Auth] Token exchange failed', { error: error instanceof Error ? error.name : 'UnknownError' });
     return res.status(500).json({ error: 'Token exchange failed' });
   }
 });
