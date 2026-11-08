@@ -158,6 +158,14 @@ const videoExtensionByMime: Record<string, string> = {
   'video/quicktime': 'mov',
   'video/webm': 'webm',
 };
+const bookingDate = z.string().trim().min(10).max(64).refine((value) => !Number.isNaN(new Date(value).getTime()), 'Invalid event date');
+const bookingEventTime = z.string().trim().max(32).optional();
+const bookingMoney = z.number().finite().min(0).max(100_000_000);
+const bookingName = z.string().trim().min(1).max(255);
+const bookingText = z.string().trim().max(10_000).optional();
+const bookingAddress = z.string().trim().max(1_000).optional();
+const bookingPhone = z.string().trim().max(50).optional();
+const bookingEmail = z.string().trim().toLowerCase().email().max(320);
 
 // Complimentary owner access is an entitlement, never a paid Stripe subscription.
 const paidSubscriptionProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -1288,21 +1296,21 @@ export const appRouter = router({
     // Create booking request (venue)
     create: venueProcedure
       .input(z.object({
-        artistId: z.number(),
-        eventDate: z.string(),
-        eventTime: z.string().optional(),
+        artistId: artistProfileId,
+        eventDate: bookingDate,
+        eventTime: bookingEventTime,
         schedule: scheduleTimingSchema.optional(),
-        venueName: z.string().min(1),
-        venueAddress: z.string().optional(),
-        eventDetails: z.string().optional(),
-        totalFee: z.number().optional(),
-        depositAmount: z.number().optional(),
-        riderTemplateId: z.number().optional(),
+        venueName: bookingName,
+        venueAddress: bookingAddress,
+        eventDetails: bookingText,
+        totalFee: bookingMoney.optional(),
+        depositAmount: bookingMoney.optional(),
+        riderTemplateId: artistProfileId.optional(),
         // Door-split payment terms
         paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage']).optional(),
-        doorSplitArtistPercent: z.number().min(0).max(100).optional(),
-        guaranteeAmount: z.number().optional(),
-      }))
+        doorSplitArtistPercent: z.number().finite().min(0).max(100).optional(),
+        guaranteeAmount: bookingMoney.optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         await ensureScheduleSchema();
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
@@ -1376,19 +1384,19 @@ export const appRouter = router({
     // Create booking request (client/fan - anyone logged in)
     clientCreate: protectedProcedure
       .input(z.object({
-        artistId: z.number(),
-        eventDate: z.string(),
-        eventTime: z.string().optional(),
+        artistId: artistProfileId,
+        eventDate: bookingDate,
+        eventTime: bookingEventTime,
         schedule: scheduleTimingSchema.optional(),
         eventType: z.enum(['wedding', 'corporate', 'birthday', 'church', 'festival', 'house_party', 'restaurant', 'other']),
-        venueName: z.string().min(1),
-        venueAddress: z.string().optional(),
-        eventDetails: z.string().optional(),
-        totalFee: z.number().optional(),
-        clientName: z.string().min(1),
-        clientEmail: z.string().email(),
-        clientPhone: z.string().optional(),
-      }))
+        venueName: bookingName,
+        venueAddress: bookingAddress,
+        eventDetails: bookingText,
+        totalFee: bookingMoney.optional(),
+        clientName: bookingName,
+        clientEmail: bookingEmail,
+        clientPhone: bookingPhone,
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         await ensureScheduleSchema();
         const scheduleFields = await checkBookingScheduleRequest({ artistId: input.artistId, venueId: ctx.user.id, bookingSource: 'client_booking', eventDate: input.eventDate, schedule: input.schedule });
@@ -1479,15 +1487,15 @@ export const appRouter = router({
     // Artist requests to perform at a venue
     requestToPerform: artistProcedure
       .input(z.object({
-        venueId: z.number(),
-        eventName: z.string().min(1),
-        eventDate: z.string(),
-        eventTime: z.string().optional(),
+        venueId: artistProfileId,
+        eventName: bookingName,
+        eventDate: bookingDate,
+        eventTime: bookingEventTime,
         schedule: scheduleTimingSchema.optional(),
-        message: z.string().optional(),
+        message: bookingText,
         paymentTermsType: z.enum(['flat_guarantee', 'door_split', 'guarantee_vs_percentage']).optional(),
-        proposedFee: z.number().optional(),
-      }))
+        proposedFee: bookingMoney.optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         await ensureScheduleSchema();
         // Get the artist's profile
@@ -1591,7 +1599,7 @@ export const appRouter = router({
 
     // Get booking by ID
     getById: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number().int().safe().positive() }).strict())
       .query(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.id);
         if (!booking) return null;
@@ -1605,8 +1613,14 @@ export const appRouter = router({
           bookingRole = 'venue';
         } else if (artistProfile && booking.artistId === artistProfile.id) {
           bookingRole = 'artist';
+        } else if (booking.bookingSource === 'client_booking' && booking.venueId === ctx.user.id) {
+          bookingRole = 'venue';
         } else if (ctx.user.role === 'admin') {
           bookingRole = 'venue'; // Admins can act as venue for contract management
+        }
+
+        if (bookingRole === 'viewer') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this booking' });
         }
 
         return { ...booking, bookingRole };
@@ -1667,9 +1681,9 @@ export const appRouter = router({
     // Update booking status (artist)
     updateStatus: artistProcedure
       .input(z.object({
-        id: z.number(),
+        id: z.number().int().safe().positive(),
         status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']),
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.id);
         if (!booking) {
@@ -1793,10 +1807,10 @@ export const appRouter = router({
     // Artist counter offer on a booking
     counterOffer: artistProcedure
       .input(z.object({
-        bookingId: z.number(),
-        counterAmount: z.number().min(0),
-        message: z.string().max(500).optional(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        counterAmount: bookingMoney,
+        message: z.string().trim().max(500).optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!profile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
@@ -1815,9 +1829,9 @@ export const appRouter = router({
     // Venue respond to booking (accept/decline)
     venueRespond: venueProcedure
       .input(z.object({
-        id: z.number(),
+        id: z.number().int().safe().positive(),
         status: z.enum(['confirmed', 'cancelled']),
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
@@ -1888,7 +1902,7 @@ export const appRouter = router({
     
     // Saved/Favorited Artists
     saveArtist: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -1897,7 +1911,7 @@ export const appRouter = router({
       }),
 
     unsaveArtist: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) throw new TRPCError({ code: 'NOT_FOUND', message: 'Venue profile not found' });
@@ -1944,7 +1958,7 @@ export const appRouter = router({
     }),
 
     isArtistSaved: venueProcedure
-      .input(z.object({ artistId: z.number() }))
+      .input(z.object({ artistId: artistProfileId }).strict())
       .query(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) return { saved: false };
@@ -1955,11 +1969,11 @@ export const appRouter = router({
     // Post-show settlement — venue enters door revenue and calculates artist payout
     settleBooking: venueProcedure
       .input(z.object({
-        bookingId: z.number(),
-        doorRevenue: z.number().min(0),
-        attendance: z.number().int().min(0).optional(),
-        settlementNotes: z.string().optional(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        doorRevenue: bookingMoney,
+        attendance: z.number().int().min(0).max(1_000_000).optional(),
+        settlementNotes: z.string().trim().max(2_000).optional(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         if (!venueProfile) {
@@ -2021,9 +2035,9 @@ export const appRouter = router({
     // Create deposit payment intent
     createDepositPayment: protectedProcedure
       .input(z.object({
-        bookingId: z.number().int().positive(),
+        bookingId: z.number().int().safe().positive(),
         depositAmount: z.number().finite().positive().max(1_000_000),
-      }))
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
@@ -2034,8 +2048,14 @@ export const appRouter = router({
         const venueProfile = await db.getVenueProfileByUserId(ctx.user.id);
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         
-        if (!venueProfile && !artistProfile) {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        const isBookingParty = ctx.user.role === 'admin'
+          || Boolean(venueProfile && booking.venueId === venueProfile.id)
+          || Boolean(artistProfile && booking.artistId === artistProfile.id)
+          || (booking.bookingSource === 'client_booking' && booking.venueId === ctx.user.id);
+        if (!isBookingParty) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        const agreedDeposit = booking.depositAmount ? Number(booking.depositAmount) : null;
+        if (agreedDeposit !== null && Number.isFinite(agreedDeposit) && input.depositAmount > agreedDeposit) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Deposit cannot exceed the agreed booking deposit' });
         }
         
         // Create Stripe payment intent
@@ -2064,21 +2084,39 @@ export const appRouter = router({
     // Confirm deposit payment
     confirmDepositPayment: protectedProcedure
       .input(z.object({
-        bookingId: z.number().int().positive(),
-        paymentIntentId: z.string().min(1).max(255),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        paymentIntentId: z.string().trim().regex(/^pi_[A-Za-z0-9]+$/, 'Invalid payment intent ID'),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
         }
         
-        // Verify payment intent succeeded
+        const currentVenueProfile = await db.getVenueProfileByUserId(ctx.user.id);
+        const currentArtistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        const isBookingParty = ctx.user.role === 'admin'
+          || Boolean(currentVenueProfile && booking.venueId === currentVenueProfile.id)
+          || Boolean(currentArtistProfile && booking.artistId === currentArtistProfile.id)
+          || (booking.bookingSource === 'client_booking' && booking.venueId === ctx.user.id);
+        if (!isBookingParty) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized for this booking' });
+        if (booking.stripePaymentIntentId !== input.paymentIntentId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payment intent does not belong to this booking' });
+        }
+
+        // Verify payment intent succeeded and is the one created for this booking.
         if (!stripe) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Stripe is not configured' });
         const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId);
         
-        if (paymentIntent.status !== 'succeeded') {
+        if (paymentIntent.status !== 'succeeded' || paymentIntent.metadata?.bookingId !== String(input.bookingId)) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payment not completed' });
+        }
+        const agreedDeposit = booking.depositAmount ? Number(booking.depositAmount) : null;
+        const expectedDepositCents = agreedDeposit !== null && Number.isFinite(agreedDeposit)
+          ? Math.round(agreedDeposit * 100)
+          : null;
+        if (expectedDepositCents !== null && typeof paymentIntent.amount_received === 'number' && paymentIntent.amount_received < expectedDepositCents) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payment amount is below the agreed deposit' });
         }
         
         // Update booking payment status
@@ -2117,9 +2155,9 @@ export const appRouter = router({
     // Attach rider template to an existing booking
     attachRider: protectedProcedure
       .input(z.object({
-        bookingId: z.number().int().positive(),
-        riderTemplateId: z.number().int().positive(),
-      }))
+        bookingId: z.number().int().safe().positive(),
+        riderTemplateId: z.number().int().safe().positive(),
+      }).strict())
       .mutation(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) {
@@ -2145,7 +2183,7 @@ export const appRouter = router({
     
     // Get rider for a booking
     getRider: protectedProcedure
-      .input(z.object({ bookingId: z.number().int().positive() }))
+      .input(z.object({ bookingId: z.number().int().safe().positive() }).strict())
       .query(async ({ ctx, input }) => {
         const booking = await db.getBookingById(input.bookingId);
         if (!booking) return null;
