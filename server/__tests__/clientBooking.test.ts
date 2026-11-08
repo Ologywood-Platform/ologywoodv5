@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { bookings } from '../../drizzle/schema';
+
+const routersSource = readFileSync(resolve(process.cwd(), 'server/routers.ts'), 'utf8');
 
 describe('Client Booking System', () => {
   describe('Schema', () => {
@@ -70,6 +74,24 @@ describe('Client Booking System', () => {
       const zip = '';
       const combined = [street, city, state, zip].filter(Boolean).join(', ');
       expect(combined).toBe('123 Main St, Atlanta, GA');
+    });
+
+    it('returns the created venue booking ID and uses it for the artist notification', () => {
+      const venueCreate = routersSource.slice(routersSource.indexOf('    // Create booking request (venue)'), routersSource.indexOf('    // Create booking request (client/fan'));
+      expect(venueCreate).toContain('const booking = await db.createBooking({');
+      expect(venueCreate).toContain('bookingId: booking.id');
+      expect(venueCreate).toContain('return { success: true, bookingId: booking.id };');
+      expect(venueCreate).not.toContain('bookingId: 0');
+    });
+
+    it('routes confirmed and cancelled updates through schedule-aware transitions', () => {
+      const statusUpdate = routersSource.slice(routersSource.indexOf('    // Update booking status (artist)'), routersSource.indexOf('    // Artist counter-offer'));
+      expect(statusUpdate).toContain("status: z.enum(['pending', 'confirmed', 'cancelled', 'completed'])");
+      expect(statusUpdate).toContain("confirmScheduledBooking(input.id, ctx.user.id, 'artist')");
+      expect(statusUpdate).toContain("cancelScheduledBooking(input.id, ctx.user.id, 'artist')");
+      expect(statusUpdate).toContain('notif.notifyBookingConfirmed');
+      expect(statusUpdate).toContain('notif.notifyBookingCancelled');
+      expect(statusUpdate).toContain('emailService.sendBookingConfirmationEmail');
     });
   });
 

@@ -56,10 +56,10 @@
 - [x] Verify artist profiles display correctly; browser-verified the live preview at both `/artist/adonis` and legacy `/artist/11`, with the rendered hero, verified/CRM signals, booking/follow/share actions, Sandbox post, performance/video portfolio, Connect/support, music, merch, fan-club entry, and release purchase controls all present. An unknown slug renders the clear Artist not found/Browse Artists state. Fixed two anonymous-only protected-query errors (`artistReview.getByArtist` and `artist.hasUserFlaggedVideo`) by gating them on authentication; a fresh reload remained fully rendered. Focused profile/media tests pass 17/17 and TypeScript validation passes.
 
 ### Booking Workflow
-- [ ] Test complete booking creation flow
-- [ ] Verify booking status updates
-- [ ] Test booking cancellation
-- [ ] Check booking notifications
+- [x] Test complete booking creation flow; executed `appRouter` runtime integration for both venue and client creation with stateful DB/service mocks, schedule validation, rider attachment, returned `bookingId`, artist request payloads, and client/artist email payloads. Fixed the venue path's stale `bookingId: 0` notification bug. Combined booking workflow/rider/schedule/notification coverage passes 59/59; no real user or booking rows were created.
+- [x] Verify booking status updates; executed `appRouter.booking.updateStatus` for confirmed and cancelled states, verified state transitions, schedule-service calls, authorization context, both-party confirmation payloads, and real booking IDs. Existing guards cover completed and invalid rollback behavior; TypeScript validation passes.
+- [x] Test booking cancellation; executed the cancellation mutation after confirmation, verified state becomes cancelled, `cancelScheduledBooking(bookingId, artistUserId, 'artist')` runs, both cancellation notifications fire exactly once, and cancellation email delivery is invoked. No real schedule reservation was modified.
+- [x] Check booking notifications; runtime assertions verify request, client confirmation, artist notification, confirmation, and cancellation payloads; the notification regression suite also covers payment, contract, message, CRUD, and safe failure behavior. Combined runtime suite passes 59/59.
 
 ### Payments (Stripe)
 - [ ] Test Stripe integration in test mode

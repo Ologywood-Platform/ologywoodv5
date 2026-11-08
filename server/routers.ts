@@ -1275,7 +1275,7 @@ export const appRouter = router({
         
         const scheduleFields = await checkBookingScheduleRequest({ artistId: input.artistId, venueId: venueProfile.id, eventDate: input.eventDate, schedule: input.schedule });
         
-        await db.createBooking({
+        const booking = await db.createBooking({
           ...scheduleFields,
           artistId: input.artistId,
           venueId: venueProfile.id,
@@ -1312,12 +1312,12 @@ export const appRouter = router({
           notif.notifyBookingRequest({
             artistUserId: artistProfile.userId,
             venueName: input.venueName,
-            bookingId: 0, // We don't have the ID from createBooking return
+            bookingId: booking.id,
             eventDate: new Date(input.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
           }).catch(() => {});
         }
         
-        return { success: true };
+        return { success: true, bookingId: booking.id };
       }),
     
     // Create booking request (client/fan - anyone logged in)
