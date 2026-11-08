@@ -142,6 +142,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Venue search/profile IDs and pagination/capacity filters are safe and bounded; profile fields, amenities, and operating hours are strict; profile/gallery images validate MIME/data/base64/decoded size with MIME-derived extensions; gallery photo IDs/captions/reorders are bounded and duplicate-safe; inquiry/date/calendar inputs are strict; public calendar imports reject common private hosts; inquiry email fields are escaped; and availability summaries/featured lists are capped.
    - Venue/security/contact/dashboard/contract regressions pass 93/93, with TypeScript and production build validation passing. No venues, uploads, inquiries, emails, calendar imports, or records were changed.
 
+29. **Event and performance-portfolio boundaries — resolved in this increment.**
+   - Event titles/descriptions/locations/times/rates/capacities/status/category/URLs are strict and bounded; public event reads exclude private events; search filters and pagination are finite; venue event artists must match confirmed booking artists; generic event update/delete and recurrence writes are owner/admin scoped; history references are artist-owned; direct photo add/delete/upload operations are owner-scoped; photo URLs/MIME/data/decoded sizes and history metadata are validated; and recent-photo limits remain backward-compatible while capped.
+   - Event security/category/date/route/portfolio regressions pass 55/55, with TypeScript and production build validation passing. No events, history entries, photos, notifications, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

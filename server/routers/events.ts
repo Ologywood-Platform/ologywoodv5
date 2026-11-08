@@ -10,68 +10,92 @@ import {
 } from '../services/portfolioPhotoService';
 import { EVENT_TYPE_VALUES } from '../../shared/eventTypes';
 
+const eventId = z.number().int().safe().positive();
+const eventTitle = z.string().trim().min(1).max(200);
+const eventDescription = z.string().trim().max(10_000).optional();
+const eventLocation = z.string().trim().min(1).max(500);
+const eventTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Time must use HH:MM');
+const eventCapacity = z.number().int().min(0).max(2_000_000);
+const eventRate = z.string().trim().max(30).regex(/^\d{1,9}(?:\.\d{1,2})?$/, 'Rate must be a non-negative amount with up to two decimals');
+const ticketPrice = z.string().trim().max(30).regex(/^(?:free|\$?\d{1,9}(?:,\d{3})*(?:\.\d{1,2})?)$/i, 'Ticket price must be Free or a valid amount');
+const publicEventUrl = z.string().trim().url().max(2_000).refine((value) => /^https?:\/\//i.test(value), 'URL must use HTTP(S)');
+const eventImageUrl = publicEventUrl.optional();
+const dateOnlyString = z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must use YYYY-MM-DD');
+const eventPhotoMime = z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const eventPhotoData = z.string().min(1).max(15_000_000);
+const eventPhotoFileName = z.string().trim().min(1).max(255).regex(/^[^/\\]+$/, 'Invalid photo filename');
+
+function validateEventPhotoData(fileData: string, mimeType: z.infer<typeof eventPhotoMime>) {
+  const match = fileData.match(/^data:([^;]+);base64,([A-Za-z0-9+/=\s]+)$/i);
+  if (match && match[1].toLowerCase() !== mimeType) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Photo MIME type does not match the data URL.' });
+  const base64 = (match ? match[2] : fileData).replace(/\s/g, '');
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 === 1) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid photo data.' });
+  const decodedSize = Math.floor(base64.length * 3 / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
+  if (decodedSize < 1 || decodedSize > 10_000_000) throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Photo must be no larger than 10 MB.' });
+}
+
 // Input validation schemas
 const createEventSchema = z.object({
-  eventTitle: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
+  eventTitle,
+  description: eventDescription,
   eventType: z.enum(EVENT_TYPE_VALUES),
-  location: z.string().optional(),
+  location: eventLocation.optional(),
   eventDate: z.date(),
-  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  capacity: z.number().int().optional(),
-  audienceType: z.string().optional(),
-  rate: z.string().optional(), // Stored as decimal string
+  eventTime: eventTime.optional(),
+  eventEndTime: eventTime.optional(),
+  capacity: eventCapacity.optional(),
+  audienceType: z.string().trim().max(100).optional(),
+  rate: eventRate.optional(), // Stored as decimal string
   isPublic: z.boolean().default(false),
   status: z.enum(['available', 'booked', 'completed', 'cancelled']).default('available'),
-});
+}).strict();
 
 const updateEventSchema = createEventSchema.partial().extend({
-  id: z.number().int().positive(),
-});
+  id: eventId,
+}).strict();
 
 const searchEventsSchema = z.object({
   search: z.string().trim().max(200).optional(),
-  eventType: z.string().optional(),
-  location: z.string().optional(),
-  minRate: z.number().optional(),
-  maxRate: z.number().optional(),
+  eventType: z.enum(EVENT_TYPE_VALUES).optional(),
+  location: z.string().trim().max(200).optional(),
+  minRate: z.number().finite().min(0).max(1_000_000_000).optional(),
+  maxRate: z.number().finite().min(0).max(1_000_000_000).optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  artistId: z.number().int().optional(),
-  limit: z.number().int().default(20),
-  offset: z.number().int().default(0),
-});
+  artistId: eventId.optional(),
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).max(1_000_000).default(0),
+}).strict().refine((value) => value.minRate === undefined || value.maxRate === undefined || value.minRate <= value.maxRate, 'Minimum rate cannot exceed maximum rate');
 
 // Simplified schema for artist event posts (fan-facing)
 const artistPostSchema = z.object({
-  eventTitle: z.string().min(1, 'Event name is required'),
+  eventTitle,
   eventType: z.enum(EVENT_TYPE_VALUES),
   eventDate: z.date(),
-  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  location: z.string().min(1, 'Location is required'),
-  description: z.string().optional(),
-  ticketLink: z.string().url().optional().or(z.literal('')),
-  coverImageUrl: z.string().optional(),
-});
+  eventTime: eventTime.optional(),
+  eventEndTime: eventTime.optional(),
+  location: eventLocation,
+  description: eventDescription,
+  ticketLink: publicEventUrl.optional().or(z.literal('')),
+  coverImageUrl: eventImageUrl,
+}).strict();
 
 // Venue event creation schema
 const venueEventSchema = z.object({
-  eventTitle: z.string().min(1, 'Event name is required'),
+  eventTitle,
   eventDate: z.date(),
-  eventTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  eventEndTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  location: z.string().min(1, 'Location is required'),
-  description: z.string().optional(),
-  ticketLink: z.string().url().optional().or(z.literal('')),
-  coverImageUrl: z.string().optional(),
+  eventTime: eventTime.optional(),
+  eventEndTime: eventTime.optional(),
+  location: eventLocation,
+  description: eventDescription,
+  ticketLink: publicEventUrl.optional().or(z.literal('')),
+  coverImageUrl: eventImageUrl,
   eventType: z.enum(EVENT_TYPE_VALUES).default('concert'),
-  artistId: z.number().int().positive(),
-  bookingId: z.number().int().positive().optional(),
-  ticketPrice: z.string().optional(),
-  capacity: z.number().int().optional(),
-});
+  artistId: eventId,
+  bookingId: eventId.optional(),
+  ticketPrice: ticketPrice.optional(),
+  capacity: eventCapacity.optional(),
+}).strict();
 
 export const eventsRouter = router({
   // Venue event creation — allows venues to post events tied to confirmed bookings
@@ -89,6 +113,7 @@ export const eventsRouter = router({
           const booking = await db.getBookingById(input.bookingId);
           if (!booking) throw new Error('Booking not found');
           if (booking.venueId !== venueProfile.id) throw new Error('Booking does not belong to this venue');
+          if (booking.artistId !== input.artistId) throw new Error('Event artist must match the booking artist');
           if (booking.status !== 'confirmed' && booking.status !== 'completed') {
             throw new Error('Can only create events for confirmed bookings');
           }
@@ -272,11 +297,11 @@ export const eventsRouter = router({
 
   // Get event by ID (enriched with artist data)
   getById: publicProcedure
-    .input(z.object({ id: z.number().int().positive() }))
+    .input(z.object({ id: eventId }).strict())
     .query(async ({ input }) => {
       try {
         const event = await db.getEventById(input.id);
-        if (!event) {
+        if (!event || !event.isPublic) {
           throw new Error('Event not found');
         }
         // Enrich with artist profile data (event.artistId is the profile ID, not user ID)
@@ -296,7 +321,7 @@ export const eventsRouter = router({
 
   // Get event by slug (public)
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
+    .input(z.object({ slug: z.string().trim().min(1).max(255).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i, 'Invalid event slug') }).strict())
     .query(async ({ input }) => {
       try {
         const database = await db.getDb();
@@ -308,7 +333,7 @@ export const eventsRouter = router({
           const eSlug = (e.eventTitle || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
           return eSlug === slug;
         });
-        if (!found) return null;
+        if (!found || !found.isPublic) return null;
         // Enrich with artist profile data
         const artistProfile = await db.getArtistProfileById(found.artistId);
         return {
@@ -326,11 +351,11 @@ export const eventsRouter = router({
 
   // Get all events for an artist
   getByArtistId: publicProcedure
-    .input(z.object({ artistId: z.number().int().positive() }))
+    .input(z.object({ artistId: eventId }).strict())
     .query(async ({ input }) => {
       try {
         const events = await db.getArtistEvents(input.artistId);
-        return events;
+        return events.filter((event) => event.isPublic);
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to fetch events');
       }
@@ -338,11 +363,11 @@ export const eventsRouter = router({
 
   // Get events by venue ID (public)
   getByVenueId: publicProcedure
-    .input(z.object({ venueId: z.number().int().positive() }))
+    .input(z.object({ venueId: eventId }).strict())
     .query(async ({ input }) => {
       try {
         const events = await db.getEventsByVenueProfileId(input.venueId);
-        return events;
+        return events.filter((event) => event.isPublic);
       } catch (error) {
         throw new Error(error instanceof Error ? error.message : 'Failed to fetch venue events');
       }
@@ -353,6 +378,16 @@ export const eventsRouter = router({
     .input(updateEventSchema)
     .mutation(async ({ input, ctx }) => {
       try {
+        const existing = await db.getEventById(input.id);
+        if (!existing) throw new Error('Event not found');
+        if (ctx.user.role !== 'admin') {
+          const [artistProfile, venueProfile] = await Promise.all([
+            db.getArtistProfileByUserId(ctx.user.id),
+            db.getVenueProfileByUserId(ctx.user.id),
+          ]);
+          const ownsEvent = existing.artistId === artistProfile?.id || existing.venueId === venueProfile?.id;
+          if (!ownsEvent) throw new Error('Not authorized to edit this event');
+        }
         const event = await db.updateEvent(input.id, input);
         return {
           success: true,
@@ -366,9 +401,19 @@ export const eventsRouter = router({
 
   // Delete event
   delete: protectedProcedure
-    .input(z.object({ id: z.number().int().positive() }))
+    .input(z.object({ id: eventId }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
+        const existing = await db.getEventById(input.id);
+        if (!existing) throw new Error('Event not found');
+        if (ctx.user.role !== 'admin') {
+          const [artistProfile, venueProfile] = await Promise.all([
+            db.getArtistProfileByUserId(ctx.user.id),
+            db.getVenueProfileByUserId(ctx.user.id),
+          ]);
+          const ownsEvent = existing.artistId === artistProfile?.id || existing.venueId === venueProfile?.id;
+          if (!ownsEvent) throw new Error('Not authorized to delete this event');
+        }
         await db.deleteEvent(input.id);
         return {
           success: true,
@@ -391,9 +436,15 @@ export const eventsRouter = router({
           startDate: input.startDate?.toISOString().split('T')[0],
           endDate: input.endDate?.toISOString().split('T')[0],
         });
+        const filtered = events.filter((event) => {
+          const numericRate = event.rate === null || event.rate === undefined ? null : Number(event.rate);
+          return (input.minRate === undefined || (numericRate !== null && numericRate >= input.minRate)) &&
+            (input.maxRate === undefined || (numericRate !== null && numericRate <= input.maxRate));
+        });
+        const paged = filtered.slice(input.offset, input.offset + input.limit);
         // Enrich events with artist profile data for display
         const enriched = await Promise.all(
-          events.map(async (event) => {
+          paged.map(async (event) => {
             const artistProfile = await db.getArtistProfileById(event.artistId);
             return {
               ...event,
@@ -411,7 +462,7 @@ export const eventsRouter = router({
 
   // Get event recurrence details
   getRecurrence: publicProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId }).strict())
     .query(async ({ input }) => {
       try {
         const recurrence = await db.getEventRecurrence(input.eventId);
@@ -424,12 +475,15 @@ export const eventsRouter = router({
   // Create event recurrence
   createRecurrence: protectedProcedure
     .input(z.object({
-      eventId: z.number().int().positive(),
+      eventId,
       frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly']),
       endDate: z.date().optional(),
-    }))
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
+        const existing = await db.getEventById(input.eventId);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!existing || !artistProfile || existing.artistId !== artistProfile.id) throw new Error('Not authorized to create recurrence for this event');
         const recurrence = await db.createEventRecurrence(input);
         return {
           success: true,
@@ -444,8 +498,8 @@ export const eventsRouter = router({
   // Get event history (past events)
   getHistory: publicProcedure
     .input(z.object({ 
-      artistId: z.number().int().positive(),
-    }))
+      artistId: eventId,
+    }).strict())
     .query(async ({ input }) => {
       try {
         const history = await db.getArtistEventHistory(input.artistId);
@@ -458,12 +512,15 @@ export const eventsRouter = router({
   // Add photo to event
   addPhoto: protectedProcedure
     .input(z.object({
-      eventHistoryId: z.number().int().positive(),
-      photoUrl: z.string().url(),
-      caption: z.string().optional(),
-    }))
+      eventHistoryId: eventId,
+      photoUrl: publicEventUrl,
+      caption: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
+        const history = await db.getEventHistoryById(input.eventHistoryId);
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!history || !artistProfile || history.artistId !== artistProfile.id) throw new Error('Not authorized to add photos to this entry');
         const photo = await db.addEventPhoto(input);
         return {
           success: true,
@@ -477,7 +534,7 @@ export const eventsRouter = router({
 
   // Get event photos
   getPhotos: publicProcedure
-    .input(z.object({ eventHistoryId: z.number().int().positive() }))
+    .input(z.object({ eventHistoryId: eventId }).strict())
     .query(async ({ input }) => {
       try {
         const photos = await db.getEventPhotos(input.eventHistoryId);
@@ -490,21 +547,29 @@ export const eventsRouter = router({
   // Create event history entry (artist logs a past performance)
   createHistory: protectedProcedure
     .input(z.object({
-      eventName: z.string().min(1, 'Event name is required'),
-      eventDate: z.string().min(1, 'Event date is required'),
-      venueName: z.string().optional(),
-      location: z.string().optional(),
-      attendeeCount: z.number().int().optional(),
-      notes: z.string().optional(),
-      eventId: z.number().int().optional(),
-      bookingId: z.number().int().optional(),
-      venueId: z.number().int().optional(),
-    }))
+      eventName: z.string().trim().min(1, 'Event name is required').max(200),
+      eventDate: dateOnlyString,
+      venueName: z.string().trim().max(200).optional(),
+      location: z.string().trim().max(500).optional(),
+      attendeeCount: z.number().int().min(0).max(2_000_000).optional(),
+      notes: z.string().trim().max(10_000).optional(),
+      eventId: eventId.optional(),
+      bookingId: eventId.optional(),
+      venueId: eventId.optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         // Look up artist profile to get the correct profile ID (not user ID)
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!artistProfile) throw new Error('Artist profile not found');
+        if (input.eventId) {
+          const referencedEvent = await db.getEventById(input.eventId);
+          if (!referencedEvent || referencedEvent.artistId !== artistProfile.id) throw new Error('Referenced event does not belong to this artist');
+        }
+        if (input.bookingId) {
+          const referencedBooking = await db.getBookingById(input.bookingId);
+          if (!referencedBooking || referencedBooking.artistId !== artistProfile.id) throw new Error('Referenced booking does not belong to this artist');
+        }
         const history = await db.createEventHistory({
           artistId: artistProfile.id,
           eventDate: new Date(input.eventDate),
@@ -523,14 +588,14 @@ export const eventsRouter = router({
   // Update event history entry (artist edits their own entry)
   updateHistory: protectedProcedure
     .input(z.object({
-      historyId: z.number().int().positive(),
-      eventName: z.string().optional(),
-      eventDate: z.string().optional(),
-      venueName: z.string().optional(),
-      location: z.string().optional(),
-      attendeeCount: z.number().int().optional(),
-      notes: z.string().optional(),
-    }))
+      historyId: eventId,
+      eventName: z.string().trim().min(1).max(200).optional(),
+      eventDate: dateOnlyString.optional(),
+      venueName: z.string().trim().max(200).optional(),
+      location: z.string().trim().max(500).optional(),
+      attendeeCount: z.number().int().min(0).max(2_000_000).optional(),
+      notes: z.string().trim().max(10_000).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         const existing = await db.getEventHistoryById(input.historyId);
@@ -573,12 +638,12 @@ export const eventsRouter = router({
   // Upload photo to event history entry (base64 → S3)
   uploadEventPhoto: protectedProcedure
     .input(z.object({
-      eventHistoryId: z.number().int().positive(),
-      fileData: z.string().min(1, 'File data is required'),
-      fileName: z.string().min(1, 'File name is required'),
-      mimeType: z.string().min(1, 'MIME type is required'),
-      caption: z.string().optional(),
-    }))
+      eventHistoryId: eventId,
+      fileData: eventPhotoData,
+      fileName: eventPhotoFileName,
+      mimeType: eventPhotoMime,
+      caption: z.string().trim().max(500).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         // Verify ownership
@@ -586,6 +651,7 @@ export const eventsRouter = router({
         if (!historyEntry) throw new Error('History entry not found');
         const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
         if (!artistProfile || historyEntry.artistId !== artistProfile.id) throw new Error('Not authorized to upload photos to this entry');
+        validateEventPhotoData(input.fileData, input.mimeType);
         // Upload to S3 via existing handler
         const { handlePhotoUpload } = await import('../handlers/imageUploadHandler');
         const uploadResult = await handlePhotoUpload(
@@ -608,9 +674,13 @@ export const eventsRouter = router({
 
   // Delete a photo from event history
   deletePhoto: protectedProcedure
-    .input(z.object({ photoId: z.number().int().positive() }))
+    .input(z.object({ photoId: eventId }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
+        const photo = await db.getEventPhotoById(input.photoId);
+        const history = photo ? await db.getEventHistoryById(photo.eventHistoryId) : null;
+        const artistProfile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!photo || !history || !artistProfile || history.artistId !== artistProfile.id) throw new Error('Not authorized to delete this photo');
         const deleted = await db.deleteEventPhoto(input.photoId);
         return { success: deleted, message: deleted ? 'Photo deleted' : 'Failed to delete photo' };
       } catch (error) {
@@ -620,7 +690,7 @@ export const eventsRouter = router({
 
   // Get portfolio stats for an artist
   getPortfolioStats: publicProcedure
-    .input(z.object({ artistId: z.number().int().positive() }))
+    .input(z.object({ artistId: eventId }).strict())
     .query(async ({ input }) => {
       try {
         return await db.getArtistPortfolioStats(input.artistId);
@@ -632,7 +702,7 @@ export const eventsRouter = router({
   // Get every portfolio photo across an artist's event-history entries.
   getPortfolioPhotos: publicProcedure
     .input(z.object({
-      artistId: z.number().int().positive(),
+      artistId: eventId,
       cursor: z.number().int().positive().optional(),
       // tRPC v11 adds this field to useInfiniteQuery requests.
       direction: z.literal('forward').optional(),
@@ -652,7 +722,7 @@ export const eventsRouter = router({
 
   // Get recent portfolio photos for artist profile preview
   getRecentPhotos: publicProcedure
-    .input(z.object({ artistId: z.number().int().positive(), limit: z.number().int().optional() }))
+    .input(z.object({ artistId: eventId, limit: z.number().int().min(0).max(1_000_000).optional() }).strict())
     .query(async ({ input }) => {
       try {
         // Keep omitted/zero limits backward compatible while bounding large requests.
@@ -667,7 +737,7 @@ export const eventsRouter = router({
 
   // Save event (bookmark/wishlist)
   saveEvent: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         const saved = await db.saveEvent(input.eventId, ctx.user.id);
@@ -683,7 +753,7 @@ export const eventsRouter = router({
 
   // Unsave (remove) a saved event
   unsaveEvent: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId }).strict())
     .mutation(async ({ input, ctx }) => {
       try {
         const removed = await db.removeSavedEvent(ctx.user.id, input.eventId);
@@ -698,7 +768,7 @@ export const eventsRouter = router({
 
   // Check if event is saved
   isEventSaved: protectedProcedure
-    .input(z.object({ eventId: z.number().int().positive() }))
+    .input(z.object({ eventId }).strict())
     .query(async ({ input, ctx }) => {
       try {
         const saved = await db.isEventSaved(ctx.user.id, input.eventId);
@@ -723,9 +793,9 @@ export const eventsRouter = router({
   // Get similar events for the event detail page
   getSimilar: publicProcedure
     .input(z.object({
-      eventId: z.number().int().positive(),
+      eventId,
       limit: z.number().int().min(1).max(12).default(6),
-    }))
+    }).strict())
     .query(async ({ input }) => {
       try {
         const similarEvents = await db.getSimilarEvents(input.eventId, {
@@ -740,9 +810,9 @@ export const eventsRouter = router({
   // Get upcoming events for an artist
   getUpcomingEvents: publicProcedure
     .input(z.object({
-      artistId: z.number().int().positive(),
-      daysAhead: z.number().int().default(90),
-    }))
+      artistId: eventId,
+      daysAhead: z.number().int().min(1).max(365).default(90),
+    }).strict())
     .query(async ({ input }) => {
       try {
         const events = await db.getArtistUpcomingEvents(input.artistId);

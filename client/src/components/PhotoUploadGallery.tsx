@@ -26,6 +26,11 @@ interface PhotoUploadGalleryProps {
   isOwner: boolean;
 }
 
+type EventPhotoMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+const getEventPhotoMime = (file: File): EventPhotoMime | null => (
+  ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
+).includes(file.type as EventPhotoMime) ? file.type as EventPhotoMime : null;
+
 export function PhotoUploadGallery({ eventHistoryId, isOwner }: PhotoUploadGalleryProps) {
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,9 +68,10 @@ export function PhotoUploadGallery({ eventHistoryId, isOwner }: PhotoUploadGalle
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.addError('Invalid File', 'Please select an image file (JPG, PNG, WebP).');
+    // Validate file type against the server allowlist
+    const mimeType = getEventPhotoMime(file);
+    if (!mimeType) {
+      toast.addError('Invalid File', 'Please select a JPEG, PNG, WebP, or GIF image.');
       return;
     }
 
@@ -85,7 +91,7 @@ export function PhotoUploadGallery({ eventHistoryId, isOwner }: PhotoUploadGalle
         eventHistoryId,
         fileData: base64,
         fileName: file.name,
-        mimeType: file.type,
+        mimeType,
       });
     };
     reader.onerror = () => {
