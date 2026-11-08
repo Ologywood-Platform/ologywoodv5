@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { trpc } from "../lib/trpc";
 import { DollarSign, TrendingUp, Calendar, Download, AlertTriangle, FileText, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
+import DOMPurify from "dompurify";
 
 /**
  * EarningsChart — renders a grouped bar chart showing monthly gross, net, and fees
@@ -324,9 +325,10 @@ export default function OlogyLiveEarnings() {
       </html>
     `;
 
+    const safeHtmlContent = DOMPurify.sanitize(htmlContent, { WHOLE_DOCUMENT: true });
     const printWindow = window.open("", "_blank");
     if (printWindow) {
-      printWindow.document.write(htmlContent);
+      printWindow.document.write(safeHtmlContent);
       printWindow.document.close();
       setTimeout(() => {
         printWindow.print();
@@ -334,7 +336,7 @@ export default function OlogyLiveEarnings() {
       }, 500);
     } else {
       // Fallback: download as HTML
-      const blob = new Blob([htmlContent], { type: "text/html" });
+      const blob = new Blob([safeHtmlContent], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

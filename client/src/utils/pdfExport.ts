@@ -1,4 +1,5 @@
 import html2pdf from 'html2pdf.js';
+import DOMPurify from 'dompurify';
 
 interface RiderTemplate {
   id: number;
@@ -291,7 +292,7 @@ export const generateRiderPDF = (template: RiderTemplate, signatures?: Signature
   `;
 
   const element = document.createElement('div');
-  element.innerHTML = htmlContent;
+  element.innerHTML = DOMPurify.sanitize(htmlContent);
 
   const options = {
     margin: 10,

@@ -27,6 +27,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character] ?? character));
 import {
   ArrowLeft,
   Download,
@@ -444,8 +452,8 @@ export default function RiderBuilder() {
 
     let html = `<div style="font-family: system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 24px; color: #1a1a2e;">
       <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #6c5ce7; padding-bottom: 12px;">
-        <h1 style="margin: 0 0 4px 0; color: #6c5ce7; font-size: 22px;">${nameField} — ${templateStructure.title}</h1>
-        <p style="margin: 0; color: #666; font-size: 13px;">${eventField} · ${dateField}</p>
+        <h1 style="margin: 0 0 4px 0; color: #6c5ce7; font-size: 22px;">${escapeHtml(nameField)} — ${escapeHtml(templateStructure.title)}</h1>
+        <p style="margin: 0; color: #666; font-size: 13px;">${escapeHtml(eventField)} · ${escapeHtml(dateField)}</p>
       </div>`;
 
     for (const section of templateStructure.sections) {
@@ -453,14 +461,14 @@ export default function RiderBuilder() {
       if (!hasData) continue;
 
       html += `<div style="margin-bottom: 20px;">
-        <h3 style="background: #6c5ce7; color: white; padding: 6px 12px; margin: 0 0 10px 0; font-size: 13px; border-radius: 4px;">${section.title}</h3>
+        <h3 style="background: #6c5ce7; color: white; padding: 6px 12px; margin: 0 0 10px 0; font-size: 13px; border-radius: 4px;">${escapeHtml(section.title)}</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">`;
 
       for (const field of section.fields) {
         const value = formData[field.id];
         if (value === undefined || value === '' || value === null) continue;
         let display = typeof value === 'boolean' ? (value ? '✓ Yes' : '✗ No') : field.unit ? `${value} ${field.unit}` : value;
-        html += `<tr style="border-bottom: 1px solid #f0f0f0;"><td style="padding: 5px 8px; font-weight: 600; color: #555; width: 40%;">${field.label}</td><td style="padding: 5px 8px; white-space: pre-line;">${display}</td></tr>`;
+        html += `<tr style="border-bottom: 1px solid #f0f0f0;"><td style="padding: 5px 8px; font-weight: 600; color: #555; width: 40%;">${escapeHtml(field.label)}</td><td style="padding: 5px 8px; white-space: pre-line;">${escapeHtml(display)}</td></tr>`;
       }
       html += '</table></div>';
     }

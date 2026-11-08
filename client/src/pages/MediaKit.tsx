@@ -9,6 +9,7 @@ import { Crown, FileText, Save, Globe, Eye, EyeOff, Plus, X, Loader2, ArrowLeft,
 import { useLocation } from 'wouter';
 import { useToast } from '@/components/ErrorToast';
 import SiteHeader from '@/components/SiteHeader';
+import DOMPurify from 'dompurify';
 
 function Tip({ text }: { text: string }) {
   return (
@@ -294,10 +295,11 @@ export default function MediaKit() {
 </body>
 </html>`;
 
+      const safeHtmlContent = DOMPurify.sanitize(htmlContent, { WHOLE_DOCUMENT: true });
       // Use the browser's print-to-PDF via a new window
       const printWindow = window.open('', '_blank', 'width=800,height=1100');
       if (printWindow) {
-        printWindow.document.write(htmlContent);
+        printWindow.document.write(safeHtmlContent);
         printWindow.document.close();
         setTimeout(() => {
           printWindow.print();
@@ -306,7 +308,7 @@ export default function MediaKit() {
         toastCtx.addSuccess('PDF Ready', 'Use the print dialog to save as PDF.');
       } else {
         // Fallback: download as HTML
-        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const blob = new Blob([safeHtmlContent], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

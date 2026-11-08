@@ -3,6 +3,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QrCode, Printer, Download, X } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface TipLinks {
   cashapp?: string;
@@ -135,7 +136,7 @@ export function TipQRSection({ tipLinks, artistName }: TipQRCodeProps) {
     const printContent = printRef.current.innerHTML;
     const printWindow = window.open("", "_blank", "width=600,height=800");
     if (!printWindow) return;
-    printWindow.document.write(`
+    const printableHtml = DOMPurify.sanitize(`
       <!DOCTYPE html>
       <html>
       <head>
@@ -181,7 +182,8 @@ export function TipQRSection({ tipLinks, artistName }: TipQRCodeProps) {
         ${printContent}
       </body>
       </html>
-    `);
+    `, { WHOLE_DOCUMENT: true });
+    printWindow.document.write(printableHtml);
     printWindow.document.close();
     setTimeout(() => {
       printWindow.print();

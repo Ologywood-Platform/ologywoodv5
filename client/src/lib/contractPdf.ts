@@ -1,4 +1,5 @@
 import html2pdf from 'html2pdf.js';
+import DOMPurify from 'dompurify';
 
 interface ContractPdfOptions {
   filename?: string;
@@ -79,7 +80,7 @@ export async function generateContractPdf(options: ContractPdfOptions): Promise<
     `;
   }
 
-  element.innerHTML = htmlContent;
+  element.innerHTML = DOMPurify.sanitize(htmlContent);
 
   // PDF generation options
   const opt = {
@@ -161,7 +162,7 @@ export async function generateContractPdfBlob(options: ContractPdfOptions): Prom
     `;
   }
 
-  element.innerHTML = htmlContent;
+  element.innerHTML = DOMPurify.sanitize(htmlContent);
 
   // PDF generation options
   const opt = {
