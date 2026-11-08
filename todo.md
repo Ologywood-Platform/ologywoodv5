@@ -191,7 +191,7 @@ Historical audit documents have been cleaned up. See `AUDIT_FINDINGS.md` for the
   - FIX: Added `Allow: /api/og-page/` and `Allow: /api/og-image/` BEFORE the Disallow rule
   - In robots.txt, more specific rules take precedence over general ones
 - [ ] Test and verify artist sharing preview works on Facebook/Messenger after deployment
-- [x] Verify preview OG responses with a Facebook crawler user-agent; clean artist slug `/api/og-page/artist/adonis` and clean venue slug `/api/og-page/venue/the-velvet-room-jazz-lounge` each returned HTTP 200 with entity-specific titles and clean canonical/`og:url` values. Unknown artist/venue slugs returned safe JSON 404s. Production custom-domain verification and Facebook/Messenger cache refresh remain open until this checkpoint is published.
+- [x] Verify preview OG responses with a Facebook crawler user-agent; clean artist slug `/api/og-page/artist/adonis`, clean venue slug `/api/og-page/venue/the-velvet-room-jazz-lounge`, and a real public event slug each returned HTTP 200 with entity-specific titles and clean canonical/`og:url` values. Unknown artist/venue slugs returned safe JSON 404s; production custom-domain verification and Facebook/Messenger cache refresh remain open until publication.
 
 ## URGENT ISSUES
 

@@ -19,7 +19,11 @@ describe('clean OG profile slug compatibility', () => {
   it('keeps the public canonical URLs clean while preserving slug-ID share URLs', () => {
     expect(source).toContain('canonicalUrl = `${baseUrl}/artist/${toSlug(artist.artistName)}`');
     expect(source).toContain('canonicalUrl = `${baseUrl}/venue/${toSlug(venue.organizationName)}`');
+    expect(source).toContain('candidate.isPublic && toSlug(candidate.eventTitle) === requestedSlug');
+    expect(source).toContain("return res.status(404).json({ error: 'Event not found' })");
+    expect(source).toContain('canonicalUrl = `${baseUrl}/events/${toSlug(event.eventTitle)}`');
     expect(source).toContain('url: `${baseUrl}/api/og-page/artist/${correctSlug}`');
     expect(source).toContain('url: `${baseUrl}/api/og-page/venue/${correctSlug}`');
+    expect(source).toContain('url: `${baseUrl}/api/og-page/event/${correctSlug}`');
   });
 });

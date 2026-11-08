@@ -308,20 +308,31 @@ router.get('/venue/:slug', async (req: Request, res: Response) => {
   return res.redirect(302, canonicalUrl);
 });
 
-// Event pages
+// Event pages — supports /event/:slug, /event/:slug-ID, or /event/:id.
 router.get('/event/:slug', async (req: Request, res: Response) => {
-  const eventId = extractIdFromSlug(req.params.slug);
-  if (eventId === null) {
-    return res.status(400).json({ error: 'Invalid event URL' });
-  }
+  const requestedSlug = req.params.slug;
+  let eventId = extractIdFromSlug(requestedSlug);
 
   let baseUrl = process.env.BASE_URL || `https://${req.get('host')}`;
   baseUrl = baseUrl.replace(/\/$/, '');
-  const canonicalUrl = `${baseUrl}/events/${eventId}`;
-
+  let canonicalUrl = `${baseUrl}/events/${requestedSlug}`;
   try {
     const database = await getDb();
     if (database) {
+      if (eventId === null) {
+        const candidates = await database
+          .select({ id: events.id, eventTitle: events.eventTitle, isPublic: events.isPublic })
+          .from(events);
+        const match = candidates.find(
+          (candidate) => candidate.isPublic && toSlug(candidate.eventTitle) === requestedSlug,
+        );
+        eventId = match?.id ?? null;
+      }
+
+      if (eventId === null) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
       const [event] = await database
         .select({
           id: events.id,
@@ -348,6 +359,7 @@ router.get('/event/:slug', async (req: Request, res: Response) => {
           : `${event.eventTitle}${dateStr}${locationStr}. Discover events on Ologywood.`;
         
         const correctSlug = `${toSlug(event.eventTitle)}-${eventId}`;
+        canonicalUrl = `${baseUrl}/events/${toSlug(event.eventTitle)}`;
         
         const breadcrumb = generateBreadcrumbJsonLd([
           { name: 'Home', url: '/' },
