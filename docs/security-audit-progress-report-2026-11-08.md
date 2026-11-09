@@ -23,3 +23,8 @@ The non-mutating runtime matrix passed 200/200 tests across 15 suites for artist
 ### Rendered image QA
 
 A rendered-browser audit was run on the published homepage and Adonis profile rather than relying on the SPA shell. Homepage hero/logo/category images, featured artist images, and the featured venue image all loaded with nonzero intrinsic dimensions after their lazy loaders were triggered. Adonis’s profile image, five portfolio photos, video thumbnails, release cover art, and merch images also loaded with nonzero intrinsic dimensions. The earlier sitemap HTML crawl found zero image tags because production serves the SPA shell; it was not treated as an image-pass result. A full crawl of every authenticated/dashboard image remains outside public read-only QA.
+
+
+### Heartbeat post-publish execution
+
+The first newly registered `session-reminders` run completed naturally after publication with HTTP 200, one attempt, 680 ms duration, and `ok: true`; it found zero upcoming sessions and sent zero reminders. It was not a manual trigger. The daily credit-expiration, contract-expiry, auto-complete, and premiere jobs remain enabled and will receive their first post-publish verification on their next scheduled windows.

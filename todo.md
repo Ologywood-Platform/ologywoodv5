@@ -5168,3 +5168,8 @@ Completed tasks have been removed from the active checklist. Keep the following 
 ### Authenticated workflow matrix — 2026-11-09
 
 A non-mutating runtime regression matrix covering artist/venue/fan paths for booking creation and status transitions, schedule conflict handling, venue contracts and document security, booking messaging/read state, ticketing, merch orders, release purchases, fan-club webhook/access behavior, subscription management, and Ology Live checkout passed 200/200 tests across 15 files. The suite used isolated mocks/fixtures; it created no production bookings, messages, tickets, merch orders, releases, memberships, subscriptions, payments, or refunds. Live Stripe purchase/refund/payout/history verification remains separately gated.
+
+
+### Heartbeat execution verification — 2026-11-09
+
+The newly registered 15-minute `session-reminders` job completed its first natural post-publish run successfully: HTTP 200, one attempt, `ok: true`, 680 ms, zero upcoming sessions, zero reminders sent. No manual trigger was used. The four daily jobs are enabled and their first post-publish runs remain future-dated; their natural results must be reviewed after those windows.
