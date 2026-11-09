@@ -217,6 +217,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Referral codes require the generated eight-character URL-safe grammar and public validation is capped at 60 requests per minute per client IP; protected code application uses strict inputs and a conditional pending-row update to prevent concurrent reuse; referred-email history is masked and credit history is explicitly projected; and referral names are HTML-escaped with newline-free subjects before notification emails.
    - Referral/referral-email/subscription-credit regressions pass 70/70, with TypeScript and production build validation passing. No referral applications, credits, emails, coupons, or records were changed.
 
+47. **Unified discovery-search query boundary — resolved in this increment.**
+   - Query and per-type limits are strict, safe, trimmed, and bounded; public suggestions are capped at 120 requests per minute per client IP with an empty safe response after the budget; team-member artist profiles are excluded; and result projections contain only discovery fields with canonical slugs.
+   - Discovery-search/navigation/suggestion regressions pass 30/30, with TypeScript and production build validation passing. No searches, profiles, events, venues, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

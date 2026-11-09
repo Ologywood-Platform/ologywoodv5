@@ -9,6 +9,14 @@ import {
 import { formatDateOnly } from '../../shared/dateOnly';
 import { publicProcedure, router } from '../_core/trpc';
 import { getDb } from '../db';
+import { RateLimiter } from '../utils/rateLimiter';
+
+const discoverySearchLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60 * 1000 });
+
+function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress || 'unknown';
+}
 
 export type DiscoverySearchResult = {
   id: number;
@@ -62,9 +70,12 @@ export const discoverySearchRouter = router({
   suggest: publicProcedure
     .input(z.object({
       query: z.string().trim().min(1).max(80),
-      limitPerType: z.number().int().min(1).max(6).default(4),
-    }))
-    .query(async ({ input }) => {
+      limitPerType: z.number().int().safe().min(1).max(6).default(4),
+    }).strict())
+    .query(async ({ input, ctx }) => {
+      if (!discoverySearchLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+        return { artists: [], venues: [], events: [] };
+      }
       const database = await getDb();
       if (!database) return { artists: [], venues: [], events: [] };
 
