@@ -225,6 +225,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Create/update/delete/access/purchase IDs and payloads are strict and safe; release type/hosting/access options are allowlisted; title/description/genre/URLs/dates/prices/AI metadata are bounded with minimum-price ordering and HTTP(S) checks; public single-release views are capped at 120 per minute per IP and artist lists at 100 rows; artist detail responses use a safe projection; public release metadata omits creator user IDs/revenue and preview tokens; and purchase amounts remain cents-safe before shared checkout validation.
    - Content-release security/preview/UI/commerce regressions pass 46/46, with TypeScript and production build validation passing. No releases, views, purchases, Checkout sessions, media uploads, emails, or records were changed.
 
+49. **Legacy Ology Live Phase 2 boundary — resolved in this increment.**
+   - Contract/booking/review/earnings/question IDs are safe positive integers; signatures/responses/reviews/questions/statuses and list limits are bounded with strict objects; ratings are integer 1–5; earnings date ranges reject reversed dates and reports require integer years; and existing booking-party/talent/fan ownership checks remain in force for contracts, reviews, earnings, and questions.
+   - Phase 2/security/NIL/question regressions pass 117/117, with TypeScript and production build validation passing. No contracts, reviews, earnings, questions, notifications, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

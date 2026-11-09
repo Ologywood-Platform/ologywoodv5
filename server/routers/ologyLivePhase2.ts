@@ -20,12 +20,25 @@ import {
 import { ensureOlogyLiveBookingsSchema } from "../services/ologyLiveSchemaService";
 import { requireOwnedAthleteProfile } from "../services/nilComplianceService";
 
+const phase2Id = z.number().int().safe().positive();
+const contractStatus = z.string().trim().min(1).max(30).regex(/^[a-z_]+$/i, "Invalid contract status");
+const phase2Text = (max: number) => z.string().trim().min(1).max(max);
+const earningsDate = z.string().trim().max(40).refine((value) => !Number.isNaN(new Date(value).getTime()), "Invalid earnings date");
+const earningsRange = z.object({
+  startDate: earningsDate.optional(),
+  endDate: earningsDate.optional(),
+}).strict().superRefine((value, ctx) => {
+  if (value.startDate && value.endDate && new Date(value.endDate) < new Date(value.startDate)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["endDate"], message: "End date must not be before start date." });
+  }
+});
+
 export const ologyLivePhase2Router = router({
   // ============= SESSION CONTRACTS =============
 
   /** Generate a contract for a booking (auto-called on booking, or manually triggered) */
   generateContract: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: phase2Id }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       // Verify the user is either the talent or fan of this booking
@@ -47,7 +60,7 @@ export const ologyLivePhase2Router = router({
 
   /** Get contract for a booking */
   getContract: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: phase2Id }).strict())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const booking = (await db.select().from(ologyLiveBookings)
@@ -71,9 +84,9 @@ export const ologyLivePhase2Router = router({
   /** Sign a contract */
   signContract: protectedProcedure
     .input(z.object({
-      contractId: z.number(),
-      signature: z.string().min(1, "Signature is required"),
-    }))
+      contractId: phase2Id,
+      signature: phase2Text(500),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const contract = (await db.select().from(ologyLiveSessionContracts)
@@ -98,8 +111,8 @@ export const ologyLivePhase2Router = router({
   getMyContracts: protectedProcedure
     .input(z.object({
       role: z.enum(["talent", "fan"]).optional(),
-      status: z.string().optional(),
-    }).optional())
+      status: contractStatus.optional(),
+    }).strict().optional())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const conditions = [];
@@ -132,10 +145,10 @@ export const ologyLivePhase2Router = router({
   /** Submit a review for a completed session */
   submitReview: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      rating: z.number().min(1).max(5),
-      reviewText: z.string().max(2000).optional(),
-    }))
+      bookingId: phase2Id,
+      rating: z.number().int().min(1).max(5),
+      reviewText: z.string().trim().max(2000).optional(),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       // Verify booking exists and is completed
@@ -171,9 +184,9 @@ export const ologyLivePhase2Router = router({
   /** Talent responds to a review */
   respondToReview: protectedProcedure
     .input(z.object({
-      reviewId: z.number(),
-      response: z.string().min(1).max(1000),
-    }))
+      reviewId: phase2Id,
+      response: phase2Text(1000),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const review = (await db.select().from(ologyLiveReviews)
@@ -193,9 +206,9 @@ export const ologyLivePhase2Router = router({
   /** Get reviews for an experience */
   getExperienceReviews: protectedProcedure
     .input(z.object({
-      experienceId: z.number(),
-      limit: z.number().min(1).max(50).default(20),
-    }))
+      experienceId: phase2Id,
+      limit: z.number().int().min(1).max(50).default(20),
+    }).strict())
     .query(async ({ input }) => {
       const db = (await getDb())!;
       const reviews = await db.select({
@@ -222,9 +235,9 @@ export const ologyLivePhase2Router = router({
   /** Get reviews for a talent (all their experiences) */
   getTalentReviews: protectedProcedure
     .input(z.object({
-      talentId: z.number(),
-      limit: z.number().min(1).max(50).default(20),
-    }))
+      talentId: phase2Id,
+      limit: z.number().int().min(1).max(50).default(20),
+    }).strict())
     .query(async ({ input }) => {
       const db = (await getDb())!;
       const reviews = await db.select({
@@ -265,7 +278,7 @@ export const ologyLivePhase2Router = router({
 
   /** Record earnings after a completed session */
   recordEarnings: protectedProcedure
-    .input(z.object({ bookingId: z.number() }))
+    .input(z.object({ bookingId: phase2Id }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const booking = (await db.select().from(ologyLiveBookings)
@@ -305,10 +318,7 @@ export const ologyLivePhase2Router = router({
 
   /** Get earnings summary for a talent */
   getEarningsSummary: protectedProcedure
-    .input(z.object({
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-    }).optional())
+    .input(earningsRange.optional())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const conditions = [eq(ologyLiveEarnings.talentId, ctx.user.id)];
@@ -361,8 +371,8 @@ export const ologyLivePhase2Router = router({
   /** Get NIL earnings report for compliance/tax purposes */
   getNilReport: protectedProcedure
     .input(z.object({
-      year: z.number().min(2024).max(2030),
-    }))
+      year: z.number().int().min(2024).max(2030),
+    }).strict())
     .query(async ({ input, ctx }) => {
       await requireOwnedAthleteProfile(ctx.user.id);
       const db = (await getDb())!;
@@ -413,7 +423,7 @@ export const ologyLivePhase2Router = router({
   getMyFanSessions: protectedProcedure
     .input(z.object({
       status: z.enum(["upcoming", "past", "all"]).default("all"),
-    }).optional())
+    }).strict().optional())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       await ensureOlogyLiveBookingsSchema(db);
@@ -456,9 +466,9 @@ export const ologyLivePhase2Router = router({
   /** Fan submits a question for an upcoming session */
   submitQuestion: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-      questionText: z.string().min(5, "Question must be at least 5 characters").max(500, "Question must be under 500 characters"),
-    }))
+      bookingId: phase2Id,
+      questionText: z.string().trim().min(5, "Question must be at least 5 characters").max(500, "Question must be under 500 characters"),
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       // Verify booking exists and belongs to this fan
@@ -496,8 +506,8 @@ export const ologyLivePhase2Router = router({
   /** Get questions for a booking (fan sees their own, talent sees all for their session) */
   getQuestions: protectedProcedure
     .input(z.object({
-      bookingId: z.number(),
-    }))
+      bookingId: phase2Id,
+    }).strict())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const booking = (await db.select().from(ologyLiveBookings)
@@ -527,8 +537,8 @@ export const ologyLivePhase2Router = router({
   /** Get all questions for a talent's upcoming sessions */
   getTalentQuestions: protectedProcedure
     .input(z.object({
-      experienceId: z.number().optional(),
-    }).optional())
+      experienceId: phase2Id.optional(),
+    }).strict().optional())
     .query(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const conditions = [
@@ -562,8 +572,8 @@ export const ologyLivePhase2Router = router({
   /** Talent marks a question as answered */
   markQuestionAnswered: protectedProcedure
     .input(z.object({
-      questionId: z.number(),
-    }))
+      questionId: phase2Id,
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const question = (await db.select().from(ologyLiveQuestions)
@@ -582,8 +592,8 @@ export const ologyLivePhase2Router = router({
   /** Fan deletes their own question */
   deleteQuestion: protectedProcedure
     .input(z.object({
-      questionId: z.number(),
-    }))
+      questionId: phase2Id,
+    }).strict())
     .mutation(async ({ input, ctx }) => {
       const db = (await getDb())!;
       const question = (await db.select().from(ologyLiveQuestions)
