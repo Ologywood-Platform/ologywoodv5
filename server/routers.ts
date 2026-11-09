@@ -3593,6 +3593,22 @@ export const appRouter = router({
         }
         return await db.getArtistRevenueSummary(profile.id);
       }),
+    getRevenueTrend: artistProcedure
+      .input(z.object({
+        from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        months: z.number().int().min(1).max(120).default(12),
+      }).strict())
+      .query(async ({ ctx, input }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        if (input.from && input.to && input.from > input.to) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Revenue start date must be before the end date.' });
+        }
+        return await db.getArtistRevenueTrend(profile.id, input);
+      }),
 
     getCalendarFeedUrl: artistProcedure
       .query(async ({ ctx }) => {

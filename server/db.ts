@@ -1922,6 +1922,79 @@ export async function getArtistRevenueSummary(artistId: number): Promise<{
   };
 }
 
+export type ArtistRevenueTrendPoint = {
+  month: string;
+  bookings: number;
+  music: number;
+  hostedContent: number;
+  merch: number;
+  fanClub: number;
+  live: number;
+  tips: number;
+  tickets: number;
+  total: number;
+};
+
+/** Returns net revenue by calendar month for every native talent stream. */
+export async function getArtistRevenueTrend(artistId: number, options?: { from?: string; to?: string; months?: number }): Promise<ArtistRevenueTrendPoint[]> {
+  const database = await getDb();
+  const monthCount = Math.min(120, Math.max(1, options?.months ?? 12));
+  const now = new Date();
+  const defaultStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthCount + 1, 1));
+  const from = options?.from ? new Date(`${options.from}T00:00:00.000Z`) : defaultStart;
+  const to = options?.to ? new Date(`${options.to}T23:59:59.999Z`) : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+  const validFrom = Number.isNaN(from.getTime()) ? defaultStart : from;
+  const validTo = Number.isNaN(to.getTime()) ? new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999)) : to;
+  const monthKey = (date: Date) => date.toISOString().slice(0, 7);
+  const inRange = (date: Date | string | null | undefined) => {
+    if (!date) return false;
+    const value = date instanceof Date ? date : new Date(date);
+    return !Number.isNaN(value.getTime()) && value >= validFrom && value <= validTo;
+  };
+  const buckets = new Map<string, ArtistRevenueTrendPoint>();
+  for (let cursor = new Date(Date.UTC(validFrom.getUTCFullYear(), validFrom.getUTCMonth(), 1)); cursor <= validTo; cursor.setUTCMonth(cursor.getUTCMonth() + 1)) {
+    const month = monthKey(cursor);
+    buckets.set(month, { month, bookings: 0, music: 0, hostedContent: 0, merch: 0, fanClub: 0, live: 0, tips: 0, tickets: 0, total: 0 });
+  }
+  if (!database) return [...buckets.values()];
+  const add = (date: Date | string | null | undefined, stream: keyof Omit<ArtistRevenueTrendPoint, 'month' | 'total'>, amount: number) => {
+    if (!inRange(date)) return;
+    if (!date) return;
+    const bucket = buckets.get(monthKey(date instanceof Date ? date : new Date(date)));
+    if (bucket) { bucket[stream] += amount; bucket.total += amount; }
+  };
+
+  const earnings = await database.select({ bookingId: artistEarnings.bookingId, netAmount: artistEarnings.netAmount, createdAt: artistEarnings.createdAt })
+    .from(artistEarnings).where(and(eq(artistEarnings.artistId, artistId), sql`${artistEarnings.status} IN ('completed', 'paid_out', 'pending')`));
+  for (const row of earnings) add(row.createdAt, row.bookingId < 0 ? 'tips' : 'bookings', Number(row.netAmount) || 0);
+
+  const releases = await database.select({ id: artistReleases.id }).from(artistReleases).where(eq(artistReleases.artistId, artistId));
+  const releaseIds = releases.map((release) => release.id);
+  if (releaseIds.length) {
+    const rows = await database.select({ net: releasePurchases.artistNetCents, date: releasePurchases.purchasedAt }).from(releasePurchases).where(inArray(releasePurchases.releaseId, releaseIds));
+    for (const row of rows) add(row.date, 'music', row.net / 100);
+  }
+  const hostedRows = await database.select({ net: contentReleasePurchases.amountPaid, date: contentReleasePurchases.createdAt }).from(contentReleasePurchases).innerJoin(contentReleases, eq(contentReleasePurchases.releaseId, contentReleases.id)).where(and(eq(contentReleases.artistProfileId, artistId), eq(contentReleasePurchases.paymentStatus, 'completed')));
+  for (const row of hostedRows) add(row.date, 'hostedContent', (Number(row.net) || 0) * 0.99);
+  const [profile] = await database.select({ userId: artistProfiles.userId }).from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
+  const talentUserId = profile?.userId ?? 0;
+  if (talentUserId) {
+    const merchRows = await database.select({ net: merchOrders.sellerNetCents, date: merchOrders.paidAt, fallbackDate: merchOrders.createdAt }).from(merchOrders).where(and(eq(merchOrders.sellerUserId, talentUserId), eq(merchOrders.paymentStatus, 'paid')));
+    for (const row of merchRows) add(row.date || row.fallbackDate, 'merch', row.net / 100);
+    const fanRows = await database.select({ price: fanClubTiers.priceMonthly, date: fanClubMemberships.startedAt }).from(fanClubMemberships).innerJoin(fanClubTiers, eq(fanClubMemberships.tierId, fanClubTiers.id)).where(and(sql`COALESCE(${fanClubMemberships.artistUserId}, ${fanClubMemberships.talentUserId}) = ${talentUserId}`, eq(fanClubMemberships.status, 'active')));
+    for (const row of fanRows) add(row.date, 'fanClub', ((Number(row.price) || 0) / 100) * 0.90);
+    const liveRows = await database.select({ amount: ologyLiveBookings.amount, fee: ologyLiveBookings.platformFee, date: ologyLiveBookings.paidAt }).from(ologyLiveBookings).where(and(eq(ologyLiveBookings.talentId, talentUserId), eq(ologyLiveBookings.paymentStatus, 'paid'), sql`${ologyLiveBookings.status} IN ('confirmed', 'completed')`));
+    for (const row of liveRows) add(row.date, 'live', (Number(row.amount) || 0) - (Number(row.fee) || 0));
+  }
+  const artistEvents = await database.select({ id: events.id }).from(events).where(eq(events.artistId, artistId));
+  const eventIds = artistEvents.map((event) => event.id);
+  if (eventIds.length) {
+    const rows = await database.select({ net: ticketOrders.totalAmount, fee: ticketOrders.platformFee, date: ticketOrders.createdAt }).from(ticketOrders).where(and(inArray(ticketOrders.eventId, eventIds), eq(ticketOrders.status, 'completed')));
+    for (const row of rows) add(row.date, 'tickets', (row.net - row.fee) / 100);
+  }
+  return [...buckets.values()];
+}
+
 // Profile View Functions
 export async function getProfileViewCount(artistId: number): Promise<number> {
   const db = await getDb();

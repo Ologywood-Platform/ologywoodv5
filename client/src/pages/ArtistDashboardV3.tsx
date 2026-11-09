@@ -25,6 +25,7 @@ import { VideoPortfolioManager } from '@/components/VideoPortfolioManager';
 import { ReferralSection } from '@/components/ReferralSection';
 import BookingCalendar from '@/components/BookingCalendar';
 import DashboardAnalyticsCards from '@/components/DashboardAnalyticsCards';
+import RevenueTrendsPanel from '@/components/RevenueTrendsPanel';
 import { SiteHeader } from "@/components/SiteHeader";
 
 export function ArtistDashboardV3() {
@@ -279,6 +280,8 @@ export function ArtistDashboardV3() {
                 })()}
               />
             )}
+
+            <RevenueTrendsPanel />
 
             {/* Quick Actions */}
             <Card id="quick-actions">
