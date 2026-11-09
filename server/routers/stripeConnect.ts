@@ -12,19 +12,39 @@ import { getDb } from '../db';
 import { stripeConnectAccounts } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { trustedCheckoutOrigin } from '../services/trustedOrigin';
 
 const stripe = new Stripe(getDefaultStripeApiKey(), {
   apiVersion: '2025-12-15.clover',
 });
 
+const artistConnectProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Artist access required' });
+  }
+  return next({ ctx });
+});
+
+function connectCallbackUrls() {
+  const origin = trustedCheckoutOrigin(process.env.BASE_URL, undefined);
+  return {
+    refreshUrl: new URL('/dashboard?stripe=refresh', origin).toString(),
+    returnUrl: new URL('/dashboard?stripe=connected', origin).toString(),
+  };
+}
+
+function scheduledStripeFailure(message = 'Stripe Connect is temporarily unavailable. Please try again later.') {
+  return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message });
+}
+
 export const stripeConnectRouter = router({
   /**
    * Get the current artist's Stripe Connect account status
    */
-  getAccountStatus: protectedProcedure.query(async ({ ctx }: any) => {
+  getAccountStatus: artistConnectProcedure.query(async ({ ctx }: any) => {
     const userId = ctx.user.id;
     const db = await getDb();
-    if (!db) throw new Error('Database not available');
+    if (!db) throw scheduledStripeFailure('Stripe Connect status is temporarily unavailable.');
 
     // Look up the connect account by userId (artistId in the table maps to userId)
     const accounts = await db
@@ -61,7 +81,7 @@ export const stripeConnectRouter = router({
         account.status !== newStatus
       ) {
         const dbUpdate = await getDb();
-        if (!dbUpdate) throw new Error('Database not available');
+        if (!dbUpdate) throw scheduledStripeFailure('Stripe Connect status is temporarily unavailable.');
         await dbUpdate
           .update(stripeConnectAccounts)
           .set({
@@ -100,90 +120,98 @@ export const stripeConnectRouter = router({
   /**
    * Create a Stripe Connect Express account and return the onboarding URL
    */
-  createAccount: protectedProcedure.mutation(async ({ ctx }: any) => {
+  createAccount: artistConnectProcedure.mutation(async ({ ctx }: any) => {
     const userId = ctx.user.id;
     const userEmail = ctx.user.email;
     const userName = ctx.user.name;
     const db = await getDb();
-    if (!db) throw new Error('Database not available');
+    if (!db) throw scheduledStripeFailure();
 
-    // Check if account already exists
-    const existing = await db
-      .select()
-      .from(stripeConnectAccounts)
-      .where(eq(stripeConnectAccounts.artistId, userId))
-      .limit(1);
+    const { refreshUrl, returnUrl } = connectCallbackUrls();
 
-    if (existing.length && existing[0].stripeAccountId) {
-      // Account exists — generate a new onboarding link to complete setup
+    try {
+      // Check if account already exists
+      const existing = await db
+        .select()
+        .from(stripeConnectAccounts)
+        .where(eq(stripeConnectAccounts.artistId, userId))
+        .limit(1);
+
+      if (existing.length && existing[0].stripeAccountId) {
+        // Account exists — generate a new onboarding link to complete setup
+        const accountLink = await stripe.accountLinks.create({
+          account: existing[0].stripeAccountId,
+          refresh_url: refreshUrl,
+          return_url: returnUrl,
+          type: 'account_onboarding',
+        });
+
+        return {
+          url: accountLink.url,
+          stripeAccountId: existing[0].stripeAccountId,
+          isExisting: true,
+        };
+      }
+
+      // Create a new Express account
+      const account = await stripe.accounts.create({
+        type: 'express',
+        email: userEmail || undefined,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_profile: {
+          name: userName || undefined,
+          product_description: 'Artist receiving payments for music and performances via Ologywood',
+        },
+        metadata: {
+          userId: userId.toString(),
+          platform: 'ologywood',
+        },
+      });
+
+      // Save to database
+      await db.insert(stripeConnectAccounts).values({
+        artistId: userId,
+        stripeAccountId: account.id,
+        status: 'pending',
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        bankAccountVerified: false,
+        verificationStatus: 'pending',
+      });
+
+      // Create onboarding link
       const accountLink = await stripe.accountLinks.create({
-        account: existing[0].stripeAccountId,
-        refresh_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=refresh`,
-        return_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=connected`,
+        account: account.id,
+        refresh_url: refreshUrl,
+        return_url: returnUrl,
         type: 'account_onboarding',
       });
 
       return {
         url: accountLink.url,
-        stripeAccountId: existing[0].stripeAccountId,
-        isExisting: true,
+        stripeAccountId: account.id,
+        isExisting: false,
       };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      console.error('[Stripe Connect] Account setup failed', {
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+      });
+      throw scheduledStripeFailure();
     }
-
-    // Create a new Express account
-    const account = await stripe.accounts.create({
-      type: 'express',
-      email: userEmail || undefined,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-      business_profile: {
-        name: userName || undefined,
-        product_description: 'Artist receiving payments for music and performances via Ologywood',
-      },
-      metadata: {
-        userId: userId.toString(),
-        platform: 'ologywood',
-      },
-    });
-
-    // Save to database
-    await db!.insert(stripeConnectAccounts).values({
-      artistId: userId,
-      stripeAccountId: account.id,
-      status: 'pending',
-      chargesEnabled: false,
-      payoutsEnabled: false,
-      bankAccountVerified: false,
-      verificationStatus: 'pending',
-    });
-
-    // Create onboarding link
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=refresh`,
-      return_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=connected`,
-      type: 'account_onboarding',
-    });
-
-    console.log(`[Stripe Connect] Created account ${account.id} for user ${userId}`);
-
-    return {
-      url: accountLink.url,
-      stripeAccountId: account.id,
-      isExisting: false,
-    };
   }),
 
   /**
    * Get a Stripe Express dashboard login link for the artist
    */
-  getDashboardLink: protectedProcedure.mutation(async ({ ctx }: any) => {
+  getDashboardLink: artistConnectProcedure.mutation(async ({ ctx }: any) => {
     try {
       const userId = ctx.user.id;
       const db = await getDb();
-      if (!db) throw new Error('Database not available');
+      if (!db) throw scheduledStripeFailure();
 
       const accounts = await db
         .select()
@@ -219,44 +247,61 @@ export const stripeConnectRouter = router({
   /**
    * Get a fresh onboarding link (for completing incomplete setup)
    */
-  getOnboardingLink: protectedProcedure.mutation(async ({ ctx }: any) => {
-    const userId = ctx.user.id;
-    const db = await getDb();
-    if (!db) throw new Error('Database not available');
+  getOnboardingLink: artistConnectProcedure.mutation(async ({ ctx }: any) => {
+    try {
+      const userId = ctx.user.id;
+      const db = await getDb();
+      if (!db) throw scheduledStripeFailure();
 
-    const accounts = await db
-      .select()
-      .from(stripeConnectAccounts)
-      .where(eq(stripeConnectAccounts.artistId, userId))
-      .limit(1);
+      const accounts = await db
+        .select()
+        .from(stripeConnectAccounts)
+        .where(eq(stripeConnectAccounts.artistId, userId))
+        .limit(1);
 
-    if (!accounts.length) {
-      throw new Error('No Stripe Connect account found. Please create an account first.');
+      if (!accounts.length) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No Stripe Connect account found. Please create an account first.' });
+      }
+
+      const { refreshUrl, returnUrl } = connectCallbackUrls();
+      const accountLink = await stripe.accountLinks.create({
+        account: accounts[0].stripeAccountId,
+        refresh_url: refreshUrl,
+        return_url: returnUrl,
+        type: 'account_onboarding',
+      });
+
+      return { url: accountLink.url };
+    } catch (error) {
+      if (error instanceof TRPCError && error.code === 'NOT_FOUND') throw error;
+      console.error('[Stripe Connect] Onboarding link failed', {
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+      });
+      throw scheduledStripeFailure();
     }
-
-    const accountLink = await stripe.accountLinks.create({
-      account: accounts[0].stripeAccountId,
-      refresh_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=refresh`,
-      return_url: `${process.env.BASE_URL || 'https://www.ologywood.com'}/dashboard?stripe=connected`,
-      type: 'account_onboarding',
-    });
-
-    return { url: accountLink.url };
   }),
 
   /**
    * Disconnect Stripe Connect account (soft delete — mark as inactive)
    */
-  disconnectAccount: protectedProcedure.mutation(async ({ ctx }: any) => {
-    const userId = ctx.user.id;
-    const db = await getDb();
-    if (!db) throw new Error('Database not available');
+  disconnectAccount: artistConnectProcedure.mutation(async ({ ctx }: any) => {
+    try {
+      const userId = ctx.user.id;
+      const db = await getDb();
+      if (!db) throw scheduledStripeFailure();
 
-    await db
-      .update(stripeConnectAccounts)
-      .set({ status: 'inactive' })
-      .where(eq(stripeConnectAccounts.artistId, userId));
+      await db
+        .update(stripeConnectAccounts)
+        .set({ status: 'inactive' })
+        .where(eq(stripeConnectAccounts.artistId, userId));
 
-    return { success: true };
+      return { success: true };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      console.error('[Stripe Connect] Account disconnect failed', {
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+      });
+      throw scheduledStripeFailure();
+    }
   }),
 });
