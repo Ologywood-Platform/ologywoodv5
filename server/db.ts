@@ -29,6 +29,7 @@ import {
   artistPayouts, InsertArtistPayout, ArtistPayout,
   invoices, InsertInvoice, Invoice,
   events, InsertEvent, Event,
+  ticketOrders,
   eventRecurrence, InsertEventRecurrence, EventRecurrence,
   eventHistory, InsertEventHistory, EventHistory,
   eventPhotos, InsertEventPhoto, EventPhoto,
@@ -1794,6 +1795,64 @@ export async function getRevenueByMonth(artistId: number, months: number = 12): 
   return Object.entries(monthlyRevenue)
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([month, revenue]) => ({ month, revenue }));
+}
+
+/** Unified revenue totals for bookings, release sales, and completed tickets. */
+export async function getArtistRevenueSummary(artistId: number): Promise<{
+  totalGross: number;
+  totalNet: number;
+  sources: {
+    bookings: { gross: number; net: number; count: number };
+    releases: { gross: number; net: number; count: number };
+    tickets: { gross: number; net: number; count: number };
+  };
+}> {
+  const database = await getDb();
+  const empty = {
+    totalGross: 0,
+    totalNet: 0,
+    sources: {
+      bookings: { gross: 0, net: 0, count: 0 },
+      releases: { gross: 0, net: 0, count: 0 },
+      tickets: { gross: 0, net: 0, count: 0 },
+    },
+  };
+  if (!database) return empty;
+
+  const artistBookings = await database.select({ totalFee: bookings.totalFee })
+    .from(bookings)
+    .where(and(eq(bookings.artistId, artistId), sql`${bookings.status} IN ('confirmed', 'completed')`));
+  const bookingGross = artistBookings.reduce((sum, booking) => sum + (Number(booking.totalFee) || 0), 0);
+
+  const releases = await database.select({ id: artistReleases.id })
+    .from(artistReleases)
+    .where(eq(artistReleases.artistId, artistId));
+  const releaseIds = releases.map((release) => release.id);
+  const releaseRows = releaseIds.length > 0
+    ? await database.select({ amountPaidCents: releasePurchases.amountPaidCents, artistNetCents: releasePurchases.artistNetCents })
+      .from(releasePurchases).where(inArray(releasePurchases.releaseId, releaseIds))
+    : [];
+  const releaseGross = releaseRows.reduce((sum, purchase) => sum + purchase.amountPaidCents / 100, 0);
+  const releaseNet = releaseRows.reduce((sum, purchase) => sum + purchase.artistNetCents / 100, 0);
+
+  const artistEvents = await database.select({ id: events.id }).from(events).where(eq(events.artistId, artistId));
+  const eventIds = artistEvents.map((event) => event.id);
+  const ticketRows = eventIds.length > 0
+    ? await database.select({ totalAmount: ticketOrders.totalAmount, platformFee: ticketOrders.platformFee })
+      .from(ticketOrders).where(and(inArray(ticketOrders.eventId, eventIds), eq(ticketOrders.status, 'completed')))
+    : [];
+  const ticketGross = ticketRows.reduce((sum, ticket) => sum + ticket.totalAmount / 100, 0);
+  const ticketNet = ticketRows.reduce((sum, ticket) => sum + (ticket.totalAmount - ticket.platformFee) / 100, 0);
+
+  return {
+    totalGross: bookingGross + releaseGross + ticketGross,
+    totalNet: bookingGross + releaseNet + ticketNet,
+    sources: {
+      bookings: { gross: bookingGross, net: bookingGross, count: artistBookings.length },
+      releases: { gross: releaseGross, net: releaseNet, count: releaseRows.length },
+      tickets: { gross: ticketGross, net: ticketNet, count: ticketRows.length },
+    },
+  };
 }
 
 // Profile View Functions

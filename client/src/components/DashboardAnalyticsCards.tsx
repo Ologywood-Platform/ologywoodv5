@@ -5,6 +5,15 @@ import { Calendar, DollarSign, Star, TrendingUp } from 'lucide-react';
 interface AnalyticsCardsProps {
   monthlyBookings: number;
   totalEarnings: number;
+  revenueSummary?: {
+    totalGross: number;
+    totalNet: number;
+    sources: {
+      bookings: { gross: number; net: number; count: number };
+      releases: { gross: number; net: number; count: number };
+      tickets: { gross: number; net: number; count: number };
+    };
+  };
   averageRating: number;
   reviewCount: number;
   /** Optional: show a trend indicator for monthly bookings */
@@ -14,6 +23,7 @@ interface AnalyticsCardsProps {
 export default function DashboardAnalyticsCards({
   monthlyBookings,
   totalEarnings,
+  revenueSummary,
   averageRating,
   reviewCount,
   previousMonthBookings,
@@ -64,15 +74,22 @@ export default function DashboardAnalyticsCards({
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-900 dark:text-gray-100">
-                    ${totalEarnings > 0 ? totalEarnings.toLocaleString() : '0'}
+                    ${(revenueSummary?.totalNet ?? totalEarnings) > 0 ? (revenueSummary?.totalNet ?? totalEarnings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-gray-400">Total Earnings</p>
+                  <p className="text-xs text-slate-500 dark:text-gray-400">Total Revenue (Net)</p>
+                  {revenueSummary && (
+                    <div className="mt-2 space-y-0.5 text-[11px] text-slate-500 dark:text-gray-400">
+                      <div className="flex justify-between gap-3"><span>Bookings</span><span>${revenueSummary.sources.bookings.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Release sales</span><span>${revenueSummary.sources.releases.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between gap-3"><span>Tickets</span><span>${revenueSummary.sources.tickets.net.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         </TooltipTrigger>
-        <TooltipContent>Total revenue from confirmed and completed bookings</TooltipContent>
+        <TooltipContent>Total net revenue from confirmed/completed bookings, release sales, and completed ticket sales</TooltipContent>
       </Tooltip>
 
       {/* Average Review Score */}

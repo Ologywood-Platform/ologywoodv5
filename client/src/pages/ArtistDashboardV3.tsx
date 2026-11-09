@@ -68,6 +68,10 @@ export function ArtistDashboardV3() {
     enabled: isArtist,
     staleTime: 5 * 60 * 1000,
   });
+  const { data: revenueSummary } = trpc.profileAnalytics.getRevenueSummary.useQuery(undefined, {
+    enabled: isArtist,
+    staleTime: 2 * 60 * 1000,
+  });
   const { data: avgRating } = trpc.artistReview.getAverageRating.useQuery(
     { artistId: artistProfile?.id || 0 },
     { enabled: isArtist && !!artistProfile?.id, staleTime: 5 * 60 * 1000 }
@@ -262,6 +266,7 @@ export function ArtistDashboardV3() {
                   return monthlyCount;
                 })()}
                 totalEarnings={revenueData?.reduce((sum, r) => sum + r.revenue, 0) || 0}
+                revenueSummary={revenueSummary}
                 averageRating={avgRating?.averageRating || 0}
                 reviewCount={avgRating?.reviewCount || 0}
                 previousMonthBookings={(() => {

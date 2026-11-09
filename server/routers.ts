@@ -3585,6 +3585,15 @@ export const appRouter = router({
         return await db.getRevenueByMonth(profile.id, input.months);
       }),
 
+    getRevenueSummary: artistProcedure
+      .query(async ({ ctx }) => {
+        const profile = await db.getArtistProfileByUserId(ctx.user.id);
+        if (!profile) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Artist profile not found' });
+        }
+        return await db.getArtistRevenueSummary(profile.id);
+      }),
+
     getCalendarFeedUrl: artistProcedure
       .query(async ({ ctx }) => {
         const profile = await db.getArtistProfileByUserId(ctx.user.id);
