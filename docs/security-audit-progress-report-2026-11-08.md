@@ -67,3 +67,8 @@ After removing the unused Sentry bootstrap and its Sentry-only regressions, veri
 ### Public health-response safety
 
 The public health service now returns stable database/health failure messages with an error kind instead of raw exception text or provider error codes. Focused health-security regression passed 1/1; full suite passed 4,046 tests with 23 skipped across 336 files, TypeScript passed, and production build passed.
+
+
+### Production image loading correction
+
+A non-mutating browser performance sample found six homepage images still had empty `src` values after scrolling. The root cause was IntersectionObserver watching the empty image element, which had no intrinsic dimensions. `LazyImage` now observes its sized container, preserving lazy loading while allowing featured and suggested images to enter the viewport. Focused regression passed 1/1; full suite passed 4,047 tests with 23 skipped across 337 files, TypeScript passed, and production build passed.

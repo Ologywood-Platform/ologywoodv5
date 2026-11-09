@@ -48,8 +48,8 @@ export function LazyImage({
         if (entry.isIntersecting) {
           setIsVisible(true);
           // Unobserve after image becomes visible
-          if (imgRef.current) {
-            observer.unobserve(imgRef.current);
+          if (containerRef.current) {
+            observer.unobserve(containerRef.current);
           }
         }
       },
@@ -58,13 +58,13 @@ export function LazyImage({
       }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
 
     return () => {
-      if (imgRef.current) {
-        observer.unobserve(imgRef.current);
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
       }
     };
   }, []);

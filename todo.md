@@ -5208,3 +5208,8 @@ Owner confirmed Ologywood does not use Sentry. The optional bootstrap was remove
 ### Public health-response safety — 2026-11-09
 
 Health failures now return stable messages and an error kind rather than raw database/provider exception text. Focused regression passed 1/1; full suite passed 4,046 tests with 23 skipped across 336 files, TypeScript passed, and production build passed.
+
+
+### Production image loading correction — 2026-11-09
+
+`LazyImage` now observes its sized container rather than the empty image element, fixing six homepage images that remained `src=""` after scrolling in production QA. Focused regression passed 1/1; full suite passed 4,047 tests with 23 skipped across 337 files, TypeScript passed, and production build passed.
