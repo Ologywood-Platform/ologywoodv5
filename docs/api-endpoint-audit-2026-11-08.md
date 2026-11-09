@@ -233,6 +233,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Request amounts are finite, positive, cents-safe, and capped at $1,000,000; bank-account IDs are bounded to the database integer range; payout requests require completed uncommitted earnings and cannot exceed available funds; request/process/complete objects are strict; payout IDs are safe positive integers; and admin processing transitions only pending rows to processing and only processing rows to completed, with missing or wrong-state payouts failing instead of returning success.
    - Payout/Stripe Connect/admin/legacy payment regressions pass 28/28, with TypeScript and production build validation passing. No payout requests, transfers, bank settings, emails, or records were changed.
 
+51. **Notification boundary — resolved in this increment.**
+   - List pagination requires safe integers with a 100-item limit and capped offset; notification read/delete IDs are safe positive integers and strict objects; preference mutations reject unknown fields; and all notification mutations continue to pass the authenticated user ID to data access.
+   - Notification/schedule-reminder/mobile-messaging regressions pass 132/132, with TypeScript and production build validation passing. No notifications, preferences, reminders, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

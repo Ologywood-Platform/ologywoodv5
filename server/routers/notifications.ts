@@ -3,17 +3,18 @@ import { protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { materializeScheduleRemindersBestEffort } from "../services/scheduleService";
 
+const notificationId = z.number().int().safe().positive();
+const notificationPage = z.object({
+  limit: z.number().int().safe().min(1).max(100).default(30),
+  offset: z.number().int().safe().min(0).max(1_000_000).default(0),
+}).strict();
+
 export const notificationsRouter = router({
   /**
    * Get notifications for the current user (paginated)
    */
   list: protectedProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100).default(30),
-        offset: z.number().min(0).default(0),
-      }).optional()
-    )
+    .input(notificationPage.optional())
     .query(async ({ ctx, input }) => {
       const limit = input?.limit || 30;
       const offset = input?.offset || 0;
@@ -35,7 +36,7 @@ export const notificationsRouter = router({
    * Mark a single notification as read
    */
   markRead: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: notificationId }).strict())
     .mutation(async ({ ctx, input }) => {
       await db.markNotificationRead(input.id, ctx.user.id);
       return { success: true };
@@ -53,7 +54,7 @@ export const notificationsRouter = router({
    * Delete a notification
    */
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: notificationId }).strict())
     .mutation(async ({ ctx, input }) => {
       await db.deleteNotification(input.id, ctx.user.id);
       return { success: true };
@@ -88,7 +89,7 @@ export const notificationsRouter = router({
         emailNotifications: z.boolean().optional(),
         pushNotifications: z.boolean().optional(),
         reminderNotifications: z.boolean().optional(),
-      })
+      }).strict()
     )
     .mutation(async ({ ctx, input }) => {
       const prefs = await db.upsertNotificationPreferences(ctx.user.id, input);
