@@ -322,6 +322,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 76. **Artist tip-payment boundary — resolved in this increment.**
    - Artist profile IDs and cents amounts remain strict and bounded to $1–$500; both Stripe charge and payout readiness are required; database/provider failures return stable client-safe errors; and payment failures log only error kind without connected-account or PaymentIntent identifiers.
    - Tip/Stripe/release-payment regressions pass 10/10, with TypeScript and production build passing. No tips, PaymentIntents, transfers, payments, or records were changed during validation.
+77. **Profile release-order boundary — resolved in this increment.**
+   - Read and write input objects now reject unknown fields, retain strict kinds/revisions/positive safe IDs and bounded arrays, and the service derives the artist profile scope exclusively from the authenticated account. Forged profile/user fields are rejected before the owner service runs.
+   - Release-order and release-commerce regressions pass 56/56, with TypeScript and production build passing. No order rows, releases, profiles, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

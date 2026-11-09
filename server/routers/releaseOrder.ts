@@ -7,7 +7,7 @@ const kind = z.enum(RELEASE_ORDER_KINDS);
 
 export const releaseOrderRouter = router({
   get: protectedProcedure
-    .input(z.object({ kind }))
+    .input(z.object({ kind }).strict())
     .query(({ ctx, input }) => getReleaseOrderStateForUser(ctx.user.id, input.kind)),
 
   save: protectedProcedure
@@ -16,6 +16,6 @@ export const releaseOrderRouter = router({
       expectedRevision: z.number().int().nonnegative().safe(),
       ids: z.array(z.number().int().positive().safe()).max(10_000),
       reset: z.boolean().optional(),
-    }))
+    }).strict())
     .mutation(({ ctx, input }) => saveReleaseOrderForUser(ctx.user.id, input)),
 });

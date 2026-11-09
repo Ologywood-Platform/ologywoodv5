@@ -18,9 +18,9 @@ describe('Protected profile release order endpoints', () => {
     await expect(caller(false).save({ kind: 'music', expectedRevision: 0, ids: [1] })).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
     expect(mocks.save).not.toHaveBeenCalled();
   });
-  it('derives scope from the caller even for an admin and ignores forged profile IDs', async () => {
-    await caller().save({ kind: 'music', expectedRevision: 0, ids: [1], profileId: 999, userId: 999 } as any);
-    expect(mocks.save).toHaveBeenCalledWith(700, { kind: 'music', expectedRevision: 0, ids: [1] });
+  it('derives scope from the caller even for an admin and rejects forged profile IDs', async () => {
+    await expect(caller().save({ kind: 'music', expectedRevision: 0, ids: [1], profileId: 999, userId: 999 } as any)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(mocks.save).not.toHaveBeenCalled();
   });
   it('passes only the current account to the protected state reader', async () => {
     await caller().get({ kind: 'music' }); expect(mocks.get).toHaveBeenCalledWith(700, 'music');
