@@ -3,6 +3,10 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import * as db from '../db';
 import { notifyFansNewEvent } from '../services/fanNotificationService';
+
+function eventErrorKind(error: unknown): string {
+  return error instanceof Error ? error.name : 'UnknownError';
+}
 import {
   getPortfolioPhotos,
   PORTFOLIO_PHOTO_DEFAULT_LIMIT,
@@ -191,7 +195,7 @@ export const eventsRouter = router({
           eventDate: input.eventDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
           eventLocation: input.location,
           eventId: event?.id,
-        }).catch(err => console.error('[Events] Fan notification failed:', err));
+        }).catch(err => console.error('[Events] Fan notification failed:', eventErrorKind(err)));
 
         return {
           success: true,
@@ -282,7 +286,7 @@ export const eventsRouter = router({
             eventDate: input.eventDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
             eventLocation: input.location,
             eventId: event?.id,
-          }).catch(err => console.error('[Events] Fan notification failed:', err));
+          }).catch(err => console.error('[Events] Fan notification failed:', eventErrorKind(err)));
         }
 
         return {

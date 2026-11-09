@@ -28,6 +28,8 @@ describe('administrator router security boundaries', () => {
     expect(admin).toContain('escapeFanEmailHtml(user.name || \'there\')');
     expect(admin).not.toContain('Role change email sent to ${params.recipientEmail}');
     expect(admin).toContain("console.error('[Admin] Profile reminder delivery failed', { targetUserId: user.id })");
+    expect(admin).toContain('function adminErrorKind(error: unknown): string');
+    expect(admin).not.toContain("Failed to send role change email:', error);");
   });
 
   it('caps profile-reminder fan-out and rejects unknown activity fields', () => {

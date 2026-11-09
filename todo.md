@@ -5214,6 +5214,10 @@ Health failures now return stable messages and an error kind rather than raw dat
 
 A residual scan found eight no-input mutations; review confirmed they are authenticated context-only operations and do not accept missing user-controlled payloads. Venue verification tokens now use 32 random bytes encoded as base64url rather than `Uint8Array.toString()`, and venue verification/email-resubscription failure logs now record only error type. Focused residual-boundary regressions passed 16/16; TypeScript and production build passed with existing chunk-size warnings. No emails, profiles, posts, preferences, or records changed.
 
+### Safe exception-log sweep — 2026-11-09
+
+Redacted remaining raw exception interpolation in venue operations, admin role-change email delivery, and fire-and-forget event fan notifications. Focused venue/admin/event/email-preference regressions passed 18/18; TypeScript and production build passed with existing chunk-size warnings. No notifications, emails, profiles, events, payments, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

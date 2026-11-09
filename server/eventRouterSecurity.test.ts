@@ -44,4 +44,9 @@ describe('event router security boundaries', () => {
     expect(source).toContain('decodedSize > 10_000_000');
     expect(source).toContain('eventPhotoFileName');
   });
+
+  it('redacts asynchronous fan-notification exceptions', () => {
+    expect(source).toContain('function eventErrorKind(error: unknown): string');
+    expect(source).not.toContain("Fan notification failed:', err);");
+  });
 });

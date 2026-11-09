@@ -19,6 +19,10 @@ if (process.env.SENDGRID_API_KEY) {
 const SENDGRID_FROM = process.env.SENDGRID_FROM_EMAIL || 'support@ologywood.com';
 const BASE_URL = process.env.BASE_URL || 'https://www.ologywood.com';
 
+function adminErrorKind(error: unknown): string {
+  return error instanceof Error ? error.name : 'UnknownError';
+}
+
 /**
  * Send a branded email notification when a user's role is changed
  */
@@ -120,7 +124,7 @@ async function sendRoleChangeEmail(params: {
     });
     console.log(`[Admin] Role change email sent: ${prevRoleLabel} → ${newRoleLabel}`);
   } catch (error) {
-    console.error('[Admin] Failed to send role change email:', error);
+    console.error('[Admin] Failed to send role change email:', adminErrorKind(error));
   }
 }
 

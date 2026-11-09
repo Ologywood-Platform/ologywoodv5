@@ -38,6 +38,10 @@ const publicCalendarUrl = httpUrl.refine((value) => {
     !hostname.startsWith('192.168.') && !/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) && !hostname.startsWith('169.254.');
 }, 'Calendar URL must point to a public host');
 
+function venueErrorKind(error: unknown): string {
+  return error instanceof Error ? error.name : 'UnknownError';
+}
+
 function decodeVenueImage(fileData: string, mimeType: z.infer<typeof venueImageMime>) {
   const dataUrlMatch = fileData.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=\s]+)$/i);
   if (dataUrlMatch && dataUrlMatch[1].toLowerCase() !== mimeType) {
@@ -91,7 +95,7 @@ export const venueRouter = router({
         });
         return venues;
       } catch (error) {
-        console.error('[Venue] Search error:', error);
+        console.error('[Venue] Search error:', venueErrorKind(error));
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to search venues',
@@ -131,7 +135,7 @@ export const venueRouter = router({
       const profile = await db.getVenueProfileByUserId(ctx.user.id);
       return profile ?? null;
     } catch (error) {
-      console.error('[Venue] Get profile error:', error);
+      console.error('[Venue] Get profile error:', venueErrorKind(error));
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch venue profile',
@@ -149,7 +153,7 @@ export const venueRouter = router({
         const profile = await db.getVenueProfileById(input.id);
         return profile;
       } catch (error) {
-        console.error('[Venue] Get by ID error:', error);
+        console.error('[Venue] Get by ID error:', venueErrorKind(error));
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch venue profile',
@@ -177,7 +181,7 @@ export const venueRouter = router({
         });
         return found || null;
       } catch (error) {
-        console.error('[Venue] Get by slug error:', error);
+      console.error('[Venue] Get by slug error:', venueErrorKind(error));
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch venue profile by slug',
@@ -247,7 +251,7 @@ export const venueRouter = router({
         const profile = await db.getVenueProfileByUserId(ctx.user.id);
         return { success: true, profile };
       } catch (error) {
-        console.error('[Venue] Create profile error:', error);
+        console.error('[Venue] Create profile error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -292,7 +296,7 @@ export const venueRouter = router({
         const updated = await db.getVenueProfileByUserId(ctx.user.id);
         return { success: true, profile: updated };
       } catch (error) {
-        console.error('[Venue] Update profile error:', error);
+        console.error('[Venue] Update profile error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -337,7 +341,7 @@ export const venueRouter = router({
 
         return { url, success: true };
       } catch (error) {
-        console.error('[Venue] Upload photo error:', error);
+        console.error('[Venue] Upload photo error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -397,7 +401,7 @@ export const venueRouter = router({
 
         return { success: true, photo: newPhoto, totalPhotos: updatedPhotos.length };
       } catch (error) {
-        console.error('[Venue] Upload gallery photo error:', error);
+        console.error('[Venue] Upload gallery photo error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to upload gallery photo' });
       }
@@ -428,7 +432,7 @@ export const venueRouter = router({
 
         return { success: true, totalPhotos: updatedPhotos.length };
       } catch (error) {
-        console.error('[Venue] Delete gallery photo error:', error);
+        console.error('[Venue] Delete gallery photo error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to delete gallery photo' });
       }
@@ -457,7 +461,7 @@ export const venueRouter = router({
 
         return { success: true };
       } catch (error) {
-        console.error('[Venue] Update gallery caption error:', error);
+        console.error('[Venue] Update gallery caption error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update caption' });
       }
@@ -491,7 +495,7 @@ export const venueRouter = router({
 
         return { success: true };
       } catch (error) {
-        console.error('[Venue] Reorder gallery error:', error);
+        console.error('[Venue] Reorder gallery error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to reorder gallery' });
       }
@@ -511,7 +515,7 @@ export const venueRouter = router({
         const photos = (profile.mediaGallery as any)?.photos || [];
         return { photos };
       } catch (error) {
-        console.error('[Venue] Get gallery error:', error);
+        console.error('[Venue] Get gallery error:', venueErrorKind(error));
         return { photos: [] };
       }
     }),
@@ -598,7 +602,7 @@ export const venueRouter = router({
 
         return { success: true, message: 'Email verified successfully' };
       } catch (error) {
-        console.error('[Venue] Verify email error:', error);
+      console.error('[Venue] Verify email error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -715,12 +719,12 @@ export const venueRouter = router({
                 </div>
               </div>
             `,
-          }).catch((err) => console.error('[Venue] Failed to send inquiry email:', err));
+          }).catch((err) => console.error('[Venue] Failed to send inquiry email:', venueErrorKind(err)));
         }
 
         return { success: true, bookingId: booking.id, message: 'Inquiry sent successfully' };
       } catch (error) {
-        console.error('[Venue] Contact venue error:', error);
+        console.error('[Venue] Contact venue error:', venueErrorKind(error));
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -919,7 +923,7 @@ export const venueRouter = router({
         if (!database) return { success: true };
         await database.insert(venueProfileViews).values({ venueId: input.venueId });
       } catch (error) {
-        console.error('Error tracking venue profile view:', error);
+        console.error('Error tracking venue profile view:', venueErrorKind(error));
       }
       return { success: true };
     }),
@@ -1084,7 +1088,7 @@ export const venueRouter = router({
           reviewCount: v.reviewCount,
         }));
       } catch (error) {
-        console.error('[Venue] getFeatured error:', error);
+        console.error('[Venue] getFeatured error:', venueErrorKind(error));
         return [];
       }
     }),
