@@ -41,6 +41,17 @@ import {
 
 const router = Router();
 
+function strictChunkIndex(value: string | undefined): number {
+  if (!value || !/^(?:0|[1-9][0-9]*)$/.test(value)) {
+    throw new PortfolioUploadValidationError('Invalid upload chunk index');
+  }
+  const index = Number(value);
+  if (!Number.isSafeInteger(index) || index < 0) {
+    throw new PortfolioUploadValidationError('Invalid upload chunk index');
+  }
+  return index;
+}
+
 const VIDEO_EXTENSION_BY_MIME: Record<string, 'mp4' | 'mov' | 'webm'> = {
   'video/mp4': 'mp4',
   'video/quicktime': 'mov',
@@ -178,7 +189,7 @@ router.post('/upload', upload.single('video'), async (req: Request, res: Respons
 
     return res.json({ success: true, url, status: 'approved' });
   } catch (err: any) {
-    console.error('[Video Upload Error]', err);
+    console.error('[Video Upload Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Video file must be under 500MB' });
     }
@@ -205,7 +216,7 @@ router.post('/performance/start', async (req: Request, res: Response) => {
       requiresConversion: session.requiresConversion,
     });
   } catch (err: any) {
-    console.error('[Performance Video Start Error]', err);
+    console.error('[Performance Video Start Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not start the Performance Video upload' });
   }
@@ -220,14 +231,14 @@ router.post('/performance/chunk', express.raw({ type: 'application/octet-stream'
     const kindHeader = String(req.header('x-performance-upload-kind') || '');
     if (kindHeader !== 'video' && kindHeader !== 'thumbnail') throw new PortfolioUploadValidationError('Invalid upload chunk type');
     const kind = kindHeader as 'video' | 'thumbnail';
-    const index = Number(req.header('x-performance-upload-index'));
+    const index = strictChunkIndex(req.header('x-performance-upload-index') || undefined);
     const expectedLength = getExpectedPerformanceChunkLength(payload, kind, index);
     const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     if (body.length !== expectedLength) throw new PortfolioUploadValidationError('Upload chunk size did not match the signed session');
     await storagePut(getPerformanceChunkKey(payload, kind, index), body, 'application/octet-stream');
     return res.json({ success: true, kind, index });
   } catch (err: any) {
-    console.error('[Performance Video Chunk Error]', err);
+    console.error('[Performance Video Chunk Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not upload the Performance Video chunk' });
   }
@@ -280,7 +291,7 @@ router.post('/performance/finalize', async (req: Request, res: Response) => {
     } as any);
     return res.json({ success: true, url: storedVideo.url, thumbnailUrl: storedThumbnail.url, converted: payload.requiresConversion, status: 'approved' });
   } catch (err: any) {
-    console.error('[Performance Video Finalize Error]', err);
+    console.error('[Performance Video Finalize Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not finish the Performance Video upload' });
   }
@@ -306,7 +317,7 @@ router.post('/portfolio/start', async (req: Request, res: Response) => {
       requiresConversion: session.requiresConversion,
     });
   } catch (err: any) {
-    console.error('[Portfolio Video Start Error]', err);
+    console.error('[Portfolio Video Start Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not start the video upload' });
   }
@@ -324,7 +335,7 @@ router.post('/portfolio/chunk', portfolioChunkBody, async (req: Request, res: Re
     const kindHeader = String(req.header('x-portfolio-upload-kind') || '');
     if (kindHeader !== 'video' && kindHeader !== 'thumbnail') throw new PortfolioUploadValidationError('Invalid upload chunk type');
     const kind = kindHeader as 'video' | 'thumbnail';
-    const index = Number(req.header('x-portfolio-upload-index'));
+    const index = strictChunkIndex(req.header('x-portfolio-upload-index') || undefined);
     const expectedLength = getExpectedChunkLength(payload, kind, index);
     const body = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
     if (body.length !== expectedLength) throw new PortfolioUploadValidationError('Upload chunk size did not match the signed session');
@@ -333,7 +344,7 @@ router.post('/portfolio/chunk', portfolioChunkBody, async (req: Request, res: Re
     await storagePut(key, body, 'application/octet-stream');
     return res.json({ success: true, kind, index });
   } catch (err: any) {
-    console.error('[Portfolio Video Chunk Error]', err);
+    console.error('[Portfolio Video Chunk Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not upload the video chunk' });
   }
@@ -390,7 +401,7 @@ router.post('/portfolio/finalize', async (req: Request, res: Response) => {
 
     return res.json({ success: true, id: (result as any).insertId, url: videoUrl, thumbnailUrl, converted: payload.requiresConversion });
   } catch (err: any) {
-    console.error('[Portfolio Video Finalize Error]', err);
+    console.error('[Portfolio Video Finalize Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     const status = err instanceof PortfolioUploadValidationError ? err.status : 500;
     return res.status(status).json({ error: err instanceof PortfolioUploadValidationError ? err.message : 'Could not finish the video upload' });
   }
@@ -421,9 +432,17 @@ router.post('/portfolio', portfolioUpload.fields([
       return res.status(400).json({ error: 'Video thumbnail must be under 3MB' });
     }
 
-    const title = String(req.body.title || '').trim();
-    const category = String(req.body.category || '') as VideoPortfolioCategory;
-    const duration = Number(req.body.durationSeconds || 0);
+    const rawTitle = req.body?.title;
+    const rawCategory = req.body?.category;
+    const rawDuration = req.body?.durationSeconds;
+    if ((rawTitle !== undefined && typeof rawTitle !== 'string') ||
+        (rawCategory !== undefined && typeof rawCategory !== 'string') ||
+        (rawDuration !== undefined && typeof rawDuration !== 'string' && typeof rawDuration !== 'number')) {
+      return res.status(400).json({ error: 'Invalid portfolio video fields' });
+    }
+    const title = String(rawTitle || '').trim();
+    const category = String(rawCategory || '') as VideoPortfolioCategory;
+    const duration = rawDuration === undefined || rawDuration === '' ? 0 : Number(rawDuration);
     if (!title || title.length > 255) {
       return res.status(400).json({ error: 'Enter a video title between 1 and 255 characters' });
     }
@@ -463,7 +482,7 @@ router.post('/portfolio', portfolioUpload.fields([
 
     return res.json({ success: true, id: (result as any).insertId, url, thumbnailUrl });
   } catch (err: any) {
-    console.error('[Portfolio Video Upload Error]', err);
+    console.error('[Portfolio Video Upload Error]', { kind: err instanceof Error ? err.name : 'UnknownError' });
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Portfolio video must be under 100MB' });
     }

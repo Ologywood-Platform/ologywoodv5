@@ -286,6 +286,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 64. **Active event Express route — resolved in this increment.**
    - Event route parameters now use the shared strict `positiveRouteId` parser with no remaining `parseInt` coercion across event CRUD, recurrence, history, photo, and saved-event endpoints. Existing ownership checks and validated event/history/photo/recurrence bodies remain intact, while event-route exception logs expose only error kind.
    - Event category/date/security/route-boundary/error-safety regressions pass 26/26, with TypeScript and production build passing. No events, recurrence rows, history/photos, saved events, emails, or records were changed during validation.
+65. **Legacy performance/portfolio video Express route — resolved in this increment.**
+   - Chunk indexes now accept only canonical non-negative decimal integers and safe integers, portfolio multipart title/category/duration fields reject arrays/objects before coercion, and performance/portfolio start/chunk/finalize/multipart failure logs emit only error kind.
+   - Video-upload/chunked/parity/portfolio/route-safety regressions pass 58/58, with TypeScript and production build passing. No video uploads, profiles, conversions, moderation records, emails, or records were changed during validation.
 
 ## Audit limitations
 

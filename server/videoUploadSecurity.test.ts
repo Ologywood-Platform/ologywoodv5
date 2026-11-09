@@ -18,4 +18,23 @@ describe('legacy video upload validation', () => {
     expect(source).toContain("'video/webm'");
     expect(source).toContain('Unsupported video format');
   });
+
+  it('rejects coercive chunk indexes and non-scalar multipart fields', () => {
+    const source = readFileSync('server/routes/videoUpload.ts', 'utf8');
+    expect(source).toContain('function strictChunkIndex(value: string | undefined): number');
+    expect(source).toContain("/^(?:0|[1-9][0-9]*)$/");
+    expect(source).toContain("strictChunkIndex(req.header('x-performance-upload-index') || undefined)");
+    expect(source).toContain("strictChunkIndex(req.header('x-portfolio-upload-index') || undefined)");
+    expect(source).toContain("typeof rawTitle !== 'string'");
+    expect(source).toContain("Invalid portfolio video fields");
+    expect(source).not.toContain("Number(req.header('x-performance-upload-index'))");
+    expect(source).not.toContain("Number(req.header('x-portfolio-upload-index'))");
+  });
+
+  it('keeps video-upload failure logs free of raw exception objects', () => {
+    const source = readFileSync('server/routes/videoUpload.ts', 'utf8');
+    expect(source).toContain("kind: err instanceof Error ? err.name : 'UnknownError'");
+    expect(source).not.toContain("console.error('[Video Upload Error]', err)");
+    expect(source).not.toContain("console.error('[Portfolio Video Finalize Error]', err)");
+  });
 });
