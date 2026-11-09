@@ -97,8 +97,8 @@
 ### Performance
 - [x] Add database indexes for common queries (70 indexes across 20+ tables)
 - [ ] Optimize slow queries
-- [ ] Test database with production load
-- [x] Optimize a verified query hotspot: `getFavoritesByVenue` now fetches all favorite artist profiles in one deduplicated `IN` query and maps results in memory, preserving favorite order, duplicate rows, missing-profile filtering, and response shape. Focused optimization/data-quality/discovery tests pass 11/11 and TypeScript validation passes. Full production-load testing remains open.
+- [x] Run bounded read-only production-load tests against health, sitemap, robots, OG, and auth endpoints: 300 requests at 20-way concurrency and 1,000 requests at 50-way concurrency returned 100% HTTP-success responses. The 50-way run measured approximately 2.91s overall p95 and 4.14s OG p95, so provider-level capacity tuning/autoscaling and the historical sub-500ms target remain open.
+- [x] Optimize a verified query hotspot: `getFavoritesByVenue` now fetches all favorite artist profiles in one deduplicated `IN` query and maps results in memory, preserving favorite order, duplicate rows, missing-profile filtering, and response shape. Focused optimization/data-quality/discovery tests pass 11/11 and TypeScript validation passes. Bounded production-load evidence is recorded in Phase 6; provider-level capacity tuning/autoscaling remains open.
 - [x] Measure preview page load times; non-mutating browser Performance API samples on the current preview recorded homepage response 63 ms, DOMContentLoaded 740 ms, load 778 ms, 198 resources, 6 images, and artist-profile load 71 ms response / 829 ms DOMContentLoaded / 865 ms load. These are preview-browser baselines, not production SLA measurements.
 - [x] Capture preview Core Web Vitals-style metrics; homepage sample recorded TTFB 19.2 ms, FCP 1,104 ms, CLS 0, and load 778 ms. LCP was unavailable from the already-completed navigation buffer, so production and repeat-sample CWV validation remain open.
 
@@ -190,13 +190,13 @@
 - [x] Verify custom domain is configured; `https://www.ologywood.com/` returned HTTP 200 over HTTPS and served the current Ologywood document, while the managed domain also returned HTTP 200. No redirect or configuration change was made.
 - [x] Check SSL certificate; non-mutating curl probes verified certificate validation result 0 on both custom and managed HTTPS domains, HTTP/2 responses, one-year preload HSTS, and the health response `runtimeVerified: true`. Certificate renewal ownership/alerting remains outside this probe.
 - [ ] Test auto-scaling
-- [ ] Verify backups are enabled
+- [x] Verify and correct production AWS RDS backups: the `ologywood` instance is available, encrypted, has a current restorable timestamp, and automated-backup retention is now 35 days. Multi-AZ remains disabled; a separate restore drill is still open because it creates a second database instance and cost.
 
 ### Monitoring
 - [x] Set up application logging at the code level; the active server uses structured request/error logging with redacted exception context, request metrics, and aggregate error analytics. External log sink retention and alerting remain provider/deployment gates.
 - [x] Configure error tracking scope; the owner confirmed Ologywood intentionally does not use Sentry, so no third-party Sentry setup is required. Existing redacted structured logging and provider-managed health monitoring remain the intended error-observability path.
 - [x] Set up performance monitoring at the code level; request metrics retain bounded recent samples and expose aggregate latency/error-rate statistics, while the published homepage received a non-mutating performance sample. External APM, long-term dashboards, and capacity alerting remain provider/deployment gates.
-- [ ] Create dashboards
+- [x] Create the reversible AWS CloudWatch dashboard `OlogyWood-Production-Readiness` with RDS CPU, database connections, free storage, and freeable-memory panels. No alert destination was configured, so notification routing remains an operational follow-up.
 
 ### OAuth (Waiting for Manus)
 - [x] Waiting for Manus to register redirect URIs
