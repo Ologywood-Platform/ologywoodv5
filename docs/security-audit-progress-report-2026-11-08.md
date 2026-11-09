@@ -1,5 +1,5 @@
 
 
-### Legacy release-upload body contract
+### Legacy public event-search query contract
 
-The mounted legacy audio and cover-art upload routes now reject unknown JSON fields before decoding or storage writes; only `fileData`, `fileName`, and `mimeType` are accepted. Existing authentication, canonical base64, MIME allowlisting, filename safety, byte limits, and redacted storage errors remain intact. Focused release-upload/Express regressions pass 14/14, TypeScript passes, and production build passes with existing chunk-size warnings. No audio, cover art, storage objects, or records changed during validation.
+The active legacy event-search route now validates search/query, event type, location, and date filters as bounded scalar strings through the shared `singleQueryString` helper; repeated query parameters and objects are not cast into database inputs. Existing route-parameter validation and event mutation ownership checks remain intact. Focused event-route regressions pass 22/22, TypeScript passes, and production build passes with existing chunk-size warnings. No event searches, event rows, or records changed during validation.

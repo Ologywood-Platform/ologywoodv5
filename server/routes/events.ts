@@ -26,7 +26,7 @@ import {
 import { dateOnlyToUtcDate } from '../../shared/dateOnly';
 import type { EventTypeValue } from '../../shared/eventTypes';
 import { validateEventBody, validateHistoryBody, validatePhotoBody, validateRecurrenceBody } from './eventInput';
-import { positiveRouteId } from './routeInput';
+import { positiveRouteId, singleQueryString } from './routeInput';
 
 // Middleware to check if user is authenticated
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -158,14 +158,19 @@ router.get('/api/events/artist/:artistId/upcoming', async (req: Request, res: Re
  */
 router.get('/api/events/search', async (req: Request, res: Response) => {
   try {
-    const { search, query, eventType, location, minRate, maxRate, startDate, endDate, limit, offset } = req.query;
+    const { search, query, eventType, location, startDate, endDate } = req.query;
+    const searchText = singleQueryString(search, 200) ?? singleQueryString(query, 200);
+    const eventTypeText = singleQueryString(eventType, 80);
+    const locationText = singleQueryString(location, 160);
+    const startDateText = singleQueryString(startDate, 40);
+    const endDateText = singleQueryString(endDate, 40);
 
     const events = await searchPublicEvents({
-      query: (search || query) as string | undefined,
-      category: eventType as string | undefined,
-      city: location as string | undefined,
-      startDate: startDate as string | undefined,
-      endDate: endDate as string | undefined,
+      query: searchText ?? undefined,
+      category: eventTypeText ?? undefined,
+      city: locationText ?? undefined,
+      startDate: startDateText ?? undefined,
+      endDate: endDateText ?? undefined,
     });
 
     res.json(events);

@@ -46,7 +46,7 @@ describe('event route input validation', () => {
   it('keeps the route guard and capacity validation in the production source', async () => {
     const source = await import('node:fs/promises').then((fs) => fs.readFile('server/routes/events.ts', 'utf8'));
     expect(source).toContain("router.param(parameter");
-    expect(source).toContain("import { positiveRouteId } from './routeInput';");
+    expect(source).toContain("import { positiveRouteId, singleQueryString } from './routeInput';");
     expect(source).toContain('const parsed = positiveRouteId(value);');
     expect(source).toContain('validateEventBody(req.body)');
     expect(await import('node:fs/promises').then((fs) => fs.readFile('server/routes/eventInput.ts', 'utf8'))).toContain('capacity must be a non-negative whole number');

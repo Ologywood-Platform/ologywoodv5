@@ -42,4 +42,12 @@ describe('legacy event route security boundaries', () => {
     expect(source).toContain('validateEventBody(req.body, true)');
     expect(source).not.toContain('updateEvent(parseInt(id), {\n      ...req.body');
   });
+
+  it('bounds public event-search filters to scalar query strings', () => {
+    const source = readFileSync('server/routes/events.ts', 'utf8');
+    expect(source).toContain("import { positiveRouteId, singleQueryString } from './routeInput';");
+    expect(source).toContain('const searchText = singleQueryString(search, 200)');
+    expect(source).not.toContain('(search || query) as string');
+    expect(source).not.toContain('eventType as string | undefined');
+  });
 });

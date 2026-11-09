@@ -5246,6 +5246,10 @@ Performance and portfolio direct-upload readers now reject arrays/objects for ti
 
 The mounted legacy audio and cover-art upload routes now reject unknown JSON fields before decoding or storage writes; only `fileData`, `fileName`, and `mimeType` are accepted. Focused release-upload/Express regressions passed 14/14; TypeScript and production build passed with existing chunk-size warnings. No audio, cover art, storage objects, or records changed.
 
+### Legacy public event-search query contract — 2026-11-09
+
+The active legacy event-search route now validates search/query, event type, location, and date filters as bounded scalar strings through the shared `singleQueryString` helper; repeated query parameters and objects are not cast into database inputs. Focused event-route regressions passed 22/22; TypeScript and production build passed with existing chunk-size warnings. No event searches, event rows, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 
