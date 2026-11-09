@@ -6,9 +6,10 @@ import {
   cancelScheduleAppointment, createScheduleAppointment, getScheduleAgenda, getScheduleContext, updateScheduleAppointment,
 } from '../services/scheduleService';
 
-const ownerInput = z.object({ ownerUserId: z.number().int().positive().optional() });
-const appointmentInput = scheduleAppointmentSchema.extend({ ownerUserId: z.number().int().positive().optional() });
-const revisionInput = ownerInput.extend({ id: z.number().int().positive(), expectedRevision: z.number().int().positive() });
+const safeId = z.number().int().safe().positive();
+const ownerInput = z.object({ ownerUserId: safeId.optional() }).strict();
+const appointmentInput = scheduleAppointmentSchema.extend({ ownerUserId: safeId.optional() }).strict();
+const revisionInput = ownerInput.extend({ id: safeId, expectedRevision: safeId }).strict();
 
 async function safe<T>(operation: () => Promise<T>): Promise<T> {
   try { return await operation(); }
@@ -22,12 +23,12 @@ export const scheduleRouter = router({
     safe(() => getScheduleContext(ctx.user.id, input?.ownerUserId))),
   agenda: protectedProcedure.input(ownerInput.extend({
     fromDate: scheduleDateSchema, toDate: scheduleDateSchema, timezone: scheduleTimezoneSchema,
-  })).query(({ ctx, input }) => safe(() => getScheduleAgenda(ctx.user.id, input))),
+  }).strict()).query(({ ctx, input }) => safe(() => getScheduleAgenda(ctx.user.id, input))),
   create: protectedProcedure.input(appointmentInput).mutation(({ ctx, input }) =>
     safe(() => createScheduleAppointment(ctx.user.id, input))),
   update: protectedProcedure.input(appointmentInput.extend({
-    id: z.number().int().positive(), expectedRevision: z.number().int().positive(),
-  })).mutation(({ ctx, input }) => safe(() => updateScheduleAppointment(ctx.user.id, input))),
+    id: safeId, expectedRevision: safeId,
+  }).strict()).mutation(({ ctx, input }) => safe(() => updateScheduleAppointment(ctx.user.id, input))),
   cancel: protectedProcedure.input(revisionInput).mutation(({ ctx, input }) =>
     safe(() => cancelScheduleAppointment(ctx.user.id, input))),
 });

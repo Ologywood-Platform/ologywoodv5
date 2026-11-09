@@ -26,7 +26,7 @@ export const scheduleAppointmentSchema = scheduleTimingSchema.extend({
   title: z.string().trim().min(1).max(200), category: scheduleCategorySchema,
   location: z.string().trim().max(500).default(''), notes: z.string().trim().max(2000).default(''),
   reminderMinutes: z.number().int().min(0).max(10080).nullable().default(30),
-});
+}).strict();
 export type ScheduleTimingInput = z.input<typeof scheduleTimingSchema>;
 export type ScheduleAppointmentInput = z.input<typeof scheduleAppointmentSchema>;
 export interface ScheduleInterval { startAt: number; endAt: number; timezone: string; allDay: boolean; date: string; preparationMinutes: number; travelMinutes: number }

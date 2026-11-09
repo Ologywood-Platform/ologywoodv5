@@ -279,7 +279,10 @@ export async function getScheduleAgenda(actorUserId: number, input: { fromDate: 
 
 type AppointmentMutation = ScheduleAppointmentInput & { ownerUserId?: number };
 function normalizedAppointment(input: AppointmentMutation) {
-  const data = scheduleAppointmentSchema.parse(input);
+  const { ownerUserId: _ownerUserId, id: _id, expectedRevision: _expectedRevision, ...appointmentInput } = input as AppointmentMutation & {
+    id?: number; expectedRevision?: number;
+  };
+  const data = scheduleAppointmentSchema.parse(appointmentInput);
   let interval: ScheduleInterval;
   try { interval = resolveScheduleInterval(data); }
   catch (error) { throw new TRPCError({ code: 'BAD_REQUEST', message: error instanceof Error ? error.message : 'Choose valid appointment timing.' }); }
