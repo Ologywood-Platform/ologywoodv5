@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
+import { TRPCError } from "@trpc/server";
+import { aiChatLimiter } from "../utils/rateLimiter";
+
+function getClientIp(ctx: any): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress
+    || 'unknown';
+}
 
 export const PROFILE_GALLERY_GUIDANCE = 'On a public talent profile, click or tap a Portfolio photo to view the full original image without cropping. Previous photo, Next photo and left/right arrow keys browse loaded photos; Close photo viewer, Escape or the dark backdrop returns to the profile. Load more photos brings in additional uploaded photos in small pages. Music initially shows three songs and Video Portfolio six clips; Show all expands longer lists and Show less shortens them. Viewing does not change saved creator order, uploads, publication, prices, purchases, or sharing links. Collapsing extra music cards stops their previews through existing cleanup. For changing a video title/order, use Artist Dashboard → Video Portfolio; for arranging singles, use the existing Reorder Singles control.';
 
@@ -334,13 +342,22 @@ export function getCanonicalNavigationAnswer(message: string): string | null {
 export const aiChatRouter = router({
   sendMessage: publicProcedure
     .input(z.object({
-      message: z.string().min(1).max(2000),
+      message: z.string().trim().min(1).max(2000),
       history: z.array(z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string(),
-      })).max(20).optional(),
-    }))
-    .mutation(async ({ input }) => {
+        content: z.string().trim().min(1).max(2000),
+      }).strict()).max(20).optional(),
+    }).strict())
+    .mutation(async ({ input, ctx }) => {
+      const ipCheck = aiChatLimiter.check(`ip:${getClientIp(ctx)}`);
+      if (!ipCheck.allowed) {
+        const retrySeconds = Math.max(1, Math.ceil(ipCheck.retryAfterMs / 1000));
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: `Too many AI support requests. Please try again in ${retrySeconds} seconds.`,
+        });
+      }
+
       const canonicalNavigationAnswer = getCanonicalNavigationAnswer(input.message);
       if (canonicalNavigationAnswer) {
         return { response: canonicalNavigationAnswer };
@@ -368,13 +385,15 @@ export const aiChatRouter = router({
         });
 
         const responseContent = result.choices?.[0]?.message?.content;
-        const textResponse = typeof responseContent === 'string' ? responseContent : 'I\'m sorry, I couldn\'t process that. Please try again or contact support@ologywood.com.';
+        const textResponse = typeof responseContent === 'string'
+          ? responseContent.slice(0, 4000)
+          : 'I\'m sorry, I couldn\'t process that. Please try again or contact support@ologywood.com.';
 
         return {
           response: textResponse,
         };
       } catch (error: any) {
-        console.error("[AIChat] LLM error:", error);
+        console.error("[AIChat] LLM request failed");
         return {
           response: "I'm experiencing technical difficulties right now. Please visit our Help Center at /help or email support@ologywood.com for assistance.",
         };

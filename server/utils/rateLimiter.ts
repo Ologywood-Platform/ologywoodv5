@@ -152,6 +152,12 @@ export const emailTestingLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000,
 });
 
+/** AI support chat: 30 requests per minute per IP to protect the LLM budget */
+export const aiChatLimiter = new RateLimiter({
+  maxRequests: 30,
+  windowMs: 60 * 1000,
+});
+
 // Forgot password: 3 requests per 15 min per IP/email
 export const forgotPasswordLimiter = new RateLimiter({
   maxRequests: 10,

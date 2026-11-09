@@ -185,6 +185,14 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Both test-all and single-template email procedures are administrator-only rather than publicly callable; recipient and template inputs are normalized, strict, and bounded, success payloads omit recipient addresses, and failure logs/errors no longer include raw exception details.
    - Email-testing/public-endpoint/email-route/legacy-content regressions pass 45/45, with TypeScript and production build validation passing. No test emails, templates, accounts, or records were changed.
 
+39. **Public contact-form HTML and payload safety — resolved in this increment.**
+   - Contact name/email/message/subject/honeypot inputs are trimmed, normalized, strict, and bounded; all user-controlled values are escaped before team and confirmation email interpolation, IP/email rate limits remain active, and fallback logs no longer write submitted contact PII or raw payloads.
+   - Contact/email/public-endpoint regressions pass 58/58, with TypeScript and production build validation passing. No contact emails, submissions, accounts, or records were changed.
+
+40. **Public AI support assistant abuse and prompt boundaries — resolved in this increment.**
+   - Prompt/history messages are trimmed and bounded with strict nested objects and finite history; expensive LLM calls are capped at 30 per minute per client IP, generated output is capped before return, and raw LLM exceptions are no longer logged.
+   - AI-chat/navigation/header/public-rate-limit regressions pass 52/52, with TypeScript and production build validation passing. No LLM calls, user records, emails, or external settings were changed during validation.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

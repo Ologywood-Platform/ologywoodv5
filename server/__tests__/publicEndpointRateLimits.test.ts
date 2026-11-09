@@ -17,14 +17,17 @@ describe('Rate Limiting on Public Endpoints', () => {
       expect(content).toContain('export const emailTestingLimiter');
     });
 
-    it('all limiters use 15-minute windows', () => {
+    it('form and auth limiters use 15-minute windows while AI chat uses a 60-second budget guard', () => {
       const content = readFileSync(join(serverDir, 'utils', 'rateLimiter.ts'), 'utf-8');
       // Each limiter should use 15 * 60 * 1000
-      const limiterBlocks = content.split('new RateLimiter(');
+      const legacyContent = content.split('export const aiChatLimiter')[0];
+      const limiterBlocks = legacyContent.split('new RateLimiter(');
       // First block is before any limiter, so skip it
       for (let i = 1; i < limiterBlocks.length; i++) {
         expect(limiterBlocks[i]).toContain('15 * 60 * 1000');
       }
+      const aiSection = content.split('export const aiChatLimiter')[1].split('});')[0];
+      expect(aiSection).toContain('60 * 1000');
     });
 
     it('contactFormLimiter allows 3 requests', () => {
