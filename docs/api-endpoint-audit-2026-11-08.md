@@ -310,6 +310,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 72. **Ticketing checkout and transfer boundary — resolved in this increment.**
    - Ticket checkout totals are capped at $1,000,000 before platform fees and order creation. Stripe checkout failures are logged by error kind, the newly created pending order is cancelled best-effort, and callers receive a stable retry-safe message rather than provider details.
    - Ticket-transfer email names, messages, event fields, and locations are escaped; acceptance links are restricted to HTTP(S); subjects strip CRLF; and email-delivery logs expose only error kind. Ticketing security/commerce regressions pass 12/12, with TypeScript and production build passing. No ticket orders, checkout sessions, transfers, emails, payments, or records were changed during validation.
+73. **Fan Club billing and response-scope boundary — resolved in this increment.**
+   - Creator tier creation/deletion, fan subscription checkout, and membership cancellation now redact Stripe failures, clean up or preserve state safely, and return stable client-safe errors. Public tier responses omit Stripe product/price identifiers, creator member responses omit subscription IDs, and connected-account/talent identifiers are absent from logs.
+   - Fan-club security/revenue/webhook/security-audit regressions pass 26/26, with TypeScript and production build passing. No tiers, subscriptions, memberships, Stripe objects, payments, emails, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

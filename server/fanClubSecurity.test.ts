@@ -31,4 +31,16 @@ describe('Fan Club security boundaries', () => {
     expect(source).toContain('talentUserId: String(talentId)');
     expect(source).toContain('connectAccount.payoutsEnabled');
   });
+
+  it('redacts Stripe failures and avoids exposing billing identifiers in public/member responses', () => {
+    const source = read('./routers/fanClub.ts');
+    expect(source).toContain("Failed to create billing tier', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).toContain('Unable to create this Fan Club tier right now.');
+    expect(source).toContain("Subscription checkout creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).toContain('Unable to start Fan Club checkout. Please try again.');
+    expect(source).toContain("Subscription cancellation failed', { kind: error instanceof Error ? error.name : 'UnknownError' }");
+    expect(source).not.toContain('stripePriceId: fanClubTiers.stripePriceId');
+    expect(source).not.toContain('stripeProductId: fanClubTiers.stripeProductId');
+    expect(source).not.toContain('const members = await db.select().from(fanClubMemberships)');
+  });
 });

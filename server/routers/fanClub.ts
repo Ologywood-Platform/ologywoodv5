@@ -80,20 +80,35 @@ export const fanClubRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
       }
 
-      // Create Stripe Product + Price
+      // Create Stripe Product + Price. Keep provider failures opaque and
+      // deactivate any partially-created billing objects before returning.
       const s = getStripe();
-      const product = await s.products.create({
-        name: `${profile.artistName} - ${input.name} Fan Club`,
-        metadata: { talentUserId: String(ctx.user.id), tierName: input.name },
-      });
-
-      const price = await s.prices.create({
-        product: product.id,
-        unit_amount: input.priceMonthly,
-        currency: 'usd',
-        recurring: { interval: 'month' },
-        metadata: { talentUserId: String(ctx.user.id) },
-      });
+      let product: Awaited<ReturnType<typeof s.products.create>> | undefined;
+      let price: Awaited<ReturnType<typeof s.prices.create>> | undefined;
+      try {
+        product = await s.products.create({
+          name: `${profile.artistName} - ${input.name} Fan Club`,
+          metadata: { talentUserId: String(ctx.user.id), tierName: input.name },
+        });
+        price = await s.prices.create({
+          product: product.id,
+          unit_amount: input.priceMonthly,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          metadata: { talentUserId: String(ctx.user.id) },
+        });
+      } catch (error) {
+        console.error('[FanClub] Failed to create billing tier', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        if (product) {
+          try { await s.products.update(product.id, { active: false }); } catch (cleanupError) {
+            console.error('[FanClub] Failed to deactivate partial billing product', { kind: cleanupError instanceof Error ? cleanupError.name : 'UnknownError' });
+          }
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to create this Fan Club tier right now.' });
+      }
+      if (!product || !price) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to create this Fan Club tier right now.' });
+      }
 
       // Get next sort order
       const existing = await db.select({ count: sql<number>`count(*)` }).from(fanClubTiers)
@@ -166,7 +181,12 @@ export const fanClubRouter = router({
 
       // Archive the Stripe product
       if (tier.stripeProductId) {
-        await getStripe().products.update(tier.stripeProductId, { active: false });
+        try {
+          await getStripe().products.update(tier.stripeProductId, { active: false });
+        } catch (error) {
+          console.error('[FanClub] Failed to archive billing product', { kind: error instanceof Error ? error.name : 'UnknownError' });
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to archive this Fan Club tier right now.' });
+        }
       }
 
       await db.delete(fanClubTiers).where(eq(fanClubTiers.id, input.tierId));
@@ -180,7 +200,18 @@ export const fanClubRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-      const tiers = await db.select().from(fanClubTiers)
+      const tiers = await db.select({
+        id: fanClubTiers.id,
+        talentUserId: fanClubTiers.talentUserId,
+        artistUserId: fanClubTiers.artistUserId,
+        name: fanClubTiers.name,
+        priceMonthly: fanClubTiers.priceMonthly,
+        priceCents: fanClubTiers.priceCents,
+        description: fanClubTiers.description,
+        perks: fanClubTiers.perks,
+        sortOrder: fanClubTiers.sortOrder,
+        isActive: fanClubTiers.isActive,
+      }).from(fanClubTiers)
         .where(and(eq(fanClubTiers.artistUserId, input.talentUserId), eq(fanClubTiers.isActive, true)))
         .orderBy(asc(fanClubTiers.id));
       return tiers;
@@ -305,13 +336,19 @@ export const fanClubRouter = router({
       if (connectAccountId) {
         sessionParams.subscription_data.application_fee_percent = PLATFORM_FEE_PERCENT;
         sessionParams.subscription_data.transfer_data = { destination: connectAccountId };
-        console.log(`[FanClub] Subscribe: routing to ${connectAccountId}, ${PLATFORM_FEE_PERCENT}% platform fee`);
+        console.log('[FanClub] Subscribe: connected payout routing enabled', { platformFeePercent: PLATFORM_FEE_PERCENT });
       } else {
         // No Connect account — all revenue goes to platform until talent connects Stripe
-        console.log(`[FanClub] Subscribe: No Connect account for talent ${talentId}, revenue stays on platform`);
+        console.log('[FanClub] Subscribe: connected payout routing unavailable', { platformFeePercent: PLATFORM_FEE_PERCENT });
       }
 
-      const session = await s.checkout.sessions.create(sessionParams);
+      let session: Awaited<ReturnType<typeof s.checkout.sessions.create>>;
+      try {
+        session = await s.checkout.sessions.create(sessionParams);
+      } catch (error) {
+        console.error('[FanClub] Subscription checkout creation failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to start Fan Club checkout. Please try again.' });
+      }
 
       return { checkoutUrl: session.url };
     }),
@@ -333,9 +370,14 @@ export const fanClubRouter = router({
 
       // Cancel Stripe subscription at period end
       if (membership.stripeSubscriptionId) {
-        await getStripe().subscriptions.update(membership.stripeSubscriptionId, {
-          cancel_at_period_end: true,
-        });
+        try {
+          await getStripe().subscriptions.update(membership.stripeSubscriptionId, {
+            cancel_at_period_end: true,
+          });
+        } catch (error) {
+          console.error('[FanClub] Subscription cancellation failed', { kind: error instanceof Error ? error.name : 'UnknownError' });
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to cancel this Fan Club membership right now.' });
+        }
       }
 
       // Stripe cancels at the end of the current period. Keep the local
@@ -364,7 +406,17 @@ export const fanClubRouter = router({
   getMyMembers: talentProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-    const members = await db.select().from(fanClubMemberships)
+    const members = await db.select({
+      id: fanClubMemberships.id,
+      fanUserId: fanClubMemberships.fanUserId,
+      talentUserId: fanClubMemberships.talentUserId,
+      artistUserId: fanClubMemberships.artistUserId,
+      tierId: fanClubMemberships.tierId,
+      status: fanClubMemberships.status,
+      startedAt: fanClubMemberships.startedAt,
+      cancelledAt: fanClubMemberships.cancelledAt,
+      currentPeriodEnd: fanClubMemberships.currentPeriodEnd,
+    }).from(fanClubMemberships)
       .where(and(
         eq(fanClubMemberships.artistUserId, ctx.user.id),
         eq(fanClubMemberships.status, 'active')
