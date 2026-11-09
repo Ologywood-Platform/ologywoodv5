@@ -49,6 +49,13 @@ const orderStatusSchema = z.enum([
   'cancelled',
 ]);
 
+const sellerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'artist' && ctx.user.role !== 'venue') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Seller access required' });
+  }
+  return next({ ctx });
+});
+
 function isLegacyMerchSchemaError(error: unknown): boolean {
   const cause = (error as any)?.cause as { code?: string } | undefined;
   return cause?.code === 'ER_NO_SUCH_TABLE' || cause?.code === 'ER_BAD_FIELD_ERROR';
@@ -291,11 +298,16 @@ export const merchOrdersRouter = router({
           .where(eq(merchOrders.stripeCheckoutSessionId, input.sessionId)).limit(1);
       } catch (error) {
         if (isLegacyMerchSchemaError(error)) return null;
-        throw error;
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load checkout result.' });
       }
       if (!order) return null;
-      const items = await db.select().from(merchOrderItems)
-        .where(eq(merchOrderItems.orderId, order.id));
+      let items;
+      try {
+        items = await db.select().from(merchOrderItems)
+          .where(eq(merchOrderItems.orderId, order.id));
+      } catch {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load checkout items.' });
+      }
       return {
         orderNumber: order.orderNumber,
         paymentStatus: order.paymentStatus,
@@ -322,7 +334,7 @@ export const merchOrdersRouter = router({
         .where(eq(merchOrders.buyerUserId, ctx.user.id)).orderBy(desc(merchOrders.createdAt));
     } catch (error) {
       if (isLegacyMerchSchemaError(error)) return [];
-      throw error;
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load your merch orders.' });
     }
     const result = [];
     for (const order of orders) {
@@ -347,7 +359,7 @@ export const merchOrdersRouter = router({
   }),
 
   /** Creator order-management list. */
-  sellerOrders: protectedProcedure.query(async ({ ctx }) => {
+  sellerOrders: sellerProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database not available' });
     let orders;
@@ -360,7 +372,7 @@ export const merchOrdersRouter = router({
         .orderBy(desc(merchOrders.createdAt));
     } catch (error) {
       if (isLegacyMerchSchemaError(error)) return [];
-      throw error;
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Unable to load seller orders.' });
     }
     const result = [];
     for (const order of orders) {
@@ -371,7 +383,7 @@ export const merchOrdersRouter = router({
   }),
 
   /** Creator fulfillment updates with guarded status transitions. */
-  updateFulfillment: protectedProcedure
+  updateFulfillment: sellerProcedure
     .input(z.object({
       orderId: z.number().int().safe().positive(),
       status: orderStatusSchema,
@@ -420,7 +432,7 @@ export const merchOrdersRouter = router({
           fulfillmentNotes: input.fulfillmentNotes?.trim() || order.fulfillmentNotes,
         });
       } catch (error) {
-        console.error('[Merch Orders] Failed to send status email:', error);
+        console.error('[Merch Orders] Failed to send status email:', { kind: error instanceof Error ? error.name : 'UnknownError' });
       }
 
       return { success: true };

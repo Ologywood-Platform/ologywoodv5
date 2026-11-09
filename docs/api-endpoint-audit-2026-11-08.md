@@ -304,6 +304,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 70. **Payout and earnings procedure boundary — resolved in this increment.**
    - Payout/earnings/history reads and payout requests now require artist/admin access. Payout processing and completion use `adminProcedure` instead of a procedure-level role check, while strict positive payout IDs, cents-safe bounded amounts, bank-account identifiers, available completed-earnings checks, and state-conditional transitions remain active.
    - Request/transition/database failures now return stable client-safe errors. Payout/admin/Stripe payout regressions pass 33/33, with TypeScript and production build passing. No payout requests, transitions, transfers, payments, or records were changed during validation.
+71. **Native merch seller-order boundary — resolved in this increment.**
+   - Seller order lists and fulfillment updates now require an artist or venue seller role and remain scoped to `sellerUserId = ctx.user.id`; strict positive order IDs and bounded tracking, pickup, and fulfillment fields remain enforced.
+   - Checkout-result, buyer-order, and seller-order database failures now map to stable client-safe errors, and fulfillment email logs expose only an error kind. Merch-order security and commerce regressions pass 10/10, with TypeScript and production build passing. No orders, checkout sessions, fulfillment statuses, emails, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
