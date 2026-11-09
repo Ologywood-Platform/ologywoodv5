@@ -283,6 +283,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 63. **Adjacent Express delivery boundaries — resolved in this increment.**
    - Artist/venue iCalendar `DESCRIPTION` values now escape backslashes, commas, semicolons, CRLF, and LF before serialization. Chunked media-upload UUIDs and chunk indexes reject coercive formats, start bodies reject unknown keys, and invoice/release upload/download/preview failures log only error kind; release-download success logs omit user/release/purchase identifiers.
    - Express-boundary/media/schema/release/schedule/route-safety regressions pass 43/43, with TypeScript, production build, and diff validation passing. No calendar feeds, uploads, downloads, invoices, media, emails, or records were changed during validation.
+64. **Active event Express route — resolved in this increment.**
+   - Event route parameters now use the shared strict `positiveRouteId` parser with no remaining `parseInt` coercion across event CRUD, recurrence, history, photo, and saved-event endpoints. Existing ownership checks and validated event/history/photo/recurrence bodies remain intact, while event-route exception logs expose only error kind.
+   - Event category/date/security/route-boundary/error-safety regressions pass 26/26, with TypeScript and production build passing. No events, recurrence rows, history/photos, saved events, emails, or records were changed during validation.
 
 ## Audit limitations
 

@@ -26,6 +26,7 @@ import {
 import { dateOnlyToUtcDate } from '../../shared/dateOnly';
 import type { EventTypeValue } from '../../shared/eventTypes';
 import { validateEventBody, validateHistoryBody, validatePhotoBody, validateRecurrenceBody } from './eventInput';
+import { positiveRouteId } from './routeInput';
 
 // Middleware to check if user is authenticated
 const requireAuth = (req: Request, res: Response, next: Function) => {
@@ -41,8 +42,8 @@ const router = Router();
 const NUMERIC_EVENT_PARAMS = ['id', 'artistId', 'eventId', 'historyId', 'photoId'] as const;
 for (const parameter of NUMERIC_EVENT_PARAMS) {
   router.param(parameter, (req, res, next, value) => {
-    const parsed = Number(value);
-    if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    const parsed = positiveRouteId(value);
+    if (parsed === null) {
       return res.status(400).json({ error: `Invalid ${parameter}` });
     }
     req.params[parameter] = String(parsed);
@@ -84,7 +85,7 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
 
     res.json(event);
   } catch (error) {
-    console.error('Error creating event:', error);
+    console.error('Error creating event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to create event' });
   }
 });
@@ -95,7 +96,7 @@ router.post('/api/events', requireAuth, async (req: Request, res: Response) => {
 router.get('/api/events/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const event = await getEventById(parseInt(id));
+    const event = await getEventById(Number(id));
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
@@ -103,7 +104,7 @@ router.get('/api/events/:id', async (req: Request, res: Response) => {
 
     res.json(event);
   } catch (error) {
-    console.error('Error fetching event:', error);
+    console.error('Error fetching event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch event' });
   }
 });
@@ -114,10 +115,10 @@ router.get('/api/events/:id', async (req: Request, res: Response) => {
 router.get('/api/events/artist/:artistId', async (req: Request, res: Response) => {
   try {
     const { artistId } = req.params;
-    const events = await getArtistEvents(parseInt(artistId));
+    const events = await getArtistEvents(Number(artistId));
     res.json(events);
   } catch (error) {
-    console.error('Error fetching artist events:', error);
+    console.error('Error fetching artist events', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch events' });
   }
 });
@@ -128,10 +129,10 @@ router.get('/api/events/artist/:artistId', async (req: Request, res: Response) =
 router.get('/api/events/artist/:artistId/public', async (req: Request, res: Response) => {
   try {
     const { artistId } = req.params;
-    const events = await getArtistPublicEvents(parseInt(artistId));
+    const events = await getArtistPublicEvents(Number(artistId));
     res.json(events);
   } catch (error) {
-    console.error('Error fetching public events:', error);
+    console.error('Error fetching public events', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch public events' });
   }
 });
@@ -143,11 +144,11 @@ router.get('/api/events/artist/:artistId/upcoming', async (req: Request, res: Re
   try {
     const { artistId } = req.params;
     const { daysAhead } = req.query;
-    const events = await getArtistUpcomingEvents(parseInt(artistId));
+    const events = await getArtistUpcomingEvents(Number(artistId));
     // Note: daysAhead filter can be applied in application code if needed
     res.json(events);
   } catch (error) {
-    console.error('Error fetching upcoming events:', error);
+    console.error('Error fetching upcoming events', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch upcoming events' });
   }
 });
@@ -169,7 +170,7 @@ router.get('/api/events/search', async (req: Request, res: Response) => {
 
     res.json(events);
   } catch (error) {
-    console.error('Error searching events:', error);
+    console.error('Error searching events', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to search events' });
   }
 });
@@ -183,7 +184,7 @@ router.put('/api/events/:id', requireAuth, async (req: Request, res: Response) =
     const { id } = req.params;
 
     // Verify ownership
-    const event = await getEventById(parseInt(id));
+    const event = await getEventById(Number(id));
     if (!event || event.artistId !== user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -191,13 +192,13 @@ router.put('/api/events/:id', requireAuth, async (req: Request, res: Response) =
     const validated = validateEventBody(req.body, true);
     if (validated.error) return res.status(400).json({ error: validated.error });
     const input = validated.value!;
-    const updatedEvent = await updateEvent(parseInt(id), {
+    const updatedEvent = await updateEvent(Number(id), {
       ...input,
       ...(input.eventDate ? { eventDate: dateOnlyToUtcDate(input.eventDate as string) } : {}),
     });
     res.json(updatedEvent);
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('Error updating event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to update event' });
   }
 });
@@ -211,19 +212,19 @@ router.delete('/api/events/:id', requireAuth, async (req: Request, res: Response
     const { id } = req.params;
 
     // Verify ownership
-    const event = await getEventById(parseInt(id));
+    const event = await getEventById(Number(id));
     if (!event || event.artistId !== user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const result = await deleteEvent(parseInt(id));
+    const result = await deleteEvent(Number(id));
     if (result) {
       res.json({ success: true });
     } else {
       res.status(500).json({ error: 'Failed to delete event' });
     }
   } catch (error) {
-    console.error('Error deleting event:', error);
+    console.error('Error deleting event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to delete event' });
   }
 });
@@ -242,13 +243,13 @@ router.post('/api/events/:eventId/recurrence', requireAuth, async (req: Request,
     const { frequency, daysOfWeek, endDate } = validated.value!;
 
     // Verify ownership
-    const event = await getEventById(parseInt(eventId));
+    const event = await getEventById(Number(eventId));
     if (!event || event.artistId !== user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     const recurrence = await createEventRecurrence({
-      eventId: parseInt(eventId),
+      eventId: Number(eventId),
       frequency: frequency as any,
       daysOfWeek: daysOfWeek as string | null,
       endDate: endDate ? dateOnlyToUtcDate(endDate as string) : undefined,
@@ -256,7 +257,7 @@ router.post('/api/events/:eventId/recurrence', requireAuth, async (req: Request,
 
     res.json(recurrence);
   } catch (error) {
-    console.error('Error creating recurrence:', error);
+    console.error('Error creating recurrence', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to create recurrence' });
   }
 });
@@ -267,10 +268,10 @@ router.post('/api/events/:eventId/recurrence', requireAuth, async (req: Request,
 router.get('/api/events/:eventId/recurrence', async (req: Request, res: Response) => {
   try {
     const { eventId } = req.params;
-    const recurrence = await getEventRecurrence(parseInt(eventId));
+    const recurrence = await getEventRecurrence(Number(eventId));
     res.json(recurrence || {});
   } catch (error) {
-    console.error('Error fetching recurrence:', error);
+    console.error('Error fetching recurrence', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch recurrence' });
   }
 });
@@ -284,15 +285,15 @@ router.delete('/api/events/:eventId/recurrence', requireAuth, async (req: Reques
     const { eventId } = req.params;
 
     // Verify ownership
-    const event = await getEventById(parseInt(eventId));
+    const event = await getEventById(Number(eventId));
     if (!event || event.artistId !== user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const success = await deleteEventRecurrence(parseInt(eventId));
+    const success = await deleteEventRecurrence(Number(eventId));
     res.json({ success });
   } catch (error) {
-    console.error('Error deleting recurrence:', error);
+    console.error('Error deleting recurrence', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to delete recurrence' });
   }
 });
@@ -311,13 +312,13 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
     const { bookingId, venueId, eventDate, attendeeCount, notes } = validated.value!;
 
     // Verify ownership
-    const event = await getEventById(parseInt(eventId));
+    const event = await getEventById(Number(eventId));
     if (!event || event.artistId !== user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     const history = await createEventHistory({
-      eventId: parseInt(eventId),
+      eventId: Number(eventId),
       bookingId: bookingId as number | null | undefined,
       artistId: user.id,
       venueId: venueId as number | null | undefined,
@@ -328,7 +329,7 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
 
     res.json(history);
   } catch (error) {
-    console.error('Error creating event history:', error);
+    console.error('Error creating event history', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to create event history' });
   }
 });
@@ -339,7 +340,7 @@ router.post('/api/events/:eventId/history', requireAuth, async (req: Request, re
 router.get('/api/events/history/:historyId', async (req: Request, res: Response) => {
   try {
     const { historyId } = req.params;
-    const history = await getEventHistoryById(parseInt(historyId));
+    const history = await getEventHistoryById(Number(historyId));
 
     if (!history) {
       return res.status(404).json({ error: 'Event history not found' });
@@ -347,7 +348,7 @@ router.get('/api/events/history/:historyId', async (req: Request, res: Response)
 
     res.json(history);
   } catch (error) {
-    console.error('Error fetching event history:', error);
+    console.error('Error fetching event history', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch event history' });
   }
 });
@@ -358,10 +359,10 @@ router.get('/api/events/history/:historyId', async (req: Request, res: Response)
 router.get('/api/artists/:artistId/history', async (req: Request, res: Response) => {
   try {
     const { artistId } = req.params;
-    const history = await getArtistEventHistory(parseInt(artistId));
+    const history = await getArtistEventHistory(Number(artistId));
     res.json(history);
   } catch (error) {
-    console.error('Error fetching artist history:', error);
+    console.error('Error fetching artist history', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch artist history' });
   }
 });
@@ -374,7 +375,7 @@ router.get('/api/artists/:artistId/history', async (req: Request, res: Response)
 router.post('/api/events/history/:historyId/photos', requireAuth, async (req: Request, res: Response) => {
   try {
     const { historyId } = req.params;
-    const history = await getEventHistoryById(parseInt(historyId));
+    const history = await getEventHistoryById(Number(historyId));
     if (!history || history.artistId !== (req as any).user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
@@ -383,7 +384,7 @@ router.post('/api/events/history/:historyId/photos', requireAuth, async (req: Re
     const { photoUrl, caption } = validated.value!;
 
     const photo = await addEventPhoto({
-      eventHistoryId: parseInt(historyId),
+      eventHistoryId: Number(historyId),
       photoUrl: photoUrl as string,
       caption: caption as string | null | undefined,
       uploadedBy: (req as any).user.id,
@@ -391,7 +392,7 @@ router.post('/api/events/history/:historyId/photos', requireAuth, async (req: Re
 
     res.json(photo);
   } catch (error) {
-    console.error('Error adding photo:', error);
+    console.error('Error adding photo', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to add photo' });
   }
 });
@@ -402,10 +403,10 @@ router.post('/api/events/history/:historyId/photos', requireAuth, async (req: Re
 router.get('/api/events/history/:historyId/photos', async (req: Request, res: Response) => {
   try {
     const { historyId } = req.params;
-    const photos = await getEventPhotos(parseInt(historyId));
+    const photos = await getEventPhotos(Number(historyId));
     res.json(photos);
   } catch (error) {
-    console.error('Error fetching photos:', error);
+    console.error('Error fetching photos', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch photos' });
   }
 });
@@ -416,16 +417,16 @@ router.get('/api/events/history/:historyId/photos', async (req: Request, res: Re
 router.delete('/api/events/photos/:photoId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { photoId } = req.params;
-    const photo = await getEventPhotoById(parseInt(photoId));
+    const photo = await getEventPhotoById(Number(photoId));
     if (!photo) return res.status(404).json({ error: 'Photo not found' });
     const history = await getEventHistoryById(photo.eventHistoryId);
     if (!history || history.artistId !== (req as any).user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
-    const success = await deleteEventPhoto(parseInt(photoId));
+    const success = await deleteEventPhoto(Number(photoId));
     res.json({ success });
   } catch (error) {
-    console.error('Error deleting photo:', error);
+    console.error('Error deleting photo', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to delete photo' });
   }
 });
@@ -441,15 +442,15 @@ router.post('/api/events/:eventId/save', requireAuth, async (req: Request, res: 
     const { eventId } = req.params;
 
     // Check if already saved
-    const alreadySaved = await isEventSaved(user.id, parseInt(eventId));
+    const alreadySaved = await isEventSaved(user.id, Number(eventId));
     if (alreadySaved) {
       return res.status(400).json({ error: 'Event already saved' });
     }
 
-    const saved = await saveEvent(user.id, parseInt(eventId));
+    const saved = await saveEvent(user.id, Number(eventId));
     res.json(saved);
   } catch (error) {
-    console.error('Error saving event:', error);
+    console.error('Error saving event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to save event' });
   }
 });
@@ -463,7 +464,7 @@ router.get('/api/user/saved-events', requireAuth, async (req: Request, res: Resp
     const events = await getUserSavedEvents(user.id);
     res.json(events);
   } catch (error) {
-    console.error('Error fetching saved events:', error);
+    console.error('Error fetching saved events', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to fetch saved events' });
   }
 });
@@ -476,10 +477,10 @@ router.delete('/api/events/:eventId/save', requireAuth, async (req: Request, res
     const user = (req as any).user;
     const { eventId } = req.params;
 
-    const success = await removeSavedEvent(user.id, parseInt(eventId));
+    const success = await removeSavedEvent(user.id, Number(eventId));
     res.json({ success });
   } catch (error) {
-    console.error('Error removing saved event:', error);
+    console.error('Error removing saved event', { kind: error instanceof Error ? error.name : 'UnknownError' });
     res.status(500).json({ error: 'Failed to remove saved event' });
   }
 });

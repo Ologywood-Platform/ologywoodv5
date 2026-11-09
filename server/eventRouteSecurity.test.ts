@@ -38,7 +38,7 @@ describe('legacy event route security boundaries', () => {
     const source = readFileSync('server/routes/events.ts', 'utf8');
     expect(source).toContain('event.artistId !== user.id');
     expect(source).toContain('history.artistId !== (req as any).user.id');
-    expect(source).toContain('getEventPhotoById(parseInt(photoId))');
+    expect(source).toContain('getEventPhotoById(Number(photoId))');
     expect(source).toContain('validateEventBody(req.body, true)');
     expect(source).not.toContain('updateEvent(parseInt(id), {\n      ...req.body');
   });

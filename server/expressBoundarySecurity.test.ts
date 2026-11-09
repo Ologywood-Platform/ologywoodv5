@@ -6,6 +6,7 @@ const media = readFileSync('server/routes/mediaUploads.ts', 'utf8');
 const invoice = readFileSync('server/routes/invoiceDownload.ts', 'utf8');
 const releaseDownload = readFileSync('server/routes/releaseDownload.ts', 'utf8');
 const releaseUpload = readFileSync('server/routes/releaseUpload.ts', 'utf8');
+const events = readFileSync('server/routes/events.ts', 'utf8');
 
 describe('reachable Express boundary hardening', () => {
   it('escapes complete iCalendar descriptions, including CRLF', () => {
@@ -30,5 +31,14 @@ describe('reachable Express boundary hardening', () => {
     expect(releaseUpload).toContain('kind: error instanceof Error ? error.name : "UnknownError"');
     expect(releaseDownload).not.toContain('console.error("[Release Download] Error:", error)');
     expect(releaseUpload).not.toContain('console.error("[Release Upload] Audio upload error:", error)');
+  });
+
+  it('uses strict shared IDs across event CRUD, recurrence, history, photos, and saved-event routes', () => {
+    expect(events).toContain("import { positiveRouteId } from './routeInput';");
+    expect(events).toContain('const parsed = positiveRouteId(value);');
+    expect(events).not.toContain('const parsed = Number(value);');
+    expect(events).not.toContain('parseInt(');
+    expect(events).toContain("kind: error instanceof Error ? error.name : 'UnknownError'");
+    expect(events).not.toContain("console.error('Error creating event:', error)");
   });
 });
