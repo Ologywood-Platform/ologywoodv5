@@ -52,6 +52,14 @@ function strictChunkIndex(value: string | undefined): number {
   return index;
 }
 
+function strictBodyUploadToken(req: Request): string {
+  const token = req.body?.token;
+  if (typeof token !== 'string' || token.length === 0 || token.length > 8_192) {
+    throw new PortfolioUploadValidationError('Invalid upload confirmation');
+  }
+  return token;
+}
+
 const VIDEO_EXTENSION_BY_MIME: Record<string, 'mp4' | 'mov' | 'webm'> = {
   'video/mp4': 'mp4',
   'video/quicktime': 'mov',
@@ -248,7 +256,7 @@ router.post('/performance/chunk', express.raw({ type: 'application/octet-stream'
 router.post('/performance/finalize', async (req: Request, res: Response) => {
   try {
     const { user, profile } = await getPerformanceUploadContext(req);
-    const payload = verifyPerformanceUploadSession(String(req.body?.token || ''));
+    const payload = verifyPerformanceUploadSession(strictBodyUploadToken(req));
     assertPerformanceUploadOwner(payload, { userId: user.id, profileId: profile.id });
     const finalVideoUrl = publicStorageUrl(payload.finalVideoKey);
     const currentVideoUrl = String(profile.performanceVideoUrl || '');
@@ -354,7 +362,7 @@ router.post('/portfolio/chunk', portfolioChunkBody, async (req: Request, res: Re
 router.post('/portfolio/finalize', async (req: Request, res: Response) => {
   try {
     const { user, profile, pool } = await getPortfolioUploadContext(req);
-    const payload = verifyPortfolioUploadSession(String(req.body?.token || ''));
+    const payload = verifyPortfolioUploadSession(strictBodyUploadToken(req));
     assertUploadSessionOwner(payload, { userId: user.id, profileId: profile.id });
     const count = await assertPortfolioCapacity(pool, profile.id);
     const legacyVideoUrl = publicStorageUrl(payload.finalVideoKey);

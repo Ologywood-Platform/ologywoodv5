@@ -5258,6 +5258,10 @@ The mounted admin-only test-email route now rejects array bodies and unknown JSO
 
 Artist and venue iCalendar feed routes now validate their `token` query value through the shared bounded scalar query helper before format and HMAC checks; repeated query parameters and non-string values no longer pass through a TypeScript cast. Focused calendar/Express/schedule regressions passed 16/16; TypeScript and production build passed with existing chunk-size warnings. No calendar feeds, bookings, tokens, or records changed.
 
+### Direct-video finalize token contract — 2026-11-09
+
+Performance and portfolio finalize routes now require a bounded scalar body token through one shared `strictBodyUploadToken` helper before verifying the signed upload session; arrays, objects, empty values, and oversized tokens are rejected rather than coerced with `String`. Focused performance/portfolio chunked-upload and parity regressions passed 28/28; TypeScript and production build passed with existing chunk-size warnings. No video uploads, storage objects, profiles, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

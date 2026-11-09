@@ -101,6 +101,9 @@ describe('Performance Video upload parity', () => {
     expect(routes).toContain("router.post('/performance/finalize'");
     expect(routes).toContain('assertPerformanceUploadOwner');
     expect(routes).toContain('validateAssembledVideoSource');
+    expect(routes).toContain('function strictBodyUploadToken(req: Request): string');
+    expect(routes).not.toContain("String(req.body?.token || '')");
+    expect(routes).toContain('strictBodyUploadToken(req)');
     expect(portfolioManager).toContain("startPortfolioUpload");
     expect(portfolioManager).toContain("finalizePortfolioUpload");
   });
