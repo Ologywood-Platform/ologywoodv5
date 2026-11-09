@@ -43,4 +43,11 @@ describe('Venue security boundaries', () => {
     expect(source).toContain('Calendar URL must point to a public host');
     expect(source).toContain('escapeHtml(input.message)');
   });
+
+  it('uses encoded random verification tokens and does not log raw exceptions', () => {
+    const source = read('./routers/venue.ts');
+    expect(source).toContain("randomBytes(32).toString('base64url')");
+    expect(source).toContain("error instanceof Error ? error.constructor.name : typeof error");
+    expect(source).not.toContain("console.error('[Venue] Send verification email error:', error);");
+  });
 });

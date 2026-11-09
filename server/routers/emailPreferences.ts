@@ -113,7 +113,7 @@ export const emailPreferencesRouter = router({
       if (!updated) throw new Error('Email preference restoration could not be confirmed');
       return { success: true, message: "Resubscribed to emails" };
     } catch (error) {
-      console.error("Error resubscribing to emails:", error);
+      console.error("Error resubscribing to emails", error instanceof Error ? error.constructor.name : typeof error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to resubscribe to emails",

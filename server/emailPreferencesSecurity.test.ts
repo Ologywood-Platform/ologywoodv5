@@ -19,9 +19,10 @@ describe('email preference security boundaries', () => {
   });
 
   it('keeps preference mutations strict and does not log raw exceptions', () => {
-    expect(source).toContain("At least one preference is required");
-    expect(source).toContain('reason: z.string().trim().min(1).max(100)');
-    expect(source).not.toContain('Error updating email preferences:", error');
-    expect(source).not.toContain('Error saving unsubscribe feedback:", error');
-  });
+      expect(source).toContain("At least one preference is required");
+      expect(source).toContain("reason: z.string().trim().min(1).max(100)");
+      expect(source).not.toContain('Error updating email preferences:", error');
+      expect(source).not.toContain('Error saving unsubscribe feedback:", error');
+      expect(source).not.toContain('Error resubscribing to emails:", error');
+    });
 });

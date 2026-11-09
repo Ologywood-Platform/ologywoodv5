@@ -2,6 +2,7 @@ import { scheduleDateSchema, scheduleTimezoneSchema } from '../../shared/schedul
 import { setVenueScheduledDates, setVenueScheduledRecurringBlock } from '../services/bookingScheduleService';
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { randomBytes } from "node:crypto";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { getDb, getPool } from "../db";
@@ -537,9 +538,7 @@ export const venueRouter = router({
       }
 
       // Generate verification token
-      const verificationToken = crypto
-        .getRandomValues(new Uint8Array(32))
-        .toString();
+      const verificationToken = randomBytes(32).toString('base64url');
       const verificationLink = `${
         process.env.FRONTEND_URL || 'http://localhost:3000'
       }/verify-venue-email?token=${verificationToken}`;
@@ -561,7 +560,7 @@ export const venueRouter = router({
 
       return { success: true, message: 'Verification email sent' };
     } catch (error) {
-      console.error('[Venue] Send verification email error:', error);
+      console.error('[Venue] Send verification email error:', error instanceof Error ? error.constructor.name : typeof error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
