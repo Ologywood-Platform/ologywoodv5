@@ -1,5 +1,5 @@
 
 
-### Direct video-upload scalar fields
+### Legacy release-upload body contract
 
-Performance and portfolio direct-upload readers now reject arrays/objects for titles, categories, formats, MIME types, durations, and byte sizes instead of coercing them with `String`/`Number`. Existing owner-bound signed sessions, chunk-size limits, file-format checks, conversion rules, and redacted route errors remain intact. Focused direct-video regressions pass 32/32, TypeScript passes, and production build passes with existing chunk-size warnings. No uploads, storage objects, profiles, or records changed during validation.
+The mounted legacy audio and cover-art upload routes now reject unknown JSON fields before decoding or storage writes; only `fileData`, `fileName`, and `mimeType` are accepted. Existing authentication, canonical base64, MIME allowlisting, filename safety, byte limits, and redacted storage errors remain intact. Focused release-upload/Express regressions pass 14/14, TypeScript passes, and production build passes with existing chunk-size warnings. No audio, cover art, storage objects, or records changed during validation.

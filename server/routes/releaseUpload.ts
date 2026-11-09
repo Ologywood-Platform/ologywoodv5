@@ -57,6 +57,8 @@ function sendError(res: Response, status: number, error: string) {
 
 function getBody(req: Request): LegacyUploadBody | null {
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) return null;
+  const allowedKeys = new Set(["fileData", "fileName", "mimeType"]);
+  if (Object.keys(req.body).some((key) => !allowedKeys.has(key))) return null;
   return req.body as LegacyUploadBody;
 }
 

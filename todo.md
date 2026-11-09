@@ -5242,6 +5242,10 @@ The mounted eBook upload route now rejects unknown multipart fields before datab
 
 Performance and portfolio direct-upload readers now reject arrays/objects for titles, categories, formats, MIME types, durations, and byte sizes instead of coercing them with `String`/`Number`. Focused direct-video regressions passed 32/32; TypeScript and production build passed with existing chunk-size warnings. No uploads, storage objects, profiles, or records changed.
 
+### Legacy release-upload body contract — 2026-11-09
+
+The mounted legacy audio and cover-art upload routes now reject unknown JSON fields before decoding or storage writes; only `fileData`, `fileName`, and `mimeType` are accepted. Focused release-upload/Express regressions passed 14/14; TypeScript and production build passed with existing chunk-size warnings. No audio, cover art, storage objects, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 

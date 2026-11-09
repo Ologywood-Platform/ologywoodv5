@@ -75,6 +75,7 @@ describe("legacy Music Release base64 upload routes", () => {
       { fileData: `data:image/png;base64,${audio.toString("base64")}`, fileName: "single.mp3", mimeType: "audio/mpeg" },
       { fileData: audio.toString("base64"), fileName: "../single.mp3", mimeType: "audio/mpeg" },
       { fileData: audio.toString("base64"), fileName: "single.mp3", mimeType: "audio/ogg" },
+      { fileData: audio.toString("base64"), fileName: "single.mp3", mimeType: "audio/mpeg", forgedUserId: 7 },
     ];
 
     for (const body of invalidBodies) {
