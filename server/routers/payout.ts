@@ -1,9 +1,10 @@
-import { router, protectedProcedure } from '../_core/trpc';
+import { router, protectedProcedure, adminProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { getDb } from '../db';
 import { artistEarnings, artistPayouts, bookings, releasePurchases, artistReleases, ticketOrders, events, artistProfiles } from '../../drizzle/schema';
 import { eq, sql, and, gte, lte, desc, inArray } from 'drizzle-orm';
 import * as db from '../db';
+import { TRPCError } from '@trpc/server';
 
 const payoutId = z.number().int().safe().positive();
 const payoutAmount = z.number().finite().positive().max(1_000_000)
@@ -11,8 +12,15 @@ const payoutAmount = z.number().finite().positive().max(1_000_000)
 const bankAccountId = z.string().trim().regex(/^\d{1,10}$/, 'Invalid bank account identifier')
   .refine((value) => Number(value) <= 2_147_483_647, 'Invalid bank account identifier').optional();
 
+const artistPayoutProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'artist' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Artist access required' });
+  }
+  return next({ ctx });
+});
+
 export const payoutRouter = router({
-  getPayouts: protectedProcedure.query(async ({ ctx }: any) => {
+  getPayouts: artistPayoutProcedure.query(async ({ ctx }: any) => {
     const database = await getDb();
     if (!database) return [];
 
@@ -24,7 +32,7 @@ export const payoutRouter = router({
     return payouts;
   }),
 
-  getEarnings: protectedProcedure.query(async ({ ctx }: any) => {
+  getEarnings: artistPayoutProcedure.query(async ({ ctx }: any) => {
     const database = await getDb();
     if (!database) {
       return {
@@ -79,7 +87,7 @@ export const payoutRouter = router({
    * Detailed earnings breakdown with per-booking revenue, door split calculations,
    * monthly/quarterly summaries
    */
-  getEarningsBreakdown: protectedProcedure
+  getEarningsBreakdown: artistPayoutProcedure
     .input(z.object({
       period: z.enum(['all', 'month', 'quarter', 'year']).default('all'),
     }).strict().optional())
@@ -218,7 +226,7 @@ export const payoutRouter = router({
       return { bookingEarnings, monthlySummary, quarterlySummary, totals };
     }),
 
-  getPayoutHistory: protectedProcedure.query(async ({ ctx }: any) => {
+  getPayoutHistory: artistPayoutProcedure.query(async ({ ctx }: any) => {
     const database = await getDb();
     if (!database) return [];
 
@@ -230,7 +238,7 @@ export const payoutRouter = router({
     return payouts;
   }),
 
-  requestPayout: protectedProcedure
+  requestPayout: artistPayoutProcedure
     .input(
       z.object({
         amount: payoutAmount,
@@ -240,7 +248,9 @@ export const payoutRouter = router({
     )
     .mutation(async ({ ctx, input }: any) => {
       const database = await getDb();
-      if (!database) throw new Error('Database not available');
+      if (!database) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Payout requests are temporarily unavailable.' });
+      }
 
       const earningsRows = await database.select({ netAmount: artistEarnings.netAmount, status: artistEarnings.status })
         .from(artistEarnings)
@@ -255,7 +265,7 @@ export const payoutRouter = router({
         .filter((payout) => ['pending', 'processing', 'completed'].includes(payout.status))
         .reduce((sum, payout) => sum + parseFloat(payout.amount as string || '0'), 0);
       if (input.amount > Math.max(0, completedEarnings - committedPayouts) + 1e-9) {
-        throw new Error('Requested payout exceeds your available completed earnings');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Requested payout exceeds your available completed earnings' });
       }
 
       // Create a payout request in the database
@@ -272,38 +282,40 @@ export const payoutRouter = router({
       return { success: true, message: 'Payout request submitted' };
     }),
 
-  processPayout: protectedProcedure
+  processPayout: adminProcedure
     .input(z.object({ payoutId }).strict())
     .mutation(async ({ ctx, input }: any) => {
-      if (ctx.user.role !== 'admin') {
-        throw new Error('Unauthorized');
-      }
       const database = await getDb();
-      if (!database) throw new Error('Database not available');
+      if (!database) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Payout processing is temporarily unavailable.' });
+      }
 
       const result = await database
         .update(artistPayouts)
         .set({ status: 'processing', processedAt: new Date() })
         .where(and(eq(artistPayouts.id, input.payoutId), eq(artistPayouts.status, 'pending')));
-      if (result[0].affectedRows !== 1) throw new Error('Payout is not pending or does not exist');
+      if (result[0].affectedRows !== 1) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Payout is not pending or does not exist' });
+      }
 
       return { success: true, message: 'Payout processing started' };
     }),
 
-  completePayout: protectedProcedure
+  completePayout: adminProcedure
     .input(z.object({ payoutId }).strict())
     .mutation(async ({ ctx, input }: any) => {
-      if (ctx.user.role !== 'admin') {
-        throw new Error('Unauthorized');
-      }
       const database = await getDb();
-      if (!database) throw new Error('Database not available');
+      if (!database) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Payout completion is temporarily unavailable.' });
+      }
 
       const result = await database
         .update(artistPayouts)
         .set({ status: 'completed', completedAt: new Date() })
         .where(and(eq(artistPayouts.id, input.payoutId), eq(artistPayouts.status, 'processing')));
-      if (result[0].affectedRows !== 1) throw new Error('Payout is not processing or does not exist');
+      if (result[0].affectedRows !== 1) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Payout is not processing or does not exist' });
+      }
 
       return { success: true, message: 'Payout completed' };
     }),
@@ -312,7 +324,7 @@ export const payoutRouter = router({
    * Unified transaction history: combines bookings, release sales, and ticket sales
    * into a single chronological list for the Earnings page
    */
-  getTransactionHistory: protectedProcedure.query(async ({ ctx }: any) => {
+  getTransactionHistory: artistPayoutProcedure.query(async ({ ctx }: any) => {
     const database = await getDb();
     if (!database) {
       return { transactions: [], summary: { bookings: 0, releases: 0, tickets: 0 } };

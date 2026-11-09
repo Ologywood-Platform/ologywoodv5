@@ -22,10 +22,20 @@ describe('payout security boundaries', () => {
   it('requires safe payout IDs and administrator-only transitions', () => {
     expect(payout).toContain('const payoutId = z.number().int().safe().positive()');
     expect(payout).toContain('.input(z.object({ payoutId }).strict())');
-    expect(payout).toContain("ctx.user.role !== 'admin'");
+    expect(payout).toContain('processPayout: adminProcedure');
+    expect(payout).toContain('completePayout: adminProcedure');
+    expect(payout).toContain("ctx.user.role !== 'artist' && ctx.user.role !== 'admin'");
     expect(payout).toContain("eq(artistPayouts.status, 'pending')");
     expect(payout).toContain("eq(artistPayouts.status, 'processing')");
     expect(payout).toContain('Payout is not pending or does not exist');
     expect(payout).toContain('Payout is not processing or does not exist');
+  });
+
+  it('keeps earnings and payout requests inside the artist-scoped procedure', () => {
+    for (const procedure of ['getPayouts', 'getEarnings', 'getEarningsBreakdown', 'getPayoutHistory', 'requestPayout', 'getTransactionHistory']) {
+      expect(payout).toContain(`${procedure}: artistPayoutProcedure`);
+    }
+    expect(payout).toContain("message: 'Artist access required'");
+    expect(payout).toContain("Payout requests are temporarily unavailable.");
   });
 });

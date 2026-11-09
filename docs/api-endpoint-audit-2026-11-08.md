@@ -301,6 +301,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 69. **Stripe Connect creator boundary and failure handling — resolved in this increment.**
    - Account status, account creation, dashboard-login, onboarding-link, and disconnect operations now require artist/admin access. Connect callback URLs resolve through the approved configured-origin helper rather than interpolating an ad hoc environment string.
    - Database/provider failures return stable client-safe messages, while logs expose only an internal error type and no provider payload, account-creation identifiers, or raw exception. Stripe Connect/payout-dashboard/security regressions pass 18/18, with TypeScript and production build passing. No Connect accounts, onboarding links, payouts, payments, or records were changed during validation.
+70. **Payout and earnings procedure boundary — resolved in this increment.**
+   - Payout/earnings/history reads and payout requests now require artist/admin access. Payout processing and completion use `adminProcedure` instead of a procedure-level role check, while strict positive payout IDs, cents-safe bounded amounts, bank-account identifiers, available completed-earnings checks, and state-conditional transitions remain active.
+   - Request/transition/database failures now return stable client-safe errors. Payout/admin/Stripe payout regressions pass 33/33, with TypeScript and production build passing. No payout requests, transitions, transfers, payments, or records were changed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
