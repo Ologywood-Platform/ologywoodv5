@@ -49,7 +49,7 @@ describe('Security Audit Fixes', () => {
 
     it('should limit message length to prevent abuse', () => {
       const sendSection = routersContent.split('// Send message')[1]?.split('// Send rider template')[0] || '';
-      expect(sendSection).toContain('.max(5000)');
+      expect(sendSection).toContain('.max(5_000)');
     });
   });
 

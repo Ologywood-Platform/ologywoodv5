@@ -9,6 +9,7 @@ interface LogContext {
   method?: string;
   duration?: number;
   error?: Error | string;
+  errorCode?: string;
   statusCode?: number;
   [key: string]: any;
 }
@@ -54,13 +55,14 @@ class Logger {
    * Log error message
    */
   error(message: string, error?: Error | string, context?: LogContext) {
-    const errorMessage = error instanceof Error ? error.message : error;
-    const errorStack = error instanceof Error ? error.stack : undefined;
+    const errorType = error instanceof Error ? error.name : 'Error';
+    const safeContext = context ? { ...context } : {};
+    delete safeContext.error;
+    delete safeContext.stack;
     console.error(
       this.formatMessage('error', message, {
-        ...context,
-        error: errorMessage,
-        stack: errorStack,
+        ...safeContext,
+        errorType,
       })
     );
   }
@@ -138,7 +140,7 @@ export function createLoggingMiddleware() {
         endpoint,
         result.error instanceof Error ? result.error : new Error(String(result.error)),
         userId,
-        { statusCode: result.error?.code }
+        { errorCode: result.error?.code }
       );
     }
 

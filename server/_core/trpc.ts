@@ -19,8 +19,8 @@ const loggingMiddleware = t.middleware(async (opts) => {
   if (result.ok) {
     logger.trpcCall(endpoint, userId, duration);
   } else {
-    const error = result.error instanceof Error ? result.error : new Error(String(result.error));
-    logger.trpcError(endpoint, error, userId);
+    const error = result.error instanceof Error ? result.error : new Error('TRPC request failed');
+    logger.trpcError(endpoint, error, userId, { errorCode: result.error?.code });
   }
 
   return result;

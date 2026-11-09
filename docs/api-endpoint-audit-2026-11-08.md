@@ -253,6 +253,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - `setPerformanceVideoByUrl` and `addPortfolioVideo` now require an HTTP(S) URL schema with length and parseability checks instead of accepting arbitrary strings.
    - Artist profile/media/photo/message regressions pass 18/18, with TypeScript and production build validation passing. No profiles, media, videos, messages, or records were changed.
 
+56. **Global tRPC error-log redaction — resolved in this increment.**
+   - Structured errors now emit only safe error type, endpoint, user, duration, and error-code context; raw exception messages, stack traces, and injected error/stack context fields are removed from the global logger.
+   - Logger/runtime/security-audit/public-rate-limit regressions pass 27/27, with TypeScript and production build validation passing. Broader per-route error-response coverage remains open.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.
