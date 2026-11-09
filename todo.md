@@ -5174,7 +5174,7 @@ A non-mutating runtime regression matrix covering artist/venue/fan paths for boo
 
 ### Heartbeat execution verification — 2026-11-09
 
-The newly registered 15-minute `session-reminders` job completed its first natural post-publish run successfully: HTTP 200, one attempt, `ok: true`, 680 ms, zero upcoming sessions, zero reminders sent. No manual trigger was used. The four daily jobs are enabled and their first post-publish runs remain future-dated; their natural results must be reviewed after those windows.
+All five Heartbeat jobs are registered and enabled. `session-reminders` has 33/33 successful natural runs, including the current post-publish run. `credit-expiration` has 35 successes and 135 failures, and `contract-expiry-reminders` has 1 success and 176 failures; the latest failures are HTTP 403 with `Missing x-manus-cron-task-uid header`, confirming those logs belong to the stale header-required deployment. `premiere-reminders` and `auto-complete-bookings` have not reached their first natural run in the current window. The verified signed-session fix is checkpointed but remains publish-gated; no manual trigger or mutating retry was performed.
 
 
 ### Database readiness — ledger parity remains open
