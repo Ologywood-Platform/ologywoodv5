@@ -185,10 +185,10 @@ export async function sentryHealthCheck(): Promise<{
       status: 'ok',
       message: 'Sentry is connected',
     };
-  } catch (error: any) {
+  } catch {
     return {
       status: 'error',
-      message: `Sentry health check failed: ${error?.message}`,
+      message: 'Sentry health check failed',
     };
   }
 }

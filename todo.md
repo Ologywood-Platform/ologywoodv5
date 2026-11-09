@@ -5193,3 +5193,8 @@ Mounted the existing optional Sentry initializer in the active Express server be
 ### Performance optimization — deferred PDF library
 
 Rider and contract PDF exports now dynamically import `html2pdf.js` only when invoked. The static imports were removed and a regression confirms the deferred-import contract. The production build still emits the cacheable `vendor-pdf` chunk at about 983 KB, but the initial client chunks no longer contain the html2pdf payload. Focused regression passed, TypeScript passed, and production build passed. Remaining large application chunks and full Core Web Vitals validation remain open.
+
+
+### Sentry response hardening — 2026-11-09
+
+The Sentry health helper no longer returns raw provider exception text. Focused monitoring tests passed 2/2; the complete suite passed 4,047 tests with 23 skipped across 337 files, TypeScript passed, and the production build passed. Production Sentry event delivery remains gated on an owner-provided `SENTRY_DSN` and a real event check.
