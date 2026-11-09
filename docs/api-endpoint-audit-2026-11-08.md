@@ -221,6 +221,10 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
    - Query and per-type limits are strict, safe, trimmed, and bounded; public suggestions are capped at 120 requests per minute per client IP with an empty safe response after the budget; team-member artist profiles are excluded; and result projections contain only discovery fields with canonical slugs.
    - Discovery-search/navigation/suggestion regressions pass 30/30, with TypeScript and production build validation passing. No searches, profiles, events, venues, or records were changed.
 
+48. **Duplicate content-release route boundary — resolved in this increment.**
+   - Create/update/delete/access/purchase IDs and payloads are strict and safe; release type/hosting/access options are allowlisted; title/description/genre/URLs/dates/prices/AI metadata are bounded with minimum-price ordering and HTTP(S) checks; public single-release views are capped at 120 per minute per IP and artist lists at 100 rows; artist detail responses use a safe projection; public release metadata omits creator user IDs/revenue and preview tokens; and purchase amounts remain cents-safe before shared checkout validation.
+   - Content-release security/preview/UI/commerce regressions pass 46/46, with TypeScript and production build validation passing. No releases, views, purchases, Checkout sessions, media uploads, emails, or records were changed.
+
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

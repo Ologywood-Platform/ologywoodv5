@@ -28,6 +28,12 @@ import { PREVIEW_INPUT_BYTES, PREVIEW_ERROR, readPreviewReference, resolveHosted
 
 export const contentReleaseCoverLimiter = new RateLimiter({maxRequests:10, windowMs:60_000});
 export const contentReleasePreviewLimiter = new RateLimiter({maxRequests:6, windowMs:60_000});
+const contentReleaseViewLimiter = new RateLimiter({ maxRequests: 120, windowMs: 60_000 });
+
+function clientIp(ctx: { req?: { headers?: Record<string, unknown>; socket?: { remoteAddress?: string } } }): string {
+  return ctx.req?.headers?.['x-forwarded-for']?.toString()?.split(',')[0]?.trim()
+    || ctx.req?.socket?.remoteAddress || 'unknown';
+}
 
 // Release type options
 export const RELEASE_TYPES = CONTENT_RELEASE_TYPES;
@@ -79,39 +85,58 @@ export const ACCESS_MODELS = [
   { value: 'unlock_after_purchase', label: 'Unlock After Purchase', icon: '🔓', description: 'Locked until purchased' },
 ] as const;
 
+const safeReleaseId = z.number().int().safe().positive();
+const safeArtistProfileId = z.number().int().safe().positive();
+const httpUrl = z.string().trim().max(4096).refine((value) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}, 'Please use a valid HTTP(S) URL.');
+const releaseType = z.enum(CONTENT_RELEASE_TYPES.map((type) => type.value) as [string, ...string[]]);
+const hostingPlatform = z.enum(HOSTING_PLATFORMS.map((platform) => platform.value) as [string, ...string[]]);
+const accessModel = z.string().trim().max(50).refine((value) => ['free', 'ticketed', 'fan_club_only', 'pay_what_you_want', 'unlock_after_purchase'].includes(value), 'Unsupported access model.');
+const releasePrice = z.number().finite().min(0).max(999_999.99).refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-7, 'Use no more than two decimal places.');
+
 const createReleaseInput = z.object({
-  title: z.string().min(1).max(255),
-  description: z.string().optional(),
-  releaseType: z.string().min(1).max(50),
-  genre: z.string().max(100).optional(),
-  duration: z.string().max(50).optional(),
+  title: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(10_000).optional(),
+  releaseType,
+  genre: z.string().trim().max(100).optional(),
+  duration: z.string().trim().max(50).optional(),
   thumbnailUrl: z.string().max(4096).refine(value => {
     if (!value || value.startsWith('/manus-storage/')) return true;
     try { return ['https:', 'http:'].includes(new URL(value).protocol); } catch { return false; }
   }, 'Please use a valid uploaded cover-art URL.').optional(),
-  trailerUrl: z.string().optional(),
-  previewMedia: z.string().max(2048).optional(),
-  hostingPlatform: z.string().min(1).max(50),
-  contentUrl: z.string().url(),
-  accessModel: z.string().max(50).default('free'),
-  price: z.number().min(0).optional(),
-  minPrice: z.number().min(0).optional(),
-  premiereDate: z.string().optional(), // ISO date string
+  trailerUrl: httpUrl.optional(),
+  previewMedia: z.string().trim().max(2048).optional(),
+  hostingPlatform,
+  contentUrl: httpUrl,
+  accessModel: accessModel.default('free'),
+  price: releasePrice.optional(),
+  minPrice: releasePrice.optional(),
+  premiereDate: z.string().trim().max(40).refine((value) => !Number.isNaN(new Date(value).getTime()), 'Please use a valid premiere date.').optional(), // ISO date string
   isPublished: z.boolean().default(false),
   includesLiveQA: z.boolean().default(false),
   includesBonusContent: z.boolean().default(false),
-  bonusContentDescription: z.string().optional(),
+  bonusContentDescription: z.string().trim().max(5_000).optional(),
   ...aiDisclosureInputShape,
+}).strict().superRefine((value, ctx) => {
+  if (value.price !== undefined && value.minPrice !== undefined && value.minPrice > value.price) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['minPrice'], message: 'Minimum price cannot exceed the release price.' });
+  }
 });
 
 // Create defaults must not run during an unrelated partial edit.
 const updateReleaseInput = createReleaseInput.partial().extend({
-  id: z.number(),
-  accessModel: z.string().max(50).optional(),
+  id: safeReleaseId,
+  accessModel: accessModel.optional(),
   isPublished: z.boolean().optional(),
   includesLiveQA: z.boolean().optional(),
   includesBonusContent: z.boolean().optional(),
-});
+}).strict();
 
 export const releasesRouter = router({
   uploadPreview: releaseProtectedProcedure
@@ -299,7 +324,7 @@ export const releasesRouter = router({
 
   // Delete a release
   delete: releaseProtectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: safeReleaseId }).strict())
     .mutation(async ({ ctx, input }) => {
       const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -317,8 +342,11 @@ export const releasesRouter = router({
 
   // Get a single release by ID (public - for viewing)
   getById: releasePublicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: safeReleaseId }).strict())
     .query(async ({ ctx, input }) => {
+      if (!contentReleaseViewLimiter.check(`ip:${clientIp(ctx)}`).allowed) {
+        throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Too many release views. Please wait a minute.' });
+      }
       const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
 
@@ -334,7 +362,19 @@ export const releasesRouter = router({
         .where(eq(releases.id, input.id));
 
       // Get artist info
-      const [artist] = await database.select().from(artistProfiles)
+      const [artist] = await database.select({
+        id: artistProfiles.id,
+        artistName: artistProfiles.artistName,
+        talentType: artistProfiles.talentType,
+        genre: artistProfiles.genre,
+        location: artistProfiles.location,
+        city: artistProfiles.city,
+        state: artistProfiles.state,
+        country: artistProfiles.country,
+        profilePhotoUrl: artistProfiles.profilePhotoUrl,
+        websiteUrl: artistProfiles.websiteUrl,
+        socialLinks: artistProfiles.socialLinks,
+      }).from(artistProfiles)
         .where(eq(artistProfiles.id, release.artistProfileId));
 
       return { ...contentReleasePublicView(release, ctx.user?.id), artist };
@@ -342,7 +382,7 @@ export const releasesRouter = router({
 
   // Get all published releases for an artist (public profile)
   getByArtist: releasePublicProcedure
-    .input(z.object({ artistProfileId: z.number() }))
+    .input(z.object({ artistProfileId: safeArtistProfileId }).strict())
     .query(async ({ input }) => {
       const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -352,7 +392,8 @@ export const releasesRouter = router({
           eq(releases.artistProfileId, input.artistProfileId),
           eq(releases.isPublished, true)
         ))
-        .orderBy(desc(releases.createdAt), desc(releases.id));
+        .orderBy(desc(releases.createdAt), desc(releases.id))
+        .limit(100);
       // Keep non-single content in its existing slots; only published singles
       // are presentation-ranked. Dynamic import avoids a router/db service cycle.
       const { applyContentSinglesReleaseOrder } = await import('../services/releaseOrderService');
@@ -362,7 +403,7 @@ export const releasesRouter = router({
 
   // Check if current user has access to a release
   checkAccess: releaseProtectedProcedure
-    .input(z.object({ releaseId: z.number() }))
+    .input(z.object({ releaseId: safeReleaseId }).strict())
     .query(async ({ ctx, input }) => {
       const database = await getReleaseDb();
       if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
@@ -405,7 +446,7 @@ export const releasesRouter = router({
 
   // Starting Checkout never creates a paid entitlement. Verified Stripe fulfillment does.
   purchase: releaseProtectedProcedure
-    .input(z.object({releaseId:z.number().int().positive(),amount:z.number().finite().min(0)}))
+    .input(z.object({ releaseId: safeReleaseId, amount: releasePrice }).strict())
     .mutation(({ctx,input}) => createContentReleaseCheckout(ctx.user,input)),
 
   myPurchases: releaseProtectedProcedure.query(async ({ctx})=>{
