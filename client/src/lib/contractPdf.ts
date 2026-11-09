@@ -1,5 +1,9 @@
-import html2pdf from 'html2pdf.js';
 import DOMPurify from 'dompurify';
+
+async function loadHtml2Pdf() {
+  const module = await import('html2pdf.js');
+  return module.default ?? module;
+}
 
 interface ContractPdfOptions {
   filename?: string;
@@ -93,6 +97,7 @@ export async function generateContractPdf(options: ContractPdfOptions): Promise<
 
   // Generate PDF
   try {
+    const html2pdf = await loadHtml2Pdf();
     await html2pdf().set(opt).from(element).save();
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -174,6 +179,7 @@ export async function generateContractPdfBlob(options: ContractPdfOptions): Prom
   };
 
   // Generate PDF and return as blob
+  const html2pdf = await loadHtml2Pdf();
   return new Promise((resolve, reject) => {
     html2pdf()
       .set(opt)

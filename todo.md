@@ -5188,3 +5188,8 @@ A bounded read-only canary sent 20 requests each to production health, home OG, 
 ### Error/performance monitoring bootstrap — 2026-11-09
 
 Mounted the existing optional Sentry initializer in the active Express server before health and application routes. Added a bootstrap regression. Verification: focused regression passed, full suite passed 4,045 tests with 23 skipped across 335 files, TypeScript passed, and production build passed. Production event delivery remains gated on a configured `SENTRY_DSN`; no DSN was exposed or invented.
+
+
+### Performance optimization — deferred PDF library
+
+Rider and contract PDF exports now dynamically import `html2pdf.js` only when invoked. The static imports were removed and a regression confirms the deferred-import contract. The production build still emits the cacheable `vendor-pdf` chunk at about 983 KB, but the initial client chunks no longer contain the html2pdf payload. Focused regression passed, TypeScript passed, and production build passed. Remaining large application chunks and full Core Web Vitals validation remain open.

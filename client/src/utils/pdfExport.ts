@@ -1,5 +1,9 @@
-import html2pdf from 'html2pdf.js';
 import DOMPurify from 'dompurify';
+
+async function loadHtml2Pdf() {
+  const module = await import('html2pdf.js');
+  return module.default ?? module;
+}
 
 interface RiderTemplate {
   id: number;
@@ -34,7 +38,7 @@ interface SignatureInfo {
   signedAt: string;
 }
 
-export const generateRiderPDF = (template: RiderTemplate, signatures?: SignatureInfo[]) => {
+export const generateRiderPDF = async (template: RiderTemplate, signatures?: SignatureInfo[]) => {
   const signatureSection = signatures && signatures.length > 0
     ? `
       <div class="section" style="margin-top: 40px; border-top: 3px solid #1e40af; padding-top: 20px;">
@@ -302,5 +306,6 @@ export const generateRiderPDF = (template: RiderTemplate, signatures?: Signature
     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
   };
 
-  html2pdf().set(options as any).from(element).save();
+  const html2pdf = await loadHtml2Pdf();
+  await html2pdf().set(options as any).from(element).save();
 };

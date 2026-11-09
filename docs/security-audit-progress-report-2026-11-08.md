@@ -46,3 +46,8 @@ The active server bootstrap now mounts the existing optional Sentry error/perfor
 
 
 The Sentry bootstrap change was then validated by the complete regression suite: 4,045 passed and 23 skipped across 335 files, with TypeScript and the production build also passing.
+
+
+### On-demand PDF payload loading
+
+Rider and contract PDF utilities now dynamically import `html2pdf.js` only when a user requests PDF export. The static imports were removed from both utilities, and a regression confirms the deferred-import contract. The build still emits the cached `vendor-pdf` chunk at approximately 983 KB, but the initial client chunks no longer contain the html2pdf payload; the PDF library is fetched on demand. Focused regression, TypeScript, and production build passed.

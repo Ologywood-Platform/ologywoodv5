@@ -272,9 +272,9 @@ export default function Riders() {
     setViewDialogOpen(true);
   };
 
-  const handleDownloadPDF = (template: RiderTemplate) => {
+  const handleDownloadPDF = async (template: RiderTemplate) => {
     try {
-      generateRiderPDF(template);
+      await generateRiderPDF(template);
       toast.success("PDF downloaded successfully!");
     } catch (error) {
       toast.error("Failed to generate PDF");
