@@ -3,6 +3,8 @@ import { getDb } from '../db';
 import { venueContracts, bookings, users } from '../../drizzle/schema';
 import { eq, and, lte, gt, inArray } from 'drizzle-orm';
 import { sendEmail } from '../email';
+import { escapeFanEmailHtml, sanitizeFanEmailSubject } from '../services/fanEmailFormatting';
+import { requireCronTaskUid } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/contract-expiry-reminders
@@ -17,17 +19,13 @@ import { sendEmail } from '../email';
  */
 export async function contractExpiryRemindersHandler(req: Request, res: Response) {
   try {
-    // Auth: trust platform gateway — /api/scheduled/* is restricted to cron callers
-    const taskUid = req.headers['x-manus-cron-task-uid'] as string | undefined;
-    if (!taskUid) {
-      return res.status(403).json({ error: 'cron-only', message: 'Missing x-manus-cron-task-uid header' });
-    }
+    if (!requireCronTaskUid(req, res)) return;
 
     const now = new Date();
     const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     const db = await getDb();
-    if (!db) return res.status(500).json({ error: 'Database not available' });
+    if (!db) return res.status(500).json({ error: 'database-unavailable' });
 
     // === PART 1: Send reminders for contracts expiring within 24 hours ===
     const expiringContracts = await db.select()
@@ -61,14 +59,16 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
         if (!artist?.email) continue;
 
         const hoursLeft = Math.round((new Date(contract.expiresAt!).getTime() - now.getTime()) / (1000 * 60 * 60));
+        const safeArtistName = escapeFanEmailHtml(artist.name || 'there');
+        const safeContractTitle = escapeFanEmailHtml(contract.title);
 
         await sendEmail({
           to: artist.email,
-          subject: `⏰ Contract "${contract.title}" expires in ${hoursLeft} hours`,
+          subject: sanitizeFanEmailSubject(`⏰ Contract "${contract.title}" expires in ${hoursLeft} hours`),
           html: `
             <h2>Contract Signature Reminder</h2>
-            <p>Hi ${artist.name || 'there'},</p>
-            <p>The venue contract "<strong>${contract.title}</strong>" is expiring in approximately <strong>${hoursLeft} hours</strong>.</p>
+            <p>Hi ${safeArtistName},</p>
+            <p>The venue contract "<strong>${safeContractTitle}</strong>" is expiring in approximately <strong>${hoursLeft} hours</strong>.</p>
             <p>Please log in to Ologywood to review and sign the contract before the deadline.</p>
             <p><a href="https://www.ologywood.com/booking/${contract.bookingId}" style="display:inline-block;padding:12px 24px;background:#6B21A8;color:#fff;text-decoration:none;border-radius:6px;">Review Contract</a></p>
             <p>If you have questions about the contract terms, please message the venue directly through the platform.</p>
@@ -78,7 +78,10 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
         });
         reminders++;
       } catch (emailErr) {
-        console.error(`[Scheduled] Failed to send reminder for contract ${contract.id}:`, emailErr);
+        console.error('[Scheduled] Failed to send contract reminder', {
+          contractId: contract.id,
+          errorType: emailErr instanceof Error ? emailErr.name : 'UnknownError',
+        });
       }
     }
 
@@ -114,13 +117,15 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
             .limit(1);
 
           if (venue?.email) {
+            const safeVenueName = escapeFanEmailHtml(venue.name || 'there');
+            const safeContractTitle = escapeFanEmailHtml(contract.title);
             await sendEmail({
               to: venue.email,
-              subject: `Contract "${contract.title}" has expired`,
+              subject: sanitizeFanEmailSubject(`Contract "${contract.title}" has expired`),
               html: `
                 <h2>Contract Expired</h2>
-                <p>Hi ${venue.name || 'there'},</p>
-                <p>Your venue contract "<strong>${contract.title}</strong>" has expired without being signed by the artist.</p>
+                <p>Hi ${safeVenueName},</p>
+                <p>Your venue contract "<strong>${safeContractTitle}</strong>" has expired without being signed by the artist.</p>
                 <p>You can create a new contract with an extended deadline from the booking detail page.</p>
                 <p><a href="https://www.ologywood.com/booking/${contract.bookingId}" style="display:inline-block;padding:12px 24px;background:#6B21A8;color:#fff;text-decoration:none;border-radius:6px;">View Booking</a></p>
                 <hr />
@@ -130,7 +135,10 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
           }
         }
       } catch (expireErr) {
-        console.error(`[Scheduled] Failed to expire contract ${contract.id}:`, expireErr);
+        console.error('[Scheduled] Failed to expire contract', {
+          contractId: contract.id,
+          errorType: expireErr instanceof Error ? expireErr.name : 'UnknownError',
+        });
       }
     }
 
@@ -141,10 +149,11 @@ export async function contractExpiryRemindersHandler(req: Request, res: Response
       reminders_sent: reminders,
       contracts_expired: expired,
       checked_at: now.toISOString(),
-      task_uid: taskUid,
     });
-  } catch (error: any) {
-    console.error('[Scheduled] Contract expiry check failed:', error);
+  } catch (error: unknown) {
+    console.error('[Scheduled] Contract expiry check failed', {
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
     res.status(500).json({
       error: 'Unable to complete scheduled contract reminder processing',
     });

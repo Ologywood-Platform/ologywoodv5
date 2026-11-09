@@ -295,7 +295,9 @@ The audit confirmed strong protections in several sensitive areas: Stripe signat
 67. **Sitemap and robots canonical origins — resolved in this increment.**
    - Both public routes now resolve through the approved-origin helper with safe `www.ologywood.com` fallback; XML serialization remains escaped, and all eight sitemap query/generation exception logs expose only error kind.
    - Sitemap/OG/route-safety regressions pass 33/33, with TypeScript and production build passing. No sitemap crawls, profiles, events, venues, blogs, merch, emails, or records were changed during validation.
-
+68. **Mounted scheduled-job boundary and notification safety — resolved in this increment.**
+   - Contract, premiere, credit-expiration, auto-complete, and Ology Live session jobs now use one strict `x-manus-cron-task-uid` validator that rejects missing, duplicated, whitespace-bearing, malformed, and oversized values. Session reminders additionally require a verified Manus cron session whose task UID matches the header.
+   - Scheduled HTML emails escape user-controlled names, titles, and amounts; external content links allow only HTTP(S); dynamic subjects strip CRLF; and job logs/responses omit raw exceptions, stacks, request context, recipient PII, and cron tokens. Focused scheduled-security regressions pass 5/5, TypeScript and production build pass, and no scheduled job, email, payment, or database mutation was executed during validation.
 ## Audit limitations
 
 This was a source and runtime-configuration audit, not a production penetration test. It did not submit OAuth callbacks, send email, create payments/refunds, mutate events, or run destructive cleanup. The open findings above should be fixed with focused tests and then verified on the preview before publication.

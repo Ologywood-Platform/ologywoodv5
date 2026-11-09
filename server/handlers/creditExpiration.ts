@@ -5,6 +5,8 @@ import { eq, and, sql, lte } from "drizzle-orm";
 import { sendEmail } from "../email";
 import { ENV } from "../_core/env";
 import { getEmailLogoImage } from "../../shared/emailBranding";
+import { escapeFanEmailHtml, safeFanEmailHref, sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
+import { requireCronTaskUid } from "../services/cronAuth";
 
 /**
  * Credit Expiration Handler
@@ -17,15 +19,11 @@ import { getEmailLogoImage } from "../../shared/emailBranding";
  */
 export async function creditExpirationHandler(req: Request, res: Response) {
   try {
-    // Auth: trust platform gateway — /api/scheduled/* is restricted to cron callers
-    const taskUid = req.headers['x-manus-cron-task-uid'] as string | undefined;
-    if (!taskUid) {
-      return res.status(403).json({ error: 'cron-only', message: 'Missing x-manus-cron-task-uid header' });
-    }
+    if (!requireCronTaskUid(req, res)) return;
 
     const database = await getDb();
     if (!database) {
-      return res.status(500).json({ error: "Database not available" });
+      return res.status(500).json({ error: "database-unavailable" });
     }
 
     const now = new Date();
@@ -91,10 +89,15 @@ export async function creditExpirationHandler(req: Request, res: Response) {
         }) : 'soon';
         const amount = Number(credit.amount).toFixed(2);
         const baseUrl = ENV.baseUrl;
+        const safeUserName = escapeFanEmailHtml(userName);
+        const safeExpiryDate = escapeFanEmailHtml(expiryDate);
+        const pricingHref = safeFanEmailHref(`${baseUrl}/pricing`);
+        const unsubscribeHref = safeFanEmailHref(`${baseUrl}/unsubscribe?email=${encodeURIComponent(userEmail)}&type=referral`);
+        const settingsHref = safeFanEmailHref(`${baseUrl}/settings`);
 
         await sendEmail({
           to: userEmail,
-          subject: `⏰ Your $${amount} referral credit expires on ${expiryDate}`,
+          subject: sanitizeFanEmailSubject(`⏰ Your $${amount} referral credit expires on ${expiryDate}`),
           html: `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
               <div style="background: linear-gradient(135deg, #6D28D9 0%, #00D9FF 100%); padding: 30px 20px; text-align: center;">
@@ -102,19 +105,19 @@ export async function creditExpirationHandler(req: Request, res: Response) {
                 <p style="color: white; font-size: 14px; margin: 0; font-weight: 500;">Where Artists Meet Opportunities</p>
               </div>
               <div style="padding: 30px 24px;">
-                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${userName},</p>
+                <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0;">Hi ${safeUserName},</p>
                 
                 <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 8px; margin: 20px 0; border: 1px solid #f59e0b; text-align: center;">
                   <p style="color: #92400e; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Credit Expiring Soon</p>
                   <p style="color: #78350f; font-size: 28px; font-weight: 700; margin: 0 0 8px 0;">$${amount}</p>
-                  <p style="color: #92400e; font-size: 14px; margin: 0;">Expires on ${expiryDate}</p>
+                  <p style="color: #92400e; font-size: 14px; margin: 0;">Expires on ${safeExpiryDate}</p>
                 </div>
 
                 <p style="color: #374151; font-size: 14px; margin: 0 0 20px 0;">
                   Your referral credit will expire in less than 7 days. Use it toward your next subscription payment before it's gone!
                 </p>
 
-                <a href="${baseUrl}/pricing" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                <a href="${pricingHref}" style="display: inline-block; background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
                   Use Your Credit Now
                 </a>
 
@@ -124,14 +127,17 @@ export async function creditExpirationHandler(req: Request, res: Response) {
               </div>
               <div style="background: #f9fafb; padding: 20px; border-top: 1px solid #e5e7eb;">
                 <p style="color: #6b7280; font-size: 12px; margin: 0;">
-                  <a href="${baseUrl}/unsubscribe?email=${encodeURIComponent(userEmail)}&type=referral" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
-                  <a href="${baseUrl}/settings" style="color: #6D28D9; text-decoration: none;">Manage preferences</a>
+                  <a href="${unsubscribeHref}" style="color: #6D28D9; text-decoration: none;">Unsubscribe</a> | 
+                  <a href="${settingsHref}" style="color: #6D28D9; text-decoration: none;">Manage preferences</a>
                 </p>
                 <p style="color: #9ca3af; font-size: 11px; margin: 8px 0 0 0;">&copy; 2026 Ologywood. All rights reserved.</p>
               </div>
             </div>
           `,
-        }).catch((err: unknown) => console.error("[CreditExpiration] Failed to send warning email:", err));
+        }).catch((err: unknown) => console.error("[CreditExpiration] Failed to send warning email", {
+          creditId: credit.id,
+          errorType: err instanceof Error ? err.name : 'UnknownError',
+        }));
 
         // Mark as warned so we don't send again
         await database
@@ -149,12 +155,11 @@ export async function creditExpirationHandler(req: Request, res: Response) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: unknown) {
-    const err = error as Error;
-    console.error("[CreditExpiration] Handler error:", err);
+    console.error("[CreditExpiration] Handler error", {
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
     res.status(500).json({
-      error: err.message,
-      stack: err.stack,
-      context: { url: req.url },
+      error: "Unable to complete scheduled credit expiration processing",
       timestamp: new Date().toISOString(),
     });
   }

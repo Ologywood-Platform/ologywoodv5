@@ -3,6 +3,7 @@ import { getDb } from '../db';
 import { contentReleases, contentReleasePurchases, artistProfiles, users } from '../../drizzle/schema';
 import { eq, and, lte, gt, gte } from 'drizzle-orm';
 import { sendPremiereReminderEmail } from '../email';
+import { requireCronTaskUid } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/premiere-reminders
@@ -16,13 +17,10 @@ import { sendPremiereReminderEmail } from '../email';
  */
 export async function premiereRemindersHandler(req: Request, res: Response) {
   try {
-    const taskUid = req.headers['x-manus-cron-task-uid'] as string | undefined;
-    if (!taskUid) {
-      return res.status(403).json({ error: 'cron-only', message: 'Missing x-manus-cron-task-uid header' });
-    }
+    if (!requireCronTaskUid(req, res)) return;
 
     const db = await getDb();
-    if (!db) return res.status(500).json({ error: 'Database not available' });
+    if (!db) return res.status(500).json({ error: 'database-unavailable' });
 
     const now = new Date();
     const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -73,7 +71,11 @@ export async function premiereRemindersHandler(req: Request, res: Response) {
           });
           totalSent++;
         } catch (emailErr) {
-          console.error(`[Premiere Reminder] Failed to send to ${buyer.email}:`, emailErr);
+          console.error('[Premiere Reminder] Failed to send reminder', {
+            releaseId: release.id,
+            purchaseId: purchase.id,
+            errorType: emailErr instanceof Error ? emailErr.name : 'UnknownError',
+          });
         }
       }
     }
@@ -84,8 +86,10 @@ export async function premiereRemindersHandler(req: Request, res: Response) {
       reminders_sent: totalSent,
       releases_count: upcomingReleases.length,
     });
-  } catch (error: any) {
-    console.error('[Premiere Reminders] Error:', error);
+  } catch (error: unknown) {
+    console.error('[Premiere Reminders] Error', {
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
     return res.status(500).json({ error: 'Unable to process scheduled premiere reminders' });
   }
 }

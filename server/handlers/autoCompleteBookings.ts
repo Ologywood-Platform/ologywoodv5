@@ -3,6 +3,7 @@ import { getDb } from '../db';
 import { bookings, users, artistProfiles } from '../../drizzle/schema';
 import { eq, and, lte } from 'drizzle-orm';
 import { sendSettlementReminderEmail } from '../email';
+import { requireCronTaskUid } from '../services/cronAuth';
 
 /**
  * Heartbeat handler: POST /api/scheduled/auto-complete-bookings
@@ -18,14 +19,10 @@ import { sendSettlementReminderEmail } from '../email';
  */
 export async function autoCompleteBookingsHandler(req: Request, res: Response) {
   try {
-    // Auth: trust platform gateway — /api/scheduled/* is restricted to cron callers
-    const taskUid = req.headers['x-manus-cron-task-uid'] as string | undefined;
-    if (!taskUid) {
-      return res.status(403).json({ error: 'cron-only', message: 'Missing x-manus-cron-task-uid header' });
-    }
+    if (!requireCronTaskUid(req, res)) return;
 
     const db = await getDb();
-    if (!db) return res.status(500).json({ error: 'Database not available' });
+    if (!db) return res.status(500).json({ error: 'database-unavailable' });
 
     const now = new Date();
     // Find all confirmed bookings where eventDate is before today
@@ -94,7 +91,10 @@ export async function autoCompleteBookingsHandler(req: Request, res: Response) {
           }
         } catch (emailErr) {
           // Don't fail the whole job if one email fails
-          console.error(`[AutoComplete] Failed to send settlement email for booking ${booking.id}:`, emailErr);
+          console.error('[AutoComplete] Failed to send settlement email', {
+            bookingId: booking.id,
+            errorType: emailErr instanceof Error ? emailErr.name : 'UnknownError',
+          });
         }
       }
     }
@@ -108,12 +108,12 @@ export async function autoCompleteBookingsHandler(req: Request, res: Response) {
       settlementEmailsSent,
       timestamp: now.toISOString(),
     });
-  } catch (error: any) {
-    console.error('[AutoComplete] Error:', error);
+  } catch (error: unknown) {
+    console.error('[AutoComplete] Error', {
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
     return res.status(500).json({
-      error: error.message || 'Internal server error',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      context: { url: req.url, taskUid: req.headers['x-manus-cron-task-uid'] },
+      error: 'Unable to complete scheduled booking processing',
       timestamp: new Date().toISOString(),
     });
   }

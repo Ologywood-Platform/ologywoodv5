@@ -1,6 +1,7 @@
 import { ENV } from "./_core/env";
 import { getEmailLogoImage } from "../shared/emailBranding";
 import { escapeFanEmailHtml } from "./services/fanEmailFormatting";
+import { safeFanEmailHref, sanitizeFanEmailSubject } from "./services/fanEmailFormatting";
 
 /**
  * Email notification service for Ologywood platform
@@ -1825,6 +1826,12 @@ export async function sendSettlementReminderEmail(params: {
   guaranteeAmount?: string;
 }): Promise<boolean> {
   const { venueEmail, venueName, artistName, eventDate, bookingId, paymentTermsType, doorSplitArtistPercent, guaranteeAmount } = params;
+  const safeVenueName = escapeFanEmailHtml(venueName);
+  const safeArtistName = escapeFanEmailHtml(artistName);
+  const safeGuaranteeAmount = escapeFanEmailHtml(guaranteeAmount || '0');
+  const bookingHref = safeFanEmailHref(`${ENV.baseUrl}/bookings/${bookingId}`);
+  const unsubscribeHref = safeFanEmailHref(`${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=reminders`);
+  const privacyHref = safeFanEmailHref(`${ENV.baseUrl}/privacy`);
 
   const eventDateStr = new Date(eventDate).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -1837,30 +1844,30 @@ export async function sendSettlementReminderEmail(params: {
   if (paymentTermsType === 'door_split') {
     termsDescription = `<p><strong>Terms:</strong> Door Split — Artist receives ${doorSplitArtistPercent || 80}% of door revenue</p>`;
   } else if (paymentTermsType === 'guarantee_vs_percentage') {
-    termsDescription = `<p><strong>Terms:</strong> Guarantee vs. Percentage — Minimum $${guaranteeAmount || '0'} OR ${doorSplitArtistPercent || 80}% of door (whichever is higher)</p>`;
+    termsDescription = `<p><strong>Terms:</strong> Guarantee vs. Percentage — Minimum $${safeGuaranteeAmount} OR ${doorSplitArtistPercent || 80}% of door (whichever is higher)</p>`;
   } else {
     termsDescription = `<p><strong>Terms:</strong> Flat Guarantee</p>`;
   }
 
-  const subject = `Settlement Reminder: ${artistName} show on ${eventDateStr}`;
+  const subject = sanitizeFanEmailSubject(`Settlement Reminder: ${artistName} show on ${eventDateStr}`);
 
   const html = `
     <h2>Time to Settle Up</h2>
     
-    <p>Hello ${venueName},</p>
+    <p>Hello ${safeVenueName},</p>
     
-    <p>The show with <strong>${artistName}</strong> on ${eventDateStr} is now complete. It's time to settle the payment based on your agreed terms.</p>
+    <p>The show with <strong>${safeArtistName}</strong> on ${eventDateStr} is now complete. It's time to settle the payment based on your agreed terms.</p>
     
     <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
       <h3 style="margin-top: 0;">Show Details</h3>
-      <p><strong>Artist:</strong> ${artistName}</p>
+      <p><strong>Artist:</strong> ${safeArtistName}</p>
       <p><strong>Date:</strong> ${eventDateStr}</p>
       ${termsDescription}
     </div>
     
     <p>Please log in to your dashboard to complete the settlement form. You'll need to enter the door revenue and attendance so the artist payout can be calculated.</p>
     
-    <a href="${ENV.baseUrl}/bookings/${bookingId}" 
+    <a href="${bookingHref}" 
        style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
       Complete Settlement
     </a>
@@ -1869,8 +1876,8 @@ export async function sendSettlementReminderEmail(params: {
     
     <p>Best regards,<br>The Ologywood Team</p>
     <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
-      <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(venueEmail)}&type=reminders" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
-      <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+      <a href="${unsubscribeHref}" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+      <a href="${privacyHref}" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
     </p>
   `;
 
@@ -2148,6 +2155,12 @@ export async function sendPremiereReminderEmail(params: {
   hostingPlatform: string;
 }) {
   const { buyerEmail, buyerName, releaseTitle, creatorName, premiereDate, contentUrl, hostingPlatform } = params;
+  const safeBuyerName = escapeFanEmailHtml(buyerName || 'there');
+  const safeReleaseTitle = escapeFanEmailHtml(releaseTitle);
+  const safeCreatorName = escapeFanEmailHtml(creatorName);
+  const contentHref = safeFanEmailHref(contentUrl);
+  const unsubscribeHref = safeFanEmailHref(`${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=release`);
+  const privacyHref = safeFanEmailHref(`${ENV.baseUrl}/privacy`);
 
   const platformLabel: Record<string, string> = {
     youtube: 'YouTube', vimeo: 'Vimeo', twitch: 'Twitch', spotify: 'Spotify',
@@ -2155,40 +2168,41 @@ export async function sendPremiereReminderEmail(params: {
     personal_website: 'Personal Website', other: 'the hosting platform',
   };
   const platform = platformLabel[hostingPlatform] || hostingPlatform;
+  const safePlatform = escapeFanEmailHtml(platform);
   const formattedDate = new Date(premiereDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const formattedTime = new Date(premiereDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #8b5cf6;">🎬 Premiere Reminder!</h2>
-      <p>Hi ${buyerName || 'there'},</p>
-      <p><strong>"${releaseTitle}"</strong> by <strong>${creatorName}</strong> premieres soon!</p>
+      <p>Hi ${safeBuyerName},</p>
+      <p><strong>"${safeReleaseTitle}"</strong> by <strong>${safeCreatorName}</strong> premieres soon!</p>
       
       <div style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd6fe;">
         <p style="font-size: 18px; font-weight: bold; color: #6d28d9; margin: 0 0 8px 0;">📅 ${formattedDate}</p>
         <p style="font-size: 14px; color: #7c3aed; margin: 0;">🕐 ${formattedTime}</p>
-        <p style="font-size: 13px; color: #6b7280; margin: 8px 0 0 0;">Streaming on ${platform}</p>
+        <p style="font-size: 13px; color: #6b7280; margin: 8px 0 0 0;">Streaming on ${safePlatform}</p>
       </div>
       
       <p>Don't miss it! Click below when it's time:</p>
       
-      <a href="${contentUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-size: 16px;">
-        ▶ Watch "${releaseTitle}"
+      <a href="${contentHref}" style="display: inline-block; background: #8b5cf6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-size: 16px;">
+        ▶ Watch "${safeReleaseTitle}"
       </a>
       
       <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
         Enjoy the show! — The Ologywood Team
       </p>
       <p style="color: #6b7280; font-size: 12px; margin-top: 10px;">
-        <a href="${ENV.baseUrl}/unsubscribe?email=${encodeURIComponent(buyerEmail)}&type=release" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
-        <a href="${ENV.baseUrl}/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
+        <a href="${unsubscribeHref}" style="color: #8b5cf6; text-decoration: none;">Unsubscribe</a> | 
+        <a href="${privacyHref}" style="color: #8b5cf6; text-decoration: none;">Privacy Policy</a>
       </p>
     </div>
   `;
 
   return sendEmail({
     to: buyerEmail,
-    subject: `🎬 Premiere Tomorrow: "${releaseTitle}" by ${creatorName}`,
+    subject: sanitizeFanEmailSubject(`🎬 Premiere Tomorrow: "${releaseTitle}" by ${creatorName}`),
     html,
   });
 }

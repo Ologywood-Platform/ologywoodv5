@@ -7,6 +7,8 @@ import {
   users,
 } from "../../drizzle/schema";
 import { sdk } from "../_core/sdk";
+import { requireCronTaskUid } from "../services/cronAuth";
+import { sanitizeFanEmailSubject } from "../services/fanEmailFormatting";
 
 /**
  * Session Reminders Handler
@@ -15,8 +17,11 @@ import { sdk } from "../_core/sdk";
  */
 export async function sessionRemindersHandler(req: Request, res: Response) {
   try {
+    const taskUid = requireCronTaskUid(req, res);
+    if (!taskUid) return;
+
     const user = await sdk.authenticateRequest(req);
-    if (!user.isCron || !user.taskUid) {
+    if (!user.isCron || !user.taskUid || user.taskUid !== taskUid) {
       return res.status(403).json({ error: "cron-only" });
     }
 
@@ -91,7 +96,10 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
           remindersSent++;
         }
       } catch (err) {
-        console.error(`[SessionReminders] Error sending reminder for booking ${booking.bookingId}:`, err);
+        console.error('[SessionReminders] Error sending reminder', {
+          bookingId: booking.bookingId,
+          errorType: err instanceof Error ? err.name : 'UnknownError',
+        });
       }
     }
 
@@ -101,12 +109,12 @@ export async function sessionRemindersHandler(req: Request, res: Response) {
       remindersSent,
       checkedAt: now.toISOString(),
     });
-  } catch (error: any) {
-    console.error("[SessionReminders] Handler error:", error);
+  } catch (error: unknown) {
+    console.error("[SessionReminders] Handler error", {
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
     res.status(500).json({
-      error: error.message || "Internal error",
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-      context: { url: req.url, taskUid: (error as any)?.taskUid },
+      error: "Unable to process scheduled session reminders",
       timestamp: new Date().toISOString(),
     });
   }
@@ -127,7 +135,7 @@ interface ReminderEmailParams {
 async function sendReminderEmail(params: ReminderEmailParams): Promise<void> {
   const { to, recipientName, sessionTitle, talentName, platform, joinLink, minutesUntil, duration, isTalent } = params;
 
-  const subject = `⏰ Your Ology Live session "${sessionTitle}" starts in ${minutesUntil} minutes!`;
+  const subject = sanitizeFanEmailSubject(`⏰ Your Ology Live session "${sessionTitle}" starts in ${minutesUntil} minutes!`);
 
   const body = isTalent
     ? `Hi ${recipientName},\n\nYour Ology Live session "${sessionTitle}" with ${talentName} starts in ${minutesUntil} minutes.\n\nSession Details:\n- Platform: ${platform}\n- Duration: ${duration} minutes\n${joinLink ? `- Join Link: ${joinLink}` : "- Please share the join link with your guest"}\n\nPlease be ready a few minutes early. Have a great session!\n\nBest,\nThe Ologywood Team`
@@ -154,9 +162,11 @@ async function sendReminderEmail(params: ReminderEmailParams): Promise<void> {
         console.error(`[SessionReminders] SendGrid error: ${response.status}`);
       }
     } catch (err) {
-      console.error("[SessionReminders] Email send failed:", err);
+        console.error("[SessionReminders] Email send failed", {
+          errorType: err instanceof Error ? err.name : 'UnknownError',
+        });
     }
   } else {
-    console.log(`[SessionReminders] Would send email to ${to}: ${subject}`);
+    console.log(`[SessionReminders] Email delivery skipped: provider not configured`);
   }
 }
