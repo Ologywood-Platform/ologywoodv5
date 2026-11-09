@@ -54,6 +54,13 @@ async function getArtistStripeAccountId(artistUserId: number): Promise<string | 
  */
 router.post("/", async (req: Request, res: Response) => {
   try {
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ error: 'Request body must be an object' });
+    }
+    const allowedKeys = new Set(['releaseId', 'customAmountCents']);
+    if (Object.keys(req.body).some((key) => !allowedKeys.has(key))) {
+      return res.status(400).json({ error: 'Unknown release checkout field' });
+    }
     const { releaseId, customAmountCents } = req.body;
 
     const parsedReleaseId = positiveRouteId(releaseId);

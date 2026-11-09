@@ -5222,6 +5222,10 @@ Redacted remaining raw exception interpolation in venue operations, admin role-c
 
 Confirmed `/api/email` and `/api/release/checkout` are active surfaces. Email-test failures now log only error kind; release-checkout logs no longer expose Stripe account IDs, artist user IDs, Checkout session IDs, release IDs, or raw exceptions. Unmounted payment-testing and socket-metrics modules were not treated as active production surfaces. Reachable-route/commerce regressions passed 17/17; TypeScript and production build passed with existing chunk-size warnings. No emails, Checkout sessions, payments, or records changed.
 
+### Release-checkout body contract — 2026-11-09
+
+The active release checkout now rejects missing/non-object/array bodies and unknown fields before release lookup or Stripe work; only `releaseId` and `customAmountCents` are accepted. Focused release-checkout/Express regressions passed 12/12; TypeScript and production build passed with existing chunk-size warnings. No Checkout sessions, payments, emails, or records changed.
+
 
 ### Production image loading correction — 2026-11-09
 
