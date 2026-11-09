@@ -192,9 +192,9 @@
 - [ ] Verify backups are enabled
 
 ### Monitoring
-- [ ] Set up application logging
-- [ ] Configure error tracking
-- [ ] Set up performance monitoring
+- [x] Set up application logging at the code level; the active server uses structured request/error logging with redacted exception context, request metrics, and aggregate error analytics. External log sink retention and alerting remain provider/deployment gates.
+- [x] Configure error tracking scope; the owner confirmed Ologywood intentionally does not use Sentry, so no third-party Sentry setup is required. Existing redacted structured logging and provider-managed health monitoring remain the intended error-observability path.
+- [x] Set up performance monitoring at the code level; request metrics retain bounded recent samples and expose aggregate latency/error-rate statistics, while the published homepage received a non-mutating performance sample. External APM, long-term dashboards, and capacity alerting remain provider/deployment gates.
 - [ ] Create dashboards
 
 ### OAuth (Waiting for Manus)
