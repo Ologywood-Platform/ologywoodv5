@@ -5183,3 +5183,8 @@ Read-only production verification found 110 tables and all core booking/commerce
 ### Production-load canary — 2026-11-09
 
 A bounded read-only canary sent 20 requests each to production health, home OG, and sitemap endpoints with at most five concurrent workers. All 60 requests returned HTTP 200. Median latency was approximately 1.43–1.46 seconds and maximum latency 1.82–2.28 seconds. This is baseline evidence only; provider-level capacity/autoscaling/load testing remains open.
+
+
+### Error/performance monitoring bootstrap — 2026-11-09
+
+Mounted the existing optional Sentry initializer in the active Express server before health and application routes. Added a bootstrap regression. Verification: focused regression passed, full suite passed 4,045 tests with 23 skipped across 335 files, TypeScript passed, and production build passed. Production event delivery remains gated on a configured `SENTRY_DSN`; no DSN was exposed or invented.

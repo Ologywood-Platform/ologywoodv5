@@ -39,6 +39,7 @@ import { creditExpirationHandler } from '../handlers/creditExpiration';
 import { autoCompleteBookingsHandler } from '../handlers/autoCompleteBookings';
 import { sessionRemindersHandler } from '../handlers/sessionReminders';
 import { assertProductionNodeRuntime, runtimeHealthHandler } from '../services/runtimeSecurityService';
+import { initializeSentry } from '../sentry';
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -64,6 +65,10 @@ async function startServer() {
   console.log('[Server] Starting Ologywood server...');
   const app = express();
   const server = createServer(app);
+
+  // Optional error/performance monitoring. The initializer is a no-op apart
+  // from a redacted configuration warning when SENTRY_DSN is not configured.
+  initializeSentry(app);
 
   // Enforce HTTPS in the actual runtime entrypoint before any route can serve
   // a browser response. Non-GET API requests are intentionally not redirected.

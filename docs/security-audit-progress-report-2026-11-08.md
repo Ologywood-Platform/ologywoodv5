@@ -38,3 +38,11 @@ A fresh read-only production check confirmed 110 database tables and presence of
 ### Bounded production-load canary
 
 A non-mutating canary sent 20 requests each to production health, home OG, and sitemap endpoints with at most five concurrent workers. All 60 requests returned HTTP 200 with no errors. Median latency was approximately 1.43–1.46 seconds and maximum latency was 1.82–2.28 seconds. This is a healthy bounded status result but not a capacity or autoscaling test; the measured latency warrants continued performance monitoring and a provider-level load test before claiming production-load readiness complete.
+
+
+### Monitoring implementation
+
+The active server bootstrap now mounts the existing optional Sentry error/performance monitoring initializer before health and application routes. A focused bootstrap regression passed, TypeScript passed, and the production build passed. Sentry remains configuration-gated: without `SENTRY_DSN`, the initializer intentionally does not send events. The remaining operational action is to provide/verify the production DSN and confirm an event in the Sentry project; no secret was requested or exposed in this pass.
+
+
+The Sentry bootstrap change was then validated by the complete regression suite: 4,045 passed and 23 skipped across 335 files, with TypeScript and the production build also passing.
